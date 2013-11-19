@@ -1,0 +1,60 @@
+<document xmlns="http://maven.apache.org/changes/1.0.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/changes/1.0.0 http://maven.apache.org/xsd/changes-1.0.0.xsd">
+    <properties>
+        <title>HPS Java</title>
+        <author email="jeremym@slac.stanford.edu">Jeremy McCormick</author>
+    </properties>
+    <body>
+        
+          <!--  
+            Supported action types are the following:
+              add : added functionality 
+              fix : bug fix 
+              update : updated some part of the project
+              remove : removed some functionality
+          -->                    
+        <release version="1.6" date="2013-04-26" description="HPS Java Release 1.6">
+            <action dev="Sho Uemura" type="fix" issue="HPSJAVA-26">
+                Fixed ConditionsReader on OSX.
+            </action>
+            <action dev="Matthew Graham" type="add" issue="HPSJAVA-34">
+                Added offline event filtering on minimum number of RawTrackerHits.               
+            </action>
+            <action dev="Sho Uemura" type="update" issue="HPSJAVA-13">
+                Made SimpleSVTReadout the standard SVT readout driver and updated related configuration.
+                <fixes issue="HPSJAVA-15"/>
+                <fixes issue="HPSJAVA-16"/>
+                <fixes issue="HPSJAVA-17"/>
+            </action>
+            <action dev="Sho Uemura" type="add" issue="HPSJAVA-25">
+                Added readout time information to the reconstructed events.
+            </action>            
+            <action dev="Per Hansson" type="add">
+                Implemented optional iterative fit algorithm in SeedTracker, solving a number of reconstruction performance issues.
+                <fixes issue="HPSJAVA-14"/>
+                <fixes issue="HPSJAVA-18"/>
+                <fixes issue="HPSJAVA-19"/>
+                <fixes issue="HPSJAVA-31"/>                
+            </action>
+            <action dev="Sho Uemura" type="fix" issue="HPSJAVA-24">
+                Fixed performance issue with the event loop by updating an lcsim dependency.
+            </action>
+            <action dev="Matthew Graham" type="add" issue="HPSJAVA-20">
+                Changed BilliorVertex to implement org.lcsim.event.Vertex and added Vertices to reconstruction output.
+            </action>
+            <action dev="Sho Uemura" type="update" issue="HPSJAVA-11">
+                Moved readout and trigger drivers to org.lcsim.hps.readout.ecal package.
+            </action>
+            <action dev="Sho Uemura" type="update" issue="HPSJAVA-12">
+                Organized steering files by moving them to subfolders.
+            </action>
+            <action dev="Jeremy McCormick" type="update" issue="HPSJAVA-8">
+                Improved the Maven-generated project website by adding javadoc, a link to the JIRA, and the list of developers. 
+            </action>
+            <action dev="Sho Uemura" type="add" issue="HPSJAVA-28">
+                Added list of SimTrackerHits toe the SVT RawTrackerHits in SimpleSVTReadout.
+            </action>
+        </release>
+    </body>
+</document>

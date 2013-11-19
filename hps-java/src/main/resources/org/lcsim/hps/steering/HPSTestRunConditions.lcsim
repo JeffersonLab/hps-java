@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <conditions>
+        <detectors>HPS-Test-JLAB-v4pt0 HPS-TestRun-v2</detectors>
+        <condition>calibECal/ecal01.ped</condition>
+        <condition>calibECal/ecal02.ped</condition>
+        <condition>calibSVT/base.properties</condition>
+        <condition>calibSVT/default.base</condition>
+        <condition>SamplingFractions/ECal.properties</condition>
+        <condition>daqmap/ecal.badchannels</condition>
+        <condition>daqmap/ecal.txt</condition>
+        <condition>daqmap/SVTDAQMapTop.properties</condition>
+        <condition>daqmap/SVTDAQMapBottom.properties</condition>        
+    </conditions>
+    <execute>
+        <driver name="EventMarkerDriver" />
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>  
+    </drivers>
+</lcsim>

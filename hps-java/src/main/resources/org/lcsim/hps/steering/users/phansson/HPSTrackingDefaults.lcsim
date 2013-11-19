@@ -1,0 +1,68 @@
+
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <inputFiles>
+<!--
+-->
+    </inputFiles>
+    <control>
+        <numberOfEvents>3000</numberOfEvents>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>
+        <driver name="TrackerDigiDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+        <!-- <driver name="LCIOWriter"/> -->
+        <driver name="GBLDriver"/> 
+
+
+
+    </execute>    
+ 
+    <drivers>
+        <driver name="GBLDriver"
+                type="org.lcsim.hps.recon.tracking.gbl.GBLOutputDriver">
+                <debug>0</debug>
+                <hideFrame>false</hideFrame>
+                <outputPlotFileName></outputPlotFileName>
+                <gblFileName>gblinput.txt</gblFileName>
+	</driver>
+        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+<!--            <runNumber>1351</runNumber>    -->
+        </driver>
+
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>100</eventInterval>
+        </driver>
+    
+        <driver name="TrackerDigiDriver" type="org.lcsim.hps.users.meeg.SimpleTrackerDigiDriver">
+<!--            <dropBadChannels>true</dropBadChannels>-->
+            <debug>false</debug>
+        </driver>
+              
+        <driver name="HelicalTrackHitDriver"
+                type="org.lcsim.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        
+        <driver name="TrackerReconDriver"
+                type="org.lcsim.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+        </driver>
+
+        <driver name="LCIOWriter"
+                type="org.lcsim.util.loop.LCIODriver">
+            <!--<outputFilePath>${outputFile}</outputFilePath>-->
+        </driver>
+                                                                    
+    </drivers>
+</lcsim>

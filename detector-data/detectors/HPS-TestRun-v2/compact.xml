@@ -1,0 +1,240 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    
+    <info name="HPS-TestRun-v2">
+        <comment>HPS JLab Test Run detector</comment>
+    </info>
+
+    <define>
+    
+        <!-- world -->
+        <constant name="world_side" value="500.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+        
+        <!-- tracking region -->
+        <constant name="tracking_region_radius" value="200.0*cm"/>
+        <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="100.0*cm"/>
+        
+        <!-- ECAL -->
+        <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <constant name="ecal_z" value="160/2*mm" />
+        <constant name="ecal_dx" value="41.27*mm" />
+                
+        <!-- SVT module dimensions -->
+        <constant name="moduleLength" value="100.0"/>
+        <constant name="moduleWidth" value="40.34"/>
+        
+        <!-- SVT sensor dimensions -->
+        <constant name="sensorLength" value="98.33"/>
+        
+        <!-- Sensor width slightly less than 38.34 mm so sisim works. -->
+        <constant name="sensorWidth" value="38.3399"/>
+                
+        <!-- positions derived from drawing assuming 1.35/1.2 degress open on top/bottom -->
+        <constant name="x_rot_top" value="-0.0235619449" />
+        <constant name="x_rot_bot" value="0.020943951" />
+        <constant name="y_rot" value = "0.03"/> 
+
+        <!-- Positions of sensor centers above/below nominal beam -->
+        <constant name="y1t" value="36.894" />
+        <constant name="y2t" value="36.746" />
+        <constant name="y3t" value="35.833" />
+        <constant name="y4t" value="35.669" />
+        <constant name="y5t" value="34.984" />
+        <constant name="y6t" value="34.845" />
+        <constant name="y7t" value="33.359" />
+        <constant name="y8t" value="33.183" />
+        <constant name="y9t" value="31.764" />
+        <constant name="y10t" value="31.596" />
+        
+        <constant name="y1b" value="-34.787" />
+        <constant name="y2b" value="-34.633" />
+        <constant name="y3b" value="-34.346" />
+        <constant name="y4b" value="-34.179" />
+        <constant name="y5b" value="-33.842" />
+        <constant name="y6b" value="-33.700" />
+        <constant name="y7b" value="-32.766" />
+        <constant name="y8b" value="-32.595" />
+        <constant name="y9b" value="-31.217" />
+        <constant name="y10b" value="-31.052" />      
+ 
+        <!-- Positions of sensor centers along beam relative to nominal target position -->
+        <constant name="z1t" value="92.5-3.685-0.02" />
+        <constant name="z2t" value="92.5+3.685+0.083" />
+        <constant name="z3t" value="192.5-3.685+0.035" />
+        <constant name="z4t" value="192.5+3.685+0.049" />
+        <constant name="z5t" value="292.5-3.685-0.007" />
+        <constant name="z6t" value="292.5+3.685+0.032" />
+        <constant name="z7t" value="492.5-3.685-0.015" />
+        <constant name="z8t" value="492.5+3.685+0.009" />
+        <constant name="z9t" value="692.5-3.685-0.036" />
+        <constant name="z10t" value="692.5+3.685-0.063" />
+
+        <constant name="z1b" value="107.5-3.685-0.005" />
+        <constant name="z2b" value="107.5+3.685-0.018" />
+        <constant name="z3b" value="207.5-3.685+0.048" />
+        <constant name="z4b" value="207.5+3.685+0.028" />
+        <constant name="z5b" value="307.5-3.685-0.031" />
+        <constant name="z6b" value="307.5+3.685+0.032" />
+        <constant name="z7b" value="507.5-3.685+0.092" />
+        <constant name="z8b" value="507.5+3.685+0.009" />
+        <constant name="z9b" value="707.5-3.685-0.066" />
+        <constant name="z10b" value="707.5+3.685-0.043" />
+        
+        <!-- Lateral positions relative to nominal beamline -->
+        <constant name="x1t" value="-0.156" />
+        <constant name="x2t" value="-0.158" />
+        <constant name="x3t" value="-0.047" />
+        <constant name="x4t" value="-0.109" />
+        <constant name="x5t" value="-0.013" />
+        <constant name="x6t" value="-0.062" />
+        <constant name="x7t" value="-0.067" />
+        <constant name="x8t" value="-0.045" />
+        <constant name="x9t" value="-0.152" />
+        <constant name="x10t" value="0.020" />
+    
+        <constant name="x1b" value="-0.040" />
+        <constant name="x2b" value="0.054" />
+        <constant name="x3b" value="0.004" />
+        <constant name="x4b" value="0.081" />
+        <constant name="x5b" value="-0.087" />
+        <constant name="x6b" value="0.022" />
+        <constant name="x7b" value="-0.004" />
+        <constant name="x8b" value="-0.038" />
+        <constant name="x9b" value="-0.171" />
+        <constant name="x10b" value="-0.214" />
+    
+        <!-- Corrections to stereo angle -->
+        <constant name="a1t" value="-0.0000349065850398866" />
+        <constant name="a2t" value="-0.000122173047639603" />
+        <constant name="a3t" value="-0.000122173047639603" />
+        <constant name="a4t" value="-0.0000523598775598299" />
+        <constant name="a5t" value="0.000541052068118242" />
+        <constant name="a6t" value="0.000122173047639603" />
+        <constant name="a7t" value="-0.0000523598775598299" />
+        <constant name="a8t" value="-0.000261799387799149" />
+        <constant name="a9t" value="-0.000331612557878923" />
+        <constant name="a10t" value="-0.000401425727958696" />
+
+        <constant name="a1b" value="0.000174532925199433" />
+        <constant name="a2b" value="0.000296705972839036" />
+        <constant name="a3b" value="0.0000349065850398866" />
+        <constant name="a4b" value="0.000191986217719376" />
+        <constant name="a5b" value="-0.000349065850398866" />
+        <constant name="a6b" value="0.000314159265358979" />
+        <constant name="a7b" value="0.000523598775598299" />
+        <constant name="a8b" value="0.000471238898038469" />
+        <constant name="a9b" value="0.000541052068118242" />
+        <constant name="a10b" value="0.0000349065850398866" />
+    
+    </define>
+    
+    <materials>
+        <!-- Set tracking material to vacuum. -->
+        <material name="TrackingMaterial">
+            <D type="density" unit="g/cm3" value="0.0000000000000001"/>
+            <fraction n="1.0" ref="Air" />
+        </material>
+        <!-- ECal crystal material. -->
+        <material name="LeadTungstate">
+            <D value="8.28" unit="g/cm3"/>
+            <composite n="1" ref="Pb"/>
+            <composite n="1" ref="W"/>
+            <composite n="4" ref="O"/>
+        </material>
+    </materials>
+
+    <display>
+        <vis name="ECALVis" r="0.8" g="0.5" b="0.1" />
+    </display>
+      
+    <detectors>
+        <detector id="1" name="Tracker" type="HPSTracker2" readout="TrackerHits" combineHits="true">
+            <comment>The Silicon Vertex Tracker</comment>
+            <module name="TestRunModule">
+                <box x="moduleLength" y="moduleWidth" />
+                <module_component thickness="0.032*cm" material = "Silicon" sensitive="true">
+                    <dimensions x="sensorLength" y="sensorWidth" /> 
+                </module_component>
+                <module_component thickness="0.02*cm" material = "Carbon" sensitive="false"/> 
+            </module>       
+            
+             <layer id="1">
+                <module_placement name="TestRunModule" id="0" x="z1t*sin(y_rot)+x1t*cos(y_rot)" y="y1t" z="z1t*cos(y_rot)-x1t*sin(y_rot)" rx="x_rot_top" ry="-y_rot" rz="-1.5707963267948966-a1t"/>
+                <module_placement name="TestRunModule" id="1" x="z1b*sin(y_rot)+x1b*cos(y_rot)" y="y1b" z="z1b*cos(y_rot)-x1b*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-1.6707963267948966-a1b"/>
+            </layer>
+            <layer id="2">
+                <module_placement name="TestRunModule" id="0" x="z2t*sin(y_rot)+x2t*cos(y_rot)" y="y2t" z="z2t*cos(y_rot)-x2t*sin(y_rot)" rx="x_rot_top" ry="3.14159-y_rot" rz="-4.812386326794897-a2t"/>
+                <module_placement name="TestRunModule" id="1" x="z2b*sin(y_rot)+x2b*cos(y_rot)" y="y2b" z="z2b*cos(y_rot)-x2b*sin(y_rot)" rx="x_rot_bot" ry="3.14159-y_rot" rz="-4.712386326794896-a2b"/>
+            </layer>
+            <layer id="3">
+                <module_placement name="TestRunModule" id="0" x="z3t*sin(y_rot)+x3t*cos(y_rot)" y="y3t" z="z3t*cos(y_rot)-x3t*sin(y_rot)" rx="x_rot_top" ry="-y_rot" rz="-1.5707963267948966-a3t"/>
+                <module_placement name="TestRunModule" id="1" x="z3b*sin(y_rot)+x3b*cos(y_rot)" y="y3b" z="z3b*cos(y_rot)-x3b*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-1.6707963267948966-a3b"/>
+            </layer>
+            <layer id="4">
+                <module_placement name="TestRunModule" id="0" x="z4t*sin(y_rot)+x4t*cos(y_rot)" y="y4t" z="z4t*cos(y_rot)-x4t*sin(y_rot)" rx="x_rot_top" ry="3.14159-y_rot" rz="-4.812386326794897-a4t"/>
+                <module_placement name="TestRunModule" id="1" x="z4b*sin(y_rot)+x4b*cos(y_rot)" y="y4b" z="z4b*cos(y_rot)-x4b*sin(y_rot)" rx="x_rot_bot" ry="3.14159-y_rot" rz="-4.712386326794896-a4b"/>
+            </layer>
+            <layer id="5">
+                <module_placement name="TestRunModule" id="0" x="z5t*sin(y_rot)+x5t*cos(y_rot)" y="y5t" z="z5t*cos(y_rot)-x5t*sin(y_rot)" rx="x_rot_top" ry="-y_rot" rz="-1.5707963267948966-a5t"/>
+                <module_placement name="TestRunModule" id="1" x="z5b*sin(y_rot)+x5b*cos(y_rot)" y="y5b" z="z5b*cos(y_rot)-x5b*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-1.6707963267948966-a5b"/>
+            </layer>
+            <layer id="6">
+                <module_placement name="TestRunModule" id="0" x="z6t*sin(y_rot)+x6t*cos(y_rot)" y="y6t" z="z6t*cos(y_rot)-x6t*sin(y_rot)" rx="x_rot_top" ry="3.14159-y_rot" rz="-4.812386326794897-a6t"/>
+                <module_placement name="TestRunModule" id="1" x="z6b*sin(y_rot)+x6b*cos(y_rot)" y="y6b" z="z6b*cos(y_rot)-x6b*sin(y_rot)" rx="x_rot_bot" ry="3.14159-y_rot" rz="-4.712386326794896-a6b"/>
+            </layer>
+            <layer id="7">
+                <module_placement name="TestRunModule" id="0" x="z7t*sin(y_rot)+x7t*cos(y_rot)" y="y7t" z="z7t*cos(y_rot)-x7t*sin(y_rot)" rx="x_rot_top" ry="-y_rot" rz="-1.5707963267948966-a7t"/>
+                <module_placement name="TestRunModule" id="1" x="z7b*sin(y_rot)+x7b*cos(y_rot)" y="y7b" z="z7b*cos(y_rot)-x7b*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-1.6207963267948966-a7b"/>
+            </layer>
+            <layer id="8">
+                <module_placement name="TestRunModule" id="0" x="z8t*sin(y_rot)+x8t*cos(y_rot)" y="y8t" z="z8t*cos(y_rot)-x8t*sin(y_rot)" rx="x_rot_top" ry="3.14159-y_rot" rz="-4.762386326794896-a8t"/>
+                <module_placement name="TestRunModule" id="1" x="z8b*sin(y_rot)+x8b*cos(y_rot)" y="y8b" z="z8b*cos(y_rot)-x8b*sin(y_rot)" rx="x_rot_bot" ry="3.14159-y_rot" rz="-4.712386326794896-a8b"/>
+            </layer>
+            <layer id="9">
+                <module_placement name="TestRunModule" id="0" x="z9t*sin(y_rot)+x9t*cos(y_rot)" y="y9t" z="z9t*cos(y_rot)-x9t*sin(y_rot)" rx="x_rot_top" ry="-y_rot" rz="-1.5707963267948966-a9t"/>
+                <module_placement name="TestRunModule" id="1" x="z9b*sin(y_rot)+x9b*cos(y_rot)" y="y9b" z="z9b*cos(y_rot)-x9b*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-1.6207963267948966-a9b"/>
+            </layer>
+            <layer id="10">
+                <module_placement name="TestRunModule" id="0" x="z10t*sin(y_rot)+x10t*cos(y_rot)" y="y10t" z="z10t*cos(y_rot)-x10t*sin(y_rot)" rx="x_rot_top" ry="3.14159-y_rot" rz="-4.762386326794896-a10t"/>
+                <module_placement name="TestRunModule" id="1" x="z10b*sin(y_rot)+x10b*cos(y_rot)" y="y10b" z="z10b*cos(y_rot)-x10b*sin(y_rot)" rx="x_rot_bot" ry="3.14159-y_rot" rz="-4.712386326794896-a10b"/>
+            </layer> 
+        </detector>     
+        <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+            <comment>The crystal ECal</comment>
+            <material name="LeadTungstate" />
+            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+            <!-- Measurements as found in installation by Stepan -->
+            <layout beamgap="37.0*mm" nx="46" ny="5" dface="152.4*cm">
+                <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+                <top dx="ecal_dx" dy="0." dz="0."/>
+                <bottom dx="ecal_dx" dy="0." dz="0."/>
+            </layout>
+        </detector>
+    </detectors>
+    
+    <readouts>   
+        <readout name="TrackerHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+        </readout>
+         <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,layer:2,ix:-8,iy:-6</id>
+        </readout>
+    </readouts>
+
+    <fields>
+        <field type="BoxDipole" name="AnalyzingDipole" x="0*cm" y="0*cm" z="45.22*cm" dx="22.86*cm" dy="7.62*cm" dz="46.22*cm" bx="0.0" by="-0.491" bz="0.0">     
+        </field>
+    </fields>
+
+    <includes>
+        <gdmlFile ref="http://www.lcsim.org/test/gdml/testRunDownstreamVacuumFlange.gdml" />
+    </includes>
+
+</lccdd>

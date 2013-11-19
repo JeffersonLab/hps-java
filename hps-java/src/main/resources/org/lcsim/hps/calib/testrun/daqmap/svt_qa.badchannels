@@ -1,0 +1,62 @@
+#
+# Bad/Noisy found during QA testing.  The channels were verified to be bad
+# using test run data
+# $Id: svt_qa.badchannels,v 1.2 2013/01/08 08:06:59 omoreno Exp $
+#
+#  bad channel  fpga   hybrid
+#---------------------------------
+# FPGA 0, Hybrid 0
+    32          0       0           
+   128          0       0           
+   160          0       0           
+   256          0       0           
+   288          0       0           
+   384          0       0           
+   416          0       0           
+   544          0       0           
+   638          0       0           
+# FPGA 0, Hybrid 1
+   345          0       1     
+    32          0       1           
+   128          0       1           
+   160          0       1           
+   256          0       1           
+   288          0       1           
+   384          0       1           
+   416          0       1           
+   512          0       1           
+   544          0       1           
+   638          0       1           
+# FPGA 0, Hybrid 2 - Has a very noisy chip
+     0          0       2
+     1          0       2
+    32          0       2           
+   128          0       2           
+   134          0       2     
+   256          0       2           
+   512          0       2           
+   544          0       2           
+   638          0       2           
+   639          0       2           
+# FPGA 1, Hybrid 0
+     0          1       0     
+   417          1       0     
+   402          1       0
+   431          1       0
+   432          1       0
+   160          1       0           
+   461          1       0           
+   462          1       0           
+   463          1       0           
+   464          1       0           
+   638          1       0           
+   639          1       0           
+# FPGA 1, Hybrid 1
+        608      1       2
+         81      1       1 
+        254      4       1 
+        317      4       0  
+        318      4       0  
+        170      3       0   
+        466      2       2   
+        627      3       1

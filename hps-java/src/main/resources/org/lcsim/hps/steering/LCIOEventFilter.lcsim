@@ -1,0 +1,26 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <inputFiles>
+        <!--<fileRegExp baseDir="./../data/mc/v3/pair_filter/" >pairs.*filt.*recon.*</fileRegExp>-->
+    </inputFiles>
+    <control>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>    
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="TwoTrackFilter"/>
+    </execute>    
+
+    <drivers>
+        <driver name="TwoTrackFilter" 
+                type="org.lcsim.hps.util.TwoTrackFilterDriver">
+            <debug>false</debug>
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>        
+    </drivers>   
+</lcsim>

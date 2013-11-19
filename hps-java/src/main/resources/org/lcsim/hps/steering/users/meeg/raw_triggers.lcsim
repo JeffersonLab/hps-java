@@ -1,0 +1,48 @@
+<!--
+    steering file used for PAC 39 analysis
+    @author Sho Uemura <meeg@slac.stanford.edu>
+    @version $Id: raw_triggers.lcsim,v 1.1 2013/03/01 23:22:25 meeg Exp $
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+	<control>
+		<printInputFiles>true</printInputFiles>
+	</control>
+	<execute>
+<!--        <driver name="CalibrationDriver"/>   -->
+<!--		<driver name="EventMarkerDriver"/>-->
+		<driver name="EcalClusterer"/>
+		<driver name="EcalTrigger"/>
+<!--		<driver name="MCParticlePlots"/>-->
+		<driver name="AidaSaveDriver"/>
+		<driver name="ClockDriver"/>
+	</execute>
+	<drivers>
+        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver"/>   
+		<driver name="EcalClusterer"
+                type="org.lcsim.hps.recon.ecal.EcalClusterer">
+			<ecalName>Ecal</ecalName>
+			<ecalCollectionName>EcalHits</ecalCollectionName>
+            <addEMin>0.075</addEMin>
+		</driver>
+		<driver name="EcalTrigger"
+                type="org.lcsim.hps.analysis.ecal.TestRunRateAnalysis">
+			<clusterCollectionName>EcalClusters</clusterCollectionName>
+            <clusterEnergyLow>0.6</clusterEnergyLow>
+		</driver>
+		<driver name="MCParticlePlots"
+                type="org.lcsim.hps.analysis.ecal.HPSMCParticlePlotsDriver">
+		</driver>
+		<driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+			<eventInterval>10000</eventInterval>
+		</driver>
+		<driver name="AidaSaveDriver"
+                type="org.lcsim.job.AidaSaveDriver">
+			<outputFileName>${inputFile}_ecalPlots</outputFileName>
+		</driver>
+		<driver name="ClockDriver"
+                type="org.lcsim.hps.util.ClockDriver">
+		</driver>
+	</drivers>
+</lcsim>

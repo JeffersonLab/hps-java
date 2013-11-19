@@ -1,0 +1,91 @@
+<!-- 
+  Execute test run full recon and write the results as an EVIO file.
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+<!--        <driver name="EventMarkerDriver"/>-->
+        <driver name="CalibrationDriver"/>   
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="EcalTriggerFilter"/>
+        <driver name="EcalClusterer"/>
+        <driver name="EcalTrigger"/>
+        <driver name="SimpleSVTReadout"/>
+<!--        <driver name="SVTReadout"/>
+        <driver name="Digitization"/>
+        <driver name="DataProcessing"/>-->
+        <driver name="ClockDriver"/>
+        <driver name="TestRunReconToEvio"/>
+        <driver name="CleanupDriver"/>
+    </execute> 
+
+    <drivers>
+        <!--<driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver> -->
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+<!--            <runNumber>1351</runNumber>    -->
+        </driver>
+        <driver name="TestRunReconToEvio" type="org.lcsim.hps.evio.TestRunTriggeredReconToEvio">
+            <evioOutputFile>${outputFile}.evio</evioOutputFile>
+        </driver>
+			
+        <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
+            <readoutPeriod>4.0</readoutPeriod>
+            <coincidenceWindow>2</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <triggerThreshold>80</triggerThreshold>
+            <readoutThreshold>50</readoutThreshold>
+        </driver>
+
+        <driver name="EcalConverter" type="org.lcsim.hps.recon.ecal.EcalConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+            <scale>1</scale>
+        </driver>	
+        
+        <driver name="EcalTriggerFilter" type="org.lcsim.hps.recon.ecal.EcalTriggerFilterDriver">
+            <inputCollection>EcalCorrectedHits</inputCollection>
+            <outputCollection>EcalFilteredHits</outputCollection>
+        </driver>
+
+        <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.CTPEcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <clusterWindow>32.0</clusterWindow>
+            <ecalCollectionName>EcalFilteredHits</ecalCollectionName>
+        </driver>
+
+        <driver name="EcalTrigger" type="org.lcsim.hps.readout.ecal.TestRunTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>10</deadTime>
+			<outputFileName>${outputFile}.triggers</outputFileName>
+        </driver>	
+        <driver name="SimpleSVTReadout" type="org.lcsim.hps.recon.tracking.SimpleSvtReadout">
+        </driver>
+
+<!--        <driver name="SVTReadout" type="org.lcsim.hps.recon.tracking.apv25.SvtReadout">
+            <debug>false</debug>
+            <pedestalRun>false</pedestalRun>
+            <triggerLatencyTime>288</triggerLatencyTime>
+        </driver>
+        
+        <driver name="Digitization" type="org.lcsim.hps.recon.tracking.RearTransitionModule" />
+
+        <driver name="DataProcessing" type="org.lcsim.hps.recon.tracking.TestRunDataProcessingModule" >
+            <enablePileUpCut>true</enablePileUpCut>
+            <enableThresholdCut>true</enableThresholdCut>
+            <noiseThreshold>2</noiseThreshold>
+            <numberOfSamplesAboveThreshold>3</numberOfSamplesAboveThreshold>
+            <numberOfSamplesToReadOut>6</numberOfSamplesToReadOut>
+        </driver>-->
+
+        <driver name="ClockDriver" type="org.lcsim.hps.util.ClockDriver"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver> 
+    </drivers>
+</lcsim>
+	

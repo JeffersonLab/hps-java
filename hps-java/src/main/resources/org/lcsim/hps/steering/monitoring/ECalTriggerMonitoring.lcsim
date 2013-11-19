@@ -1,0 +1,80 @@
+
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+    <control>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>    
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>
+        <driver name="EcalRawConverter"/>
+        <driver name="EcalTriggerFilter"/>
+        <driver name="EcalClusterer"/>
+<!--        <driver name="EcalPedestalPlots"/>-->
+<!--        <driver name="EcalMonitoringPlots"/>-->
+<!--        <driver name="EcalHitPlots"/>-->
+<!--        <driver name="EcalClusterPlots"/>-->
+        <driver name="TriggerPlots"/>
+<!--
+        <driver name="EcalEventMonitor"/>
+        <driver name="EcalEvsX"/>
+        <driver name="EcalWindowPlots"/>
+        <driver name="EcalDaqPlots"/>
+-->
+        <!--<driver name="AidaSaveDriver"/>-->
+    </execute>    
+    <drivers>
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+        </driver>
+        <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalReadoutToTriggerConverterDriver">
+            <rawCollectionName>EcalReadoutHits</rawCollectionName>
+            <integralWindow>35</integralWindow>
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <dropBadFADC>true</dropBadFADC>
+            <tp>14.0</tp>
+            <truncateScale>1</truncateScale>
+        </driver>
+        <driver name="EcalTriggerFilter" type="org.lcsim.hps.recon.ecal.EcalTriggerFilterDriver">
+            <inputCollection>EcalCalHits</inputCollection>
+            <outputCollection>EcalFilteredHits</outputCollection>
+        </driver>        
+        <driver name="EcalDaqPlots" type="org.lcsim.hps.monitoring.ecal.EcalDaqPlots">
+        </driver>
+        <driver name="EcalMonitoringPlots" type="org.lcsim.hps.monitoring.ecal.EcalMonitoringPlots">
+            <eventRefreshRate>1</eventRefreshRate>
+        </driver>
+        <driver name="EcalEventMonitor" type="org.lcsim.hps.monitoring.ecal.EcalEventMonitor">
+            <eventRefreshRate>1</eventRefreshRate>
+        </driver>
+<!--        <driver name="EcalPedestalPlots" type="org.lcsim.hps.monitoring.ecal.EcalPedestalPlots">
+            <inputCollection>EcalCalHits</inputCollection>
+            <eventRefreshRate>100</eventRefreshRate>
+        </driver>-->
+        <driver name="EcalPedestalPlots" type="org.lcsim.hps.monitoring.ecal.EcalPedestalPlots">
+            <inputCollection>EcalCalHits</inputCollection>
+            <maxE>10000</maxE>
+            <eventRefreshRate>100</eventRefreshRate>
+        </driver>
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+        <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.CTPEcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <clusterWindow>32.0</clusterWindow>
+            <ecalCollectionName>EcalFilteredHits</ecalCollectionName>
+        </driver>
+        <driver name="EcalHitPlots" type="org.lcsim.hps.monitoring.ecal.EcalHitPlots">
+        </driver>
+        <driver name="EcalClusterPlots" type="org.lcsim.hps.monitoring.ecal.EcalClusterPlots">
+        </driver>
+        <driver name="TriggerPlots" type="org.lcsim.hps.monitoring.ecal.TriggerPlots">
+            <clusterEnergyCut>1280</clusterEnergyCut>
+            <eventRefreshRate>10000</eventRefreshRate>
+        </driver>
+<!--        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>triggerPlots</outputFileName>
+        </driver>-->
+    </drivers>
+</lcsim>
