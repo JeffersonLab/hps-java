@@ -1,0 +1,36 @@
+INSTRUCTIONS FOR RUNNING THE ET TEST SCRIPTS
+--------------------------------------------
+
+There are test scripts provided for running the ET example apps on Linux or OSX.  
+
+You will need to start by building this package using Maven.
+
+    mvn clean install
+
+Then, to test the ET server, a producer, and the graphical monitoring, start by opening three different shells and 'cd' into hps-et-java (this directory).
+
+Each of the following commands should be executed from the hps-et-java directory, within its own shell...
+
+To start the server:
+
+    ./scripts/et_server_test.sh
+
+To start the producer which puts test events onto the ET Ring:
+
+    ./scripts/et_producer_test.sh
+
+Finally, to monitor the ET system using a Java GUI program:
+
+    ./scripts/et_monitor_gui_test.sh
+
+In the now open GUI, select "Connections" -> "Connect to ET System".  Under the "ET Name" field put "ETBuffer" (no quotes).  Now hit the "Connect" button.
+
+Under "View" -> "Load Connection Parameters", select the "ETBuffer" session.
+
+A tab called "ETBuffer" will now be created in the GUI where the ET system can be monitored in real time.  Click on the tab to switch to it.
+
+You can also run the command-line monitoring program, but it seems to disconnect from the ET server rather quickly:
+
+    ./scripts/et_monitor_test.sh
+
+Any questions can be emailed to <jeremym@slac.stanford.edu>.
