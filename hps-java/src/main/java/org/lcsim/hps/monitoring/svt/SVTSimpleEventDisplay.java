@@ -3,7 +3,7 @@ package org.lcsim.hps.monitoring.svt;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-import hep.aida.jfree.plot.style.DefaultHistogram1DStyle;
+//import hep.aida.jfree.plot.style.DefaultHistogram1DStyle;
 
 import java.util.List;
 
@@ -136,7 +136,7 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
     private void setupHitCountPlots() {
         plotter4 = factory.create("Hit Counts");
         plotter4.setTitle("Hit Counts");
-        plotter4.setStyle(new DefaultHistogram1DStyle());
+        //plotter4.setStyle(new DefaultHistogram1DStyle());
         plotter4.style().dataStyle().errorBarStyle().setVisible(false);
         plotter4.createRegions(1, 2);
         
@@ -149,7 +149,7 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
     private void setupHelicalTrackHitPlots() {
         plotter3 = factory.create("HelicalTrackHits");
         plotter3.setTitle("HelicalTrackHits");
-        plotter3.setStyle(new DefaultHistogram1DStyle());
+        //plotter3.setStyle(new DefaultHistogram1DStyle());
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.style().statisticsBoxStyle().setVisible(false);
         plotter3.createRegions(4, 5);
@@ -158,7 +158,7 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
     private void setupTrackerHitPlots() {
         plotter2 = factory.create("TrackerHits");
         plotter2.setTitle("TrackerHits");
-        plotter2.setStyle(new DefaultHistogram1DStyle());
+        //plotter2.setStyle(new DefaultHistogram1DStyle());
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
         plotter2.style().statisticsBoxStyle().setVisible(false);
         plotter2.createRegions(4, 5);
@@ -167,7 +167,7 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
     private void setupRawTrackerHitPlots() {
         plotter = factory.create("RawTrackerHits");
         plotter.setTitle("RawTrackerHits");
-        plotter.setStyle(new DefaultHistogram1DStyle());
+        //plotter.setStyle(new DefaultHistogram1DStyle());
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
         plotter.style().statisticsBoxStyle().setVisible(false);
         plotter.createRegions(4, 5);
