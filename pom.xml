@@ -11,5 +11,7 @@
         <module>et</module>
         <module>detector-data</module>
         <module>hps-java</module>
+        <module>monitoring-app</module>
+        <module>distribution</module>
     </modules>
 </project>
