@@ -46,8 +46,9 @@ public class TwoLineVertexer extends BaseSimpleVertexer {
     public void fitVertex() {
     	assert isValid();
     	Hep3Vector vtxPosition = getPOCALineToLine();
-    	_fitted_vertex = new BaseVertex(true, "Two Line Vertexer", 0, 0, new SymmetricMatrix(0), vtxPosition, null); 
-    	
+		if (vtxPosition!=null) {
+			_fitted_vertex = new BaseVertex(true, "Two Line Vertexer", 0, 0, new SymmetricMatrix(0), vtxPosition, null); 
+    	}
     }
     
     /**
@@ -114,7 +115,14 @@ public class TwoLineVertexer extends BaseSimpleVertexer {
 
     	BasicMatrix X_T = (BasicMatrix)MatrixOp.transposed(X);
     	BasicMatrix XX_T = (BasicMatrix)MatrixOp.mult(X_T, X);
-    	BasicMatrix IXX_T = (BasicMatrix)MatrixOp.inverse(XX_T);
+		BasicMatrix IXX_T = null;
+		try {
+			IXX_T = (BasicMatrix)MatrixOp.inverse(XX_T);
+		} 
+		catch(MatrixOp.IndeterminateMatrixException e) {
+			System.out.printf("%s: caught indeterminate exception %s\n",this.getClass().getSimpleName(),e.getMessage());
+			return null;
+		}
     	BasicMatrix X_Ty = (BasicMatrix)MatrixOp.mult(X_T,y);
     	BasicMatrix b = (BasicMatrix)MatrixOp.mult(IXX_T, X_Ty);
     	double t = b.e(0, 0);
