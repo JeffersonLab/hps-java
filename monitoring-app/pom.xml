@@ -88,11 +88,6 @@
             <version>3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-et</artifactId>
-            <version>12.5-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
             <version>1.0-SNAPSHOT</version>
