@@ -26,7 +26,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.base.ParticleTypeClassifier;
+import org.lcsim.event.util.ParticleTypeClassifier;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -45,6 +45,7 @@ import org.lcsim.hps.recon.vertexing.StraightLineTrack;
 import org.lcsim.hps.recon.vertexing.TwoParticleVertexer;
 import org.lcsim.hps.recon.vertexing.TwoTrackFringeVertexer;
 import org.lcsim.hps.recon.vertexing.TwoTrackVertexer;
+import org.lcsim.event.Vertex;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
@@ -59,7 +60,6 @@ public class TwoTrackAnlysis extends Driver {
 
     private FileWriter fileWriter = null;
     private PrintWriter printWriter = null;
-    
     private String outputNameTextTuple = "twotrackAnlysisTuple.txt";
     private String trackCollectionName = "MatchedTracks";
     private boolean doPrintBranchInfoLine = true; //firs tline in text file
@@ -81,6 +81,7 @@ public class TwoTrackAnlysis extends Driver {
     private TwoTrackVertexer vertexer = new TwoTrackVertexer();
     private TwoTrackFringeVertexer fringeVertexer = new TwoTrackFringeVertexer();
     private TwoParticleVertexer particleVertexer = new TwoParticleVertexer();
+	private boolean _keepAllTracks = true;
     private EventQuality.Quality trk_quality_def = EventQuality.Quality.MEDIUM;
     private IPlotter _plotterParticleVertex;
     private IPlotter _plotterTrackVertex;
@@ -217,7 +218,10 @@ public class TwoTrackAnlysis extends Driver {
         ArrayList<CmpTrack> tracks = new ArrayList<CmpTrack>();
         for(int i=0;i<tracklist.size();++i) {
             Track trk = tracklist.get(i);
-            if(TrackUtils.isGoodTrack(trk, tracklist, trk_quality_def)) {
+			if( _keepAllTracks) {
+                tracks.add(new CmpTrack(trk));
+			}
+            else if(TrackUtils.isGoodTrack(trk, tracklist, trk_quality_def)) {
                 //System.out.printf("%s: trk momentum (%.3f,%.3f,%.3f) chi2=%.3f\n",this.getClass().getSimpleName(),trk.getTrackStates().get(0).getMomentum()[0],trk.getTrackStates().get(0).getMomentum()[1],trk.getTrackStates().get(0).getMomentum()[2],trk.getChi2());
                 if(_debug) {
                     int cuts = TrackUtils.passTrackSelections(trk, tracklist, trk_quality_def);
@@ -230,8 +234,8 @@ public class TwoTrackAnlysis extends Driver {
                     System.out.printf("%s: track cuts: \n%s\n",this.getClass().getSimpleName(),EventQuality.instance().print(cuts));
                     //System.exit(0);
                 }
-                tracks.add(new CmpTrack(trk));
-            } else {
+                tracks.add(new CmpTrack(trk));            
+			} else {
                if(_debug) System.out.println(this.getClass().getSimpleName() + ": trk failed track selections (event nr " + event.getEventNumber() + ")\n" + trk.toString());
             }
         }
@@ -247,38 +251,38 @@ public class TwoTrackAnlysis extends Driver {
             Track trk2 = tracks.get(1)._track;
             
             vertexer.setTracks(trk1, trk2);
-            vertexer.fitVertex();
-            vtxPos = vertexer.getFittedVertex().getPosition();
-            fringeVertexer.setTracks(trk1, trk2);
-            fringeVertexer.fitVertex();
-            vtxPosFringe = fringeVertexer.getFittedVertex().getPosition();
-            
-            if(this._debug) {
-                System.out.printf("%s: vtxPos=%s\n", this.getClass().getSimpleName(),vtxPos.toString());
-                System.out.printf("%s: vtxPosFringe=%s\n", this.getClass().getSimpleName(),vtxPosFringe.toString());
-            }
-
-            if(vtxPos.x() != vtxPos.x()) {
-                System.out.printf("%s: vtxPos is NaN -> Skip\n",this.getClass().getSimpleName());
-                vtxPos = null;
-            }
-            if(vtxPosFringe.x() != vtxPosFringe.x()) {
-                System.out.printf("%s: vtxPosFringe is NaN -> Skip\n",this.getClass().getSimpleName());
-                vtxPos = null;
-            }
-            
-            if(vtxPos!=null) {
-                this._vtxpos_x.fill(vtxPos.x());
-                this._vtxpos_y.fill(vtxPos.y());
-                this._vtxpos_z.fill(vtxPos.z());            
-            }
-
-            if(vtxPosFringe!=null) {
-                this._vtxposfr_x.fill(vtxPosFringe.x());
-                this._vtxposfr_y.fill(vtxPosFringe.y());
-                this._vtxposfr_z.fill(vtxPosFringe.z());            
-            }
-
+            vertexer.fitVertex();            
+			Vertex vtx = vertexer.getFittedVertex();
+			if (vtx != null) {
+				vtxPos = vertexer.getFittedVertex().getPosition();
+				fringeVertexer.setTracks(trk1, trk2);
+				fringeVertexer.fitVertex();
+				vtxPosFringe = fringeVertexer.getFittedVertex().getPosition();
+				
+				if(this._debug) {
+					System.out.printf("%s: vtxPos=%s\n", this.getClass().getSimpleName(),vtxPos.toString());
+					System.out.printf("%s: vtxPosFringe=%s\n", this.getClass().getSimpleName(),vtxPosFringe.toString());
+				}
+				
+				if(vtxPos.x() != vtxPos.x()) {
+					System.out.printf("%s: vtxPos is NaN -> Skip\n",this.getClass().getSimpleName());
+					vtxPos = null;
+				}
+				if(vtxPosFringe.x() != vtxPosFringe.x()) {
+					System.out.printf("%s: vtxPosFringe is NaN -> Skip\n",this.getClass().getSimpleName());
+					vtxPos = null;
+				}
+				
+				this._vtxpos_x.fill(vtxPos.x());
+				this._vtxpos_y.fill(vtxPos.y());
+				this._vtxpos_z.fill(vtxPos.z());            
+				
+				if(vtxPosFringe!=null) {
+					this._vtxposfr_x.fill(vtxPosFringe.x());
+					this._vtxposfr_y.fill(vtxPosFringe.y());
+					this._vtxposfr_z.fill(vtxPosFringe.z());            
+				}
+			}				
             
             boolean useFringe = false;
             StraightLineTrack[] slts = this.getSLTs(trk1, trk2, useFringe);
