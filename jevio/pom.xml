@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-jevio</artifactId>
-    <groupId>org.lcsim</groupId>
+    <groupId>org.hps</groupId>
     <name>jevio</name>
     <version>4.6-SNAPSHOT</version>
     <description>Java version of EVIO event data model; imported from JLAB distribution</description>
