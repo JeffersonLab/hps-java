@@ -74,6 +74,7 @@
 
         <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
   <!--              <runNumber>${runNumber}</runNumber> -->
+  <!--			<gainFilename>default_goodregion_shift_v1.gain</gainFilename> -->
         </driver>
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">

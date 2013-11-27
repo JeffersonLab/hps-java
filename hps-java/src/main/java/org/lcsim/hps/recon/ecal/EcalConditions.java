@@ -38,6 +38,7 @@ public class EcalConditions extends Driver {
     private static Subdetector subdetector;
     private static boolean debug = false;
     private static boolean calibrationLoaded = false;
+    private static String gainFilename = "default.gain";
 
     public EcalConditions() {
     }
@@ -70,6 +71,10 @@ public class EcalConditions extends Driver {
         loadGains();
         loadPedestals();
         calibrationLoaded = true;
+    }
+    
+    public static void setGainFilename(String name) {
+    	gainFilename = name;
     }
 
     public void setSubdetectorName(String subdetectorName) {
@@ -196,9 +201,9 @@ public class EcalConditions extends Driver {
         BufferedReader bufferedReader;
         ConditionsManager conditions = ConditionsManager.defaultInstance();
         try {
-            bufferedReader = new BufferedReader(conditions.getRawConditions("calibECal/default.gain").getReader());
+        	bufferedReader = new BufferedReader(conditions.getRawConditions("calibECal/"+EcalConditions.gainFilename).getReader());
         } catch (IOException e) {
-            throw new RuntimeException("couldn't get gain file", e);
+            throw new RuntimeException("couldn't get gain file("+gainFilename+") ", e);
         }
 
         String line;

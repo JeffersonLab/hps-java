@@ -23,6 +23,7 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
     // are loaded
     private static int runNumber = -1;
     private boolean fixRunNumber = false;
+	private String gainFilename = "default.gain";
 
     public CalibrationDriver() {
         add(new EcalConditions());
@@ -32,6 +33,10 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
     public void setRunNumber(int runNumber) {
         CalibrationDriver.runNumber = runNumber;
         fixRunNumber = true;
+    }
+
+    public void setGainFilename(String gainFileName) {
+        this.gainFilename = gainFileName;
     }
 
     public static int runNumber() {
@@ -51,7 +56,8 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
         super.detectorChanged(detector);
 
         if (!EcalConditions.calibrationLoaded()) {
-            EcalConditions.loadCalibration();
+        	EcalConditions.setGainFilename(gainFilename);
+        	EcalConditions.loadCalibration();
         }
         if (fixRunNumber && (!HPSSVTCalibrationConstants.pedestalLoaded() || !HPSSVTCalibrationConstants.tpLoaded())) {
             System.out.println("Loading calibration for set run: " + runNumber);
