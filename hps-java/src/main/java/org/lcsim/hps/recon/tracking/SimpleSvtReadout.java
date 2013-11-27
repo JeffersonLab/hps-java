@@ -136,6 +136,9 @@ public class SimpleSvtReadout extends TriggerableDriver {
 //                                System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
                             hitQueues[i].poll();
                         }
+                        if (hitQueues[i].isEmpty()) {
+                            hitQueues[i] = null;
+                        }
                     }
                 }
             }
