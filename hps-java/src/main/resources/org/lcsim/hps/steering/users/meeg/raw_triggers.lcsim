@@ -18,7 +18,7 @@
 		<driver name="ClockDriver"/>
 	</execute>
 	<drivers>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver"/>   
 		<driver name="EcalClusterer"
                 type="org.lcsim.hps.recon.ecal.EcalClusterer">
 			<ecalName>Ecal</ecalName>

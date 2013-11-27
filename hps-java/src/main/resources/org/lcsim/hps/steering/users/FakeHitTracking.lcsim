@@ -47,7 +47,7 @@
             <eventInterval>1</eventInterval>
         </driver>
         
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
         </driver>
         
         <driver name="CreateHelixTracks" type="org.lcsim.hps.users.phansson.ParticleHelixProducer">

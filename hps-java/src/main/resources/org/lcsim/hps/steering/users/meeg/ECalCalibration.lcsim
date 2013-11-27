@@ -17,7 +17,7 @@
 -->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
         </driver>
         <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
         </driver>

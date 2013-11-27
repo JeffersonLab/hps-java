@@ -14,7 +14,7 @@
         <driver name="LCIOWriter"/>
     </execute>    
     <drivers>    
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
 <!--            <runNumber>${runNumber}</runNumber>-->
         </driver>   
         <driver name="EventMarkerDriver"

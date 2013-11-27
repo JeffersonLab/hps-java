@@ -26,7 +26,7 @@
 -->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
         </driver>
         <driver name="FADCConverter" type="org.lcsim.hps.recon.ecal.FADCConverterDriver">
             <threshold>80</threshold>

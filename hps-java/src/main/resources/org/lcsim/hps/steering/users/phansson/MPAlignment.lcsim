@@ -63,7 +63,7 @@
 
 
         
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
                 <runNumber>1351</runNumber>
         </driver>
         <driver name="EventMarkerDriver"

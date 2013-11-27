@@ -31,7 +31,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="CalibrationDriver" type="org.lcsim.hps.monitoring.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>    -->
         </driver>
         <driver name="TestRunReconToLcio" type="org.lcsim.hps.evio.TestRunTriggeredReconToLcio">
