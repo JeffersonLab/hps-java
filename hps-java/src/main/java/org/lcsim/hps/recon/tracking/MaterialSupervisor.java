@@ -1,10 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.lcsim.hps.recon.tracking;
 
-import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -68,7 +63,7 @@ public class MaterialSupervisor extends MaterialManager {
         //if(DEBUG) 
         System.out.printf("%s: ###########################################################\n",this.getClass().getSimpleName());
         System.out.printf("%s: Build detector model\n",this.getClass().getSimpleName());
-        List<SiSensor> sensors = det.getDetectorElement().findDescendants(SiSensor.class);
+        List<SiSensor> sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(SiSensor.class);
         //List<SiTrackerModule> modules = det.getDetectorElement().findDescendants(SiTrackerModule.class);
         System.out.printf("%s: %d sensors\n",this.getClass().getSimpleName(),sensors.size());
         System.out.printf("%s: %5s %32s %22s %15s %10s\n",this.getClass().getSimpleName(),"ID","Pos (mm)","size(mm)","t(mm)","t(%R.L)");
