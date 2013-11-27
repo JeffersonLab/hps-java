@@ -226,6 +226,9 @@ public class SvtPerformance extends Driver {
                 performanceWriter.write("! chi_squared D\n");
                 performanceWriter.write("! hit_x D\n");
                 performanceWriter.write("! hit_y D\n");
+                performanceWriter.write("! trk_chi_squared D\n");
+                performanceWriter.write("! hit_time D\n");
+                
                 
             } catch(IOException exception){
                 exception.printStackTrace();
@@ -247,6 +250,8 @@ public class SvtPerformance extends Driver {
             }
         }
        
+        //--- Sample Plots ---//
+        //--------------------//
         if(plotSamples){
 
             try {
@@ -273,13 +278,14 @@ public class SvtPerformance extends Driver {
                 samplesWriter.write("! sample4 I\n");
                 samplesWriter.write("! sample5 I\n");
                 samplesWriter.write("! sample6 I\n");
+                samplesWriter.write("! pedestal D\n");
+                
                 
             } catch(IOException exception){
                 
             }
            
         }
-        
         
         if(batchMode) return;
         
@@ -304,12 +310,16 @@ public class SvtPerformance extends Driver {
         HPSShapeFitParameters fit = null;
         double clusterAmplitude, maxClusterAmplitude;
         double noise = 0;
-        double chi_squared = -1;
-        double hitX, hitY; 
+        double chiSquared = -1;
+        double trkChiSquared = 0;
+        double hitTime = 0; 
+        double hitX, hitY, pedestal; 
         short[] samples; 
 
         // Loop over all tracks in an event
         for (Track track : tracks) {
+        	trkChiSquared = 0; 
+        	trkChiSquared = track.getChi2(); 
         
         	if((new BasicHep3Vector(track.getTrackStates().get(0).getMomentum())).magnitude() <= .500) continue;
             
@@ -323,7 +333,10 @@ public class SvtPerformance extends Driver {
             	hitY = trackerHit.getPosition()[2];
             	
                 // Loop over the strip hits used to crate the stereo hit
+            	hitTime = 0; 
                 for (HelicalTrackStrip stripHit : ((HelicalTrackCross) trackerHit).getStrips()) {
+                	
+                	hitTime = stripHit.time(); 
                 	
                     sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.rawhits().get(0)).getDetectorElement();
                     if (sensor.isTopLayer())
@@ -336,7 +349,7 @@ public class SvtPerformance extends Driver {
                     hitsPerCluster = stripHit.rawhits().size();
                     noise = 0;
                     bad_channel = 0;
-                    chi_squared = -1;
+                    chiSquared = -1;
                     for (Object rh : stripHit.rawhits()) {
 
                         RawTrackerHit rawHit = (RawTrackerHit) rh;
@@ -349,6 +362,7 @@ public class SvtPerformance extends Driver {
                         
                         if(plotSamples){
                             samples = rawHit.getADCValues();
+                            pedestal = sensor.getPedestal(channel);
                             
                             try {
                                 if(sensor.isTopLayer()){
@@ -357,19 +371,11 @@ public class SvtPerformance extends Driver {
                                     samplesWriter.write(runNumber + " " + eventNumber + " 1 " + sensor.getLayerNumber() + " ");
                                 }
                                 samplesWriter.write(channel + " " + samples[0] + " " + samples[1] + " " + samples[2] + " "
-                                                    + samples[3] + " " + samples[4] + " " + samples[5] + "\n");
+                                                    + samples[3] + " " + samples[4] + " " + samples[5] +  " " + pedestal + "\n");
                             } catch (IOException exception) {
                                 exception.printStackTrace();
                             }
                         }
-                        
-                        
-                        /*
-                        if(sensor.getNoise(channel) > 80 
-                        		|| sensor.getNoise(channel+1) > 80 
-                        		|| sensor.getNoise(channel-1) > 80){
-                        	bad_channel = 1; 
-                        }*/
                         
                         constants = HPSSVTCalibrationConstants.getChannelConstants(sensor, channel);
                         fit = shaperFitter.fitShape(rawHit, constants);
@@ -378,7 +384,7 @@ public class SvtPerformance extends Driver {
                             maxClusterAmplitude = fit.getAmp();
                         }
                         if(stripHit.rawhits().size() == 1){
-                        	chi_squared = fit.getChiSq();
+                        	chiSquared = fit.getChiSq();
                         }
                         noise += Math.pow(sensor.getNoise(channel), 2);
                         clusterAmplitude += fit.getAmp();
@@ -396,7 +402,8 @@ public class SvtPerformance extends Driver {
                                 performanceWriter.write(runNumber + " " + eventNumber + " 1 " + sensor.getLayerNumber() + " ");
                             }
                                 performanceWriter.write(maxClusterChannel + " " + clusterAmplitude + " " + noise + " " + hitsPerCluster + " " 
-                                			 + bad_channel + " " + chi_squared + " " + hitX + " " + hitY + "\n");
+                                			 + bad_channel + " " + chiSquared + " " + hitX + " " + hitY + " " + trkChiSquared + " "
+                                			 + hitTime + "\n");
                         } catch (IOException exception) {
                         	exception.printStackTrace(); 
                         }
