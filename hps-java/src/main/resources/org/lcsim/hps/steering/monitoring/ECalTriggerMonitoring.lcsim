@@ -73,8 +73,8 @@
             <clusterEnergyCut>1280</clusterEnergyCut>
             <eventRefreshRate>10000</eventRefreshRate>
         </driver>
-<!--        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>triggerPlots</outputFileName>
-        </driver>-->
+        </driver>
     </drivers>
 </lcsim>

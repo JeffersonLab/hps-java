@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.evio.TriggerData;
 import org.lcsim.hps.monitoring.deprecated.Redrawable;
@@ -51,6 +52,7 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
         this.clusterEnergyCut = clusterEnergyCut;
     }
 
+    @Override
     protected void detectorChanged(Detector detector) {
 
     	//plotterFrame = new AIDAFrame();
@@ -223,6 +225,7 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
         //plotterFrame.pack();
     }
 
+    @Override
     public void process(EventHeader event) {
         int orTrig = 0;
         int topTrig = 0;
@@ -231,13 +234,13 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
-        if (event.hasCollection(TriggerData.class, "TriggerBank")) {
-            List<TriggerData> triggerList = event.get(TriggerData.class, "TriggerBank");
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             if (!triggerList.isEmpty()) {
-                TriggerData triggerData = triggerList.get(0);
+                GenericObject triggerData = triggerList.get(0);
 
-                pairTrig = triggerData.getAndTrig();
-                orTrig = triggerData.getOrTrig();
+                pairTrig = TriggerData.getAndTrig(triggerData);
+                orTrig = TriggerData.getOrTrig(triggerData);
                 if (orTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & orTrig) != 0) {
@@ -247,7 +250,7 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
                         }
                     }
                 }
-                topTrig = triggerData.getTopTrig();
+                topTrig = TriggerData.getTopTrig(triggerData);
                 if (topTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & topTrig) != 0) {
@@ -257,7 +260,7 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
                         }
                     }
                 }
-                botTrig = triggerData.getBotTrig();
+                botTrig = TriggerData.getBotTrig(triggerData);
                 if (botTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & botTrig) != 0) {
@@ -514,9 +517,11 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
         }
     }
 
+    @Override
     public void reset() {
     }
 
+    @Override
     public void endOfData() {
         redraw();
         System.out.format("Top trigger bit: \t");

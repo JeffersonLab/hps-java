@@ -60,11 +60,11 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
         <driver name="EcalHitPlots" type="org.lcsim.hps.monitoring.ecal.EcalHitPlots">
-            <maxE>2000</maxE>
+            <maxE>2.0</maxE>
             <logScale>true</logScale>
         </driver>
         <driver name="EcalClusterPlots" type="org.lcsim.hps.monitoring.ecal.EcalClusterPlots">
-            <maxE>2000</maxE>
+            <maxE>2.0</maxE>
             <logScale>false</logScale>
         </driver>
         <driver name="EcalEvsX" type="org.lcsim.hps.monitoring.ecal.EcalEvsX">
@@ -74,8 +74,8 @@
         <driver name="TriggerPlots" type="org.lcsim.hps.monitoring.ecal.TriggerPlots">
             <clusterEnergyCut>0.500</clusterEnergyCut>
         </driver>
-<!--        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>triggerEPlots</outputFileName>
-        </driver>-->
+        </driver>
     </drivers>
 </lcsim>

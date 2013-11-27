@@ -3,11 +3,13 @@ package org.lcsim.hps.monitoring.ecal;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
+import hep.aida.IPlotterFactory;
 
 import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.evio.TriggerData;
 import org.lcsim.hps.monitoring.deprecated.Resettable;
@@ -17,7 +19,7 @@ import org.lcsim.util.aida.AIDA;
 
 public class EcalHitPlots extends Driver implements Resettable {
 
-	//AIDAFrame plotterFrame;
+    //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
     AIDA aida = AIDA.defaultInstance();
     IPlotter plotter, plotter2, plotter3, plotter4;
@@ -49,17 +51,19 @@ public class EcalHitPlots extends Driver implements Resettable {
     @Override
     protected void detectorChanged(Detector detector) {
 
-    	//plotterFrame = new AIDAFrame();
+        //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("HPS ECal Hit Plots");
 
+        aida.tree().cd("/");
+        IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
+
         // Setup the plotter.
-        plotter = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots").create("Hit Counts");
+        plotter = plotterFactory.create("Hit Counts");
         plotter.setTitle("Hit Counts");
         //plotterFrame.addPlotter(plotter);
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
 
         // Setup plots.
-        aida.tree().cd("/");
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event", 10, -0.5, 9.5);
         hitTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time", 100, 0 * 4.0, 100 * 4.0);
 
@@ -70,7 +74,7 @@ public class EcalHitPlots extends Driver implements Resettable {
 
 
         // Setup the plotter.
-        plotter2 = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots").create("Hit Energies");
+        plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
         //plotterFrame.addPlotter(plotter2);
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
@@ -87,7 +91,7 @@ public class EcalHitPlots extends Driver implements Resettable {
         plotter2.region(0).plot(hitEnergyPlot);
         plotter2.region(1).plot(hitMaxEnergyPlot);
 
-        plotter3 = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots").create("Hit Times");
+        plotter3 = plotterFactory.create("Hit Times");
         plotter3.setTitle("Hit Times");
         //plotterFrame.addPlotter(plotter3);
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
@@ -107,31 +111,28 @@ public class EcalHitPlots extends Driver implements Resettable {
 
         // Create the plotter regions.
         plotter3.region(0).plot(topTimePlot);
-        plotter3.region(0).style().yAxisStyle().setParameter("scale", "log");
         plotter3.region(1).plot(botTimePlot);
-        plotter3.region(1).style().yAxisStyle().setParameter("scale", "log");
         plotter3.region(2).plot(orTimePlot);
-        plotter3.region(2).style().yAxisStyle().setParameter("scale", "log");
         plotter3.region(3).plot(topTrigTimePlot);
-        plotter3.region(3).style().yAxisStyle().setParameter("scale", "log");
         plotter3.region(4).plot(botTrigTimePlot);
-        plotter3.region(4).style().yAxisStyle().setParameter("scale", "log");
         plotter3.region(5).plot(orTrigTimePlot);
-        plotter3.region(5).style().yAxisStyle().setParameter("scale", "log");
+        for (int i = 0; i < 6; i++) {
+            if (plotter3.region(i).style() != null) {
+                plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
+            }
+        }
         plotter3.region(6).plot(topTimePlot2D);
-        plotter3.region(6).style().setParameter("hist2DStyle", "colorMap");
-        plotter3.region(6).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter3.region(6).style().zAxisStyle().setParameter("scale", "log");
         plotter3.region(7).plot(botTimePlot2D);
-        plotter3.region(7).style().setParameter("hist2DStyle", "colorMap");
-        plotter3.region(7).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter3.region(7).style().zAxisStyle().setParameter("scale", "log");
         plotter3.region(8).plot(orTimePlot2D);
-        plotter3.region(8).style().setParameter("hist2DStyle", "colorMap");
-        plotter3.region(8).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter3.region(8).style().zAxisStyle().setParameter("scale", "log");
+        for (int i = 6; i < 9; i++) {
+            if (plotter3.region(i).style() != null) {
+                plotter3.region(i).style().setParameter("hist2DStyle", "colorMap");
+                plotter3.region(i).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+                plotter3.region(i).style().zAxisStyle().setParameter("scale", "log");
+            }
+        }
 
-        plotter4 = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots").create("Edges");
+        plotter4 = plotterFactory.create("Edges");
         plotter4.setTitle("Edges");
         //plotterFrame.addPlotter(plotter4);
         plotter4.style().setParameter("hist2DStyle", "colorMap");
@@ -151,12 +152,12 @@ public class EcalHitPlots extends Driver implements Resettable {
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
-        if (event.hasCollection(TriggerData.class, "TriggerBank")) {
-            List<TriggerData> triggerList = event.get(TriggerData.class, "TriggerBank");
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             if (!triggerList.isEmpty()) {
-                TriggerData triggerData = triggerList.get(0);
+                GenericObject triggerData = triggerList.get(0);
 
-                int orTrig = triggerData.getOrTrig();
+                int orTrig = TriggerData.getOrTrig(triggerData);
                 if (orTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & orTrig) != 0) {
@@ -166,7 +167,7 @@ public class EcalHitPlots extends Driver implements Resettable {
                         }
                     }
                 }
-                int topTrig = triggerData.getTopTrig();
+                int topTrig = TriggerData.getTopTrig(triggerData);
                 if (topTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & topTrig) != 0) {
@@ -176,7 +177,7 @@ public class EcalHitPlots extends Driver implements Resettable {
                         }
                     }
                 }
-                int botTrig = triggerData.getBotTrig();
+                int botTrig = TriggerData.getBotTrig(triggerData);
                 if (botTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & botTrig) != 0) {
