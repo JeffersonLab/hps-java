@@ -12,6 +12,7 @@
         <module>detector-data</module>
         <module>hps-java</module>
         <module>monitoring-app</module>
+        <module>users</module>
         <module>distribution</module>
     </modules>
 </project>
