@@ -3,14 +3,19 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hps</groupId>
     <artifactId>hps-detector-data</artifactId>
-    <name>HPS Detectors</name>
+    <name>detector-data</name>
     <version>3.0-SNAPSHOT</version>
-    <description>HPS detector conditions data</description>
+    <description>detector conditions data including compact descriptions and associated text data</description>
     <parent>
         <groupId>org.lcsim</groupId>
         <artifactId>lcsim-parent</artifactId>
         <version>3.0-SNAPSHOT</version>
     </parent>
+    <scm>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/detector-data</url>
+    </scm>
     <build>
         <resources>
             <resource>

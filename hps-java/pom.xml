@@ -3,18 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
-    <name>Heavy Photon Search Java Project</name>
+    <name>HPS Java code</name>
     <version>3.0-SNAPSHOT</version>
-    <description>Heavy Photon Search Java code that uses the LCSim infrastructure.</description>
+    <description>HPS Java code that uses the LCSim infrastructure</description>
     <parent>
         <groupId>org.lcsim</groupId>
         <artifactId>lcsim-parent</artifactId>
         <version>3.0-SNAPSHOT</version>
     </parent>
     <scm>
-        <connection>svn+ssh://jeremym@ppa-jeremym-l.slac.stanford.edu/afs/slac/g/hps/subversion/hps_repository/java/hps-java</connection>
-        <developerConnection>svn+ssh://jeremym@ppa-jeremym-l.slac.stanford.edu/afs/slac/g/hps/subversion/hps_repository/java/hps-java</developerConnection>
-        <url>http://bogus.hps.org/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/hps-java</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/hps-java</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/hps-java/</url>
     </scm>
     <distributionManagement>
         <site>

@@ -12,9 +12,9 @@
         <version>3.0-SNAPSHOT</version>
     </parent>
     <scm>
-        <connection>svn+ssh://jeremym@ppa-jeremym-l.slac.stanford.edu/afs/slac/g/hps/subversion/hps_repository/java/distribution</connection>
-        <developerConnection>svn+ssh://jeremym@ppa-jeremym-l.slac.stanford.edu/afs/slac/g/hps/subversion/hps_repository/java/distribution</developerConnection>
-        <url>http://bogus.hps.org/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/distribution/</url>
     </scm>
     <build>
         <plugins>
