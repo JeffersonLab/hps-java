@@ -27,6 +27,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.hps.recon.tracking.EventQuality;
 
 /**
  *
