@@ -7,9 +7,11 @@
     <name>modules</name>
     <description>HPS module build</description>
     <modules>
+        <module>util</module>
         <module>jevio</module>
         <module>et</module>
         <module>detector-data</module>
+        <module>conditions</module>
         <module>hps-java</module>
         <module>monitoring-app</module>
         <module>users</module>
