@@ -14,9 +14,9 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.Field;
-import org.lcsim.hps.users.meeg.LCIOTrackAnalysis;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.hps.recon.tracking.LCIOTrackAnalysis;
 
 /*
  * Example analysis driver.

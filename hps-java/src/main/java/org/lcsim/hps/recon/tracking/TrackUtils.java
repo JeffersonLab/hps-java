@@ -34,7 +34,6 @@ import org.lcsim.hps.event.BeamlineConstants;
 import org.lcsim.hps.event.HPSTransformations;
 import org.lcsim.hps.recon.vertexing.HelixConverter;
 import org.lcsim.hps.recon.vertexing.StraightLineTrack;
-import org.lcsim.hps.users.phansson.WTrack;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.swim.Helix;

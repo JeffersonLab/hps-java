@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.mgraham.alignment;
+package org.lcsim.hps.alignment;
 /*
  * SiStrips.java
  *

@@ -28,7 +28,6 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.HitIdentifier;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
-import org.lcsim.hps.users.phansson.WTrack;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;

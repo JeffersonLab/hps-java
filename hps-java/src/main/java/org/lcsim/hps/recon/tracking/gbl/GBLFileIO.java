@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.hps.recon.tracking.gbl.GBLOutput.ClParams;
 import org.lcsim.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
-import org.lcsim.hps.users.mgraham.alignment.RunAlignment;
+import org.lcsim.hps.alignment.RunAlignment;
 
 /**
  * Handles text file printing for the GBL

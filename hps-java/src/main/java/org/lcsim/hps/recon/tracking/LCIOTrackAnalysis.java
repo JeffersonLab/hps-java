@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.meeg;
+package org.lcsim.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;

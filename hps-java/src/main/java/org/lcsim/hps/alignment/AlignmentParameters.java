@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.mgraham.alignment;
+package org.lcsim.hps.alignment;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.MatrixOp;
