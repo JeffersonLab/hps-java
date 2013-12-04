@@ -9,6 +9,7 @@
         <driver name="EventMarkerDriver"/>
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="BadChannelFilter" />
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -26,6 +27,7 @@
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        <driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
         <driver name="RawTrackerHitFitterDriver" type="org.lcsim.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>true</correctT0Shift>
