@@ -6,6 +6,7 @@
     <execute>
 <!--        <driver name="EventMarkerDriver"/>-->
         <driver name="CalibrationDriver"/>   
+        <driver name="BadChannelFilter" />
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalTriggerFilter"/>
@@ -30,7 +31,7 @@
         <driver name="TestRunReconToEvio" type="org.lcsim.hps.evio.TestRunTriggeredReconToEvio">
             <evioOutputFile>${outputFile}.evio</evioOutputFile>
         </driver>
-			
+		<driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
         <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
             <readoutPeriod>4.0</readoutPeriod>
             <coincidenceWindow>2</coincidenceWindow>
