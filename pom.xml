@@ -7,6 +7,7 @@
     <name>modules</name>
     <description>HPS module build</description>
     <modules>
+        <module>parent</module>
         <module>util</module>
         <module>jevio</module>
         <module>et</module>
