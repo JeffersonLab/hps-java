@@ -6,6 +6,9 @@
     <name>distribution</name>
     <version>3.0-SNAPSHOT</version>
     <description>HPS runnable jar distribution and JAS plugin installation</description>
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
