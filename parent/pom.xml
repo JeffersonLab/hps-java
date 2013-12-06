@@ -12,7 +12,7 @@
     <url>http://www.lcsim.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cacheDir>${user.home}</cacheDir>
+        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <deployUrl>scpexe://svn.slac.stanford.edu///nfs/slac/g/lcd/mc/prj/www/lcsim/maven2</deployUrl>
         <scmConnection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk</scmConnection>
         <freehepRepo>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</freehepRepo>
@@ -189,7 +189,7 @@
                     <systemProperties>
                         <property>
                             <name>org.lcsim.cacheDir</name>
-                            <value>${cacheDir}</value>
+                            <value>${org.lcsim.cacheDir}</value>
                         </property>
                     </systemProperties>
                 </configuration>
