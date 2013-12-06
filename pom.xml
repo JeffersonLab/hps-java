@@ -6,6 +6,12 @@
     <packaging>pom</packaging>
     <name>modules</name>
     <description>HPS module build</description>
+    <parent>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-parent</artifactId>
+        <relativePath>parent/pom.xml</relativePath>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
     <modules>
         <module>parent</module>
         <module>util</module>
