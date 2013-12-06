@@ -7,9 +7,10 @@
     <version>1.0-SNAPSHOT</version>
     <description>conditions framework</description>
     <parent>
-        <groupId>org.lcsim</groupId>
-        <artifactId>lcsim-parent</artifactId>
-        <version>3.0-SNAPSHOT</version>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-parent</artifactId>
+        <relativePath>../parent/pom.xml</relativePath>
+        <version>1.0-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/conditions</connection>

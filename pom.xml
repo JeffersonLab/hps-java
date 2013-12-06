@@ -6,11 +6,6 @@
     <packaging>pom</packaging>
     <name>modules</name>
     <description>HPS module build</description>
-    <parent>
-        <groupId>org.lcsim</groupId>
-        <artifactId>lcsim-parent</artifactId>
-        <version>3.0-SNAPSHOT</version>
-    </parent>
     <modules>
         <module>util</module>
         <module>jevio</module>
