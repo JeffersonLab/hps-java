@@ -4,18 +4,17 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-detector-data</artifactId>
     <name>detector-data</name>
-    <version>3.0-SNAPSHOT</version>
     <description>detector conditions data including compact descriptions and associated text data</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>1.0-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     <scm>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data</developerConnection>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/detector-data</url>
+        <connection>${scmConnection}/${project.name}</connection>
+        <developerConnection>${scmConnection}/${project.name}</developerConnection>
+        <url>${hpsUrl}/${project.name}</url>
     </scm>
     <build>
         <resources>

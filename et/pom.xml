@@ -10,12 +10,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>1.0-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     <scm>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/et</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/et</developerConnection>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/et/</url>
+        <connection>${scmConnection}/${project.name}</connection>
+        <developerConnection>${scmConnection}/${project.name}</developerConnection>
+        <url>${hpsUrl}/${project.name}</url>
     </scm>
     <build>
         <plugins>

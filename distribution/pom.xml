@@ -4,7 +4,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-distribution</artifactId>
     <name>distribution</name>
-    <version>3.0-SNAPSHOT</version>
+    <version>${hpsVersion}</version>
     <description>HPS runnable jar distribution and JAS plugin installation</description>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -13,12 +13,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>1.0-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     <scm>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution</developerConnection>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/distribution/</url>
+        <connection>${scmConnection}/${project.name}</connection>
+        <developerConnection>${scmConnection}/${project.name}</developerConnection>
+        <url>${hpsUrl}/${project.name}</url>
     </scm>
     <build>
         <plugins>
@@ -59,7 +59,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.3.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -100,17 +99,12 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-java</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>${hpsVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
-            <version>1.0-SNAPSHOT</version> 
-        </dependency>
-        <dependency>
-            <groupId>org.lcsim</groupId>
-            <artifactId>lcsim-distribution</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>${hpsVersion}</version> 
         </dependency>
     </dependencies>
     <profiles>
