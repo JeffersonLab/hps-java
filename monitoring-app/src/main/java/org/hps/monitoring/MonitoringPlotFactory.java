@@ -18,19 +18,17 @@ import javax.swing.JTabbedPane;
  * It is set externally by the MonitoringApplication before any calls to AIDA are made 
  * from Drivers.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: MonitoringPlotFactory.java,v 1.5 2013/11/06 19:19:56 jeremy Exp $
+ * @version $Id: MonitoringPlotFactory.java,v 1.6 2013/12/10 07:36:40 jeremy Exp $
  */
 class MonitoringPlotFactory extends PlotterFactory {
 
-    /*
-     * The name of the factory which will be used in naming tabs in the monitoring app.
-     */
+    /* The name of the factory which will be used in naming tabs in the monitoring app. */
     String name = null;
 
-    // The GUI tabs for this factory's plots.
+    /* The GUI tabs for this factory's plots. */
     private JTabbedPane tabs = new JTabbedPane();
 
-    // Root pane where this factory's top-level tab will be inserted.
+    /* Root pane where this factory's top-level tab will be inserted. */
     private static JTabbedPane rootPane = null;
 
     /**
@@ -38,8 +36,15 @@ class MonitoringPlotFactory extends PlotterFactory {
      */
     MonitoringPlotFactory() {
         super();
-        rootPane.addTab("", tabs);
-        rootPane.setTabComponentAt(rootPane.getTabCount() - 1, new JLabel("  "));
+        
+        /* Enable embedded mode. */
+        setEmbedded(true);
+        
+        setupRootPane("  ");
+        
+        /** Setup the root pane by adding a tab for this factory. */
+        //rootPane.addTab("  ", tabs);
+        //rootPane.setTabComponentAt(rootPane.getTabCount() - 1, new JLabel("  "));
     }
 
     /**
@@ -49,6 +54,14 @@ class MonitoringPlotFactory extends PlotterFactory {
     MonitoringPlotFactory(String name) {
         super();
         this.name = name;
+        
+        setEmbedded(true);
+        
+        setupRootPane(name);
+    }
+
+    private void setupRootPane(String name) {
+        // FIXME: hack
         if (!(new RuntimeException()).getStackTrace()[2].getClassName()
                 .equals("hep.aida.ref.plotter.style.registry.StyleStoreXMLReader")) {
             rootPane.addTab(name, tabs);
@@ -63,10 +76,7 @@ class MonitoringPlotFactory extends PlotterFactory {
      */
     public IPlotter create(String plotterName) {
         IPlotter plotter = super.create(plotterName);
-        JPanel plotterPanel = new JPanel(new BorderLayout());
-        plotterPanel.add(PlotterUtilities.componentForPlotter(plotter), BorderLayout.CENTER);
-        tabs.addTab(plotterName, plotterPanel);
-        tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(plotterName));
+        setupPlotterTab(plotterName, plotter);
         return plotter;
     }
 
@@ -84,5 +94,12 @@ class MonitoringPlotFactory extends PlotterFactory {
      */
     static void setRootPane(JTabbedPane rootPane) {
         MonitoringPlotFactory.rootPane = rootPane;
+    }
+    
+    private void setupPlotterTab(String plotterName, IPlotter plotter) {
+        JPanel plotterPanel = new JPanel(new BorderLayout());
+        plotterPanel.add(PlotterUtilities.componentForPlotter(plotter), BorderLayout.CENTER);
+        tabs.addTab(plotterName, plotterPanel);
+        tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(plotterName));
     }
 }
