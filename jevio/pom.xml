@@ -29,7 +29,7 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.lcsim</groupId>
+            <groupId>org.hps</groupId>
             <artifactId>cmsg</artifactId>
             <version>3.0</version>
         </dependency>

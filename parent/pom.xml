@@ -12,68 +12,26 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <deployUrl>scpexe://svn.slac.stanford.edu///nfs/slac/g/lcd/mc/prj/www/lcsim/maven2</deployUrl>
         <scmConnection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk</scmConnection>
-        <freehepRepo>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</freehepRepo>
         <hpsUrl>http://java.freehep.org/svn/repos/hps/list/java/trunk/</hpsUrl>
         <lcsimVersion>3.0-SNAPSHOT</lcsimVersion>
         <hpsVersion>3.0-SNAPSHOT</hpsVersion>
-        <lcsimRepo>http://www.lcsim.org/maven2</lcsimRepo>
     </properties>
     <scm>
         <url>${hpsUrl}/${project.name}</url>
         <connection>${scmConnection}/${project.name}</connection>
         <developerConnection>${scmConnection}/${project.name}</developerConnection>
     </scm>
-    <distributionManagement>
-        <repository>
-            <id>lcsim-repo</id>
-            <name>org.lcsim Maven Repository</name>
-            <url>${deployUrl}</url>
-        </repository>
-        <snapshotRepository>
-            <id>lcsim-snapshot-repo</id>
-            <name>org.lcsim Maven Snapshot Repository</name>
-            <url>${deployUrl}</url>
-        </snapshotRepository>
-    </distributionManagement>
     <repositories>
         <repository>
-            <id>freehep-repo-releases</id>
-            <name>FreeHEP Maven 2 Release Repository</name>
-            <url>${freehepRepo}</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
+            <id>freehep-repo-public</id>
+            <name>FreeHEP Maven Public</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
         </repository>
         <repository>
-            <id>freehep-repo-snapshots</id>
-            <name>FreeHEP Maven 2 Snapshot Repository</name>
-            <url>${freehepRepo}</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>lcsim-maven-repo</id>
-            <name>org.lcsim Maven Repository</name>
-            <url>${lcsimRepo}</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
+            <id>lcsim-repo-public</id>
+            <name>LCSIM Public Maven Repository</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
         </repository>
         <repository>
             <id>maven-central-repo</id>
@@ -91,27 +49,21 @@
         <pluginRepository>
             <id>freehep-maven-plugin-repo</id>
             <name>Freehep Plugin Repository</name>
-            <url>${freehepRepo}</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </pluginRepository>
-        <pluginRepository>
-            <id>lcsim-maven-repo</id>
-            <name>LCSim Plugin Repository</name>
-            <url>${lcsimRepo}</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
+            <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
         </pluginRepository>
     </pluginRepositories>
+    <distributionManagement>
+        <repository>
+            <id>lcsim-repo-releases</id>
+            <name>LCSIM Releases maven repository</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>lcsim-repo-snapshots</id>
+            <name>LCSIM Snapshots maven repository</name>
+            <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -195,9 +147,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.2</version> 
-                <configuration> 
-                    <tagBase>svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags</tagBase> 
+                <version>2.4.2</version>
+                <configuration>
+                    <tagBase>svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags</tagBase>
                 </configuration>
             </plugin>
             <plugin>
