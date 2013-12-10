@@ -93,7 +93,7 @@ import org.lcsim.util.aida.AIDA;
  * converted from the ET ring. This class is accessible to users by calling its main()
  * method.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: MonitoringApplication.java,v 1.60 2013/11/06 19:19:56 jeremy Exp $
+ * @version $Id: MonitoringApplication.java,v 1.61 2013/12/10 07:36:40 jeremy Exp $
  */
 // FIXME: Review minimum size settings to see which are actually being respected. Remove
 // where they are not needed.
@@ -1595,13 +1595,12 @@ public class MonitoringApplication {
 
         log(Level.INFO, "Setting up LCSim.");
 
-        // Clear the static AIDA tree in case plots are hanging around from previous
-        // sessions.
+        // Clear the static AIDA tree in case plots are hanging around from previous sessions.
         resetAidaTree();
 
-        // Reset the plots tab.
+        // Reset the top plots panel so that it is empty.
         plotPane.removeAll();
-        // ((MonitoringAnalysisFactory)MonitoringAnalysisFactory.create()).clearPlotFactories();
+        //((MonitoringAnalysisFactory)MonitoringAnalysisFactory.create()).clearPlotterFactories();
 
         // Get steering resource or file as a String parameter.
         String steering = getSteering();
