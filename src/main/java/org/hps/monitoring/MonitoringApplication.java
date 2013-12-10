@@ -225,7 +225,7 @@ public class MonitoringApplication {
     }
 
     private void setupAida() {
-        AnalysisFactory.configure();
+        //AnalysisFactory.configure();
         MonitoringAnalysisFactory.register();
         MonitoringPlotFactory.setRootPane(plotPane);
     }
