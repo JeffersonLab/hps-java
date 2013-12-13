@@ -18,7 +18,7 @@ public class HPSNearestNeighborRMS implements HPSClusteringAlgorithm {
     private double _cluster_threshold;
     private double _meanTime = 24;
     private double _timeWindow = 48;
-    private double _maxChisq = 10.0;
+    private double _maxChisq = 20.0;
 
     /**
      * Instantiate NearestNeighborRMS with specified thresholds.
