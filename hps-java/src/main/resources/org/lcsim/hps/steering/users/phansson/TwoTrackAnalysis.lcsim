@@ -12,6 +12,7 @@
         <driver name="EventMarkerDriver"/>
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/> 
+        <driver name="BadChannelFilter" />
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
@@ -81,6 +82,7 @@
             <eventInterval>100</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        <driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
         <driver name="RawTrackerHitFitterDriver" type="org.lcsim.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>false</correctT0Shift>
@@ -95,7 +97,7 @@
         <driver name="TrackerReconDriver"
                 type="org.lcsim.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-TestRun-357.xml</strategyResource>
+            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
         </driver>        
         <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
