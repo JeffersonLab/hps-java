@@ -21,7 +21,7 @@
     </execute>    
     <drivers>    
         <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
-<!--            <runNumber>${runNumber}</runNumber>-->
+            <runNumber>${runNumber}</runNumber>
         </driver>   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>

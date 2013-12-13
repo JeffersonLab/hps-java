@@ -4,7 +4,7 @@
         <!--<fileRegExp baseDir="./../data/mc/HPS-TestRun-v5/1.8-SNAPSHOT-recoil-101013/">egs_5.5gev_0.016x0_500mb_recoil_readout_[0-9].slcio</fileRegExp>-->
     </inputFiles>
     <control>
-        <numberOfEvents>1000</numberOfEvents>
+        <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
@@ -73,7 +73,7 @@
 
 
         <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
-  <!--              <runNumber>${runNumber}</runNumber> -->
+                <runNumber>${runNumber}</runNumber>
   <!--			<gainFilename>default_goodregion_shift_v1.gain</gainFilename> -->
         </driver>
         <driver name="EventMarkerDriver"
