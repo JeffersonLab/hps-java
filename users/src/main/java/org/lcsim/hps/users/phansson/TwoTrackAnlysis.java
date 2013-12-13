@@ -68,6 +68,7 @@ public class TwoTrackAnlysis extends Driver {
     private int totalTwoTrackEvents=0;
     private int totalMCEvents=0;
     private int totalTwoTrackMCEvents=0;
+	private int nEventsWithGoodRegionCluster=0;
     private boolean hideFrame = false;
     private String outputPlotFileName;
     private String ecalClusterCollectionName = "EcalClusters";
@@ -321,6 +322,21 @@ public class TwoTrackAnlysis extends Driver {
             if(_debug) {
                 System.out.println(this.getClass().getSimpleName() + ": found " + clusters.size() + " ecal clusters " + event.getEventNumber());
             }
+
+			boolean goodRegion = false;
+			for(HPSEcalCluster c : clusters) {
+                int iy = c.getSeedHit().getIdentifierFieldValue("iy");
+                int ix = c.getSeedHit().getIdentifierFieldValue("ix");
+                double E = c.getEnergy();
+				int evtnr = event.getEventNumber();
+                int clsize = c.getSize();
+				if( iy>0 && ix>0 && E>0.6) {
+					//printWriter.format("%d %5.5f %5d %5d %5d ",evtnr,E,ix,iy,clsize);
+					goodRegion = true;
+				}
+			}
+			if( goodRegion ) nEventsWithGoodRegionCluster++;
+
         }
         
         Hep3Vector vtxPosMC = null;
@@ -384,9 +400,11 @@ public class TwoTrackAnlysis extends Driver {
     public void endOfData() {
         
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Events = "+this.totalEvents);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Two-Track events Processed = "+this.totalTwoTrackEvents);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of MCEvents = "+this.totalMCEvents);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Two-Track MC events Processed = "+this.totalTwoTrackMCEvents);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of Events filling tuple = "+this.totalTwoTrackEvents);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of events with MC collection = "+this.totalMCEvents);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of events with e+e- ID'd = "+this.totalTwoTrackMCEvents);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of events with cl in good region = "+this.nEventsWithGoodRegionCluster);
+		
         
         if (!"".equals(outputPlotFileName)) {
             try {
