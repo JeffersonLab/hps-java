@@ -1,4 +1,4 @@
-package org.hps;
+package org.hps.plugin;
 
 import org.freehep.application.studio.Plugin;
 
