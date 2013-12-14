@@ -6,6 +6,7 @@ import hep.aida.IPlotter;
 import hep.aida.ref.plotter.PlotterRegion;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -473,6 +474,7 @@ public class TwoTrackAnlysis extends Driver {
             br_line+=""+trk_str+"_fr_target_x/F:"+trk_str+"_fr_target_y/F:"+trk_str+"_fr_target_z/F:";
             //br_line+=""+trk_str+"_ecal_y/F:"+trk_str+"_ecal_z/F:";
             br_line+=""+trk_str+"_ecal_y/F:"+trk_str+"_ecal_z/F:"+trk_str+"_fr_ecal_x/F:"+trk_str+"_fr_ecal_y/F:"+trk_str+"_fr_ecal_z/F:";
+            br_line+=""+trk_str+"_ecal_sm_y/F:"+trk_str+"_ecal_sm_z/F:"+trk_str+"_fr_ecal_sm_x/F:"+trk_str+"_fr_ecal_sm_y/F:"+trk_str+"_fr_ecal_sm_z/F:";
             //br_line+=""+trk_str+"_fr_ecal_x/F:"+trk_str+"_fr_ecal_y/F:"+trk_str+"_fr_ecal_z/F:";
             //br_line+=""+trk_str+"_fr_ecal_x/F:";
             
@@ -486,9 +488,9 @@ public class TwoTrackAnlysis extends Driver {
         br_line+="vtx_x/F:vtx_y/F:vtx_z/F:";
         br_line+="vtx_fr_x/F:vtx_fr_y/F:vtx_fr_z/F:";
         br_line+="vtx_nonbend_x/F:vtx_nonbend_y/F:vtx_nonbend_z/F:";
-        br_line+="cl1_E/F:cl1_ix/I:cl1_iy/I:cl1_x/F:cl1_y/F:cl1_n/I:";
-        br_line+="cl2_E/F:cl2_ix/I:cl2_iy/I:cl2_x/F:cl2_y/F:cl2_n/I:";
-        br_line+="cl3_E/F:cl3_ix/I:cl3_iy/I:cl3_x/F:cl3_y/F:cl3_n/I:";
+        br_line+="cl1_E/F:cl1_ix/I:cl1_iy/I:cl1_x/F:cl1_y/F:cl1_z/F:cl1_n/I:";
+        br_line+="cl2_E/F:cl2_ix/I:cl2_iy/I:cl2_x/F:cl2_y/F:cl2_z/F:cl2_n/I:";
+        br_line+="cl3_E/F:cl3_ix/I:cl3_iy/I:cl3_x/F:cl3_y/F:cl3_z/F:cl3_n/I:";
         br_line+="ncl_top/I:ncl_bot/I:";
         br_line+="trig_top/I:trig_bot/I";
         
@@ -502,7 +504,32 @@ public class TwoTrackAnlysis extends Driver {
     }
     
     
-    
+    /**
+     * Find the closest ECal cluster in deltaR. Return null if no match
+     * @param trk
+     * @param clusters
+     * @return clostest cluster.
+     */
+
+    private HPSEcalCluster findEcalCluster(Track trk, List<HPSEcalCluster> clusters) {
+    	HPSEcalCluster matched_cluster = null;
+    	double drMin = 9999999.9;
+    	double drMax = 9999999.9;
+    	double dr;
+    	Hep3Vector pos_cl,pos_trk;
+    	for(HPSEcalCluster cluster : clusters) {
+    		pos_cl = new BasicHep3Vector(cluster.getPosition());
+    		pos_trk = TrackUtils.extrapolateTrack(trk,pos_cl.z());
+    		dr = VecOp.sub(pos_cl, pos_trk).magnitude();
+    		if( dr < drMax) {
+    			if( dr < drMin ) {
+    				matched_cluster = cluster;
+    				drMin = dr;
+    			}
+    		}
+    	}
+    	return matched_cluster;
+    }
     
     private void fillTextTuple(MCParticle e, MCParticle p, List<CmpTrack> tracks, Hep3Vector vtxPosParticle, Hep3Vector vtxPos, Hep3Vector vtxPosFr, Hep3Vector vtxPosNonBend, List<HPSEcalCluster> clusters, EventHeader event) throws IOException {
         if(doPrintBranchInfoLine) {
@@ -607,13 +634,20 @@ public class TwoTrackAnlysis extends Driver {
                 	printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",posAtECal.x(),posAtECal.y(),posAtECalFringe1.z(),posAtECalFringe1.x(),posAtECalFringe1.y()); //note rotation from JLab->tracking
                 } 
                 else printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9);
-                //else printWriter.format("%5.5f %5.5f ",-9999999.9,-9999999.9);
-
-                //Hep3Vector posAtECalFringe1 = hpstrk1.getPositionAtZMap(BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, BeamlineConstants.ECAL_FACE_TESTRUN, 5.0, false)[0];
-                //if (posAtECalFringe1!=null) printWriter.format("%5.5f %5.5f %5.5f ", posAtECalFringe1.z(),posAtECalFringe1.x(),posAtECalFringe1.y()); //note rotation from JLab->tracking
-                //printWriter.format("%5.5f %5.5f %5.5f ", -9999999.9,-9999999.9,-9999999.9);
-                //if (posAtECalFringe1!=null) printWriter.format("%5.5f ", posAtECalFringe1.z()); //note rotation from JLab->tracking
-                //printWriter.format("%5.5f ", -9999999.9);
+                
+                HPSEcalCluster matched_cluster = findEcalCluster(trk1, clusters);
+                if(matched_cluster !=null) {
+                	double[] pos_cluster = matched_cluster.getPosition();
+                	posAtECal = TrackUtils.extrapolateTrack(trk1,pos_cluster[2]);
+                	if(beamlinePosOk(posAtECal)) {
+                		posAtECalFringe1 = hpstrk1.getPositionAtZMap(BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, pos_cluster[2], 5.0, false)[0];
+                		printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",posAtECal.x(),posAtECal.y(),posAtECalFringe1.z(),posAtECalFringe1.x(),posAtECalFringe1.y()); //note rotation from JLab->tracking
+                	} 
+                	else printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9);
+                } 
+                else printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9);
+                
+                
 
                 
                 if(beamlinePosOk(posAtConverter)) {
@@ -680,8 +714,7 @@ public class TwoTrackAnlysis extends Driver {
                 printWriter.format("%5.5f %5.5f ",-9999999.9,-9999999.9); //note rotation from JLab->tracking
                 printWriter.format("%5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9); //note rotation from JLab->tracking
                 printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9); //note rotation from JLab->tracking
-                //printWriter.format("%5.5f %5.5f %5.5f ",-9999999.9,5555.5,-9999999.9); //note rotation from JLab->tracking
-                //printWriter.format("%5.5f ",-9999999.9); //note rotation from JLab->tracking
+                printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9); //note rotation from JLab->tracking
                 
             }
         }
@@ -743,10 +776,10 @@ public class TwoTrackAnlysis extends Driver {
         int ncl_t=0; int ncl_b=0;
         for(int i=0;i<3;++i) {
             if(clusters==null) {
-                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5d ",-999999.9,-999999,-999999,-999999.,-999999.,-999999);
+                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5.5f %5d ",-999999.9,-999999,-999999,-999999.,-999999.,-999999.,-999999);
             }
             else if(clusters.size()<=i) {
-                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5d ",-999999.9,-999999,-999999,-999999.,-999999.,-999999);
+                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5.5f %5d ",-999999.9,-999999,-999999,-999999.,-999999.,-999999.,-999999);
             } else {
                 //for(HPSEcalCluster cl : clusters) {
                 int iy = clusters.get(i).getSeedHit().getIdentifierFieldValue("iy");
@@ -754,7 +787,7 @@ public class TwoTrackAnlysis extends Driver {
                 double pos[] = clusters.get(i).getPosition();
                 double E = clusters.get(i).getEnergy();
                 int clsize = clusters.get(i).getSize();
-                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5d ",E,ix,iy,pos[0],pos[1],clsize);
+                printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5.5f %5d ",E,ix,iy,pos[0],pos[1],pos[2],clsize);
                 if( iy > 0) ncl_t++;
                 else ncl_b++;
             }
