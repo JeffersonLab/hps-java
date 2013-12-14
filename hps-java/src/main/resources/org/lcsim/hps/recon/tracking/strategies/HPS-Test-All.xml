@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
-    <TargetDetector>HPS-Test-4pt0</TargetDetector>
+    <TargetDetector>HPS-Test-All</TargetDetector>
 	
-	<constant name="minpt" value="0.250"/>
-	<constant name="minhits" value="4"/>
-	<constant name="minconfirm" value="1"/>
-	<constant name="maxdca" value="80.0"/>
-	<constant name="maxz0" value="80.0"/>
-    <constant name="maxchi2" value="25.0"/>
-    <constant name="badchi2" value="10.0"/>
-    
     <Strategy name="Strategy1-1">        
         <MinPT>0.250</MinPT>
         <MinHits>4</MinHits>
