@@ -91,6 +91,7 @@ public class TwoTrackAnlysis extends Driver {
     private IPlotter _plotterTrackVertexNonBend;
     private IPlotter _plotterTrackMult;
     private IPlotter _plotterTrackAtConv;
+    private IPlotter _plotterTrackMatch;
     private IHistogram1D _vtxpos_x;
     private IHistogram1D _vtxpos_y;
     private IHistogram1D _vtxpos_z;
@@ -125,6 +126,9 @@ public class TwoTrackAnlysis extends Driver {
     private IHistogram1D _trk_z_at_conv_bot_neg;
     private IHistogram1D _trk_y_at_conv_bot_neg_fr;
     private IHistogram1D _trk_z_at_conv_bot_neg_fr;
+    private IHistogram1D _trkmatch_dy;
+    private IHistogram1D _trkmatch_dx;
+    
 	    
     private class CmpTrack implements Comparable<CmpTrack> {
         private Track _track;
@@ -972,6 +976,10 @@ public class TwoTrackAnlysis extends Driver {
         _trk_z_at_conv_bot_neg_fr = aida.histogram1D("Track z @ converter bot - (fr)", 100, -20, 20);
 
         
+        _trkmatch_dy = aida.histogram1D("dy(cl,track)", 50, -60,60);
+        _trkmatch_dx = aida.histogram1D("dx(cl,track)", 50, -60,60);
+       
+        
         
         _plotterTrackVertex = aida.analysisFactory().createPlotterFactory().create();
         _plotterTrackVertex.createRegions(2,2);
@@ -1011,7 +1019,6 @@ public class TwoTrackAnlysis extends Driver {
         _plotterTrackAtConv.region(6).plot(_trk_z_at_conv_bot_pos);
         _plotterTrackAtConv.region(10).plot(_trk_y_at_conv_bot_pos_fr);
         _plotterTrackAtConv.region(14).plot(_trk_z_at_conv_bot_pos_fr);
-
         _plotterTrackAtConv.region(1).plot(_trk_y_at_conv_top_neg);
         _plotterTrackAtConv.region(5).plot(_trk_z_at_conv_top_neg);
         _plotterTrackAtConv.region(9).plot(_trk_y_at_conv_top_neg_fr);
@@ -1020,12 +1027,16 @@ public class TwoTrackAnlysis extends Driver {
         _plotterTrackAtConv.region(7).plot(_trk_z_at_conv_bot_neg);
         _plotterTrackAtConv.region(11).plot(_trk_y_at_conv_bot_neg_fr);
         _plotterTrackAtConv.region(15).plot(_trk_z_at_conv_bot_neg_fr);
-        
+        _plotterTrackMatch = aida.analysisFactory().createPlotterFactory().create();
+        _plotterTrackMatch.createRegions(1,2);
+        _plotterTrackMatch.region(0).plot(_trkmatch_dx);
+        _plotterTrackMatch.region(1).plot(_trkmatch_dy);
         _plotterParticleVertex.setTitle("MC particle Vertex");
         _plotterTrackVertex.setTitle("Two Track Vertex");
         _plotterTrackVertexNonBend.setTitle("Two Track Vertex Non Bend");
         _plotterTrackMult.setTitle("Track multiplicity");
         _plotterTrackAtConv.setTitle("Track @ converter");
+        _plotterTrackMatch.setTitle("Track-cluster matching");
         
         for(int i=0;i<3;++i) {
             ((PlotterRegion) _plotterParticleVertex.region(i)).getPlot().setAllowUserInteraction(true);
@@ -1034,9 +1045,13 @@ public class TwoTrackAnlysis extends Driver {
             ((PlotterRegion) _plotterTrackVertex.region(i)).getPlot().setAllowPopupMenus(true);
             ((PlotterRegion) _plotterTrackVertexNonBend.region(i)).getPlot().setAllowUserInteraction(true);
             ((PlotterRegion) _plotterTrackVertexNonBend.region(i)).getPlot().setAllowPopupMenus(true);
-            if(i==0) {
-                ((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowUserInteraction(true);
-                ((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowPopupMenus(true);
+            if(i<2) {
+            	((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowUserInteraction(true);
+        		((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowPopupMenus(true);
+            	if(i==0) {
+            		((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowUserInteraction(true);
+            		((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowPopupMenus(true);
+            	}
             }
         }
         
@@ -1047,6 +1062,7 @@ public class TwoTrackAnlysis extends Driver {
             this._plotterTrackVertexNonBend.show();
             //this._plotterTrackMult.show();
             _plotterTrackAtConv.show();
+            _plotterTrackMatch.show();
         } 
     }
 
