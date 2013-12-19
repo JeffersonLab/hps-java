@@ -24,6 +24,7 @@ import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -560,7 +561,7 @@ public class TwoTrackAnlysis extends Driver {
         for (int itrk=0;itrk<4;itrk++) {
             Track trk1 = null;
             if(tracks.size()>itrk) trk1 = tracks.get(itrk)._track;
-        
+           
             if(trk1!=null) {
                 SeedTrack st1 = (SeedTrack) trk1;
                 HelicalTrackFit helix1 = st1.getSeedCandidate().getHelix();     
@@ -797,9 +798,15 @@ public class TwoTrackAnlysis extends Driver {
             }
         }
         printWriter.format("%5d %5d ",ncl_t,ncl_b);
-        TriggerData trigger = getTriggerInfo(event);
-        if(trigger==null) printWriter.format("%5d %5d",0,0);
-        else printWriter.format("%5d %5d",trigger.getTopTrig()>0?1:0,trigger.getBotTrig()>0?1:0);
+        
+        GenericObject triggerData = getTriggerInfo(event);
+        if(triggerData==null) {
+        	printWriter.format("%5d %5d",0,0);
+        }
+        else {
+        	printWriter.format("%5d %5d",TriggerData.getTopTrig(triggerData),TriggerData.getBotTrig(triggerData));
+        	System.out.printf("trigger top %d  bot %d  OR %d AND %d\n", TriggerData.getTopTrig(triggerData), TriggerData.getBotTrig(triggerData),TriggerData.getOrTrig(triggerData),TriggerData.getAndTrig(triggerData));
+        }
         printWriter.println();
         
     }
@@ -820,12 +827,9 @@ public class TwoTrackAnlysis extends Driver {
 		}
 	}
 
-    private TriggerData getTriggerInfo(EventHeader event) {
-        if(!event.hasCollection(TriggerData.class, triggerDecisionCollectionName)) {
-            if(_debug) 
-                System.out.printf( "%s: Event %d has NO trigger bank\n",this.getClass().getSimpleName(),event.getEventNumber());
-            return null;
-        } else {
+    private GenericObject getTriggerInfo(EventHeader event) {
+        if(event.hasCollection(TriggerData.class, triggerDecisionCollectionName)) {
+           
             List<TriggerData> triggerDataList = event.get(TriggerData.class, "TriggerBank");
             if(triggerDataList.isEmpty()) {
                 if(_debug) 
@@ -837,6 +841,27 @@ public class TwoTrackAnlysis extends Driver {
                 return triggerDataList.get(0);
             }
         }
+        else if (event.hasCollection(GenericObject.class, triggerDecisionCollectionName)) {
+        	List<GenericObject> triggerList = event.get(GenericObject.class, triggerDecisionCollectionName);
+            if (!triggerList.isEmpty()) {
+            	if(_debug) 
+                    System.out.println( "Event has trigger generic bank");
+                GenericObject triggerData = triggerList.get(0);
+                return triggerData;
+            } 
+            else {
+            	if(_debug) 
+                    System.out.println( "Event has trigger generic bank exists but is empty");
+            	return null;
+            }
+        }
+        else {
+        	if(_debug) { 
+        		System.out.printf( "%s: Event %d has NO trigger bank\n",this.getClass().getSimpleName(),event.getEventNumber());
+        	}
+        	return null;
+        }
+        
     }
                 
 
