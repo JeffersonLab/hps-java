@@ -21,6 +21,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.ExpandedIdentifier;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.IdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -34,6 +39,8 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HitIdentifier;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.compact.Subdetector;
+import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 import org.lcsim.hps.event.BeamlineConstants;
 import org.lcsim.hps.evio.TriggerData;
@@ -185,9 +192,9 @@ public class TwoTrackAnlysis extends Driver {
 
         makePlots();
        
-        
+        printEcalInfo(detector);
+
     }
-    
     
     
     @Override
@@ -805,7 +812,9 @@ public class TwoTrackAnlysis extends Driver {
         }
         else {
         	printWriter.format("%5d %5d",TriggerData.getTopTrig(triggerData),TriggerData.getBotTrig(triggerData));
-        	System.out.printf("trigger top %d  bot %d  OR %d AND %d\n", TriggerData.getTopTrig(triggerData), TriggerData.getBotTrig(triggerData),TriggerData.getOrTrig(triggerData),TriggerData.getAndTrig(triggerData));
+        	if(_debug) {
+        		System.out.printf("trigger top %d  bot %d  OR %d AND %d\n", TriggerData.getTopTrig(triggerData), TriggerData.getBotTrig(triggerData),TriggerData.getOrTrig(triggerData),TriggerData.getAndTrig(triggerData));
+        	}
         }
         printWriter.println();
         
@@ -1148,6 +1157,27 @@ public class TwoTrackAnlysis extends Driver {
         return s;
     }
 
-      
+    /**
+     * Print out informatoin about ecal geometry
+     * @param detector
+     */
+    private void printEcalInfo(Detector detector) {
+    Subdetector det = detector.getSubdetector("Ecal");
+    if(det!=null) {
+    	System.out.printf("found %s with %d children:\n",det.getName(),det.getDetectorElement().getChildren().size());
+    	System.out.printf("%5s %5s %45s %45s\n","ix","iy","global pos"," translation");
+    	for(IDetectorElement idet : det.getDetectorElement().getChildren()) {
+        		//System.out.printf("%s\n",idet.getName());
+        		IIdentifierHelper helper = idet.getIdentifierHelper();
+        		IExpandedIdentifier expId = idet.getExpandedIdentifier();
+        		int ix = expId.getValue(helper.getFieldIndex("ix"));
+        		int iy = expId.getValue(helper.getFieldIndex("iy"));
+        		System.out.printf("%5d %5d %45s %45s\n",ix,iy, idet.getGeometry().getPosition().toString(),idet.getGeometry().getPhysicalVolume().getTranslation().toString());
+        }
+    }
+    else {
+    	System.out.printf("found no ecal\n");
+    }
+    }
     
 }
