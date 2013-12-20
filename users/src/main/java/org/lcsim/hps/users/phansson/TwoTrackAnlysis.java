@@ -134,8 +134,14 @@ public class TwoTrackAnlysis extends Driver {
     private IHistogram1D _trk_z_at_conv_bot_neg;
     private IHistogram1D _trk_y_at_conv_bot_neg_fr;
     private IHistogram1D _trk_z_at_conv_bot_neg_fr;
-    private IHistogram1D _trkmatch_dy;
-    private IHistogram1D _trkmatch_dx;
+    private IHistogram1D _trkmatch_top_dy;
+    private IHistogram1D _trkmatch_top_dx;
+    private IHistogram1D _trkmatch_bot_dy;
+    private IHistogram1D _trkmatch_bot_dx;
+    private IHistogram1D _trkmatch_top_plus_dx;
+    private IHistogram1D _trkmatch_bot_plus_dx;
+    private IHistogram1D _trkmatch_top_minus_dx;
+    private IHistogram1D _trkmatch_bot_minus_dx;
     
 	    
     private class CmpTrack implements Comparable<CmpTrack> {
@@ -654,6 +660,27 @@ public class TwoTrackAnlysis extends Driver {
                 	if(beamlinePosOk(posAtECal)) {
                 		posAtECalFringe1 = hpstrk1.getPositionAtZMap(BeamlineConstants.DIPOLE_EDGE_TESTRUN - 100, pos_cluster[2], 5.0, false)[0];
                 		printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",posAtECal.x(),posAtECal.y(),posAtECalFringe1.z(),posAtECalFringe1.x(),posAtECalFringe1.y()); //note rotation from JLab->tracking
+						if(_debug) {
+							System.out.printf("clpos:%5.5f %5.5f %5.5f  trk: %5.5f %5.5f %5.5f %5.5f %5.5f \n",pos_cluster[0],pos_cluster[1],pos_cluster[2],posAtECal.x(),posAtECal.y(),posAtECalFringe1.z(),posAtECalFringe1.x(),posAtECalFringe1.y()); //note rotation from JLab->tracking
+
+							if(clusters.size()==1) {
+								if(pos_cluster[1] >0) {
+									_trkmatch_top_dy.fill(pos_cluster[1] - posAtECal.y());
+									if(trk1.getCharge()>0) {
+										_trkmatch_top_plus_dx.fill(pos_cluster[0] - posAtECal.x());
+									} else {
+										_trkmatch_top_minus_dx.fill(pos_cluster[0] - posAtECal.x());
+									}
+								} else {
+									_trkmatch_bot_dy.fill(pos_cluster[1] - posAtECal.y());
+									if(trk1.getCharge()>0) {
+										_trkmatch_bot_plus_dx.fill(pos_cluster[0] - posAtECal.x());
+									} else {
+										_trkmatch_bot_minus_dx.fill(pos_cluster[0] - posAtECal.x());
+									}
+								}
+							}
+						}
                 	} 
                 	else printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9);
                 } 
@@ -1010,8 +1037,15 @@ public class TwoTrackAnlysis extends Driver {
         _trk_z_at_conv_bot_neg_fr = aida.histogram1D("Track z @ converter bot - (fr)", 100, -20, 20);
 
         
-        _trkmatch_dy = aida.histogram1D("dy(cl,track)", 50, -60,60);
-        _trkmatch_dx = aida.histogram1D("dx(cl,track)", 50, -60,60);
+        _trkmatch_top_dy = aida.histogram1D("dy(cl,track) top", 50, -60,60);
+        _trkmatch_top_dx = aida.histogram1D("dx(cl,track) top", 50, -60,60);
+        _trkmatch_bot_dy = aida.histogram1D("dy(cl,track) bot", 50, -60,60);
+        _trkmatch_bot_dx = aida.histogram1D("dx(cl,track) bot", 50, -60,60);
+
+        _trkmatch_top_plus_dx = aida.histogram1D("dx(cl,track) top plus", 50, -60,60);
+        _trkmatch_bot_plus_dx = aida.histogram1D("dx(cl,track) bot plus", 50, -60,60);
+        _trkmatch_top_minus_dx = aida.histogram1D("dx(cl,track) top minus", 50, -60,60);
+        _trkmatch_bot_minus_dx = aida.histogram1D("dx(cl,track) bot minus", 50, -60,60);
        
         
         
@@ -1062,9 +1096,13 @@ public class TwoTrackAnlysis extends Driver {
         _plotterTrackAtConv.region(11).plot(_trk_y_at_conv_bot_neg_fr);
         _plotterTrackAtConv.region(15).plot(_trk_z_at_conv_bot_neg_fr);
         _plotterTrackMatch = aida.analysisFactory().createPlotterFactory().create();
-        _plotterTrackMatch.createRegions(1,2);
-        _plotterTrackMatch.region(0).plot(_trkmatch_dx);
-        _plotterTrackMatch.region(1).plot(_trkmatch_dy);
+        _plotterTrackMatch.createRegions(2,3);
+        _plotterTrackMatch.region(0).plot(_trkmatch_top_plus_dx);
+        _plotterTrackMatch.region(1).plot(_trkmatch_top_minus_dx);
+        _plotterTrackMatch.region(2).plot(_trkmatch_bot_plus_dx);
+        _plotterTrackMatch.region(3).plot(_trkmatch_bot_minus_dx);
+        _plotterTrackMatch.region(4).plot(_trkmatch_top_dy);
+        _plotterTrackMatch.region(5).plot(_trkmatch_bot_dy);
         _plotterParticleVertex.setTitle("MC particle Vertex");
         _plotterTrackVertex.setTitle("Two Track Vertex");
         _plotterTrackVertexNonBend.setTitle("Two Track Vertex Non Bend");
@@ -1079,9 +1117,9 @@ public class TwoTrackAnlysis extends Driver {
             ((PlotterRegion) _plotterTrackVertex.region(i)).getPlot().setAllowPopupMenus(true);
             ((PlotterRegion) _plotterTrackVertexNonBend.region(i)).getPlot().setAllowUserInteraction(true);
             ((PlotterRegion) _plotterTrackVertexNonBend.region(i)).getPlot().setAllowPopupMenus(true);
+			((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowUserInteraction(true);
+			((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowPopupMenus(true);
             if(i<2) {
-            	((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowUserInteraction(true);
-        		((PlotterRegion) _plotterTrackMatch.region(i)).getPlot().setAllowPopupMenus(true);
             	if(i==0) {
             		((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowUserInteraction(true);
             		((PlotterRegion) _plotterTrackMult.region(i)).getPlot().setAllowPopupMenus(true);
