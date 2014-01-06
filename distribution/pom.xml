@@ -4,7 +4,6 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-distribution</artifactId>
     <name>distribution</name>
-    <version>${hpsVersion}</version>
     <description>HPS runnable jar distribution and JAS plugin installation</description>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
