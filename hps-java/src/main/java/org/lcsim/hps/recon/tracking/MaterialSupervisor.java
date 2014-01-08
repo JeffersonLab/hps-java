@@ -66,14 +66,15 @@ public class MaterialSupervisor extends MaterialManager {
         List<SiSensor> sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(SiSensor.class);
         //List<SiTrackerModule> modules = det.getDetectorElement().findDescendants(SiTrackerModule.class);
         System.out.printf("%s: %d sensors\n",this.getClass().getSimpleName(),sensors.size());
-        System.out.printf("%s: %5s %32s %22s %15s %10s\n",this.getClass().getSimpleName(),"ID","Pos (mm)","size(mm)","t(mm)","t(%R.L)");
+        System.out.printf("%s: %5s %32s %22s %15s %10s %10s\n",this.getClass().getSimpleName(),"ID","Pos (mm)","size(mm)","t(mm)","t(%R.L)","type");
         for (SiSensor module: sensors) {
             
             SiStripPlane plane = new SiStripPlane(module);
                     
-            System.out.printf("%s: %5d %32s %15.2fx%.2f %10.2f %10.3f \n",this.getClass().getSimpleName(),plane.getId(),plane.origin().toString(),
+            System.out.printf("%s: %5d %32s %15.2fx%.2f %10.2f %10.3f %10s\n",this.getClass().getSimpleName(),plane.getId(),plane.origin().toString(),
                                                                                 plane.getUnmeasuredDimension(),plane.getMeasuredDimension(),
-                                                                                plane.getThickness(),plane.getThicknessInRL()*100);            
+                                                                                plane.getThickness(),plane.getThicknessInRL()*100,
+                                                                                SvtUtils.getInstance().isAxial(module) ? "axial" : "stereo");            
             _detectorVolumes.add(plane);     
         }
         System.out.printf("%s: ###########################################################\n",this.getClass().getSimpleName());
