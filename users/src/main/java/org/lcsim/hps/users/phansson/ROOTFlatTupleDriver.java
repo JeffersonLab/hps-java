@@ -65,7 +65,7 @@ import org.lcsim.util.aida.AIDA;
  * @author phansson <phansson@slac.stanford.edu>
  * @version $id: $
  */
-public class TwoTrackAnlysis extends Driver {
+public class ROOTFlatTupleDriver extends Driver {
 
     private FileWriter fileWriter = null;
     private PrintWriter printWriter = null;
@@ -182,7 +182,7 @@ public class TwoTrackAnlysis extends Driver {
     
 
     
-    public TwoTrackAnlysis() {
+    public ROOTFlatTupleDriver() {
     }
 
     
@@ -405,7 +405,7 @@ public class TwoTrackAnlysis extends Driver {
         try {
             this.fillTextTuple(electron, positron, tracks, vtxPosMC, vtxPos, vtxPosFringe, vtxPosNonBend, clusters, event);
         } catch (IOException ex) {
-            Logger.getLogger(TwoTrackAnlysis.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ROOTFlatTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         if(this._debug) System.out.println(this.getClass().getSimpleName() + ": # two track events so far = "+totalTwoTrackEvents);
@@ -445,7 +445,7 @@ public class TwoTrackAnlysis extends Driver {
         try {
             fileWriter.close();
         } catch (IOException ex) {
-            Logger.getLogger(TwoTrackAnlysis.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ROOTFlatTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
         
                 
@@ -1143,7 +1143,7 @@ public class TwoTrackAnlysis extends Driver {
     	try {
             fileWriter = new FileWriter(outputNameTextTuple);
         } catch (IOException ex) {
-            Logger.getLogger(TwoTrackAnlysis.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ROOTFlatTupleDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
         printWriter = new PrintWriter(fileWriter);
     }
