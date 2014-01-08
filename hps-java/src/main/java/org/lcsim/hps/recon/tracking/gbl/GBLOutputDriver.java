@@ -15,12 +15,15 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.recon.tracking.EventQuality;
+import org.lcsim.hps.recon.tracking.FieldMap;
 import org.lcsim.hps.recon.tracking.TrackUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
 * This driver is used to convert lcio input to a relative unstructured output format used as imput to GBL
+* 
+* We should port GBL to java.
 * 
 * @author Per Hansson Adrian <phansson@slac.stanford.edu>
 * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
@@ -77,7 +80,8 @@ public class GBLOutputDriver extends Driver {
         truthRes = new TruthResiduals(bfield);
         truthRes.setDebug(_debug);
         truthRes.setHideFrame(hideFrame);
-
+        FieldMap.printFieldMap();
+        
     }
     
     

@@ -176,4 +176,15 @@ public class FieldMap {
         return izix;
 
     }
+    
+    public static void printFieldMap() {
+    	int xval = 0;
+        System.out.printf("---- B-field ----\n");
+        System.out.printf("%5s %5s %10s\n", "z","x","B");
+    	for(int zval=-100;zval< 1400;++zval) {
+    		double bfield = FieldMap.getFieldFromMap((double)zval, (double)xval);
+            System.out.printf("%5d %5d %10.3f\n", zval,xval,bfield);
+    	}
+    }
+    
 }
