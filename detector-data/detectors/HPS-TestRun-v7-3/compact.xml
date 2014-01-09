@@ -1,9 +1,7 @@
-
-<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
-       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-TestRun-v7-3">
+    <info name="HPS-TestRun-v7-2">
         <comment>HPS JLab Test Run detector</comment>
     </info>
 
@@ -16,16 +14,16 @@
         <constant name="world_z" value="world_side" />
         
         <!-- tracking region -->
-        <constant name="tracking_region_radius" value="200.0*cm"/>
-        <constant name="tracking_region_min" value="5.0*cm"/>
-        <constant name="tracking_region_zmax" value="100.0*cm"/>
+        <constant name="tracking_region_radius" value="200.0*cm" />
+        <constant name="tracking_region_min" value="5.0*cm" />
+        <constant name="tracking_region_zmax" value="100.0*cm" />
          
         <!--  dipole magnet and  B-field -->
-        <constant name="dipoleMagnetPositionZ" value="45.72*cm"/>
-        <constant name="dipoleMagnetHeight" value="17.78*cm"/>
-        <constant name="dipoleMagnetWidth" value="41.6052*cm"/>
-        <constant name="dipoleMagnetLength" value="108*cm"/>
-        <constant name="constBFieldY" value="-0.491"/>
+        <constant name="dipoleMagnetPositionZ" value="45.72*cm" />
+        <constant name="dipoleMagnetHeight" value="17.78*cm" />
+        <constant name="dipoleMagnetWidth" value="41.6052*cm" />
+        <constant name="dipoleMagnetLength" value="108*cm" />
+        <constant name="constBFieldY" value="-0.491" />
         
         <!-- ECAL -->
         <constant name="ecal_front" value="13.3/2*mm" />
@@ -34,14 +32,14 @@
         <constant name="ecal_dx" value="41.27*mm" />
                 
         <!-- SVT module dimensions -->
-        <constant name="moduleLength" value="100.0"/>
-        <constant name="moduleWidth" value="40.34"/>
+        <constant name="moduleLength" value="100.0" />
+        <constant name="moduleWidth" value="40.34" />
         
         <!-- SVT sensor dimensions -->
-        <constant name="sensorLength" value="98.33"/>
+        <constant name="sensorLength" value="98.33" />
         
         <!-- Sensor width slightly less than 38.34 mm so sisim works. -->
-        <constant name="sensorWidth" value="38.3399"/>
+        <constant name="sensorWidth" value="38.3399" />
                 
         <!-- positions derived from drawing assuming 1.35/1.2 degress open on top/bottom -->
 
@@ -54,159 +52,159 @@
       <!--  distance from target to pivot...this is from an email schematic from Tim on may 12, 2012 -->
       <constant name="pivot" value="791" /> 
       
-        <constant name="y_rot_top" value = "0.03"/> 
-        <constant name="y_rot_bot" value = "0.03"/> 
+        <constant name="y_rot_top" value="0.03" /> 
+        <constant name="y_rot_bot" value="0.03" /> 
         
-        <constant name="y_rot_top_pivot" value="-0.001369-0.000185"/>
-        <constant name="y_rot_bot_pivot" value="0.00336-0.000362"/>
+        <constant name="y_rot_top_pivot" value="-0.001369-0.000185" />
+        <constant name="y_rot_bot_pivot" value="0.00336-0.000362" />
 
 
 <!--        <constant name="x_off" value = "-15.0"/> -->
-        <constant name="x_off" value = "0.0"/> 
+        <constant name="x_off" value="0.0" /> 
 
         <!-- random alignment corrections -->
-        <constant name="y1t_misalign" value="0.0"/>
-        <constant name="y2t_misalign" value="0.0"/>
-        <constant name="y3t_misalign" value="0.0"/>
-        <constant name="y4t_misalign" value="0.0"/>
-        <constant name="y5t_misalign" value="0.0"/>
-        <constant name="y6t_misalign" value="0.0"/>
-        <constant name="y7t_misalign" value="0.0"/>
-        <constant name="y8t_misalign" value="0.0"/>
-        <constant name="y9t_misalign" value="0.0"/>
-        <constant name="y10t_misalign" value="0.0"/>
-        <constant name="y1b_misalign" value="0.0"/>
-        <constant name="y2b_misalign" value="0.0"/>
-        <constant name="y3b_misalign" value="0.0"/>
-        <constant name="y4b_misalign" value="0.0"/>
-        <constant name="y5b_misalign" value="0.0"/>
-        <constant name="y6b_misalign" value="0.0"/>
-        <constant name="y7b_misalign" value="0.0"/>
-        <constant name="y8b_misalign" value="0.0"/>
-        <constant name="y9b_misalign" value="0.0"/>
-        <constant name="y10b_misalign" value="0.0"/>
+        <constant name="y1t_misalign" value="0.0" />
+        <constant name="y2t_misalign" value="0.0" />
+        <constant name="y3t_misalign" value="0.0" />
+        <constant name="y4t_misalign" value="0.0" />
+        <constant name="y5t_misalign" value="0.0" />
+        <constant name="y6t_misalign" value="0.0" />
+        <constant name="y7t_misalign" value="0.0" />
+        <constant name="y8t_misalign" value="0.0" />
+        <constant name="y9t_misalign" value="0.0" />
+        <constant name="y10t_misalign" value="0.0" />
+        <constant name="y1b_misalign" value="0.0" />
+        <constant name="y2b_misalign" value="0.0" />
+        <constant name="y3b_misalign" value="0.0" />
+        <constant name="y4b_misalign" value="0.0" />
+        <constant name="y5b_misalign" value="0.0" />
+        <constant name="y6b_misalign" value="0.0" />
+        <constant name="y7b_misalign" value="0.0" />
+        <constant name="y8b_misalign" value="0.0" />
+        <constant name="y9b_misalign" value="0.0" />
+        <constant name="y10b_misalign" value="0.0" />
 
 		<!-- alignment corrections -->
-	<constant name="x1t_align" value="0.000000"/>
-	<constant name="x2t_align" value="0.000000"/>
-	<constant name="x3t_align" value="-0.094711"/>
-	<constant name="x4t_align" value="0.175360"/>
-	<constant name="x5t_align" value="0.118710"/>
-	<constant name="x6t_align" value="0.001407"/>
-	<constant name="x7t_align" value="0.047542"/>
-	<constant name="x8t_align" value="-0.011529"/>
-	<constant name="x9t_align" value="0.000000"/>
-	<constant name="x10t_align" value="0.000000"/>
-	<constant name="y1t_align" value="0.000000"/>
-	<constant name="y2t_align" value="0.000000"/>
-	<constant name="y3t_align" value="0.000000"/>
-	<constant name="y4t_align" value="0.000000"/>
-	<constant name="y5t_align" value="0.000000"/>
-	<constant name="y6t_align" value="0.000000"/>
-	<constant name="y7t_align" value="0.000000"/>
-	<constant name="y8t_align" value="0.000000"/>
-	<constant name="y9t_align" value="0.000000"/>
-	<constant name="y10t_align" value="0.000000"/>
-	<constant name="z1t_align" value="0.000000"/>
-	<constant name="z2t_align" value="0.000000"/>
-	<constant name="z3t_align" value="0.000000"/>
-	<constant name="z4t_align" value="0.000000"/>
-	<constant name="z5t_align" value="0.000000"/>
-	<constant name="z6t_align" value="0.000000"/>
-	<constant name="z7t_align" value="0.000000"/>
-	<constant name="z8t_align" value="0.000000"/>
-	<constant name="z9t_align" value="0.000000"/>
-	<constant name="z10t_align" value="0.000000"/>
-	<constant name="rx1t_align" value="0.000000"/>
-	<constant name="rx2t_align" value="0.000000"/>
-	<constant name="rx3t_align" value="0.000000"/>
-	<constant name="rx4t_align" value="0.000000"/>
-	<constant name="rx5t_align" value="0.000000"/>
-	<constant name="rx6t_align" value="0.000000"/>
-	<constant name="rx7t_align" value="0.000000"/>
-	<constant name="rx8t_align" value="0.000000"/>
-	<constant name="rx9t_align" value="0.000000"/>
-	<constant name="rx10t_align" value="0.000000"/>
-	<constant name="ry1t_align" value="0.000000"/>
-	<constant name="ry2t_align" value="0.000000"/>
-	<constant name="ry3t_align" value="0.000000"/>
-	<constant name="ry4t_align" value="0.000000"/>
-	<constant name="ry5t_align" value="0.000000"/>
-	<constant name="ry6t_align" value="0.000000"/>
-	<constant name="ry7t_align" value="0.000000"/>
-	<constant name="ry8t_align" value="0.000000"/>
-	<constant name="ry9t_align" value="0.000000"/>
-	<constant name="ry10t_align" value="0.000000"/>
-	<constant name="rz1t_align" value="0.000000"/>
-	<constant name="rz2t_align" value="0.000000"/>
-	<constant name="rz3t_align" value="0.000000"/>
-	<constant name="rz4t_align" value="0.000000"/>
-	<constant name="rz5t_align" value="0.000000"/>
-	<constant name="rz6t_align" value="0.000000"/>
-	<constant name="rz7t_align" value="0.000000"/>
-	<constant name="rz8t_align" value="0.000000"/>
-	<constant name="rz9t_align" value="0.000000"/>
-	<constant name="rz10t_align" value="0.000000"/>
-	<constant name="x1b_align" value="0.000000"/>
-	<constant name="x2b_align" value="0.000000"/>
-	<constant name="x3b_align" value="0.684660"/>
-	<constant name="x4b_align" value="-0.061566"/>
-	<constant name="x5b_align" value="1.009400"/>
-	<constant name="x6b_align" value="-0.037840"/>
-	<constant name="x7b_align" value="0.507220"/>
-	<constant name="x8b_align" value="-0.015779"/>
-	<constant name="x9b_align" value="0.000000"/>
-	<constant name="x10b_align" value="0.000000"/>
-	<constant name="y1b_align" value="0.000000"/>
-	<constant name="y2b_align" value="0.000000"/>
-	<constant name="y3b_align" value="0.000000"/>
-	<constant name="y4b_align" value="0.000000"/>
-	<constant name="y5b_align" value="0.000000"/>
-	<constant name="y6b_align" value="0.000000"/>
-	<constant name="y7b_align" value="0.000000"/>
-	<constant name="y8b_align" value="0.000000"/>
-	<constant name="y9b_align" value="0.000000"/>
-	<constant name="y10b_align" value="0.000000"/>
-	<constant name="z1b_align" value="0.000000"/>
-	<constant name="z2b_align" value="0.000000"/>
-	<constant name="z3b_align" value="0.000000"/>
-	<constant name="z4b_align" value="0.000000"/>
-	<constant name="z5b_align" value="0.000000"/>
-	<constant name="z6b_align" value="0.000000"/>
-	<constant name="z7b_align" value="0.000000"/>
-	<constant name="z8b_align" value="0.000000"/>
-	<constant name="z9b_align" value="0.000000"/>
-	<constant name="z10b_align" value="0.000000"/>
-	<constant name="rx1b_align" value="0.000000"/>
-	<constant name="rx2b_align" value="0.000000"/>
-	<constant name="rx3b_align" value="0.000000"/>
-	<constant name="rx4b_align" value="0.000000"/>
-	<constant name="rx5b_align" value="0.000000"/>
-	<constant name="rx6b_align" value="0.000000"/>
-	<constant name="rx7b_align" value="0.000000"/>
-	<constant name="rx8b_align" value="0.000000"/>
-	<constant name="rx9b_align" value="0.000000"/>
-	<constant name="rx10b_align" value="0.000000"/>
-	<constant name="ry1b_align" value="0.000000"/>
-	<constant name="ry2b_align" value="0.000000"/>
-	<constant name="ry3b_align" value="0.000000"/>
-	<constant name="ry4b_align" value="0.000000"/>
-	<constant name="ry5b_align" value="0.000000"/>
-	<constant name="ry6b_align" value="0.000000"/>
-	<constant name="ry7b_align" value="0.000000"/>
-	<constant name="ry8b_align" value="0.000000"/>
-	<constant name="ry9b_align" value="0.000000"/>
-	<constant name="ry10b_align" value="0.000000"/>
-	<constant name="rz1b_align" value="0.000000"/>
-	<constant name="rz2b_align" value="0.000000"/>
-	<constant name="rz3b_align" value="0.000000"/>
-	<constant name="rz4b_align" value="0.000000"/>
-	<constant name="rz5b_align" value="0.000000"/>
-	<constant name="rz6b_align" value="0.000000"/>
-	<constant name="rz7b_align" value="0.000000"/>
-	<constant name="rz8b_align" value="0.000000"/>
-	<constant name="rz9b_align" value="0.000000"/>
-	<constant name="rz10b_align" value="0.000000"/>
+	<constant name="x1t_align" value="0.000000" />
+	<constant name="x2t_align" value="-0.000000" />
+	<constant name="x3t_align" value="-0.000012" />
+	<constant name="x4t_align" value="-0.017488" />
+	<constant name="x5t_align" value="-0.000064" />
+	<constant name="x6t_align" value="-0.000141" />
+	<constant name="x7t_align" value="0.000002" />
+	<constant name="x8t_align" value="0.000573" />
+	<constant name="x9t_align" value="0.000000" />
+	<constant name="x10t_align" value="-0.000000" />
+	<constant name="y1t_align" value="0.000000" />
+	<constant name="y2t_align" value="0.000000" />
+	<constant name="y3t_align" value="-0.094679" />
+	<constant name="y4t_align" value="-0.174440" />
+	<constant name="y5t_align" value="0.118670" />
+	<constant name="y6t_align" value="-0.001400" />
+	<constant name="y7t_align" value="0.047526" />
+	<constant name="y8t_align" value="0.011511" />
+	<constant name="y9t_align" value="0.000000" />
+	<constant name="y10t_align" value="0.000000" />
+	<constant name="z1t_align" value="0.000000" />
+	<constant name="z2t_align" value="0.000000" />
+	<constant name="z3t_align" value="-0.002463" />
+	<constant name="z4t_align" value="-0.003986" />
+	<constant name="z5t_align" value="0.003089" />
+	<constant name="z6t_align" value="-0.000032" />
+	<constant name="z7t_align" value="0.001236" />
+	<constant name="z8t_align" value="0.000281" />
+	<constant name="z9t_align" value="0.000000" />
+	<constant name="z10t_align" value="0.000000" />
+	<constant name="rx1t_align" value="0.000000" />
+	<constant name="rx2t_align" value="-0.000000" />
+	<constant name="rx3t_align" value="0.000000" />
+	<constant name="rx4t_align" value="-0.000000" />
+	<constant name="rx5t_align" value="0.000000" />
+	<constant name="rx6t_align" value="-0.000000" />
+	<constant name="rx7t_align" value="0.000000" />
+	<constant name="rx8t_align" value="-0.000000" />
+	<constant name="rx9t_align" value="0.000000" />
+	<constant name="rx10t_align" value="-0.000000" />
+	<constant name="ry1t_align" value="0.000000" />
+	<constant name="ry2t_align" value="0.000000" />
+	<constant name="ry3t_align" value="0.000000" />
+	<constant name="ry4t_align" value="0.000000" />
+	<constant name="ry5t_align" value="0.000000" />
+	<constant name="ry6t_align" value="0.000000" />
+	<constant name="ry7t_align" value="0.000000" />
+	<constant name="ry8t_align" value="0.000000" />
+	<constant name="ry9t_align" value="0.000000" />
+	<constant name="ry10t_align" value="0.000000" />
+	<constant name="rz1t_align" value="0.000000" />
+	<constant name="rz2t_align" value="0.000000" />
+	<constant name="rz3t_align" value="0.000000" />
+	<constant name="rz4t_align" value="0.000000" />
+	<constant name="rz5t_align" value="0.000000" />
+	<constant name="rz6t_align" value="0.000000" />
+	<constant name="rz7t_align" value="0.000000" />
+	<constant name="rz8t_align" value="0.000000" />
+	<constant name="rz9t_align" value="0.000000" />
+	<constant name="rz10t_align" value="0.000000" />
+	<constant name="x1b_align" value="0.000000" />
+	<constant name="x2b_align" value="-0.000000" />
+	<constant name="x3b_align" value="-0.068351" />
+	<constant name="x4b_align" value="0.000012" />
+	<constant name="x5b_align" value="-0.100385" />
+	<constant name="x6b_align" value="0.000012" />
+	<constant name="x7b_align" value="-0.025606" />
+	<constant name="x8b_align" value="0.000007" />
+	<constant name="x9b_align" value="0.000000" />
+	<constant name="x10b_align" value="-0.000000" />
+	<constant name="y1b_align" value="0.000000" />
+	<constant name="y2b_align" value="0.000000" />
+	<constant name="y3b_align" value="0.681109" />
+	<constant name="y4b_align" value="0.061551" />
+	<constant name="y5b_align" value="1.004204" />
+	<constant name="y6b_align" value="0.037831" />
+	<constant name="y7b_align" value="0.506463" />
+	<constant name="y8b_align" value="0.015775" />
+	<constant name="y9b_align" value="0.000000" />
+	<constant name="y10b_align" value="0.000000" />
+	<constant name="z1b_align" value="0.000000" />
+	<constant name="z2b_align" value="0.000000" />
+	<constant name="z3b_align" value="-0.013322" />
+	<constant name="z4b_align" value="-0.001371" />
+	<constant name="z5b_align" value="-0.019651" />
+	<constant name="z6b_align" value="-0.000843" />
+	<constant name="z7b_align" value="-0.010587" />
+	<constant name="z8b_align" value="-0.000352" />
+	<constant name="z9b_align" value="0.000000" />
+	<constant name="z10b_align" value="0.000000" />
+	<constant name="rx1b_align" value="0.000000" />
+	<constant name="rx2b_align" value="-0.000000" />
+	<constant name="rx3b_align" value="0.000000" />
+	<constant name="rx4b_align" value="-0.000000" />
+	<constant name="rx5b_align" value="0.000000" />
+	<constant name="rx6b_align" value="-0.000000" />
+	<constant name="rx7b_align" value="0.000000" />
+	<constant name="rx8b_align" value="-0.000000" />
+	<constant name="rx9b_align" value="0.000000" />
+	<constant name="rx10b_align" value="-0.000000" />
+	<constant name="ry1b_align" value="0.000000" />
+	<constant name="ry2b_align" value="0.000000" />
+	<constant name="ry3b_align" value="0.000000" />
+	<constant name="ry4b_align" value="0.000000" />
+	<constant name="ry5b_align" value="0.000000" />
+	<constant name="ry6b_align" value="0.000000" />
+	<constant name="ry7b_align" value="0.000000" />
+	<constant name="ry8b_align" value="0.000000" />
+	<constant name="ry9b_align" value="0.000000" />
+	<constant name="ry10b_align" value="0.000000" />
+	<constant name="rz1b_align" value="0.000000" />
+	<constant name="rz2b_align" value="0.000000" />
+	<constant name="rz3b_align" value="0.000000" />
+	<constant name="rz4b_align" value="0.000000" />
+	<constant name="rz5b_align" value="0.000000" />
+	<constant name="rz6b_align" value="0.000000" />
+	<constant name="rz7b_align" value="0.000000" />
+	<constant name="rz8b_align" value="0.000000" />
+	<constant name="rz9b_align" value="0.000000" />
+	<constant name="rz10b_align" value="0.000000" />
 
         <!-- Positions of sensor centers above/below nominal beam -->
         <constant name="y1t" value="36.894" />
@@ -324,410 +322,410 @@
         
         
         <!-- Sensor positions and rotations-->
-        <constant name="mod_x1t" value="z1t*sin(y_rot_top)+(x1t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y1t" value="y1t+y1t_misalign+(pivot-z1t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z1t" value="z1t*cos(y_rot_top)-(x1t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx1t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry1t" value="-y_rot_top"/>
-        <constant name="mod_rz1t" value="st1t"/>
+        <constant name="mod_x1t" value="z1t*sin(y_rot_top)+(x1t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y1t" value="y1t+y1t_misalign+(pivot-z1t)*sin(x_rot_top_add)" />
+        <constant name="mod_z1t" value="z1t*cos(y_rot_top)-(x1t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx1t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry1t" value="-y_rot_top" />
+        <constant name="mod_rz1t" value="st1t" />
             
-        <constant name="mod_x1b" value="z1b*sin(y_rot_bot)+(x1b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y1b" value="y1b+y1b_misalign+(pivot-z1b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z1b" value="z1b*cos(y_rot_bot)-(x1b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx1b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry1b" value="-y_rot_bot"/>
-        <constant name="mod_rz1b" value="st1b"/>
+        <constant name="mod_x1b" value="z1b*sin(y_rot_bot)+(x1b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y1b" value="y1b+y1b_misalign+(pivot-z1b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z1b" value="z1b*cos(y_rot_bot)-(x1b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx1b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry1b" value="-y_rot_bot" />
+        <constant name="mod_rz1b" value="st1b" />
         
-        <constant name="mod_x2t" value="z2t*sin(y_rot_top)+(x2t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y2t" value="y2t+y2t_misalign+(pivot-z2t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z2t" value="z2t*cos(y_rot_top)-(x2t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx2t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry2t" value="3.14159-y_rot_top"/>
-        <constant name="mod_rz2t" value="st2t"/>
+        <constant name="mod_x2t" value="z2t*sin(y_rot_top)+(x2t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y2t" value="y2t+y2t_misalign+(pivot-z2t)*sin(x_rot_top_add)" />
+        <constant name="mod_z2t" value="z2t*cos(y_rot_top)-(x2t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx2t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry2t" value="3.14159-y_rot_top" />
+        <constant name="mod_rz2t" value="st2t" />
         
-        <constant name="mod_x2b" value="z2b*sin(y_rot_bot)+(x2b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y2b" value="y2b+y2b_misalign+(pivot-z2b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z2b" value="z2b*cos(y_rot_bot)-(x2b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx2b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry2b" value="3.14159-y_rot_bot"/>
-        <constant name="mod_rz2b" value="st2b"/>
+        <constant name="mod_x2b" value="z2b*sin(y_rot_bot)+(x2b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y2b" value="y2b+y2b_misalign+(pivot-z2b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z2b" value="z2b*cos(y_rot_bot)-(x2b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx2b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry2b" value="3.14159-y_rot_bot" />
+        <constant name="mod_rz2b" value="st2b" />
 
 
-        <constant name="mod_x3t" value="z3t*sin(y_rot_top)+(x3t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y3t" value="y3t+y3t_misalign+(pivot-z3t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z3t" value="z3t*cos(y_rot_top)-(x3t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx3t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry3t" value="-y_rot_top"/>
-        <constant name="mod_rz3t" value="st3t"/>
+        <constant name="mod_x3t" value="z3t*sin(y_rot_top)+(x3t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y3t" value="y3t+y3t_misalign+(pivot-z3t)*sin(x_rot_top_add)" />
+        <constant name="mod_z3t" value="z3t*cos(y_rot_top)-(x3t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx3t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry3t" value="-y_rot_top" />
+        <constant name="mod_rz3t" value="st3t" />
             
-        <constant name="mod_x3b" value="z3b*sin(y_rot_bot)+(x3b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y3b" value="y3b+y3b_misalign+(pivot-z3b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z3b" value="z3b*cos(y_rot_bot)-(x3b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx3b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry3b" value="-y_rot_bot"/>
-        <constant name="mod_rz3b" value="st3b"/>
+        <constant name="mod_x3b" value="z3b*sin(y_rot_bot)+(x3b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y3b" value="y3b+y3b_misalign+(pivot-z3b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z3b" value="z3b*cos(y_rot_bot)-(x3b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx3b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry3b" value="-y_rot_bot" />
+        <constant name="mod_rz3b" value="st3b" />
 
 
-        <constant name="mod_x4t" value="z4t*sin(y_rot_top)+(x4t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y4t" value="y4t+y4t_misalign+(pivot-z4t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z4t" value="z4t*cos(y_rot_top)-(x4t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx4t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry4t" value="3.14159-y_rot_top"/>
-        <constant name="mod_rz4t" value="st4t"/>
+        <constant name="mod_x4t" value="z4t*sin(y_rot_top)+(x4t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y4t" value="y4t+y4t_misalign+(pivot-z4t)*sin(x_rot_top_add)" />
+        <constant name="mod_z4t" value="z4t*cos(y_rot_top)-(x4t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx4t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry4t" value="3.14159-y_rot_top" />
+        <constant name="mod_rz4t" value="st4t" />
         
-        <constant name="mod_x4b" value="z4b*sin(y_rot_bot)+(x4b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y4b" value="y4b+y4b_misalign+(pivot-z4b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z4b" value="z4b*cos(y_rot_bot)-(x4b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx4b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry4b" value="3.14159-y_rot_bot"/>
-        <constant name="mod_rz4b" value="st4b"/>
+        <constant name="mod_x4b" value="z4b*sin(y_rot_bot)+(x4b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y4b" value="y4b+y4b_misalign+(pivot-z4b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z4b" value="z4b*cos(y_rot_bot)-(x4b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx4b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry4b" value="3.14159-y_rot_bot" />
+        <constant name="mod_rz4b" value="st4b" />
 
-        <constant name="mod_x5t" value="z5t*sin(y_rot_top)+(x5t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y5t" value="y5t+y5t_misalign+(pivot-z5t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z5t" value="z5t*cos(y_rot_top)-(x5t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx5t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry5t" value="-y_rot_top"/>
-        <constant name="mod_rz5t" value="st5t"/>
+        <constant name="mod_x5t" value="z5t*sin(y_rot_top)+(x5t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y5t" value="y5t+y5t_misalign+(pivot-z5t)*sin(x_rot_top_add)" />
+        <constant name="mod_z5t" value="z5t*cos(y_rot_top)-(x5t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx5t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry5t" value="-y_rot_top" />
+        <constant name="mod_rz5t" value="st5t" />
             
-        <constant name="mod_x5b" value="z5b*sin(y_rot_bot)+(x5b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y5b" value="y5b+y5b_misalign+(pivot-z5b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z5b" value="z5b*cos(y_rot_bot)-(x5b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx5b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry5b" value="-y_rot_bot"/>
-        <constant name="mod_rz5b" value="st5b"/>
+        <constant name="mod_x5b" value="z5b*sin(y_rot_bot)+(x5b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y5b" value="y5b+y5b_misalign+(pivot-z5b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z5b" value="z5b*cos(y_rot_bot)-(x5b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx5b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry5b" value="-y_rot_bot" />
+        <constant name="mod_rz5b" value="st5b" />
 
-        <constant name="mod_x6t" value="z6t*sin(y_rot_top)+(x6t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y6t" value="y6t+y6t_misalign+(pivot-z6t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z6t" value="z6t*cos(y_rot_top)-(x6t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx6t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry6t" value="3.14159-y_rot_top"/>
-        <constant name="mod_rz6t" value="st6t"/>
+        <constant name="mod_x6t" value="z6t*sin(y_rot_top)+(x6t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y6t" value="y6t+y6t_misalign+(pivot-z6t)*sin(x_rot_top_add)" />
+        <constant name="mod_z6t" value="z6t*cos(y_rot_top)-(x6t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx6t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry6t" value="3.14159-y_rot_top" />
+        <constant name="mod_rz6t" value="st6t" />
         
-        <constant name="mod_x6b" value="z6b*sin(y_rot_bot)+(x6b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y6b" value="y6b+y6b_misalign+(pivot-z6b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z6b" value="z6b*cos(y_rot_bot)-(x6b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx6b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry6b" value="3.14159-y_rot_bot"/>
-        <constant name="mod_rz6b" value="st6b"/>
+        <constant name="mod_x6b" value="z6b*sin(y_rot_bot)+(x6b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y6b" value="y6b+y6b_misalign+(pivot-z6b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z6b" value="z6b*cos(y_rot_bot)-(x6b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx6b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry6b" value="3.14159-y_rot_bot" />
+        <constant name="mod_rz6b" value="st6b" />
 
-        <constant name="mod_x7t" value="z7t*sin(y_rot_top)+(x7t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y7t" value="y7t+y7t_misalign+(pivot-z7t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z7t" value="z7t*cos(y_rot_top)-(x7t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx7t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry7t" value="-y_rot_top"/>
-        <constant name="mod_rz7t" value="st7t"/>
+        <constant name="mod_x7t" value="z7t*sin(y_rot_top)+(x7t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y7t" value="y7t+y7t_misalign+(pivot-z7t)*sin(x_rot_top_add)" />
+        <constant name="mod_z7t" value="z7t*cos(y_rot_top)-(x7t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx7t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry7t" value="-y_rot_top" />
+        <constant name="mod_rz7t" value="st7t" />
             
-        <constant name="mod_x7b" value="z7b*sin(y_rot_bot)+(x7b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y7b" value="y7b+y7b_misalign+(pivot-z7b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z7b" value="z7b*cos(y_rot_bot)-(x7b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx7b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry7b" value="-y_rot_bot"/>
-        <constant name="mod_rz7b" value="st7b"/>
+        <constant name="mod_x7b" value="z7b*sin(y_rot_bot)+(x7b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y7b" value="y7b+y7b_misalign+(pivot-z7b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z7b" value="z7b*cos(y_rot_bot)-(x7b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx7b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry7b" value="-y_rot_bot" />
+        <constant name="mod_rz7b" value="st7b" />
 
-        <constant name="mod_x8t" value="z8t*sin(y_rot_top)+(x8t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y8t" value="y8t+y8t_misalign+(pivot-z8t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z8t" value="z8t*cos(y_rot_top)-(x8t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx8t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry8t" value="3.14159-y_rot_top"/>
-        <constant name="mod_rz8t" value="st8t"/>
+        <constant name="mod_x8t" value="z8t*sin(y_rot_top)+(x8t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y8t" value="y8t+y8t_misalign+(pivot-z8t)*sin(x_rot_top_add)" />
+        <constant name="mod_z8t" value="z8t*cos(y_rot_top)-(x8t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx8t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry8t" value="3.14159-y_rot_top" />
+        <constant name="mod_rz8t" value="st8t" />
         
-        <constant name="mod_x8b" value="z8b*sin(y_rot_bot)+(x8b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y8b" value="y8b+y8b_misalign+(pivot-z8b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z8b" value="z8b*cos(y_rot_bot)-(x8b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx8b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry8b" value="3.14159-y_rot_bot"/>
-        <constant name="mod_rz8b" value="st8b"/>
+        <constant name="mod_x8b" value="z8b*sin(y_rot_bot)+(x8b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y8b" value="y8b+y8b_misalign+(pivot-z8b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z8b" value="z8b*cos(y_rot_bot)-(x8b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx8b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry8b" value="3.14159-y_rot_bot" />
+        <constant name="mod_rz8b" value="st8b" />
 
-        <constant name="mod_x9t" value="z9t*sin(y_rot_top)+(x9t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y9t" value="y9t+y9t_misalign+(pivot-z9t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z9t" value="z9t*cos(y_rot_top)-(x9t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx9t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry9t" value="-y_rot_top"/>
-        <constant name="mod_rz9t" value="st9t"/>
+        <constant name="mod_x9t" value="z9t*sin(y_rot_top)+(x9t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y9t" value="y9t+y9t_misalign+(pivot-z9t)*sin(x_rot_top_add)" />
+        <constant name="mod_z9t" value="z9t*cos(y_rot_top)-(x9t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx9t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry9t" value="-y_rot_top" />
+        <constant name="mod_rz9t" value="st9t" />
             
-        <constant name="mod_x9b" value="z9b*sin(y_rot_bot)+(x9b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y9b" value="y9b+y9b_misalign+(pivot-z9b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z9b" value="z9b*cos(y_rot_bot)-(x9b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx9b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry9b" value="-y_rot_bot"/>
-        <constant name="mod_rz9b" value="st9b"/>
+        <constant name="mod_x9b" value="z9b*sin(y_rot_bot)+(x9b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y9b" value="y9b+y9b_misalign+(pivot-z9b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z9b" value="z9b*cos(y_rot_bot)-(x9b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx9b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry9b" value="-y_rot_bot" />
+        <constant name="mod_rz9b" value="st9b" />
 
-        <constant name="mod_x10t" value="z10t*sin(y_rot_top)+(x10t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y10t" value="y10t+y10t_misalign+(pivot-z10t)*sin(x_rot_top_add)"/>
-        <constant name="mod_z10t" value="z10t*cos(y_rot_top)-(x10t+x_off)*sin(y_rot_top)"/>
-        <constant name="mod_rx10t" value="x_rot_top+x_rot_top_add"/>
-        <constant name="mod_ry10t" value="3.14159-y_rot_top"/>
-        <constant name="mod_rz10t" value="st10t"/>
+        <constant name="mod_x10t" value="z10t*sin(y_rot_top)+(x10t+x_off)*cos(y_rot_top)" />
+        <constant name="mod_y10t" value="y10t+y10t_misalign+(pivot-z10t)*sin(x_rot_top_add)" />
+        <constant name="mod_z10t" value="z10t*cos(y_rot_top)-(x10t+x_off)*sin(y_rot_top)" />
+        <constant name="mod_rx10t" value="x_rot_top+x_rot_top_add" />
+        <constant name="mod_ry10t" value="3.14159-y_rot_top" />
+        <constant name="mod_rz10t" value="st10t" />
         
-        <constant name="mod_x10b" value="z10b*sin(y_rot_bot)+(x10b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y10b" value="y10b+y10b_misalign+(pivot-z10b)*sin(x_rot_bot_add)"/>
-        <constant name="mod_z10b" value="z10b*cos(y_rot_bot)-(x10b+x_off)*sin(y_rot_bot)"/>
-        <constant name="mod_rx10b" value="x_rot_bot+x_rot_bot_add"/>
-        <constant name="mod_ry10b" value="3.14159-y_rot_bot"/>
-        <constant name="mod_rz10b" value="st10b"/>
+        <constant name="mod_x10b" value="z10b*sin(y_rot_bot)+(x10b+x_off)*cos(y_rot_bot)" />
+        <constant name="mod_y10b" value="y10b+y10b_misalign+(pivot-z10b)*sin(x_rot_bot_add)" />
+        <constant name="mod_z10b" value="z10b*cos(y_rot_bot)-(x10b+x_off)*sin(y_rot_bot)" />
+        <constant name="mod_rx10b" value="x_rot_bot+x_rot_bot_add" />
+        <constant name="mod_ry10b" value="3.14159-y_rot_bot" />
+        <constant name="mod_rz10b" value="st10b" />
         
         
-        <constant name="mod2_x1t" value="mod_x1t+(pivot-mod_z1t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y1t" value="mod_y1t"/>
-        <constant name="mod2_z1t" value="mod_z1t-(pivot-mod_z1t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx1t" value="mod_rx1t"/>
-        <constant name="mod2_ry1t" value="mod_ry1t+y_rot_top_pivot"/>
-        <constant name="mod2_rz1t" value="mod_rz1t"/>
+        <constant name="mod2_x1t" value="mod_x1t+(pivot-mod_z1t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y1t" value="mod_y1t" />
+        <constant name="mod2_z1t" value="mod_z1t-(pivot-mod_z1t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx1t" value="mod_rx1t" />
+        <constant name="mod2_ry1t" value="mod_ry1t+y_rot_top_pivot" />
+        <constant name="mod2_rz1t" value="mod_rz1t" />
 
-        <constant name="mod2_x1b" value="mod_x1b+(pivot-mod_z1b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y1b" value="mod_y1b"/>
-        <constant name="mod2_z1b" value="mod_z1b-(pivot-mod_z1b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx1b" value="mod_rx1b"/>
-        <constant name="mod2_ry1b" value="mod_ry1b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz1b" value="mod_rz1b"/>
+        <constant name="mod2_x1b" value="mod_x1b+(pivot-mod_z1b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y1b" value="mod_y1b" />
+        <constant name="mod2_z1b" value="mod_z1b-(pivot-mod_z1b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx1b" value="mod_rx1b" />
+        <constant name="mod2_ry1b" value="mod_ry1b+y_rot_bot_pivot" />
+        <constant name="mod2_rz1b" value="mod_rz1b" />
 
-        <constant name="mod2_x2t" value="mod_x2t+(pivot-mod_z2t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y2t" value="mod_y2t"/>
-        <constant name="mod2_z2t" value="mod_z2t-(pivot-mod_z2t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx2t" value="mod_rx2t"/>
-        <constant name="mod2_ry2t" value="mod_ry2t+y_rot_top_pivot"/>
-        <constant name="mod2_rz2t" value="mod_rz2t"/>
+        <constant name="mod2_x2t" value="mod_x2t+(pivot-mod_z2t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y2t" value="mod_y2t" />
+        <constant name="mod2_z2t" value="mod_z2t-(pivot-mod_z2t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx2t" value="mod_rx2t" />
+        <constant name="mod2_ry2t" value="mod_ry2t+y_rot_top_pivot" />
+        <constant name="mod2_rz2t" value="mod_rz2t" />
 
-        <constant name="mod2_x2b" value="mod_x2b+(pivot-mod_z2b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y2b" value="mod_y2b"/>
-        <constant name="mod2_z2b" value="mod_z2b-(pivot-mod_z2b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx2b" value="mod_rx2b"/>
-        <constant name="mod2_ry2b" value="mod_ry2b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz2b" value="mod_rz2b"/>
+        <constant name="mod2_x2b" value="mod_x2b+(pivot-mod_z2b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y2b" value="mod_y2b" />
+        <constant name="mod2_z2b" value="mod_z2b-(pivot-mod_z2b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx2b" value="mod_rx2b" />
+        <constant name="mod2_ry2b" value="mod_ry2b+y_rot_bot_pivot" />
+        <constant name="mod2_rz2b" value="mod_rz2b" />
 
-        <constant name="mod2_x3t" value="mod_x3t+(pivot-mod_z3t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y3t" value="mod_y3t"/>
-        <constant name="mod2_z3t" value="mod_z3t-(pivot-mod_z3t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx3t" value="mod_rx3t"/>
-        <constant name="mod2_ry3t" value="mod_ry3t+y_rot_top_pivot"/>
-        <constant name="mod2_rz3t" value="mod_rz3t"/>
+        <constant name="mod2_x3t" value="mod_x3t+(pivot-mod_z3t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y3t" value="mod_y3t" />
+        <constant name="mod2_z3t" value="mod_z3t-(pivot-mod_z3t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx3t" value="mod_rx3t" />
+        <constant name="mod2_ry3t" value="mod_ry3t+y_rot_top_pivot" />
+        <constant name="mod2_rz3t" value="mod_rz3t" />
 
-        <constant name="mod2_x3b" value="mod_x3b+(pivot-mod_z3b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y3b" value="mod_y3b"/>
-        <constant name="mod2_z3b" value="mod_z3b-(pivot-mod_z3b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx3b" value="mod_rx3b"/>
-        <constant name="mod2_ry3b" value="mod_ry3b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz3b" value="mod_rz3b"/>
+        <constant name="mod2_x3b" value="mod_x3b+(pivot-mod_z3b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y3b" value="mod_y3b" />
+        <constant name="mod2_z3b" value="mod_z3b-(pivot-mod_z3b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx3b" value="mod_rx3b" />
+        <constant name="mod2_ry3b" value="mod_ry3b+y_rot_bot_pivot" />
+        <constant name="mod2_rz3b" value="mod_rz3b" />
 
-        <constant name="mod2_x4t" value="mod_x4t+(pivot-mod_z4t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y4t" value="mod_y4t"/>
-        <constant name="mod2_z4t" value="mod_z4t-(pivot-mod_z4t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx4t" value="mod_rx4t"/>
-        <constant name="mod2_ry4t" value="mod_ry4t+y_rot_top_pivot"/>
-        <constant name="mod2_rz4t" value="mod_rz4t"/>
+        <constant name="mod2_x4t" value="mod_x4t+(pivot-mod_z4t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y4t" value="mod_y4t" />
+        <constant name="mod2_z4t" value="mod_z4t-(pivot-mod_z4t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx4t" value="mod_rx4t" />
+        <constant name="mod2_ry4t" value="mod_ry4t+y_rot_top_pivot" />
+        <constant name="mod2_rz4t" value="mod_rz4t" />
 
-        <constant name="mod2_x4b" value="mod_x4b+(pivot-mod_z4b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y4b" value="mod_y4b"/>
-        <constant name="mod2_z4b" value="mod_z4b-(pivot-mod_z4b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx4b" value="mod_rx4b"/>
-        <constant name="mod2_ry4b" value="mod_ry4b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz4b" value="mod_rz4b"/>
+        <constant name="mod2_x4b" value="mod_x4b+(pivot-mod_z4b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y4b" value="mod_y4b" />
+        <constant name="mod2_z4b" value="mod_z4b-(pivot-mod_z4b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx4b" value="mod_rx4b" />
+        <constant name="mod2_ry4b" value="mod_ry4b+y_rot_bot_pivot" />
+        <constant name="mod2_rz4b" value="mod_rz4b" />
 
-        <constant name="mod2_x5t" value="mod_x5t+(pivot-mod_z5t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y5t" value="mod_y5t"/>
-        <constant name="mod2_z5t" value="mod_z5t-(pivot-mod_z5t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx5t" value="mod_rx5t"/>
-        <constant name="mod2_ry5t" value="mod_ry5t+y_rot_top_pivot"/>
-        <constant name="mod2_rz5t" value="mod_rz5t"/>
+        <constant name="mod2_x5t" value="mod_x5t+(pivot-mod_z5t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y5t" value="mod_y5t" />
+        <constant name="mod2_z5t" value="mod_z5t-(pivot-mod_z5t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx5t" value="mod_rx5t" />
+        <constant name="mod2_ry5t" value="mod_ry5t+y_rot_top_pivot" />
+        <constant name="mod2_rz5t" value="mod_rz5t" />
 
-        <constant name="mod2_x5b" value="mod_x5b+(pivot-mod_z5b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y5b" value="mod_y5b"/>
-        <constant name="mod2_z5b" value="mod_z5b-(pivot-mod_z5b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx5b" value="mod_rx5b"/>
-        <constant name="mod2_ry5b" value="mod_ry5b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz5b" value="mod_rz5b"/>
+        <constant name="mod2_x5b" value="mod_x5b+(pivot-mod_z5b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y5b" value="mod_y5b" />
+        <constant name="mod2_z5b" value="mod_z5b-(pivot-mod_z5b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx5b" value="mod_rx5b" />
+        <constant name="mod2_ry5b" value="mod_ry5b+y_rot_bot_pivot" />
+        <constant name="mod2_rz5b" value="mod_rz5b" />
 
-        <constant name="mod2_x6t" value="mod_x6t+(pivot-mod_z6t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y6t" value="mod_y6t"/>
-        <constant name="mod2_z6t" value="mod_z6t-(pivot-mod_z6t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx6t" value="mod_rx6t"/>
-        <constant name="mod2_ry6t" value="mod_ry6t+y_rot_top_pivot"/>
-        <constant name="mod2_rz6t" value="mod_rz6t"/>
+        <constant name="mod2_x6t" value="mod_x6t+(pivot-mod_z6t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y6t" value="mod_y6t" />
+        <constant name="mod2_z6t" value="mod_z6t-(pivot-mod_z6t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx6t" value="mod_rx6t" />
+        <constant name="mod2_ry6t" value="mod_ry6t+y_rot_top_pivot" />
+        <constant name="mod2_rz6t" value="mod_rz6t" />
 
-        <constant name="mod2_x6b" value="mod_x6b+(pivot-mod_z6b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y6b" value="mod_y6b"/>
-        <constant name="mod2_z6b" value="mod_z6b-(pivot-mod_z6b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx6b" value="mod_rx6b"/>
-        <constant name="mod2_ry6b" value="mod_ry6b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz6b" value="mod_rz6b"/>
+        <constant name="mod2_x6b" value="mod_x6b+(pivot-mod_z6b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y6b" value="mod_y6b" />
+        <constant name="mod2_z6b" value="mod_z6b-(pivot-mod_z6b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx6b" value="mod_rx6b" />
+        <constant name="mod2_ry6b" value="mod_ry6b+y_rot_bot_pivot" />
+        <constant name="mod2_rz6b" value="mod_rz6b" />
     
-        <constant name="mod2_x7t" value="mod_x7t+(pivot-mod_z7t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y7t" value="mod_y7t"/>
-        <constant name="mod2_z7t" value="mod_z7t-(pivot-mod_z7t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx7t" value="mod_rx7t"/>
-        <constant name="mod2_ry7t" value="mod_ry7t+y_rot_top_pivot"/>
-        <constant name="mod2_rz7t" value="mod_rz7t"/>
+        <constant name="mod2_x7t" value="mod_x7t+(pivot-mod_z7t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y7t" value="mod_y7t" />
+        <constant name="mod2_z7t" value="mod_z7t-(pivot-mod_z7t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx7t" value="mod_rx7t" />
+        <constant name="mod2_ry7t" value="mod_ry7t+y_rot_top_pivot" />
+        <constant name="mod2_rz7t" value="mod_rz7t" />
 
-        <constant name="mod2_x7b" value="mod_x7b+(pivot-mod_z7b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y7b" value="mod_y7b"/>
-        <constant name="mod2_z7b" value="mod_z7b-(pivot-mod_z7b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx7b" value="mod_rx7b"/>
-        <constant name="mod2_ry7b" value="mod_ry7b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz7b" value="mod_rz7b"/>
+        <constant name="mod2_x7b" value="mod_x7b+(pivot-mod_z7b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y7b" value="mod_y7b" />
+        <constant name="mod2_z7b" value="mod_z7b-(pivot-mod_z7b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx7b" value="mod_rx7b" />
+        <constant name="mod2_ry7b" value="mod_ry7b+y_rot_bot_pivot" />
+        <constant name="mod2_rz7b" value="mod_rz7b" />
 
-        <constant name="mod2_x8t" value="mod_x8t+(pivot-mod_z8t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y8t" value="mod_y8t"/>
-        <constant name="mod2_z8t" value="mod_z8t-(pivot-mod_z8t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx8t" value="mod_rx8t"/>
-        <constant name="mod2_ry8t" value="mod_ry8t+y_rot_top_pivot"/>
-        <constant name="mod2_rz8t" value="mod_rz8t"/>
+        <constant name="mod2_x8t" value="mod_x8t+(pivot-mod_z8t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y8t" value="mod_y8t" />
+        <constant name="mod2_z8t" value="mod_z8t-(pivot-mod_z8t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx8t" value="mod_rx8t" />
+        <constant name="mod2_ry8t" value="mod_ry8t+y_rot_top_pivot" />
+        <constant name="mod2_rz8t" value="mod_rz8t" />
 
-        <constant name="mod2_x8b" value="mod_x8b+(pivot-mod_z8b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y8b" value="mod_y8b"/>
-        <constant name="mod2_z8b" value="mod_z8b-(pivot-mod_z8b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx8b" value="mod_rx8b"/>
-        <constant name="mod2_ry8b" value="mod_ry8b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz8b" value="mod_rz8b"/>
+        <constant name="mod2_x8b" value="mod_x8b+(pivot-mod_z8b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y8b" value="mod_y8b" />
+        <constant name="mod2_z8b" value="mod_z8b-(pivot-mod_z8b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx8b" value="mod_rx8b" />
+        <constant name="mod2_ry8b" value="mod_ry8b+y_rot_bot_pivot" />
+        <constant name="mod2_rz8b" value="mod_rz8b" />
 
-        <constant name="mod2_x9t" value="mod_x9t+(pivot-mod_z9t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y9t" value="mod_y9t"/>
-        <constant name="mod2_z9t" value="mod_z9t-(pivot-mod_z9t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx9t" value="mod_rx9t"/>
-        <constant name="mod2_ry9t" value="mod_ry9t+y_rot_top_pivot"/>
-        <constant name="mod2_rz9t" value="mod_rz9t"/>
+        <constant name="mod2_x9t" value="mod_x9t+(pivot-mod_z9t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y9t" value="mod_y9t" />
+        <constant name="mod2_z9t" value="mod_z9t-(pivot-mod_z9t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx9t" value="mod_rx9t" />
+        <constant name="mod2_ry9t" value="mod_ry9t+y_rot_top_pivot" />
+        <constant name="mod2_rz9t" value="mod_rz9t" />
 
-        <constant name="mod2_x9b" value="mod_x9b+(pivot-mod_z9b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y9b" value="mod_y9b"/>
-        <constant name="mod2_z9b" value="mod_z9b-(pivot-mod_z9b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx9b" value="mod_rx9b"/>
-        <constant name="mod2_ry9b" value="mod_ry9b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz9b" value="mod_rz9b"/>
+        <constant name="mod2_x9b" value="mod_x9b+(pivot-mod_z9b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y9b" value="mod_y9b" />
+        <constant name="mod2_z9b" value="mod_z9b-(pivot-mod_z9b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx9b" value="mod_rx9b" />
+        <constant name="mod2_ry9b" value="mod_ry9b+y_rot_bot_pivot" />
+        <constant name="mod2_rz9b" value="mod_rz9b" />
 
-        <constant name="mod2_x10t" value="mod_x10t+(pivot-mod_z10t)*sin(y_rot_top_pivot)"/>
-        <constant name="mod2_y10t" value="mod_y10t"/>
-        <constant name="mod2_z10t" value="mod_z10t-(pivot-mod_z10t)*(cos(y_rot_top_pivot)-1)"/>
-        <constant name="mod2_rx10t" value="mod_rx10t"/>
-        <constant name="mod2_ry10t" value="mod_ry10t+y_rot_top_pivot"/>
-        <constant name="mod2_rz10t" value="mod_rz10t"/>
+        <constant name="mod2_x10t" value="mod_x10t+(pivot-mod_z10t)*sin(y_rot_top_pivot)" />
+        <constant name="mod2_y10t" value="mod_y10t" />
+        <constant name="mod2_z10t" value="mod_z10t-(pivot-mod_z10t)*(cos(y_rot_top_pivot)-1)" />
+        <constant name="mod2_rx10t" value="mod_rx10t" />
+        <constant name="mod2_ry10t" value="mod_ry10t+y_rot_top_pivot" />
+        <constant name="mod2_rz10t" value="mod_rz10t" />
 
-        <constant name="mod2_x10b" value="mod_x10b+(pivot-mod_z10b)*sin(y_rot_bot_pivot)"/>
-        <constant name="mod2_y10b" value="mod_y10b"/>
-        <constant name="mod2_z10b" value="mod_z10b-(pivot-mod_z10b)*(cos(y_rot_bot_pivot)-1)"/>
-        <constant name="mod2_rx10b" value="mod_rx10b"/>
-        <constant name="mod2_ry10b" value="mod_ry10b+y_rot_bot_pivot"/>
-        <constant name="mod2_rz10b" value="mod_rz10b"/>
+        <constant name="mod2_x10b" value="mod_x10b+(pivot-mod_z10b)*sin(y_rot_bot_pivot)" />
+        <constant name="mod2_y10b" value="mod_y10b" />
+        <constant name="mod2_z10b" value="mod_z10b-(pivot-mod_z10b)*(cos(y_rot_bot_pivot)-1)" />
+        <constant name="mod2_rx10b" value="mod_rx10b" />
+        <constant name="mod2_ry10b" value="mod_ry10b+y_rot_bot_pivot" />
+        <constant name="mod2_rz10b" value="mod_rz10b" />
     	
     	<!-- final constants -->
-	<constant name="final_x1t" value="mod2_x1t+x1t_align"/>
-	<constant name="final_x2t" value="mod2_x2t+x2t_align"/>
-	<constant name="final_x3t" value="mod2_x3t+x3t_align"/>
-	<constant name="final_x4t" value="mod2_x4t+x4t_align"/>
-	<constant name="final_x5t" value="mod2_x5t+x5t_align"/>
-	<constant name="final_x6t" value="mod2_x6t+x6t_align"/>
-	<constant name="final_x7t" value="mod2_x7t+x7t_align"/>
-	<constant name="final_x8t" value="mod2_x8t+x8t_align"/>
-	<constant name="final_x9t" value="mod2_x9t+x9t_align"/>
-	<constant name="final_x10t" value="mod2_x10t+x10t_align"/>
-	<constant name="final_y1t" value="mod2_y1t+y1t_align"/>
-	<constant name="final_y2t" value="mod2_y2t+y2t_align"/>
-	<constant name="final_y3t" value="mod2_y3t+y3t_align"/>
-	<constant name="final_y4t" value="mod2_y4t+y4t_align"/>
-	<constant name="final_y5t" value="mod2_y5t+y5t_align"/>
-	<constant name="final_y6t" value="mod2_y6t+y6t_align"/>
-	<constant name="final_y7t" value="mod2_y7t+y7t_align"/>
-	<constant name="final_y8t" value="mod2_y8t+y8t_align"/>
-	<constant name="final_y9t" value="mod2_y9t+y9t_align"/>
-	<constant name="final_y10t" value="mod2_y10t+y10t_align"/>
-	<constant name="final_z1t" value="mod2_z1t+z1t_align"/>
-	<constant name="final_z2t" value="mod2_z2t+z2t_align"/>
-	<constant name="final_z3t" value="mod2_z3t+z3t_align"/>
-	<constant name="final_z4t" value="mod2_z4t+z4t_align"/>
-	<constant name="final_z5t" value="mod2_z5t+z5t_align"/>
-	<constant name="final_z6t" value="mod2_z6t+z6t_align"/>
-	<constant name="final_z7t" value="mod2_z7t+z7t_align"/>
-	<constant name="final_z8t" value="mod2_z8t+z8t_align"/>
-	<constant name="final_z9t" value="mod2_z9t+z9t_align"/>
-	<constant name="final_z10t" value="mod2_z10t+z10t_align"/>
-	<constant name="final_rx1t" value="mod2_rx1t+rx1t_align"/>
-	<constant name="final_rx2t" value="mod2_rx2t+rx2t_align"/>
-	<constant name="final_rx3t" value="mod2_rx3t+rx3t_align"/>
-	<constant name="final_rx4t" value="mod2_rx4t+rx4t_align"/>
-	<constant name="final_rx5t" value="mod2_rx5t+rx5t_align"/>
-	<constant name="final_rx6t" value="mod2_rx6t+rx6t_align"/>
-	<constant name="final_rx7t" value="mod2_rx7t+rx7t_align"/>
-	<constant name="final_rx8t" value="mod2_rx8t+rx8t_align"/>
-	<constant name="final_rx9t" value="mod2_rx9t+rx9t_align"/>
-	<constant name="final_rx10t" value="mod2_rx10t+rx10t_align"/>
-	<constant name="final_ry1t" value="mod2_ry1t+ry1t_align"/>
-	<constant name="final_ry2t" value="mod2_ry2t+ry2t_align"/>
-	<constant name="final_ry3t" value="mod2_ry3t+ry3t_align"/>
-	<constant name="final_ry4t" value="mod2_ry4t+ry4t_align"/>
-	<constant name="final_ry5t" value="mod2_ry5t+ry5t_align"/>
-	<constant name="final_ry6t" value="mod2_ry6t+ry6t_align"/>
-	<constant name="final_ry7t" value="mod2_ry7t+ry7t_align"/>
-	<constant name="final_ry8t" value="mod2_ry8t+ry8t_align"/>
-	<constant name="final_ry9t" value="mod2_ry9t+ry9t_align"/>
-	<constant name="final_ry10t" value="mod2_ry10t+ry10t_align"/>
-	<constant name="final_rz1t" value="mod2_rz1t+rz1t_align"/>
-	<constant name="final_rz2t" value="mod2_rz2t+rz2t_align"/>
-	<constant name="final_rz3t" value="mod2_rz3t+rz3t_align"/>
-	<constant name="final_rz4t" value="mod2_rz4t+rz4t_align"/>
-	<constant name="final_rz5t" value="mod2_rz5t+rz5t_align"/>
-	<constant name="final_rz6t" value="mod2_rz6t+rz6t_align"/>
-	<constant name="final_rz7t" value="mod2_rz7t+rz7t_align"/>
-	<constant name="final_rz8t" value="mod2_rz8t+rz8t_align"/>
-	<constant name="final_rz9t" value="mod2_rz9t+rz9t_align"/>
-	<constant name="final_rz10t" value="mod2_rz10t+rz10t_align"/>
-	<constant name="final_x1b" value="mod2_x1b+x1b_align"/>
-	<constant name="final_x2b" value="mod2_x2b+x2b_align"/>
-	<constant name="final_x3b" value="mod2_x3b+x3b_align"/>
-	<constant name="final_x4b" value="mod2_x4b+x4b_align"/>
-	<constant name="final_x5b" value="mod2_x5b+x5b_align"/>
-	<constant name="final_x6b" value="mod2_x6b+x6b_align"/>
-	<constant name="final_x7b" value="mod2_x7b+x7b_align"/>
-	<constant name="final_x8b" value="mod2_x8b+x8b_align"/>
-	<constant name="final_x9b" value="mod2_x9b+x9b_align"/>
-	<constant name="final_x10b" value="mod2_x10b+x10b_align"/>
-	<constant name="final_y1b" value="mod2_y1b+y1b_align"/>
-	<constant name="final_y2b" value="mod2_y2b+y2b_align"/>
-	<constant name="final_y3b" value="mod2_y3b+y3b_align"/>
-	<constant name="final_y4b" value="mod2_y4b+y4b_align"/>
-	<constant name="final_y5b" value="mod2_y5b+y5b_align"/>
-	<constant name="final_y6b" value="mod2_y6b+y6b_align"/>
-	<constant name="final_y7b" value="mod2_y7b+y7b_align"/>
-	<constant name="final_y8b" value="mod2_y8b+y8b_align"/>
-	<constant name="final_y9b" value="mod2_y9b+y9b_align"/>
-	<constant name="final_y10b" value="mod2_y10b+y10b_align"/>
-	<constant name="final_z1b" value="mod2_z1b+z1b_align"/>
-	<constant name="final_z2b" value="mod2_z2b+z2b_align"/>
-	<constant name="final_z3b" value="mod2_z3b+z3b_align"/>
-	<constant name="final_z4b" value="mod2_z4b+z4b_align"/>
-	<constant name="final_z5b" value="mod2_z5b+z5b_align"/>
-	<constant name="final_z6b" value="mod2_z6b+z6b_align"/>
-	<constant name="final_z7b" value="mod2_z7b+z7b_align"/>
-	<constant name="final_z8b" value="mod2_z8b+z8b_align"/>
-	<constant name="final_z9b" value="mod2_z9b+z9b_align"/>
-	<constant name="final_z10b" value="mod2_z10b+z10b_align"/>
-	<constant name="final_rx1b" value="mod2_rx1b+rx1b_align"/>
-	<constant name="final_rx2b" value="mod2_rx2b+rx2b_align"/>
-	<constant name="final_rx3b" value="mod2_rx3b+rx3b_align"/>
-	<constant name="final_rx4b" value="mod2_rx4b+rx4b_align"/>
-	<constant name="final_rx5b" value="mod2_rx5b+rx5b_align"/>
-	<constant name="final_rx6b" value="mod2_rx6b+rx6b_align"/>
-	<constant name="final_rx7b" value="mod2_rx7b+rx7b_align"/>
-	<constant name="final_rx8b" value="mod2_rx8b+rx8b_align"/>
-	<constant name="final_rx9b" value="mod2_rx9b+rx9b_align"/>
-	<constant name="final_rx10b" value="mod2_rx10b+rx10b_align"/>
-	<constant name="final_ry1b" value="mod2_ry1b+ry1b_align"/>
-	<constant name="final_ry2b" value="mod2_ry2b+ry2b_align"/>
-	<constant name="final_ry3b" value="mod2_ry3b+ry3b_align"/>
-	<constant name="final_ry4b" value="mod2_ry4b+ry4b_align"/>
-	<constant name="final_ry5b" value="mod2_ry5b+ry5b_align"/>
-	<constant name="final_ry6b" value="mod2_ry6b+ry6b_align"/>
-	<constant name="final_ry7b" value="mod2_ry7b+ry7b_align"/>
-	<constant name="final_ry8b" value="mod2_ry8b+ry8b_align"/>
-	<constant name="final_ry9b" value="mod2_ry9b+ry9b_align"/>
-	<constant name="final_ry10b" value="mod2_ry10b+ry10b_align"/>
-	<constant name="final_rz1b" value="mod2_rz1b+rz1b_align"/>
-	<constant name="final_rz2b" value="mod2_rz2b+rz2b_align"/>
-	<constant name="final_rz3b" value="mod2_rz3b+rz3b_align"/>
-	<constant name="final_rz4b" value="mod2_rz4b+rz4b_align"/>
-	<constant name="final_rz5b" value="mod2_rz5b+rz5b_align"/>
-	<constant name="final_rz6b" value="mod2_rz6b+rz6b_align"/>
-	<constant name="final_rz7b" value="mod2_rz7b+rz7b_align"/>
-	<constant name="final_rz8b" value="mod2_rz8b+rz8b_align"/>
-	<constant name="final_rz9b" value="mod2_rz9b+rz9b_align"/>
-	<constant name="final_rz10b" value="mod2_rz10b+rz10b_align"/>
+	<constant name="final_x1t" value="mod2_x1t+x1t_align" />
+	<constant name="final_x2t" value="mod2_x2t+x2t_align" />
+	<constant name="final_x3t" value="mod2_x3t+x3t_align" />
+	<constant name="final_x4t" value="mod2_x4t+x4t_align" />
+	<constant name="final_x5t" value="mod2_x5t+x5t_align" />
+	<constant name="final_x6t" value="mod2_x6t+x6t_align" />
+	<constant name="final_x7t" value="mod2_x7t+x7t_align" />
+	<constant name="final_x8t" value="mod2_x8t+x8t_align" />
+	<constant name="final_x9t" value="mod2_x9t+x9t_align" />
+	<constant name="final_x10t" value="mod2_x10t+x10t_align" />
+	<constant name="final_y1t" value="mod2_y1t+y1t_align" />
+	<constant name="final_y2t" value="mod2_y2t+y2t_align" />
+	<constant name="final_y3t" value="mod2_y3t+y3t_align" />
+	<constant name="final_y4t" value="mod2_y4t+y4t_align" />
+	<constant name="final_y5t" value="mod2_y5t+y5t_align" />
+	<constant name="final_y6t" value="mod2_y6t+y6t_align" />
+	<constant name="final_y7t" value="mod2_y7t+y7t_align" />
+	<constant name="final_y8t" value="mod2_y8t+y8t_align" />
+	<constant name="final_y9t" value="mod2_y9t+y9t_align" />
+	<constant name="final_y10t" value="mod2_y10t+y10t_align" />
+	<constant name="final_z1t" value="mod2_z1t+z1t_align" />
+	<constant name="final_z2t" value="mod2_z2t+z2t_align" />
+	<constant name="final_z3t" value="mod2_z3t+z3t_align" />
+	<constant name="final_z4t" value="mod2_z4t+z4t_align" />
+	<constant name="final_z5t" value="mod2_z5t+z5t_align" />
+	<constant name="final_z6t" value="mod2_z6t+z6t_align" />
+	<constant name="final_z7t" value="mod2_z7t+z7t_align" />
+	<constant name="final_z8t" value="mod2_z8t+z8t_align" />
+	<constant name="final_z9t" value="mod2_z9t+z9t_align" />
+	<constant name="final_z10t" value="mod2_z10t+z10t_align" />
+	<constant name="final_rx1t" value="mod2_rx1t+rx1t_align" />
+	<constant name="final_rx2t" value="mod2_rx2t+rx2t_align" />
+	<constant name="final_rx3t" value="mod2_rx3t+rx3t_align" />
+	<constant name="final_rx4t" value="mod2_rx4t+rx4t_align" />
+	<constant name="final_rx5t" value="mod2_rx5t+rx5t_align" />
+	<constant name="final_rx6t" value="mod2_rx6t+rx6t_align" />
+	<constant name="final_rx7t" value="mod2_rx7t+rx7t_align" />
+	<constant name="final_rx8t" value="mod2_rx8t+rx8t_align" />
+	<constant name="final_rx9t" value="mod2_rx9t+rx9t_align" />
+	<constant name="final_rx10t" value="mod2_rx10t+rx10t_align" />
+	<constant name="final_ry1t" value="mod2_ry1t+ry1t_align" />
+	<constant name="final_ry2t" value="mod2_ry2t+ry2t_align" />
+	<constant name="final_ry3t" value="mod2_ry3t+ry3t_align" />
+	<constant name="final_ry4t" value="mod2_ry4t+ry4t_align" />
+	<constant name="final_ry5t" value="mod2_ry5t+ry5t_align" />
+	<constant name="final_ry6t" value="mod2_ry6t+ry6t_align" />
+	<constant name="final_ry7t" value="mod2_ry7t+ry7t_align" />
+	<constant name="final_ry8t" value="mod2_ry8t+ry8t_align" />
+	<constant name="final_ry9t" value="mod2_ry9t+ry9t_align" />
+	<constant name="final_ry10t" value="mod2_ry10t+ry10t_align" />
+	<constant name="final_rz1t" value="mod2_rz1t+rz1t_align" />
+	<constant name="final_rz2t" value="mod2_rz2t+rz2t_align" />
+	<constant name="final_rz3t" value="mod2_rz3t+rz3t_align" />
+	<constant name="final_rz4t" value="mod2_rz4t+rz4t_align" />
+	<constant name="final_rz5t" value="mod2_rz5t+rz5t_align" />
+	<constant name="final_rz6t" value="mod2_rz6t+rz6t_align" />
+	<constant name="final_rz7t" value="mod2_rz7t+rz7t_align" />
+	<constant name="final_rz8t" value="mod2_rz8t+rz8t_align" />
+	<constant name="final_rz9t" value="mod2_rz9t+rz9t_align" />
+	<constant name="final_rz10t" value="mod2_rz10t+rz10t_align" />
+	<constant name="final_x1b" value="mod2_x1b+x1b_align" />
+	<constant name="final_x2b" value="mod2_x2b+x2b_align" />
+	<constant name="final_x3b" value="mod2_x3b+x3b_align" />
+	<constant name="final_x4b" value="mod2_x4b+x4b_align" />
+	<constant name="final_x5b" value="mod2_x5b+x5b_align" />
+	<constant name="final_x6b" value="mod2_x6b+x6b_align" />
+	<constant name="final_x7b" value="mod2_x7b+x7b_align" />
+	<constant name="final_x8b" value="mod2_x8b+x8b_align" />
+	<constant name="final_x9b" value="mod2_x9b+x9b_align" />
+	<constant name="final_x10b" value="mod2_x10b+x10b_align" />
+	<constant name="final_y1b" value="mod2_y1b+y1b_align" />
+	<constant name="final_y2b" value="mod2_y2b+y2b_align" />
+	<constant name="final_y3b" value="mod2_y3b+y3b_align" />
+	<constant name="final_y4b" value="mod2_y4b+y4b_align" />
+	<constant name="final_y5b" value="mod2_y5b+y5b_align" />
+	<constant name="final_y6b" value="mod2_y6b+y6b_align" />
+	<constant name="final_y7b" value="mod2_y7b+y7b_align" />
+	<constant name="final_y8b" value="mod2_y8b+y8b_align" />
+	<constant name="final_y9b" value="mod2_y9b+y9b_align" />
+	<constant name="final_y10b" value="mod2_y10b+y10b_align" />
+	<constant name="final_z1b" value="mod2_z1b+z1b_align" />
+	<constant name="final_z2b" value="mod2_z2b+z2b_align" />
+	<constant name="final_z3b" value="mod2_z3b+z3b_align" />
+	<constant name="final_z4b" value="mod2_z4b+z4b_align" />
+	<constant name="final_z5b" value="mod2_z5b+z5b_align" />
+	<constant name="final_z6b" value="mod2_z6b+z6b_align" />
+	<constant name="final_z7b" value="mod2_z7b+z7b_align" />
+	<constant name="final_z8b" value="mod2_z8b+z8b_align" />
+	<constant name="final_z9b" value="mod2_z9b+z9b_align" />
+	<constant name="final_z10b" value="mod2_z10b+z10b_align" />
+	<constant name="final_rx1b" value="mod2_rx1b+rx1b_align" />
+	<constant name="final_rx2b" value="mod2_rx2b+rx2b_align" />
+	<constant name="final_rx3b" value="mod2_rx3b+rx3b_align" />
+	<constant name="final_rx4b" value="mod2_rx4b+rx4b_align" />
+	<constant name="final_rx5b" value="mod2_rx5b+rx5b_align" />
+	<constant name="final_rx6b" value="mod2_rx6b+rx6b_align" />
+	<constant name="final_rx7b" value="mod2_rx7b+rx7b_align" />
+	<constant name="final_rx8b" value="mod2_rx8b+rx8b_align" />
+	<constant name="final_rx9b" value="mod2_rx9b+rx9b_align" />
+	<constant name="final_rx10b" value="mod2_rx10b+rx10b_align" />
+	<constant name="final_ry1b" value="mod2_ry1b+ry1b_align" />
+	<constant name="final_ry2b" value="mod2_ry2b+ry2b_align" />
+	<constant name="final_ry3b" value="mod2_ry3b+ry3b_align" />
+	<constant name="final_ry4b" value="mod2_ry4b+ry4b_align" />
+	<constant name="final_ry5b" value="mod2_ry5b+ry5b_align" />
+	<constant name="final_ry6b" value="mod2_ry6b+ry6b_align" />
+	<constant name="final_ry7b" value="mod2_ry7b+ry7b_align" />
+	<constant name="final_ry8b" value="mod2_ry8b+ry8b_align" />
+	<constant name="final_ry9b" value="mod2_ry9b+ry9b_align" />
+	<constant name="final_ry10b" value="mod2_ry10b+ry10b_align" />
+	<constant name="final_rz1b" value="mod2_rz1b+rz1b_align" />
+	<constant name="final_rz2b" value="mod2_rz2b+rz2b_align" />
+	<constant name="final_rz3b" value="mod2_rz3b+rz3b_align" />
+	<constant name="final_rz4b" value="mod2_rz4b+rz4b_align" />
+	<constant name="final_rz5b" value="mod2_rz5b+rz5b_align" />
+	<constant name="final_rz6b" value="mod2_rz6b+rz6b_align" />
+	<constant name="final_rz7b" value="mod2_rz7b+rz7b_align" />
+	<constant name="final_rz8b" value="mod2_rz8b+rz8b_align" />
+	<constant name="final_rz9b" value="mod2_rz9b+rz9b_align" />
+	<constant name="final_rz10b" value="mod2_rz10b+rz10b_align" />
     	
     	
     </define>
@@ -735,20 +733,20 @@
     <materials>      
     	<!-- Set the world material to vacuum. -->
         <material name="WorldMaterial">
-            <D type="density" unit="g/cm3" value="0.0000000000000001"/>
+            <D type="density" unit="g/cm3" value="0.0000000000000001" />
             <fraction n="1.0" ref="Vacuum" />
         </material>
         <!-- Set tracking material to vacuum. -->
         <material name="TrackingMaterial">
-            <D type="density" unit="g/cm3" value="0.0000000000000001"/>
+            <D type="density" unit="g/cm3" value="0.0000000000000001" />
             <fraction n="1.0" ref="Vacuum" />
         </material>
         <!-- ECal crystal material. -->
         <material name="LeadTungstate">
-            <D value="8.28" unit="g/cm3"/>
-            <composite n="1" ref="Pb"/>
-            <composite n="1" ref="W"/>
-            <composite n="4" ref="O"/>
+            <D value="8.28" unit="g/cm3" />
+            <composite n="1" ref="Pb" />
+            <composite n="1" ref="W" />
+            <composite n="4" ref="O" />
         </material>
     </materials>
 
@@ -761,67 +759,67 @@
             <comment>The Silicon Vertex Tracker</comment>
             <module name="TestRunModule">
                 <box x="moduleLength" y="moduleWidth" />
-                <module_component thickness="0.032*cm" material = "Silicon" sensitive="true">
+                <module_component thickness="0.032*cm" material="Silicon" sensitive="true">
                     <dimensions x="sensorLength" y="sensorWidth" /> 
                 </module_component>
-                <module_component thickness="0.02*cm" material = "Carbon" sensitive="false"/> 
+                <module_component thickness="0.02*cm" material="Carbon" sensitive="false" /> 
             </module>       
             
             <layer id="1">
-                <module_placement name="TestRunModule" id="0" x="final_x1t" y="final_y1t" z="final_z1t" rx="final_rx1t" ry="final_ry1t" rz="final_rz1t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x1b" y="final_y1b" z="final_z1b" rx="final_rx1b" ry="final_ry1b" rz="final_rz1b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x1t" y="final_y1t" z="final_z1t" rx="final_rx1t" ry="final_ry1t" rz="final_rz1t" />
+                <module_placement name="TestRunModule" id="1" x="final_x1b" y="final_y1b" z="final_z1b" rx="final_rx1b" ry="final_ry1b" rz="final_rz1b" />
             </layer>
             <layer id="2">
-                <module_placement name="TestRunModule" id="0" x="final_x2t" y="final_y2t" z="final_z2t" rx="final_rx2t" ry="final_ry2t" rz="final_rz2t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x2b" y="final_y2b" z="final_z2b" rx="final_rx2b" ry="final_ry2b" rz="final_rz2b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x2t" y="final_y2t" z="final_z2t" rx="final_rx2t" ry="final_ry2t" rz="final_rz2t" />
+                <module_placement name="TestRunModule" id="1" x="final_x2b" y="final_y2b" z="final_z2b" rx="final_rx2b" ry="final_ry2b" rz="final_rz2b" />
             </layer>
             <layer id="3">
-                <module_placement name="TestRunModule" id="0" x="final_x3t" y="final_y3t" z="final_z3t" rx="final_rx3t" ry="final_ry3t" rz="final_rz3t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x3b" y="final_y3b" z="final_z3b" rx="final_rx3b" ry="final_ry3b" rz="final_rz3b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x3t" y="final_y3t" z="final_z3t" rx="final_rx3t" ry="final_ry3t" rz="final_rz3t" />
+                <module_placement name="TestRunModule" id="1" x="final_x3b" y="final_y3b" z="final_z3b" rx="final_rx3b" ry="final_ry3b" rz="final_rz3b" />
             </layer>
             <layer id="4">
-                <module_placement name="TestRunModule" id="0" x="final_x4t" y="final_y4t" z="final_z4t" rx="final_rx4t" ry="final_ry4t" rz="final_rz4t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x4b" y="final_y4b" z="final_z4b" rx="final_rx4b" ry="final_ry4b" rz="final_rz4b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x4t" y="final_y4t" z="final_z4t" rx="final_rx4t" ry="final_ry4t" rz="final_rz4t" />
+                <module_placement name="TestRunModule" id="1" x="final_x4b" y="final_y4b" z="final_z4b" rx="final_rx4b" ry="final_ry4b" rz="final_rz4b" />
             </layer>
             <layer id="5">
-                <module_placement name="TestRunModule" id="0" x="final_x5t" y="final_y5t" z="final_z5t" rx="final_rx5t" ry="final_ry5t" rz="final_rz5t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x5b" y="final_y5b" z="final_z5b" rx="final_rx5b" ry="final_ry5b" rz="final_rz5b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x5t" y="final_y5t" z="final_z5t" rx="final_rx5t" ry="final_ry5t" rz="final_rz5t" />
+                <module_placement name="TestRunModule" id="1" x="final_x5b" y="final_y5b" z="final_z5b" rx="final_rx5b" ry="final_ry5b" rz="final_rz5b" />
             </layer>
             <layer id="6">
-                <module_placement name="TestRunModule" id="0" x="final_x6t" y="final_y6t" z="final_z6t" rx="final_rx6t" ry="final_ry6t" rz="final_rz6t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x6b" y="final_y6b" z="final_z6b" rx="final_rx6b" ry="final_ry6b" rz="final_rz6b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x6t" y="final_y6t" z="final_z6t" rx="final_rx6t" ry="final_ry6t" rz="final_rz6t" />
+                <module_placement name="TestRunModule" id="1" x="final_x6b" y="final_y6b" z="final_z6b" rx="final_rx6b" ry="final_ry6b" rz="final_rz6b" />
             </layer>
             <layer id="7">
-                <module_placement name="TestRunModule" id="0" x="final_x7t" y="final_y7t" z="final_z7t" rx="final_rx7t" ry="final_ry7t" rz="final_rz7t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x7b" y="final_y7b" z="final_z7b" rx="final_rx7b" ry="final_ry7b" rz="final_rz7b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x7t" y="final_y7t" z="final_z7t" rx="final_rx7t" ry="final_ry7t" rz="final_rz7t" />
+                <module_placement name="TestRunModule" id="1" x="final_x7b" y="final_y7b" z="final_z7b" rx="final_rx7b" ry="final_ry7b" rz="final_rz7b" />
             </layer>
             <layer id="8">
-                <module_placement name="TestRunModule" id="0" x="final_x8t" y="final_y8t" z="final_z8t" rx="final_rx8t" ry="final_ry8t" rz="final_rz8t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x8b" y="final_y8b" z="final_z8b" rx="final_rx8b" ry="final_ry8b" rz="final_rz8b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x8t" y="final_y8t" z="final_z8t" rx="final_rx8t" ry="final_ry8t" rz="final_rz8t" />
+                <module_placement name="TestRunModule" id="1" x="final_x8b" y="final_y8b" z="final_z8b" rx="final_rx8b" ry="final_ry8b" rz="final_rz8b" />
             </layer>
             <layer id="9">
-                <module_placement name="TestRunModule" id="0" x="final_x9t" y="final_y9t" z="final_z9t" rx="final_rx9t" ry="final_ry9t" rz="final_rz9t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x9b" y="final_y9b" z="final_z9b" rx="final_rx9b" ry="final_ry9b" rz="final_rz9b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x9t" y="final_y9t" z="final_z9t" rx="final_rx9t" ry="final_ry9t" rz="final_rz9t" />
+                <module_placement name="TestRunModule" id="1" x="final_x9b" y="final_y9b" z="final_z9b" rx="final_rx9b" ry="final_ry9b" rz="final_rz9b" />
             </layer>
             <layer id="10">
-                <module_placement name="TestRunModule" id="0" x="final_x10t" y="final_y10t" z="final_z10t" rx="final_rx10t" ry="final_ry10t" rz="final_rz10t"/>
-                <module_placement name="TestRunModule" id="1" x="final_x10b" y="final_y10b" z="final_z10b" rx="final_rx10b" ry="final_ry10b" rz="final_rz10b"/>
+                <module_placement name="TestRunModule" id="0" x="final_x10t" y="final_y10t" z="final_z10t" rx="final_rx10t" ry="final_ry10t" rz="final_rz10t" />
+                <module_placement name="TestRunModule" id="1" x="final_x10b" y="final_y10b" z="final_z10b" rx="final_rx10b" ry="final_ry10b" rz="final_rz10b" />
             </layer> 
         </detector>     
         
-        <detector id="30" name="TrackerFieldDef" type="HPSTracker2" readout="TrackerHitsThin" >
+        <detector id="30" name="TrackerFieldDef" type="HPSTracker2" readout="TrackerHitsThin">
             <comment>The Silicon Vertex Tracker</comment>
             <module name="TestRunModuleFieldDef">
                 <box x="dipoleMagnetWidth*4+1" y="dipoleMagnetHeight*4+1" />
-                <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="true">
+                <module_component thickness="0.000000001*cm" material="Vacuum" sensitive="true">
                     <dimensions x="dipoleMagnetWidth*4" y="dipoleMagnetHeight*4" /> 
                 </module_component>
             </module>            
             <layer id="1">
-                <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="dipoleMagnetPositionZ-dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="dipoleMagnetPositionZ-dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2" />
             </layer>
             <layer id="2">
-                <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="TestRunModuleFieldDef" id="0" x="0" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2" />
 			</layer>
         </detector>     
         
@@ -832,8 +830,8 @@
             <!-- Measurements as found in installation by Stepan -->
             <layout beamgap="37.0*mm" nx="46" ny="5" dface="152.4*cm">
                 <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
-                <top dx="ecal_dx" dy="0." dz="0."/>
-                <bottom dx="ecal_dx" dy="0." dz="0."/>
+                <top dx="ecal_dx" dy="0." dz="0." />
+                <bottom dx="ecal_dx" dy="0." dz="0." />
             </layout>
         </detector>
     </detectors>
