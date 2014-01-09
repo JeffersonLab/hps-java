@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-TestRun-v7-2" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="2872471152" />
+    <detector name="HPS-TestRun-v7-3" />
+    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="2575075365" />
     <author name="NONE" />
     <comment>HPS JLab Test Run detector</comment>
   </header>

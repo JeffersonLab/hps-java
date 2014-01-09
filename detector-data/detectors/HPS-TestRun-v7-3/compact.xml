@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-TestRun-v7-2">
+    <info name="HPS-TestRun-v7-3">
         <comment>HPS JLab Test Run detector</comment>
     </info>
 
