@@ -23,7 +23,7 @@
 <!--    <driver name="MCParticlePlots"/> -->
 <!--    <driver name="TruthMomentumAnalysis"/> -->
 <!--    <driver name="LCIOWriter"/> -->
-        <driver name="TwoTrackAnalysis"/> 
+        <driver name="ROOTFlatTupleDriver"/> 
 <!--	    <driver name="GBLDriver"/> -->
 <!--        <driver name="PrintGeometryDriver"/>-->
 
@@ -40,8 +40,8 @@
                 <outputPlotFileName></outputPlotFileName>
                 <gblFileName>gblinput.txt</gblFileName>
 	</driver>
-        <driver name="TwoTrackAnalysis" 
-                type="org.lcsim.hps.users.phansson.TwoTrackAnlysis">
+        <driver name="ROOTFlatTupleDriver" 
+                type="org.lcsim.hps.users.phansson.ROOTFlatTupleDriver">
                 <debug>false</debug>
                 <hideFrame>true</hideFrame>
                 <outputPlotFileName></outputPlotFileName>
