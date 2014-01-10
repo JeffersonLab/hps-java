@@ -99,8 +99,8 @@
 	<constant name="x10t_align" value="0.000000"/>
 	<constant name="y1t_align" value="0.000000"/>
 	<constant name="y2t_align" value="0.000000"/>
-	<constant name="y3t_align" value="0.000000"/>
-	<constant name="y4t_align" value="0.000000"/>
+	<constant name="y3t_align" value="0.200000"/>
+	<constant name="y4t_align" value="-0.200000"/>
 	<constant name="y5t_align" value="0.000000"/>
 	<constant name="y6t_align" value="0.000000"/>
 	<constant name="y7t_align" value="0.000000"/>
@@ -152,7 +152,7 @@
 	<constant name="x3b_align" value="0.000000"/>
 	<constant name="x4b_align" value="0.000000"/>
 	<constant name="x5b_align" value="0.000000"/>
-	<constant name="x6b_align" value="0.000000"/>
+	<constant name="x6b_align" value="0.00000"/>
 	<constant name="x7b_align" value="0.000000"/>
 	<constant name="x8b_align" value="0.000000"/>
 	<constant name="x9b_align" value="0.000000"/>
@@ -161,8 +161,8 @@
 	<constant name="y2b_align" value="0.000000"/>
 	<constant name="y3b_align" value="0.000000"/>
 	<constant name="y4b_align" value="0.000000"/>
-	<constant name="y5b_align" value="0.000000"/>
-	<constant name="y6b_align" value="0.000000"/>
+	<constant name="y5b_align" value="0.200000"/>
+	<constant name="y6b_align" value="-0.200000"/>
 	<constant name="y7b_align" value="0.000000"/>
 	<constant name="y8b_align" value="0.000000"/>
 	<constant name="y9b_align" value="0.000000"/>

@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-TestRun-v7-2" />
-    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="2296783217" />
+    <generator name="GeomConverter" version="1.0" file="compact.xml" checksum="2077200631" />
     <author name="NONE" />
     <comment>HPS JLab Test Run detector</comment>
   </header>
@@ -166,7 +166,7 @@
       <constant name="rx9t_align" value="0.0" />
       <constant name="x4t_align" value="0.0" />
       <constant name="final_rz1t" value="-1.5707614202098568" />
-      <constant name="y3t_align" value="0.0" />
+      <constant name="y3t_align" value="0.2" />
       <constant name="mod_y3b" value="-33.569805112090606" />
       <constant name="mod_z7b" value="503.6803788383518" />
       <constant name="mod_rx3b" value="0.022265951" />
@@ -175,7 +175,7 @@
       <constant name="mod_y4t" value="34.21301428621625" />
       <constant name="final_rz2b" value="-4.712683032767735" />
       <constant name="x9b_align" value="0.0" />
-      <constant name="y5b_align" value="0.0" />
+      <constant name="y5b_align" value="0.2" />
       <constant name="mod_rx1t" value="-0.026009944899999998" />
       <constant name="mod_z8t" value="495.9720792435543" />
       <constant name="mod2_rz9b" value="-1.6213373788630148" />
@@ -259,7 +259,7 @@
       <constant name="ry8t_align" value="0.0" />
       <constant name="rx6t_align" value="0.0" />
       <constant name="mod2_rz7b" value="-1.6213199255704949" />
-      <constant name="y4t_align" value="0.0" />
+      <constant name="y4t_align" value="-0.2" />
       <constant name="mod2_rz7t" value="-1.5707439669173366" />
       <constant name="mod_x1t" value="2.5075206352157604" />
       <constant name="mod2_ry6t" value="3.110036" />
@@ -360,7 +360,7 @@
       <constant name="z4b" value="211.213" />
       <constant name="final_rx4t" value="-0.026009944899999998" />
       <constant name="x4t" value="-0.109" />
-      <constant name="final_y6b" value="-33.065727058751484" />
+      <constant name="final_y6b" value="-33.26572705875149" />
       <constant name="final_z5t" value="288.67904262054907" />
       <constant name="y8t" value="33.183" />
       <constant name="st10b" value="-4.712421233379937" />
@@ -378,7 +378,7 @@
       <constant name="z3b" value="203.863" />
       <constant name="x_rot_bot" value="0.020943951" />
       <constant name="st5t" value="-1.5713373788630147" />
-      <constant name="final_y5b" value="-33.19790063561373" />
+      <constant name="final_y5b" value="-32.997900635613725" />
       <constant name="final_x8b" value="16.135080142490043" />
       <constant name="final_rx5t" value="-0.026009944899999998" />
       <constant name="final_z9b" value="703.4378594372594" />
@@ -387,7 +387,7 @@
       <constant name="st6b" value="-4.712700486060255" />
       <constant name="x5t" value="-0.013" />
       <constant name="y5t" value="34.984" />
-      <constant name="final_y4t" value="34.21301428621625" />
+      <constant name="final_y4t" value="34.01301428621625" />
       <constant name="y5b" value="-33.842" />
       <constant name="final_rx6b" value="0.022265951" />
       <constant name="y6t_align" value="0.0" />
@@ -404,7 +404,7 @@
       <constant name="z5t" value="288.808" />
       <constant name="final_z8b" value="510.9663782576568" />
       <constant name="rz1b_align" value="0.0" />
-      <constant name="final_y3t" value="34.358938272270294" />
+      <constant name="final_y3t" value="34.5589382722703" />
       <constant name="mod_rx10b" value="0.022265951" />
       <constant name="x6t" value="-0.062" />
       <constant name="st7b" value="-1.6213199255704949" />
@@ -424,7 +424,7 @@
       <constant name="rz5t_align" value="0.0" />
       <constant name="final_y3b" value="-33.569805112090606" />
       <constant name="final_z2t" value="96.23026084410334" />
-      <constant name="y6b_align" value="0.0" />
+      <constant name="y6b_align" value="-0.2" />
       <constant name="a8b" value="4.71238898038469E-4" />
       <constant name="rx5t_align" value="0.0" />
       <constant name="final_y2b" value="-33.73426103578534" />
@@ -714,21 +714,21 @@
       <rotation name="Tracker_TestRunModule_layer2_module0_rotation" x="-0.026009944899999998" y="3.110036" z="-4.8122641537472575" unit="radian" />
       <position name="Tracker_TestRunModule_layer2_module1_position" x="5.426776573652052" y="-33.73426103578534" z="111.1184142454114" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer2_module1_rotation" x="0.022265951" y="3.114588" z="-4.712683032767735" unit="radian" />
-      <position name="Tracker_TestRunModule_layer3_module0_position" x="4.681800776240774" y="34.358938272270294" z="188.767160833597" unit="mm" />
+      <position name="Tracker_TestRunModule_layer3_module0_position" x="4.681800776240774" y="34.5589382722703" z="188.767160833597" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer3_module0_rotation" x="-0.026009944899999998" y="-0.031554" z="-1.570674153747257" unit="radian" />
       <position name="Tracker_TestRunModule_layer3_module1_position" x="7.879480317321849" y="-33.569805112090606" z="203.77378755382531" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer3_module1_rotation" x="0.022265951" y="-0.027001999999999998" z="-1.6708312333799364" unit="radian" />
-      <position name="Tracker_TestRunModule_layer4_module0_position" x="4.852787905788575" y="34.21301428621625" z="196.14968908971036" unit="mm" />
+      <position name="Tracker_TestRunModule_layer4_module0_position" x="4.852787905788575" y="34.01301428621625" z="196.14968908971036" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer4_module0_rotation" x="-0.026009944899999998" y="3.110036" z="-4.812333966917337" unit="radian" />
       <position name="Tracker_TestRunModule_layer4_module1_position" x="8.154894168875089" y="-33.412521809260326" z="211.1181376427172" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer4_module1_rotation" x="0.022265951" y="3.114588" z="-4.7125783130126155" unit="radian" />
       <position name="Tracker_TestRunModule_layer5_module0_position" x="7.869338875908765" y="33.75463521187074" z="288.67904262054907" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer5_module0_rotation" x="-0.026009944899999998" y="-0.031554" z="-1.5713373788630147" unit="radian" />
-      <position name="Tracker_TestRunModule_layer5_module1_position" x="10.486265540538978" y="-33.19790063561373" z="303.65210721152704" unit="mm" />
+      <position name="Tracker_TestRunModule_layer5_module1_position" x="10.486265540538978" y="-32.997900635613725" z="303.65210721152704" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer5_module1_rotation" x="0.022265951" y="-0.027001999999999998" z="-1.6704472609444978" unit="radian" />
       <position name="Tracker_TestRunModule_layer6_module0_position" x="8.054108269934694" y="33.633772425755566" z="296.0861696563015" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer6_module0_rotation" x="-0.026009944899999998" y="3.110036" z="-4.8125084998425365" unit="radian" />
-      <position name="Tracker_TestRunModule_layer6_module1_position" x="10.795908775672478" y="-33.065727058751484" z="311.07845972869313" unit="mm" />
+      <position name="Tracker_TestRunModule_layer6_module1_position" x="10.795908775672478" y="-33.26572705875149" z="311.07845972869313" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer6_module1_rotation" x="0.022265951" y="3.114588" z="-4.712700486060255" unit="radian" />
       <position name="Tracker_TestRunModule_layer7_module0_position" x="14.124873366737035" y="32.6192151388858" z="488.5824313518987" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer7_module0_rotation" x="-0.026009944899999998" y="-0.031554" z="-1.5707439669173366" unit="radian" />
