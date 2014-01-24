@@ -1,1 +1,0 @@
-tar -zcvf hps_monitoring_release.tar.gz ./hps-et-java/lib/*/*.so ./hps-et-java/lib/*/*.dylib ./hps-et-java/target/*.jar ./hps-java/target/*bin.jar ./hps-et-java/scripts/*.sh ./hps-java/scripts/*.sh ./hps-java/src/main/resources/org/lcsim/hps/steering/*.lcsim
