@@ -101,8 +101,8 @@ import org.lcsim.util.aida.AIDA;
 // classes.
 // TODO: Capture std err and out and redirect to a text panel within the application.
 // TODO: Review use of Resettable and Redrawable to see if they can be removed and the
-// standard Driver API used instead.  Resettable can maybe be replaced by startOfData().
-// TODO: Add JFreeChart backend support and make CL option to use it.
+//       standard Driver API used instead.  Resettable can maybe be replaced by startOfData().
+//       Not sure about Redrawable; maybe it isn't needed at all.
 // FIXME: Tracebacks from errors should be caught and written into the log table.
 public class MonitoringApplication {
 
@@ -224,9 +224,12 @@ public class MonitoringApplication {
         log("Application initialized successfully.");
     }
 
+    /**
+     * Setup and configure the AIDA plotting backend.
+     */
     private void setupAida() {
-        //AnalysisFactory.configure();
         MonitoringAnalysisFactory.register();
+        MonitoringAnalysisFactory.configure();
         MonitoringPlotFactory.setRootPane(plotPane);
     }
 
