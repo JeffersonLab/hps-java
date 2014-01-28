@@ -14,7 +14,7 @@
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <scmConnection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk</scmConnection>
         <hpsUrl>http://java.freehep.org/svn/repos/hps/list/java/trunk/</hpsUrl>
-        <lcsimVersion>3.0-SNAPSHOT</lcsimVersion>
+        <lcsimVersion>3.0</lcsimVersion>
         <hpsVersion>3.0-SNAPSHOT</hpsVersion>
     </properties>
     <scm>
