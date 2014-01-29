@@ -6,8 +6,13 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JFrame;
+
+import org.lcsim.event.EventHeader;
+import org.lcsim.hps.recon.ecal.HPSCalorimeterHit;
+import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 
 /**
  * The class <code>Viewer</code> handles initialization of the calorimeter panel
@@ -23,7 +28,9 @@ public class Viewer extends JFrame {
     private static final EcalPanel ecalPanel = new EcalPanel(46, 11);
     // The event data reader.
     private EventManager em = null;
-
+    // Whether an LCIO event is being processed.
+    private boolean processing = false;
+    
     /**
      * <b>Viewer</b><br/>
      * <br/>
@@ -39,12 +46,12 @@ public class Viewer extends JFrame {
         setPreferredSize(new Dimension(1060, 600));
         setMinimumSize(new Dimension(1060, 400));
         setLayout(null);
-
+        
         // Set the scaling settings.
         ecalPanel.setMinimum(0.001);
         ecalPanel.setMaximum(3000);
         ecalPanel.setScalingLogarithmic();
-
+        
         // Disable the crystals in the ecal panel along the beam gap.
         for (int i = -23; i < 24; i++) {
             ecalPanel.setCrystalEnabled(getPanelX(i), 5, false);
@@ -53,26 +60,26 @@ public class Viewer extends JFrame {
                 ecalPanel.setCrystalEnabled(getPanelX(i), 6, false);
             }
         }
-
+        
         // Make a key listener to change events.
         addKeyListener(new EcalListener());
-
+        
         // Add the ecal pane
         add(ecalPanel);
-
+        
         // Add a listener to update everything when the window changes size
         addComponentListener(new ResizeListener());
     }
-
+    
     public void setSize(int width, int height) {
         super.setSize(width, height);
         resize();
     }
-
+    
     public void setSize(Dimension d) {
         setSize(d.width, d.height);
     }
-
+    
     /**
      * <b>setDataSouce</b><br/>
      * <br/>
@@ -88,7 +95,44 @@ public class Viewer extends JFrame {
     public void setDataSource(String filepath) throws IOException {
         em = new EventManager(filepath);
     }
-
+    
+    public void displayLCIOEvent(EventHeader event, String ecalCollectionName, String clusterCollectionName) {
+        // Make sure that a draw is not in process.
+        if(processing) { return; }
+        
+        // Otherwise, we are now processing.
+        processing = true;
+        
+        // Get the list of clusters and hits.
+        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+        List<HPSCalorimeterHit> hits = event.get(HPSCalorimeterHit.class, ecalCollectionName);
+        
+        // Reset the calorimeter panel.
+        ecalPanel.clearCrystals();
+        
+        // Add the calorimeter hits.
+        for(HPSCalorimeterHit hit : hits) {
+            int ix = hit.getIdentifierFieldValue("ix");
+            int iy = hit.getIdentifierFieldValue("iy");
+            double energy = hit.getRawEnergy();
+            ecalPanel.addCrystalEnergy(getPanelX(ix), getPanelY(iy), energy);
+        }
+        
+        // Add clusters.
+        for(HPSEcalCluster cluster : clusters) {
+            HPSCalorimeterHit seed = (HPSCalorimeterHit) cluster.getSeedHit();
+            int ix = seed.getIdentifierFieldValue("ix");
+            int iy = seed.getIdentifierFieldValue("iy");
+            ecalPanel.setCrystalCluster(getPanelX(ix), getPanelY(iy), true);
+        }
+        
+        // Redraw the panel.
+        ecalPanel.redraw();
+        
+        // We are finished drawing.
+        processing = false;
+    }
+    
     /**
      * <b>displayNextEvent</b><br/>
      * <br/>
@@ -102,15 +146,15 @@ public class Viewer extends JFrame {
     public void displayNextEvent() throws IOException {
         // Clear the ecal panel.
         ecalPanel.clearCrystals();
-
+        
         // If there is no data source, we can not do anything.
         if (em == null) {
             return;
         }
-
+        
         // Otherwise, get the next event.
         em.readEvent();
-
+        
         // Display it.
         for (EcalHit h : em.getHits()) {
             int ix = getPanelX(h.getX());
@@ -122,11 +166,11 @@ public class Viewer extends JFrame {
             int iy = getPanelY(d.getY());
             ecalPanel.setCrystalCluster(ix, iy, true);
         }
-
+        
         // Redraw the ecal panel.
         ecalPanel.redraw();
     }
-
+    
     /**
      * <b>resize</b><br/>
      * <br/>
@@ -139,7 +183,7 @@ public class Viewer extends JFrame {
         ecalPanel.setLocation(0, 0);
         ecalPanel.setSize(getContentPane().getSize());
     }
-
+    
     /**
      * <b>getPanelX</b><br/>
      * <br/>
@@ -160,7 +204,7 @@ public class Viewer extends JFrame {
             return ecalX + 22;
         }
     }
-
+    
     /**
      * <b>getPanelY</b><br/>
      * <br/>
@@ -177,7 +221,7 @@ public class Viewer extends JFrame {
     private int getPanelY(int ecalY) {
         return 5 - ecalY;
     }
-
+    
     /**
      * The <code>EcalListener</code> class binds the enter key to the
      * <code>displayNextEvent</code> method.
@@ -185,7 +229,7 @@ public class Viewer extends JFrame {
     private class EcalListener implements KeyListener {
         public void keyPressed(KeyEvent e) {
         }
-
+        
         public void keyReleased(KeyEvent e) {
             // If enter was pressed, go to the next event.
             if (e.getKeyCode() == 10) {
@@ -197,11 +241,11 @@ public class Viewer extends JFrame {
                 }
             }
         }
-
+        
         public void keyTyped(KeyEvent e) {
         }
     }
-
+    
     /**
      * The <code>ResizeListener</code> class ensures that the components remain
      * at the correct size and location when the window is resized.
@@ -210,13 +254,13 @@ public class Viewer extends JFrame {
         public void componentResized(ComponentEvent e) {
             resize();
         }
-
+        
         public void componentHidden(ComponentEvent e) {
         }
-
+        
         public void componentMoved(ComponentEvent e) {
         }
-
+        
         public void componentShown(ComponentEvent e) {
         }
     }
