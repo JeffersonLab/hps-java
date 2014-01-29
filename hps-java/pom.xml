@@ -177,7 +177,6 @@
                         <exclude>org/lcsim/hps/et/BasicET12SystemTest.java</exclude>
                         <exclude>org/lcsim/hps/evio/RawTrackerHitToEvio4Converter_Test.java</exclude>
                         <exclude>org/lcsim/hps/recon/tracking/TruthResidualTest.java</exclude>
-                        <exclude>org/lcsim/hps/recon/ecal/ECalClustererTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
