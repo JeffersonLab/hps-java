@@ -57,7 +57,7 @@
             <eventInterval>1000</eventInterval>
         </driver> 
         <driver name="TrackerDigiDriver"
-                type="org.lcsim.hps.recon.tracking.TrackerDigiDriver">
+                type="org.lcsim.hps.recon.tracking.SimpleTrackerDigiDriver">
             <debug>false</debug>
         </driver>
         <driver name="HelicalTrackHitDriver"

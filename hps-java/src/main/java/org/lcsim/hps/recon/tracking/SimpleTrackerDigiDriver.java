@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.meeg;
+package org.lcsim.hps.recon.tracking;
 
 import org.lcsim.hps.recon.tracking.TrackerDigiDriver;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;

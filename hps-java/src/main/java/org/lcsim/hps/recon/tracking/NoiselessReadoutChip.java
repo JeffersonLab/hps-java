@@ -1,7 +1,7 @@
 /*
  * Class BasicReadoutChip
  */
-package org.lcsim.hps.users.meeg;
+package org.lcsim.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,6 @@ import java.util.TreeMap;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
 import org.lcsim.recon.tracking.digitization.sisim.ReadoutChip;
 import org.lcsim.recon.tracking.digitization.sisim.ReadoutChip.ReadoutChannel;
 import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeData;
@@ -92,6 +91,7 @@ public class NoiselessReadoutChip implements ReadoutChip {
      * @param channel_number channel number
      * @return associated BasicReadoutChannel
      */
+    @Override
     public BasicChannel getChannel(int channel_number) {
         return _channel;
     }
@@ -108,6 +108,7 @@ public class NoiselessReadoutChip implements ReadoutChip {
      * @param electrodes  strip or pixel electrodes
      * @return  map containing the ADC counts for this sensor
      */
+    @Override
     public SortedMap<Integer, List<Integer>> readout(SiElectrodeDataCollection data, SiSensorElectrodes electrodes) {
 
         //  If there is no electrode data for this readout chip,  create an empty
@@ -130,6 +131,7 @@ public class NoiselessReadoutChip implements ReadoutChip {
      * @param hit raw hit
      * @return hit charge in units of electrons
      */
+    @Override
     public double decodeCharge(RawTrackerHit hit) {
         return getADC().decodeCharge(hit.getADCValues()[0]);
     }
@@ -141,6 +143,7 @@ public class NoiselessReadoutChip implements ReadoutChip {
      * @param hit raw hit data
      * @return hit time
      */
+    @Override
     public int decodeTime(RawTrackerHit hit) {
         return 0;
     }

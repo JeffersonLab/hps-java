@@ -26,7 +26,7 @@
             <eventInterval>1000</eventInterval>
         </driver>
     
-        <driver name="TrackerDigiDriver" type="org.lcsim.hps.users.meeg.SimpleTrackerDigiDriver">
+        <driver name="TrackerDigiDriver" type="org.lcsim.hps.recon.tracking.SimpleTrackerDigiDriver">
 <!--            <dropBadChannels>true</dropBadChannels>-->
             <debug>false</debug>
         </driver>
