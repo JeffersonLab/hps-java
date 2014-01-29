@@ -1,28 +1,25 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-users</artifactId>
-    <groupId>org.hps</groupId>
     <name>users</name>
     <description>HPS user code packages</description>
+    
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>${scmConnection}/${project.name}</connection>
-        <developerConnection>${scmConnection}/${project.name}</developerConnection>
-        <url>${hpsUrl}/${project.name}</url>
-    </scm>
+    
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-java</artifactId>
-            <version>${hpsVersion}</version>
         </dependency>
     </dependencies>
+    
     <build>
         <plugins>
             <plugin>
@@ -36,4 +33,5 @@
             </plugin>
         </plugins>
     </build>
+    
 </project>

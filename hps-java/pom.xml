@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    
+    <!-- TODO: Most configuration here should be moved to parent POM. -->
+    
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <name>hps-java</name>
     <version>3.0-SNAPSHOT</version>
     <description>HPS Java code that uses the LCSim infrastructure</description>
+    
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>${scmConnection}/${project.name}</connection>
-        <developerConnection>${scmConnection}/${project.name}</developerConnection>
-        <url>${hpsUrl}/${project.name}</url>
-    </scm>
+    
     <distributionManagement>
         <site>
             <id>hps-java</id>
@@ -24,6 +23,7 @@
             <url>scpexe://svn.slac.stanford.edu///nfs/slac/g/lcd/mc/prj/www/lcsim/software/hps-java/${project.version}</url>
         </site>
     </distributionManagement>
+    
     <developers>
         <developer>
             <name>Jeremy McCormick</name>
@@ -78,6 +78,7 @@
             <timezone>-8</timezone>
         </developer>
     </developers>
+    
     <mailingLists>
         <mailingList>
             <name>hps-software</name>
@@ -87,10 +88,12 @@
             <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
         </mailingList>
     </mailingLists>
+    
     <issueManagement>
         <system>JIRA</system>
         <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
     </issueManagement>
+    
     <reporting>
         <plugins>
             <plugin>
@@ -123,6 +126,7 @@
             </plugin>
         </plugins>
     </reporting>
+    
     <build>
         <plugins>
             <plugin>
@@ -243,6 +247,7 @@
             </plugin>
         </plugins>
     </build>
+    
     <dependencies>
         <dependency>
             <groupId>org.lcsim</groupId>
@@ -252,22 +257,18 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-conditions</artifactId>
-            <version>${hpsVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-detector-data</artifactId>
-            <version>${hpsVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-jevio</artifactId>
-            <version>4.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-et</artifactId>
-            <version>12.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -275,4 +276,5 @@
             <version>3.2</version>
         </dependency>
     </dependencies>
+    
 </project>
