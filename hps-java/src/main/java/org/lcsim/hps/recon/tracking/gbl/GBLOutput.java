@@ -108,7 +108,7 @@ public class GBLOutput {
 
 
     
-    void printGBL(Track trk, GBLTrackData gtd, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
+    void printGBL(Track trk, GBLTrackData gtd, List<GBLStripClusterData> stripClusterDataList, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
 
         SeedTrack st = (SeedTrack)trk;
         SeedCandidate seed = st.getSeedCandidate();
@@ -221,7 +221,14 @@ public class GBLOutput {
                 if(_debug>0) System.out.printf("%s: layer %d\n",this.getClass().getSimpleName(),strip.layer());
                 
                 file.printStrip(istrip,strip.layer());
-            
+
+                //GBLDATA
+                GBLStripClusterData stripData = new GBLStripClusterData(strip.layer());
+                //Add to output list
+                stripClusterDataList.add(stripData);
+                
+                
+                
                 //Center of the sensor
                 Hep3Vector origin = strip.origin();                
                 file.printOrigin(origin);
@@ -278,6 +285,12 @@ public class GBLOutput {
                 double s3D = s / Math.cos(Math.atan(htf.slope()));
                 file.printStripPathLen(s);
                 file.printStripPathLen3D(s3D);
+                
+                //GBLDATA
+                stripData.setPath(s);
+                stripData.setPath3D(s3D);
+                
+                
                 
                 //print stereo angle in YZ plane
                 file.printMeasDir(strip.u());

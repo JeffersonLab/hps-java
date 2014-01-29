@@ -10,9 +10,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.recon.tracking.EventQuality;
 import org.lcsim.hps.recon.tracking.FieldMap;
@@ -124,29 +128,45 @@ public class GBLOutputDriver extends Driver {
         }
 
         //GBLData
-        List<GBLEventData> gds =  new ArrayList<GBLEventData>(); 
-        gds.add(new GBLEventData(event.getEventNumber()));
+        List<GBLEventData> gblEventData =  new ArrayList<GBLEventData>(); 
+        gblEventData.add(new GBLEventData(event.getEventNumber(),gbl.get_B().z()));
+        List<GBLTrackData> gblTrackDataList =  new ArrayList<GBLTrackData>(); 
+        List<GBLStripClusterData> gblStripDataListAll  = new ArrayList<GBLStripClusterData>();
+        List<GBLStripClusterData> gblStripDataList  = new ArrayList<GBLStripClusterData>();
+        List<LCRelation> gblTrackToStripClusterRelationListAll = new ArrayList<LCRelation>();
         
-        //gbl.printNewEvent(event.getEventNumber());
         gbl.printNewEvent(iEvent,gbl.get_B().z());
-
-        List<GBLTrackData> gtds =  new ArrayList<GBLTrackData>(); 
 
         iTrack = 0;
         for (Track trk : selected_tracks) {
             if(_debug>0) System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
-            GBLTrackData gtd = new GBLTrackData();
-            gtd.setTrackId(iTrack);
-            gbl.printTrackID(iTrack);
-            gbl.printGBL(trk,gtd,mcParticles,simTrackerHits,this.isMC);
-            totalTracksProcessed++;
-            gtds.add(gtd);
             
+            //GBLDATA
+            GBLTrackData gblTrackData = new GBLTrackData(iTrack);
+            gblTrackDataList.add(gblTrackData);            
+            gbl.printTrackID(iTrack);
+            gbl.printGBL(trk,gblTrackData,gblStripDataList,mcParticles,simTrackerHits,this.isMC);
+            
+            //GBLDATA
+            // add strip clusters to lists
+            for(GBLStripClusterData gblStripClusterData : gblStripDataList) {
+                // add all strip clusters from this track to output list
+                gblStripDataListAll.add(gblStripClusterData);
+                // add LC relations between cluster and track
+                gblTrackToStripClusterRelationListAll.add(new MyLCRelation(gblTrackData,gblStripClusterData));
+            }
+            // clear list of strips for next track
+            gblStripDataList.clear();
+
+            totalTracksProcessed++;
             ++iTrack;
         }
         
-        event.put("GBLEventData", gds, GBLEventData.class, 0);
-        event.put("GBLTrackData", gtds, GBLTrackData.class, 0);
+        // Put GBL info into event
+        event.put("GBLEventData", gblEventData, GBLEventData.class, 0);
+        event.put("GBLTrackData", gblTrackDataList, GBLTrackData.class, 0);
+        event.put("GBLStripClusterData", gblStripDataListAll, GBLStripClusterData.class, 0);
+        event.put("GBLTrackToStripData", gblTrackToStripClusterRelationListAll, LCRelation.class, 0);
         
         ++iEvent;
         

@@ -13,8 +13,13 @@ public class GBLEventData implements GenericObject {
 		public static final int RUNNR = 0;
 		public static final int BANK_INT_SIZE = 1;
 	}
+	private static class GBLDOUBLE {
+		public static final int BFIELD = 0;
+		public static final int BANK_DOUBLE_SIZE = 1;
+	}
 	// array holding the integer data
 	private int bank_int[] = new int[GBLINT.BANK_INT_SIZE];
+	private double bank_double[] = new double[GBLDOUBLE.BANK_DOUBLE_SIZE];
 	
 
 	/**
@@ -22,8 +27,9 @@ public class GBLEventData implements GenericObject {
 	 * @param eventNumber the event number
 	 * 
 	 */
-	public GBLEventData(int eventNumber) {
+	public GBLEventData(int eventNumber,double Bz) {
 		setRunNr(eventNumber);
+		setBfield(Bz);
 	}
 	
 	public void setRunNr(int val) {
@@ -32,6 +38,14 @@ public class GBLEventData implements GenericObject {
 	
 	public int getRunNr() {
 		return this.getIntVal(GBLINT.RUNNR);
+	}
+	
+	public void setBfield(double val) {
+		bank_double[GBLDOUBLE.BFIELD] = val;
+	}
+	
+	public double getBfield() {
+		return this.getDoubleVal(GBLDOUBLE.BFIELD);
 	}
 	
 	
@@ -47,8 +61,7 @@ public class GBLEventData implements GenericObject {
 
 	@Override
 	public int getNDouble() {
-		// TODO Auto-generated method stub
-		return 0;
+		return GBLDOUBLE.BANK_DOUBLE_SIZE;
 	}
 
 	@Override
@@ -64,8 +77,7 @@ public class GBLEventData implements GenericObject {
 
 	@Override
 	public double getDoubleVal(int index) {
-		// TODO Auto-generated method stub
-		return 0;
+		return bank_double[index];
 	}
 
 	@Override

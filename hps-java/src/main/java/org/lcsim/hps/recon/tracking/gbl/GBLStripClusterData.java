@@ -3,7 +3,7 @@ package org.lcsim.hps.recon.tracking.gbl;
 import org.lcsim.event.GenericObject;
 import org.lcsim.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 
-public class GBLTrackData implements GenericObject {
+public class GBLStripClusterData implements GenericObject {
 	
 	/*
 	 * 
@@ -15,12 +15,9 @@ public class GBLTrackData implements GenericObject {
 		public static final int BANK_INT_SIZE = 1;
 	}
 	private static class GBLDOUBLE {
-		public static final int PERKAPPA =0;
-		public static final int PERTHETA = 1;
-		public static final int PERPHI = 2;
-		public static final int PERD0 = 3;
-		public static final int PERZ0 = 4;
-		public static final int BANK_DOUBLE_SIZE = 5;
+		public static final int PATH3D = 0;
+		public static final int PATH = 1;
+		public static final int BANK_DOUBLE_SIZE = 2;
 	}
 	// array holding the integer data
 	private int bank_int[] = new int[GBLINT.BANK_INT_SIZE];
@@ -30,35 +27,58 @@ public class GBLTrackData implements GenericObject {
 	/**
 	 * Default constructor
 	 */
-	public GBLTrackData(int id) {	
-		setTrackId(id);
+	public GBLStripClusterData(int id) {
+		setId(id);
 	}
 	
 	/**
 	 * @param set track id to val
 	 */
-	public void setTrackId(int val) {
+	public void setId(int val) {
 		bank_int[GBLINT.ID] = val;
 	}
 	
 	/**
 	 * @return track id for this object
 	 */
-	public int getTrackId() {
+	public int getId() {
 		return this.getIntVal(GBLINT.ID);
 	}
 	
 	/**
-	 * @param perPar is the perigee parameters that is added to object
+	 * Set path length to this strip cluster
+	 * @param val
 	 */
-	public void setPerigeeTrackParameters(PerigeeParams perPar) {
-		this.bank_double[GBLDOUBLE.PERKAPPA] = perPar.getKappa();
-		this.bank_double[GBLDOUBLE.PERTHETA] = perPar.getTheta();
-		this.bank_double[GBLDOUBLE.PERPHI] = perPar.getPhi();
-		this.bank_double[GBLDOUBLE.PERD0] = perPar.getD0();
-		this.bank_double[GBLDOUBLE.PERZ0] = perPar.getZ0();
+	public void setPath(double val) {
+		bank_double[GBLDOUBLE.PATH] = val;
+	}
+	
+	/**
+	 * Get path length to this strip cluster
+	 */
+	public double getPath() {
+		return getDoubleVal(GBLDOUBLE.PATH);
 	}
 
+	/**
+	 * Set path length to this strip cluster
+	 * @param val
+	 */
+	public void setPath3D(double val) {
+		bank_double[GBLDOUBLE.PATH3D] = val;
+	}
+	
+	/**
+	 * Get path length to this strip cluster
+	 */
+	public double getPath3D() {
+		return getDoubleVal(GBLDOUBLE.PATH3D);
+	}
+
+	
+	
+	
+	
 
 	/*
 	 * The functions below are all overide from 
