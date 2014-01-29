@@ -108,7 +108,7 @@ public class GBLOutput {
 
 
     
-    void printGBL(Track trk, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
+    void printGBL(Track trk, GBLTrackData gtd, List<MCParticle> mcParticles, List<SimTrackerHit> simTrackerHits, boolean isMC) {
 
         SeedTrack st = (SeedTrack)trk;
         SeedCandidate seed = st.getSeedCandidate();
@@ -140,6 +140,9 @@ public class GBLOutput {
         	}
         }
         
+        //GBLDATA
+        // TODO add LCRelation to MC particle
+        
         // Get track parameters from MC particle 
         HelicalTrackFit htfTruth = isMC ? TrackUtils.getHTF(mcp,-1.0*this._B.z()) : null;
         
@@ -152,6 +155,9 @@ public class GBLOutput {
         PerigeeParams perParTruth = new PerigeeParams(htfTruth);
         file.printPerTrackParam(perPar);
         file.printPerTrackParamTruth(perParTruth);
+        
+        //GBLDATA
+        gtd.setPerigeeTrackParameters(perPar);
 
         // Get curvilinear parameters
         ClParams clPar = new ClParams(htf);

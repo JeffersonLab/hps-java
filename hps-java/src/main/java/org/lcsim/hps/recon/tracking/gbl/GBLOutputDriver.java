@@ -80,7 +80,7 @@ public class GBLOutputDriver extends Driver {
         truthRes = new TruthResiduals(bfield);
         truthRes.setDebug(_debug);
         truthRes.setHideFrame(hideFrame);
-        FieldMap.printFieldMap();
+        //FieldMap.printFieldMap();
         
     }
     
@@ -123,18 +123,30 @@ public class GBLOutputDriver extends Driver {
             }
         }
 
-
+        //GBLData
+        List<GBLEventData> gds =  new ArrayList<GBLEventData>(); 
+        gds.add(new GBLEventData(event.getEventNumber()));
+        
         //gbl.printNewEvent(event.getEventNumber());
         gbl.printNewEvent(iEvent,gbl.get_B().z());
-            
+
+        List<GBLTrackData> gtds =  new ArrayList<GBLTrackData>(); 
+
         iTrack = 0;
         for (Track trk : selected_tracks) {
             if(_debug>0) System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
+            GBLTrackData gtd = new GBLTrackData();
+            gtd.setTrackId(iTrack);
             gbl.printTrackID(iTrack);
-            gbl.printGBL(trk,mcParticles,simTrackerHits,this.isMC);
+            gbl.printGBL(trk,gtd,mcParticles,simTrackerHits,this.isMC);
             totalTracksProcessed++;
+            gtds.add(gtd);
+            
             ++iTrack;
         }
+        
+        event.put("GBLEventData", gds, GBLEventData.class, 0);
+        event.put("GBLTrackData", gtds, GBLTrackData.class, 0);
         
         ++iEvent;
         
