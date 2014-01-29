@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- 
+  Tessellated solid for electron run vacuum flange, not tested.
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: ecal_vacuum_flange_simple.gdml,v 1.6 2013/07/13 02:44:02 meeg Exp $
+-->
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/gdml/1.0/gdml.xsd" >
+
+    <define>
+        <constant name="flange_x" value="21.17"/>        
+        <constant name="flange_z" value="1544.022"/>        
+    </define>
+
+    <materials>
+        <material Z="13" name="G4_Al" state="solid">
+            <D unit="g/cm3" value="2.699"/>
+            <atom unit="g/mole" value="26.9815"/>
+        </material>
+        <material name="Vacuum" Z="1.000000">
+            <D unit="g/cm3" value="0.000000"/>
+            <atom unit="g/mole" value="0.000000"/>
+        </material>    
+    </materials>
+
+    <solids>
+        <box lunit="mm" name="Bottom_front_flange" x="768.35" y="217.6" z="20"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Bottom_front_flange_a" phi="180" theta="4.79651600000004" x1="89.78" x2="89.78" x3="150.28" x4="150.28" y1="58.66" y2="58.66" z="452"/>
+        <subtraction name="Bottom_front_flange_b">
+            <first ref="Bottom_front_flange"/>
+            <second ref="Bottom_front_flange_a"/>
+            <position name="Bottom_front_flange_b_pos_1" unit="mm" x="-61.75" y="119.8" z="215"/>
+        </subtraction>
+        <cone aunit="deg" deltaphi="360" lunit="mm" name="Bottom_front_flange_c" rmax1="13" rmax2="13" rmin1="0" rmin2="0" startphi="0" z="500"/>
+        <subtraction name="Bottom_front_flange_d">
+            <first ref="Bottom_front_flange_b"/>
+            <second ref="Bottom_front_flange_c"/>
+            <position name="Bottom_front_flange_d_pos_1" unit="mm" x="26.5665" y="119.8" z="215"/>
+            <rotation name="Bottom_front_flange_d_rot" unit="deg" x="0" y="1.747521" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Bottom_plate_a" phi="180" theta="4.79651600000004" x1="89.78" x2="89.78" x3="150.28" x4="150.28" y1="21.33" y2="21.33" z="450"/>
+        <eltube dx="26.33" dy="26.33" dz="260" lunit="mm" name="Bottom_plate_b"/>
+        <subtraction name="Bottom_plate_c">
+            <first ref="Bottom_plate_a"/>
+            <second ref="Bottom_plate_b"/>
+            <position name="Bottom_plate_c_pos_1" unit="mm" x="-29.276" y="18.665" z="0"/>
+            <rotation name="Bottom_plate_c_rot" unit="deg" x="0" y="-8.594367" z="0"/>
+        </subtraction>
+        <eltube dx="26.33" dy="26.33" dz="230" lunit="mm" name="Bottom_plate_d"/>
+        <subtraction name="Bottom_plate_e">
+            <first ref="Bottom_plate_c"/>
+            <second ref="Bottom_plate_d"/>
+            <position name="Bottom_plate_e_pos_1" unit="mm" x="27.3285" y="18.665" z="0"/>
+            <rotation name="Bottom_plate_e_rot" unit="deg" x="0" y="-0.956267" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Bottom_plate_f" phi="180" theta="4.79670599999998" x1="26.355" x2="26.355" x3="86.85" x4="86.85" y1="52.66" y2="52.66" z="452"/>
+        <subtraction name="Bottom_plate_g">
+            <first ref="Bottom_plate_e"/>
+            <second ref="Bottom_plate_f"/>
+            <position name="Bottom_plate_g_pos_1" unit="mm" x="-0.97425" y="18.665" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Top_plate_a" phi="180" theta="4.79651600000004" x1="89.78" x2="89.78" x3="150.28" x4="150.28" y1="21.33" y2="21.33" z="450"/>
+        <eltube dx="26.33" dy="26.33" dz="260" lunit="mm" name="Top_plate_b"/>
+        <subtraction name="Top_plate_c">
+            <first ref="Top_plate_a"/>
+            <second ref="Top_plate_b"/>
+            <position name="Top_plate_c_pos_1" unit="mm" x="-29.276" y="-18.665" z="0"/>
+            <rotation name="Top_plate_c_rot" unit="deg" x="0" y="-8.594367" z="0"/>
+        </subtraction>
+        <eltube dx="26.33" dy="26.33" dz="230" lunit="mm" name="Top_plate_d"/>
+        <subtraction name="Top_plate_e">
+            <first ref="Top_plate_c"/>
+            <second ref="Top_plate_d"/>
+            <position name="Top_plate_e_pos_1" unit="mm" x="27.3285" y="-18.665" z="0"/>
+            <rotation name="Top_plate_e_rot" unit="deg" x="0" y="-0.956267" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Top_plate_f" phi="180" theta="4.79670599999998" x1="26.355" x2="26.355" x3="86.85" x4="86.85" y1="52.66" y2="52.66" z="452"/>
+        <subtraction name="Top_plate_g">
+            <first ref="Top_plate_e"/>
+            <second ref="Top_plate_f"/>
+            <position name="Top_plate_g_pos_1" unit="mm" x="-0.97425" y="-18.665" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Vacuum_tube" phi="180" theta="4.79651600000004" x1="89.78" x2="89.78" x3="150.28" x4="150.28" y1="58.66" y2="58.66" z="450"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Bottom_side_plate" phi="180" theta="6.170345" x1="224.24" x2="224.24" x3="185.52" x4="185.52" y1="3" y2="3" z="450"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="End_block" phi="180" theta="3.72406499999996" x1="10" x2="10" x3="10" x4="10" y1="22" y2="22" z="450"/>
+        <box lunit="mm" name="Flange_mid" x="329.175" y="22" z="20"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Flange_mid2" phi="180" theta="1.86203249999991" x1="62.175" x2="62.175" x3="60.8732224" x4="60.8732224" y1="22" y2="22" z="20"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Left_block1" phi="180" theta="0.873883999999875" x1="35.298" x2="35.298" x3="21.57" x4="21.57" y1="22" y2="22" z="450"/>
+        <cone aunit="deg" deltaphi="360" lunit="mm" name="Photon_tube_cutout" rmax1="13" rmax2="13" rmin1="0" rmin2="0" startphi="0" z="464"/>
+        <subtraction name="QLeft_block1_cut">
+            <first ref="Left_block1"/>
+            <second ref="Photon_tube_cutout"/>
+            <position name="QLeft_block1_cut_pos_1" unit="mm" x="-14.216" y="0" z="0"/>
+            <rotation name="QLeft_block1_cut_rot" unit="deg" x="0" y="1.747521" z="0"/>
+        </subtraction>
+        <box lunit="mm" name="Top_front_flange" x="768.35" y="217.6" z="20"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Top_front_flange_a" phi="180" theta="4.79651600000004" x1="89.78" x2="89.78" x3="150.28" x4="150.28" y1="58.66" y2="58.66" z="452"/>
+        <subtraction name="Top_front_flange_b">
+            <first ref="Top_front_flange"/>
+            <second ref="Top_front_flange_a"/>
+            <position name="Top_front_flange_b_pos_1" unit="mm" x="-61.75" y="-119.8" z="215"/>
+        </subtraction>
+        <cone aunit="deg" deltaphi="360" lunit="mm" name="Top_front_flange_c" rmax1="13" rmax2="13" rmin1="0" rmin2="0" startphi="0" z="500"/>
+        <subtraction name="Top_front_flange_d">
+            <first ref="Top_front_flange_b"/>
+            <second ref="Top_front_flange_c"/>
+            <position name="Top_front_flange_d_pos_1" unit="mm" x="26.5665" y="-119.8" z="215"/>
+            <rotation name="Top_front_flange_d_rot" unit="deg" x="0" y="1.747521" z="0"/>
+        </subtraction>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Top_side_plate" phi="180" theta="6.170345" x1="224.24" x2="224.24" x3="185.52" x4="185.52" y1="3" y2="3" z="450"/>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Top_block_a" phi="180" theta="0.395843870001462" x1="10.132166" x2="10.132166" x3="31.370166" x4="31.370166" y1="3" y2="3" z="450"/>
+        <cone aunit="deg" deltaphi="266.683516454643" lunit="mm" name="Photon_tube" rmax1="13" rmax2="13" rmin1="11" rmin2="11" startphi="-133.341758227011" z="449.5"/>
+        <union name="Z_Photon_a">
+            <first ref="Top_block_a"/>
+            <second ref="Photon_tube"/>
+            <position name="Z_Photon_a_pos_1" unit="mm" x="17.92591721" y="-9.5" z="0"/>
+            <rotation name="Z_Photon_a_rot" unit="deg" x="0" y="1.747521" z="0"/>
+        </union>
+        <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Bottom_block_a" phi="180" theta="0.395843870001462" x1="10.132166" x2="10.132166" x3="31.370166" x4="31.370166" y1="3" y2="3" z="450"/>
+        <union name="Z_Photon_b">
+            <first ref="Z_Photon_a"/>
+            <second ref="Bottom_block_a"/>
+            <position name="Z_Photon_b_pos_1" unit="mm" x="0" y="-19" z="0"/>
+        </union>
+        <box lunit="mm" name="IC" x="860" y="914.4" z="450"/>
+        <box lunit="mm" name="root" x="80000" y="80000" z="80000"/>
+    </solids>
+
+    <structure>
+        <volume name="Bottom_front_flange_d_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Bottom_front_flange_d"/>
+        </volume>
+        <volume name="Bottom_plate_g_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Bottom_plate_g"/>
+        </volume>
+        <volume name="Top_plate_g_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Top_plate_g"/>
+        </volume>
+        <volume name="Vacuum_tube_vol">
+            <materialref ref="Vacuum"/>
+            <solidref ref="Vacuum_tube"/>
+            <physvol name="Bottom_plate_g_phys">
+                <volumeref ref="Bottom_plate_g_vol"/>
+                <position name="Bottom_plate_g_pos_2" unit="mm" x="0" y="-18.665" z="0"/>
+            </physvol>
+            <physvol name="Top_plate_g_phys">
+                <volumeref ref="Top_plate_g_vol"/>
+                <position name="Top_plate_g_pos_2" unit="mm" x="0" y="18.665" z="0"/>
+            </physvol>
+        </volume>
+        <volume name="Bottom_side_plate_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Bottom_side_plate"/>
+        </volume>
+        <volume name="End_block_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="End_block"/>
+        </volume>
+        <volume name="Flange_mid_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Flange_mid"/>
+        </volume>
+        <volume name="Flange_mid2_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Flange_mid2"/>
+        </volume>
+        <volume name="QLeft_block1_cut_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="QLeft_block1_cut"/>
+        </volume>
+        <volume name="Top_front_flange_d_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Top_front_flange_d"/>
+        </volume>
+        <volume name="Top_side_plate_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Top_side_plate"/>
+        </volume>
+        <volume name="Z_Photon_b_vol">
+            <materialref ref="G4_Al"/>
+            <solidref ref="Z_Photon_b"/>
+        </volume>
+        <volume name="world_volume">
+            <materialref ref="Vacuum"/>
+            <solidref ref="root"/>
+            <physvol name="Bottom_front_flange_d_phys">
+                <volumeref ref="Bottom_front_flange_d_vol"/>
+                <position name="Bottom_front_flange_d_pos_2" unit="mm" x="0+flange_x" y="-119.8" z="-215+flange_z"/>
+            </physvol>
+            <physvol name="Top_front_flange_d_phys">
+                <volumeref ref="Top_front_flange_d_vol"/>
+                <position name="Top_front_flange_d_pos_2" unit="mm" x="0+flange_x" y="119.8" z="-215+flange_z"/>
+            </physvol>
+            <physvol name="Vacuum_tube_phys">
+                <volumeref ref="Vacuum_tube_vol"/>
+                <position name="Vacuum_tube_pos_2" unit="mm" x="-61.75+flange_x" y="0" z="0+flange_z"/>
+            </physvol>
+            <physvol name="Bottom_side_plate_phys">
+                <volumeref ref="Bottom_side_plate_vol"/>
+                <position name="Bottom_side_plate_pos_2" unit="mm" x="-224.205+flange_x" y="-9.5" z="0+flange_z"/>
+            </physvol>
+            <physvol name="End_block_phys">
+                <volumeref ref="End_block_vol"/>
+                <position name="End_block_pos_2" unit="mm" x="-331.645+flange_x" y="0" z="0+flange_z"/>
+            </physvol>
+            <physvol name="Flange_mid_phys">
+                <volumeref ref="Flange_mid_vol"/>
+                <position name="Flange_mid_pos_2" unit="mm" x="219.5875+flange_x" y="0" z="-215+flange_z"/>
+            </physvol>
+            <physvol name="Flange_mid2_phys">
+                <volumeref ref="Flange_mid2_vol"/>
+                <position name="Flange_mid2_pos_2" unit="mm" x="-353.42+flange_x" y="0" z="-215+flange_z"/>
+            </physvol>
+            <physvol name="QLeft_block1_cut_phys">
+                <volumeref ref="QLeft_block1_cut_vol"/>
+                <position name="QLeft_block1_cut_pos_2" unit="mm" x="40.783+flange_x" y="0" z="0+flange_z"/>
+            </physvol>
+            <physvol name="Top_side_plate_phys">
+                <volumeref ref="Top_side_plate_vol"/>
+                <position name="Top_side_plate_pos_2" unit="mm" x="-224.205+flange_x" y="9.5" z="0+flange_z"/>
+            </physvol>
+            <physvol name="Z_Photon_b_phys">
+                <volumeref ref="Z_Photon_b_vol"/>
+                <position name="Z_Photon_b_pos_2" unit="mm" x="8.64058279+flange_x" y="9.5" z="0+flange_z"/>
+            </physvol>
+        </volume>
+    </structure>
+
+    <setup name="Default" version="1.0">
+        <world ref="world_volume"/>
+    </setup>
+
+</gdml>

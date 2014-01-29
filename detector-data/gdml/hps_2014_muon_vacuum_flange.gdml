@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/gdml/1.0/gdml.xsd" >
+ <define> 
+  <position name="UID_v0" unit="mm" x="-132.047" y="-7.83498" z="1760" /> 
+  <position name="UID_v1" unit="mm" x="-122.497" y="-21.0941" z="1760" /> 
+  <position name="UID_v2" unit="mm" x="-135.512" y="-14.3545" z="1760" /> 
+  <position name="UID_v3" unit="mm" x="-332.2" y="-12.9112" z="1760" /> 
+  <position name="UID_v4" unit="mm" x="-327.886" y="0.165014" z="1760" /> 
+  <position name="UID_v5" unit="mm" x="-136.634" y="-13.835" z="1760" /> 
+  <position name="UID_v6" unit="mm" x="-4.69809" y="-32.165" z="1760" /> 
+  <position name="UID_v7" unit="mm" x="-120.713" y="-31.793" z="1760" /> 
+  <position name="UID_v8" unit="mm" x="-3.81478" y="-31.7531" z="1760" /> 
+  <position name="UID_v9" unit="mm" x="48.77" y="0.165014" z="1760" /> 
+  <position name="UID_v10" unit="mm" x="73.0692" y="-3.33602" z="1760" /> 
+  <position name="UID_v11" unit="mm" x="45.6234" y="-7.53774" z="1760" /> 
+  <position name="UID_v12" unit="mm" x="30.2849" y="-14.7833" z="1760" /> 
+  <position name="UID_v13" unit="mm" x="73.0692" y="-10.835" z="1760" /> 
+  <position name="UID_v14" unit="mm" x="37.9831" y="-10.833" z="1760" /> 
+  <position name="UID_v15" unit="mm" x="11.3981" y="-14.2161" z="1760" /> 
+  <position name="UID_v16" unit="mm" x="10.0008" y="-15.2883" z="1760" /> 
+  <position name="UID_v17" unit="mm" x="13.1175" y="-13.835" z="1760" /> 
+  <position name="UID_v18" unit="mm" x="4.9772" y="-7.83498" z="1760" /> 
+  <position name="UID_v19" unit="mm" x="-63.5368" y="-26.1654" z="1760" /> 
+  <position name="UID_v20" unit="mm" x="-300.512" y="-14.3545" z="2760" /> 
+  <position name="UID_v21" unit="mm" x="-301.634" y="-13.8349" z="2760" /> 
+  <position name="UID_v22" unit="mm" x="-333.104" y="0.165074" z="2760" /> 
+  <position name="UID_v23" unit="mm" x="-19.5745" y="-21.0947" z="2760" /> 
+  <position name="UID_v24" unit="mm" x="-297.047" y="-7.83493" z="2760" /> 
+  <position name="UID_v25" unit="mm" x="-331.467" y="-5.41745" z="2760" /> 
+  <position name="UID_v26" unit="mm" x="-271.962" y="-26.1649" z="2760" /> 
+  <position name="UID_v27" unit="mm" x="-287.497" y="-21.0941" z="2760" /> 
+  <position name="UID_v28" unit="mm" x="-153.537" y="-26.1653" z="2760" /> 
+  <position name="UID_v29" unit="mm" x="73.0692" y="-3.33596" z="2760" /> 
+  <position name="UID_v30" unit="mm" x="-10.0228" y="-7.83493" z="2760" /> 
+  <position name="UID_v31" unit="mm" x="73.0692" y="-10.8349" z="2760" /> 
+  <position name="UID_v32" unit="mm" x="48.0247" y="-13.8349" z="2760" /> 
+  <position name="UID_v33" unit="mm" x="48.77" y="0.165074" z="2760" /> 
+  <position name="UID_v34" unit="mm" x="37.9831" y="-10.8329" z="2760" /> 
+  <position name="UID_v35" unit="mm" x="-4.99918" y="-15.2882" z="2760" /> 
+  <position name="UID_v36" unit="mm" x="-1.88246" y="-13.8349" z="2760" /> 
+  <position name="UID_v37" unit="mm" x="-3.60192" y="-14.2161" z="2760" /> 
+  <position name="UID_v38" unit="mm" x="-19.6981" y="-32.1649" z="2760" /> 
+  <position name="UID_v39" unit="mm" x="-284.909" y="-32.1649" z="2760" /> 
+  <position name="UID_v40" unit="mm" x="68.0692" y="0.165074" z="2760" /> 
+  <position name="UID_v41" unit="mm" x="68.0692" y="0.165014" z="1760" /> 
+  <position name="UID_v42" unit="mm" x="45.6234" y="-7.53768" z="2760" /> 
+  <position name="UID_v43" unit="mm" x="30.2214" y="-7.83493" z="2760" /> 
+  <position name="UID_v44" unit="mm" x="30.2214" y="-7.83498" z="1760" /> 
+  <position name="UID_v45" unit="mm" x="72.1905" y="-12.9562" z="2760" /> 
+  <position name="UID_v46" unit="mm" x="72.1905" y="-12.9563" z="1760" /> 
+  <position name="UID_v47" unit="mm" x="70.0692" y="-13.8349" z="2760" /> 
+  <position name="UID_v48" unit="mm" x="70.0692" y="-13.835" z="1760" /> 
+  <position name="UID_v49" unit="mm" x="30.2849" y="-14.7833" z="2760" /> 
+  <position name="UID_v50" unit="mm" x="39.2887" y="-16.8107" z="2760" /> 
+  <position name="UID_v51" unit="mm" x="48.0247" y="-13.835" z="1760" /> 
+  <position name="UID_v52" unit="mm" x="39.2887" y="-16.8108" z="1760" /> 
+  <position name="UID_v53" unit="mm" x="26.5429" y="-13.835" z="1760" /> 
+  <position name="UID_v54" unit="mm" x="28.473" y="-14.0757" z="2760" /> 
+  <position name="UID_v55" unit="mm" x="26.5429" y="-13.8349" z="2760" /> 
+  <position name="UID_v56" unit="mm" x="28.473" y="-14.0758" z="1760" /> 
+  <position name="UID_v57" unit="mm" x="5.61754" y="-13.8349" z="2260" /> 
+  <position name="UID_v58" unit="mm" x="3.89807" y="-14.2161" z="2260" /> 
+  <position name="UID_v59" unit="mm" x="-18.8148" y="-31.753" z="2760" /> 
+  <position name="UID_v60" unit="mm" x="2.50082" y="-15.2883" z="2260" /> 
+  <position name="UID_v61" unit="mm" x="-11.3148" y="-31.7531" z="2260" /> 
+  <position name="UID_v62" unit="mm" x="-12.1981" y="-32.165" z="2260" /> 
+  <position name="UID_v63" unit="mm" x="-119.909" y="-32.165" z="1760" /> 
+  <position name="UID_v64" unit="mm" x="-285.713" y="-31.793" z="2760" /> 
+  <position name="UID_v65" unit="mm" x="-203.213" y="-31.793" z="2260" /> 
+  <position name="UID_v66" unit="mm" x="-202.409" y="-32.165" z="2260" /> 
+  <position name="UID_v67" unit="mm" x="-218.012" y="-14.3545" z="2260" /> 
+  <position name="UID_v68" unit="mm" x="-219.134" y="-13.835" z="2260" /> 
+  <position name="UID_v69" unit="mm" x="-345.057" y="-13.8349" z="2760" /> 
+  <position name="UID_v70" unit="mm" x="-333.069" y="-10.835" z="1760" /> 
+  <position name="UID_v71" unit="mm" x="-340.569" y="-10.835" z="2260" /> 
+  <position name="UID_v72" unit="mm" x="-347.183" y="-12.9569" z="2760" /> 
+  <position name="UID_v73" unit="mm" x="-330.057" y="-13.835" z="1760" /> 
+  <position name="UID_v74" unit="mm" x="-339.756" y="-12.8659" z="2260" /> 
+  <position name="UID_v75" unit="mm" x="-337.557" y="-13.835" z="2260" /> 
+  <position name="UID_v76" unit="mm" x="-348.069" y="-3.33596" z="2760" /> 
+  <position name="UID_v77" unit="mm" x="-348.069" y="-10.8349" z="2760" /> 
+  <position name="UID_v78" unit="mm" x="-333.069" y="-3.33602" z="1760" /> 
+  <position name="UID_v79" unit="mm" x="-342.886" y="0.165074" z="2760" /> 
+  <position name="UID_v80" unit="mm" x="-318.675" y="-7.83496" z="2260" /> 
+  <position name="UID_v81" unit="mm" x="-324.166" y="-5.10664" z="2260" /> 
+  <position name="UID_v82" unit="mm" x="-326.175" y="-7.83493" z="2760" /> 
+  <position name="UID_v83" unit="mm" x="-317.441" y="-3.65114" z="1760" /> 
+  <position name="UID_v84" unit="mm" x="-314.829" y="-6.37173" z="1760" /> 
+  <position name="UID_v85" unit="mm" x="-318.104" y="0.165014" z="1760" /> 
+  <position name="UID_v86" unit="mm" x="-325.604" y="0.165044" z="2260" /> 
+  <position name="UID_v87" unit="mm" x="-311.175" y="-7.83498" z="1760" /> 
+  <position name="UID_v88" unit="mm" x="-106.962" y="-26.165" z="1760" /> 
+  <position name="UID_v89" unit="mm" x="-189.462" y="-26.165" z="2260" /> 
+  <position name="UID_v90" unit="mm" x="-108.537" y="-26.1654" z="2260" /> 
+  <position name="UID_v91" unit="mm" x="-27.6111" y="-26.1658" z="2260" /> 
+  <position name="UID_v92" unit="mm" x="-35.1111" y="-26.1657" z="2760" /> 
+  <position name="UID_v93" unit="mm" x="-4.57452" y="-21.0948" z="1760" /> 
+  <position name="UID_v94" unit="mm" x="-20.1111" y="-26.1658" z="1760" /> 
+  <position name="UID_v95" unit="mm" x="-4.57452" y="21.0948" z="1760" /> 
+  <position name="UID_v96" unit="mm" x="45.6234" y="7.53774" z="1760" /> 
+  <position name="UID_v97" unit="mm" x="-3.81478" y="31.7531" z="1760" /> 
+  <position name="UID_v98" unit="mm" x="28.473" y="14.0758" z="1760" /> 
+  <position name="UID_v99" unit="mm" x="48.0247" y="13.835" z="1760" /> 
+  <position name="UID_v100" unit="mm" x="4.9772" y="7.83498" z="1760" /> 
+  <position name="UID_v101" unit="mm" x="73.0692" y="10.835" z="1760" /> 
+  <position name="UID_v102" unit="mm" x="13.1175" y="13.835" z="1760" /> 
+  <position name="UID_v103" unit="mm" x="37.9831" y="10.833" z="1760" /> 
+  <position name="UID_v104" unit="mm" x="-122.497" y="21.0941" z="1760" /> 
+  <position name="UID_v105" unit="mm" x="10.0008" y="15.2883" z="1760" /> 
+  <position name="UID_v106" unit="mm" x="-63.5368" y="26.1654" z="1760" /> 
+  <position name="UID_v107" unit="mm" x="-106.962" y="26.165" z="1760" /> 
+  <position name="UID_v108" unit="mm" x="-120.713" y="31.793" z="1760" /> 
+  <position name="UID_v109" unit="mm" x="-132.047" y="7.83498" z="1760" /> 
+  <position name="UID_v110" unit="mm" x="-333.069" y="3.33602" z="1760" /> 
+  <position name="UID_v111" unit="mm" x="-318.104" y="-0.165017" z="1760" /> 
+  <position name="UID_v112" unit="mm" x="73.0692" y="3.33596" z="2760" /> 
+  <position name="UID_v113" unit="mm" x="73.0692" y="3.33602" z="1760" /> 
+  <position name="UID_v114" unit="mm" x="48.77" y="-0.165017" z="1760" /> 
+  <position name="UID_v115" unit="mm" x="68.0692" y="-0.165017" z="1760" /> 
+  <position name="UID_v116" unit="mm" x="68.0692" y="-0.165077" z="2760" /> 
+  <position name="UID_v117" unit="mm" x="30.2214" y="7.83498" z="1760" /> 
+  <position name="UID_v118" unit="mm" x="30.2214" y="7.83492" z="2760" /> 
+  <position name="UID_v119" unit="mm" x="-4.99918" y="15.2882" z="2760" /> 
+  <position name="UID_v120" unit="mm" x="-19.5745" y="21.0947" z="2760" /> 
+  <position name="UID_v121" unit="mm" x="45.6234" y="7.53768" z="2760" /> 
+  <position name="UID_v122" unit="mm" x="30.2849" y="14.7833" z="2760" /> 
+  <position name="UID_v123" unit="mm" x="48.0247" y="13.8349" z="2760" /> 
+  <position name="UID_v124" unit="mm" x="48.77" y="-0.165077" z="2760" /> 
+  <position name="UID_v125" unit="mm" x="37.9831" y="10.8329" z="2760" /> 
+  <position name="UID_v126" unit="mm" x="-35.1111" y="26.1657" z="2760" /> 
+  <position name="UID_v127" unit="mm" x="-3.60192" y="14.2161" z="2760" /> 
+  <position name="UID_v128" unit="mm" x="-285.713" y="31.793" z="2760" /> 
+  <position name="UID_v129" unit="mm" x="-153.537" y="26.1653" z="2760" /> 
+  <position name="UID_v130" unit="mm" x="-326.175" y="7.83492" z="2760" /> 
+  <position name="UID_v131" unit="mm" x="-348.069" y="3.33596" z="2760" /> 
+  <position name="UID_v132" unit="mm" x="-297.047" y="7.83492" z="2760" /> 
+  <position name="UID_v133" unit="mm" x="-301.634" y="13.8349" z="2760" /> 
+  <position name="UID_v134" unit="mm" x="-345.057" y="13.8349" z="2760" /> 
+  <position name="UID_v135" unit="mm" x="-300.512" y="14.3545" z="2760" /> 
+  <position name="UID_v136" unit="mm" x="-20.1111" y="26.1658" z="1760" /> 
+  <position name="UID_v137" unit="mm" x="-108.537" y="26.1654" z="2260" /> 
+  <position name="UID_v138" unit="mm" x="-189.462" y="26.165" z="2260" /> 
+  <position name="UID_v139" unit="mm" x="-271.962" y="26.1649" z="2760" /> 
+  <position name="UID_v140" unit="mm" x="-287.497" y="21.0941" z="2760" /> 
+  <position name="UID_v141" unit="mm" x="-318.675" y="7.83495" z="2260" /> 
+  <position name="UID_v142" unit="mm" x="-316.467" y="5.41759" z="1760" /> 
+  <position name="UID_v143" unit="mm" x="-311.175" y="7.83498" z="1760" /> 
+  <position name="UID_v144" unit="mm" x="-333.104" y="-0.165077" z="2760" /> 
+  <position name="UID_v145" unit="mm" x="-331.186" y="5.72308" z="2760" /> 
+  <position name="UID_v146" unit="mm" x="-324.166" y="5.10664" z="2260" /> 
+  <position name="UID_v147" unit="mm" x="-327.886" y="-0.165017" z="1760" /> 
+  <position name="UID_v148" unit="mm" x="-325.604" y="-0.165047" z="2260" /> 
+  <position name="UID_v149" unit="mm" x="-342.886" y="-0.165077" z="2760" /> 
+  <position name="UID_v150" unit="mm" x="-333.069" y="10.835" z="1760" /> 
+  <position name="UID_v151" unit="mm" x="-332.183" y="12.9571" z="1760" /> 
+  <position name="UID_v152" unit="mm" x="-348.069" y="10.8349" z="2760" /> 
+  <position name="UID_v153" unit="mm" x="-339.756" y="12.8659" z="2260" /> 
+  <position name="UID_v154" unit="mm" x="-347.084" y="13.0505" z="2760" /> 
+  <position name="UID_v155" unit="mm" x="-330.057" y="13.835" z="1760" /> 
+  <position name="UID_v156" unit="mm" x="-219.134" y="13.835" z="2260" /> 
+  <position name="UID_v157" unit="mm" x="-337.557" y="13.835" z="2260" /> 
+  <position name="UID_v158" unit="mm" x="-340.569" y="10.835" z="2260" /> 
+  <position name="UID_v159" unit="mm" x="-135.512" y="14.3545" z="1760" /> 
+  <position name="UID_v160" unit="mm" x="-136.634" y="13.835" z="1760" /> 
+  <position name="UID_v161" unit="mm" x="-218.012" y="14.3545" z="2260" /> 
+  <position name="UID_v162" unit="mm" x="-202.409" y="32.165" z="2260" /> 
+  <position name="UID_v163" unit="mm" x="-12.1981" y="32.165" z="2260" /> 
+  <position name="UID_v164" unit="mm" x="-119.909" y="32.165" z="1760" /> 
+  <position name="UID_v165" unit="mm" x="-284.909" y="32.1649" z="2760" /> 
+  <position name="UID_v166" unit="mm" x="-4.69809" y="32.165" z="1760" /> 
+  <position name="UID_v167" unit="mm" x="-203.213" y="31.793" z="2260" /> 
+  <position name="UID_v168" unit="mm" x="-18.8148" y="31.753" z="2760" /> 
+  <position name="UID_v169" unit="mm" x="-19.6981" y="32.1649" z="2760" /> 
+  <position name="UID_v170" unit="mm" x="2.50082" y="15.2883" z="2260" /> 
+  <position name="UID_v171" unit="mm" x="-11.3148" y="31.7531" z="2260" /> 
+  <position name="UID_v172" unit="mm" x="3.89807" y="14.2161" z="2260" /> 
+  <position name="UID_v173" unit="mm" x="11.3981" y="14.2161" z="1760" /> 
+  <position name="UID_v174" unit="mm" x="5.61754" y="13.8349" z="2260" /> 
+  <position name="UID_v175" unit="mm" x="-1.88246" y="13.8349" z="2760" /> 
+  <position name="UID_v176" unit="mm" x="26.5429" y="13.835" z="1760" /> 
+  <position name="UID_v177" unit="mm" x="39.2887" y="16.8107" z="2760" /> 
+  <position name="UID_v178" unit="mm" x="39.2887" y="16.8108" z="1760" /> 
+  <position name="UID_v179" unit="mm" x="30.2849" y="14.7833" z="1760" /> 
+  <position name="UID_v180" unit="mm" x="70.0692" y="13.8349" z="2760" /> 
+  <position name="UID_v181" unit="mm" x="26.5429" y="13.8349" z="2760" /> 
+  <position name="UID_v182" unit="mm" x="28.473" y="14.0757" z="2760" /> 
+  <position name="UID_v183" unit="mm" x="-10.0228" y="7.83492" z="2760" /> 
+  <position name="UID_v184" unit="mm" x="-27.6111" y="26.1658" z="2260" /> 
+  <position name="UID_v185" unit="mm" x="72.1905" y="12.9562" z="2760" /> 
+  <position name="UID_v186" unit="mm" x="73.0692" y="10.8349" z="2760" /> 
+  <position name="UID_v187" unit="mm" x="70.0692" y="13.835" z="1760" /> 
+  <position name="UID_v188" unit="mm" x="72.1905" y="12.9563" z="1760" /> 
+  <position name="UID_p0" unit="mm" x="0" y="0" z="0" /> 
+  <rotation name="UID_r0" unit="radian" x="0" y="0" z="0" /> 
+ </define> 
+ <materials>
+  <element Z="7" formula="N" name="N0xa65b138" >
+   <atom value="14.0067" />
+  </element>
+  <element Z="8" formula="O" name="O0xa65b060" >
+   <atom value="15.9994" />
+  </element>
+  <element Z="18" formula="Ar" name="Ar0xa56fb18" >
+   <atom value="39.948" />
+  </element>
+  <material formula=" " name="UID_Air" >
+   <D value="0.0012" />
+   <fraction n="0.754" ref="N0xa65b138" />
+   <fraction n="0.234" ref="O0xa65b060" />
+   <fraction n="0.012" ref="Ar0xa56fb18" />
+  </material>
+  <material Z="13" formula=" " name="UID_Aluminum" >
+   <D value="2.7" />
+   <atom value="26.9815" />
+  </material>
+ </materials>
+ <solids> 
+  <box lunit="mm" name="WorldBox" x="1122.86" y="129.303" z="6552.6" /> 
+  <tessellated name="UID_split_0" lunit="mm" > 
+   <triangular vertex1="UID_v0" vertex2="UID_v1" vertex3="UID_v2" /> 
+   <triangular vertex1="UID_v3" vertex2="UID_v70" vertex3="UID_v87" /> 
+   <triangular vertex1="UID_v73" vertex2="UID_v3" vertex3="UID_v87" /> 
+   <triangular vertex1="UID_v83" vertex2="UID_v84" vertex3="UID_v78" /> 
+   <triangular vertex1="UID_v4" vertex2="UID_v85" vertex3="UID_v78" /> 
+   <triangular vertex1="UID_v85" vertex2="UID_v83" vertex3="UID_v78" /> 
+   <triangular vertex1="UID_v44" vertex2="UID_v14" vertex3="UID_v18" /> 
+   <triangular vertex1="UID_v78" vertex2="UID_v84" vertex3="UID_v70" /> 
+   <triangular vertex1="UID_v87" vertex2="UID_v5" vertex3="UID_v73" /> 
+   <triangular vertex1="UID_v70" vertex2="UID_v84" vertex3="UID_v87" /> 
+   <triangular vertex1="UID_v5" vertex2="UID_v87" vertex3="UID_v0" /> 
+   <triangular vertex1="UID_v6" vertex2="UID_v63" vertex3="UID_v7" /> 
+   <triangular vertex1="UID_v1" vertex2="UID_v88" vertex3="UID_v7" /> 
+   <triangular vertex1="UID_v19" vertex2="UID_v8" vertex3="UID_v7" /> 
+   <triangular vertex1="UID_v93" vertex2="UID_v8" vertex3="UID_v94" /> 
+   <triangular vertex1="UID_v94" vertex2="UID_v8" vertex3="UID_v19" /> 
+   <triangular vertex1="UID_v14" vertex2="UID_v13" vertex3="UID_v46" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v10" vertex3="UID_v11" /> 
+   <triangular vertex1="UID_v56" vertex2="UID_v51" vertex3="UID_v12" /> 
+   <triangular vertex1="UID_v13" vertex2="UID_v14" vertex3="UID_v11" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v41" vertex3="UID_v10" /> 
+   <triangular vertex1="UID_v10" vertex2="UID_v13" vertex3="UID_v11" /> 
+   <triangular vertex1="UID_v46" vertex2="UID_v51" vertex3="UID_v14" /> 
+   <triangular vertex1="UID_v46" vertex2="UID_v48" vertex3="UID_v51" /> 
+   <triangular vertex1="UID_v93" vertex2="UID_v16" vertex3="UID_v8" /> 
+   <triangular vertex1="UID_v51" vertex2="UID_v52" vertex3="UID_v12" /> 
+   <triangular vertex1="UID_v53" vertex2="UID_v17" vertex3="UID_v14" /> 
+   <triangular vertex1="UID_v51" vertex2="UID_v53" vertex3="UID_v14" /> 
+   <triangular vertex1="UID_v56" vertex2="UID_v53" vertex3="UID_v51" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v14" vertex3="UID_v17" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v15" vertex3="UID_v16" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v17" vertex3="UID_v15" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v16" vertex3="UID_v93" /> 
+   <triangular vertex1="UID_v7" vertex2="UID_v8" vertex3="UID_v6" /> 
+   <triangular vertex1="UID_v19" vertex2="UID_v7" vertex3="UID_v88" /> 
+   <triangular vertex1="UID_v2" vertex2="UID_v1" vertex3="UID_v7" /> 
+   <triangular vertex1="UID_v5" vertex2="UID_v0" vertex3="UID_v2" /> 
+   <triangular vertex1="UID_v31" vertex2="UID_v13" vertex3="UID_v10" /> 
+   <triangular vertex1="UID_v31" vertex2="UID_v10" vertex3="UID_v29" /> 
+   <triangular vertex1="UID_v41" vertex2="UID_v40" vertex3="UID_v29" /> 
+   <triangular vertex1="UID_v41" vertex2="UID_v29" vertex3="UID_v10" /> 
+   <triangular vertex1="UID_v27" vertex2="UID_v20" vertex3="UID_v64" /> 
+   <triangular vertex1="UID_v28" vertex2="UID_v59" vertex3="UID_v92" /> 
+   <triangular vertex1="UID_v24" vertex2="UID_v20" vertex3="UID_v27" /> 
+   <triangular vertex1="UID_v21" vertex2="UID_v77" vertex3="UID_v72" /> 
+   <triangular vertex1="UID_v20" vertex2="UID_v24" vertex3="UID_v21" /> 
+   <triangular vertex1="UID_v21" vertex2="UID_v72" vertex3="UID_v69" /> 
+   <triangular vertex1="UID_v76" vertex2="UID_v77" vertex3="UID_v25" /> 
+   <triangular vertex1="UID_v79" vertex2="UID_v76" vertex3="UID_v22" /> 
+   <triangular vertex1="UID_v22" vertex2="UID_v76" vertex3="UID_v25" /> 
+   <triangular vertex1="UID_v59" vertex2="UID_v23" vertex3="UID_v92" /> 
+   <triangular vertex1="UID_v77" vertex2="UID_v24" vertex3="UID_v82" /> 
+   <triangular vertex1="UID_v77" vertex2="UID_v82" vertex3="UID_v25" /> 
+   <triangular vertex1="UID_v64" vertex2="UID_v26" vertex3="UID_v27" /> 
+   <triangular vertex1="UID_v24" vertex2="UID_v77" vertex3="UID_v21" /> 
+   <triangular vertex1="UID_v59" vertex2="UID_v28" vertex3="UID_v38" /> 
+   <triangular vertex1="UID_v64" vertex2="UID_v39" vertex3="UID_v28" /> 
+   <triangular vertex1="UID_v26" vertex2="UID_v64" vertex3="UID_v28" /> 
+   <triangular vertex1="UID_v33" vertex2="UID_v42" vertex3="UID_v29" /> 
+   <triangular vertex1="UID_v49" vertex2="UID_v32" vertex3="UID_v54" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v34" vertex3="UID_v43" /> 
+   <triangular vertex1="UID_v45" vertex2="UID_v31" vertex3="UID_v34" /> 
+   <triangular vertex1="UID_v32" vertex2="UID_v47" vertex3="UID_v45" /> 
+   <triangular vertex1="UID_v33" vertex2="UID_v29" vertex3="UID_v40" /> 
+   <triangular vertex1="UID_v29" vertex2="UID_v42" vertex3="UID_v31" /> 
+   <triangular vertex1="UID_v32" vertex2="UID_v45" vertex3="UID_v34" /> 
+   <triangular vertex1="UID_v42" vertex2="UID_v34" vertex3="UID_v31" /> 
+   <triangular vertex1="UID_v55" vertex2="UID_v34" vertex3="UID_v36" /> 
+   <triangular vertex1="UID_v35" vertex2="UID_v23" vertex3="UID_v59" /> 
+   <triangular vertex1="UID_v32" vertex2="UID_v49" vertex3="UID_v50" /> 
+   <triangular vertex1="UID_v32" vertex2="UID_v34" vertex3="UID_v55" /> 
+   <triangular vertex1="UID_v54" vertex2="UID_v32" vertex3="UID_v55" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v36" vertex3="UID_v34" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v35" vertex3="UID_v37" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v37" vertex3="UID_v36" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v23" vertex3="UID_v35" /> 
+   <triangular vertex1="UID_v38" vertex2="UID_v28" vertex3="UID_v39" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v33" vertex3="UID_v40" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v40" vertex3="UID_v41" /> 
+   <triangular vertex1="UID_v11" vertex2="UID_v34" vertex3="UID_v42" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v11" vertex3="UID_v42" /> 
+   <triangular vertex1="UID_v9" vertex2="UID_v42" vertex3="UID_v33" /> 
+   <triangular vertex1="UID_v11" vertex2="UID_v14" vertex3="UID_v34" /> 
+   <triangular vertex1="UID_v34" vertex2="UID_v14" vertex3="UID_v43" /> 
+   <triangular vertex1="UID_v14" vertex2="UID_v44" vertex3="UID_v43" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v30" vertex3="UID_v43" /> 
+   <triangular vertex1="UID_v18" vertex2="UID_v43" vertex3="UID_v44" /> 
+   <triangular vertex1="UID_v45" vertex2="UID_v13" vertex3="UID_v31" /> 
+   <triangular vertex1="UID_v47" vertex2="UID_v48" vertex3="UID_v46" /> 
+   <triangular vertex1="UID_v46" vertex2="UID_v13" vertex3="UID_v45" /> 
+   <triangular vertex1="UID_v47" vertex2="UID_v46" vertex3="UID_v45" /> 
+   <triangular vertex1="UID_v48" vertex2="UID_v47" vertex3="UID_v32" /> 
+   <triangular vertex1="UID_v48" vertex2="UID_v32" vertex3="UID_v51" /> 
+   <triangular vertex1="UID_v49" vertex2="UID_v12" vertex3="UID_v52" /> 
+   <triangular vertex1="UID_v51" vertex2="UID_v32" vertex3="UID_v50" /> 
+   <triangular vertex1="UID_v50" vertex2="UID_v52" vertex3="UID_v51" /> 
+   <triangular vertex1="UID_v49" vertex2="UID_v52" vertex3="UID_v50" /> 
+   <triangular vertex1="UID_v56" vertex2="UID_v54" vertex3="UID_v53" /> 
+   <triangular vertex1="UID_v53" vertex2="UID_v54" vertex3="UID_v55" /> 
+   <triangular vertex1="UID_v49" vertex2="UID_v54" vertex3="UID_v56" /> 
+   <triangular vertex1="UID_v56" vertex2="UID_v12" vertex3="UID_v49" /> 
+   <triangular vertex1="UID_v53" vertex2="UID_v57" vertex3="UID_v17" /> 
+   <triangular vertex1="UID_v55" vertex2="UID_v36" vertex3="UID_v57" /> 
+   <triangular vertex1="UID_v55" vertex2="UID_v57" vertex3="UID_v53" /> 
+   <triangular vertex1="UID_v57" vertex2="UID_v36" vertex3="UID_v58" /> 
+   <triangular vertex1="UID_v36" vertex2="UID_v37" vertex3="UID_v58" /> 
+   <triangular vertex1="UID_v37" vertex2="UID_v35" vertex3="UID_v60" /> 
+   <triangular vertex1="UID_v58" vertex2="UID_v37" vertex3="UID_v60" /> 
+   <triangular vertex1="UID_v58" vertex2="UID_v16" vertex3="UID_v15" /> 
+   <triangular vertex1="UID_v17" vertex2="UID_v57" vertex3="UID_v15" /> 
+   <triangular vertex1="UID_v15" vertex2="UID_v57" vertex3="UID_v58" /> 
+   <triangular vertex1="UID_v16" vertex2="UID_v58" vertex3="UID_v60" /> 
+   <triangular vertex1="UID_v60" vertex2="UID_v8" vertex3="UID_v16" /> 
+   <triangular vertex1="UID_v35" vertex2="UID_v61" vertex3="UID_v60" /> 
+   <triangular vertex1="UID_v35" vertex2="UID_v59" vertex3="UID_v61" /> 
+   <triangular vertex1="UID_v8" vertex2="UID_v60" vertex3="UID_v61" /> 
+   <triangular vertex1="UID_v59" vertex2="UID_v62" vertex3="UID_v61" /> 
+   <triangular vertex1="UID_v59" vertex2="UID_v38" vertex3="UID_v62" /> 
+   <triangular vertex1="UID_v6" vertex2="UID_v61" vertex3="UID_v62" /> 
+   <triangular vertex1="UID_v61" vertex2="UID_v6" vertex3="UID_v8" /> 
+   <triangular vertex1="UID_v38" vertex2="UID_v39" vertex3="UID_v66" /> 
+   <triangular vertex1="UID_v38" vertex2="UID_v66" vertex3="UID_v62" /> 
+   <triangular vertex1="UID_v66" vertex2="UID_v63" vertex3="UID_v62" /> 
+   <triangular vertex1="UID_v62" vertex2="UID_v63" vertex3="UID_v6" /> 
+   <triangular vertex1="UID_v39" vertex2="UID_v65" vertex3="UID_v66" /> 
+   <triangular vertex1="UID_v39" vertex2="UID_v64" vertex3="UID_v65" /> 
+   <triangular vertex1="UID_v7" vertex2="UID_v66" vertex3="UID_v65" /> 
+   <triangular vertex1="UID_v66" vertex2="UID_v7" vertex3="UID_v63" /> 
+   <triangular vertex1="UID_v64" vertex2="UID_v20" vertex3="UID_v67" /> 
+   <triangular vertex1="UID_v65" vertex2="UID_v64" vertex3="UID_v67" /> 
+   <triangular vertex1="UID_v67" vertex2="UID_v2" vertex3="UID_v65" /> 
+   <triangular vertex1="UID_v65" vertex2="UID_v2" vertex3="UID_v7" /> 
+   <triangular vertex1="UID_v20" vertex2="UID_v68" vertex3="UID_v67" /> 
+   <triangular vertex1="UID_v20" vertex2="UID_v21" vertex3="UID_v68" /> 
+   <triangular vertex1="UID_v5" vertex2="UID_v67" vertex3="UID_v68" /> 
+   <triangular vertex1="UID_v67" vertex2="UID_v5" vertex3="UID_v2" /> 
+   <triangular vertex1="UID_v68" vertex2="UID_v73" vertex3="UID_v5" /> 
+   <triangular vertex1="UID_v21" vertex2="UID_v75" vertex3="UID_v68" /> 
+   <triangular vertex1="UID_v21" vertex2="UID_v69" vertex3="UID_v75" /> 
+   <triangular vertex1="UID_v73" vertex2="UID_v68" vertex3="UID_v75" /> 
+   <triangular vertex1="UID_v70" vertex2="UID_v74" vertex3="UID_v71" /> 
+   <triangular vertex1="UID_v74" vertex2="UID_v72" vertex3="UID_v71" /> 
+   <triangular vertex1="UID_v77" vertex2="UID_v71" vertex3="UID_v72" /> 
+   <triangular vertex1="UID_v69" vertex2="UID_v72" vertex3="UID_v74" /> 
+   <triangular vertex1="UID_v74" vertex2="UID_v70" vertex3="UID_v3" /> 
+   <triangular vertex1="UID_v73" vertex2="UID_v75" vertex3="UID_v3" /> 
+   <triangular vertex1="UID_v69" vertex2="UID_v74" vertex3="UID_v75" /> 
+   <triangular vertex1="UID_v3" vertex2="UID_v75" vertex3="UID_v74" /> 
+   <triangular vertex1="UID_v71" vertex2="UID_v76" vertex3="UID_v78" /> 
+   <triangular vertex1="UID_v77" vertex2="UID_v76" vertex3="UID_v71" /> 
+   <triangular vertex1="UID_v78" vertex2="UID_v70" vertex3="UID_v71" /> 
+   <triangular vertex1="UID_v78" vertex2="UID_v76" vertex3="UID_v79" /> 
+   <triangular vertex1="UID_v78" vertex2="UID_v79" vertex3="UID_v4" /> 
+   <triangular vertex1="UID_v79" vertex2="UID_v22" vertex3="UID_v86" /> 
+   <triangular vertex1="UID_v79" vertex2="UID_v86" vertex3="UID_v4" /> 
+   <triangular vertex1="UID_v4" vertex2="UID_v86" vertex3="UID_v85" /> 
+   <triangular vertex1="UID_v84" vertex2="UID_v81" vertex3="UID_v80" /> 
+   <triangular vertex1="UID_v86" vertex2="UID_v22" vertex3="UID_v25" /> 
+   <triangular vertex1="UID_v82" vertex2="UID_v80" vertex3="UID_v81" /> 
+   <triangular vertex1="UID_v82" vertex2="UID_v81" vertex3="UID_v25" /> 
+   <triangular vertex1="UID_v83" vertex2="UID_v81" vertex3="UID_v84" /> 
+   <triangular vertex1="UID_v80" vertex2="UID_v87" vertex3="UID_v84" /> 
+   <triangular vertex1="UID_v85" vertex2="UID_v86" vertex3="UID_v83" /> 
+   <triangular vertex1="UID_v86" vertex2="UID_v25" vertex3="UID_v81" /> 
+   <triangular vertex1="UID_v83" vertex2="UID_v86" vertex3="UID_v81" /> 
+   <triangular vertex1="UID_v0" vertex2="UID_v80" vertex3="UID_v24" /> 
+   <triangular vertex1="UID_v80" vertex2="UID_v82" vertex3="UID_v24" /> 
+   <triangular vertex1="UID_v80" vertex2="UID_v0" vertex3="UID_v87" /> 
+   <triangular vertex1="UID_v26" vertex2="UID_v89" vertex3="UID_v1" /> 
+   <triangular vertex1="UID_v0" vertex2="UID_v24" vertex3="UID_v27" /> 
+   <triangular vertex1="UID_v88" vertex2="UID_v1" vertex3="UID_v89" /> 
+   <triangular vertex1="UID_v1" vertex2="UID_v0" vertex3="UID_v27" /> 
+   <triangular vertex1="UID_v1" vertex2="UID_v27" vertex3="UID_v26" /> 
+   <triangular vertex1="UID_v90" vertex2="UID_v88" vertex3="UID_v89" /> 
+   <triangular vertex1="UID_v89" vertex2="UID_v26" vertex3="UID_v28" /> 
+   <triangular vertex1="UID_v92" vertex2="UID_v91" vertex3="UID_v90" /> 
+   <triangular vertex1="UID_v92" vertex2="UID_v90" vertex3="UID_v28" /> 
+   <triangular vertex1="UID_v91" vertex2="UID_v19" vertex3="UID_v90" /> 
+   <triangular vertex1="UID_v91" vertex2="UID_v94" vertex3="UID_v19" /> 
+   <triangular vertex1="UID_v89" vertex2="UID_v28" vertex3="UID_v90" /> 
+   <triangular vertex1="UID_v88" vertex2="UID_v90" vertex3="UID_v19" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v18" vertex3="UID_v93" /> 
+   <triangular vertex1="UID_v93" vertex2="UID_v91" vertex3="UID_v23" /> 
+   <triangular vertex1="UID_v91" vertex2="UID_v92" vertex3="UID_v23" /> 
+   <triangular vertex1="UID_v93" vertex2="UID_v94" vertex3="UID_v91" /> 
+   <triangular vertex1="UID_v30" vertex2="UID_v93" vertex3="UID_v23" /> 
+  </tessellated> 
+  <tessellated name="UID_split_1" lunit="mm" > 
+   <triangular vertex1="UID_v164" vertex2="UID_v97" vertex3="UID_v108" /> 
+   <triangular vertex1="UID_v100" vertex2="UID_v95" vertex3="UID_v105" /> 
+   <triangular vertex1="UID_v101" vertex2="UID_v96" vertex3="UID_v103" /> 
+   <triangular vertex1="UID_v166" vertex2="UID_v97" vertex3="UID_v164" /> 
+   <triangular vertex1="UID_v98" vertex2="UID_v99" vertex3="UID_v176" /> 
+   <triangular vertex1="UID_v106" vertex2="UID_v108" vertex3="UID_v97" /> 
+   <triangular vertex1="UID_v173" vertex2="UID_v100" vertex3="UID_v105" /> 
+   <triangular vertex1="UID_v101" vertex2="UID_v113" vertex3="UID_v96" /> 
+   <triangular vertex1="UID_v173" vertex2="UID_v102" vertex3="UID_v100" /> 
+   <triangular vertex1="UID_v188" vertex2="UID_v101" vertex3="UID_v103" /> 
+   <triangular vertex1="UID_v178" vertex2="UID_v99" vertex3="UID_v179" /> 
+   <triangular vertex1="UID_v188" vertex2="UID_v99" vertex3="UID_v187" /> 
+   <triangular vertex1="UID_v179" vertex2="UID_v99" vertex3="UID_v98" /> 
+   <triangular vertex1="UID_v188" vertex2="UID_v103" vertex3="UID_v99" /> 
+   <triangular vertex1="UID_v114" vertex2="UID_v113" vertex3="UID_v115" /> 
+   <triangular vertex1="UID_v103" vertex2="UID_v117" vertex3="UID_v100" /> 
+   <triangular vertex1="UID_v102" vertex2="UID_v176" vertex3="UID_v103" /> 
+   <triangular vertex1="UID_v99" vertex2="UID_v103" vertex3="UID_v176" /> 
+   <triangular vertex1="UID_v102" vertex2="UID_v103" vertex3="UID_v100" /> 
+   <triangular vertex1="UID_v104" vertex2="UID_v109" vertex3="UID_v159" /> 
+   <triangular vertex1="UID_v97" vertex2="UID_v105" vertex3="UID_v95" /> 
+   <triangular vertex1="UID_v97" vertex2="UID_v136" vertex3="UID_v106" /> 
+   <triangular vertex1="UID_v97" vertex2="UID_v95" vertex3="UID_v136" /> 
+   <triangular vertex1="UID_v108" vertex2="UID_v106" vertex3="UID_v107" /> 
+   <triangular vertex1="UID_v159" vertex2="UID_v108" vertex3="UID_v104" /> 
+   <triangular vertex1="UID_v108" vertex2="UID_v107" vertex3="UID_v104" /> 
+   <triangular vertex1="UID_v160" vertex2="UID_v109" vertex3="UID_v143" /> 
+   <triangular vertex1="UID_v160" vertex2="UID_v159" vertex3="UID_v109" /> 
+   <triangular vertex1="UID_v142" vertex2="UID_v110" vertex3="UID_v150" /> 
+   <triangular vertex1="UID_v143" vertex2="UID_v155" vertex3="UID_v160" /> 
+   <triangular vertex1="UID_v147" vertex2="UID_v110" vertex3="UID_v111" /> 
+   <triangular vertex1="UID_v142" vertex2="UID_v111" vertex3="UID_v110" /> 
+   <triangular vertex1="UID_v143" vertex2="UID_v142" vertex3="UID_v150" /> 
+   <triangular vertex1="UID_v155" vertex2="UID_v143" vertex3="UID_v151" /> 
+   <triangular vertex1="UID_v150" vertex2="UID_v151" vertex3="UID_v143" /> 
+   <triangular vertex1="UID_v101" vertex2="UID_v112" vertex3="UID_v113" /> 
+   <triangular vertex1="UID_v112" vertex2="UID_v101" vertex3="UID_v186" /> 
+   <triangular vertex1="UID_v116" vertex2="UID_v115" vertex3="UID_v113" /> 
+   <triangular vertex1="UID_v116" vertex2="UID_v113" vertex3="UID_v112" /> 
+   <triangular vertex1="UID_v124" vertex2="UID_v114" vertex3="UID_v115" /> 
+   <triangular vertex1="UID_v124" vertex2="UID_v115" vertex3="UID_v116" /> 
+   <triangular vertex1="UID_v96" vertex2="UID_v121" vertex3="UID_v103" /> 
+   <triangular vertex1="UID_v124" vertex2="UID_v96" vertex3="UID_v114" /> 
+   <triangular vertex1="UID_v96" vertex2="UID_v124" vertex3="UID_v121" /> 
+   <triangular vertex1="UID_v121" vertex2="UID_v125" vertex3="UID_v103" /> 
+   <triangular vertex1="UID_v103" vertex2="UID_v125" vertex3="UID_v117" /> 
+   <triangular vertex1="UID_v125" vertex2="UID_v118" vertex3="UID_v117" /> 
+   <triangular vertex1="UID_v100" vertex2="UID_v117" vertex3="UID_v118" /> 
+   <triangular vertex1="UID_v100" vertex2="UID_v118" vertex3="UID_v183" /> 
+   <triangular vertex1="UID_v182" vertex2="UID_v181" vertex3="UID_v123" /> 
+   <triangular vertex1="UID_v120" vertex2="UID_v119" vertex3="UID_v168" /> 
+   <triangular vertex1="UID_v129" vertex2="UID_v128" vertex3="UID_v139" /> 
+   <triangular vertex1="UID_v183" vertex2="UID_v119" vertex3="UID_v120" /> 
+   <triangular vertex1="UID_v119" vertex2="UID_v183" vertex3="UID_v127" /> 
+   <triangular vertex1="UID_v186" vertex2="UID_v125" vertex3="UID_v121" /> 
+   <triangular vertex1="UID_v183" vertex2="UID_v125" vertex3="UID_v175" /> 
+   <triangular vertex1="UID_v185" vertex2="UID_v125" vertex3="UID_v186" /> 
+   <triangular vertex1="UID_v177" vertex2="UID_v122" vertex3="UID_v123" /> 
+   <triangular vertex1="UID_v185" vertex2="UID_v180" vertex3="UID_v123" /> 
+   <triangular vertex1="UID_v122" vertex2="UID_v182" vertex3="UID_v123" /> 
+   <triangular vertex1="UID_v185" vertex2="UID_v123" vertex3="UID_v125" /> 
+   <triangular vertex1="UID_v112" vertex2="UID_v121" vertex3="UID_v124" /> 
+   <triangular vertex1="UID_v116" vertex2="UID_v112" vertex3="UID_v124" /> 
+   <triangular vertex1="UID_v140" vertex2="UID_v139" vertex3="UID_v128" /> 
+   <triangular vertex1="UID_v125" vertex2="UID_v181" vertex3="UID_v175" /> 
+   <triangular vertex1="UID_v186" vertex2="UID_v121" vertex3="UID_v112" /> 
+   <triangular vertex1="UID_v123" vertex2="UID_v181" vertex3="UID_v125" /> 
+   <triangular vertex1="UID_v118" vertex2="UID_v125" vertex3="UID_v183" /> 
+   <triangular vertex1="UID_v168" vertex2="UID_v126" vertex3="UID_v120" /> 
+   <triangular vertex1="UID_v175" vertex2="UID_v127" vertex3="UID_v183" /> 
+   <triangular vertex1="UID_v128" vertex2="UID_v129" vertex3="UID_v165" /> 
+   <triangular vertex1="UID_v168" vertex2="UID_v169" vertex3="UID_v129" /> 
+   <triangular vertex1="UID_v126" vertex2="UID_v168" vertex3="UID_v129" /> 
+   <triangular vertex1="UID_v133" vertex2="UID_v154" vertex3="UID_v152" /> 
+   <triangular vertex1="UID_v132" vertex2="UID_v152" vertex3="UID_v130" /> 
+   <triangular vertex1="UID_v152" vertex2="UID_v145" vertex3="UID_v130" /> 
+   <triangular vertex1="UID_v145" vertex2="UID_v152" vertex3="UID_v131" /> 
+   <triangular vertex1="UID_v144" vertex2="UID_v131" vertex3="UID_v149" /> 
+   <triangular vertex1="UID_v144" vertex2="UID_v145" vertex3="UID_v131" /> 
+   <triangular vertex1="UID_v133" vertex2="UID_v152" vertex3="UID_v132" /> 
+   <triangular vertex1="UID_v133" vertex2="UID_v134" vertex3="UID_v154" /> 
+   <triangular vertex1="UID_v128" vertex2="UID_v135" vertex3="UID_v140" /> 
+   <triangular vertex1="UID_v140" vertex2="UID_v135" vertex3="UID_v132" /> 
+   <triangular vertex1="UID_v132" vertex2="UID_v135" vertex3="UID_v133" /> 
+   <triangular vertex1="UID_v165" vertex2="UID_v129" vertex3="UID_v169" /> 
+   <triangular vertex1="UID_v184" vertex2="UID_v106" vertex3="UID_v136" /> 
+   <triangular vertex1="UID_v184" vertex2="UID_v126" vertex3="UID_v137" /> 
+   <triangular vertex1="UID_v106" vertex2="UID_v184" vertex3="UID_v137" /> 
+   <triangular vertex1="UID_v138" vertex2="UID_v107" vertex3="UID_v137" /> 
+   <triangular vertex1="UID_v129" vertex2="UID_v139" vertex3="UID_v138" /> 
+   <triangular vertex1="UID_v129" vertex2="UID_v137" vertex3="UID_v126" /> 
+   <triangular vertex1="UID_v138" vertex2="UID_v137" vertex3="UID_v129" /> 
+   <triangular vertex1="UID_v107" vertex2="UID_v106" vertex3="UID_v137" /> 
+   <triangular vertex1="UID_v138" vertex2="UID_v104" vertex3="UID_v107" /> 
+   <triangular vertex1="UID_v138" vertex2="UID_v139" vertex3="UID_v104" /> 
+   <triangular vertex1="UID_v104" vertex2="UID_v139" vertex3="UID_v140" /> 
+   <triangular vertex1="UID_v104" vertex2="UID_v140" vertex3="UID_v109" /> 
+   <triangular vertex1="UID_v140" vertex2="UID_v132" vertex3="UID_v109" /> 
+   <triangular vertex1="UID_v141" vertex2="UID_v109" vertex3="UID_v132" /> 
+   <triangular vertex1="UID_v143" vertex2="UID_v109" vertex3="UID_v141" /> 
+   <triangular vertex1="UID_v132" vertex2="UID_v130" vertex3="UID_v141" /> 
+   <triangular vertex1="UID_v141" vertex2="UID_v146" vertex3="UID_v142" /> 
+   <triangular vertex1="UID_v141" vertex2="UID_v130" vertex3="UID_v146" /> 
+   <triangular vertex1="UID_v142" vertex2="UID_v143" vertex3="UID_v141" /> 
+   <triangular vertex1="UID_v146" vertex2="UID_v148" vertex3="UID_v111" /> 
+   <triangular vertex1="UID_v145" vertex2="UID_v144" vertex3="UID_v148" /> 
+   <triangular vertex1="UID_v145" vertex2="UID_v146" vertex3="UID_v130" /> 
+   <triangular vertex1="UID_v148" vertex2="UID_v146" vertex3="UID_v145" /> 
+   <triangular vertex1="UID_v111" vertex2="UID_v142" vertex3="UID_v146" /> 
+   <triangular vertex1="UID_v147" vertex2="UID_v111" vertex3="UID_v148" /> 
+   <triangular vertex1="UID_v147" vertex2="UID_v148" vertex3="UID_v149" /> 
+   <triangular vertex1="UID_v149" vertex2="UID_v148" vertex3="UID_v144" /> 
+   <triangular vertex1="UID_v150" vertex2="UID_v153" vertex3="UID_v151" /> 
+   <triangular vertex1="UID_v152" vertex2="UID_v154" vertex3="UID_v158" /> 
+   <triangular vertex1="UID_v151" vertex2="UID_v153" vertex3="UID_v157" /> 
+   <triangular vertex1="UID_v134" vertex2="UID_v157" vertex3="UID_v153" /> 
+   <triangular vertex1="UID_v153" vertex2="UID_v154" vertex3="UID_v134" /> 
+   <triangular vertex1="UID_v151" vertex2="UID_v157" vertex3="UID_v155" /> 
+   <triangular vertex1="UID_v150" vertex2="UID_v158" vertex3="UID_v153" /> 
+   <triangular vertex1="UID_v154" vertex2="UID_v153" vertex3="UID_v158" /> 
+   <triangular vertex1="UID_v156" vertex2="UID_v160" vertex3="UID_v155" /> 
+   <triangular vertex1="UID_v156" vertex2="UID_v155" vertex3="UID_v157" /> 
+   <triangular vertex1="UID_v156" vertex2="UID_v157" vertex3="UID_v133" /> 
+   <triangular vertex1="UID_v133" vertex2="UID_v157" vertex3="UID_v134" /> 
+   <triangular vertex1="UID_v131" vertex2="UID_v158" vertex3="UID_v110" /> 
+   <triangular vertex1="UID_v158" vertex2="UID_v131" vertex3="UID_v152" /> 
+   <triangular vertex1="UID_v158" vertex2="UID_v150" vertex3="UID_v110" /> 
+   <triangular vertex1="UID_v135" vertex2="UID_v156" vertex3="UID_v133" /> 
+   <triangular vertex1="UID_v156" vertex2="UID_v135" vertex3="UID_v161" /> 
+   <triangular vertex1="UID_v159" vertex2="UID_v160" vertex3="UID_v161" /> 
+   <triangular vertex1="UID_v160" vertex2="UID_v156" vertex3="UID_v161" /> 
+   <triangular vertex1="UID_v165" vertex2="UID_v167" vertex3="UID_v128" /> 
+   <triangular vertex1="UID_v108" vertex2="UID_v167" vertex3="UID_v162" /> 
+   <triangular vertex1="UID_v164" vertex2="UID_v108" vertex3="UID_v162" /> 
+   <triangular vertex1="UID_v165" vertex2="UID_v162" vertex3="UID_v167" /> 
+   <triangular vertex1="UID_v162" vertex2="UID_v163" vertex3="UID_v164" /> 
+   <triangular vertex1="UID_v169" vertex2="UID_v162" vertex3="UID_v165" /> 
+   <triangular vertex1="UID_v163" vertex2="UID_v166" vertex3="UID_v164" /> 
+   <triangular vertex1="UID_v162" vertex2="UID_v169" vertex3="UID_v163" /> 
+   <triangular vertex1="UID_v167" vertex2="UID_v108" vertex3="UID_v159" /> 
+   <triangular vertex1="UID_v167" vertex2="UID_v159" vertex3="UID_v161" /> 
+   <triangular vertex1="UID_v167" vertex2="UID_v161" vertex3="UID_v128" /> 
+   <triangular vertex1="UID_v128" vertex2="UID_v161" vertex3="UID_v135" /> 
+   <triangular vertex1="UID_v168" vertex2="UID_v163" vertex3="UID_v169" /> 
+   <triangular vertex1="UID_v97" vertex2="UID_v166" vertex3="UID_v171" /> 
+   <triangular vertex1="UID_v166" vertex2="UID_v163" vertex3="UID_v171" /> 
+   <triangular vertex1="UID_v168" vertex2="UID_v171" vertex3="UID_v163" /> 
+   <triangular vertex1="UID_v170" vertex2="UID_v105" vertex3="UID_v97" /> 
+   <triangular vertex1="UID_v170" vertex2="UID_v97" vertex3="UID_v171" /> 
+   <triangular vertex1="UID_v170" vertex2="UID_v171" vertex3="UID_v119" /> 
+   <triangular vertex1="UID_v119" vertex2="UID_v171" vertex3="UID_v168" /> 
+   <triangular vertex1="UID_v105" vertex2="UID_v172" vertex3="UID_v173" /> 
+   <triangular vertex1="UID_v172" vertex2="UID_v127" vertex3="UID_v175" /> 
+   <triangular vertex1="UID_v119" vertex2="UID_v127" vertex3="UID_v170" /> 
+   <triangular vertex1="UID_v173" vertex2="UID_v172" vertex3="UID_v174" /> 
+   <triangular vertex1="UID_v175" vertex2="UID_v174" vertex3="UID_v172" /> 
+   <triangular vertex1="UID_v173" vertex2="UID_v174" vertex3="UID_v102" /> 
+   <triangular vertex1="UID_v127" vertex2="UID_v172" vertex3="UID_v170" /> 
+   <triangular vertex1="UID_v105" vertex2="UID_v170" vertex3="UID_v172" /> 
+   <triangular vertex1="UID_v181" vertex2="UID_v174" vertex3="UID_v175" /> 
+   <triangular vertex1="UID_v176" vertex2="UID_v102" vertex3="UID_v174" /> 
+   <triangular vertex1="UID_v176" vertex2="UID_v174" vertex3="UID_v181" /> 
+   <triangular vertex1="UID_v122" vertex2="UID_v177" vertex3="UID_v178" /> 
+   <triangular vertex1="UID_v179" vertex2="UID_v122" vertex3="UID_v178" /> 
+   <triangular vertex1="UID_v99" vertex2="UID_v178" vertex3="UID_v177" /> 
+   <triangular vertex1="UID_v177" vertex2="UID_v123" vertex3="UID_v99" /> 
+   <triangular vertex1="UID_v180" vertex2="UID_v187" vertex3="UID_v99" /> 
+   <triangular vertex1="UID_v180" vertex2="UID_v99" vertex3="UID_v123" /> 
+   <triangular vertex1="UID_v181" vertex2="UID_v182" vertex3="UID_v98" /> 
+   <triangular vertex1="UID_v176" vertex2="UID_v181" vertex3="UID_v98" /> 
+   <triangular vertex1="UID_v179" vertex2="UID_v98" vertex3="UID_v182" /> 
+   <triangular vertex1="UID_v182" vertex2="UID_v122" vertex3="UID_v179" /> 
+   <triangular vertex1="UID_v183" vertex2="UID_v120" vertex3="UID_v95" /> 
+   <triangular vertex1="UID_v100" vertex2="UID_v183" vertex3="UID_v95" /> 
+   <triangular vertex1="UID_v184" vertex2="UID_v136" vertex3="UID_v95" /> 
+   <triangular vertex1="UID_v126" vertex2="UID_v184" vertex3="UID_v120" /> 
+   <triangular vertex1="UID_v184" vertex2="UID_v95" vertex3="UID_v120" /> 
+   <triangular vertex1="UID_v110" vertex2="UID_v147" vertex3="UID_v149" /> 
+   <triangular vertex1="UID_v110" vertex2="UID_v149" vertex3="UID_v131" /> 
+   <triangular vertex1="UID_v187" vertex2="UID_v180" vertex3="UID_v185" /> 
+   <triangular vertex1="UID_v186" vertex2="UID_v101" vertex3="UID_v188" /> 
+   <triangular vertex1="UID_v188" vertex2="UID_v185" vertex3="UID_v186" /> 
+   <triangular vertex1="UID_v187" vertex2="UID_v185" vertex3="UID_v188" /> 
+  </tessellated> 
+ </solids> 
+ <structure> 
+  <volume name="UID_split_0_vol" > 
+   <materialref ref="UID_Air" /> 
+   <solidref ref="UID_split_0" /> 
+  </volume > 
+  <volume name="UID_split_1_vol" > 
+   <materialref ref="UID_Air" /> 
+   <solidref ref="UID_split_1" /> 
+  </volume > 
+  <volume name="world_volume" > 
+   <materialref ref="UID_Air" /> 
+   <solidref ref="WorldBox" /> 
+   <physvol> 
+    <volumeref ref="UID_split_0_vol" /> 
+    <positionref ref="UID_p0" /> 
+    <rotationref ref="UID_r0" /> 
+   </physvol > 
+   <physvol> 
+    <volumeref ref="UID_split_1_vol" /> 
+    <positionref ref="UID_p0" /> 
+    <rotationref ref="UID_r0" /> 
+   </physvol > 
+  </volume > 
+ </structure> 
+ <setup name="Default" version="1.0" > 
+  <world ref="world_volume" /> 
+ </setup> 
+</gdml > 

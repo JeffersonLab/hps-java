@@ -1,0 +1,4 @@
+/vis/scene/create
+/vis/scene/add/volume
+/vis/open HepRepXML
+/vis/viewer/flush

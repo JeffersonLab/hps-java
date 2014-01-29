@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- 
+  SVT vacuum chamber, based on Maurik's GDML file.
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: svt_chamber.gdml,v 1.4 2013/09/06 23:43:42 meeg Exp $
+-->
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/gdml/1.0/gdml.xsd" >
+
+    <define/>
+
+    <materials>
+        <element Z="26" formula="Fe" name="Iron" >
+            <atom value="55.845" />
+        </element>
+        <element Z="24" formula="Cr" name="Chromium" >
+            <atom value="51.9961" />
+        </element>
+        <element Z="28" formula="Ni" name="Nickel" >
+            <atom value="58.6934" />
+        </element>
+        <material formula=" " name="Stainless_304" >
+            <D value="8.00" />
+            <fraction n="0.733078" ref="Iron" />
+            <fraction n="0.191516" ref="Chromium" />
+            <fraction n="0.075406" ref="Nickel" />
+        </material>
+        <material Z="1" name="G4_Galactic" state="gas">
+            <T unit="K" value="2.73"/>
+            <P unit="pascal" value="3e-18"/>
+            <!-- <MEE unit="eV" value="21.8"/> -->
+            <D unit="g/cm3" value="2e-25"/>
+            <atom unit="g/mole" value="1.01"/>
+        </material>
+    </materials>
+
+    <solids>
+        <box lunit="mm" name="svt_chamber_outer_box" x="454.152" y="203.2" z="1219.2"/>
+        <trd lunit="mm" name="svt_chamber_outer_flare1" x1="454.152" x2="454.152" y1="203.2" y2="412.8008" z="384.622"/>
+        <union name="svt_chamber_1">
+            <first ref="svt_chamber_outer_box"/>
+            <second ref="svt_chamber_outer_flare1"/>
+            <position name="svt_chamber_outer_flare1_pos" unit="mm" x="0" y="0" z="801.911"/>
+        </union>
+        <trd lunit="mm" name="svt_chamber_outer_flare2" x1="454.152" x2="736.6" y1="283.48644796186" y2="412.8008" z="237.269369075406"/>
+        <union name="svt_chamber_2">
+            <first ref="svt_chamber_1"/>
+            <second ref="svt_chamber_outer_flare2"/>
+            <position name="svt_chamber_outer_flare2_pos" unit="mm" x="0" y="0" z="875.587315462297"/>
+        </union>
+        <box lunit="mm" name="svt_chamber_outer_flange" x="768.35" y="457.2" z="25.4"/>
+        <union name="svt_chamber_3">
+            <first ref="svt_chamber_2"/>
+            <second ref="svt_chamber_outer_flange"/>
+            <position name="svt_chamber_outer_flange_pos" unit="mm" x="0" y="0" z="981.522"/>
+        </union>
+        <box lunit="mm" name="svt_chamber_inner_box" x="416.052" y="177.8" z="1221.2"/>
+        <subtraction name="svt_chamber_4">
+            <first ref="svt_chamber_3"/>
+            <second ref="svt_chamber_inner_box"/>
+        </subtraction>
+        <trd lunit="mm" name="svt_chamber_inner_flare1" x1="416.052" x2="416.052" y1="177.8" y2="387.4008" z="394.622"/>
+        <subtraction name="svt_chamber_5">
+            <first ref="svt_chamber_4"/>
+            <second ref="svt_chamber_inner_flare1"/>
+            <position name="svt_chamber_inner_flare1_pos" unit="mm" x="0" y="0" z="801.911"/>
+        </subtraction>
+        <trd lunit="mm" name="svt_chamber_inner_flare2" x1="416.052" x2="698.5" y1="258.08644796186" y2="387.4008" z="247.269369075406"/>
+        <subtraction name="svt_chamber">
+            <first ref="svt_chamber_5"/>
+            <second ref="svt_chamber_inner_flare2"/>
+            <position name="svt_chamber_inner_flare2_pos" unit="mm" x="0" y="0" z="875.587315462297"/>
+        </subtraction>
+        <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" /> 
+    </solids>
+
+    <structure>
+        <volume name="svt_chamber_vol">
+            <materialref ref="Stainless_304"/>
+            <solidref ref="svt_chamber"/>
+        </volume>
+        <volume name="tracking_volume" > 
+            <materialref ref="G4_Galactic" /> 
+            <solidref ref="WorldBox" /> 
+            <physvol> 
+                <volumeref ref="svt_chamber_vol" /> 
+                <position name="svt_chamber_position" x="21.17" y="0" z="323.778" />      
+            </physvol> 
+        </volume> 
+    </structure>
+
+    <setup name="Default" version="1.0">
+        <world ref="tracking_volume"/>
+    </setup>
+
+</gdml>
