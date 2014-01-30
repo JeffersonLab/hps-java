@@ -50,7 +50,7 @@
 	<!-- Scintillator material. -->
 	<material name="BC408">
 	  <D value="1.032" unit="g/cm3"/>
-	  <!---<fraction n="1.58" ref="Vacuum" />-->
+	  <!-- <fraction n="1.58" ref="Vacuum" /> -->
 	  <composite n="10" ref="C"/>
 	  <composite n="11" ref="H"/>
 	</material>
