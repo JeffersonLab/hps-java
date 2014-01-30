@@ -32,10 +32,8 @@ public class Viewer extends JFrame {
     private boolean processing = false;
     
     /**
-     * <b>Viewer</b><br/>
-     * <br/>
-     * <code>public <b>Viewer</b>()</code><br/>
-     * <br/>
+     * <b>Viewer</b><br/><br/>
+     * <code>public <b>Viewer</b>()</code><br/><br/>
      * Initializes the viewer window and calorimeter panel.
      **/
     public Viewer() {
@@ -81,16 +79,11 @@ public class Viewer extends JFrame {
     }
     
     /**
-     * <b>setDataSouce</b><br/>
-     * <br/>
-     * <code>public void <b>setDataSource</b>(String filepath)</code><br/>
-     * <br/>
+     * <b>setDataSouce</b><br/><br/>
+     * <code>public void <b>setDataSource</b>(String filepath)</code><br/><br/>
      * Sets the viewer to read from the indicated data source.
-     * 
-     * @param filepath
-     *            - The full path to the desired data file.
-     * @throws IOException
-     *             Occurs when there is an error opening the data file.
+     * @param filepath - The full path to the desired data file.
+     * @throws IOException Occurs when there is an error opening the data file.
      **/
     public void setDataSource(String filepath) throws IOException {
         em = new EventManager(filepath);
@@ -134,23 +127,17 @@ public class Viewer extends JFrame {
     }
     
     /**
-     * <b>displayNextEvent</b><br/>
-     * <br/>
-     * <code>public void <b>displayNextEvent</b>()</code><br/>
-     * <br/>
+     * <b>displayNextEvent</b><br/><br/>
+     * <code>public void <b>displayNextEvent</b>()</code><br/><br/>
      * Feeds the calorimeter panel the data from the next event.
-     * 
-     * @throws IOException
-     *             Occurs when there is an issue with reading the data file.
+     * @throws IOException Occurs when there is an issue with reading the data file.
      **/
     public void displayNextEvent() throws IOException {
         // Clear the ecal panel.
         ecalPanel.clearCrystals();
         
         // If there is no data source, we can not do anything.
-        if (em == null) {
-            return;
-        }
+        if (em == null) { return; }
         
         // Otherwise, get the next event.
         em.readEvent();
@@ -172,10 +159,8 @@ public class Viewer extends JFrame {
     }
     
     /**
-     * <b>resize</b><br/>
-     * <br/>
-     * <code>private void <b>resize</b>()</code><br/>
-     * <br/>
+     * <b>resize</b><br/><br/>
+     * <code>private void <b>resize</b>()</code><br/><br/>
      * Handles proper resizing of the window and its components.
      **/
     private void resize() {
@@ -185,17 +170,13 @@ public class Viewer extends JFrame {
     }
     
     /**
-     * <b>getPanelX</b><br/>
-     * <br/>
-     * <code>private int <b>getPanelX</b>(int ecalX)</code><br/>
-     * <br/>
+     * <b>getPanelX</b><br/><br/>
+     * <code>private int <b>getPanelX</b>(int ecalX)</code><br/><br/>
      * Converts the lcsim x-coordinate to the calorimeter panel's coordinate
      * system.
-     * 
-     * @param ecalX
-     *            - An lcsim calorimeter x-coordinate.
+     * @param ecalX - An lcsim calorimeter x-coordinate.
      * @return Returns the x-coordinate in the calorimeter panel's coordinate
-     *         system as an <code>int</code>.
+     * system as an <code>int</code>.
      **/
     private int getPanelX(int ecalX) {
         if (ecalX <= 0) {
@@ -206,17 +187,13 @@ public class Viewer extends JFrame {
     }
     
     /**
-     * <b>getPanelY</b><br/>
-     * <br/>
-     * <code>private int <b>getPanelY</b>(int ecalY)</code><br/>
-     * <br/>
+     * <b>getPanelY</b><br/><br/>
+     * <code>private int <b>getPanelY</b>(int ecalY)</code><br/><br/>
      * Converts the lcsim y-coordinate to the calorimeter panel's coordinate
      * system.
-     * 
-     * @param ecalY
-     *            - An lcsim calorimeter y-coordinate.
+     * @param ecalY - An lcsim calorimeter y-coordinate.
      * @return Returns the y-coordinate in the calorimeter panel's coordinate
-     *         system as an <code>int</code>.
+     * system as an <code>int</code>.
      **/
     private int getPanelY(int ecalY) {
         return 5 - ecalY;
@@ -251,17 +228,12 @@ public class Viewer extends JFrame {
      * at the correct size and location when the window is resized.
      **/
     private class ResizeListener implements ComponentListener {
-        public void componentResized(ComponentEvent e) {
-            resize();
-        }
+        public void componentResized(ComponentEvent e) { resize(); }
         
-        public void componentHidden(ComponentEvent e) {
-        }
+        public void componentHidden(ComponentEvent e) { }
         
-        public void componentMoved(ComponentEvent e) {
-        }
+        public void componentMoved(ComponentEvent e) { }
         
-        public void componentShown(ComponentEvent e) {
-        }
+        public void componentShown(ComponentEvent e) { }
     }
 }
