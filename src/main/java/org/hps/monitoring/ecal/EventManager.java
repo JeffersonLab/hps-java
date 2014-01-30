@@ -8,7 +8,19 @@ import java.util.StringTokenizer;
 
 /**
  * The class <code>EventManager</code> handles loading hits and clusters from a
- * text file to populate the calorimeter panel.
+ * text file to populate the calorimeter panel. Input should be of the form
+ * Event
+ * Indicates the start of a new event.
+ * 
+ * EcalHit [X] [Y] [Energy]
+ * Represents a calorimeter hit at coordinates ([X], [Y]) and with energy
+ * [Energy]. Coordinates should be in calorimeter form (x = [-23, 23] and
+ * y = [-5, 5]) and must integers. Energy can be a decimal value. Brackets
+ * should not be included in the line.
+ * 
+ * Cluster [X] [Y]
+ * Represents the location of a cluster at coordinates ([X], [Y]). Brackets
+ * should not be included in the line.
  * 
  * @author Kyle McCarty
  **/
@@ -22,55 +34,44 @@ public class EventManager {
     private ArrayList<Datum> clusterList = new ArrayList<Datum>();
     // Whether the event manager has an open file.
     private boolean open = true;
-
+    
     /**
-     * <b>EventManager</b><br/>
-     * <br/>
-     * <code>public <b>EventManager</b>(String filename)</code><br/>
-     * <br/>
+     * <b>EventManager</b><br/><br/>
+     * <code>public <b>EventManager</b>(String filename)</code><br/><br/>
      * Initializes an event manager that will read from the indicated file.
-     * 
-     * @param filename
-     *            - The path to the file containing hit information.
+     * @param filename - The path to the file containing hit information.
      **/
     public EventManager(String filename) throws IOException {
         fr = new FileReader(filename);
         reader = new BufferedReader(fr);
     }
-
+    
     /**
-     * <b>readEvent</b><br/>
-     * <br/>
-     * <code>public boolean <b>readEvent</b>()</code><br/>
-     * <br/>
+     * <b>readEvent</b><br/><br/>
+     * <code>public boolean <b>readEvent</b>()</code><br/><br/>
      * Populates the event manager with hits and clusters from the next event.
-     * 
-     * @return Returns <code>true</code> if an event was read and
-     *         <code>false</code> if it was not.
+     * @return Returns <code>true</code> if an event was read and <code>false
+     * </code> if it was not.
      **/
     public boolean readEvent() throws IOException {
         // We can only read of the reader is open.
-        if (!open) {
-            return false;
-        }
-
+        if (!open) { return false; }
+        
         // Clear the data lists.
         hitList.clear();
         clusterList.clear();
-
+        
         // Store the current line.
         String curLine = reader.readLine();
-
+        
         // Keep sorting until we hit a null or an event header.
         while (curLine != null && curLine.compareTo("Event") != 0) {
             curLine = reader.readLine();
         }
-
+        
         // If we hit a null, we are at the end of the file.
-        if (curLine == null) {
-            return false;
-        }
-
+        if (curLine == null) { return false; }
+        
         // Otherwise, we have read an event header and must populate
         // the data lists.
         curLine = reader.readLine();
@@ -80,73 +81,57 @@ public class EventManager {
             String name = st.nextToken();
             int ix = Integer.parseInt(st.nextToken());
             int iy = Integer.parseInt(st.nextToken());
-
+            
             // Convert it to an object.
             if (name.compareTo("Cluster") == 0) {
                 clusterList.add(new Datum(ix, iy));
-            } else if (name.compareTo("EcalHit") == 0) {
+            }
+            else if (name.compareTo("EcalHit") == 0) {
                 double energy = Double.parseDouble(st.nextToken());
                 hitList.add(new EcalHit(ix, iy, energy));
             }
-
+            
             // Get the next line.
             curLine = reader.readLine();
         }
-
+        
         // Indicate that an event was processed.
         return true;
     }
-
+    
     /**
-     * <b>close</b><br/>
-     * <br/>
-     * <code>public void <b>close</b>()</code><br/>
-     * <br/>
+     * <b>close</b><br/><br/>
+     * <code>public void <b>close</b>()</code><br/><br/>
      * Closes the event manager. Once this is performed, no additional events
      * may be read.
-     * 
-     * @throws IOException
-     *             Occurs if there is an error closing the file stream.
+     * @throws IOException Occurs if there is an error closing the file stream.
      **/
     public void close() throws IOException {
         reader.close();
         fr.close();
         open = false;
     }
-
+    
     /**
-     * <b>getHits</b><br/>
-     * <br/>
-     * <code>public ArrayList<EcalHit> <b>getHits</b>()</code><br/>
-     * <br/>
+     * <b>getHits</b><br/><br/>
+     * <code>public ArrayList<EcalHit> <b>getHits</b>()</code><br/><br/>
      * Allows access to the current event's list of hits.
-     * 
-     * @return Returns the current hits as an <code>ArrayList
-     * </code> object.
+     * @return Returns the current hits as an <code>ArrayList</code> object.
      **/
     public ArrayList<EcalHit> getHits() {
-        if (!open) {
-            return null;
-        } else {
-            return hitList;
-        }
+        if (!open) { return null; }
+        else { return hitList; }
     }
-
+    
     /**
-     * <b>getClusters</b><br/>
-     * <br/>
-     * <code>public ArrayList<Datum> <b>getClusters</b></code><br/>
-     * <br/>
+     * <b>getClusters</b><br/><br/>
+     * <code>public ArrayList<Datum> <b>getClusters</b></code><br/><br/>
      * Allows access to the current event's list of clusters.
-     * 
      * @return Returns the current clusters as an <code>ArrayList
      * </code> object.
      **/
     public ArrayList<Datum> getClusters() {
-        if (!open) {
-            return null;
-        } else {
-            return clusterList;
-        }
+        if (!open) { return null; }
+        else { return clusterList; }
     }
 }
