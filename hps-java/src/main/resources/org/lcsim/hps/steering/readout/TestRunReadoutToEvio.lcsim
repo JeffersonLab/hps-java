@@ -31,15 +31,16 @@
         <driver name="TestRunReconToEvio" type="org.lcsim.hps.evio.TestRunTriggeredReconToEvio">
             <evioOutputFile>${outputFile}.evio</evioOutputFile>
         </driver>
-		<driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
+        <driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
         <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
-            <readoutPeriod>4.0</readoutPeriod>
             <coincidenceWindow>2</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
             <triggerThreshold>80</triggerThreshold>
             <readoutThreshold>50</readoutThreshold>
+            <pePerMeV>2.0</pePerMeV>
+            <useCRRCShape>true</useCRRCShape>
         </driver>
 
         <driver name="EcalConverter" type="org.lcsim.hps.recon.ecal.EcalConverterDriver">
@@ -62,7 +63,7 @@
         <driver name="EcalTrigger" type="org.lcsim.hps.readout.ecal.TestRunTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
-			<outputFileName>${outputFile}.triggers</outputFileName>
+            <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	
         <driver name="SimpleSVTReadout" type="org.lcsim.hps.recon.tracking.SimpleSvtReadout">
         </driver>

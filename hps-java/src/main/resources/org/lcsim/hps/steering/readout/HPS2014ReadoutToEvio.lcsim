@@ -37,17 +37,15 @@
         </driver>
 			
         <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
-            <readoutPeriod>4.0</readoutPeriod>
             <coincidenceWindow>2</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
-            <triggerThreshold>50</triggerThreshold>
-            <readoutThreshold>50</readoutThreshold>
             <constantTriggerWindow>true</constantTriggerWindow>
             <scaleFactor>1</scaleFactor>
-            <fixedGain>0.15</fixedGain>
+<!--            <fixedGain>0.15</fixedGain>-->
 <!--            <debug>true</debug>-->
+            <useCRRCShape>true</useCRRCShape>
         </driver>
 
         <driver name="EcalConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">

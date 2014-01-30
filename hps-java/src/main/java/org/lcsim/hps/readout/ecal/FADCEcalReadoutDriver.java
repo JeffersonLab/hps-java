@@ -21,9 +21,7 @@ import org.lcsim.hps.evio.EventConstants;
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.hps.recon.ecal.HPSRawCalorimeterHit;
-import org.lcsim.hps.util.ClockSingleton;
-import org.lcsim.hps.util.RandomGaussian;
-import org.lcsim.hps.util.RingBuffer;
+import org.lcsim.hps.util.*;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
@@ -51,8 +49,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private int bufferLength = 100;
     //length of readout pipeline (in readout cycles)
     private int pipelineLength = 2000;
-    //shaper time constant in ns; negative values generate square pulses of the given width
+    //switch between two pulse shape functions
+    private boolean useCRRCShape = false;
+    //shaper time constant in ns; negative values generate square pulses of the given width (for test run sim)
     private double tp = 14.0;
+    //TODO: set riseTime, fallTime, pulseDelay
+    //pulse rise time in ns
+    private double riseTime = 14.0;
+    //pulse fall time in ns
+    private double fallTime = 14.0;
+    //pulse delay time in ns
+    private double pulseDelay = 14.0;
     //delay (number of readout periods) between start of summing window and output of hit to clusterer
     private int delay0 = 32;
     //start of readout window relative to trigger time (in readout cycles)
@@ -72,24 +79,25 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private LinkedList<HPSRawCalorimeterHit> buffer = new LinkedList<HPSRawCalorimeterHit>();
     //number of readout periods for which a given hit stays in the buffer
     private int coincidenceWindow = 2;
-    private double pulseIntegral;
     //output collection name for hits read out from trigger
     private String ecalReadoutCollectionName = "EcalReadoutHits";
     private int mode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
-    private int readoutThreshold = (int) threshold;
-    private int triggerThreshold = (int) threshold;
+    private int readoutThreshold = 50;
+    private int triggerThreshold = 50;
     //amplitude ADC counts/GeV
 //    private double gain = 0.5*1000 * 80.0 / 60;
     private double scaleFactor = 128;
     private double fixedGain = -1;
     private boolean constantTriggerWindow = false;
     private boolean addNoise = false;
+    //TODO: change to 2014 value
     private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
 
     public FADCEcalReadoutDriver() {
         flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
         hitClass = HPSRawCalorimeterHit.class;
+        setReadoutPeriod(4.0);
 //        converter = new HPSEcalConverter(null);
     }
 
@@ -145,8 +153,28 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         this.coincidenceWindow = coincidenceWindow;
     }
 
+    public void setUseCRRCShape(boolean useCRRCShape) {
+        this.useCRRCShape = useCRRCShape;
+    }
+
     public void setTp(double tp) {
         this.tp = tp;
+    }
+
+    public void setFallTime(double fallTime) {
+        this.fallTime = fallTime;
+    }
+
+    public void setPePerMeV(double pePerMeV) {
+        this.pePerMeV = pePerMeV;
+    }
+
+    public void setPulseDelay(double pulseDelay) {
+        this.pulseDelay = pulseDelay;
+    }
+
+    public void setRiseTime(double riseTime) {
+        this.riseTime = riseTime;
     }
 
     public void setDelay0(int delay0) {
@@ -182,9 +210,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
             double gain;
             if (fixedGain > 0) {
-                gain = 1.0 / (fixedGain * ECalUtils.MeV * pulseIntegral);
+                gain = 1.0 / (fixedGain * ECalUtils.MeV * (pulseIntegral() / readoutPeriod));
             } else {
-                gain = 1.0 / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * pulseIntegral);
+                gain = 1.0 / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * (pulseIntegral() / readoutPeriod));
             }
 
             double currentValue = gain * eDepBuffer.currentValue();
@@ -400,7 +428,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         sumMap = new HashMap<Long, Double>();
         timeMap = new HashMap<Long, Integer>();
         outputQueue = new PriorityQueue(20, new HPSRawCalorimeterHit.TimeComparator());
-        pulseIntegral = tp * Math.E / readoutPeriod;
         resetFADCBuffers();
     }
 
@@ -426,17 +453,29 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     private double pulseAmplitude(double time) {
-        if (time <= 0.0) {
-            return 0.0;
-        }
-        if (tp > 0.0) {
-            return (time / tp) * Math.exp(1.0 - time / tp);
-        } else {
-            if (time < -tp) {
-                return 1.0;
-            } else {
+        if (useCRRCShape) {
+            if (time <= 0.0) {
                 return 0.0;
             }
+            if (tp > 0.0) {
+                return (time / tp) * Math.exp(1.0 - time / tp);
+            } else {
+                if (time < -tp) {
+                    return 1.0;
+                } else {
+                    return 0.0;
+                }
+            }
+        } else {
+            return 0.0; //TODO: new pulse shape definition for 2014
+        }
+    }
+
+    private double pulseIntegral() {
+        if (useCRRCShape) {
+            return tp * Math.E;
+        } else {
+            return 0.0; //TODO: new pulse shape definition for 2014
         }
     }
 
