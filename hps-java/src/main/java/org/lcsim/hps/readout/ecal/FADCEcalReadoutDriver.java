@@ -210,9 +210,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
             double gain;
             if (fixedGain > 0) {
-                gain = 1.0 / (fixedGain * ECalUtils.MeV * (pulseIntegral() / readoutPeriod));
+                gain = readoutPeriod / (fixedGain * ECalUtils.MeV);
             } else {
-                gain = 1.0 / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * (pulseIntegral() / readoutPeriod));
+                gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV);
             }
 
             double currentValue = gain * eDepBuffer.currentValue();
@@ -458,7 +458,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 return 0.0;
             }
             if (tp > 0.0) {
-                return (time / tp) * Math.exp(1.0 - time / tp);
+                return ((time / tp) * Math.exp(1.0 - time / tp)) / (tp * Math.E);
             } else {
                 if (time < -tp) {
                     return 1.0;
@@ -466,14 +466,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     return 0.0;
                 }
             }
-        } else {
-            return 0.0; //TODO: new pulse shape definition for 2014
-        }
-    }
-
-    private double pulseIntegral() {
-        if (useCRRCShape) {
-            return tp * Math.E;
         } else {
             return 0.0; //TODO: new pulse shape definition for 2014
         }
