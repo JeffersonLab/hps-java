@@ -3,8 +3,8 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-TestRun-v7-2">
-        <comment>HPS JLab Test Run detector</comment>
+    <info name="HPS-TestRun-v8">
+        <comment>HPS JLab Test Run detector with dipole field starting at z=0</comment>
     </info>
 
     <define>
@@ -24,7 +24,7 @@
         <constant name="dipoleMagnetPositionZ" value="45.72*cm"/>
         <constant name="dipoleMagnetHeight" value="17.78*cm"/>
         <constant name="dipoleMagnetWidth" value="41.6052*cm"/>
-        <constant name="dipoleMagnetLength" value="108*cm"/>
+        <constant name="dipoleMagnetLength" value="dipoleMagnetPositionZ*2.0"/>
         <constant name="constBFieldY" value="-0.491"/>
         
         <!-- ECAL -->
@@ -64,28 +64,6 @@
 <!--        <constant name="x_off" value = "-15.0"/> -->
         <constant name="x_off" value = "0.0"/> 
 
-        <!-- random alignment corrections -->
-        <constant name="y1t_misalign" value="0.0"/>
-        <constant name="y2t_misalign" value="0.0"/>
-        <constant name="y3t_misalign" value="0.0"/>
-        <constant name="y4t_misalign" value="0.0"/>
-        <constant name="y5t_misalign" value="0.0"/>
-        <constant name="y6t_misalign" value="0.0"/>
-        <constant name="y7t_misalign" value="0.0"/>
-        <constant name="y8t_misalign" value="0.0"/>
-        <constant name="y9t_misalign" value="0.0"/>
-        <constant name="y10t_misalign" value="0.0"/>
-        <constant name="y1b_misalign" value="0.0"/>
-        <constant name="y2b_misalign" value="0.0"/>
-        <constant name="y3b_misalign" value="0.0"/>
-        <constant name="y4b_misalign" value="0.0"/>
-        <constant name="y5b_misalign" value="0.0"/>
-        <constant name="y6b_misalign" value="0.0"/>
-        <constant name="y7b_misalign" value="0.0"/>
-        <constant name="y8b_misalign" value="0.0"/>
-        <constant name="y9b_misalign" value="0.0"/>
-        <constant name="y10b_misalign" value="0.0"/>
-
 		<!-- alignment corrections -->
 	<constant name="x1t_align" value="0.000000"/>
 	<constant name="x2t_align" value="0.000000"/>
@@ -99,8 +77,8 @@
 	<constant name="x10t_align" value="0.000000"/>
 	<constant name="y1t_align" value="0.000000"/>
 	<constant name="y2t_align" value="0.000000"/>
-	<constant name="y3t_align" value="0.0"/>
-	<constant name="y4t_align" value="0.0"/>
+	<constant name="y3t_align" value="0.000000"/>
+	<constant name="y4t_align" value="0.000000"/>
 	<constant name="y5t_align" value="0.000000"/>
 	<constant name="y6t_align" value="0.000000"/>
 	<constant name="y7t_align" value="0.000000"/>
@@ -152,7 +130,7 @@
 	<constant name="x3b_align" value="0.000000"/>
 	<constant name="x4b_align" value="0.000000"/>
 	<constant name="x5b_align" value="0.000000"/>
-	<constant name="x6b_align" value="0.00000"/>
+	<constant name="x6b_align" value="0.000000"/>
 	<constant name="x7b_align" value="0.000000"/>
 	<constant name="x8b_align" value="0.000000"/>
 	<constant name="x9b_align" value="0.000000"/>
@@ -161,8 +139,8 @@
 	<constant name="y2b_align" value="0.000000"/>
 	<constant name="y3b_align" value="0.000000"/>
 	<constant name="y4b_align" value="0.000000"/>
-	<constant name="y5b_align" value="0.0"/>
-	<constant name="y6b_align" value="0.0"/>
+	<constant name="y5b_align" value="0.000000"/>
+	<constant name="y6b_align" value="0.000000"/>
 	<constant name="y7b_align" value="0.000000"/>
 	<constant name="y8b_align" value="0.000000"/>
 	<constant name="y9b_align" value="0.000000"/>
@@ -325,28 +303,28 @@
         
         <!-- Sensor positions and rotations-->
         <constant name="mod_x1t" value="z1t*sin(y_rot_top)+(x1t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y1t" value="y1t+y1t_misalign+(pivot-z1t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y1t" value="y1t+(pivot-z1t)*sin(x_rot_top_add)"/>
         <constant name="mod_z1t" value="z1t*cos(y_rot_top)-(x1t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx1t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry1t" value="-y_rot_top"/>
         <constant name="mod_rz1t" value="st1t"/>
             
         <constant name="mod_x1b" value="z1b*sin(y_rot_bot)+(x1b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y1b" value="y1b+y1b_misalign+(pivot-z1b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y1b" value="y1b+(pivot-z1b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z1b" value="z1b*cos(y_rot_bot)-(x1b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx1b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry1b" value="-y_rot_bot"/>
         <constant name="mod_rz1b" value="st1b"/>
         
         <constant name="mod_x2t" value="z2t*sin(y_rot_top)+(x2t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y2t" value="y2t+y2t_misalign+(pivot-z2t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y2t" value="y2t+(pivot-z2t)*sin(x_rot_top_add)"/>
         <constant name="mod_z2t" value="z2t*cos(y_rot_top)-(x2t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx2t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry2t" value="3.14159-y_rot_top"/>
         <constant name="mod_rz2t" value="st2t"/>
         
         <constant name="mod_x2b" value="z2b*sin(y_rot_bot)+(x2b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y2b" value="y2b+y2b_misalign+(pivot-z2b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y2b" value="y2b+(pivot-z2b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z2b" value="z2b*cos(y_rot_bot)-(x2b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx2b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry2b" value="3.14159-y_rot_bot"/>
@@ -354,14 +332,14 @@
 
 
         <constant name="mod_x3t" value="z3t*sin(y_rot_top)+(x3t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y3t" value="y3t+y3t_misalign+(pivot-z3t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y3t" value="y3t+(pivot-z3t)*sin(x_rot_top_add)"/>
         <constant name="mod_z3t" value="z3t*cos(y_rot_top)-(x3t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx3t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry3t" value="-y_rot_top"/>
         <constant name="mod_rz3t" value="st3t"/>
             
         <constant name="mod_x3b" value="z3b*sin(y_rot_bot)+(x3b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y3b" value="y3b+y3b_misalign+(pivot-z3b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y3b" value="y3b+(pivot-z3b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z3b" value="z3b*cos(y_rot_bot)-(x3b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx3b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry3b" value="-y_rot_bot"/>
@@ -369,98 +347,98 @@
 
 
         <constant name="mod_x4t" value="z4t*sin(y_rot_top)+(x4t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y4t" value="y4t+y4t_misalign+(pivot-z4t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y4t" value="y4t+(pivot-z4t)*sin(x_rot_top_add)"/>
         <constant name="mod_z4t" value="z4t*cos(y_rot_top)-(x4t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx4t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry4t" value="3.14159-y_rot_top"/>
         <constant name="mod_rz4t" value="st4t"/>
         
         <constant name="mod_x4b" value="z4b*sin(y_rot_bot)+(x4b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y4b" value="y4b+y4b_misalign+(pivot-z4b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y4b" value="y4b+(pivot-z4b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z4b" value="z4b*cos(y_rot_bot)-(x4b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx4b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry4b" value="3.14159-y_rot_bot"/>
         <constant name="mod_rz4b" value="st4b"/>
 
         <constant name="mod_x5t" value="z5t*sin(y_rot_top)+(x5t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y5t" value="y5t+y5t_misalign+(pivot-z5t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y5t" value="y5t+(pivot-z5t)*sin(x_rot_top_add)"/>
         <constant name="mod_z5t" value="z5t*cos(y_rot_top)-(x5t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx5t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry5t" value="-y_rot_top"/>
         <constant name="mod_rz5t" value="st5t"/>
             
         <constant name="mod_x5b" value="z5b*sin(y_rot_bot)+(x5b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y5b" value="y5b+y5b_misalign+(pivot-z5b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y5b" value="y5b+(pivot-z5b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z5b" value="z5b*cos(y_rot_bot)-(x5b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx5b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry5b" value="-y_rot_bot"/>
         <constant name="mod_rz5b" value="st5b"/>
 
         <constant name="mod_x6t" value="z6t*sin(y_rot_top)+(x6t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y6t" value="y6t+y6t_misalign+(pivot-z6t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y6t" value="y6t+(pivot-z6t)*sin(x_rot_top_add)"/>
         <constant name="mod_z6t" value="z6t*cos(y_rot_top)-(x6t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx6t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry6t" value="3.14159-y_rot_top"/>
         <constant name="mod_rz6t" value="st6t"/>
         
         <constant name="mod_x6b" value="z6b*sin(y_rot_bot)+(x6b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y6b" value="y6b+y6b_misalign+(pivot-z6b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y6b" value="y6b+(pivot-z6b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z6b" value="z6b*cos(y_rot_bot)-(x6b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx6b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry6b" value="3.14159-y_rot_bot"/>
         <constant name="mod_rz6b" value="st6b"/>
 
         <constant name="mod_x7t" value="z7t*sin(y_rot_top)+(x7t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y7t" value="y7t+y7t_misalign+(pivot-z7t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y7t" value="y7t+(pivot-z7t)*sin(x_rot_top_add)"/>
         <constant name="mod_z7t" value="z7t*cos(y_rot_top)-(x7t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx7t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry7t" value="-y_rot_top"/>
         <constant name="mod_rz7t" value="st7t"/>
             
         <constant name="mod_x7b" value="z7b*sin(y_rot_bot)+(x7b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y7b" value="y7b+y7b_misalign+(pivot-z7b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y7b" value="y7b+(pivot-z7b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z7b" value="z7b*cos(y_rot_bot)-(x7b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx7b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry7b" value="-y_rot_bot"/>
         <constant name="mod_rz7b" value="st7b"/>
 
         <constant name="mod_x8t" value="z8t*sin(y_rot_top)+(x8t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y8t" value="y8t+y8t_misalign+(pivot-z8t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y8t" value="y8t+(pivot-z8t)*sin(x_rot_top_add)"/>
         <constant name="mod_z8t" value="z8t*cos(y_rot_top)-(x8t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx8t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry8t" value="3.14159-y_rot_top"/>
         <constant name="mod_rz8t" value="st8t"/>
         
         <constant name="mod_x8b" value="z8b*sin(y_rot_bot)+(x8b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y8b" value="y8b+y8b_misalign+(pivot-z8b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y8b" value="y8b+(pivot-z8b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z8b" value="z8b*cos(y_rot_bot)-(x8b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx8b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry8b" value="3.14159-y_rot_bot"/>
         <constant name="mod_rz8b" value="st8b"/>
 
         <constant name="mod_x9t" value="z9t*sin(y_rot_top)+(x9t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y9t" value="y9t+y9t_misalign+(pivot-z9t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y9t" value="y9t+(pivot-z9t)*sin(x_rot_top_add)"/>
         <constant name="mod_z9t" value="z9t*cos(y_rot_top)-(x9t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx9t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry9t" value="-y_rot_top"/>
         <constant name="mod_rz9t" value="st9t"/>
             
         <constant name="mod_x9b" value="z9b*sin(y_rot_bot)+(x9b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y9b" value="y9b+y9b_misalign+(pivot-z9b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y9b" value="y9b+(pivot-z9b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z9b" value="z9b*cos(y_rot_bot)-(x9b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx9b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry9b" value="-y_rot_bot"/>
         <constant name="mod_rz9b" value="st9b"/>
 
         <constant name="mod_x10t" value="z10t*sin(y_rot_top)+(x10t+x_off)*cos(y_rot_top)"/>
-        <constant name="mod_y10t" value="y10t+y10t_misalign+(pivot-z10t)*sin(x_rot_top_add)"/>
+        <constant name="mod_y10t" value="y10t+(pivot-z10t)*sin(x_rot_top_add)"/>
         <constant name="mod_z10t" value="z10t*cos(y_rot_top)-(x10t+x_off)*sin(y_rot_top)"/>
         <constant name="mod_rx10t" value="x_rot_top+x_rot_top_add"/>
         <constant name="mod_ry10t" value="3.14159-y_rot_top"/>
         <constant name="mod_rz10t" value="st10t"/>
         
         <constant name="mod_x10b" value="z10b*sin(y_rot_bot)+(x10b+x_off)*cos(y_rot_bot)"/>
-        <constant name="mod_y10b" value="y10b+y10b_misalign+(pivot-z10b)*sin(x_rot_bot_add)"/>
+        <constant name="mod_y10b" value="y10b+(pivot-z10b)*sin(x_rot_bot_add)"/>
         <constant name="mod_z10b" value="z10b*cos(y_rot_bot)-(x10b+x_off)*sin(y_rot_bot)"/>
         <constant name="mod_rx10b" value="x_rot_bot+x_rot_bot_add"/>
         <constant name="mod_ry10b" value="3.14159-y_rot_bot"/>
@@ -830,7 +808,9 @@
             <material name="LeadTungstate" />
             <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
             <!-- Measurements as found in installation by Stepan -->
-            <layout beamgap="37.0*mm" nx="46" ny="5" dface="152.4*cm">
+            <!-- Moving ecal halves out by 6.5mm from SVT ecal-track matching - Pelle -->
+            <!-- Moving ecal face to reflect latest survey calculation - Pelle -->
+            <layout beamgap="43.5*mm" nx="46" ny="5" dface="147.0*cm">
                 <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
                 <top dx="ecal_dx" dy="0." dz="0."/>
                 <bottom dx="ecal_dx" dy="0." dz="0."/>
