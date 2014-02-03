@@ -297,12 +297,25 @@ public class GBLOutput {
                 file.printNonMeasDir(strip.v());
                 file.printNormalDir(strip.w());
 
+                //GBLDATA
+                stripData.setU(strip.u());
+                stripData.setV(strip.v());
+                stripData.setW(strip.w());
+                
+                
                 //Print track direction at intercept
                 Hep3Vector tDir = HelixUtils.Direction(htf, s);
                 double phi = htf.phi0() - s/htf.R();
                 double lambda = Math.atan(htf.slope());
                 file.printStripTrackDir(Math.sin(phi),Math.sin(lambda));
                 file.printStripTrackDirFull(tDir);
+                
+                //GBLDATA
+                stripData.setTrackDir(tDir);
+                stripData.setTrackPhi(phi);
+                
+                
+                
                 
                 //Print residual in measurement system
                 
@@ -323,6 +336,10 @@ public class GBLOutput {
                 Hep3Vector res_err_meas = new BasicHep3Vector(strip.du(),(strip.vmax() - strip.vmin()) / Math.sqrt(12),10.0/Math.sqrt(12));
                 
                 file.printStripMeas(m_meas.x());
+
+                //GBLDATA
+                stripData.setMeas(strip.umeas());
+                stripData.setTrackPos(trkpos_meas);
                 
                 // residual in measurement frame
                 Hep3Vector res_meas = VecOp.sub(m_meas, trkpos_meas);
@@ -330,6 +347,11 @@ public class GBLOutput {
                 file.printStripMeasRes(res_meas.x(),res_err_meas.x());
                 file.printStripMeasResTruth(resTruth_meas.x(),res_err_meas.x());
 
+                //GBLDATA
+                stripData.setMeasErr(res_err_meas.x());
+                
+                
+                
                 if(_debug>0) System.out.printf("layer %d uRes %.10f\n",strip.layer(),res_meas.x());
                 
                 // sim hit residual
@@ -385,6 +407,8 @@ public class GBLOutput {
                 //print scatterer to file
                 file.printStripScat(scatAngle);
                 
+                //GBLDATA
+                stripData.setScatterAngle(scatAngle);
                 
                 ++istrip;
                 

@@ -1,5 +1,8 @@
 package org.lcsim.hps.recon.tracking.gbl;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+
 import org.lcsim.event.GenericObject;
 import org.lcsim.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 
@@ -17,7 +20,28 @@ public class GBLStripClusterData implements GenericObject {
 	private static class GBLDOUBLE {
 		public static final int PATH3D = 0;
 		public static final int PATH = 1;
-		public static final int BANK_DOUBLE_SIZE = 2;
+		public static final int UX = 2;
+		public static final int UY = 3;
+		public static final int UZ = 4;
+		public static final int VX = 5;
+		public static final int VY = 6;
+		public static final int VZ = 7;
+		public static final int WX = 8;
+		public static final int WY = 9;
+		public static final int WZ = 10;	
+		public static final int TDIRX = 11;	
+		public static final int TDIRY = 12;	
+		public static final int TDIRZ = 13;	
+		public static final int TPHI = 14;	
+		public static final int UMEAS = 15;	
+		public static final int TPOSU = 16;	
+		public static final int TPOSV = 17;	
+		public static final int TPOSW = 18;	
+		public static final int UMEASERR = 19;	
+		public static final int MSANGLE = 20;
+		
+		public static final int BANK_DOUBLE_SIZE = 21;
+		
 	}
 	// array holding the integer data
 	private int bank_int[] = new int[GBLINT.BANK_INT_SIZE];
@@ -75,10 +99,158 @@ public class GBLStripClusterData implements GenericObject {
 		return getDoubleVal(GBLDOUBLE.PATH3D);
 	}
 
+
+	/**
+	 *  Set and get u vector for this strip sensor
+	 */
+	public void setU(Hep3Vector u) {
+		bank_double[GBLDOUBLE.UX] = u.x();
+		bank_double[GBLDOUBLE.UY] = u.y();
+		bank_double[GBLDOUBLE.UZ] = u.z();		
+	}
+	public Hep3Vector getU() {
+		return new BasicHep3Vector(getUx(),getUy(),getUz());
+	}
+	public double getUx() {
+		return getDoubleVal(GBLDOUBLE.UX);
+	}
+	public double getUy() {
+		return getDoubleVal(GBLDOUBLE.UY);
+	}
+	public double getUz() {
+		return getDoubleVal(GBLDOUBLE.UZ);
+	}
 	
+	/**
+	 *  Set and get v vector for this strip sensor
+	 */
+
+	public void setV(Hep3Vector v) {
+		bank_double[GBLDOUBLE.VX] = v.x();
+		bank_double[GBLDOUBLE.VY] = v.y();
+		bank_double[GBLDOUBLE.VZ] = v.z();		
+	}
+	public Hep3Vector getV() {
+		return new BasicHep3Vector(getVx(),getVy(),getVz());
+	}
+	public double getVx() {
+		return getDoubleVal(GBLDOUBLE.VX);
+	}
+	public double getVy() {
+		return getDoubleVal(GBLDOUBLE.VY);
+	}
+	public double getVz() {
+		return getDoubleVal(GBLDOUBLE.VZ);
+	}
+
+	/**
+	 *  Set and get w vector for this strip sensor
+	 */
+
+	public void setW(Hep3Vector v) {
+		bank_double[GBLDOUBLE.WX] = v.x();
+		bank_double[GBLDOUBLE.WY] = v.y();
+		bank_double[GBLDOUBLE.WZ] = v.z();		
+	}
+	public Hep3Vector getW() {
+		return new BasicHep3Vector(getWx(),getWy(),getWz());
+	}
+	public double getWx() {
+		return getDoubleVal(GBLDOUBLE.WX);
+	}
+	public double getWy() {
+		return getDoubleVal(GBLDOUBLE.WY);
+	}
+	public double getWz() {
+		return getDoubleVal(GBLDOUBLE.WZ);
+	}
+
+	/**
+	 * Set track direction at this cluster
+	 * 
+	 * @param tDir
+	 */
+	public void setTrackDir(Hep3Vector v) {
+		bank_double[GBLDOUBLE.TDIRX] = v.x();
+		bank_double[GBLDOUBLE.TDIRY] = v.y();
+		bank_double[GBLDOUBLE.TDIRZ] = v.z();		
+	}
+	public Hep3Vector getTrackDirection() {
+		return new BasicHep3Vector(getTx(),getTy(),getTz());
+	}
+	public double getTx() {
+		return getDoubleVal(GBLDOUBLE.TDIRX);
+	}
+	public double getTy() {
+		return getDoubleVal(GBLDOUBLE.TDIRY);
+	}
+	public double getTz() {
+		return getDoubleVal(GBLDOUBLE.TDIRY);
+	}
+
+	public void setTrackPhi(double phi) {
+		bank_double[GBLDOUBLE.TPHI] = phi;
+	}
 	
+	public double getTrackPhi() {
+		return getDoubleVal(GBLDOUBLE.TPHI);
+	}
+
+	public void setMeas(double umeas) {
+		bank_double[GBLDOUBLE.UMEAS] = umeas;
+	}
 	
+	public double getMeas() {
+		return getDoubleVal(GBLDOUBLE.UMEAS);
+	}
 	
+	public void setMeasErr(double x) {
+		bank_double[GBLDOUBLE.UMEASERR] = x;
+	}
+
+	public double getMeasErr() {
+		return getDoubleVal(GBLDOUBLE.UMEASERR);
+	}
+
+	
+	/**
+	 * Set track position in local frame
+	 * @param trkpos_meas
+	 */
+	public void setTrackPos(Hep3Vector trkpos_meas) {
+		bank_double[GBLDOUBLE.TPOSU] = trkpos_meas.x();
+		bank_double[GBLDOUBLE.TPOSV] = trkpos_meas.y();
+		bank_double[GBLDOUBLE.TPOSW] = trkpos_meas.z();
+	}
+
+	public Hep3Vector getTrackPos() {
+		return new BasicHep3Vector(getTrackPosU(),getTrackPosV(),getTrackPosW());
+	}
+	
+	public double getTrackPosU() {
+		return getDoubleVal(GBLDOUBLE.TPOSU);
+	}
+
+	public double getTrackPosV() {
+		return getDoubleVal(GBLDOUBLE.TPOSV);
+	}
+
+	public double getTrackPosW() {
+		return getDoubleVal(GBLDOUBLE.TPOSW);
+	}
+
+	public void setScatterAngle(double scatAngle) {
+		bank_double[GBLDOUBLE.MSANGLE] = scatAngle;
+	}
+	
+	public double getScatterAngle() {
+		return getDoubleVal(GBLDOUBLE.MSANGLE);
+	}
+	
+
+	
+
+
 
 	/*
 	 * The functions below are all overide from 
@@ -112,6 +284,8 @@ public class GBLStripClusterData implements GenericObject {
 	public boolean isFixedSize() {
 		return false;
 	}
+
+	
 
 
 }

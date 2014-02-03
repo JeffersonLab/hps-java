@@ -84,8 +84,6 @@ public class GBLOutputDriver extends Driver {
         truthRes = new TruthResiduals(bfield);
         truthRes.setDebug(_debug);
         truthRes.setHideFrame(hideFrame);
-        //FieldMap.printFieldMap();
-        
     }
     
     
@@ -134,6 +132,7 @@ public class GBLOutputDriver extends Driver {
         List<GBLStripClusterData> gblStripDataListAll  = new ArrayList<GBLStripClusterData>();
         List<GBLStripClusterData> gblStripDataList  = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblTrackToStripClusterRelationListAll = new ArrayList<LCRelation>();
+        List<LCRelation> trackToGBLTrackRelationListAll = new ArrayList<LCRelation>();
         
         gbl.printNewEvent(iEvent,gbl.get_B().z());
 
@@ -144,10 +143,14 @@ public class GBLOutputDriver extends Driver {
             //GBLDATA
             GBLTrackData gblTrackData = new GBLTrackData(iTrack);
             gblTrackDataList.add(gblTrackData);            
+            
+            //print to text file
             gbl.printTrackID(iTrack);
             gbl.printGBL(trk,gblTrackData,gblStripDataList,mcParticles,simTrackerHits,this.isMC);
             
             //GBLDATA
+            //add relation to normal track object
+            trackToGBLTrackRelationListAll.add(new MyLCRelation(trk,gblTrackData));
             // add strip clusters to lists
             for(GBLStripClusterData gblStripClusterData : gblStripDataList) {
                 // add all strip clusters from this track to output list
@@ -167,6 +170,9 @@ public class GBLOutputDriver extends Driver {
         event.put("GBLTrackData", gblTrackDataList, GBLTrackData.class, 0);
         event.put("GBLStripClusterData", gblStripDataListAll, GBLStripClusterData.class, 0);
         event.put("GBLTrackToStripData", gblTrackToStripClusterRelationListAll, LCRelation.class, 0);
+        event.put("TrackToGBLTrack", trackToGBLTrackRelationListAll, LCRelation.class, 0);
+        
+        
         
         ++iEvent;
         
