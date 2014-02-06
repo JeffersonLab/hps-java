@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.0-test</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>parent</name>
 
     <properties>
@@ -18,9 +18,9 @@
     </properties>
 
     <scm>
-        <url>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.0-test/trunk</url>
-        <connection>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.0-test/trunk</connection>
-        <developerConnection>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.0-test/trunk</developerConnection>
+        <url>svn://svn.freehep.org/hps/java/trunk/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
     </scm>
 
     <repositories>
