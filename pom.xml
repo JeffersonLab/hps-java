@@ -80,17 +80,37 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-monitoring-drivers</artifactId>
+            <artifactId>hps-java</artifactId>
         </dependency>
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
             <version>1.1</version>
+            <exclusions>
+                <exclusion>  
+                    <groupId>jdom</groupId>
+                    <artifactId>jdom</artifactId>
+                </exclusion>
+                <exclusion>  
+                    <groupId>commons-math</groupId>
+                    <artifactId>commons-math</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.freehep</groupId>
+                    <artifactId>freehep-jminuit-jdk1.4</artifactId>
+                </exclusion>
+            </exclusions>             
         </dependency>                
         <dependency>
             <groupId>org.freehep</groupId>
             <artifactId>freehep-jaida-remote</artifactId>
-            <version>3.3.0-12</version>
+            <version>3.4.1</version>
+            <exclusions>
+                <exclusion>  
+                    <groupId>commons-math</groupId>
+                    <artifactId>commons-math</artifactId>
+                </exclusion>
+            </exclusions>             
         </dependency>
     </dependencies>
     
