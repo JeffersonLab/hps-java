@@ -20,7 +20,6 @@
     <modules>
         <module>parent</module>
         <module>util</module>
-<!--
         <module>jevio</module>
         <module>et</module>
         <module>detector-data</module>
@@ -30,6 +29,5 @@
         <module>monitoring-app</module>
         <module>users</module>
         <module>distribution</module>
--->
     </modules>
 </project>
