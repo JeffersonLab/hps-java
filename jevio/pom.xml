@@ -4,7 +4,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-jevio</artifactId>
     <name>jevio</name>
-    <version>4.6-SNAPSHOT</version>
     <description>Java version of the EVIO API imported from the JLab distribution</description>
     
     <parent>
