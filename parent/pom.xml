@@ -233,7 +233,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.4.2</version>
                 <configuration>
-                    <tagBase>svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags</tagBase>
+                    <tagBase>svn://svn.freehep.org/hps/java/tags/</tagBase>
                 </configuration>
             </plugin>
             <plugin>
