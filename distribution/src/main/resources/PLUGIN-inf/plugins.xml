@@ -14,10 +14,10 @@
           <load-at-start/>
       </information>
       <resources>
-          <j2se minVersion="1.5"/>
+          <j2se minVersion="1.7"/>
           <application minVersion="3.0.0"/>
-          <depends plugin="org.lcsim" minVersion="2.10.0-SNAPSHOT" />
+          <depends plugin="org.lcsim" minVersion="${lcsimVersion}" />
       </resources>
-      <plugin-desc class="org.lcsim.hps.plugin.HPSPlugin"/>
+      <plugin-desc class="org.hps.plugin.HPSPlugin"/>
     </plugin>
 </plugins>
