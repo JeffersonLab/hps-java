@@ -22,111 +22,8 @@
             <name>hps-java</name>
             <url>scpexe://svn.slac.stanford.edu///nfs/slac/g/lcd/mc/prj/www/lcsim/software/hps-java/${project.version}</url>
         </site>
-    </distributionManagement>
-    
-    <developers>
-        <developer>
-            <name>Jeremy McCormick</name>
-            <email>jeremym@slac.stanford.edu</email>
-            <organization>SLAC National Accelerator Laboratory</organization>
-            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-8</timezone>
-            <properties>
-                <aim>jeremyslac</aim>
-            </properties>
-        </developer>
-        <developer>
-            <name>Matthew Graham</name>
-            <email>mgraham@slac.stanford.edu</email>
-            <organization>SLAC National Accelerator Laboratory</organization>
-            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-8</timezone>
-        </developer>
-        <developer>
-            <name>Sho Uemura</name>
-            <email>meeg@slac.stanford.edu</email>
-            <organization>SLAC National Accelerator Laboratory</organization>
-            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-8</timezone>
-        </developer>
-        <developer>
-            <name>Omar Moreno</name>
-            <email>omoreno1@ucsc.edu</email>
-            <organization>Santa Cruz Institute for Particle Physics</organization>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-8</timezone>
-        </developer>
-        <developer>
-            <name>Per Hansson</name>
-            <email>phansson@slac.stanford.edu</email>
-            <organization>SLAC National Accelerator Laboratory</organization>
-            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-8</timezone>
-        </developer>
-    </developers>
-    
-    <mailingLists>
-        <mailingList>
-            <name>hps-software</name>
-            <subscribe>Email listserv@slac.stanford.edu with message: subscribe hps-software</subscribe>
-            <unsubscribe>Email listserv@slac.stanford.edu with message: unsubscribe hps-software</unsubscribe>
-            <post>hps-software@slac.stanford.edu</post>
-            <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
-        </mailingList>
-    </mailingLists>
-    
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
-    </issueManagement>
-    
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <configuration>
-                    <anonymousConnection>scm:cvs:pserver:anonymous@cvs.freehep.org:/cvs/lcd:hps-java</anonymousConnection>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changes-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <columnNames>Type,Key,Summary,Assignee,Status,Resolution,Fix
-                        Version,Created</columnNames>
-                    <sortColumnNames>Type,Key DESC</sortColumnNames>
-                    <statusIds>Resolved, Closed</statusIds>
-                    <maxEntries>9999</maxEntries>
-                    <xmlPath>${basedir}/src/site/changes.xml</xmlPath>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>changes-report</report>
-                            <report>jira-report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
-    
+    </distributionManagement>   
+     
     <build>
         <plugins>
             <plugin>
@@ -175,8 +72,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <!-- Fix for http://jira.codehaus.org/browse/SUREFIRE-288 -->
-                        <exclude>**/*$*</exclude>
                         <exclude>org/lcsim/hps/evio/DoEvioTest.java</exclude>
                         <exclude>org/lcsim/hps/et/BasicET12SystemTest.java</exclude>
                         <exclude>org/lcsim/hps/evio/RawTrackerHitToEvio4Converter_Test.java</exclude>
@@ -184,32 +79,8 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.freehep</groupId>
-                <artifactId>freehep-jas-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <excludes>
-                        <exclude>org.freehep:jas-core</exclude>
-                        <exclude>junit:junit</exclude>
-                        <exclude>org.freehep:freehep-application</exclude>
-                        <exclude>org.netbeans:openide-lookup</exclude>
-                        <exclude>jdom:jdom</exclude>
-                        <exclude>javax.help:javahelp</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>process-descriptor</id>
-                        <goals> 
-                            <goal>process-descriptor</goal>
-                        </goals> 
-                    </execution>
-                </executions>        
-            </plugin>
         </plugins>
     </build>
-    
     <dependencies>
         <dependency>
             <groupId>org.lcsim</groupId>
