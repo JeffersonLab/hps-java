@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
@@ -10,19 +10,16 @@
     <packaging>pom</packaging>
     <version>3.0-SNAPSHOT</version>
     <name>parent</name>
-    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <lcsimVersion>3.0.2</lcsimVersion>
     </properties>
-    
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/</url>
         <connection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk/</developerConnection>
-    </scm>      
-    
+    </scm>
     <repositories>
         <repository>
             <id>freehep-repo-public</id>
@@ -46,7 +43,6 @@
             </releases>
         </repository>
     </repositories>
-    
     <pluginRepositories>
         <pluginRepository>
             <id>freehep-maven-plugin-repo</id>
@@ -54,7 +50,6 @@
             <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
         </pluginRepository>
     </pluginRepositories>
-    
     <distributionManagement>
         <repository>
             <id>lcsim-repo-releases</id>
@@ -67,27 +62,25 @@
             <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
         </snapshotRepository>
     </distributionManagement>
-    
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.2</version>
         </dependency>
-    </dependencies>  
-        
+    </dependencies>
     <!-- DO NOT EDIT THESE DEPENDENCY VERSIONS MANUALLY. -->
-    <dependencyManagement>    
+    <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-jevio</artifactId>
-                <version>4.6-SNAPSHOT</version>                
+                <version>4.6-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
@@ -97,17 +90,17 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-java</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
@@ -117,21 +110,20 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.0-SNAPSHOT</version>                
+                <version>3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.0-SNAPSHOT</version>                
-            </dependency>            
+                <version>3.0-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-    
     <reporting>
         <plugins>
             <plugin>
@@ -159,9 +151,29 @@
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>2.16</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <columnNames>Type,Key,Summary,Assignee,Status,Resolution,Fix
+                        Version,Created</columnNames>
+                    <sortColumnNames>Type,Key DESC</sortColumnNames>
+                    <statusIds>Resolved, Closed</statusIds>
+                    <maxEntries>9999</maxEntries>
+                    <xmlPath>${basedir}/src/site/changes.xml</xmlPath>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>changes-report</report>
+                            <report>jira-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
         </plugins>
     </reporting>
-    
     <build>
         <defaultGoal>install</defaultGoal>
         <extensions>
@@ -197,7 +209,8 @@
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
-                    <!-- This allows the cacheDir to be overridden by settings.xml, e.g. for Hudson builds. -->
+                    <!-- This allows the cacheDir to be overridden by settings.xml, 
+                        e.g. for Hudson builds. -->
                     <systemProperties>
                         <property>
                             <name>org.lcsim.cacheDir</name>
@@ -231,7 +244,8 @@
                         <configuration>
                             <tasks>
                                 <!-- Create the directory for test output. -->
-                                <mkdir dir="${project.build.directory}/test-output"/>
+                                <mkdir
+                                    dir="${project.build.directory}/test-output" />
                             </tasks>
                         </configuration>
                         <goals>
@@ -247,5 +261,71 @@
             </plugin>
         </plugins>
     </build>
-    
+    <developers>
+        <developer>
+            <name>Jeremy McCormick</name>
+            <email>jeremym@slac.stanford.edu</email>
+            <organization>SLAC National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+            <properties>
+                <aim>jeremyslac</aim>
+            </properties>
+        </developer>
+        <developer>
+            <name>Matthew Graham</name>
+            <email>mgraham@slac.stanford.edu</email>
+            <organization>SLAC National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+        <developer>
+            <name>Sho Uemura</name>
+            <email>meeg@slac.stanford.edu</email>
+            <organization>SLAC National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+        <developer>
+            <name>Omar Moreno</name>
+            <email>omoreno1@ucsc.edu</email>
+            <organization>Santa Cruz Institute for Particle Physics</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+        <developer>
+            <name>Per Hansson</name>
+            <email>phansson@slac.stanford.edu</email>
+            <organization>SLAC National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+    </developers>
+    <mailingLists>
+        <mailingList>
+            <name>hps-software</name>
+            <subscribe>Email listserv@slac.stanford.edu with message: subscribe hps-software</subscribe>
+            <unsubscribe>Email listserv@slac.stanford.edu with message: unsubscribe hps-software</unsubscribe>
+            <post>hps-software@slac.stanford.edu</post>
+            <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
+        </mailingList>
+    </mailingLists>
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
+    </issueManagement>
 </project>
