@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-conditions</artifactId>
     <name>conditions</name>
-    <description>conditions framework</description>
+    <description>HPS conditions framework</description>
     
     <parent>
         <groupId>org.hps</groupId>
