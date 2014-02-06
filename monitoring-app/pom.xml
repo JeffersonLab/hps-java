@@ -80,7 +80,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-java</artifactId>
+            <artifactId>hps-monitoring-drivers</artifactId>
         </dependency>
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
