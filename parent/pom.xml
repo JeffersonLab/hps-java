@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <prerequisites>
         <maven>3.0</maven>
@@ -9,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.0.1</version>
     <name>parent</name>
 
     <properties>
@@ -19,9 +18,9 @@
     </properties>
 
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/</url>
-        <connection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/lcdet/projects/lcsim/trunk/</developerConnection>
+        <url>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.1/trunk</url>
+        <connection>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.1/trunk</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.slac.stanford.edu/nfs/slac/g/lcd/subversion/ilc_repository/projects/lcsim/tags/hps-modules-3.0.1/trunk</developerConnection>
     </scm>
 
     <repositories>
@@ -83,52 +82,52 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-jevio</artifactId>
-                <version>4.6-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-et</artifactId>
-                <version>12.5-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-java</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -254,8 +253,7 @@
                         <configuration>
                             <tasks>
                                 <!-- Create the directory for test output. -->
-                                <mkdir
-                                    dir="${project.build.directory}/test-output" />
+                                <mkdir dir="${project.build.directory}/test-output" />
                             </tasks>
                         </configuration>
                         <goals>

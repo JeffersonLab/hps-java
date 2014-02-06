@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-jevio</artifactId>
     <name>jevio</name>
-    <version>4.6-SNAPSHOT</version>
+    <version>3.0.1</version>
     <description>Java version of the EVIO API imported from the JLab distribution</description>
     
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.0-SNAPSHOT</version>
+        <version>3.0.1</version>
     </parent>
     
     <build>
