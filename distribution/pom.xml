@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-distribution</artifactId>
@@ -14,7 +13,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0-test5</version>
     </parent>
 
     <build>
@@ -107,17 +106,17 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-java</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.0-test5</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.0-test5</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-app</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.0-test5</version>
         </dependency>
     </dependencies>
 
