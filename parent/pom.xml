@@ -81,47 +81,47 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-jevio</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-et</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-java</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.0-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
