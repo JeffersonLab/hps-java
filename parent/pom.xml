@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
 
     <prerequisites>
         <maven>3.0</maven>
@@ -60,6 +59,10 @@
             <name>LCSIM Snapshots maven repository</name>
             <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
         </snapshotRepository>
+        <site>
+            <id>lcsim-site</id>
+            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
+        </site>
     </distributionManagement>
 
     <dependencies>
@@ -333,5 +336,10 @@
         <system>JIRA</system>
         <url>https://jira.slac.stanford.edu/browse/HPSJAVA/</url>
     </issueManagement>
+
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
+    </ciManagement>
 
 </project>
