@@ -1,21 +1,25 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hps</groupId>
     <artifactId>hps-modules</artifactId>
     <packaging>pom</packaging>
     <name>modules</name>
     <description>HPS module build</description>
+
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>parent/pom.xml</relativePath>
         <version>3.0.1-SNAPSHOT</version>
     </parent>   
+
     <scm>
         <url>svn://svn.freehep.org/hps/java/trunk/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
     </scm>
+
     <modules>
         <module>parent</module>
         <module>util</module>
@@ -29,4 +33,5 @@
         <module>users</module>
         <module>distribution</module>
     </modules>
+
 </project>
