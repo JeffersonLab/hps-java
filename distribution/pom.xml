@@ -129,7 +129,6 @@
         </dependency>
     </dependencies>
 
-<!--
     <profiles>
         <profile>
             <id>submit-plugin-descriptor</id>
@@ -157,6 +156,5 @@
             </build>
         </profile>
     </profiles>
--->
 
 </project>
