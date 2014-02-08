@@ -1,0 +1,135 @@
+<project>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.hps</groupId>
+    <artifactId>hps-site</artifactId>
+    <packaging>pom</packaging>
+    <name>HPS Java</name>
+    <description>HPS Java Software Project</description>
+    <url>http://www.lcsim.org/sites/hps/</url>
+
+    <parent>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-parent</artifactId>
+        <version>3.0.1-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/site/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/site/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/site/</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <site>
+            <id>lcsim-site</id>
+            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
+        </site>
+    </distributionManagement>
+
+    <modules>
+        <module>../hps-java</module>
+        <module>../users</module>
+        <module>../monitoring-app</module>
+        <module>../conditions</module>
+        <module>../jevio</module>
+        <module>../et</module>
+        <module>../util</module>
+        <module>../monitoring-drivers</module>
+    </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <configuration>
+                        <chmod>false</chmod>
+                        <generateReports>true</generateReports>
+                        <generateSitemap>true</generateSitemap>
+                        <generateProjectInfo>true</generateProjectInfo>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <reports>
+                            <report>cim</report>
+                            <report>dependency-convergence</report>
+                            <report>index</report>
+                            <report>issue-tracking</report>
+                            <report>mailing-list</report>
+                            <report>modules</report>
+                            <report>plugin-management</report>
+                            <report>plugins</report>
+                            <report>project-team</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <columnNames>Type,Key,Summary,Assignee,Status,Resolution,Fix
+                        Version,Created</columnNames>
+                    <sortColumnNames>Type,Key DESC</sortColumnNames>
+                    <statusIds>Resolved, Closed</statusIds>
+                    <maxEntries>9999</maxEntries>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>jira-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <reports>
+                            <report>aggregate</report>
+                            <report>test-aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <linkJavadoc>true</linkJavadoc>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>

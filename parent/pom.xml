@@ -15,6 +15,12 @@
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <lcsimVersion>3.0.3-SNAPSHOT</lcsimVersion>
     </properties>
+    
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</developerConnection>
+    </scm>
 
     <repositories>
         <repository>
@@ -143,6 +149,7 @@
                         <link>http://java.freehep.org/freehep-physics/apidocs/</link>
                         <link>http://java.freehep.org/heprep/apidocs/</link>
                         <link>http://www.jdom.org/docs/apidocs/</link>
+                        <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
                     </links>
                 </configuration>
             </plugin>
@@ -150,32 +157,22 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>2.7</version>
-            </plugin>
+                <reportSets>
+                    <reportSet>
+                        <id>non-aggregate</id>
+                        <reports>
+                            <report>dependencies</report>
+                            <report>index</report>
+                            <report>scm</report>
+                            <report>summary</report>
+                        </reports> 
+                    </reportSet> 
+                </reportSets> 
+            </plugin> 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>2.16</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changes-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <columnNames>Type,Key,Summary,Assignee,Status,Resolution,Fix
-                        Version,Created</columnNames>
-                    <sortColumnNames>Type,Key DESC</sortColumnNames>
-                    <statusIds>Resolved, Closed</statusIds>
-                    <maxEntries>9999</maxEntries>
-                    <xmlPath>${basedir}/src/site/changes.xml</xmlPath>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>changes-report</report>
-                            <report>jira-report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
             </plugin>
         </plugins>
     </reporting>
@@ -185,8 +182,8 @@
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ssh-external</artifactId>
-                <version>2.5</version>
+                <artifactId>wagon-webdav-jackrabbit</artifactId>
+                <version>2.2</version>
             </extension>
         </extensions>
         <plugins>
