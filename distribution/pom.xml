@@ -15,6 +15,12 @@
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.1-SNAPSHOT</version>
     </parent>
+    
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/distribution/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
+    </scm>
 
     <build>
         <resources>

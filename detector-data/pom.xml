@@ -13,6 +13,12 @@
         <version>3.0.1-SNAPSHOT</version>
     </parent>
     
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/detector-data/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/detector-data/</developerConnection>
+    </scm>
+    
     <build>
         <resources>
             <resource>

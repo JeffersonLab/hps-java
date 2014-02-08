@@ -13,6 +13,12 @@
         <version>3.0.1-SNAPSHOT</version>
     </parent>
     
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/et/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/et/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/et/</developerConnection>
+    </scm>
+        
     <build>
         <plugins>
             <plugin>
