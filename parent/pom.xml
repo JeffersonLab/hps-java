@@ -291,6 +291,19 @@
                 <aim>SebouhPaul314</aim>
             </properties>
         </developer>
+       <developer>
+            <name>Norman Graf</name>
+            <email>Norman.Graf@slac.stanford.edu</email>
+            <organization>SLAC National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+            <properties>
+                <aim>ngraf137</aim>
+            </properties>
+        </developer>        
         <developer>
             <name>Matthew Graham</name>
             <email>mgraham@slac.stanford.edu</email>
