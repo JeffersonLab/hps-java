@@ -278,6 +278,19 @@
                 <aim>jeremyslac</aim>
             </properties>
         </developer>
+    <developer>
+            <name>Sebouh Paul</name>
+            <email>sebouh.paul@gmail.com</email>
+            <organization>Thomas Jefferson National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.jlab.org/</organizationUrl>
+            <roles>
+                <role>mad scientist</role>
+            </roles>
+            <timezone>-5</timezone>
+            <properties>
+                <aim>SebouhPaul314</aim>
+            </properties>
+        </developer>
         <developer>
             <name>Matthew Graham</name>
             <email>mgraham@slac.stanford.edu</email>
