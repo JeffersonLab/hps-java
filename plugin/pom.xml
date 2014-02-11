@@ -17,6 +17,7 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/plugin/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/plugin/</developerConnection>
     </scm>
+
     <build>
         <resources>
             <resource>
@@ -50,12 +51,7 @@
                         </property>
                     </redirectUrls>
                     <excludes>
-                        <exclude>junit:junit</exclude>
-                        <exclude>jdom:jdom</exclude>
-                        <exclude>org.freehep:jas-core</exclude>
-                        <exclude>org.freehep:freehep-application</exclude>
-                        <exclude>org.netbeans:openide-lookup</exclude>                        
-                        <exclude>javax.help:javahelp</exclude>
+                        <exclude>org.lcsim:lcsim-distribution</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -72,50 +68,17 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>bin</shadedClassifierName>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.lcsim.job.JobControlManager</mainClass>
-                                </transformer>
-                            </transformers>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>hep.testdata.aida:*</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-distribution</artifactId>
+            <artifactId>hps-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-users</artifactId>
         </dependency>
     </dependencies>
 
