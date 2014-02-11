@@ -22,61 +22,8 @@
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
     </scm>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/plugins.xml</include>
-                </includes>
-            </resource>
-        </resources>
+    <build>       
         <plugins>
-            <plugin>
-                <groupId>org.freehep</groupId>
-                <artifactId>freehep-jas-plugin</artifactId>
-                <version>3.1.6</version>
-                <configuration>
-                    <urls>
-                        <property>
-                            <name>org.hps:*</name>
-                            <value>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</value>
-                        </property>
-                        <property>
-                            <name>org.lcsim:*</name>
-                            <value>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</value>
-                        </property>
-                    </urls>
-                    <redirectUrls>
-                        <property>
-                            <name>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</name>
-                            <value>http://srs.slac.stanford.edu/nexus/service/local/artifact/maven/redirect?r=lcsim-maven2-public</value>
-                        </property>
-                    </redirectUrls>
-                    <excludes>
-                        <exclude>org.freehep:jas-core</exclude>
-                        <exclude>junit:junit</exclude>
-                        <exclude>org.freehep:freehep-application</exclude>
-                        <exclude>org.netbeans:openide-lookup</exclude>
-                        <exclude>jdom:jdom</exclude>
-                        <exclude>javax.help:javahelp</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>install</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>process-descriptor</id>
-                        <goals>
-                            <goal>process-descriptor</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -121,46 +68,15 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-java</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-app</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>submit-plugin-descriptor</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.freehep</groupId>
-                        <artifactId>freehep-jas-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>submit-descriptor</id>
-                                <goals>
-                                    <goal>submit-descriptor</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

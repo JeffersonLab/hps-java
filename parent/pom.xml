@@ -245,10 +245,10 @@
                     <execution>
                         <phase>generate-test-resources</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <!-- Create the directory for test output. -->
                                 <mkdir dir="${project.build.directory}/test-output" />
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -272,6 +272,7 @@
             <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
             <roles>
                 <role>developer</role>
+                <role>release manager</role>
             </roles>
             <timezone>-8</timezone>
             <properties>
@@ -284,7 +285,7 @@
             <organization>Thomas Jefferson National Accelerator Laboratory</organization>
             <organizationUrl>http://www.jlab.org/</organizationUrl>
             <roles>
-                <role>mad scientist</role>
+                <role>developer</role>
             </roles>
             <timezone>-5</timezone>
             <properties>

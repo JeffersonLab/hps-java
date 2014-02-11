@@ -32,6 +32,7 @@
         <module>monitoring-app</module>
         <module>users</module>
         <module>distribution</module>
+        <module>plugin</module>
     </modules>
 
 </project>
