@@ -55,11 +55,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double tp = 14.0;
     //TODO: set riseTime, fallTime, pulseDelay
     //pulse rise time in ns
-    private double riseTime = 14.0;
+    private double riseTime = 10.0;
     //pulse fall time in ns
-    private double fallTime = 14.0;
+    private double fallTime = 17.0;
     //pulse delay time in ns
-    private double pulseDelay = 14.0;
+    private double pulseDelay = 3 * riseTime;
     //delay (number of readout periods) between start of summing window and output of hit to clusterer
     private int delay0 = 32;
     //start of readout window relative to trigger time (in readout cycles)
@@ -91,6 +91,12 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean constantTriggerWindow = false;
     private boolean addNoise = false;
     //TODO: change to 2014 value
+    private double lightYield = 120.; // number of photons per MeV
+    private double quantumEff = 0.7;  // quantum efficiency of the APD
+    private double surfRatio = (10. * 10.) / (16 * 16); // surface ratio between APD and crystals
+    private double gainAPD = 150.; // Gain of the APD
+    private double elemCharge = 1.60217657e-19;
+    private double gainPreAmpl = 0.550e12; // Gain of the preamplifier in V/C, true value is higher but does not take into account losses
     private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
 
     public FADCEcalReadoutDriver() {
@@ -203,20 +209,29 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
         for (Long cellID : eDepMap.keySet()) {
             RingBuffer eDepBuffer = eDepMap.get(cellID);
+// TODO : gain is not necessary anymore for 2014 run, as I have introduced all the variables in the same function
+// If a variable gain should be introduced from a database, it should be done in pulseAmplitude in order to have all the information at the same place
+// Pedestal should stay here
 
             FADCPipeline pipeline = pipelineMap.get(cellID);
             pipeline.step();
             double pedestal = EcalConditions.physicalToPedestal(cellID);
-            //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
-            double gain;
-            if (fixedGain > 0) {
-                gain = readoutPeriod / (fixedGain * ECalUtils.MeV);
+
+            double currentValue;
+            if (useCRRCShape) {
+                //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
+                double gain;
+                if (fixedGain > 0) {
+                    gain = readoutPeriod / (fixedGain * ECalUtils.MeV);
+                } else {
+                    gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV);
+                }
+                currentValue = gain * eDepBuffer.currentValue();
             } else {
-                gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV);
+                currentValue = eDepBuffer.currentValue() * 4095.0 / 2.0; //12-bit ADC with 2 V range
             }
 
-            double currentValue = gain * eDepBuffer.currentValue();
-            pipeline.writeValue((int) Math.round(pedestal + currentValue));
+            pipeline.writeValue(Math.min((int) Math.round(pedestal + currentValue), 4095)); //ADC can't return a value larger than 4095
 
             Double sum = sumMap.get(cellID);
             if (sum == null && currentValue > triggerThreshold) {
@@ -417,7 +432,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
             }
             for (int i = 0; i < bufferLength; i++) {
-                eDepBuffer.addToCell(i, energyAmplitude * pulseAmplitude((i + 1) * readoutPeriod + readoutTime() - (ClockSingleton.getTime() + hit.getTime())));
+                eDepBuffer.addToCell(i, energyAmplitude * pulseAmplitude((i + 1) * readoutPeriod + readoutTime() - (ClockSingleton.getTime() + hit.getTime()), hit.getCellID()));
             }
         }
     }
@@ -452,7 +467,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         return true;
     }
 
-    private double pulseAmplitude(double time) {
+    private double pulseAmplitude(double time, long cellID) {
         if (useCRRCShape) {
             if (time <= 0.0) {
                 return 0.0;
@@ -466,9 +481,25 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     return 0.0;
                 }
             }
-        } else {
-            return 0.0; //TODO: new pulse shape definition for 2014
+        } else {   // According to measurements the output signal can be fitted by two gaussians, one for the rise of the signal, one for the fall
+            // Time corresponds to t-(t_eve+pulseDelay) such that the maximum of the amplitude is reached pulseDelay ns after the event t_eve
+            // Without the coefficient, the integral is equal to 1 - 1 per 1000
+            if (time <= 0.0) {
+                return 0.0;
+            }
+            double norm = ((riseTime + fallTime) / 2) * 1e-9 * Math.sqrt(2 * Math.PI); //to ensure the total integral is equal to 1; gives 3.3839e-8 for default rise and fall times
+
+            if (time < pulseDelay) {
+                return lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - pulseDelay, riseTime) / norm;
+            } else {
+                return lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - pulseDelay, fallTime) / norm;
+            }
         }
+    }
+
+    // Gaussian function needed for the calculation of the pulse shape amplitude  
+    public static double funcGaus(double t, double sig) {
+        return Math.exp(-t * t / (2 * sig * sig));
     }
 
     private class FADCPipeline {
