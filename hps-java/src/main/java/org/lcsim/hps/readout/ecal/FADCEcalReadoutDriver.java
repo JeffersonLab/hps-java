@@ -35,9 +35,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
     String ecalName = "Ecal";
     Subdetector ecal;
-    //buffer for deposited energy
-    private Map<Long, RingBuffer> eDepMap = null;
-    //ADC pipeline for readout
+    //buffer for preamp signals (units of volts, no pedestal)
+    private Map<Long, RingBuffer> signalMap = null;
+    //ADC pipeline for readout (units of ADC counts)
     private Map<Long, FADCPipeline> pipelineMap = null;
     //buffer for window sums
     private Map<Long, Double> sumMap = null;
@@ -53,13 +53,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean useCRRCShape = false;
     //shaper time constant in ns; negative values generate square pulses of the given width (for test run sim)
     private double tp = 14.0;
-    //TODO: set riseTime, fallTime, pulseDelay
     //pulse rise time in ns
     private double riseTime = 10.0;
     //pulse fall time in ns
     private double fallTime = 17.0;
-    //pulse delay time in ns
-    private double pulseDelay = 3 * riseTime;
     //delay (number of readout periods) between start of summing window and output of hit to clusterer
     private int delay0 = 32;
     //start of readout window relative to trigger time (in readout cycles)
@@ -90,14 +87,14 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double fixedGain = -1;
     private boolean constantTriggerWindow = false;
     private boolean addNoise = false;
-    //TODO: change to 2014 value
+    private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
+    //parameters for 2014 APDs and preamp
     private double lightYield = 120. / ECalUtils.MeV; // number of photons per MeV
     private double quantumEff = 0.7;  // quantum efficiency of the APD
     private double surfRatio = (10. * 10.) / (16 * 16); // surface ratio between APD and crystals
     private double gainAPD = 150.; // Gain of the APD
     private double elemCharge = 1.60217657e-19;
     private double gainPreAmpl = 0.550e12; // Gain of the preamplifier in V/C, true value is higher but does not take into account losses
-    private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
 
     public FADCEcalReadoutDriver() {
         flags = 0;
@@ -175,10 +172,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         this.pePerMeV = pePerMeV;
     }
 
-    public void setPulseDelay(double pulseDelay) {
-        this.pulseDelay = pulseDelay;
-    }
-
     public void setRiseTime(double riseTime) {
         this.riseTime = riseTime;
     }
@@ -207,31 +200,15 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     @Override
     protected void readHits(List<RawCalorimeterHit> hits) {
 
-        for (Long cellID : eDepMap.keySet()) {
-            RingBuffer eDepBuffer = eDepMap.get(cellID);
-// TODO : gain is not necessary anymore for 2014 run, as I have introduced all the variables in the same function
-// If a variable gain should be introduced from a database, it should be done in pulseAmplitude in order to have all the information at the same place
-// Pedestal should stay here
+        for (Long cellID : signalMap.keySet()) {
+            RingBuffer signalBuffer = signalMap.get(cellID);
 
             FADCPipeline pipeline = pipelineMap.get(cellID);
             pipeline.step();
+
+            double currentValue = signalBuffer.currentValue() * 4095.0 / 2.0; //12-bit ADC with 2 V range
             double pedestal = EcalConditions.physicalToPedestal(cellID);
-
-            double currentValue;
-            if (useCRRCShape) {
-                //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
-                double gain;
-                if (fixedGain > 0) {
-                    gain = readoutPeriod / (fixedGain * ECalUtils.MeV);
-                } else {
-                    gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV);
-                }
-                currentValue = gain * eDepBuffer.currentValue();
-            } else {
-                currentValue = eDepBuffer.currentValue() * 4095.0 / 2.0; //12-bit ADC with 2 V range
-            }
-
-            pipeline.writeValue(Math.min((int) Math.round(pedestal + currentValue), 4095)); //ADC can't return a value larger than 4095
+            pipeline.writeValue(Math.min((int) Math.round(pedestal + currentValue), 4096)); //ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
 
             Double sum = sumMap.get(cellID);
             if (sum == null && currentValue > triggerThreshold) {
@@ -277,7 +254,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     }
                 }
             }
-            eDepBuffer.step();
+            signalBuffer.step();
         }
         while (outputQueue.peek() != null && outputQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0) {
             if (outputQueue.peek().getTimeStamp() / 64 < readoutCounter - delay0) {
@@ -424,7 +401,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     protected void putHits(List<CalorimeterHit> hits) {
         //fill the readout buffers
         for (CalorimeterHit hit : hits) {
-            RingBuffer eDepBuffer = eDepMap.get(hit.getCellID());
+            RingBuffer eDepBuffer = signalMap.get(hit.getCellID());
             double energyAmplitude = hit.getRawEnergy();
             if (addNoise) {
                 //add preamp noise and photoelectron Poisson noise in quadrature
@@ -457,11 +434,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         if (ecal == null) {
             return false;
         }
-        eDepMap = new HashMap<Long, RingBuffer>();
+        signalMap = new HashMap<Long, RingBuffer>();
         pipelineMap = new HashMap<Long, FADCPipeline>();
         Set<Long> cells = ((HPSEcal3) ecal).getNeighborMap().keySet();
         for (Long cellID : cells) {
-            eDepMap.put(cellID, new RingBuffer(bufferLength));
+            signalMap.put(cellID, new RingBuffer(bufferLength));
             pipelineMap.put(cellID, new FADCPipeline(pipelineLength, (int) Math.round(EcalConditions.physicalToPedestal(cellID))));
         }
         return true;
@@ -472,8 +449,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (time <= 0.0) {
                 return 0.0;
             }
+
+            //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
+            double gain;
+            if (fixedGain > 0) {
+                gain = readoutPeriod / (fixedGain * ECalUtils.MeV * (4095.0 / 2.0));
+            } else {
+                gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * (4095.0 / 2.0));
+            }
+
             if (tp > 0.0) {
-                return ((time / tp) * Math.exp(1.0 - time / tp)) / (tp * Math.E);
+                return gain * ((time / tp) * Math.exp(1.0 - time / tp)) / (tp * Math.E);
             } else {
                 if (time < -tp) {
                     return 1.0;
@@ -487,12 +473,19 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (time <= 0.0) {
                 return 0.0;
             }
+
+            //if fixedGain is set, multiply the default gain by this factor
+            double gain = 1.0;
+            if (fixedGain > 0) {
+                gain = fixedGain;
+            }
+
             double norm = ((riseTime + fallTime) / 2) * 1e-9 * Math.sqrt(2 * Math.PI); //to ensure the total integral is equal to 1; gives 3.3839e-8 for default rise and fall times
 
-            if (time < pulseDelay) {
-                return lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - pulseDelay, riseTime) / norm;
+            if (time < 3 * riseTime) {
+                return gain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, riseTime) / norm;
             } else {
-                return lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - pulseDelay, fallTime) / norm;
+                return gain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, fallTime) / norm;
             }
         }
     }
