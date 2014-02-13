@@ -91,7 +91,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean constantTriggerWindow = false;
     private boolean addNoise = false;
     //TODO: change to 2014 value
-    private double lightYield = 120.; // number of photons per MeV
+    private double lightYield = 120. / ECalUtils.MeV; // number of photons per MeV
     private double quantumEff = 0.7;  // quantum efficiency of the APD
     private double surfRatio = (10. * 10.) / (16 * 16); // surface ratio between APD and crystals
     private double gainAPD = 150.; // Gain of the APD
