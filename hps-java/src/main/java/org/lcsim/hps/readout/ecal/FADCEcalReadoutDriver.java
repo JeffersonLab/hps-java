@@ -197,6 +197,23 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         }
     }
 
+    
+    /**
+     * Return the map of preamp signal buffers. For debug only.
+     * @return
+     */
+    public Map<Long, RingBuffer> getSignalMap() {
+        return signalMap;
+    }
+
+    /**
+     * Return the map of FADC pipelines. For debug only.
+     * @return
+     */
+    public Map<Long, FADCPipeline> getPipelineMap() {
+        return pipelineMap;
+    }
+
     @Override
     protected void readHits(List<RawCalorimeterHit> hits) {
 
@@ -495,7 +512,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         return Math.exp(-t * t / (2 * sig * sig));
     }
 
-    private class FADCPipeline {
+    public class FADCPipeline {
 
         private int[] array;
         private int size;

@@ -1,7 +1,7 @@
 package org.lcsim.hps.util;
 
 /**
- * Ring buffer for storing ECal (and possibly SVT) samples for trigger and readout
+ * Ring buffer for storing ECal and SVT signals for trigger and readout
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: RingBuffer.java,v 1.5 2012/04/10 01:00:13 meeg Exp $
@@ -9,11 +9,9 @@ package org.lcsim.hps.util;
 public class RingBuffer {
 
 	protected double[] array;
-	protected int size;
 	protected int ptr;
 
 	public RingBuffer(int size) {
-		this.size = size;
 		array = new double[size]; //initialized to 0
 		ptr = 0;
 	}
@@ -28,7 +26,7 @@ public class RingBuffer {
 
 	//return content of specified cell (pos=0 for current cell)
 	public double getValue(int pos) {
-		return array[((ptr + pos) % size + size) % size];
+		return array[((ptr + pos) % array.length + array.length) % array.length];
 	}
 
 	/**
@@ -37,7 +35,7 @@ public class RingBuffer {
 	public void step() {
 		array[ptr] = 0;
 		ptr++;
-		if (ptr == size) {
+		if (ptr == array.length) {
 			ptr = 0;
 		}
 	}
@@ -48,6 +46,10 @@ public class RingBuffer {
 	 * @param val 
 	 */
 	public void addToCell(int pos, double val) {
-		array[(ptr + pos) % size] += val;
+		array[(ptr + pos) % array.length] += val;
 	}
+
+    public int getLength() {
+        return array.length;
+    }
 }

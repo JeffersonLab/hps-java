@@ -330,7 +330,7 @@ public class HPSAPV25 {
 
 			@Override
 			public void addToCell(int position, double element) {
-				if (position + _trigger_latency > size) {
+				if (position + _trigger_latency > array.length) {
 					return;
 				}
 				super.addToCell(position + _trigger_latency, element);
@@ -338,7 +338,7 @@ public class HPSAPV25 {
 
 			public void printAnalogPipeline() {
 				System.out.print("[ ");
-				for (int index = 0; index < size; index++) {
+				for (int index = 0; index < array.length; index++) {
 					if (index == ptr) {
 						System.out.print("TP====>");
 					}
