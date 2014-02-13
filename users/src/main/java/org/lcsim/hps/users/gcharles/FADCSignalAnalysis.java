@@ -11,6 +11,7 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Saves histograms of FADC signal buffers before and after hits.
+ *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
  */
@@ -43,7 +44,7 @@ public class FADCSignalAnalysis extends Driver {
             for (CalorimeterHit hit : hits) {
                 hit.getCellID();
                 RingBuffer signalBuffer = readoutDriver.getSignalMap().get(hit.getCellID());
-                String name = String.format("pipeline x=%d, y=%d before hit in event %d, time %f, energy %f", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), event.getEventNumber(), hit.getRawEnergy(), hit.getTime());
+                String name = String.format("pipeline x=%d, y=%d before hit in event %d, time %f, energy %f", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), event.getEventNumber(), hit.getTime(), hit.getRawEnergy());
                 IHistogram1D hist = aida.histogram1D(name, signalBuffer.getLength(), -0.5, signalBuffer.getLength() - 0.5);
                 for (int i = 0; i < signalBuffer.getLength(); i++) {
                     hist.fill(i, signalBuffer.getValue(i));
@@ -62,7 +63,7 @@ public class FADCSignalAnalysis extends Driver {
             for (CalorimeterHit hit : hits) {
                 hit.getCellID();
                 RingBuffer signalBuffer = readoutDriver.getSignalMap().get(hit.getCellID());
-                String name = String.format("pipeline x=%d, y=%d after hit in event %d, time %f, energy %f", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), event.getEventNumber(), hit.getRawEnergy(), hit.getTime());
+                String name = String.format("pipeline x=%d, y=%d after hit in event %d, time %f, energy %f", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), event.getEventNumber(), hit.getTime(), hit.getRawEnergy());
                 IHistogram1D hist = aida.histogram1D(name, signalBuffer.getLength(), -0.5, signalBuffer.getLength() - 0.5);
                 for (int i = 0; i < signalBuffer.getLength(); i++) {
                     hist.fill(i, signalBuffer.getValue(i));
