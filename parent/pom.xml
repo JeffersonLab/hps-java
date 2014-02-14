@@ -13,7 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.0.3</lcsimVersion>
+        <lcsimVersion>3.0.4-SNAPSHOT</lcsimVersion>
     </properties>
     
     <scm>
@@ -279,7 +279,7 @@
                 <aim>jeremyslac</aim>
             </properties>
         </developer>
-    <developer>
+        <developer>
             <name>Sebouh Paul</name>
             <email>sebouh.paul@gmail.com</email>
             <organization>Thomas Jefferson National Accelerator Laboratory</organization>
