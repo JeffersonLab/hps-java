@@ -9,13 +9,13 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.0.1</version>
+        <version>3.0.1-SNAPSHOT</version>
     </parent>
     
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-0.0.1/util</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/util</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/util</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/util/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/util/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/util/</developerConnection>
     </scm>
     
 </project>

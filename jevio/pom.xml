@@ -9,13 +9,13 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.0.1</version>
+        <version>3.0.1-SNAPSHOT</version>
     </parent>
     
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-0.0.1/jevio</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/jevio</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/jevio</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/jevio/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/jevio/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/jevio/</developerConnection>
     </scm>
             
     <build>

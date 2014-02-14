@@ -7,7 +7,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1</version>
+    <version>3.0.1-SNAPSHOT</version>
     <name>parent</name>
 
     <properties>
@@ -17,9 +17,9 @@
     </properties>
     
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-0.0.1/parent</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/parent</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.1/parent</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/parent/</developerConnection>
     </scm>
 
     <repositories>
@@ -85,52 +85,52 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-jevio</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-et</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-java</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>0.0.1</version>
+                <version>3.0.1-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
