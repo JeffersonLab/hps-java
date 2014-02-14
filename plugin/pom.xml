@@ -32,7 +32,7 @@
             <plugin>
                 <groupId>org.freehep</groupId>
                 <artifactId>freehep-jas-plugin</artifactId>
-                <version>3.1.6</version>
+                <version>3.1.7</version>
                 <configuration>
                     <urls>
                         <property>
@@ -50,9 +50,18 @@
                             <value>http://srs.slac.stanford.edu/nexus/service/local/artifact/maven/redirect?r=lcsim-maven2-public</value>
                         </property>
                     </redirectUrls>
-                    <excludes>
-                        <exclude>org.lcsim:lcsim-distribution</exclude>
-                    </excludes>
+                    <includes>
+                        <include>org.hps:hps-users</includes>
+                        <include>org.hps:hps-java</include>
+                        <include>org.hps:hps-conditions</include>
+                        <include>org.hps:hps-util</include>
+                        <include>org.hps:hps-detector-data</include>
+                        <include>org.hps:hps-jevio</include>
+                        <include>org.hps:hps-et</include>
+                        <include>mysql:mysql-connector-java/include>
+                        <include>org.apache.commons:commons-math3</include>
+                        <include>org.hps:cmsg</include>
+                    </includes>
                 </configuration>
                 <executions>
                     <execution>
