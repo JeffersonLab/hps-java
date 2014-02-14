@@ -279,19 +279,6 @@
                 <aim>jeremyslac</aim>
             </properties>
         </developer>
-        <developer>
-            <name>Sebouh Paul</name>
-            <email>sebouh.paul@gmail.com</email>
-            <organization>Thomas Jefferson National Accelerator Laboratory</organization>
-            <organizationUrl>http://www.jlab.org/</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>-5</timezone>
-            <properties>
-                <aim>SebouhPaul314</aim>
-            </properties>
-        </developer>
        <developer>
             <name>Norman Graf</name>
             <email>Norman.Graf@slac.stanford.edu</email>
@@ -345,6 +332,22 @@
             <timezone>-8</timezone>
         </developer>
     </developers>
+
+    <contributors>
+        <contributor>
+            <name>Sebouh Paul</name>
+            <email>sebouh.paul@gmail.com</email>
+            <organization>Thomas Jefferson National Accelerator Laboratory</organization>
+            <organizationUrl>http://www.jlab.org/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-5</timezone>
+            <properties>
+                <aim>SebouhPaul314</aim>
+            </properties>
+        </contributor>
+    </contributors>
 
     <mailingLists>
         <mailingList>
