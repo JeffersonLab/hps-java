@@ -34,13 +34,15 @@ public class GBLStripClusterData implements GenericObject {
 		public static final int TDIRZ = 13;	
 		public static final int TPHI = 14;	
 		public static final int UMEAS = 15;	
-		public static final int TPOSU = 16;	
+		public static final int TPOSU = 16	;	
 		public static final int TPOSV = 17;	
 		public static final int TPOSW = 18;	
 		public static final int UMEASERR = 19;	
 		public static final int MSANGLE = 20;
+		public static final int TLAMBDA = 21;
 		
-		public static final int BANK_DOUBLE_SIZE = 21;
+		
+		public static final int BANK_DOUBLE_SIZE = 22;
 		
 	}
 	// array holding the integer data
@@ -196,6 +198,15 @@ public class GBLStripClusterData implements GenericObject {
 		return getDoubleVal(GBLDOUBLE.TPHI);
 	}
 
+	public void setTrackLambda(double lambda) {
+		bank_double[GBLDOUBLE.TLAMBDA] = lambda;
+	}
+	
+	public double getTrackLambda() {
+		return getDoubleVal(GBLDOUBLE.TLAMBDA);
+	}
+
+	
 	public void setMeas(double umeas) {
 		bank_double[GBLDOUBLE.UMEAS] = umeas;
 	}

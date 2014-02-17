@@ -313,6 +313,7 @@ public class GBLOutput {
                 //GBLDATA
                 stripData.setTrackDir(tDir);
                 stripData.setTrackPhi(phi);
+                stripData.setTrackLambda(lambda);
                 
                 
                 
