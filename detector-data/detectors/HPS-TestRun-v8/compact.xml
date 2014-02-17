@@ -809,7 +809,7 @@
             <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
             <!-- Measurements as found in installation by Stepan -->
             <!-- Moving ecal halves out by 6.5mm from SVT ecal-track matching - Pelle -->
-            <!-- Moving ecal face to reflect latest survey calculation - Pelle -->
+            <!-- Moving ecal face to reflect latest survey calculation 2/17/14 - Pelle -->
             <layout beamgap="43.5*mm" nx="46" ny="5" dface="147.0*cm">
                 <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
                 <top dx="ecal_dx" dy="0." dz="0."/>
