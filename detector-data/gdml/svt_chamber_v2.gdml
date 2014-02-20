@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- 
+  SVT vacuum chamber, based on drawings (https://userweb.jlab.org/~zarecky/Dark_Matter/Pair%20Spec%20Vac%20Box/)
+  Avoids unions/subtractions with coincident faces.
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: svt_chamber.gdml,v 1.4 2013/09/06 23:43:42 meeg Exp $
+-->
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/gdml/1.0/gdml.xsd" >
+
+    <define>
+        <constant name="svt_chamber_box_z" value="609.6"/>
+        <constant name="svt_chamber_flare1_z" value="1285.621"/>
+        <constant name="svt_chamber_flare2_z" value="1478.407"/>
+        <constant name="svt_chamber_flange_z" value="1614.297"/>
+        <constant name="svt_chamber_x" value="21.17"/>
+        <constant name="svt_chamber_z" value="1318-1623.822"/>
+    </define>
+
+    <materials>
+        <element Z="26" formula="Fe" name="Iron" >
+            <atom value="55.845" />
+        </element>
+        <element Z="24" formula="Cr" name="Chromium" >
+            <atom value="51.9961" />
+        </element>
+        <element Z="28" formula="Ni" name="Nickel" >
+            <atom value="58.6934" />
+        </element>
+        <material formula=" " name="Stainless_304" >
+            <D value="8.00" />
+            <fraction n="0.733078" ref="Iron" />
+            <fraction n="0.191516" ref="Chromium" />
+            <fraction n="0.075406" ref="Nickel" />
+        </material>
+        <material Z="1" name="G4_Galactic" state="gas">
+            <T unit="K" value="2.73"/>
+            <P unit="pascal" value="3e-18"/>
+            <!-- <MEE unit="eV" value="21.8"/> -->
+            <D unit="g/cm3" value="2e-25"/>
+            <atom unit="g/mole" value="1.01"/>
+        </material>
+    </materials>
+
+    <solids>
+        <box lunit="mm" name="svt_chamber_outer_box" x="454.152" y="203.2" z="1219.2"/>
+        <box lunit="mm" name="svt_chamber_inner_box" x="416.052" y="177.8" z="1221.2"/>
+        <subtraction name="svt_chamber_box">
+            <first ref="svt_chamber_outer_box"/>
+            <second ref="svt_chamber_inner_box"/>
+        </subtraction>
+
+        <trd lunit="mm" name="svt_chamber_outer_flare1" x1="454.152" x2="454.152" y1="203.2" y2="254.832" z="132.842"/>
+        <trd lunit="mm" name="svt_chamber_inner_flare1" x1="416.052" x2="416.052" y1="172.864" y2="234.368" z="158.242"/>
+        <subtraction name="svt_chamber_flare1">
+            <first ref="svt_chamber_outer_flare1"/>
+            <second ref="svt_chamber_inner_flare1"/>
+        </subtraction>
+
+        <trd lunit="mm" name="svt_chamber_outer_flare2" x1="454.152" x2="679.704" y1="254.832" y2="353.06" z="252.73"/>
+        <trd lunit="mm" name="svt_chamber_inner_flare2" x1="404.718" x2="652.938" y1="224.496" y2="332.596" z="278.13"/>
+        <subtraction name="svt_chamber_flare2">
+            <first ref="svt_chamber_outer_flare2"/>
+            <second ref="svt_chamber_inner_flare2"/>
+        </subtraction>
+
+        <box lunit="mm" name="svt_chamber_outer_flange" x="768.35" y="457.2" z="19.05"/>
+        <box lunit="mm" name="svt_chamber_inner_flange" x="654.05" y="342.9" z="25.4"/>
+        <subtraction name="svt_chamber_flange">
+            <first ref="svt_chamber_outer_flange"/>
+            <second ref="svt_chamber_inner_flange"/>
+        </subtraction>
+
+        <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" /> 
+    </solids>
+
+    <structure>
+        <volume name="svt_chamber_box_vol">
+            <materialref ref="Stainless_304"/>
+            <solidref ref="svt_chamber_box"/>
+        </volume>
+        <volume name="svt_chamber_flare1_vol">
+            <materialref ref="Stainless_304"/>
+            <solidref ref="svt_chamber_flare1"/>
+        </volume>
+        <volume name="svt_chamber_flare2_vol">
+            <materialref ref="Stainless_304"/>
+            <solidref ref="svt_chamber_flare2"/>
+        </volume>
+        <volume name="svt_chamber_flange_vol">
+            <materialref ref="Stainless_304"/>
+            <solidref ref="svt_chamber_flange"/>
+        </volume>
+        <volume name="tracking_volume" > 
+            <materialref ref="G4_Galactic" /> 
+            <solidref ref="WorldBox" /> 
+            <physvol> 
+                <volumeref ref="svt_chamber_box_vol" /> 
+                <position name="svt_chamber_box_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_box_z" />      
+            </physvol> 
+            <physvol> 
+                <volumeref ref="svt_chamber_flare1_vol" /> 
+                <position name="svt_chamber_flare1_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare1_z" />      
+            </physvol> 
+            <physvol> 
+                <volumeref ref="svt_chamber_flare2_vol" /> 
+                <position name="svt_chamber_flare2_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare2_z" />      
+            </physvol> 
+            <physvol> 
+                <volumeref ref="svt_chamber_flange_vol" /> 
+                <position name="svt_chamber_flange_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flange_z" />      
+            </physvol> 
+        </volume> 
+    </structure>
+
+    <setup name="Default" version="1.0">
+        <world ref="tracking_volume"/>
+    </setup>
+
+</gdml>
