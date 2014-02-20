@@ -186,6 +186,18 @@
                 <version>2.3</version>
             </extension>
         </extensions>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                    <configuration>
+                        <chmod>false</chmod>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -233,9 +245,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.3</version>
+                <inherited>false</inherited>
                 <configuration>
-                    <chmod>false</chmod>
+                    <skip>true</skip>
+                    <skipDeploy>true</skipDeploy>
                 </configuration>
             </plugin>
             <plugin>
