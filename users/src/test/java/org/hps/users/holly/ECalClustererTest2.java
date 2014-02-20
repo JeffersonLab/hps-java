@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.List;
 
 import junit.framework.TestCase;
-import main.java.org.hps.users.holly.EcalClusterIC;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -13,7 +12,7 @@ import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCSimLoop;
 
-public class ECalClustererTest extends TestCase {
+public class ECalClustererTest2 extends TestCase {
 
     static String hitCollectionName = "EcalHits";
     static String clusterCollectionName = "EcalClusters";

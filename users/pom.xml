@@ -33,6 +33,7 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/users/holly/ECalClustererTest.java</exclude>
+                        <exclude>org/hps/users/holly/ECalClustererTest2.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
