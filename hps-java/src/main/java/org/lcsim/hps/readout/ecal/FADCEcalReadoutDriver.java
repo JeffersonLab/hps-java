@@ -81,6 +81,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private int mode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
     private int readoutThreshold = 50;
     private int triggerThreshold = 50;
+    //number of bits used by the fADC to code a value
+    private int nBit = 12;
+    //maximum volt output of the fADC
+    private double maxVolt = 2.0;
     //amplitude ADC counts/GeV
 //    private double gain = 0.5*1000 * 80.0 / 60;
     private double scaleFactor = 128;
@@ -89,12 +93,13 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean addNoise = false;
     private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
     //parameters for 2014 APDs and preamp
-    private double lightYield = 120. / ECalUtils.MeV; // number of photons per MeV
+    private double lightYield = 120. / ECalUtils.MeV; // number of photons per GeV
     private double quantumEff = 0.7;  // quantum efficiency of the APD
     private double surfRatio = (10. * 10.) / (16 * 16); // surface ratio between APD and crystals
     private double gainAPD = 150.; // Gain of the APD
     private double elemCharge = 1.60217657e-19;
-    private double gainPreAmpl = 0.550e12; // Gain of the preamplifier in V/C, true value is higher but does not take into account losses
+    private double gainPreAmpl = 525e12; // Gain of the preamplifier in pC/pC, true value is higher but does not take into account losses
+    private double Req = 1.0 / 27.5; // equivalent resistance of the amplification chain
 
     public FADCEcalReadoutDriver() {
         flags = 0;
@@ -197,9 +202,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         }
     }
 
-    
     /**
      * Return the map of preamp signal buffers. For debug only.
+     *
      * @return
      */
     public Map<Long, RingBuffer> getSignalMap() {
@@ -208,6 +213,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
     /**
      * Return the map of FADC pipelines. For debug only.
+     *
      * @return
      */
     public Map<Long, FADCPipeline> getPipelineMap() {
@@ -223,9 +229,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             FADCPipeline pipeline = pipelineMap.get(cellID);
             pipeline.step();
 
-            double currentValue = signalBuffer.currentValue() * 4095.0 / 2.0; //12-bit ADC with 2 V range
+            double currentValue = signalBuffer.currentValue() * ((Math.pow(2, nBit) - 1) / maxVolt); //12-bit ADC with maxVolt V range
             double pedestal = EcalConditions.physicalToPedestal(cellID);
-            pipeline.writeValue(Math.min((int) Math.round(pedestal + currentValue), 4096)); //ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
+            pipeline.writeValue(Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit))); //ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
+            //System.out.println(signalBuffer.currentValue() + "   " + currentValue + "   " + pipeline.currentValue());
 
             Double sum = sumMap.get(cellID);
             if (sum == null && currentValue > triggerThreshold) {
@@ -470,9 +477,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
             double gain;
             if (fixedGain > 0) {
-                gain = readoutPeriod / (fixedGain * ECalUtils.MeV * (4095.0 / 2.0));
+                gain = readoutPeriod / (fixedGain * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             } else {
-                gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * (4095.0 / 2.0));
+                gain = readoutPeriod / (EcalConditions.physicalToGain(cellID) * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             }
 
             if (tp > 0.0) {
@@ -486,23 +493,25 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             }
         } else {   // According to measurements the output signal can be fitted by two gaussians, one for the rise of the signal, one for the fall
             // Time corresponds to t-(t_eve+pulseDelay) such that the maximum of the amplitude is reached pulseDelay ns after the event t_eve
-            // Without the coefficient, the integral is equal to 1 - 1 per 1000
+            // Without the coefficient, the integral is equal to 1
             if (time <= 0.0) {
                 return 0.0;
             }
 
             //if fixedGain is set, multiply the default gain by this factor
-            double gain = 1.0;
+            double corrGain = 1.0;
             if (fixedGain > 0) {
-                gain = fixedGain;
+                corrGain = fixedGain;
+            } else {
+                corrGain = 1.0 / EcalConditions.physicalToGain(cellID);
             }
 
-            double norm = ((riseTime + fallTime) / 2) * 1e-9 * Math.sqrt(2 * Math.PI); //to ensure the total integral is equal to 1; gives 3.3839e-8 for default rise and fall times
+            double norm = ((riseTime + fallTime) / 2) * Math.sqrt(2 * Math.PI) / Req; //to ensure the total integral is equal to 1/R, R is necessary for homogeneity
 
             if (time < 3 * riseTime) {
-                return gain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, riseTime) / norm;
+                return corrGain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, riseTime) / norm;
             } else {
-                return gain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, fallTime) / norm;
+                return corrGain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, fallTime) / norm;
             }
         }
     }
