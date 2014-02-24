@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Proposal2014-v6-2pt2" />
-    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v6-2pt2/compact.xml" checksum="2656040990" />
+    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v6-2pt2/compact.xml" checksum="503201413" />
     <author name="NONE" />
     <comment>HPS detector for 2014 proposal @ 2.2GeV</comment>
   </header>
@@ -312,16 +312,18 @@
       <rotation name="TrackerRecoil_TestRunModuleRecoil_layer2_module0_rotation" x="0.0" y="3.11107265359" z="-4.812388980385" unit="radian" />
       <position name="TrackerRecoil_TestRunModuleRecoil_layer2_module1_position" x="4.918602528234072" y="-21.419865625949214" z="161.10993629869404" unit="mm" />
       <rotation name="TrackerRecoil_TestRunModuleRecoil_layer2_module1_rotation" x="0.0" y="3.11107265359" z="-4.7123889803850005" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="-5.0E-9" unit="mm" />
+      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="TestRunModuleFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TestRunModuleFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="TestRunModuleFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component1_position" x="0.0" y="0.0" z="5.0E-9" unit="mm" />
-      <rotation name="TestRunModuleFieldDefVolume_component1_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
       <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
-      <position name="TrackerFieldDef_TestRunModuleFieldDef_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
-      <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
+      <rotation name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="crystal1-1_pos_pos_bot" x="50.052304484827026" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0084372997827221" z="0.0" unit="radian" />
       <position name="crystal1-1_pos_neg_bot" x="35.00282593403595" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
@@ -1313,10 +1315,12 @@
       <box name="TestRunModuleRecoilBox" x="40.34" y="100.0" z="1.0E-8" />
       <box name="TestRunModuleRecoilVolume_component0Box" x="40.34" y="100.0" z="1.0E-8" />
       <box name="TestRunModuleRecoilVolume_component0Sensor0Box" x="38.3399" y="98.33" z="1.0E-8" />
-      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="2.0E-8" />
+      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="1.0E-8" />
       <box name="TestRunModuleFieldDefVolume_component0Box" x="177.8" y="416.052" z="1.0E-8" />
       <box name="TestRunModuleFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="1.0E-8" />
-      <box name="TestRunModuleFieldDefVolume_component1Box" x="177.8" y="416.052" z="1.0E-8" />
+      <box name="TestRunModuleFieldDefFlare2Box" x="210.37903820816865" y="416.052" z="1.0E-8" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Box" x="210.37903820816865" y="416.052" z="1.0E-8" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" x="210.37903820816865" y="416.052" z="1.0E-8" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
       <eltube name="flange_egap_inside_tube" lunit="mm" dx="26.33" dy="26.33" dz="30" />
       <eltube name="flange_photontube_inside" lunit="mm" dx="11" dy="11" dz="30" />
@@ -1569,10 +1573,6 @@
           <physvolid field_name="sensor" value="0" />
         </physvol>
       </volume>
-      <volume name="TestRunModuleFieldDefVolume_component1">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefVolume_component1Box" />
-      </volume>
       <volume name="TestRunModuleFieldDefVolume">
         <materialref ref="Vacuum" />
         <solidref ref="TestRunModuleFieldDefBox" />
@@ -1582,11 +1582,30 @@
           <rotationref ref="TestRunModuleFieldDefVolume_component0_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Box" />
         <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume_component1" />
-          <positionref ref="TestRunModuleFieldDefVolume_component1_position" />
-          <rotationref ref="TestRunModuleFieldDefVolume_component1_rotation" />
-          <physvolid field_name="component" value="1" />
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0_position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
       <volume name="crystal_volume">
@@ -2000,9 +2019,9 @@
           <physvolid field_name="module" value="0" />
         </physvol>
         <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume" />
-          <positionref ref="TrackerFieldDef_TestRunModuleFieldDef_layer2_module0_position" />
-          <rotationref ref="TrackerFieldDef_TestRunModuleFieldDef_layer2_module0_rotation" />
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume" />
+          <positionref ref="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" />
+          <rotationref ref="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="2" />

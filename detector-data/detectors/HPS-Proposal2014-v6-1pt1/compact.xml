@@ -310,13 +310,18 @@
                 <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="true">
                     <dimensions x="dipoleMagnetWidth" y="dipoleMagnetHeight" /> 
                 </module_component>
-                <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="false"/> 
+            </module>            
+            <module name="TestRunModuleFieldDefFlare2">
+                <box x="416.052" y="177.8+(327.66-177.8)*(dipoleMagnetPositionZ+dipoleMagnetLength/2-913.378)/385.572" />
+                <module_component thickness="0.000000001*cm" material = "Vacuum" sensitive="true">
+                    <dimensions x="416.052" y="177.8+(327.66-177.8)*(dipoleMagnetPositionZ+dipoleMagnetLength/2-913.378)/385.572" /> 
+                </module_component>
             </module>            
             <layer id="1">
                 <module_placement name="TestRunModuleFieldDef" id="0" x="dipoleMagnetPositionX" y="0" z="dipoleMagnetPositionZ-dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2">
-                <module_placement name="TestRunModuleFieldDef" id="0" x="dipoleMagnetPositionX" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="TestRunModuleFieldDefFlare2" id="0" x="dipoleMagnetPositionX" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
             </layer>
         </detector>     
         
