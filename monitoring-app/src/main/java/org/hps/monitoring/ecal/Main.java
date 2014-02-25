@@ -26,9 +26,12 @@ public class Main {
                 (screenHeight - window.getPreferredSize().height) / 2);
         window.setDataSource("cluster-hit.txt");
         window.displayNextEvent();
-        window.setVisible(true);
         
-        // makeData();
+        /**
+        int key = 0;
+        while((key = System.in.read()) != 10) { }
+        **/
+        window.setVisible(true);
     }
     
     static void makeData() {

@@ -34,7 +34,7 @@ public class Datum {
      * <b>getX</b><br/><br/>
      * <code>public int <b>getX</b>()</code><br/><br/>
      * Indicates the x-coordinate of the object.
-     * @return Returns the x-cooridinate as an <code>int</code>.
+     * @return Returns the x-coordinate as an <code>int</code>.
      **/
     public int getX() { return loc.x; }
     
@@ -42,7 +42,7 @@ public class Datum {
      * <b>getY</b><br/><br/>
      * <code>public int <b>getY</b>()</code><br/><br/>
      * Indicates the y-coordinate of the object.
-     * @return Returns the y-coordiate as an <code>int</code>.
+     * @return Returns the y-coordinate as an <code>int</code>.
      **/
     public int getY() { return loc.y; }
     
