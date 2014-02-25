@@ -4,7 +4,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-modules</artifactId>
     <packaging>pom</packaging>
-    <name>modules</name>
+    <name>HPS Java Project</name>
     <description>HPS module build</description>
     <url>http://www.lcsim.org/sites/hps/</url>
 
@@ -20,21 +20,6 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
     </scm>
-
-    <modules>
-        <module>parent</module>
-        <module>util</module>
-        <module>jevio</module>
-        <module>et</module>
-        <module>detector-data</module>
-        <module>conditions</module>
-        <module>hps-java</module>
-        <module>monitoring-drivers</module>
-        <module>monitoring-app</module>
-        <module>users</module>
-        <module>distribution</module>
-        <module>plugin</module>
-    </modules>
 
     <distributionManagement>
         <site>
@@ -137,5 +122,42 @@
             </plugin>
         </plugins>
     </reporting>
+    
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>parent</module>
+                <module>util</module>
+                <module>jevio</module>
+                <module>et</module>
+                <module>detector-data</module>
+                <module>conditions</module>
+                <module>hps-java</module>
+                <module>monitoring-drivers</module>
+                <module>monitoring-app</module>
+                <module>users</module>
+                <module>distribution</module>
+                <module>plugin</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>site</id>
+            <modules>
+                <module>conditions</module>
+                <module>et</module>
+                <module>hps-java</module>                
+                <module>jevio</module>
+                <module>monitoring-app</module>
+                <module>monitoring-drivers</module>
+                <module>plugin</module>                                                                              
+                <module>users</module>                
+                <module>util</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>
