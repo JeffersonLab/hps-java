@@ -32,6 +32,10 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
+    public void setUse2014Gain(boolean use2014Gain) {
+        converter.setUse2014Gain(use2014Gain);
+    }
+
     public void setRunBackwards(boolean runBackwards) {
         this.runBackwards = runBackwards;
     }

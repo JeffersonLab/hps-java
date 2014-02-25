@@ -15,6 +15,7 @@ public class EcalRawConverter {
     private boolean debug = false;
     private boolean constantGain = false;
     private double gain;
+    private boolean use2014Gain = false;
 
     public EcalRawConverter() {
     }
@@ -24,7 +25,11 @@ public class EcalRawConverter {
         this.gain = gain;
     }
 
-    public short sumADC(RawTrackerHit hit) {
+    public void setUse2014Gain(boolean use2014Gain) {
+        this.use2014Gain = use2014Gain;
+    }
+
+    private short sumADC(RawTrackerHit hit) {
         //Sum all pedestal subtracted ADC values 
         //return scale * (amplitude + 0.5) + pedestal;
         if (debug) {
@@ -45,12 +50,7 @@ public class EcalRawConverter {
     public CalorimeterHit HitDtoA(RawTrackerHit hit) {
         double time = hit.getTime();
         long id = hit.getCellID();
-        double rawEnergy;
-        if (constantGain) {
-            rawEnergy = gain * sumADC(hit) * ECalUtils.MeV;
-        } else {
-            rawEnergy = EcalConditions.physicalToGain(id) * sumADC(hit) * ECalUtils.MeV;
-        }
+        double rawEnergy = adcToEnergy(sumADC(hit), id);
 //        double[] pos = hit.getDetectorElement().getGeometry().getPosition().v();
         CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
@@ -63,19 +63,15 @@ public class EcalRawConverter {
         }
         double time = hit.getTimeStamp() / 16.0;
         long id = hit.getCellID();
-        double rawEnergy;
-        if (constantGain) {
-            rawEnergy = gain * (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id)) * ECalUtils.MeV;
-        } else {
-            rawEnergy = EcalConditions.physicalToGain(id) * (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id)) * ECalUtils.MeV;
-        }
+        double adcSum = hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id);
+        double rawEnergy = adcToEnergy(adcSum, id);
         CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;
     }
 
     public RawCalorimeterHit HitAtoD(CalorimeterHit hit, int window) {
-        int time = (int) (Math.round(hit.getTime()/4.0) * 64.0);
+        int time = (int) (Math.round(hit.getTime() / 4.0) * 64.0);
         long id = hit.getCellID();
         int amplitude;
         if (constantGain) {
@@ -87,15 +83,35 @@ public class EcalRawConverter {
         return h;
     }
 
-    public static CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double g) {
-        if (hit.getTimeStamp() % 64 != 0) {
-            System.out.println("unexpected timestamp " + hit.getTimeStamp());
+    /*
+     * return energy (units of GeV) corresponding to the ADC sum and crystal ID
+     */
+    private double adcToEnergy(double adcSum, long cellID) {
+        if (use2014Gain) {
+            if (constantGain) { //TODO: use new formula
+                return 0.0;
+            } else {
+                return 0.0;
+            }
+        } else {
+            if (constantGain) {
+                return gain * adcSum * ECalUtils.MeV;
+            } else {
+                return EcalConditions.physicalToGain(cellID) * adcSum * ECalUtils.MeV; //gain is defined as MeV/integrated ADC
+            }
         }
-        double time = hit.getTimeStamp() / 16.0;
-        long id = hit.getCellID();
-        double rawEnergy = g * (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id)) * ECalUtils.MeV;
-        CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
-        //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
-        return h;
     }
+    /*
+     public static CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double g) {
+     if (hit.getTimeStamp() % 64 != 0) {
+     System.out.println("unexpected timestamp " + hit.getTimeStamp());
+     }
+     double time = hit.getTimeStamp() / 16.0;
+     long id = hit.getCellID();
+     double rawEnergy = g * (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id)) * ECalUtils.MeV;
+     CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
+     //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
+     return h;
+     }
+     */
 }
