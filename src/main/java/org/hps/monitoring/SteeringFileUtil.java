@@ -17,8 +17,6 @@ import java.util.jar.JarFile;
  */
 public class SteeringFileUtil {
 
-    private static final String path = "org/lcsim/hps/steering/";
-
     /**
      * Get the files that end in .lcsim from all loaded jar files.
      * @return
@@ -36,10 +34,8 @@ public class SteeringFileUtil {
             Enumeration<JarEntry> entries = archive.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if (entry.getName().startsWith(path)) {
-                    if (entry.getName().endsWith(".lcsim")) {
-                        resources.add(entry.getName());
-                    }
+                if (entry.getName().endsWith(".lcsim")) {
+                    resources.add(entry.getName());
                 }
             }
             archive.close();
