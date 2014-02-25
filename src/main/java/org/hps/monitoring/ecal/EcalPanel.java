@@ -1,12 +1,10 @@
 package org.hps.monitoring.ecal;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
+import java.awt.Point;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -24,6 +22,8 @@ public class EcalPanel extends JPanel {
     private static final long serialVersionUID = 6292751227464151897L;
     // The color used for rendering seed hits.
     private Color clusterColor = Color.GREEN;
+    // The default color of the calorimeter crystals.
+    private Color defaultColor = null;
     // The color-mapping scale used by to color calorimeter crystals.
     private MultiGradientScale scale = MultiGradientScale.makeRainbowScale(0.0, 1.0);
     // The number of boxes in the x-direction.
@@ -32,26 +32,25 @@ public class EcalPanel extends JPanel {
     private int yBoxes = 1;
     // The width of the scale.
     private int scaleWidth = 75;
-    // Whether the scale has changed or not since its last rendering.
-    private boolean scaleChanged = true;
     // Stores which calorimeter crystals are disabled.
     private boolean[][] disabled;
     // Stores the energies in each calorimeter crystal.
     private double[][] hit;
     // Stores whether a crystal is the location of a seed hit.
     private boolean[][] cluster;
-    // Stores whether a crystal has changed.
-    private boolean changed[][];
-    // Stores whether the panel size has chaged.
-    private boolean sizeChanged = true;
+    // Stores what color to highlight the crystal with.
+    private Color[][] highlight;
     // The panel on which the scale is rendered.
-    ScalePanel scalePanel = new ScalePanel();
+    private ScalePanel scalePanel = new ScalePanel();
+    // Store the size of the panel as of the last refresh.
+	private int[] lastSize = new int[2];
     
     // Efficiency variables for crystal placement.
-    int boxWidth = 0;
-    int widthRem = 0;
-    int boxHeight = 0;
-    int heightRem = 0;
+    private int[] widths;
+    private int[] heights;
+    private int[] xPosition;
+    private int[] yPosition;
+    private int[] clusterSpace = new int[3];
     
     /**
      * <b>EcalPanel</b><br/><br/>
@@ -67,17 +66,27 @@ public class EcalPanel extends JPanel {
         xBoxes = numXBoxes;
         yBoxes = numYBoxes;
         
-        // Initialize the arrays.
+        // Initialize data the arrays.
         disabled = new boolean[xBoxes][yBoxes];
         hit = new double[xBoxes][yBoxes];
         cluster = new boolean[xBoxes][yBoxes];
-        changed = new boolean[xBoxes][yBoxes];
+        highlight = new Color[xBoxes][yBoxes];
+        
+        for(int x = 0; x < xBoxes; x++) {
+        	for(int y = 0; y < yBoxes; y++) {
+        		highlight[x][y] = null;
+        	}
+        }
+        
+        // Initialize the size arrays,
+        widths = new int[xBoxes];
+        heights = new int[yBoxes];
+        xPosition = new int [xBoxes + 1];
+        yPosition = new int[yBoxes + 1];
         
         // Add the scale panel.
         setLayout(null);
         add(scalePanel);
-        sizeChanged = true;
-        scaleChanged = true;
     }
     
     /**
@@ -95,7 +104,6 @@ public class EcalPanel extends JPanel {
     public void setCrystalEnabled(int xIndex, int yIndex, boolean active) throws IndexOutOfBoundsException {
         if (xIndex >= 0 && xIndex < xBoxes && yIndex >= 0 && yIndex < yBoxes) {
             disabled[xIndex][yIndex] = !active;
-            changed[xIndex][yIndex] = true;
         }
         else {
             throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", xIndex, yIndex));
@@ -116,7 +124,6 @@ public class EcalPanel extends JPanel {
     public void addCrystalEnergy(int xIndex, int yIndex, double energy) throws IndexOutOfBoundsException {
         if (xIndex >= 0 && xIndex < xBoxes && yIndex >= 0 && yIndex < yBoxes) {
             this.hit[xIndex][yIndex] += energy;
-            changed[xIndex][yIndex] = true;
         }
         else {
             throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", xIndex, yIndex));
@@ -137,7 +144,26 @@ public class EcalPanel extends JPanel {
     public void setCrystalCluster(int xIndex, int yIndex, boolean cluster) throws IndexOutOfBoundsException {
         if (xIndex >= 0 && xIndex < xBoxes && yIndex >= 0 && yIndex < yBoxes) {
             this.cluster[xIndex][yIndex] = cluster;
-            changed[xIndex][yIndex] = true;
+        }
+        else {
+            throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", xIndex, yIndex));
+        }
+    }
+    
+    /**
+     * <b>setCrystalHighlight</b><br/><br/>
+     * <code>public void <b>setCrystalHighlight</b>(int xIndex, int yIndex, Color highlight)</code><br/><br/>
+     * @param xIndex - The x-coordinate of the crystal.
+     * @param yIndex - The y-coordinate of the crystal.
+     * @param highlight - The color which the indicated crystal should
+     * be highlighted. A value of <code>null</code> indicates that no
+     * highlight should be used.
+     * @throws IndexOutOfBoundsException Occurs when the given xy
+     * crystal coordinate does not point to a crystal.
+     */
+    public void setCrystalHighlight(int xIndex, int yIndex, Color highlight) throws IndexOutOfBoundsException {
+        if (xIndex >= 0 && xIndex < xBoxes && yIndex >= 0 && yIndex < yBoxes) {
+            this.highlight[xIndex][yIndex] = highlight;
         }
         else {
             throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", xIndex, yIndex));
@@ -147,21 +173,26 @@ public class EcalPanel extends JPanel {
     /**
      * <b>clearCrystals</b><br/><br/>
      * <code>public void <b>clearCrystals</b>()</code><br/><br/>
-     * Sets all crystal energies to zero and removes all clusters. This <b>does
-     * not</b> enable any disabled crystals.
+     * Sets all crystal energies to zero and removes all clusters. This
+     * <b>does not</b> enable disabled crystals.
      **/
     public void clearCrystals() {
         for (int x = 0; x < xBoxes; x++) {
             for (int y = 0; y < yBoxes; y++) {
-                if (hit[x][y] != 0.0) {
-                    hit[x][y] = 0.0;
-                    changed[x][y] = true;
-                }
-                if (cluster[x][y]) {
-                    cluster[x][y] = false;
-                    changed[x][y] = true;
-                }
+                hit[x][y] = 0.0;
+                cluster[x][y] = false;
             }
+        }
+    }
+    
+    /**
+     * <b>clearHighlight</b><br/><br/>
+     * <code>public void <b>clearHighlight</b>()</code><br/><br/>
+     * Clears any highlighting on the crystals.
+     */
+    public void clearHighlight() {
+        for (int x = 0; x < xBoxes; x++) {
+            for (int y = 0; y < yBoxes; y++) { highlight[x][y] = null; }
         }
     }
     
@@ -184,7 +215,6 @@ public class EcalPanel extends JPanel {
      **/
     public void setMinimum(double minimum) {
         scale.setMinimum(minimum);
-        scaleChanged = true;
     }
     
     /**
@@ -196,7 +226,6 @@ public class EcalPanel extends JPanel {
      **/
     public void setMaximum(double maximum) {
         scale.setMaximum(maximum);
-        scaleChanged = true;
     }
     
     /**
@@ -206,17 +235,52 @@ public class EcalPanel extends JPanel {
      **/
     public void setScalingLinear() {
         scale.setScalingLinear();
-        scaleChanged = true;
     }
     
     /**
      * <b>setScalingLogarithmic</b><br/><br/>
-     * <code>public void <b>setScalingLogarithmic</b></code><br/><br/>
+     * <code>public void <b>setScalingLogarithmic</b>()</code><br/><br/>
      * Sets the color mapping scale behavior to logarithmic mapping.
      **/
     public void setScalingLogarithmic() {
         scale.setScalingLogarithmic();
-        scaleChanged = true;
+    }
+    
+    /**
+     * <b>isScalingLinear</b><br/><br/>
+     * <code>public void <b>isScalingLinear</b></code>()<br/><br/>
+     * Indicates whether the crystal colors are mapped linearly.
+     * @return Returns <code>true</code> if the mapping is linear
+     * and <code>false</code> otherwise.
+     */
+    public boolean isScalingLinear() { return scale.isLinearScale(); }
+    
+    /**
+     * <b>isScalingLogarithmic</b><br/><br/>
+     * <code>public void <b>isScalingLogarithmic</b></code>()<br/><br/>
+     * Indicates whether the crystal colors are mapped logarithmically.
+     * @return Returns <code>true</code> if the mapping is logarithmic
+     * and <code>false</code> otherwise.
+     */
+    public boolean isScalingLogarithmic() { return scale.isLogairthmicScale(); }
+    
+    /**
+     * <b>isCluster</b><br/><br/>
+     * <code>public boolean <b>isCluster</b></code>()<br/><br/>
+     * Determines if the crystal at the given coordinates is a cluster
+     * center or not.
+     * @param xCoor - The x-coordinate of the crystal.
+     * @param yCoor - The y-coordinate of the crystal.
+     * @return Returns <code>true</code> if the crystal is a cluster
+     * center and <code>false</code> if it is not or if the indices
+     * are invalid.
+     */
+    public boolean isCluster(int xCoor, int yCoor) {
+    	// If the coordinates are invalid, return false.
+    	if(!validateIndices(xCoor, yCoor)) { return false; }
+    	
+    	// Otherwise, check if it is a cluster.
+    	else { return cluster[xCoor][yCoor]; }
     }
     
     /**
@@ -229,9 +293,87 @@ public class EcalPanel extends JPanel {
     public void setScaleEnabled(boolean enabled) {
         if (scalePanel.isVisible() != enabled) {
             scalePanel.setVisible(enabled);
-            scaleChanged = true;
-            sizeChanged = true;
         }
+    }
+    
+    /**
+     * <b>setCrystalDefaultColor</b><br/><br/>
+     * <code>public void <b>setCrystalDefaultColor</b>(Color c)</code><br/><br/>
+     * Sets the color that crystals with zero energy will display.
+     * @param c - The color to use for zero energy crystals. A value
+     * of <code>null</code> will use the appropriate energy color
+     * map value.
+     */
+    public void setCrystalDefaultColor(Color c) { defaultColor = c; }
+    
+    /**
+     * <b>getCrystalID</b><br/><br/>
+     * <code>public Point <b>getCrystalID</b>(int xCoor, int yCoor)</code><br/><br/>
+     * Determines the panel crystal index of the crystal at the given
+     * panel coordinates.
+     * @param xCoor - The x-coordinate on the panel.
+     * @param yCoor - The y-coordinate on the panel.
+     * @return Returns a <code>Point</code> object containing the panel
+     * crystal indices of the crystal at the given panel coordinates.
+     * Returns <code>null</code> if the coordinates do not map to a crystal.
+     */
+    public Point getCrystalID(int xCoor, int yCoor) {
+    	// If either coordinate is negative, return the null result.
+    	if(xCoor < 0 || yCoor < 0) { return null; }
+    	
+    	// If either coordinate is too large, return the nul result.
+    	if(xCoor > xPosition[xBoxes] || yCoor > yPosition[yBoxes]) {
+    		return null;
+    	}
+    	
+    	// Make a point to identify the crystal index.
+    	Point loc = new Point(-1, -1);
+    	
+    	// Determine which y index it is.
+    	for(int y = 0; y < yBoxes; y++) {
+    		if(yCoor <= yPosition[y + 1]) {
+    			loc.y = y;
+    			break;
+    		}
+    	}
+    	
+    	// Determine which x index it is.
+    	for(int x = 0; x < xBoxes; x++) {
+    		if(xCoor <= xPosition[x + 1]) {
+    			loc.x = x;
+    			break;
+    		}
+    	}
+    	
+    	// If either coordinate is not valid, return null.
+    	if(loc.x == -1 || loc.y == -1) { return null; }
+    	
+    	// Return the crystal identifier.
+    	return loc;
+    }
+    
+    /**
+     * <b>getCrystalEnergy</b><br/><br/>
+     * <code>public double <b>getCrystalEnergy</b>(int ix, int iy)</code><br/><br/>
+     * Provides the energy stored in the indicated crystal.
+     * @param ix - The crystal's x-index.
+     * @param iy - The crystal's y-index.
+     * @return Returns the energy as a <code>double</code>.
+     * @throws IndexOutOfBoundsException - Occurs when either of the
+     * given indices are invalid.
+     */
+    public double getCrystalEnergy(int ix, int iy) throws IndexOutOfBoundsException {
+    	if(!validateIndices(ix, iy)) {
+    		throw new IndexOutOfBoundsException("Invalid crystal index.");
+    	}
+    	else { return hit[ix][iy]; }
+    }
+    
+    public Color getCrystalHighlight(int ix, int iy) throws IndexOutOfBoundsException {
+    	if(!validateIndices(ix, iy)) {
+    		throw new IndexOutOfBoundsException("Invalid crystal index.");
+    	}
+    	else { return highlight[ix][iy]; }
     }
     
     /**
@@ -247,10 +389,20 @@ public class EcalPanel extends JPanel {
         super.setSize(width, height);
         scalePanel.setLocation(width - scaleWidth, 0);
         scalePanel.setSize(scaleWidth, height);
-        sizeChanged = true;
     }
     
     protected void paintComponent(Graphics g) {
+    	// Check to see if the panel has changed sizes since the last
+    	// time it was rendered.
+    	boolean sizeChanged = false;
+        if(getWidth() != lastSize[0] || getHeight() != lastSize[1]) {
+			lastSize[0] = getWidth();
+			lastSize[1] = getHeight();
+			sizeChanged = true;
+		}
+
+        // If the size of the panel has changed, we need to update
+        // the crystal locations.
         if (sizeChanged) {
             // Determine the width and heights of the calorimeter crystals.
             int width;
@@ -258,105 +410,111 @@ public class EcalPanel extends JPanel {
             else { width = getWidth(); }
             int height = getHeight();
             
-            boxWidth = width / xBoxes;
-            widthRem = width % xBoxes;
-            boxHeight = height / yBoxes;
-            heightRem = height % yBoxes;
+            int boxWidth = width / xBoxes;
+            int widthRem = width % xBoxes;
+            int boxHeight = height / yBoxes;
+            int heightRem = height % yBoxes;
+            
+            // Store the widths for each crystal.
+            for(int x = 0; x < xBoxes; x++) {
+            	widths[x] = boxWidth;
+            	if(widthRem > 0) {
+            		widths[x]++;
+            		widthRem--;
+            	}
+            	xPosition[x + 1] = xPosition[x] + widths[x];
+            }
+            
+            // Store the height for each crystal.
+            for(int y = 0; y < yBoxes; y++) {
+            	heights[y] = boxHeight;
+            	if(heightRem > 0) {
+            		heights[y]++;
+            		heightRem--;
+            	}
+            	yPosition[y + 1] = yPosition[y] + heights[y];
+            }
+            
+            // Calculate the cluster position variables.
+            double ltw = 0.25 * boxWidth;
+            double lth = 0.25 * boxHeight;
+            
+            if(ltw > lth) {
+            	clusterSpace[0] = (int)Math.round((boxWidth - lth - lth) / 2.0);
+            	clusterSpace[1] = (int)Math.round(lth);
+            	clusterSpace[2] = (int)Math.round(lth + lth);
+            	
+            }
+            else {
+            	clusterSpace[0] = (int)Math.round(ltw);
+            	clusterSpace[1] = (int)Math.round((boxHeight - ltw - ltw) / 2.0);
+            	clusterSpace[2] = (int)Math.round(ltw + ltw);
+            	
+            }
         }
-        int heightRemReset = heightRem;
-        int widthRemReset = widthRem;
         
-        // Start drawing the calorimeter crystals. To avoid having empty
-        // space, we distribute the extra widthRem pixels to the boxes at
-        // a rate of one pixel for box until we run out. We do the same thing
-        // for the heightRem.
-        int curX = 0;
-        int curY = 0;
+        // Render the crystals at the locations calculated in the size
+        // change block.
         for (int x = 0; x < xBoxes; x++) {
-            // Determine if this column should use an extra pixel.
-            int tw = boxWidth;
-            if (widthRem != 0) {
-                tw++;
-                widthRem--;
-            }
             for (int y = 0; y < yBoxes; y++) {
-                // Determine if this row should use an extra pixel.
-                int th = boxHeight;
-                if (heightRem != 0) {
-                    th++;
-                    heightRem--;
+                // Determine the appropriate color for the box.
+                Color crystalColor;
+                if (disabled[x][y]) { crystalColor = Color.BLACK; }
+                else if(defaultColor != null && hit[x][y] == 0) { crystalColor = defaultColor; }
+                else { crystalColor = scale.getColor(hit[x][y]); }
+                g.setColor(crystalColor);
+                
+                // Draw the crystal energy color.
+                g.fillRect(xPosition[x], yPosition[y], widths[x], heights[y]);
+                
+                // Draw the crystal border.
+                g.setColor(Color.BLACK);
+                g.drawRect(xPosition[x], yPosition[y], widths[x] - 1, heights[y] - 1);
+                
+                // Draw a highlight, if needed.
+                if(highlight[x][y] != null && !disabled[x][y]) {
+                	g.setColor(highlight[x][y]);
+                	g.drawRect(xPosition[x] + 1, yPosition[y] + 1, widths[x] - 3, heights[y] - 3);
                 }
                 
-                if (sizeChanged || scaleChanged || changed[x][y]) {
-                    // Determine the appropriate color for the box.
-                    Color crystalColor;
-                    if (disabled[x][y]) { crystalColor = Color.BLACK; }
-                    else { crystalColor = scale.getColor(hit[x][y]); }
-                    g.setColor(crystalColor);
-                    
-                    // Draw the box.
-                    g.fillRect(curX, curY, tw, th);
-                    g.setColor(Color.BLACK);
-                    g.drawRect(curX, curY, tw, th);
-                    
-                    // If there is a cluster, draw an x.
-                    if (cluster[x][y]) {
-                        // Get the correct coordinates.
-                        double ltw = (0.3 * tw) / 2;
-                        double lth = (0.5 * th) / 2;
-                        double[] lx = { curX + ltw, curX + tw - ltw };
-                        double[] ly = { curY + lth, curY + th - lth };
-                        
-                        // Get the appropriate cluster color.
-                        Color c;
-                        if (clusterColor == null) {
-                            int red = Math.abs(255 - crystalColor.getRed());
-                            int blue = Math.abs(255 - crystalColor.getBlue());
-                            int green = Math.abs(255 - crystalColor.getGreen());
-                            c = new Color(red, green, blue);
-                        }
-                        else { c = clusterColor; }
-                        
-                        // Draw an x on the cluster crystal.
-                        Graphics2D g2 = (Graphics2D) g;
-                        g2.setColor(c);
-                        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        // RenderingHints.VALUE_ANTIALIAS_ON);
-                        g2.setStroke(new BasicStroke(2));
-                        g2.draw(new Line2D.Double(lx[0], ly[0], lx[1], ly[1]));
-                        g2.draw(new Line2D.Double(lx[0], ly[1], lx[1], ly[0]));
-                        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        // RenderingHints.VALUE_ANTIALIAS_OFF);
+                // If there is a cluster, draw a circle.
+                if (cluster[x][y]) {
+                    // Get the appropriate cluster color.
+                    Color c;
+                    if (clusterColor == null) {
+                    	int red = Math.abs(255 - crystalColor.getRed());
+                        int blue = Math.abs(255 - crystalColor.getBlue());
+                        int green = Math.abs(255 - crystalColor.getGreen());
+                        c = new Color(red, green, blue);
                     }
+                    else { c = clusterColor; }
                     
-                    // Note that this crystals has been updated.
-                    changed[x][y] = false;
+                    // Draw an circle on the cluster crystal.
+                    g.setColor(c);
+                    g.fillOval(xPosition[x] + clusterSpace[0], yPosition[y] + clusterSpace[1],
+                    		clusterSpace[2], clusterSpace[2]);
                 }
-                
-                // Increment the current y position.
-                curY += th;
-            }
-            
-            // Increment the current x position.
-            curX += tw;
-            
-            // Reset the current y position and heightRem.
-            curY = 0;
-            heightRem = heightRemReset;
+          	}
         }
-        
-        // If the scale has changed, redraw the scale panel as well.
-        if (scaleChanged && scalePanel.isVisible()) {
-            scalePanel.redraw();
-        }
-        
-        // Indicate that the any size changes have been handled.
-        scaleChanged = false;
-        sizeChanged = false;
-        
-        // Reset the height and width remainder variables.
-        heightRem = heightRemReset;
-        widthRem = widthRemReset;
+    }
+    
+    /**
+     * <b>validateIndices</b><br/><br/>
+     * <code>private boolean <b>validateIndices</b>(int ix, int iy)</code><br/><br/>
+     * Indicates whether the given indices corresponds to a valid
+     * crystal or not.
+     * @param ix - The crystal's x index.
+     * @param iy - The crystal's y index.
+     * @return Returns <code>true</code> if the indices are valid
+     * and <code>false</code> if they are not.
+     */
+    private boolean validateIndices(int ix, int iy) {
+    	boolean lowX = (ix > -1);
+    	boolean highX = (ix < xBoxes);
+    	boolean lowY = (iy > -1);
+    	boolean highY = (iy < yBoxes);
+    	
+    	return (lowX && highX && lowY && highY);
     }
     
     /**
@@ -364,12 +522,7 @@ public class EcalPanel extends JPanel {
      * color map.
      **/
     private class ScalePanel extends JPanel {
-        /**
-         * <b>redraw</b><br/><br/>
-         * <code>public void <b>redraw</b>()</code><br/><br/>
-         * Orders the scale to re-render itself.
-         **/
-        public void redraw() { super.repaint(); }
+		private static final long serialVersionUID = -2644562244208528609L;
         
         protected void paintComponent(Graphics g) {
             // Set the text region width.
@@ -433,20 +586,6 @@ public class EcalPanel extends JPanel {
                 // Determine the spacing of the text.
                 FontMetrics fm = g.getFontMetrics(g.getFont());
                 int fontHeight = fm.getHeight();
-                double fStep = (height - 2.0 * fontHeight) / fontHeight;
-                double halfStep = fStep / 2.0;
-                
-                // Get the scaling value.
-                double fScale;
-                double fMin;
-                if (linear) {
-                    fScale = scale.getMaximum() - scale.getMinimum();
-                    fMin = scale.getMinimum();
-                }
-                else {
-                    fScale = Math.log10(scale.getMaximum() - Math.log10(scale.getMinimum()));
-                    fMin = Math.log10(scale.getMinimum());
-                }
                 
                 // Populate the first and last values.
                 NumberFormat nf = new DecimalFormat("0.#E0");

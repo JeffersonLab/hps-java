@@ -31,7 +31,7 @@ public class EventManager {
     // List for storing the hits from the current event.
     private ArrayList<EcalHit> hitList = new ArrayList<EcalHit>();
     // List for storing the clusters from the current hit.
-    private ArrayList<Datum> clusterList = new ArrayList<Datum>();
+    private ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
     // Whether the event manager has an open file.
     private boolean open = true;
     
@@ -82,13 +82,35 @@ public class EventManager {
             int ix = Integer.parseInt(st.nextToken());
             int iy = Integer.parseInt(st.nextToken());
             
-            // Convert it to an object.
-            if (name.compareTo("Cluster") == 0) {
-                clusterList.add(new Datum(ix, iy));
-            }
+            // If this is a cluster, add a new cluster object.
+            if (name.compareTo("Cluster") == 0) { clusterList.add(new Cluster(ix, iy)); }
+            
+            // If this is a calorimeter hit, add a new calorimeter hit object.
             else if (name.compareTo("EcalHit") == 0) {
                 double energy = Double.parseDouble(st.nextToken());
                 hitList.add(new EcalHit(ix, iy, energy));
+            }
+            
+            // If this is a cluster component hit, add it to the last cluster.
+            else if(name.compareTo("CompHit") == 0) {
+            	// There must be a last cluster to process this hit type.
+            	if(clusterList.size() == 0) {
+            		System.err.println("File Format Error: A cluster component hit was read, but" +
+            				" no cluster has been declared. Terminating.");
+            		System.exit(1);
+            	}
+            	else { clusterList.get(clusterList.size() - 1).addComponentHit(ix, iy); }
+            }
+            
+            // If this is a cluster shared hit, add it to the last cluster.
+            else if(name.compareTo("SharHit") == 0) {
+            	// There must be a last cluster to process this hit type.
+            	if(clusterList.size() == 0) {
+            		System.err.println("File Format Error: A cluster shared hit was read, but" +
+            				" no cluster has been declared. Terminating.");
+            		System.exit(1);
+            	}
+            	else { clusterList.get(clusterList.size() - 1).addSharedHit(ix, iy); }
             }
             
             // Get the next line.
@@ -125,12 +147,12 @@ public class EventManager {
     
     /**
      * <b>getClusters</b><br/><br/>
-     * <code>public ArrayList<Datum> <b>getClusters</b></code><br/><br/>
+     * <code>public ArrayList<Cluster> <b>getClusters</b></code><br/><br/>
      * Allows access to the current event's list of clusters.
      * @return Returns the current clusters as an <code>ArrayList
      * </code> object.
      **/
-    public ArrayList<Datum> getClusters() {
+    public ArrayList<Cluster> getClusters() {
         if (!open) { return null; }
         else { return clusterList; }
     }
