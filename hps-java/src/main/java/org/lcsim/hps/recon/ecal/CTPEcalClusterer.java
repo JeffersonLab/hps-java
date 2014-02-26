@@ -46,7 +46,7 @@ public class CTPEcalClusterer extends Driver {
     // Map of crystals to their neighbors.
     NeighborMap neighborMap = null;
     // The time period in which clusters may be formed. A negative value means that all hits
-    // will always be sued in clsuter finding, regardless of the time difference between them.
+    // will always be used in cluster finding, regardless of the time difference between them.
     double clusterWindow = -1;
     // The minimum energy needed for a hit to be considered.
     double addEMin = 0;
@@ -94,12 +94,12 @@ public class CTPEcalClusterer extends Driver {
         // Get the decoder for the ECal IDs.
         dec = ecal.getIDDecoder();
         
-        // Cache ref to neighbor map.
+        // Cache reference to the neighbor map.
         neighborMap = ecal.getNeighborMap();
         
         clusterCenters = new HashSet<Long>();
-        //Make set of valid cluster centers.
-        /// Exclude edge crystals as good cluster centers.
+        // Make set of valid cluster centers.
+        // Exclude edge crystals as good cluster centers.
         for (Long cellID : neighborMap.keySet()) {
             boolean isValidCenter = true;
             Set<Long> neighbors = neighborMap.get(cellID);
