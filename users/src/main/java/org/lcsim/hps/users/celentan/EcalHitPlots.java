@@ -4,9 +4,11 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ref.plotter.PlotterUtilities;
 
 import java.util.List;
 import java.util.ArrayList;
+
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -18,13 +20,21 @@ import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalHitPlots extends Driver implements Resettable {
+import org.freehep.swing.popup.GlobalMouseListener;
+import org.freehep.swing.popup.GlobalPopupListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.InputEvent; 
+
+import javax.swing.JPanel;
+
+public class EcalHitPlots extends Driver implements Resettable,MouseListener{
 
     //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
     AIDA aida = AIDA.defaultInstance();
     IPlotter plotter, plotter2, plotter3, plotter4;
-    IPlotter plotter5;
+
     IHistogram1D hitCountPlot;
     IHistogram1D hitTimePlot;
     IHistogram1D hitEnergyPlot;
@@ -32,15 +42,20 @@ public class EcalHitPlots extends Driver implements Resettable {
     IHistogram1D topTimePlot, botTimePlot, orTimePlot;
     IHistogram1D topTrigTimePlot, botTrigTimePlot, orTrigTimePlot;
     IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
-//    IHistogram2D topX, botX, topY, botY;
+   // IHistogram2D topX, botX, topY, botY;
     IHistogram2D edgePlot;
     
+    PlotterUtilities thePlotterUtilities;
+  
     //Plotter5
+    IPlotter plotter5;
     ArrayList<IHistogram1D> channelEnergyPlot;
+    GlobalMouseListener plotter5listener;
     
     int eventn = 0;
     int dummy = 0;
     double maxE = 5000 * ECalUtils.MeV;
+    double maxEch = 2500 * ECalUtils.MeV;
     boolean logScale = false;
     boolean hide = false;
     
@@ -51,14 +66,18 @@ public class EcalHitPlots extends Driver implements Resettable {
     public void setMaxE(double maxE) {
         this.maxE = maxE;
     }
-
+    
+    public void setMaxEch(double maxEch) {
+        this.maxEch = maxEch;
+    }
+    
     public void setLogScale(boolean logScale) {
         this.logScale = logScale;
     }
 
     @Override
     protected void detectorChanged(Detector detector) {
-
+    	
       //  plotterFrame = new AIDAFrame();
        // plotterFrame.setTitle("HPS ECal Hit Plots");
     	System.out.println("qui: "+ detector.getClass().getName());
@@ -79,17 +98,20 @@ public class EcalHitPlots extends Driver implements Resettable {
         plotter.createRegions(1, 2);
         plotter.region(0).plot(hitCountPlot);
         plotter.region(1).plot(hitTimePlot);
-
-
+     
+      
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
+      //  plotter2.addMouseListener(this);
      //   plotterFrame.addPlotter(plotter2);
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
 
         hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 1000, -0.1, maxE);
         hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
 
+//        hitEnergyPlot.addMouseListener(this);
+        
         if (logScale) {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
         }
@@ -102,11 +124,34 @@ public class EcalHitPlots extends Driver implements Resettable {
         //A. Celentano
         plotter5 = plotterFactory.create("Hit Energies - per channel");
         plotter5.setTitle("Hit Energies - per channel");
+        plotter5.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter5.createRegions(47,11); //1 more, to have raw 0 and column 0 empty.
       
-        plotter5.createRegions(30, 30);
+        plotter5listener=new GlobalMouseListener(thePlotterUtilities.componentForPlotter(plotter5));
+        plotter5listener.addMouseListener(this);
+        
+        
         channelEnergyPlot=new ArrayList<IHistogram1D>();
+      
         
         
+    
+       // plotter5Listener.addMouseListener(this);
+        
+        for(int id = 0; id < (47*11); id = id +1){
+        	  
+        	  int row=this.getRowFromHistoID(id);
+        	  int column=this.getColumnFromHistoID(id);      
+        	  
+        	  //create the histogram, the global listener, and the specific listener.
+        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + row + " "+ column+ ": "+id, 1000, -0.1, maxEch));
+        
+        	  
+        	  if ((row!=0)&&(column!=0)&&(!isInHole(row,column))){
+        		  plotter5.region(id).plot(channelEnergyPlot.get(id));       	
+        	  }
+        	 }
+               
         plotter3 = plotterFactory.create("Hit Times");
         plotter3.setTitle("Hit Times");
       //  plotterFrame.addPlotter(plotter3);
@@ -173,6 +218,8 @@ public class EcalHitPlots extends Driver implements Resettable {
 
     @Override
     public void process(EventHeader event) {
+    	
+    	
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
@@ -217,20 +264,34 @@ public class EcalHitPlots extends Driver implements Resettable {
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
             hitCountPlot.fill(hits.size());
+            int id = 0;
+            int row = 0;
+            int column = 0;
             double maxEnergy = 0;
             double topTime = Double.POSITIVE_INFINITY;
             double botTime = Double.POSITIVE_INFINITY;
             double orTime = Double.POSITIVE_INFINITY;
             for (CalorimeterHit hit : hits) {
-//                if (hit.getIdentifierFieldValue("iy") > 0) {
-//                    topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-//                    topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);
-//                } else {
-//                    botX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-//                    botY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);                    
-//                }
+                if (hit.getIdentifierFieldValue("iy") > 0) {
+      //              topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
+      //              topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);
+                } else {
+       //             botX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
+       //             botY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);                    
+                }
+               
                 hitEnergyPlot.fill(hit.getRawEnergy());
                 hitTimePlot.fill(hit.getTime());
+                
+                
+                column=hit.getIdentifierFieldValue("ix");
+                row=-hit.getIdentifierFieldValue("iy"); //sign "-" is due to AIDA having region 0 TOP-LEFT, while my numbering is with (0,0) bottom-left.
+                if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
+                  	id = this.getHistoIDFromRowColumn(row,column);
+                	//System.out.println("HIT: "+column+" "+row+" "+id);
+                	channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
+                }
+                
                 if (hit.getTime() < orTime) {
                     orTime = hit.getTime();
                 }
@@ -283,15 +344,62 @@ public class EcalHitPlots extends Driver implements Resettable {
         hitTimePlot.reset();
         hitEnergyPlot.reset();
         hitMaxEnergyPlot.reset();
+        for(int id = 0; id < (47*11); id = id +1){   	  
+      	  channelEnergyPlot.get(id).reset();
+        }
     }
 
     @Override
     public void endOfData() {
         //plotterFrame.dispose();
     }
+    
+    public int getRowFromHistoID(int id){
+        return ((id%11)-5);
+    }
+
+    public int getColumnFromHistoID(int id){
+    	return ((id/11)-23);
+    }
+    
+    public int getHistoIDFromRowColumn(int row,int column){
+    	return (row+5)+11*(column+23);
+    }
+    
+    public Boolean isInHole(int row,int column){
+    	Boolean ret;
+    	ret=false;
+    	if ((row==1)||(row==-1)){
+    		if ((column<=-2)&&(column>=-8)) ret=true;
+    	}
+    	return ret;	
+    }
+    
+    public void mousePressed(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {
+        switch(e.getModifiers()) {
+          case InputEvent.BUTTON1_MASK: {
+            System.out.println("That's the LEFT button");    
+            
+            break;
+            }
+          case InputEvent.BUTTON2_MASK: {
+            System.out.println("That's the MIDDLE button");     
+            System.out.println(e.getX()+" "+e.getY());
+            System.out.println(e.getSource().toString());
+            System.out.println(((JPanel)e.getSource()).getComponent(0).toString());
+//            System.out.println(((IHistogram1D)e.getSource()).title());
+            break;
+            }
+          case InputEvent.BUTTON3_MASK: {
+            System.out.println("That's the RIGHT button");     
+            break;
+            }
+          }
+        }   
 }
 
-
-
-
-
+   

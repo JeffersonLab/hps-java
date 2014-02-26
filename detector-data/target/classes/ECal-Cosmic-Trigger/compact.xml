@@ -1,0 +1,99 @@
+
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+    
+    <info name="ECal-Cosmic-Trigger">
+        <comment>Geometry for ECal Cosmic Trigger run </comment>
+    </info>
+
+    <define>
+    
+        <!-- world -->
+        <constant name="world_side" value="500.0*cm" />
+        <constant name="world_x" value="world_side" />
+        <constant name="world_y" value="world_side" />
+        <constant name="world_z" value="world_side" />
+
+	<!-- beam -->
+        <constant name="beam_angle" value="0.03052"/> <!--30.52 mrad-->
+     
+	<!-- tracking region -->
+        <constant name="tracking_region_radius" value="100.0*cm"/>
+        <constant name="tracking_region_min" value="5.0*cm"/>
+        <constant name="tracking_region_zmax" value="200.0*cm"/>
+        
+        <!-- ECAL crystal dimensions -->
+        <constant name="ecal_front" value="13.3/2*mm" />
+        <constant name="ecal_back" value="16/2*mm" />
+        <constant name="ecal_z" value="160/2*mm" />
+                
+        <!-- ECal position -->
+        <constant name="ecal_dface" value="0.0*cm"/>
+               
+    </define>
+    
+    <materials>
+        <!-- Set the world material to Air -->
+        <material name="WorldMaterial">
+	  <D type="density" unit="g/cm3" value="0.001209"/>
+            <fraction n="0.7" ref="Nitrogen" />
+	    <fraction n="0.3" ref="Oxygen" />
+        </material>
+	<!-- ECal crystal material. -->
+        <material name="LeadTungstate">
+            <D value="8.28" unit="g/cm3"/>
+            <composite n="1" ref="Pb"/>
+            <composite n="1" ref="W"/>
+            <composite n="4" ref="O"/>
+        </material>
+	<!-- Scintillator material. -->
+	<material name="BC408">
+	  <D value="1.032" unit="g/cm3"/>
+	  <!-- <fraction n="1.58" ref="Vacuum" /> -->
+	  <composite n="10" ref="C"/>
+	  <composite n="11" ref="H"/>
+	</material>
+    </materials>
+  
+    <display>
+        <vis name="ECALVis" r="0.8" g="0.5" b="0.1" />
+    </display>
+   
+    <detectors>
+      <detector id="1" name="TOFtop" type="TestBeamCalorimeter" insideTrackingVolume="true">
+	<comment>Top Scintillator</comment>
+	<dimensions x="75.0*cm" y="5.08*cm"/>
+	<position x="0.0*cm" y="15*cm" z="7.0*cm"/>
+	<layer repeat="1">
+	  <slice material="BC408" thickness="22.0*cm" sensitive="false"/>
+	</layer>
+      </detector>
+      <detector id="2" name="Ecal" type="HPSEcal3" insideTrackingVolume="true" readout="EcalHits" vis="ECALVis">
+	<comment>The crystal ECal</comment>
+	<material name="LeadTungstate" />
+	<dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />    
+	<layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+	  <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+	  <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+	  <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+	</layout>
+      </detector>
+      <detector id="3" name="TOFbottom" type="TestBeamCalorimeter" insideTrackingVolume="true">
+	<comment>Bottom Scintillator</comment>
+	<dimensions x="75.0*cm" y="5.08*cm"/>
+	<position x="0.0*cm" y="-15*cm" z="7.0*cm"/>
+	<layer repeat="1">
+	  <slice material="BC408" thickness="22.0*cm" sensitive="false"/>
+	</layer>
+      </detector>
+    </detectors>
+    
+    <readouts>   
+      <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,layer:2,ix:-8,iy:-6</id>
+        </readout>
+    </readouts>
+    
+</lccdd>
