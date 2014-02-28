@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
@@ -34,6 +35,9 @@ public class TestRunTriggeredReconToLcio extends Driver {
     String outputFile = "TestRunData.slcio";
     private int eventsWritten = 0;
     private int eventNum = 0;
+    //interval for trigger candidates (tridents, A'), if used
+    private int triggerSpacing = 500;
+    private boolean rejectBackground = false;
 //    HPSEcalConditions ecalIDConverter = null;
     ECalHitWriter ecalWriter = null;
     SVTHitWriter svtWriter = null;
@@ -46,11 +50,12 @@ public class TestRunTriggeredReconToLcio extends Driver {
     List<SimTrackerHit> trackerHits = null;
     List<SimCalorimeterHit> ecalHits = null;
     //MC collections from the last 500n'th event (trident or preselected trigger event)
-    List<MCParticle> mcParticles500 = null;
-    List<SimTrackerHit> trackerHits500 = null;
-    List<SimCalorimeterHit> ecalHits500 = null;
+    List<MCParticle> triggerMCParticles = null;
+    List<SimTrackerHit> triggerTrackerHits = null;
+    List<SimCalorimeterHit> triggerECalHits = null;
     static final String ecalCollectionName = "EcalHits";
     static final String trackerCollectionName = "TrackerHits";
+    private String relationCollectionName = "SVTTrueHitRelations";
 
     public TestRunTriggeredReconToLcio() {
     }
@@ -67,6 +72,14 @@ public class TestRunTriggeredReconToLcio extends Driver {
 
     public void setOutputFile(String outputFile) {
         this.outputFile = outputFile;
+    }
+
+    public void setTriggerSpacing(int triggerSpacing) {
+        this.triggerSpacing = triggerSpacing;
+    }
+
+    public void setRejectBackground(boolean rejectBackground) {
+        this.rejectBackground = rejectBackground;
     }
 
     public void setRawCalorimeterHitCollectionName(String rawCalorimeterHitCollectionName) {
@@ -116,15 +129,15 @@ public class TestRunTriggeredReconToLcio extends Driver {
             ecalHits = event.getSimCalorimeterHits(ecalCollectionName);
             trackerHits = event.getSimTrackerHits(trackerCollectionName);
         }
-        if (ClockSingleton.getClock() % 500 == 0) {
-            if(event.hasCollection(MCParticle.class)) { 
-                mcParticles500 = event.getMCParticles();            
-                ecalHits500 = event.getSimCalorimeterHits(ecalCollectionName);
-                trackerHits500 = event.getSimTrackerHits(trackerCollectionName);
+        if (ClockSingleton.getClock() % triggerSpacing == 0) {
+            if (event.hasCollection(MCParticle.class)) {
+                triggerMCParticles = event.getMCParticles();
+                triggerECalHits = event.getSimCalorimeterHits(ecalCollectionName);
+                triggerTrackerHits = event.getSimTrackerHits(trackerCollectionName);
             } else {
-                mcParticles500 = null;
-                ecalHits500 = null;
-                trackerHits500 = null;
+                triggerMCParticles = null;
+                triggerECalHits = null;
+                triggerTrackerHits = null;
             }
         }
 
@@ -133,16 +146,16 @@ public class TestRunTriggeredReconToLcio extends Driver {
             EventHeader lcsimEvent = new QuietBaseLCSimEvent(CalibrationDriver.runNumber(), event.getEventNumber(), event.getDetectorName());
             events.add(lcsimEvent);
             System.out.println("Creating LCIO event " + eventNum);
-            if (mcParticles500 == null || mcParticles500.isEmpty()) {
+            if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
                 lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles);
                 lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
                 lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
                 System.out.println("Adding " + mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
             } else {
-                lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles500);
-                lcsimEvent.put(ecalCollectionName, ecalHits500, SimCalorimeterHit.class, 0xe0000000);
-                lcsimEvent.put(trackerCollectionName, trackerHits500, SimTrackerHit.class, 0xc0000000);
-                System.out.println("Adding " + mcParticles500.size() + " MCParticles, " + ecalHits500.size() + " SimCalorimeterHits, " + trackerHits500.size() + " SimTrackerHits");
+                lcsimEvent.put(MCEvent.MC_PARTICLES, triggerMCParticles);
+                lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
+                lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
+                System.out.println("Adding " + triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
             }
             lcsimEvent.put(ReadoutTimestamp.collectionName, event.get(ReadoutTimestamp.class, ReadoutTimestamp.collectionName));
             ++eventNum;
@@ -173,14 +186,34 @@ public class TestRunTriggeredReconToLcio extends Driver {
                     break eventLoop;
                 }
             }
-            System.out.println("writing filled LCIO event, event " + queuedEvent.getEventNumber());
             events.poll();
-            // Write this event.
-            try {
-                lcioWriter.write(queuedEvent);
-                ++eventsWritten;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+
+
+            boolean writeThisEvent = true;
+
+            if (rejectBackground && queuedEvent.hasCollection(LCRelation.class, relationCollectionName)) {
+
+                writeThisEvent = false;
+                List<LCRelation> trueHitRelations = event.get(LCRelation.class, relationCollectionName);
+                List<SimTrackerHit> trueHits = event.getSimTrackerHits(trackerCollectionName);
+                for (LCRelation relation : trueHitRelations) {
+                    if (trueHits.contains((SimTrackerHit) relation.getTo())) {
+                        writeThisEvent = true;
+                        break;
+                    }
+                }
+            }
+            if (writeThisEvent) {
+                // Write this event.
+                System.out.println("writing filled LCIO event, event " + queuedEvent.getEventNumber());
+                try {
+                    lcioWriter.write(queuedEvent);
+                    ++eventsWritten;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                System.out.println("rejecting filled LCIO event, event " + queuedEvent.getEventNumber() + " contains no SVT hits from truth particles");
             }
         }
     }
