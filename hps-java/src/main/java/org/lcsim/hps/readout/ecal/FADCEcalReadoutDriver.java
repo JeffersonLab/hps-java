@@ -23,6 +23,7 @@ import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.hps.util.*;
 import org.lcsim.lcio.LCIOConstants;
+import static org.lcsim.hps.recon.ecal.ECalUtils.*;
 
 /**
  * Performs readout of ECal hits. Simulates time evolution of preamp output
@@ -53,10 +54,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean useCRRCShape = false;
     //shaper time constant in ns; negative values generate square pulses of the given width (for test run sim)
     private double tp = 14.0;
-    //pulse rise time in ns
-    private double riseTime = 10.0;
-    //pulse fall time in ns
-    private double fallTime = 17.0;
     //delay (number of readout periods) between start of summing window and output of hit to clusterer
     private int delay0 = 32;
     //start of readout window relative to trigger time (in readout cycles)
@@ -81,10 +78,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private int mode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
     private int readoutThreshold = 50;
     private int triggerThreshold = 50;
-    //number of bits used by the fADC to code a value
-    private int nBit = 12;
-    //maximum volt output of the fADC
-    private double maxVolt = 2.0;
     //amplitude ADC counts/GeV
 //    private double gain = 0.5*1000 * 80.0 / 60;
     private double scaleFactor = 128;
@@ -92,20 +85,12 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean constantTriggerWindow = false;
     private boolean addNoise = false;
     private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
-    //parameters for 2014 APDs and preamp
-    private double lightYield = 120. / ECalUtils.MeV; // number of photons per GeV
-    private double quantumEff = 0.7;  // quantum efficiency of the APD
-    private double surfRatio = (10. * 10.) / (16 * 16); // surface ratio between APD and crystals
-    private double gainAPD = 150.; // Gain of the APD
-    private double elemCharge = 1.60217657e-19;
-    private double gainPreAmpl = 525e12; // Gain of the preamplifier in pC/pC, true value is higher but does not take into account losses
-    private double Req = 1.0 / 27.5; // equivalent resistance of the amplification chain
 
     public FADCEcalReadoutDriver() {
         flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
         hitClass = HPSRawCalorimeterHit.class;
-        setReadoutPeriod(4.0);
+        setReadoutPeriod(ecalReadoutPeriod);
 //        converter = new HPSEcalConverter(null);
     }
 
@@ -169,17 +154,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         this.tp = tp;
     }
 
-    public void setFallTime(double fallTime) {
-        this.fallTime = fallTime;
-    }
+//    public void setFallTime(double fallTime) {
+//        this.fallTime = fallTime;
+//    }
 
     public void setPePerMeV(double pePerMeV) {
         this.pePerMeV = pePerMeV;
     }
 
-    public void setRiseTime(double riseTime) {
-        this.riseTime = riseTime;
-    }
+//    public void setRiseTime(double riseTime) {
+//        this.riseTime = riseTime;
+//    }
 
     public void setDelay0(int delay0) {
         this.delay0 = delay0;

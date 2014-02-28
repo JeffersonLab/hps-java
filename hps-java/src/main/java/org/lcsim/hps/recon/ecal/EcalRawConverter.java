@@ -50,7 +50,7 @@ public class EcalRawConverter {
     public CalorimeterHit HitDtoA(RawTrackerHit hit) {
         double time = hit.getTime();
         long id = hit.getCellID();
-        double rawEnergy = adcToEnergy(sumADC(hit), id);
+        double rawEnergy = adcToEnergy(sumADC(hit), id);      
 //        double[] pos = hit.getDetectorElement().getGeometry().getPosition().v();
         CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
@@ -64,7 +64,7 @@ public class EcalRawConverter {
         double time = hit.getTimeStamp() / 16.0;
         long id = hit.getCellID();
         double adcSum = hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id);
-        double rawEnergy = adcToEnergy(adcSum, id);
+        double rawEnergy = adcToEnergy(adcSum, id);  
         CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;
@@ -88,10 +88,10 @@ public class EcalRawConverter {
      */
     private double adcToEnergy(double adcSum, long cellID) {
         if (use2014Gain) {
-            if (constantGain) { //TODO: use new formula
-                return 0.0;
+            if (constantGain) {
+                return adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod;
             } else {
-                return 0.0;
+                return EcalConditions.physicalToGain(cellID) * adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod; // should not be used for the moment (2014/02)
             }
         } else {
             if (constantGain) {
