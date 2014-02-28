@@ -188,14 +188,11 @@ public class TestRunTriggeredReconToLcio extends Driver {
             }
             events.poll();
 
-
             boolean writeThisEvent = true;
-
             if (rejectBackground && queuedEvent.hasCollection(LCRelation.class, relationCollectionName)) {
-
                 writeThisEvent = false;
-                List<LCRelation> trueHitRelations = event.get(LCRelation.class, relationCollectionName);
-                List<SimTrackerHit> trueHits = event.getSimTrackerHits(trackerCollectionName);
+                List<LCRelation> trueHitRelations = queuedEvent.get(LCRelation.class, relationCollectionName);
+                List<SimTrackerHit> trueHits = queuedEvent.getSimTrackerHits(trackerCollectionName);
                 for (LCRelation relation : trueHitRelations) {
                     if (trueHits.contains((SimTrackerHit) relation.getTo())) {
                         writeThisEvent = true;
@@ -203,6 +200,7 @@ public class TestRunTriggeredReconToLcio extends Driver {
                     }
                 }
             }
+
             if (writeThisEvent) {
                 // Write this event.
                 System.out.println("writing filled LCIO event, event " + queuedEvent.getEventNumber());
