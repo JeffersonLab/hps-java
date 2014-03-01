@@ -1,9 +1,14 @@
 package org.lcsim.hps.users.meeg;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -12,11 +17,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawCalorimeterHit;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.SimCalorimeterHit;
-import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.*;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.lcio.LCIOReader;
@@ -25,8 +26,8 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
 /**
  * Selects LCIO events passing a cut; spaces out these events with blank events.
- * Intended use is to clean up a photon-run MC file before running trigger and readout sim.
- * Can also be used to chain multiple LCIO files together.
+ * Intended use is to clean up a photon-run MC file before running trigger and
+ * readout sim. Can also be used to chain multiple LCIO files together.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: FilterMCBunches.java,v 1.9 2013/02/25 21:53:42 meeg Exp $
@@ -46,9 +47,11 @@ public class FilterMCBunches {
         //options.addOption(new Option("e", true, "Interval between non-empty events"));
         options.addOption(new Option("n", true, "Number of events to read"));
         options.addOption(new Option("a", false, "All events - no cuts"));
-        options.addOption(new Option("t", false, "Filter based on SimTrackerHits"));
-        options.addOption(new Option("r", false, "Filter based on RawTrackerHits"));
+        options.addOption(new Option("t", false, "Filter requiring enough SimTrackerHits to make tracks in top and bottom"));
+        options.addOption(new Option("r", false, "Filter requiring enough RawTrackerHits to make tracks in top and bottom"));
+        options.addOption(new Option("p", false, "Filter requiring at least 2 particles with enough hits to make tracks"));
         options.addOption(new Option("E", true, "Energy cut for EcalHit cut"));
+        options.addOption(new Option("L", true, "Layer count required for tracker cuts"));
         return options;
     }
 
@@ -92,12 +95,26 @@ public class FilterMCBunches {
             }
         }
         if (cl.hasOption("t")) {
-            tester = new TrackerEventTester();
+            if (cl.hasOption("L")) {
+                tester = new TrackerEventTester(Integer.valueOf(cl.getOptionValue("L")));
+            } else {
+                tester = new TrackerEventTester(4);
+            }
         }
         if (cl.hasOption("r")) {
-            tester = new RTHEventTester();
+            if (cl.hasOption("L")) {
+                tester = new RTHEventTester(Integer.valueOf(cl.getOptionValue("L")));
+            } else {
+                tester = new RTHEventTester(4);
+            }
         }
-
+        if (cl.hasOption("p")) {
+            if (cl.hasOption("L")) {
+                tester = new PairEventTester(Integer.valueOf(cl.getOptionValue("L")));
+            } else {
+                tester = new PairEventTester(3);
+            }
+        }
 
         int nEmpty = 0;
         if (cl.hasOption("e")) {
@@ -206,8 +223,10 @@ public class FilterMCBunches {
         int nEvents = 0;
         int nEcal = 0;
         int nRTH = 0;
+        private int hitsNeeded;
 
-        public RTHEventTester() {
+        public RTHEventTester(int hitsNeeded) {
+            this.hitsNeeded = hitsNeeded;
             LCSimConditionsManagerImplementation.register();
         }
 
@@ -232,7 +251,7 @@ public class FilterMCBunches {
             }
 
 //            System.out.format("%d SimCalorimeterHits, %d SimTrackerHits, %d top layers, %d bottom layers\n", ecalHits.size(), trackerHits.size(), topLayers.size(), botLayers.size());
-            return (countPairs(topLayers) >= 4 && countPairs(botLayers) >= 4);
+            return (countPairs(topLayers) >= hitsNeeded && countPairs(botLayers) >= hitsNeeded);
         }
 
         @Override
@@ -242,14 +261,16 @@ public class FilterMCBunches {
     }
 
     private static class TrackerEventTester extends EventTester {
+        private int hitsNeeded;
 
-        public TrackerEventTester() {
+        public TrackerEventTester(int hitsNeeded) {
+            this.hitsNeeded = hitsNeeded;
             LCSimConditionsManagerImplementation.register();
         }
 
         @Override
         public boolean goodEvent(EventHeader event) {
-            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
+//            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
             List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
 
             Set<Integer> topLayers = new HashSet<Integer>();
@@ -265,7 +286,7 @@ public class FilterMCBunches {
             }
 
 //            System.out.format("%d SimCalorimeterHits, %d SimTrackerHits, %d top layers, %d bottom layers\n", ecalHits.size(), trackerHits.size(), topLayers.size(), botLayers.size());
-            return (countPairs(topLayers) >= 4 && countPairs(botLayers) >= 4);
+            return (countPairs(topLayers) >= hitsNeeded && countPairs(botLayers) >= hitsNeeded);
         }
     }
 
@@ -292,11 +313,71 @@ public class FilterMCBunches {
             }
 
 //        System.out.format("%d SimCalorimeterHits, %d SimTrackerHits, maxE %f, totalE %f\n", ecalHits.size(), trackerHits.size(), maxE, totalE);
-
-
 //        return (ecalHits.size() + trackerHits.size() != 0);
 //        return (totalE > 0.05 || !trackerHits.isEmpty());
             return (totalE > eCut);
+        }
+    }
+
+    private static class PairEventTester extends EventTester {
+
+        private int hitsNeeded;
+
+        public PairEventTester(int hitsNeeded) {
+            this.hitsNeeded = hitsNeeded;
+            LCSimConditionsManagerImplementation.register();
+        }
+
+        @Override
+        public boolean goodEvent(EventHeader event) {
+//            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
+            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+            List<MCParticle> mcParticles = event.getMCParticles();
+
+            Map<MCParticle, Set<Integer>> particleMap = new HashMap<MCParticle, Set<Integer>>();
+            List<MCParticle> particleList = new LinkedList<MCParticle>(mcParticles);
+            List<MCParticle> priParticles = new ArrayList<MCParticle>();
+
+            while (!particleList.isEmpty()) {
+                Iterator<MCParticle> iter = particleList.iterator();
+                while (iter.hasNext()) {
+                    MCParticle particle = iter.next();
+
+                    if (!particle.getSimulatorStatus().isCreatedInSimulation()) {
+                        particleMap.put(particle, new HashSet<Integer>());
+                        priParticles.add(particle);
+                        iter.remove();
+                        continue;
+                    }
+
+                    for (MCParticle parent : particle.getParents()) {
+                        if (particleMap.containsKey(parent)) {
+                            particleMap.put(particle, particleMap.get(parent));
+                            iter.remove();
+                            break;
+                        }
+                    }
+                }
+            }
+
+
+            for (SimTrackerHit hit : trackerHits) {
+                IDDecoder dec = hit.getIDDecoder();
+                dec.setID(hit.getCellID());
+                particleMap.get(hit.getMCParticle()).add(dec.getValue("layer"));
+            }
+
+            int particlesWithTracks = 0;
+            for (MCParticle priParticle : priParticles) {
+                int nLayers = countPairs(particleMap.get(priParticle));
+//                System.out.format("layers hit: %d minimum number needed: %d\n", nLayers, nHits);
+                if (nLayers >= hitsNeeded) {
+                    particlesWithTracks++;
+                }
+            }
+
+//            System.out.format("%d of %d primary particles have tracks\n", particlesWithTracks, priParticles.size());
+            return (particlesWithTracks >= 2);
         }
     }
 }
