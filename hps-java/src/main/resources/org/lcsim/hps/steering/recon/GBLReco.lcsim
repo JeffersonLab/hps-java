@@ -26,9 +26,8 @@
         <driver name="GBLDriver"
                 type="org.lcsim.hps.recon.tracking.gbl.GBLOutputDriver">
                 <debug>0</debug>
-                <hideFrame>true</hideFrame>
                 <isMC>${isMC}</isMC>
-                <gblFileName>gblinput.txt</gblFileName>
+                <gblFileName></gblFileName>
 	</driver>
 
 
