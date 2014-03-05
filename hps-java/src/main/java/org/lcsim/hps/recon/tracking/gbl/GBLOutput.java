@@ -45,53 +45,68 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
-* This class is used to convert lcio input to a relative unstructured output format used as imput to GBL
+
 * 
 * @author Per Hansson Adrian <phansson@slac.stanford.edu>
 * @version $Id: GBLOutput.java,v 1.17 2013/11/07 03:30:18 phansson Exp $ $Date: 2013/11/07 03:30:18 $ $Author: phansson $  
 * 
 */
+/**
+ * @author phansson
+ *
+ */
 public class GBLOutput {
     
-    private int _debug;
-    private GBLFileIO file;
+    private int _debug = 0;
+    private GBLFileIO textFile = null;
     private Hep3Vector _B;
 	private TrackerHitUtils _trackerHitUtils = new TrackerHitUtils();
     private MaterialSupervisor _materialmanager;
     private MultipleScattering _scattering;
     private double _beamEnergy = 2.2; //GeV
-	private boolean AprimeEvent = false;
+	private boolean AprimeEvent = false; // do extra checks
 	private boolean hasXPlanes = false;
     
     
 
-    /*
-     * file name
-     * Bz in Tesla
+    
+    /**
+     * Constructor
+     * @param outputFileName is the filename given to the text-based output file. If empty no output file is written
+     * @param bfield magnetic field in Tesla
      */
     GBLOutput(String outputFileName,Hep3Vector bfield) {
-        file = new GBLFileIO(outputFileName);
-        //B = VecOp.mult(0.3, new BasicHep3Vector(0.,0.,Bz));
+    	System.out.printf("name \"%s\" \n", outputFileName);
+    	if(!outputFileName.equalsIgnoreCase("")) {
+    		textFile = new GBLFileIO(outputFileName);
+    	}
         _materialmanager = new MaterialSupervisor();
         _scattering = new MultipleScattering(_materialmanager);
         _B = HPSTransformations.transformVectorToTracking(bfield);
-        System.out.printf("%s: B field %s\n",this.getClass().getSimpleName(),_B.toString());        
         _scattering.setBField(Math.abs(_B.z())); // only absolute of B is needed as it's used for momentum calculation only
     }
+
     public void setDebug(int debug) {
         _debug = debug;
+        _scattering.setDebug(_debug>0?true:false);
     }
     public void buildModel(Detector detector) {
         _materialmanager.buildModel(detector);
     }
     void printNewEvent(int eventNumber,double Bz) {
-        file.printEventInfo(eventNumber,Bz);
+    	if(textFile != null) {
+    		textFile.printEventInfo(eventNumber,Bz);
+    	}
     }
     void printTrackID(int iTrack) {
-        file.printTrackID(iTrack);
+    	if(textFile != null) {
+    		textFile.printTrackID(iTrack);
+    	}
     }
     void close() {
-        file.closeFile();
+    	if(textFile != null) {
+    		textFile.closeFile();
+    	}
     }
     void setAPrimeEventFlag(boolean flag) {
     	this.AprimeEvent = flag;
@@ -113,10 +128,9 @@ public class GBLOutput {
         SeedTrack st = (SeedTrack)trk;
         SeedCandidate seed = st.getSeedCandidate();
         HelicalTrackFit htf = seed.getHelix();          
-        _scattering.setDebug(this._debug>0?true:false);
-        ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
 
-        
+        // Find scatter points along the path
+        ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
         
         // Hits on track
         List<HelicalTrackHit> hits = seed.getHits();
@@ -140,9 +154,6 @@ public class GBLOutput {
         	}
         }
         
-        //GBLDATA
-        // TODO add LCRelation to MC particle
-        
         // Get track parameters from MC particle 
         HelicalTrackFit htfTruth = isMC ? TrackUtils.getHTF(mcp,-1.0*this._B.z()) : null;
         
@@ -153,8 +164,10 @@ public class GBLOutput {
         // Get perigee parameters to curvilinear frame
         PerigeeParams perPar = new PerigeeParams(htf);
         PerigeeParams perParTruth = new PerigeeParams(htfTruth);
-        file.printPerTrackParam(perPar);
-        file.printPerTrackParamTruth(perParTruth);
+        if(textFile != null) {
+        	textFile.printPerTrackParam(perPar);
+        	textFile.printPerTrackParamTruth(perParTruth);
+        }
         
         //GBLDATA
         gtd.setPerigeeTrackParameters(perPar);
@@ -162,21 +175,36 @@ public class GBLOutput {
         // Get curvilinear parameters
         ClParams clPar = new ClParams(htf);
         ClParams clParTruth = new ClParams(htfTruth);
-        file.printClTrackParam(clPar);
-        file.printClTrackParamTruth(clParTruth);
+        if(textFile != null) {
+        	textFile.printClTrackParam(clPar);
+        	textFile.printClTrackParamTruth(clParTruth);
         
-        if(_debug>0) {
-            System.out.printf("%s\n",file.getClTrackParamStr(clPar));
-            System.out.printf("%s\n",file.getPerTrackParamStr(perPar));
+        	if(_debug>0) {
+        		System.out.printf("%s\n",textFile.getClTrackParamStr(clPar));
+        		System.out.printf("%s\n",textFile.getPerTrackParamStr(perPar));
+        	}
         }
-
+        
         
         // find the projection from the I,J,K to U,V,T curvilinear coordinates
         Hep3Matrix perToClPrj = getPerToClPrj(htf);
-        file.printPerToClPrj(perToClPrj);
-                
+        
+        if(textFile != null) {
+        	textFile.printPerToClPrj(perToClPrj);
+        }    
+        
+        //GBLDATA
+        for(int row=0; row<perToClPrj.getNRows();++row) {
+        	for(int col=0; col<perToClPrj.getNColumns();++col) {
+        		gtd.setPrjPerToCl(row, col, perToClPrj.e(row, col));
+        	}
+        }
+        
+        
         // print chi2 of fit
-        file.printChi2(htf.chisq(),htf.ndf());
+        if(textFile != null) {
+        	textFile.printChi2(htf.chisq(),htf.ndf());
+        }
         
         // build map of layer to SimTrackerHits that belongs to the MC particle
         Map<Integer, SimTrackerHit> simHitsLayerMap = new HashMap<Integer, SimTrackerHit >(); 
@@ -191,14 +219,18 @@ public class GBLOutput {
         
         
         // covariance matrix from the fit
-        file.printPerTrackCov(htf);
+        if(textFile != null) {
+        	textFile.printPerTrackCov(htf);
+        }
         
         // dummy cov matrix for CL parameters
         BasicMatrix clCov = new BasicMatrix(5,5);
         initUnit(clCov);
         clCov = (BasicMatrix) MatrixOp.mult(0.1*0.1,clCov);
-        file.printCLTrackCov(clCov);
         
+        if(textFile != null) {
+        	textFile.printCLTrackCov(clCov);
+        }
         
         if(_debug>0) {
             System.out.printf("%s: perPar covariance matrix\n%s\n",this.getClass().getSimpleName(),htf.covariance().toString());
@@ -220,8 +252,10 @@ public class GBLOutput {
                 
                 if(_debug>0) System.out.printf("%s: layer %d\n",this.getClass().getSimpleName(),strip.layer());
                 
-                file.printStrip(istrip,strip.layer());
-
+                if(textFile != null) {
+                	textFile.printStrip(istrip,strip.layer());
+                }
+                
                 //GBLDATA
                 GBLStripClusterData stripData = new GBLStripClusterData(strip.layer());
                 //Add to output list
@@ -231,16 +265,22 @@ public class GBLOutput {
                 
                 //Center of the sensor
                 Hep3Vector origin = strip.origin();                
-                file.printOrigin(origin);
+                
+                if(textFile != null) {
+                	textFile.printOrigin(origin);
+                }
                 
                 // associated 3D position of the crossing of this and it's stereo partner sensor
-                file.printHitPos3D(hit.getCorrectedPosition());
+                if(textFile != null) {
+                	textFile.printHitPos3D(hit.getCorrectedPosition());
+                }
                 
                 //Find intercept point with sensor in tracking frame
                 Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B.z()));
                 Hep3Vector trkposTruth = isMC ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip, Math.abs(_B.z())) : new BasicHep3Vector(-999999.9,-999999.9,-999999.9);
-                file.printStripTrackPos(trkpos);
-
+                if(textFile != null) {
+                	textFile.printStripTrackPos(trkpos);
+                }
                 if(_debug>0) {
                 	System.out.printf("trkpos at intercept [%.10f %.10f %.10f]\n",trkpos.x(),trkpos.y(),trkpos.z());
                     System.out.printf("trkposTruth at intercept %s\n",trkposTruth.toString());
@@ -283,8 +323,10 @@ public class GBLOutput {
                 //path length to intercept
                 double s = HelixUtils.PathToXPlane(htf,trkpos.x(),0,0).get(0); 
                 double s3D = s / Math.cos(Math.atan(htf.slope()));
-                file.printStripPathLen(s);
-                file.printStripPathLen3D(s3D);
+                if(textFile != null) {
+                	textFile.printStripPathLen(s);
+                	textFile.printStripPathLen3D(s3D);
+                }
                 
                 //GBLDATA
                 stripData.setPath(s);
@@ -293,10 +335,12 @@ public class GBLOutput {
                 
                 
                 //print stereo angle in YZ plane
-                file.printMeasDir(strip.u());
-                file.printNonMeasDir(strip.v());
-                file.printNormalDir(strip.w());
-
+                if(textFile != null) {
+                	textFile.printMeasDir(strip.u());
+                	textFile.printNonMeasDir(strip.v());
+                	textFile.printNormalDir(strip.w());
+                }
+                
                 //GBLDATA
                 stripData.setU(strip.u());
                 stripData.setV(strip.v());
@@ -307,8 +351,10 @@ public class GBLOutput {
                 Hep3Vector tDir = HelixUtils.Direction(htf, s);
                 double phi = htf.phi0() - s/htf.R();
                 double lambda = Math.atan(htf.slope());
-                file.printStripTrackDir(Math.sin(phi),Math.sin(lambda));
-                file.printStripTrackDirFull(tDir);
+                if(textFile != null) {
+                	textFile.printStripTrackDir(Math.sin(phi),Math.sin(lambda));
+                	textFile.printStripTrackDirFull(tDir);
+                }
                 
                 //GBLDATA
                 stripData.setTrackDir(tDir);
@@ -336,8 +382,10 @@ public class GBLOutput {
                 Hep3Vector m_meas = new BasicHep3Vector(strip.umeas(),0.,0.);
                 Hep3Vector res_err_meas = new BasicHep3Vector(strip.du(),(strip.vmax() - strip.vmin()) / Math.sqrt(12),10.0/Math.sqrt(12));
                 
-                file.printStripMeas(m_meas.x());
-
+                if(textFile != null) {
+                	textFile.printStripMeas(m_meas.x());
+                }
+                
                 //GBLDATA
                 stripData.setMeas(strip.umeas());
                 stripData.setTrackPos(trkpos_meas);
@@ -345,9 +393,11 @@ public class GBLOutput {
                 // residual in measurement frame
                 Hep3Vector res_meas = VecOp.sub(m_meas, trkpos_meas);
                 Hep3Vector resTruth_meas = VecOp.sub(m_meas, trkposTruth_meas);
-                file.printStripMeasRes(res_meas.x(),res_err_meas.x());
-                file.printStripMeasResTruth(resTruth_meas.x(),res_err_meas.x());
-
+                if(textFile != null) {
+                	textFile.printStripMeasRes(res_meas.x(),res_err_meas.x());
+                	textFile.printStripMeasResTruth(resTruth_meas.x(),res_err_meas.x());
+                }
+                
                 //GBLDATA
                 stripData.setMeasErr(res_err_meas.x());
                 
@@ -362,10 +412,14 @@ public class GBLOutput {
                     if(_debug>0) System.out.printf("simHitPos  %s\n",simHitPos.toString());
                     Hep3Vector vdiffSimHit = VecOp.sub(simHitPos, trkpos);
                     Hep3Vector simHitPos_meas = VecOp.mult(trkToStripRot, vdiffSimHit);
-                    file.printStripMeasResSimHit(simHitPos_meas.x(),res_err_meas.x());
+                    if(textFile != null) {
+                    	textFile.printStripMeasResSimHit(simHitPos_meas.x(),res_err_meas.x());
+                    }
                 } else {
-                    file.printStripMeasResSimHit(-999999.9,-999999.9);
-                }
+                	if(textFile != null) {
+                		textFile.printStripMeasResSimHit(-999999.9,-999999.9);
+                	}
+                }	
                 
                 // find scattering angle
                 ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement());
@@ -406,7 +460,9 @@ public class GBLOutput {
                 
                 
                 //print scatterer to file
-                file.printStripScat(scatAngle);
+                if(textFile != null) {
+                	textFile.printStripScat(scatAngle);
+                }
                 
                 //GBLDATA
                 stripData.setScatterAngle(scatAngle);

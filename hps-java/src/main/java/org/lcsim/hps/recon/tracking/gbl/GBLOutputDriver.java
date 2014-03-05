@@ -12,22 +12,21 @@ import java.util.logging.Logger;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.MyLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.recon.tracking.EventQuality;
-import org.lcsim.hps.recon.tracking.FieldMap;
 import org.lcsim.hps.recon.tracking.TrackUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
-* This driver is used to convert lcio input to a relative unstructured output format used as imput to GBL
+* This driver class is used to 
+* 1) write lcio collection of GBL info objects OR
+* 2) write GBL info into a unstructures text-based output
 * 
-* We should port GBL to java.
+* It uses a helper class that does the actual work. We will port GBL to java and that will replace this driver.
 * 
 * @author Per Hansson Adrian <phansson@slac.stanford.edu>
 * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
@@ -36,37 +35,20 @@ import org.lcsim.util.aida.AIDA;
 public class GBLOutputDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    String[] detNames = {"Tracker"};
     int nevt = 0;
     GBLOutput gbl;
-    TruthResiduals truthRes;
-    private String gblFile = "gblinput.txt";
-    int totalTracks=0;
-    int totalTracksProcessed=0;
+    TruthResiduals truthRes = null;
+    private String gblFileName = "";
     private String outputPlotFileName="";
-    private boolean hideFrame = false;
-    private int _debug = 0;
     private String MCParticleCollectionName = "MCParticle";
+    private int _debug = 0;
+    private boolean isMC = true;
+    private int totalTracks=0;
+    private int totalTracksProcessed=0;
     private int iTrack = 0;
     private int iEvent = 0;
-    private boolean isMC = true;
     
-    public void setDebug(int v) {
-        this._debug = v;
-    }
-    public void setGblFileName(String filename) {
-        gblFile = filename;
-    }
-    public void setOutputPlotFileName(String filename) {
-        outputPlotFileName = filename;
-    }    
-    public void setHideFrame(boolean hide) {
-        hideFrame = hide;
-    }
-    public void setIsMC(boolean isMC) {
-        this.isMC = isMC;
-    }
-
+    
     
     public GBLOutputDriver() {
     }
@@ -75,15 +57,18 @@ public class GBLOutputDriver extends Driver {
     @Override
     public void detectorChanged(Detector detector) {
         Hep3Vector bfield = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
-        System.out.printf("%s: B-field in z %s\n",this.getClass().getSimpleName(),bfield.toString());
-        gbl = new GBLOutput(gblFile,bfield);
+        
+        // Create the class that handles all the GBL output
+        gbl = new GBLOutput(gblFileName,bfield); // if filename is empty no text file is written
         gbl.setDebug(_debug);
         gbl.buildModel(detector);
         gbl.setAPrimeEventFlag(false);
         gbl.setXPlaneFlag(false);
-        truthRes = new TruthResiduals(bfield);
-        truthRes.setDebug(_debug);
-        truthRes.setHideFrame(hideFrame);
+
+        //Create the class that makes residual plots for cross-checking
+        //truthRes = new TruthResiduals(bfield);
+        //truthRes.setDebug(_debug);
+        //truthRes.setHideFrame(hideFrame);
     }
     
     
@@ -112,7 +97,9 @@ public class GBLOutputDriver extends Driver {
         }
         
         if(isMC) {
-        	truthRes.processSim(mcParticles, simTrackerHits);
+        	if(truthRes != null) {
+        		truthRes.processSim(mcParticles, simTrackerHits);
+        	}	
         }
         
         
@@ -125,7 +112,8 @@ public class GBLOutputDriver extends Driver {
             }
         }
 
-        //GBLData
+        // GBLData 
+        // containers and data
         List<GBLEventData> gblEventData =  new ArrayList<GBLEventData>(); 
         gblEventData.add(new GBLEventData(event.getEventNumber(),gbl.get_B().z()));
         List<GBLTrackData> gblTrackDataList =  new ArrayList<GBLTrackData>(); 
@@ -171,9 +159,7 @@ public class GBLOutputDriver extends Driver {
         event.put("GBLStripClusterData", gblStripDataListAll, GBLStripClusterData.class, 0);
         event.put("GBLTrackToStripData", gblTrackToStripClusterRelationListAll, LCRelation.class, 0);
         event.put("TrackToGBLTrack", trackToGBLTrackRelationListAll, LCRelation.class, 0);
-        
-        
-        
+
         ++iEvent;
         
     }
@@ -195,6 +181,19 @@ public class GBLOutputDriver extends Driver {
         
     }
     
+    public void setDebug(int v) {
+        this._debug = v;
+    }
+    public void setGblFileName(String filename) {
+        gblFileName = filename;
+    }
+    public void setOutputPlotFileName(String filename) {
+        outputPlotFileName = filename;
+    }    
+    public void setIsMC(boolean isMC) {
+        this.isMC = isMC;
+    }
+
     
     
 }

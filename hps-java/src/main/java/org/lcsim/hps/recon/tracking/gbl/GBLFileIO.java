@@ -19,7 +19,7 @@ import org.lcsim.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 import org.lcsim.hps.alignment.RunAlignment;
 
 /**
- * Handles text file printing for the GBL
+ * Handles text file printing for the GBL text file
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @version $Id: GBLFileIO.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
  */
@@ -27,11 +27,9 @@ public class GBLFileIO {
 
     PrintWriter _pWriter;
     FileWriter _fWriter;
-    private String _outputFileName;
     
     GBLFileIO(String fileName) {
-        this._outputFileName = fileName;
-        openFile();    
+        openFile(fileName);    
     }
     
     public void printEventInfo(int evtnr, double Bz) {
@@ -50,9 +48,13 @@ public class GBLFileIO {
              Logger.getLogger(RunAlignment.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    private void openFile() {
-         try {
-            _fWriter = new FileWriter(_outputFileName);
+    private void openFile(String fileName) {
+    	if(fileName.equalsIgnoreCase("")) {
+    		System.out.printf("%s: no file name specified \n", this.getClass().getSimpleName());
+    		System.exit(1);
+    	}
+    	try {
+            _fWriter = new FileWriter(fileName);
             _pWriter = new PrintWriter(_fWriter);
         } catch (IOException ex) {
             Logger.getLogger(RunAlignment.class.getName()).log(Level.SEVERE, null, ex);

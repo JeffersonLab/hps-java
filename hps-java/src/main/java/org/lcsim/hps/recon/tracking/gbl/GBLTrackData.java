@@ -20,7 +20,8 @@ public class GBLTrackData implements GenericObject {
 		public static final int PERPHI = 2;
 		public static final int PERD0 = 3;
 		public static final int PERZ0 = 4;
-		public static final int BANK_DOUBLE_SIZE = 5;
+		// 9 entries from projection matrix from perigee to curvilinear frame
+		public static final int BANK_DOUBLE_SIZE = 5+9;
 	}
 	// array holding the integer data
 	private int bank_int[] = new int[GBLINT.BANK_INT_SIZE];
@@ -59,6 +60,16 @@ public class GBLTrackData implements GenericObject {
 		this.bank_double[GBLDOUBLE.PERZ0] = perPar.getZ0();
 	}
 
+	
+	public void setPrjPerToCl(int row, int col, double val) {
+		int idx = col + row*3;
+		if(idx>8) {
+			System.out.printf("%s: ERROR to large matrix\n", this.getClass().getSimpleName());
+			System.exit(1);
+		}
+		this.bank_double[idx] = val;
+	}
+	
 
 	/*
 	 * The functions below are all overide from 
