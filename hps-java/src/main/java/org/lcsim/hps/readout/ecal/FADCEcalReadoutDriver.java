@@ -157,7 +157,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 //    public void setFallTime(double fallTime) {
 //        this.fallTime = fallTime;
 //    }
-
     public void setPePerMeV(double pePerMeV) {
         this.pePerMeV = pePerMeV;
     }
@@ -165,7 +164,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 //    public void setRiseTime(double riseTime) {
 //        this.riseTime = riseTime;
 //    }
-
     public void setDelay0(int delay0) {
         this.delay0 = delay0;
     }
@@ -414,7 +412,12 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             double energyAmplitude = hit.getRawEnergy();
             if (addNoise) {
                 //add preamp noise and photoelectron Poisson noise in quadrature
-                double noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+                double noise;
+                if (useCRRCShape) {
+                    noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+                } else {
+                    noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+                }
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
             }
             for (int i = 0; i < bufferLength; i++) {
