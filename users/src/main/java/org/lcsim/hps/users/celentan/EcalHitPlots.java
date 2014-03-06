@@ -436,7 +436,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
         			     }
         			     plotter.region(0).plot(hitCountPlot);
         				 plotter5.refresh();
-        				 plotter5.show();
+        				 plotter5.show();   //a
         				 father.repaint();
         			}
         	  }
