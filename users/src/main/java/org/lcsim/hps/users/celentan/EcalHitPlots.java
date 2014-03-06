@@ -27,6 +27,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.InputEvent; 
 
 import javax.swing.JPanel;
+//import org.jfree.chart.ChartPanel;
 
 public class EcalHitPlots extends Driver implements Resettable,MouseListener{
 
@@ -51,6 +52,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
     IPlotter plotter5;
     ArrayList<IHistogram1D> channelEnergyPlot;
     GlobalMouseListener plotter5listener;
+    boolean isPlotter5zoomed=false;
     
     int eventn = 0;
     int dummy = 0;
@@ -144,7 +146,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
         	  int column=this.getColumnFromHistoID(id);      
         	  
         	  //create the histogram, the global listener, and the specific listener.
-        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + row + " "+ column+ ": "+id, 1000, -0.1, maxEch));
+        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));
         
         	  
         	  if ((row!=0)&&(column!=0)&&(!isInHole(row,column))){
@@ -285,7 +287,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
                 
                 
                 column=hit.getIdentifierFieldValue("ix");
-                row=-hit.getIdentifierFieldValue("iy"); //sign "-" is due to AIDA having region 0 TOP-LEFT, while my numbering is with (0,0) bottom-left.
+                row=hit.getIdentifierFieldValue("iy"); 
                 if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
                   	id = this.getHistoIDFromRowColumn(row,column);
                 	//System.out.println("HIT: "+column+" "+row+" "+id);
@@ -355,7 +357,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
     }
     
     public int getRowFromHistoID(int id){
-        return ((id%11)-5);
+        return (5-(id%11));
     }
 
     public int getColumnFromHistoID(int id){
@@ -363,7 +365,7 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
     }
     
     public int getHistoIDFromRowColumn(int row,int column){
-    	return (row+5)+11*(column+23);
+    	return (-row+5)+11*(column+23);
     }
     
     public Boolean isInHole(int row,int column){
@@ -383,15 +385,61 @@ public class EcalHitPlots extends Driver implements Resettable,MouseListener{
         switch(e.getModifiers()) {
           case InputEvent.BUTTON1_MASK: {
             System.out.println("That's the LEFT button");    
-            
             break;
             }
           case InputEvent.BUTTON2_MASK: {
-            System.out.println("That's the MIDDLE button");     
-            System.out.println(e.getX()+" "+e.getY());
-            System.out.println(e.getSource().toString());
-            System.out.println(((JPanel)e.getSource()).getComponent(0).toString());
-//            System.out.println(((IHistogram1D)e.getSource()).title());
+        	  System.out.println(e.getSource().getClass().getName());
+        	  if (e.getSource().getClass().getName() == "org.jfree.chart.ChartPanel"){
+        		  	 JPanel panel=(JPanel)e.getSource();  
+        		  	 JPanel father=(JPanel)panel.getParent();
+        			 if (!isPlotter5zoomed){
+        			
+        				 isPlotter5zoomed=true;   
+        			  	 int x=panel.getX();
+            		  	 int y=panel.getY();
+            		  	 int w=panel.getWidth();
+            		  	 int h=panel.getHeight();
+            		  	 System.out.println(x+" "+y+" "+w+" "+h);
+            		     
+            		  	 int column=x/w;
+            		  	 column=column-23;
+            		  	 int row=y/h;
+            		  	 row=-row+5;
+            		  	 int id=getHistoIDFromRowColumn(row, column);
+            			 System.out.println("ZOOM IN histo "+id);
+            		  	 System.out.println(row+" "+column+" "+id+" ");   
+            		  	 plotter5.clearRegions();
+        				 plotter5.destroyRegions();
+        				 System.out.println(plotter5.numberOfRegions());
+        				 plotter5.createRegion();
+        				 plotter5.region(0).plot(channelEnergyPlot.get(id));
+        				 System.out.println(plotter5.numberOfRegions());
+        				 plotter5.refresh();
+        				 plotter5.show();
+        				 father.repaint();
+        			 }
+        			 else {
+        				 this.isPlotter5zoomed=false;
+        				 System.out.println("ZOOM out");
+        				 System.out.println(plotter5.numberOfRegions());
+        				 plotter5.clearRegions();
+        				 plotter5.destroyRegions();
+        				 System.out.println(plotter5.numberOfRegions());
+        				 plotter5.createRegions(47,11); //1 more, to have raw 0 and column 0 empty.
+        				 System.out.println(plotter5.numberOfRegions());
+        			     for(int id = 0; id < (47*11); id = id +1){			        	  
+        			       int row=getRowFromHistoID(id);
+        			       int column=getColumnFromHistoID(id);       			        	  
+        			        	  if ((row!=0)&&(column!=0)&&(!isInHole(row,column))){
+        			        		  plotter5.region(id).plot(channelEnergyPlot.get(id));       	
+        			        	  }
+        			     }
+        			     plotter.region(0).plot(hitCountPlot);
+        				 plotter5.refresh();
+        				 plotter5.show();
+        				 father.repaint();
+        			}
+        	  }
             break;
             }
           case InputEvent.BUTTON3_MASK: {
