@@ -12,14 +12,16 @@
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
 <!--        <driver name="EcalPedestalPlots"/>-->
-        <driver name="EcalMonitoringPlots"/>
-        <driver name="EcalHitPlots"/>
-        <driver name="EcalClusterPlots"/>
-        <driver name="EcalEvsX"/>
-<!--        <driver name="TriggerPlots"/>-->
+        <driver name="EcalMonitoringPlots"/>     <!-- General plots -->
+        <driver name="EcalHitPlots"/>            <!-- Single hit distributions -->
+        <driver name="EcalClusterPlots"/>        <!-- Clusters distributions -->
+        <driver name="EcalDaqPlots"/>           <!-- DAQ Plots -->
+<!--      <driver name="EcalWindowPlots"/>   -->    <!-- Window plots -->
+<!--      <driver name="EcalEventMonitor"/>   -->
+<!--   <driver name="EcalEvsX"/>    -->           
+<!--    <driver name="TriggerPlots"/>-->
 <!--
         <driver name="EcalEventMonitor"/>
-        <driver name="EcalWindowPlots"/>
         <driver name="EcalDaqPlots"/>
 -->
 <!--        <driver name="RunControlDriver" />-->
@@ -33,16 +35,16 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
 <!--            <dropBadFADC>true</dropBadFADC>-->
         </driver>
-        <driver name="EcalDaqPlots" type="org.lcsim.hps.monitoring.ecal.EcalDaqPlots">
+        <driver name="EcalDaqPlots" type="org.lcsim.hps.users.celentan.EcalDaqPlots">
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.lcsim.hps.monitoring.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.lcsim.hps.users.celentan.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="EcalEventMonitor" type="org.lcsim.hps.monitoring.ecal.EcalEventMonitor">
+        <driver name="EcalEventMonitor" type="org.lcsim.hps.users.celentan.EcalEventMonitor">
             <eventRefreshRate>1000</eventRefreshRate>
         </driver>
-        <driver name="EcalWindowPlots" type="org.lcsim.hps.monitoring.ecal.EcalWindowPlotsXY">
+        <driver name="EcalWindowPlots" type="org.lcsim.hps.users.celentan.EcalWindowPlots">
             <inputCollection>EcalReadoutHits</inputCollection>
         </driver>
         <driver name="EcalPedestalPlots" type="org.lcsim.hps.monitoring.ecal.EcalPedestalPlots">
@@ -63,7 +65,7 @@
             <maxE>2.0</maxE>
             <logScale>true</logScale>
         </driver>
-        <driver name="EcalClusterPlots" type="org.lcsim.hps.monitoring.ecal.EcalClusterPlots">
+        <driver name="EcalClusterPlots" type="org.lcsim.hps.users.celentan.EcalClusterPlots">
             <maxE>2.0</maxE>
             <logScale>false</logScale>
         </driver>

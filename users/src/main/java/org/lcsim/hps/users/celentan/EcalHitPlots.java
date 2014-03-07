@@ -30,7 +30,7 @@ import java.awt.event.InputEvent;
 import javax.swing.JPanel;
 //import org.jfree.chart.ChartPanel;
 
-public class EcalHitPlots extends Driver implements Resettable, MouseListener, Redrawable{
+public class EcalHitPlots extends Driver implements Resettable, MouseListener{
 
     //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
@@ -46,16 +46,13 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
     IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
    // IHistogram2D topX, botX, topY, botY;
     IHistogram2D edgePlot;
-    
-    PlotterUtilities thePlotterUtilities;
+   
   
     //Plotter5
-    IPlotter plotter5;
     ArrayList<IHistogram1D> channelEnergyPlot;
-    IHistogram2D channelMeanEnergy; 
-    GlobalMouseListener plotter5listener;
-    boolean isPlotter5zoomed=false;
+    ArrayList<IHistogram1D> channelTimePlot;
     
+  
     int eventn = 0;
     int eventRefreshRate = 1;
     int dummy = 0;
@@ -126,28 +123,20 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
         plotter2.region(0).plot(hitEnergyPlot);
         plotter2.region(1).plot(hitMaxEnergyPlot);
 
-        //A. Celentano
-        plotter5 = plotterFactory.create("Hit Energies - per channel");
-        plotter5.setTitle("Hit Energies - per channel");
-        plotter5.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter5.createRegions(1, 2);
+    
   
-        
-        plotter5listener=new GlobalMouseListener(thePlotterUtilities.componentForPlotter(plotter5));
-        plotter5listener.addMouseListener(this);
-        
-        channelMeanEnergy = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count", 47, -23.5, 23.5, 11, -5.5, 5.5);
+      
         channelEnergyPlot=new ArrayList<IHistogram1D>();
-         
+        channelTimePlot=new ArrayList<IHistogram1D>();
         for(int id = 0; id < (47*11); id = id +1){
-        	  
         	  int row=this.getRowFromHistoID(id);
         	  int column=this.getColumnFromHistoID(id);      
         	  //create the histograms
-        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));     
-        	 }
+        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
+        	  channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
+        }
          
-        plotter5.region(0).plot(channelMeanEnergy);
+        
         
         
         plotter3 = plotterFactory.create("Hit Times");
@@ -196,19 +185,19 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
       //  plotterFrame.addPlotter(plotter4);
         plotter4.style().setParameter("hist2DStyle", "colorMap");
         plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter4.style().zAxisStyle().setParameter("scale", "log");
+       // plotter4.style().zAxisStyle().setParameter("scale", "log");
         plotter4.createRegion();
 
-        edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Pairs Across Crystal Edges", 93, -23.25, 23.25, 21, -5.25, 5.25);
+        edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
         plotter4.region(0).plot(edgePlot);
 
         
         if (!hide) {
         	plotter.show();
         	plotter2.show();
-        	plotter3.show();
-        	plotter4.show();
-        	plotter5.show();
+        	plotter3.show(); 
+        	plotter4.show(); 
+        //	plotter5.show(); Andrea: not yet.
         }
         //plotterFrame.setVisible(true);
         //plotterFrame.pack();
@@ -286,7 +275,6 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
                 row=hit.getIdentifierFieldValue("iy"); 
                 if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
                   	id = this.getHistoIDFromRowColumn(row,column);
-                	//System.out.println("HIT: "+column+" "+row+" "+id);
                 	channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
                 }
                 
@@ -316,6 +304,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
                 botTimePlot2D.fill(botTime, botTrigTime);
             }
             hitMaxEnergyPlot.fill(maxEnergy);
+        
             for (int i = 0; i < hits.size(); i++) {
                 CalorimeterHit hit1 = hits.get(i);
                 int x1 = hit1.getIdentifierFieldValue("ix");
@@ -326,7 +315,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
                     int y2 = hit2.getIdentifierFieldValue("iy");
                     if ((Math.abs(x1 - x2) <= 1 || x1 * x2 == -1) && (Math.abs(y1 - y2) <= 1)) {
                         if (x1 != x2 || y1 != y2) {
-                            edgePlot.fill((x1 + x2) / 2.0, (y1 + y2) / 2.0);
+                         //  edgePlot.fill((x1 + x2) / 2.0, (y1 + y2) / 2.0);
                         }
                     }
                 }
@@ -335,9 +324,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
             hitCountPlot.fill(0);
         }
         
-        if (eventRefreshRate > 0 && ++eventn % eventRefreshRate == 0) {
-            redraw();
-        }
+       
         
     }
 
@@ -392,59 +379,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
         	  System.out.println(e.getSource().getClass().getName());
         	  if (e.getSource().getClass().getName() == "org.jfree.chart.ChartPanel"){
         		  	 JPanel panel=(JPanel)e.getSource();  
-        		  	 JPanel father=(JPanel)panel.getParent();
-        			 if (!isPlotter5zoomed){
-        			
-        				 isPlotter5zoomed=true;   
-        			  	 int x=panel.getX();
-            		  	 int y=panel.getY();
-            		  	 int w=panel.getWidth();
-            		  	 int h=panel.getHeight();
-            		  	 System.out.println(x+" "+y+" "+w+" "+h);
-            		     
-            		  	 int column=x/w;
-            		  	 column=column-23;
-            		  	 int row=y/h;
-            		  	 row=-row+5;
-            		  	 int id=getHistoIDFromRowColumn(row, column);
-            			 System.out.println("ZOOM IN histo "+id);
-            		  	 System.out.println(row+" "+column+" "+id+" ");   
-            	      	 plotter5.destroyRegions();
-            		  	 plotter5.clearRegions();
-        				
-            		  	 //	plotter5.destroyRegions();
-        				/*
-            		  	 System.out.println(plotter5.numberOfRegions());
-        				 */
-            		  	 plotter5.createRegion();
-        				 plotter5.region(0).plot(channelEnergyPlot.get(id));
-        				 System.out.println(plotter5.numberOfRegions());      				
-        				 plotter5.show();
-        				  
-        			 }
-        			 else {
-        				 this.isPlotter5zoomed=false;
-        				 System.out.println("ZOOM out");
-        				 System.out.println(plotter5.numberOfRegions());
-        				 plotter5.clearRegions();
-        				 /*plotter5.destroyRegions();
-        				 System.out.println(plotter5.numberOfRegions());
-        				 
-        				 plotter5.createRegions(47,11); //1 more, to have raw 0 and column 0 empty.
-        				
-        			
-        				 System.out.println(Arrays.toString(plotter5.availableParameters()));
-        			     for(int id = 0; id < (47*11); id = id +1){			        	  
-        			       int row=getRowFromHistoID(id);
-        			       int column=getColumnFromHistoID(id);       			        	  
-        			        	  if ((row!=0)&&(column!=0)&&(!isInHole(row,column))){
-        			        		  plotter5.region(id).plot(channelEnergyPlot.get(id));       	
-        			        	  }
-        			     }*/
-        			     plotter5.region(0).plot(hitCountPlot);
-        				
-        				 plotter5.show();          				
-        			}
+        		  	 JPanel father=(JPanel)panel.getParent(); 
         	  }
             break;
             }
@@ -456,23 +391,8 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener, R
         }   
 
 
-    @Override
-    public void redraw() {
-         channelMeanEnergy.reset();
-         for(int id = 0; id < (47*11); id = id +1){			        	  
-		       int row=getRowFromHistoID(id);
-		       int column=getColumnFromHistoID(id);       			        	  
-		        	  if ((row!=0)&&(column!=0)&&(!isInHole(row,column))){
-		        		 if (channelEnergyPlot.get(id).mean()>0) channelMeanEnergy.fill(row,column,channelEnergyPlot.get(id).mean());	
-		        	  }
-		     }
-    
-    }
-    @Override
-    public void setEventRefreshRate(int eventRefreshRate) {
-        this.eventRefreshRate = eventRefreshRate;
-    }
-
+   
+ 
 }
 
    
