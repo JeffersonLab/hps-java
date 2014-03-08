@@ -3,6 +3,7 @@ package org.lcsim.hps.users.celentan;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.aida.IPlotterFactory;
 import hep.aida.ref.plotter.PlotterUtilities;
 
@@ -17,6 +18,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.hps.evio.TriggerData;
 import org.lcsim.hps.monitoring.deprecated.Resettable;
 import org.lcsim.hps.monitoring.deprecated.Redrawable;
+import org.lcsim.hps.users.celentan.EcalMonitoringUtils;
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -45,7 +47,8 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
     IHistogram1D topTrigTimePlot, botTrigTimePlot, orTrigTimePlot;
     IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
    // IHistogram2D topX, botX, topY, botY;
-    IHistogram2D edgePlot;
+    IHistogram2D hitNumberPlot;
+    IHistogram2D occupancyPlot;
    
   
     //Plotter5
@@ -95,13 +98,20 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         // Setup plots.
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event", 10, -0.5, 9.5);
         hitTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time", 100, 0 * 4.0, 100 * 4.0);
-
+        hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
+        occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
+        
         // Create the plotter regions.
-        plotter.createRegions(1, 2);
-        plotter.region(0).plot(hitCountPlot);
+        plotter.createRegions(2, 2);
+        plotter.region(3).plot(hitCountPlot);
         plotter.region(1).plot(hitTimePlot);
-     
-      
+        plotter.region(0).plot(hitNumberPlot);
+        IPlotterStyle style = plotter.region(2).style();
+        style.setParameter("hist2DStyle", "colorMap");
+        style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+        style.zAxisStyle().setParameter("scale", "log");
+        plotter.region(2).plot(occupancyPlot);
+        
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
@@ -129,8 +139,8 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         channelEnergyPlot=new ArrayList<IHistogram1D>();
         channelTimePlot=new ArrayList<IHistogram1D>();
         for(int id = 0; id < (47*11); id = id +1){
-        	  int row=this.getRowFromHistoID(id);
-        	  int column=this.getColumnFromHistoID(id);      
+        	  int row=EcalMonitoringUtils.getRowFromHistoID(id);
+        	  int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
         	  //create the histograms
         	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
         	  channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
@@ -180,23 +190,23 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
             }
         }
 
-        plotter4 = plotterFactory.create("Edges");
-        plotter4.setTitle("Edges");
+       // plotter4 = plotterFactory.create("Edges");
+       // plotter4.setTitle("Edges");
       //  plotterFrame.addPlotter(plotter4);
-        plotter4.style().setParameter("hist2DStyle", "colorMap");
-        plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+       // plotter4.style().setParameter("hist2DStyle", "colorMap");
+       // plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
        // plotter4.style().zAxisStyle().setParameter("scale", "log");
-        plotter4.createRegion();
+      //  plotter4.createRegion();
 
-        edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
-        plotter4.region(0).plot(edgePlot);
+       //
+       // plotter4.region(0).plot(edgePlot);
 
         
         if (!hide) {
         	plotter.show();
         	plotter2.show();
         	plotter3.show(); 
-        	plotter4.show(); 
+        //	plotter4.show(); 
         //	plotter5.show(); Andrea: not yet.
         }
         //plotterFrame.setVisible(true);
@@ -274,7 +284,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
                 column=hit.getIdentifierFieldValue("ix");
                 row=hit.getIdentifierFieldValue("iy"); 
                 if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
-                  	id = this.getHistoIDFromRowColumn(row,column);
+                  	id = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
                 	channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
                 }
                 
@@ -344,26 +354,6 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         //plotterFrame.dispose();
     }
     
-    public int getRowFromHistoID(int id){
-        return (5-(id%11));
-    }
-
-    public int getColumnFromHistoID(int id){
-    	return ((id/11)-23);
-    }
-    
-    public int getHistoIDFromRowColumn(int row,int column){
-    	return (-row+5)+11*(column+23);
-    }
-    
-    public Boolean isInHole(int row,int column){
-    	Boolean ret;
-    	ret=false;
-    	if ((row==1)||(row==-1)){
-    		if ((column<=-2)&&(column>=-8)) ret=true;
-    	}
-    	return ret;	
-    }
     
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}
