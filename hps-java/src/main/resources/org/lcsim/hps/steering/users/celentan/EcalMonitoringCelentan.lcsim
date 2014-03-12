@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <control>
-        <numberOfEvents>-1</numberOfEvents>
+        <numberOfEvents>-1</numberOfEvents> 
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
@@ -16,7 +16,7 @@
         <driver name="EcalHitPlots"/>            <!-- Single hit distributions -->
         <driver name="EcalClusterPlots"/>        <!-- Clusters distributions -->
         <driver name="EcalDaqPlots"/>           <!-- DAQ Plots -->
-<!--      <driver name="EcalWindowPlots"/>   -->    <!-- Window plots -->
+        <driver name="EcalWindowPlots"/>         <!-- Window plots -->
 <!--      <driver name="EcalEventMonitor"/>   -->
 <!--   <driver name="EcalEvsX"/>    -->           
 <!--    <driver name="TriggerPlots"/>-->
