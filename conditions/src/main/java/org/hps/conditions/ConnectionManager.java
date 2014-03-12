@@ -23,12 +23,11 @@ public class ConnectionManager {
     private Connection connection = null;
 
     /**
-     * Class constructor which is private so singleton must be used.
+     * Class constructor.  Override at your own risk!
      */
-    private ConnectionManager() {
-        setupFromProperties();
+    protected ConnectionManager() {
     }
-
+    
     /**
      * Get the singleton instance of this class.
      * @return The instance of this class.
@@ -63,6 +62,7 @@ public class ConnectionManager {
     Connection createConnection() {
         Connection newConnection = connectionParameters.createConnection();
         try {
+            System.out.println("USE " + connectionParameters.getDatabase());
             newConnection.createStatement().execute("USE " + connectionParameters.getDatabase());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to connect to database.", e);
@@ -113,6 +113,9 @@ public class ConnectionManager {
      * @return The ResultSet from the query or null.
      */
     public ResultSet query(String query) {
+        
+        System.out.println(query);
+        
         if (connection == null)
             connection = createConnection();
         ResultSet result = null;
@@ -125,6 +128,32 @@ public class ConnectionManager {
         return result;
     }
     
+    /**
+     * Perform a query with an update SQL command like INSERT, DELETE or UPDATE.
+     * @return query The SQL query string.
+     * @return The number of rows affected.
+     */
+    public int update(String query) {
+        
+        System.out.println(query);
+        
+        if (connection == null)
+            connection = createConnection();
+        int key = -1;
+        try {
+            // NOTE: Assumes only one row is updated!
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS); 
+            ResultSet resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                key = resultSet.getInt(1);
+            }
+        } catch (SQLException x) {
+            throw new RuntimeException("Error in query: " + query, x);
+        }
+        return key;
+    }
+        
     public void disconnect() {
         cleanup(connection);
     }
@@ -132,6 +161,7 @@ public class ConnectionManager {
     /**
      * Setup the object from a properties file.
      */
+    /*
     private void setupFromProperties() {
         Object obj = System.getProperties().get("hps.conditions.db.configuration");
         if (obj != null) {
@@ -146,5 +176,21 @@ public class ConnectionManager {
             }
             connectionParameters = ConnectionParameters.fromProperties(p);
         }
+    }
+    */
+    public void setupFromProperties(File propertiesFile) {
+        //Object obj = System.getProperties().get("hps.conditions.db.configuration");
+        //if (obj != null) {
+            //String config = obj.toString();
+        Properties p = new Properties();
+        try {
+            p.load(new FileInputStream(propertiesFile));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        connectionParameters = ConnectionParameters.fromProperties(p);
+        //}
     }
 }
