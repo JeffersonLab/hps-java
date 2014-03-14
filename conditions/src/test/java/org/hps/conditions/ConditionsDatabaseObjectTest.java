@@ -1,17 +1,16 @@
 package org.hps.conditions;
 
 import java.io.File;
-import java.sql.ResultSet;
 import java.util.HashSet;
 import java.util.Set;
 
 import junit.framework.TestCase;
 
 import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
-import org.hps.conditions.ConditionsDatabaseObject.ConditionsDatabaseObjectException;
+import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
- * Test the basic functionality of a {@link ConditionsDatabaseObject} on a dummy database.
+ * Test the basic functionality of a {@link ConditionsObject} on a dummy database.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsDatabaseObjectTest extends TestCase {
@@ -26,7 +25,7 @@ public class ConditionsDatabaseObjectTest extends TestCase {
         // Connect to local test database.
         ConnectionManager connectionManager = new ConnectionManager();
         //ConnectionManager connectionManager = new DummyConnectionManager();
-        connectionManager.setupFromProperties(new File("dummy_db.properties"));
+        connectionManager.setupFromProperties(new File("./src/main/config/dummy_db.properties"));
         
         // Setup table meta data information.
         Set<String> dummyFieldNames = new HashSet<String>();
@@ -36,7 +35,7 @@ public class ConditionsDatabaseObjectTest extends TestCase {
         // Create a dummy data object with a single field value.
         FieldValueMap fieldValues = new FieldValueMap();
         fieldValues.put(dummyFieldName, firstValue);
-        ConditionsDatabaseObject dummyObject = new DummyConditionsObject(connectionManager, tableMetaData, 1, fieldValues);        
+        ConditionsObject dummyObject = new DummyConditionsObject(connectionManager, tableMetaData, 1, fieldValues);        
          
         try {
             // Insert the object into the database.
@@ -53,12 +52,20 @@ public class ConditionsDatabaseObjectTest extends TestCase {
             try {
                 readOnlyObject.delete();
                 throw new RuntimeException("Should not get here.");
-            } catch (ConditionsDatabaseObjectException x) {
+            } catch (ConditionsObjectException x) {
                 System.out.println("Caught error: " + x.getMessage());
             }
 
             // Delete the object from the database.
             dummyObject.delete();
+            
+            // Try to select a non-existant object to see that exception is thrown.
+            try {
+                dummyObject.select();
+                throw new RuntimeException("Should not get here.");
+            } catch (ConditionsObjectException x) {
+                System.out.println("Caught error: " + x.getMessage());
+            }
                                     
         } catch (Exception x) {
             throw new RuntimeException(x);
@@ -85,6 +92,7 @@ public class ConditionsDatabaseObjectTest extends TestCase {
         
     }
     
+    /*
     public class DummyConnectionManager extends ConnectionManager {
         
         public ResultSet query(String query) {
@@ -99,4 +107,5 @@ public class ConditionsDatabaseObjectTest extends TestCase {
             return 1;
         }
     }
+    */
 }
