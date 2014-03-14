@@ -10,8 +10,9 @@ import static org.hps.conditions.ConditionsConstants.SVT_TIME_SHIFTS;
 
 import java.util.Map.Entry;
 
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObject;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates an {@link SvtConditions} object from the database,
@@ -59,9 +60,14 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
         
         // Add gains by channel.
         SvtGainCollection gains = manager.getCachedConditions(SvtGainCollection.class, SVT_GAINS).getCachedData();
-        for (Entry<Integer,SvtGain> entry : gains.entrySet()) {
-            SvtChannel channel = conditions.getChannelMap().get(entry.getKey());
-            conditions.getChannelConstants(channel).setGain(entry.getValue());
+        //for (Entry<Integer,SvtGain> entry : gains.entrySet()) {
+        //    SvtChannel channel = conditions.getChannelMap().get(entry.getKey());
+        //    conditions.getChannelConstants(channel).setGain(entry.getValue());
+        //}
+        for (ConditionsObject object : gains.getObjects()) {
+            int channelId = object.getFieldValue(Integer.class, "svt_channel_id");
+            SvtChannel channel = conditions.getChannelMap().get(channelId);            
+            conditions.getChannelConstants(channel).setGain((SvtGain)object);
         }
         
         // Set the time shifts by sensor.

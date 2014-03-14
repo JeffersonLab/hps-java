@@ -1,6 +1,5 @@
 package org.hps.conditions;
 
-import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.beam.BeamCurrentConverter;
 import org.hps.conditions.ecal.EcalBadChannelConverter;
 import org.hps.conditions.ecal.EcalCalibrationConverter;
@@ -15,6 +14,7 @@ import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDaqMapConverter;
 import org.hps.conditions.svt.SvtGainConverter;
 import org.hps.conditions.svt.SvtTimeShiftConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class registers the full set of conditions converters onto the manager.
@@ -28,9 +28,22 @@ class ConditionsConverterRegister {
      */
     static void register(ConditionsManager manager) {
         
+        // Create the table meta data registry.
+        ConditionsTableRegistry tableRegistry = new ConditionsTableRegistry();
+        tableRegistry.registerDefaultTableMetaData();
+        
+        // Create the object factory for SVT.
+        ConditionsObjectFactory factory = 
+                new BasicConditionsObjectFactory(ConnectionManager.getConnectionManager(), tableRegistry);
+                
         // ConditionsRecords with validity meta data.
         manager.registerConditionsConverter(new ConditionsRecordConverter());
         
+        // SVT gains.  (TESTING!!!)
+        SvtGainConverter svtGainConverter = new SvtGainConverter();
+        svtGainConverter.setObjectFactory(factory);
+        manager.registerConditionsConverter(svtGainConverter);
+                
         // SVT channel map.
         manager.registerConditionsConverter(new SvtChannelMapConverter());
         
@@ -39,10 +52,7 @@ class ConditionsConverterRegister {
         
         // SVT calibrations.
         manager.registerConditionsConverter(new SvtCalibrationConverter());
-        
-        // SVT gains.
-        manager.registerConditionsConverter(new SvtGainConverter());
-        
+                
         // SVT bad channels.
         manager.registerConditionsConverter(new SvtBadChannelConverter());       
        
@@ -71,6 +81,6 @@ class ConditionsConverterRegister {
         manager.registerConditionsConverter(new EcalConditionsConverter());
         
         // Beam current condition.
-        manager.registerConditionsConverter(new BeamCurrentConverter());
+        manager.registerConditionsConverter(new BeamCurrentConverter());        
     }
 }

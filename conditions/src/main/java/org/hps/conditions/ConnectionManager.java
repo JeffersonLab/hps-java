@@ -158,30 +158,7 @@ public class ConnectionManager {
         cleanup(connection);
     }
 
-    /**
-     * Setup the object from a properties file.
-     */
-    /*
-    private void setupFromProperties() {
-        Object obj = System.getProperties().get("hps.conditions.db.configuration");
-        if (obj != null) {
-            String config = obj.toString();
-            Properties p = new Properties();
-            try {
-                p.load(new FileInputStream(new File(config)));
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            connectionParameters = ConnectionParameters.fromProperties(p);
-        }
-    }
-    */
     public void setupFromProperties(File propertiesFile) {
-        //Object obj = System.getProperties().get("hps.conditions.db.configuration");
-        //if (obj != null) {
-            //String config = obj.toString();
         Properties p = new Properties();
         try {
             p.load(new FileInputStream(propertiesFile));
@@ -191,6 +168,5 @@ public class ConnectionManager {
             throw new RuntimeException(e);
         }
         connectionParameters = ConnectionParameters.fromProperties(p);
-        //}
     }
 }

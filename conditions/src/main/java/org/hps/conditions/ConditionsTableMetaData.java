@@ -18,7 +18,5 @@ public class ConditionsTableMetaData {
     
     String getTableName() {
         return _tableName;
-    }    
-    
-    // TODO: Add method for getting next set ID.
+    }       
 }

@@ -3,10 +3,14 @@ package org.hps.conditions.svt;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
+import org.hps.conditions.ConditionsObject;
+import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 import org.hps.conditions.ConditionsRecord;
+import org.hps.conditions.ConditionsTableMetaData;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates a {@link SvtGainCollection} from the conditions database.
@@ -34,17 +38,20 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
         String fieldName = record.getFieldName();
-        int fieldValue = record.getFieldValue();
+        int collectionId = record.getFieldValue();
                 
         // Objects for building the return value.
-        SvtGainCollection collection = new SvtGainCollection();
+        //SvtGainCollection collection = new SvtGainCollection();
+        ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
+        SvtGainCollection collection = 
+                new SvtGainCollection(tableMetaData, collectionId, true); 
         
         // Get the connection manager.
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching calibration records using the ID field.
         String query = "SELECT svt_channel_id, gain, offset FROM "
-                + tableName + " WHERE " + fieldName + " = " + fieldValue
+                + tableName + " WHERE " + fieldName + " = " + collectionId
                 + " ORDER BY svt_channel_id ASC";
             
         // Execute the query and get the results.
@@ -52,15 +59,23 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
                
         try {
             // Loop over the gain records.            
-            while(resultSet.next()) {                                 
-                // Create the object with this channel's gain parameters.
-                int channelId = resultSet.getInt(1);
-                double gain = resultSet.getDouble(2);
-                double offset = resultSet.getDouble(3);
-                collection.put(channelId, new SvtGain(gain, offset));
+            while(resultSet.next()) {         
+                
+                // Setup conditions object.
+                FieldValueMap fieldValues = new FieldValueMap();
+                fieldValues.put("svt_channel_id", resultSet.getInt(1));
+                fieldValues.put("gain", resultSet.getDouble(2));
+                fieldValues.put("offset", resultSet.getDouble(3));
+                ConditionsObject newObject = _objectFactory.createObject(
+                        SvtGain.class, tableName, -1, fieldValues);
+                
+                // Add to collection.
+                collection.add(newObject);
             }            
-        } catch (SQLException x) {
-            throw new RuntimeException("Database error.", x);
+        } catch (SQLException x1) {
+            throw new RuntimeException("Database error.", x1);
+        } catch (ConditionsObjectException x2) {
+            throw new RuntimeException("Error converting to SvtGain object.", x2);
         }
         
         // Return collection of gain objects to caller.
