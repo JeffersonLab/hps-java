@@ -15,7 +15,7 @@ public class SvtConditions {
     
     /** SVT conditions data. */
     private Map<SvtChannel, ChannelConstants> channelData = new HashMap<SvtChannel, ChannelConstants>();
-    private SvtChannelMap channelMap = null;
+    private SvtChannelCollection channelMap = null;
     private SvtDaqMap daqMap = null;
     private SvtTimeShiftCollection timeShifts = null;
     
@@ -23,7 +23,7 @@ public class SvtConditions {
      * Class constructor, which takes a channel map.
      * @param channelMap The SVT channel map.
      */
-    SvtConditions(SvtChannelMap channelMap) {
+    SvtConditions(SvtChannelCollection channelMap) {
         this.channelMap = channelMap;
     }     
         
@@ -37,7 +37,7 @@ public class SvtConditions {
      */
     public ChannelConstants getChannelConstants(SvtChannel channel) {
         // This channel must come from the map.
-        if (!channelMap.containsValue(channel)) {
+        if (!channelMap.getObjects().contains(channel)) {
             System.err.println("Channel not found in map => " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
@@ -48,10 +48,10 @@ public class SvtConditions {
     }         
         
     /**
-     * Get the {@link SvtChannelMap} for this set of conditions.
+     * Get the {@link SvtChannelCollection} for this set of conditions.
      * @return The SVT channel map.
      */
-    public SvtChannelMap getChannelMap() {
+    public SvtChannelCollection getChannelMap() {
         return channelMap;
     }
     
@@ -133,12 +133,12 @@ public class SvtConditions {
         }        
         buff.append('\n');
         // Loop over channels.
-        for (SvtChannel channel : channelMap.values()) {
+        for (SvtChannel channel : channelMap.getObjects()) {
             
             // Get the conditions for the channel.
             ChannelConstants constants = getChannelConstants(channel);
             SvtGain gain = constants.getGain();
-            PulseParameters pulse = constants.getPulseParameters();
+            SvtPulseParameters pulse = constants.getPulseParameters();
             SvtCalibration calibration = constants.getCalibration();
             
             // Channel data.

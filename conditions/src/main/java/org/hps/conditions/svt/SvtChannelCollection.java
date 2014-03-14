@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.ConditionsTableMetaData;
 import org.lcsim.hps.util.Pair;
 
 /**
@@ -12,14 +15,27 @@ import org.lcsim.hps.util.Pair;
  * in the conditions database.  It can be used to lookup information stored in the {@link SvtConditions} object.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtChannelMap extends HashMap<Integer,SvtChannel> {
+public class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel> {
     
-    /**
-     * Constructor, which is package protected.  Users should not 
-     * create this class directly but retrieve it from the {@link SvtConditions}
-     * object instead.
-     */
-    SvtChannelMap() {
+    Map<Integer, SvtChannel> channelMap = new HashMap<Integer, SvtChannel>();
+    
+    SvtChannelCollection(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
+        super(tableMetaData, collectionId, isReadOnly);
+    }
+    
+    public void add(SvtChannel channel) {
+        // Add to map.
+        if (channelMap.containsKey(channel.getId())) {
+            throw new IllegalArgumentException("Channel ID already exists: " + channel.getId());
+        }
+        channelMap.put(channel.getId(), channel);
+        
+        // Add to collection.
+        super.add(channel);
+    }
+    
+    public SvtChannel findChannel(int channelId) {
+        return channelMap.get(channelId);
     }
     
     /**
@@ -31,7 +47,7 @@ public class SvtChannelMap extends HashMap<Integer,SvtChannel> {
         List<SvtChannel> channels = new ArrayList<SvtChannel>(); 
         int fpga = pair.getFirstElement();
         int hybrid = pair.getSecondElement();
-        for (SvtChannel channel : values()) {
+        for (SvtChannel channel : this.getObjects()) {
             if (channel.getFpga() == fpga && channel.getHybrid() == hybrid) {
                 channels.add(channel);
             }
@@ -45,7 +61,7 @@ public class SvtChannelMap extends HashMap<Integer,SvtChannel> {
      */
     public String toString() {        
         StringBuffer buff = new StringBuffer();
-        for (SvtChannel channel : values()) {
+        for (SvtChannel channel : this.getObjects()) {
             buff.append(channel.toString() + '\n');
         }
         return buff.toString();

@@ -1,13 +1,13 @@
 package org.hps.conditions.ecal;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates a list of {@link EcalCalibrationCollection} from the
@@ -16,7 +16,11 @@ import org.hps.conditions.DatabaseConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCalibrationCollection> {
-
+    
+    public EcalCalibrationConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create the calibration collection from the conditions database.
      * @param manager The conditions manager.

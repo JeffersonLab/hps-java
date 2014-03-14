@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
@@ -14,12 +15,10 @@ import org.hps.conditions.DatabaseConditionsConverter;
  */
 public class BeamCurrentConverter extends DatabaseConditionsConverter<BeamCurrent> {
     
-    /**
-     * Class constructor.
-     */
-    public BeamCurrentConverter() {
+    public BeamCurrentConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
     }
-
+    
     /**
      * Get the conditions data.
      * @param manager The current conditions manager.

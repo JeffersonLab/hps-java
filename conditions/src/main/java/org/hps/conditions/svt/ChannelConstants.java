@@ -11,7 +11,7 @@ public class ChannelConstants {
 
     private SvtCalibration calibration = null;
     private SvtGain gain = null;
-    private PulseParameters pulseParameters = null;
+    private SvtPulseParameters pulseParameters = null;
     private boolean badChannel = false;
 
     /**
@@ -24,7 +24,7 @@ public class ChannelConstants {
      * Set the pulse parameters.
      * @param pulseParameters The pulse parameters
      */
-    void setPulseParameters(PulseParameters pulseParameters) {
+    void setPulseParameters(SvtPulseParameters pulseParameters) {
         this.pulseParameters = pulseParameters;
     }
     
@@ -64,7 +64,7 @@ public class ChannelConstants {
      * Get the pulse parameters.
      * @return The pulse parameters.
      */
-    public PulseParameters getPulseParameters() {
+    public SvtPulseParameters getPulseParameters() {
         return pulseParameters;
     }
     

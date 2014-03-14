@@ -83,11 +83,18 @@ public interface ConditionsObject {
     void setFieldValues(FieldValueMap fieldValues);
     
     /**
-     * Get a field value, cast to the given type.
+     * Get a field value, cast to the given class.
      * @param field The field value.
      * @return The field value casted to type T.
      */
     public <T> T getFieldValue(Class<T> klass, String field);
+    
+    /**
+     * Get a field value with implicit return type.
+     * @param field The field's name.
+     * @return The field value cast to type.
+     */
+    public <T> T getFieldValue(String field);
     
     /**
      * Set the ConnectionManager of this object.

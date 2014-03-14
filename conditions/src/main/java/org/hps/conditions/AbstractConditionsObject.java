@@ -24,10 +24,6 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
      * Class that maps field names to values.
      */
     public static final class FieldValueMap extends LinkedHashMap<String, Object> {
-        //@SuppressWarnings("unchecked")
-        //public <T> T getFieldValue(String key) {
-        //    return (T)this.getFieldValue(key);
-        //}
     }      
     
     /**
@@ -211,6 +207,11 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
     
     public <T> T getFieldValue(Class<T> klass, String field) {
         return klass.cast(_fieldValues.get(field));
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T> T getFieldValue(String field) {
+        return (T)_fieldValues.get(field);
     }
 
     public void setConnectionManager(ConnectionManager connectionManager) throws ConditionsObjectException {

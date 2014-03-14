@@ -3,11 +3,15 @@ package org.hps.conditions.svt;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import org.hps.conditions.ConditionsObject.ConditionsObjectException;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConditionsRecordCollection;
+import org.hps.conditions.ConditionsTableMetaData;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates an {@link SvtBadChannelCollection} representing bad readout channels
@@ -16,6 +20,10 @@ import org.hps.conditions.DatabaseConditionsConverter;
  */
 public class SvtBadChannelConverter extends DatabaseConditionsConverter<SvtBadChannelCollection> {
 
+    public SvtBadChannelConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create the collection from the conditions database. 
      * @param manager The conditions manager.
@@ -23,15 +31,16 @@ public class SvtBadChannelConverter extends DatabaseConditionsConverter<SvtBadCh
      */
     public SvtBadChannelCollection getData(ConditionsManager manager, String name) {
 
-        // Collection to be returned to caller.
-        SvtBadChannelCollection badChannels = new SvtBadChannelCollection();
-
         // Get the ConditionsRecord with the meta-data, which will use the
         // current run number from the manager.
         ConditionsRecordCollection records = ConditionsRecord.find(manager, name);
 
+        SvtBadChannelCollection collection = new SvtBadChannelCollection();
+        
         // Loop over ConditionsRecords.  For this particular type of condition, multiple
         // sets of bad channels are possible.
+        
+        // Collection to be returned to caller.
         for (ConditionsRecord record : records) {
         
             // Get the table name, field name, and field value defining the
@@ -40,23 +49,35 @@ public class SvtBadChannelConverter extends DatabaseConditionsConverter<SvtBadCh
             String fieldName = record.getFieldName();
             int fieldValue = record.getFieldValue();
 
+            ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
+            
             // Query for getting back bad channel records.
-            String query = "SELECT svt_channel_id FROM " + tableName + " WHERE " 
+            String query = "SELECT id, svt_channel_id FROM " + tableName + " WHERE " 
                     + fieldName + " = " + fieldValue + " ORDER BY id ASC";
             ResultSet resultSet = ConnectionManager.getConnectionManager().query(query);
             
             // Loop over the records.
             try {
                 while (resultSet.next()) {
-                    int channelId = resultSet.getInt(1);
-                    badChannels.add(channelId);
+                    //int channelId = resultSet.getInt(1);
+                    //badChannels.add(channelId);
+                    int rowId = resultSet.getInt(1);
+                    
+                    FieldValueMap fieldValues = new FieldValueMap();
+                    fieldValues.put("svt_channel_id", resultSet.getInt(2));
+                    
+                    SvtBadChannel newObject = _objectFactory.createObject(SvtBadChannel.class, tableName, rowId, fieldValues, true);
+                    
+                    collection.add(newObject);
                 }
             } catch (SQLException x) {
-                throw new RuntimeException(x);
-            } 
+                throw new RuntimeException("Database error", x);
+            } catch (ConditionsObjectException x) {
+                throw new RuntimeException("Error converting to SvtBadChannel object.", x);
+            }
         }
                
-        return badChannels;
+        return collection;
     }
 
     /**

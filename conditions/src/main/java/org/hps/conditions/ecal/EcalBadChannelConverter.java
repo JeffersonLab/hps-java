@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.ChannelCollection;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConditionsRecordCollection;
 import org.hps.conditions.ConnectionManager;
@@ -16,6 +17,10 @@ import org.hps.conditions.DatabaseConditionsConverter;
  */
 public class EcalBadChannelConverter extends DatabaseConditionsConverter<EcalBadChannelCollection> {
 
+    public EcalBadChannelConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create the collection from the conditions database. 
      * @param manager The conditions manager.

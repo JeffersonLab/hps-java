@@ -31,7 +31,7 @@ public class EcalConditionsLoader {
             crystal.reset();
             
             // Find the corresponding entry in the channel map for this crystal.
-            EcalChannel channel = channelMap.find(crystal.getX(), crystal.getY());            
+            EcalChannel channel = channelMap.find(crystal.getX(), crystal.getY());
             if (channel == null) {
                 throw new RuntimeException("EcalChannel not found for crystal: " + crystal.getName());
             }

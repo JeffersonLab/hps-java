@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
 
@@ -17,6 +18,10 @@ import org.hps.conditions.DatabaseConditionsConverter;
  */
 public class EcalChannelMapConverter extends DatabaseConditionsConverter<EcalChannelMap> {
 
+    public EcalChannelMapConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Load the data from the conditions database.
      * @param manager The conditions manager.

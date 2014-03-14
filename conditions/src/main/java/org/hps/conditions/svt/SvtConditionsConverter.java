@@ -10,7 +10,7 @@ import static org.hps.conditions.ConditionsConstants.SVT_TIME_SHIFTS;
 
 import java.util.Map.Entry;
 
-import org.hps.conditions.ConditionsObject;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -19,7 +19,11 @@ import org.lcsim.conditions.ConditionsManager;
  * based on the current run number known by the conditions manager.
  */
 public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtConditions> {
-                     
+      
+    public SvtConditionsConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create and return the SVT conditions object.  
      * @param manager The current conditions manager.
@@ -28,7 +32,7 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
     public SvtConditions getData(ConditionsManager manager, String name) {
                         
         // Get the SVT channel map.
-        SvtChannelMap channels = manager.getCachedConditions(SvtChannelMap.class, SVT_CHANNELS).getCachedData();
+        SvtChannelCollection channels = manager.getCachedConditions(SvtChannelCollection.class, SVT_CHANNELS).getCachedData();
         
         // Create the conditions object.
         SvtConditions conditions = new SvtConditions(channels);
@@ -39,22 +43,22 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
                                                
         // Add calibrations by channel.
         SvtCalibrationCollection calibrations = manager.getCachedConditions(SvtCalibrationCollection.class, SVT_CALIBRATIONS).getCachedData();
-        for (Entry<Integer,SvtCalibration> entry : calibrations.entrySet()) {
-            SvtChannel channel = conditions.getChannelMap().get(entry.getKey());
-            conditions.getChannelConstants(channel).setCalibration(entry.getValue());
-        }  
+        for (SvtCalibration calibration : calibrations.getObjects()) {
+            SvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelId());
+            conditions.getChannelConstants(channel).setCalibration(calibration);
+        }
         
         // Add pulse parameters by channel.
-        PulseParametersCollection pulseParameters = manager.getCachedConditions(PulseParametersCollection.class, SVT_PULSE_PARAMETERS).getCachedData();
-        for (Entry<Integer,PulseParameters> entry : pulseParameters.entrySet()) {
-            SvtChannel channel = conditions.getChannelMap().get(entry.getKey());
-            conditions.getChannelConstants(channel).setPulseParameters(entry.getValue());
+        SvtPulseParametersCollection pulseParametersCollection = manager.getCachedConditions(SvtPulseParametersCollection.class, SVT_PULSE_PARAMETERS).getCachedData();
+        for (SvtPulseParameters pulseParameters : pulseParametersCollection.getObjects()) {
+            SvtChannel channel = conditions.getChannelMap().findChannel(pulseParameters.getChannelId());
+            conditions.getChannelConstants(channel).setPulseParameters(pulseParameters);
         }
         
         // Add bad channels.
         SvtBadChannelCollection badChannels = manager.getCachedConditions(SvtBadChannelCollection.class, SVT_BAD_CHANNELS).getCachedData();        
-        for (Integer badChannel : badChannels) {
-            SvtChannel channel = conditions.getChannelMap().get(badChannel);
+        for (SvtBadChannel badChannel : badChannels.getObjects()) {
+            SvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
             conditions.getChannelConstants(channel).setBadChannel(true);
         }
         
@@ -62,7 +66,7 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
         SvtGainCollection gains = manager.getCachedConditions(SvtGainCollection.class, SVT_GAINS).getCachedData();
         for (SvtGain object : gains.getObjects()) {
             int channelId = object.getChannelID();
-            SvtChannel channel = conditions.getChannelMap().get(channelId);            
+            SvtChannel channel = conditions.getChannelMap().findChannel(channelId);            
             conditions.getChannelConstants(channel).setGain(object);
         }
         

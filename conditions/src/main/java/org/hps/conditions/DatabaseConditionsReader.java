@@ -50,10 +50,7 @@ public class DatabaseConditionsReader extends ConditionsReader {
     
     /** The current run number to determine if conditions are already loaded. */
     private int currentRun = Integer.MIN_VALUE;
-    
-    /** Converter for making ConditionsRecord objects from the database. */
-    ConditionsRecordConverter conditionsRecordConverter = new ConditionsRecordConverter();
-    
+        
     /** The logger for printing messages. */
     static Logger logger = null;
 

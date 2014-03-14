@@ -1,28 +1,19 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.AbstractConditionsObject;
+
 /**
  * This class represents the pulse parameters for an SVT channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class PulseParameters {
+public class SvtPulseParameters extends AbstractConditionsObject {
     
-    double amplitude = Double.NaN;
-    double t0 = Double.NaN;
-    double tp = Double.NaN;
-    double chisq = Double.NaN;
-
     /**
-     * Full qualified class constructor.
-     * @param amplitude The amplitude.
-     * @param t0 The start time.
-     * @param tp The shaping time.
-     * @param chisq The chisq of the measurement.
+     * Get the SVT channel ID.
+     * @return The SVT channel ID.
      */
-    PulseParameters(double amplitude, double t0, double tp, double chisq) {
-        this.amplitude = amplitude;
-        this.t0 = t0;
-        this.tp = tp;
-        this.chisq = chisq;
+    int getChannelId() {
+        return getFieldValue(Integer.class, "svt_channel_id");
     }
     
     /**
@@ -30,7 +21,7 @@ public class PulseParameters {
      * @return The amplifude.
      */
     double getAmplitude() {
-        return amplitude;
+    	return getFieldValue(Double.class, "amplitude");
     }
     
     /**
@@ -38,7 +29,7 @@ public class PulseParameters {
      * @return The starting time.
      */
     double getT0() {
-        return t0;
+    	return getFieldValue(Double.class, "t0");
     }
     
     /**
@@ -46,7 +37,7 @@ public class PulseParameters {
      * @return The time shift.
      */
     double getTimeShift() {
-        return tp;
+    	return getFieldValue(Double.class, "tp");
     }
     
     /**
@@ -54,7 +45,7 @@ public class PulseParameters {
      * @return The chisq.
      */
     double getChisq() {
-        return chisq;
+    	return getFieldValue(Double.class, "chisq");
     }
     
     /**
@@ -62,7 +53,7 @@ public class PulseParameters {
      * @return This object converted to a string.
      */
     public String toString() {
-        return "amp: " + amplitude + ", t0: " + t0 + ", shift: " + tp + ", chisq: " + chisq;
+        return "amp: " + getAmplitude() + ", t0: " + getT0() + ", shift: " + getTimeShift() + ", chisq: " + getChisq();
     }
     
     /**
@@ -71,10 +62,10 @@ public class PulseParameters {
      */
     public double[] toArray() {
         double[] values = new double[4];
-        values[0] = amplitude;
-        values[1] = t0;
-        values[2] = tp;
-        values[3] = chisq;
+        values[0] = getAmplitude();
+        values[1] = getT0();
+        values[2] = getTimeShift();
+        values[3] = getChisq();
         return values;
     }
 }

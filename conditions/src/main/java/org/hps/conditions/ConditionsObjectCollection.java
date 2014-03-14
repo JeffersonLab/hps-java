@@ -16,6 +16,9 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     boolean _isDirty;
     boolean _isNew;
     
+    protected ConditionsObjectCollection() {
+    }
+    
     public ConditionsObjectCollection(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
         _tableMetaData = tableMetaData;
         _collectionId = collectionId;
@@ -38,9 +41,11 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
             throw new IllegalArgumentException("Collection already contains this object.");
         }
         try {
-            object.setCollectionId(getCollectionId());
+            // Only assign a collection ID to the object if this collection has a valid ID.
+            if (getCollectionId() != -1)
+                object.setCollectionId(getCollectionId());
         } catch (ConditionsObjectException x) {
-            throw new IllegalArgumentException("The object has already been assigned to a collection.", x);
+            throw new IllegalArgumentException("Error assigning collection ID to object.", x);
         }
         objects.add(object);
         if (!isNew())

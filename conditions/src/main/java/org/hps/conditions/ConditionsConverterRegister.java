@@ -6,10 +6,10 @@ import org.hps.conditions.ecal.EcalCalibrationConverter;
 import org.hps.conditions.ecal.EcalChannelMapConverter;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.EcalGainConverter;
-import org.hps.conditions.svt.PulseParametersConverter;
+import org.hps.conditions.svt.SvtPulseParametersConverter;
 import org.hps.conditions.svt.SvtBadChannelConverter;
 import org.hps.conditions.svt.SvtCalibrationConverter;
-import org.hps.conditions.svt.SvtChannelMapConverter;
+import org.hps.conditions.svt.SvtChannelCollectionConverter;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDaqMapConverter;
 import org.hps.conditions.svt.SvtGainConverter;
@@ -37,51 +37,54 @@ class ConditionsConverterRegister {
                 new BasicConditionsObjectFactory(ConnectionManager.getConnectionManager(), tableRegistry);
                 
         // ConditionsRecords with validity meta data.
-        manager.registerConditionsConverter(new ConditionsRecordConverter());
+        manager.registerConditionsConverter(new ConditionsRecordConverter(factory));
+
+        // SVT combined conditions.
+        manager.registerConditionsConverter(new SvtConditionsConverter(factory));
         
-        // SVT gains.  (TESTING!!!)
-        // TODO: The factory should be a required argument for the converter classes.
-        SvtGainConverter svtGainConverter = new SvtGainConverter();
-        svtGainConverter.setObjectFactory(factory);
-        manager.registerConditionsConverter(svtGainConverter);
-                
-        // SVT channel map.
-        manager.registerConditionsConverter(new SvtChannelMapConverter());
+        // SVT gains.  
+        manager.registerConditionsConverter(new SvtGainConverter(factory));
         
-        // SVT DAQ map.
-        manager.registerConditionsConverter(new SvtDaqMapConverter());
+        // SVT pulse parameters.
+        manager.registerConditionsConverter(new SvtPulseParametersConverter(factory));
         
         // SVT calibrations.
-        manager.registerConditionsConverter(new SvtCalibrationConverter());
-                
-        // SVT bad channels.
-        manager.registerConditionsConverter(new SvtBadChannelConverter());       
-       
-        // SVT time shift by sensor.
-        manager.registerConditionsConverter(new SvtTimeShiftConverter());
-                
-        // SVT combined conditions.
-        manager.registerConditionsConverter(new SvtConditionsConverter());
+        manager.registerConditionsConverter(new SvtCalibrationConverter(factory));
         
+        // SVT channel map.
+        manager.registerConditionsConverter(new SvtChannelCollectionConverter(factory));
+
+        // SVT time shift by sensor.
+        manager.registerConditionsConverter(new SvtTimeShiftConverter(factory));
+        
+        // SVT bad channels.
+        manager.registerConditionsConverter(new SvtBadChannelConverter(factory));       
+        
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        // TODO: Remaining to convert to new API...
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
+                
         // ECAL bad channels.
-        manager.registerConditionsConverter(new EcalBadChannelConverter());
+        manager.registerConditionsConverter(new EcalBadChannelConverter(factory));
         
         // ECAL channel map.
-        manager.registerConditionsConverter(new EcalChannelMapConverter());
+        manager.registerConditionsConverter(new EcalChannelMapConverter(factory));
         
         // ECAL gains.
-        manager.registerConditionsConverter(new EcalGainConverter());
+        manager.registerConditionsConverter(new EcalGainConverter(factory));
                 
         // ECAL calibrations.
-        manager.registerConditionsConverter(new EcalCalibrationConverter());
-        
-        // ECAL pulse parameters.
-        manager.registerConditionsConverter(new PulseParametersConverter());
-        
+        manager.registerConditionsConverter(new EcalCalibrationConverter(factory));
+                        
         // ECAL combined conditions.
-        manager.registerConditionsConverter(new EcalConditionsConverter());
+        manager.registerConditionsConverter(new EcalConditionsConverter(factory));
         
         // Beam current condition.
-        manager.registerConditionsConverter(new BeamCurrentConverter());        
+        manager.registerConditionsConverter(new BeamCurrentConverter(factory));        
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        // This one will be a pain so convert to new API last once others are working.
+        // SVT DAQ map.
+        manager.registerConditionsConverter(new SvtDaqMapConverter(factory));
     }
 }

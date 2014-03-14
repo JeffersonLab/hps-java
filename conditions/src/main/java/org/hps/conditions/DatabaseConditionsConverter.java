@@ -11,6 +11,10 @@ public abstract class DatabaseConditionsConverter<T> implements ConditionsConver
 	    
     protected ConditionsObjectFactory _objectFactory;
     
+    public DatabaseConditionsConverter(ConditionsObjectFactory objectFactory) {
+        _objectFactory = objectFactory;
+    }
+    
     /**
      * Get the the {@link ConnectionManager} associated with this converter.
      * For now, this calls the singleton method of the ConnectionManager

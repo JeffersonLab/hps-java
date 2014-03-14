@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
@@ -17,6 +18,10 @@ import org.lcsim.hps.util.Pair;
  */
 public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
 
+    public SvtDaqMapConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create an {@link SvtDaqMap} object from the database.
      */

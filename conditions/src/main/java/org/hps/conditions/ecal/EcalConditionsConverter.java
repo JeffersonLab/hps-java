@@ -8,6 +8,7 @@ import static org.hps.conditions.ConditionsConstants.ECAL_GAINS;
 import java.util.Map.Entry;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;
 
 /**
@@ -16,7 +17,11 @@ import org.hps.conditions.DatabaseConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalConditions> {
-       
+    
+    public EcalConditionsConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
+    }
+    
     /**
      * Create ECAL conditions object containing all data for the current run.
      */

@@ -1,34 +1,19 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.AbstractConditionsObject;
+
 /**
  * This class represents SVT channel setup information, including hybrid, FPGA, and channel numbers.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtChannel {
-
-    /** Channel data. */
-    private int id, hybrid, fpga, channel;
-    
-    /**
-     * Fully qualified constructor.
-     * @param id The database record ID from the channel table.
-     * @param fpga The FPGA number (0 to 6).
-     * @param hybrid The hybrid number (0 to 2).
-     * @param channel The channel number (0 to 639).
-     */
-    SvtChannel(int id, int fpga, int hybrid, int channel) {
-        this.id = id;
-        this.fpga = fpga;
-        this.hybrid = hybrid;        
-        this.channel = channel;
-    }
+public class SvtChannel extends AbstractConditionsObject {
     
     /**
      * Get the channel ID.
      * @return The channel ID.
      */
     public int getId() {
-        return id;
+        return getFieldValue("id");
     }
     
     /**
@@ -36,7 +21,7 @@ public class SvtChannel {
      * @return The hybrid number.
      */
     public int getHybrid() {
-        return hybrid;
+        return getFieldValue("hybrid");
     }
     
     /**
@@ -44,7 +29,7 @@ public class SvtChannel {
      * @return The FPGA number.
      */
     public int getFpga() {
-        return fpga;
+        return getFieldValue("fpga");
     }
     
     /**
@@ -52,7 +37,7 @@ public class SvtChannel {
      * @return The channel number.
      */
     public int getChannel() {
-        return channel;
+        return getFieldValue("channel");
     }    
     
     /**
@@ -60,7 +45,7 @@ public class SvtChannel {
      * @return This object as a string.
      */
     public String toString() {
-        return "id: " + id + ", fpga: " + fpga + ", hybrid: " + hybrid + ", channel: " + channel;
+        return "id: " + getId() + ", fpga: " + getFpga() + ", hybrid: " + getHybrid() + ", channel: " + getChannel();
     }
     
     /**
@@ -75,9 +60,9 @@ public class SvtChannel {
         if (o == this)
             return true;
         SvtChannel channel = (SvtChannel)o;
-        return id == channel.getId() 
-                && hybrid == channel.getHybrid() 
-                && fpga == channel.getFpga() 
-                && hybrid == channel.getHybrid();
+        return getId() == channel.getId() 
+                && getHybrid() == channel.getHybrid() 
+                && getFpga() == channel.getFpga() 
+                && getHybrid() == channel.getHybrid();
     }    
 }

@@ -23,7 +23,7 @@ public class SvtConditionsLoader {
         
         // Find sensor objects.        
         List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
-        SvtChannelMap channelMap = conditions.getChannelMap();
+        SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMap daqMap = conditions.getDaqMap();
         SvtTimeShiftCollection timeShifts = conditions.getTimeShifts();
         

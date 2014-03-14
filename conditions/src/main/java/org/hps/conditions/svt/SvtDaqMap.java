@@ -12,6 +12,8 @@ import org.lcsim.hps.util.Pair;
  */
 public class SvtDaqMap {
 
+    // fields: half, layer, fpga, hybrid
+    
     /**
      * Flag values for top or bottom half.
      * FIXME: This should probably be an enum but it is simpler to use int values for now.  

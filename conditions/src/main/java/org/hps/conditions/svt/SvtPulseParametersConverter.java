@@ -13,26 +13,25 @@ import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
- * This class creates a {@link SvtCalibrationCollection} from the conditions
- * database.
+ * This class creates a {@link SvtPulseParametersCollection} object from the
+ * conditions database.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCalibrationCollection> {
-
-    /**
-     * Class constructor.
-     */
-    public SvtCalibrationConverter(ConditionsObjectFactory objectFactory) {
+public class SvtPulseParametersConverter extends DatabaseConditionsConverter<SvtPulseParametersCollection> {
+    
+    public SvtPulseParametersConverter(ConditionsObjectFactory objectFactory) {
         super(objectFactory);
     }
-
+    
     /**
-     * Get the SVT channel constants for this run by named set.     
+     * Get the pulse parameters by channel for this run by named conditions set.
+     * 
      * @param manager The current conditions manager.
      * @param name The name of the conditions set.
      * @return The channel constants data.
      */
-    public SvtCalibrationCollection getData(ConditionsManager manager, String name) {
+    public SvtPulseParametersCollection getData(ConditionsManager manager, String name) {
 
         // Get the ConditionsRecord with the meta-data, which will use the
         // current run number from the manager.
@@ -44,19 +43,23 @@ public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCali
         String fieldName = record.getFieldName();
         int collectionId = record.getFieldValue();
 
-        // Objects for building the return value.
-        ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
-        SvtCalibrationCollection collection = 
-                new SvtCalibrationCollection(tableMetaData, collectionId, true); 
+        // Object for building the return value.
+        ConditionsTableMetaData tableMetaData = _objectFactory
+                .getTableRegistry().getTableMetaData(tableName);
+        SvtPulseParametersCollection collection = new SvtPulseParametersCollection(
+                tableMetaData, collectionId, true);
 
-        // Get a connection from the manager.
+        // Connection objects.
         ConnectionManager connectionManager = getConnectionManager();
 
-        // Construct the query to find matching calibration records using the ID
-        // field.
-        String query = "SELECT id, svt_channel_id, noise, pedestal FROM " 
-                + tableName + " WHERE " 
-                + fieldName + " = " + collectionId + " ORDER BY svt_channel_id ASC";
+        // Construct the query to find matching calibration records.
+        String query = "SELECT id, svt_channel_id, amplitude, t0, tp, chisq FROM "
+                + tableName
+                + " WHERE "
+                + fieldName
+                + " = "
+                + collectionId
+                + " ORDER BY id ASC";
 
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);
@@ -64,35 +67,41 @@ public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCali
         try {
             // Loop over the calibration records.
             while (resultSet.next()) {
-                
+
+                // Get row ID from the database.
                 int rowId = resultSet.getInt(1);
-                
+
+                // Set the field values for the new object.
                 FieldValueMap fieldValues = new FieldValueMap();
                 fieldValues.put("svt_channel_id", resultSet.getInt(2));
-                fieldValues.put("noise", resultSet.getDouble(3));
-                fieldValues.put("pedestal", resultSet.getDouble(4));
-                SvtCalibration newObject = _objectFactory.createObject(
-                        SvtCalibration.class, tableName, rowId, fieldValues, true);
-                
+                fieldValues.put("amplitude", resultSet.getDouble(3));
+                fieldValues.put("t0", resultSet.getDouble(4));
+                fieldValues.put("tp", resultSet.getDouble(5));
+                fieldValues.put("chisq", resultSet.getDouble(6));
+
+                // Create the object using the factory.
+                SvtPulseParameters newObject;
+                newObject = _objectFactory.createObject(SvtPulseParameters.class,
+                        tableName, rowId, fieldValues, true);
+
+                // Add the object to the collection.
                 collection.add(newObject);
             }
         } catch (SQLException x) {
             throw new RuntimeException("Database error.", x);
         } catch (ConditionsObjectException x) {
-            throw new RuntimeException("Error converting to SvtCalibration object");
+            throw new RuntimeException("Error converting to SvtPulseParameters object.", x);
         }
-        
+
         // Return the collection of channel constants to caller.
         return collection;
     }
 
     /**
      * Get the type handled by this converter.
-     * 
-     * @return The type handled by this converter, which is
-     *         <code>ConditionsRecordCollection</code>.
+     * @return The type handled by this converter.
      */
-    public Class<SvtCalibrationCollection> getType() {
-        return SvtCalibrationCollection.class;
+    public Class<SvtPulseParametersCollection> getType() {
+        return SvtPulseParametersCollection.class;
     }
 }

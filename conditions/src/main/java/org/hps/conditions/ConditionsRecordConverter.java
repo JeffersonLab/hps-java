@@ -15,7 +15,8 @@ public class ConditionsRecordConverter extends DatabaseConditionsConverter<Condi
     /**
      * Class constructor.
      */
-    public ConditionsRecordConverter() {
+    public ConditionsRecordConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
     }
         
     /**

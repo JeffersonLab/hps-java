@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObject.ConditionsObjectException;
+import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConditionsTableMetaData;
 import org.hps.conditions.ConnectionManager;
@@ -20,7 +21,8 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
     /**
      * Class constructor.
      */
-    public SvtGainConverter() {
+    public SvtGainConverter(ConditionsObjectFactory objectFactory) {
+        super(objectFactory);
     }
 
     /**

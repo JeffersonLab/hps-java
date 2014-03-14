@@ -22,12 +22,57 @@ public class ConditionsTableRegistry {
     
     void registerDefaultTableMetaData() {
         
-        // SVT Gains (as test!!!)
-        Set<String> svtGainFields = new HashSet<String>();
-        svtGainFields.add("gain");
-        svtGainFields.add("offset");
-        ConditionsTableMetaData svtGainTable = 
-                new ConditionsTableMetaData(ConditionsConstants.SVT_GAINS, svtGainFields);
-        addTableMetaData(svtGainTable);
+        Set<String> fields;
+        ConditionsTableMetaData tableMetaData;
+        
+        // SVT gains
+        fields = new HashSet<String>();
+        fields.add("svt_channel_id");
+        fields.add("gain");
+        fields.add("offset");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_GAINS, fields);
+        addTableMetaData(tableMetaData);
+        
+        // SVT pulse parameters
+        fields = new HashSet<String>();
+        fields.add("svt_channel_id");
+        fields.add("amplitude");
+        fields.add("t0");
+        fields.add("tp");
+        fields.add("chisq");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_PULSE_PARAMETERS, fields);
+        addTableMetaData(tableMetaData);
+
+        // SVT gains
+        fields = new HashSet<String>();
+        fields.add("svt_channel_id");
+        fields.add("noise");
+        fields.add("pedestal");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_CALIBRATIONS, fields);
+        addTableMetaData(tableMetaData);
+        
+        // SVT channels
+        fields = new HashSet<String>();
+        fields.add("id"); // TODO: Change to svt_channel_id
+        fields.add("fpga");
+        fields.add("hybrid");
+        fields.add("channel");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_CHANNELS, fields);
+        addTableMetaData(tableMetaData);
+
+        // SVT time shift
+        fields = new HashSet<String>();
+        fields.add("fpga");
+        fields.add("hybrid");
+        fields.add("time_shift");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_TIME_SHIFTS, fields);
+        addTableMetaData(tableMetaData);
+        
+        // SVT bad channels
+        fields = new HashSet<String>();
+        fields.add("svt_channel_id");
+        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_BAD_CHANNELS, fields);
+        addTableMetaData(tableMetaData);
+        
     }
 }
