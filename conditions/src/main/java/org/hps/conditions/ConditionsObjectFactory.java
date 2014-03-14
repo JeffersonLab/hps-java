@@ -1,6 +1,6 @@
 package org.hps.conditions;
 
-import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
@@ -11,21 +11,24 @@ public interface ConditionsObjectFactory {
         
     /**
      * Create a <code>ConditionsObject</code> generically, given a concrete class,
-     * an associated table in the conditions database, a collection ID (which may be -1 for a new object),
-     * and a map of field values.
+     * an associated table in the conditions database, and a map of field values.
+     * 
+     * The collection ID should be assigned externally to this method by adding it 
+     * to a <code>ConditionsObjectCollection</code>.
      * 
      * @param klass The concrete Class to be instantiated, which must have a zero argument constructor.
      * @param tableName The name of the table in the conditions database.
-     * @param collectionId The unique collection 
+     * @param collectionId The unique collection ID which should be set to -1 for a new collection.
      * @param fieldValues The field values of the object.
      * @return The new ConditionsObject with concrete type <code>klass</code>.
      * @throws ConditionsObjectException if there is a problem creating the object.
      */
-    public ConditionsObject createObject(
-            Class<? extends ConditionsObject> klass, 
-            String tableName, 
-            int collectionId,
-            FieldValueMap fieldValues) throws ConditionsObjectException;    
+    public <T> T createObject(
+            Class<? extends ConditionsObject> klass,
+            String tableName,
+            int rowId,
+            FieldValueMap fieldValues,
+            boolean isReadOnly) throws ConditionsObjectException;
     
     /**
      * Get the registry of table meta data used by this factory.

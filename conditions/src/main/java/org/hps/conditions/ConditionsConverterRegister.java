@@ -40,6 +40,7 @@ class ConditionsConverterRegister {
         manager.registerConditionsConverter(new ConditionsRecordConverter());
         
         // SVT gains.  (TESTING!!!)
+        // TODO: The factory should be a required argument for the converter classes.
         SvtGainConverter svtGainConverter = new SvtGainConverter();
         svtGainConverter.setObjectFactory(factory);
         manager.registerConditionsConverter(svtGainConverter);

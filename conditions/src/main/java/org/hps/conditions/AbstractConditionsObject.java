@@ -10,7 +10,7 @@ import java.util.Map.Entry;
  * The abstract implementation of {@link ConditionsObject}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public abstract class AbstractConditionsDatabaseObject implements ConditionsObject {
+public abstract class AbstractConditionsObject implements ConditionsObject {
 
     private ConnectionManager _connectionManager = null;
     private ConditionsTableMetaData _tableMetaData = null;
@@ -24,24 +24,29 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
      * Class that maps field names to values.
      */
     public static final class FieldValueMap extends LinkedHashMap<String, Object> {
+        //@SuppressWarnings("unchecked")
+        //public <T> T getFieldValue(String key) {
+        //    return (T)this.getFieldValue(key);
+        //}
     }      
     
     /**
      * Constructor for sub-classing with no arguments.
      */
-    protected AbstractConditionsDatabaseObject() {}
+    protected AbstractConditionsObject() {}
     
     /**
      * Constructor for a new object which cannot initially be read only as it must be inserted.
      * @param tableMetaData
      * @param fieldValues
-     * @param setId
+     * @param collectionId
      * @param isReadOnly
      */
-    public AbstractConditionsDatabaseObject(
+    // FIXME: This can maybe be removed.
+    public AbstractConditionsObject(
             ConnectionManager connectionManager,
             ConditionsTableMetaData tableMetaData,  
-            int setId,
+            int collectionId,
             FieldValueMap fieldValues) {
         
         if (connectionManager == null) {
@@ -50,12 +55,12 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
         if (tableMetaData == null) {
             throw new IllegalArgumentException("The tableMetaData is null");
         }
-        if (setId <= 0) {
-            throw new IllegalArgumentException("The set ID value is invalid: " + setId);
+        if (collectionId <= 0) {
+            throw new IllegalArgumentException("The set ID value is invalid: " + collectionId);
         }        
         _connectionManager = connectionManager;
         _tableMetaData = tableMetaData;
-        _collectionId = setId;
+        _collectionId = collectionId;
         _rowId = -1;
         if (fieldValues != null) {
             _fieldValues = fieldValues;
@@ -70,7 +75,8 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
      * @param rowId
      * @param isReadOnly
      */
-    public AbstractConditionsDatabaseObject(
+    // FIXME: This can maybe be removed.
+    public AbstractConditionsObject(
             ConnectionManager connectionManager,
             ConditionsTableMetaData tableMetaData,
             int rowId,
@@ -117,7 +123,7 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
     
     public void delete() throws ConditionsObjectException {
         if (isReadOnly()) {
-            throw new ConditionsObjectException("This object cannot be deleted in read only mode.");
+            throw new ConditionsObjectException("This object is set to read only.");
         }
         String query = "DELETE FROM " + _tableMetaData.getTableName() + " WHERE id = " + _rowId;
         _connectionManager.update(query);
@@ -125,15 +131,14 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
     }
     
     public void insert() throws ConditionsObjectException, SQLException {
-        if (!isNew()) {
-            throw new ConditionsObjectException("Record already exists in database.");
-        }
-        if (isReadOnly()) {
-            throw new ConditionsObjectException("Cannot insert in read only mode.");
-        }
-        if (_fieldValues.size() == 0) {
-            throw new ConditionsObjectException("There are no field values to insert.");
-        }        
+        if (!isNew())
+            throw new ConditionsObjectException("Record already exists in database.");        
+        if (isReadOnly())
+            throw new ConditionsObjectException("This object is set to read only mode.");        
+        if (_fieldValues.size() == 0) 
+            throw new ConditionsObjectException("There are no field values to insert.");             
+        if (!hasValidCollection())
+            throw new ConditionsObjectException("The object's collection ID is not valid");
         StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO " + _tableMetaData.getTableName() + "( set_id");
         for (Entry<String, Object> entry : _fieldValues.entrySet()) {
@@ -152,7 +157,7 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
     public void select() throws ConditionsObjectException, SQLException {
         if (isNew()) {
             throw new ConditionsObjectException("Record has not been inserted into database yet.");
-        }
+        } 
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         for (String fieldName : _tableMetaData.getFieldNames()) {
@@ -173,10 +178,10 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
         
     public void update() throws ConditionsObjectException {
         if (isReadOnly()) {
-            throw new ConditionsObjectException("Cannot update in read only mode.");
+            throw new ConditionsObjectException("This object is set to read only.");
         }
         if (isNew()) {
-            throw new ConditionsObjectException("Cannot update a new record.");
+            throw new ConditionsObjectException("Cannot call update on new record.");
         }
         if (_fieldValues.size() == 0) {
             throw new ConditionsObjectException("No field values to update.");
@@ -193,8 +198,6 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
     }
     
     public void setFieldValue(String key, Object value) {
-        if (_fieldValues == null)
-            _fieldValues = new FieldValueMap();
         _fieldValues.put(key, value);
         setIsDirty(true);
     }
@@ -210,25 +213,39 @@ public abstract class AbstractConditionsDatabaseObject implements ConditionsObje
         return klass.cast(_fieldValues.get(field));
     }
 
-    public void setConnectionManager(ConnectionManager connectionManager) {
+    public void setConnectionManager(ConnectionManager connectionManager) throws ConditionsObjectException {
+        if (_connectionManager != null)
+            throw new ConditionsObjectException("The connection manager cannot be reset.");
         _connectionManager = connectionManager;        
     }
 
-    public void setTableMetaData(ConditionsTableMetaData tableMetaData) {
+    public void setTableMetaData(ConditionsTableMetaData tableMetaData) throws ConditionsObjectException {
+        if (_tableMetaData != null) 
+            throw new ConditionsObjectException("The table meta data cannot be reset.");
         _tableMetaData = tableMetaData;
     }
 
-    public void setCollectionId(int collectionId) {
+    public void setCollectionId(int collectionId) throws ConditionsObjectException {
+        if (_collectionId != -1)
+            throw new ConditionsObjectException("The collection ID cannot be reassigned.");
         _collectionId = collectionId;
-        if (!isNew())
-            setIsDirty(true);
     }
         
     public void setIsDirty(boolean isDirty) {
         _isDirty = isDirty;
     }
     
-    protected void setIsReadOnly(boolean isReadOnly) {
-        _isReadOnly = isReadOnly;
+    public void setIsReadOnly() {
+        _isReadOnly = true;
+    }
+    
+    public void setRowId(int rowId) throws ConditionsObjectException {
+        if (_rowId != -1)
+            throw new ConditionsObjectException("The row ID cannot be reassigned.");
+        _rowId = rowId;
+    }
+    
+    private boolean hasValidCollection() {
+        return _collectionId != -1;
     }
 }

@@ -6,7 +6,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
@@ -72,7 +72,7 @@ public class ConditionsDatabaseObjectTest extends TestCase {
         }        
     }
     
-    public static class DummyConditionsObject extends AbstractConditionsDatabaseObject {
+    public static class DummyConditionsObject extends AbstractConditionsObject {
         
         // Create a new object.
         DummyConditionsObject(ConnectionManager connectionManager,

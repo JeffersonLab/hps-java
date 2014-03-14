@@ -3,8 +3,7 @@ package org.hps.conditions.svt;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConditionsTableMetaData;
@@ -41,7 +40,6 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
         int collectionId = record.getFieldValue();
                 
         // Objects for building the return value.
-        //SvtGainCollection collection = new SvtGainCollection();
         ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
         SvtGainCollection collection = 
                 new SvtGainCollection(tableMetaData, collectionId, true); 
@@ -50,7 +48,7 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching calibration records using the ID field.
-        String query = "SELECT svt_channel_id, gain, offset FROM "
+        String query = "SELECT id, svt_channel_id, gain, offset FROM "
                 + tableName + " WHERE " + fieldName + " = " + collectionId
                 + " ORDER BY svt_channel_id ASC";
             
@@ -61,15 +59,22 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
             // Loop over the gain records.            
             while(resultSet.next()) {         
                 
-                // Setup conditions object.
+                // Get the object parameters from the ResultSet.
+                int rowId = resultSet.getInt(1);
                 FieldValueMap fieldValues = new FieldValueMap();
-                fieldValues.put("svt_channel_id", resultSet.getInt(1));
-                fieldValues.put("gain", resultSet.getDouble(2));
-                fieldValues.put("offset", resultSet.getDouble(3));
-                ConditionsObject newObject = _objectFactory.createObject(
-                        SvtGain.class, tableName, -1, fieldValues);
+                fieldValues.put("svt_channel_id", resultSet.getInt(2));
+                fieldValues.put("gain", resultSet.getDouble(3));
+                fieldValues.put("offset", resultSet.getDouble(4));
                 
-                // Add to collection.
+                // Create the object using the factory.
+                SvtGain newObject = _objectFactory.createObject(
+                        SvtGain.class,
+                        tableName,
+                        rowId,
+                        fieldValues,
+                        true);
+                
+                // Add the object to the collection. 
                 collection.add(newObject);
             }            
         } catch (SQLException x1) {

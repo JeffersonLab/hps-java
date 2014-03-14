@@ -2,10 +2,12 @@ package org.hps.conditions;
 
 import java.sql.SQLException;
 
-import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 
 /**
- * This is an interface for accessing conditions database information by row.
+ * This is an ORM interface for accessing conditions database information by row.
+ * It can handle new or existing records.  The ID values for new records are -1
+ * which indicates they are not in the database yet.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface ConditionsObject {
@@ -23,7 +25,7 @@ public interface ConditionsObject {
     int getRowId();
     
     /**
-     * Get the set ID of this object identifying its collection. 
+     * Get the collection ID of this object identifying its unique collection. 
      * @return The collection ID.
      */
     int getCollectionId();
@@ -67,7 +69,8 @@ public interface ConditionsObject {
     boolean isDirty();
         
     /**
-     * Generic set method.  This will set the object to the 'dirty' state.
+     * Generic set method for field values.  
+     * This will set the object to the 'dirty' state.
      * @param fieldName The name of the field.
      * @param fieldValue The field value.
      */
@@ -80,7 +83,7 @@ public interface ConditionsObject {
     void setFieldValues(FieldValueMap fieldValues);
     
     /**
-     * Get a field value cast to the given type.
+     * Get a field value, cast to the given type.
      * @param field The field value.
      * @return The field value casted to type T.
      */
@@ -88,21 +91,40 @@ public interface ConditionsObject {
     
     /**
      * Set the ConnectionManager of this object.
+     * This cannot be reset once set.
      * @param connectionManager The ConnectionManager.
+     * @throws ConditionsObjectException if already set
      */
-    void setConnectionManager(ConnectionManager connectionManager);
+    void setConnectionManager(ConnectionManager connectionManager) throws ConditionsObjectException ;
 
     /**
      * Set the ConditionsTableMetaData of this object.
+     * This cannot be reset once set.
      * @param tableMetaData The ConditionsTableMetaData.
+     * @throws ConditionsObjectException if already set
      */
-    void setTableMetaData(ConditionsTableMetaData tableMetaData);
+    void setTableMetaData(ConditionsTableMetaData tableMetaData) throws ConditionsObjectException;
     
     /**
      * Set the collection ID of this object.
+     * This cannot be reset once set to a valid ID (e.g. not -1).
      * @param collectionId The collection ID.
+     * @throws ConditionsObjectException if already set
      */
-    void setCollectionId(int collectionId);
+    void setCollectionId(int collectionId) throws ConditionsObjectException;
+    
+    /**
+     * Set the row ID of this object.
+     * This cannot be reset once set to a valid ID (e.g. not -1).
+     * @param rowId The object's row ID.
+     * @throws ConditionsObjectException if already set
+     */
+    public void setRowId(int rowId) throws ConditionsObjectException;
+    
+    /**
+     * Set the object to read only mode.  This cannot be changed back once it is set.
+     */
+    void setIsReadOnly();
     
     /**
      * Generic Exception type throw by methods in this interface.

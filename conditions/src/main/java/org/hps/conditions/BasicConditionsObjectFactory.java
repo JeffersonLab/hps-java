@@ -1,9 +1,13 @@
 package org.hps.conditions;
 
-import org.hps.conditions.AbstractConditionsDatabaseObject.FieldValueMap;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
-
+/**
+ * The basic implementation of the {@link ConditionsObjectFactory} interface.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class BasicConditionsObjectFactory implements ConditionsObjectFactory {
     
     private ConnectionManager _connectionManager;
@@ -14,14 +18,16 @@ public class BasicConditionsObjectFactory implements ConditionsObjectFactory {
         _tableRegistry = tableRegistry;
     }
     
+    /**
+     * This method is the primary one in the API for creating new conditions objects.
+     */
     @SuppressWarnings("unchecked")
-    // FIXME: Not sure this is the best way to accomplish the desired generic behavior, especially
-    //        the unchecked cast to the T return type.
-    public ConditionsObject createObject(
+    public <T> T createObject(
             Class<? extends ConditionsObject> klass, 
-            String tableName, 
-            int collectionId, // should be -1 if new object
-            FieldValueMap fieldValues) throws ConditionsObjectException {                
+            String tableName,  
+            int rowId,
+            FieldValueMap fieldValues,
+            boolean isReadOnly) throws ConditionsObjectException {                
         ConditionsObject newObject = null;
         try {
             newObject = klass.newInstance();
@@ -30,7 +36,8 @@ public class BasicConditionsObjectFactory implements ConditionsObjectFactory {
         } catch (IllegalAccessException x) {
             throw new RuntimeException(x);
         }        
-        newObject.setCollectionId(collectionId);
+        if (rowId != -1)
+            newObject.setRowId(rowId);
         newObject.setFieldValues(fieldValues);
         newObject.setConnectionManager(_connectionManager);
         ConditionsTableMetaData tableMetaData = _tableRegistry.getTableMetaData(tableName);
@@ -38,10 +45,16 @@ public class BasicConditionsObjectFactory implements ConditionsObjectFactory {
             throw new ConditionsObjectException("No meta data found for table: " + tableName);
         }
         newObject.setTableMetaData(tableMetaData);
-        return newObject;
+        if (isReadOnly)
+            newObject.setIsReadOnly();
+        return (T)newObject;
     }   
     
     public ConditionsTableRegistry getTableRegistry() {
         return _tableRegistry;
+    }
+    
+    public ConditionsTableMetaData getTableMetaData(String name) {
+        return _tableRegistry.getTableMetaData(name);
     }
 }

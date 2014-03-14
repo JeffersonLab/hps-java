@@ -60,14 +60,10 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
         
         // Add gains by channel.
         SvtGainCollection gains = manager.getCachedConditions(SvtGainCollection.class, SVT_GAINS).getCachedData();
-        //for (Entry<Integer,SvtGain> entry : gains.entrySet()) {
-        //    SvtChannel channel = conditions.getChannelMap().get(entry.getKey());
-        //    conditions.getChannelConstants(channel).setGain(entry.getValue());
-        //}
-        for (ConditionsObject object : gains.getObjects()) {
-            int channelId = object.getFieldValue(Integer.class, "svt_channel_id");
+        for (SvtGain object : gains.getObjects()) {
+            int channelId = object.getChannelID();
             SvtChannel channel = conditions.getChannelMap().get(channelId);            
-            conditions.getChannelConstants(channel).setGain((SvtGain)object);
+            conditions.getChannelConstants(channel).setGain(object);
         }
         
         // Set the time shifts by sensor.
