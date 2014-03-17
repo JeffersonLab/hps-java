@@ -60,7 +60,7 @@ public class SvtTimeShiftConverter extends DatabaseConditionsConverter<SvtTimeSh
                 FieldValueMap fieldValues = new FieldValueMap();
                 fieldValues.put("fpga", resultSet.getInt(2));
                 fieldValues.put("hybrid", resultSet.getInt(3));
-                fieldValues.put("time_shift", resultSet.getInt(4));
+                fieldValues.put("time_shift", resultSet.getDouble(4));
                 
                 SvtTimeShift newObject = _objectFactory.createObject(SvtTimeShift.class, tableName, rowId, fieldValues, true);
                 
