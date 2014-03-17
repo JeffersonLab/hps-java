@@ -134,26 +134,13 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         
         
         
-      
+  	  if (nhits>0) {
         for (int ii=0;ii<(11*47);ii++){
-        		  if (nhits>0) occupancyPlots.get(ii).fill(chits[ii]*1./(nhits ));               
-        		  else occupancyPlots.get(ii).fill(0); 
+        	occupancyPlots.get(ii).fill(chits[ii]*1./(nhits ));                
         }
+  	  }        
         
-     
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+            
         if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
             List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);
 //if (clusters.size()>1)            

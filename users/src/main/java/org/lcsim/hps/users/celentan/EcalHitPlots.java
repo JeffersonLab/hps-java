@@ -100,6 +100,32 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         hitTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time", 100, 0 * 4.0, 100 * 4.0);
         hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
         occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
+        topTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Top", 100, 0, 100 * 4.0);
+        botTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Bottom", 100, 0, 100 * 4.0);
+        orTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Or", 100, 0, 100 * 4.0);
+
+        topTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Top", 32, 0, 32);
+        botTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Bottom", 32, 0, 32);
+        orTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Or", 32, 0, 32);
+
+        topTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 32, 0, 32);
+        botTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 32, 0, 32);
+        orTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 32, 0, 32);
+
+        hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 1000, -0.1, maxE);
+        hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
+
+        
+        channelEnergyPlot=new ArrayList<IHistogram1D>();
+        channelTimePlot=new ArrayList<IHistogram1D>();
+        for(int id = 0; id < (47*11); id = id +1){
+        	  int row=EcalMonitoringUtils.getRowFromHistoID(id);
+        	  int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
+        	  //create the histograms
+        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
+        	  channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
+        }
+        
         
         // Create the plotter regions.
         plotter.createRegions(2, 2);
@@ -119,9 +145,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
      //   plotterFrame.addPlotter(plotter2);
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
 
-        hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 1000, -0.1, maxE);
-        hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
-
+  
 //        hitEnergyPlot.addMouseListener(this);
         
         if (logScale) {
@@ -136,15 +160,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
     
   
       
-        channelEnergyPlot=new ArrayList<IHistogram1D>();
-        channelTimePlot=new ArrayList<IHistogram1D>();
-        for(int id = 0; id < (47*11); id = id +1){
-        	  int row=EcalMonitoringUtils.getRowFromHistoID(id);
-        	  int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
-        	  //create the histograms
-        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
-        	  channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
-        }
+     
          
         
         
@@ -155,18 +171,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.createRegions(3, 3);
 
-        topTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Top", 100, 0, 100 * 4.0);
-        botTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Bottom", 100, 0, 100 * 4.0);
-        orTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Or", 100, 0, 100 * 4.0);
-
-        topTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Top", 32, 0, 32);
-        botTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Bottom", 32, 0, 32);
-        orTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Or", 32, 0, 32);
-
-        topTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 32, 0, 32);
-        botTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 32, 0, 32);
-        orTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 32, 0, 32);
-
+      
         // Create the plotter regions.
         plotter3.region(0).plot(topTimePlot);
         plotter3.region(1).plot(botTimePlot);

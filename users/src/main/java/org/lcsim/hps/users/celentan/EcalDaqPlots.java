@@ -54,10 +54,18 @@ public class EcalDaqPlots extends Driver implements Resettable {
 		}
 
 		Subdetector subdetector = detector.getSubdetector(subdetectorName);
-
-		plots = new ArrayList<IHistogram1D>();
+		
 		aida = AIDA.defaultInstance();
 		aida.tree().cd("/");
+		plots = new ArrayList<IHistogram1D>();
+		
+		
+		for (int i = 1; i < 3; i++) { // crate
+			for (int j = 0; j < 14; j++) { // slot           
+				plots.add(aida.histogram1D("ECAL: Crate " + i + "; Slot " + slots[j], 16, 0, 16));
+			}
+		}
+
 		IPlotterFactory factory= aida.analysisFactory().createPlotterFactory("ECAL DAQ Plots");
 		plotter =factory.create("DAQ Plots");
 		IPlotterStyle pstyle = plotter.style();
@@ -65,18 +73,27 @@ public class EcalDaqPlots extends Driver implements Resettable {
 		pstyle.dataStyle().markerStyle().setColor("orange");
 		pstyle.dataStyle().errorBarStyle().setVisible(false);
 		plotter.createRegions(7, 4);
-		int region = 0;
-		for (int i = 0; i < 14; i++) { // slot
-			for (int j = 1; j < 3; j++) { // crate               
+		
+		int id,plot_id;
+		for (int i = 1; i < 3; i++) { // crate
+			for (int j = 0; j < 14; j++) { // slot               
 				//System.out.println("creating plot: " + "ECAL: Crate " + j + "; Slot " + i + " in region " + region);
-				int id = (i)*2+(j-1);
-				plots.add(aida.histogram1D("ECAL: Crate " + j + "; Slot " + slots[i], 16, 0, 16));
-				plotter.region(region).plot(plots.get(id));
+				id = (i-1)*14+(j);
+				plot_id = 0;
+				if (i==1){
+					if (j%2==0) plot_id=j*2;
+					else plot_id=(j-1)*2+1;
+				}
+				else if (i==2){
+					if (j%2==0) plot_id=j*2+2;
+					else plot_id=(j-1)*2+3;
+				}
+						
+				plotter.region(plot_id).plot(plots.get(id));
 				/*JASHist jhist = ((PlotterRegion) plotter.region(region)).getPlot();
 				jhist.setAllowUserInteraction(false);
 				jhist.setAllowPopupMenus(false);
 				*/
-				region++;
 			}
 		}
 		plotter.show();
@@ -107,10 +124,10 @@ public class EcalDaqPlots extends Driver implements Resettable {
 				int crate = EcalConditions.getCrate(daqId);
 				int slot = EcalConditions.getSlot(daqId);
 				int channel = EcalConditions.getChannel(daqId);
-				int id = getSlotIndex(slot)*2+(crate-1);
+				int id = getSlotIndex(slot)+(crate-1)*14;
 				
 				//System.out.println("crate="+crate+"; slot="+slot+"; channel="+channel);
-				System.out.println("filling plot: " + "ECAL: Crate " + crate + "; Slot " + slot+ "(" + getSlotIndex(slot)+ ")"+" id: "+id );	
+				//System.out.println("filling plot: " + "ECAL: Crate " + crate + "; Slot " + slot+ "(" + getSlotIndex(slot)+ ")"+" id: "+id );	
 				plots.get(id).fill(channel);
 			}
 		}
@@ -123,7 +140,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
 				int channel = EcalConditions.getChannel(daqId);
 				//System.out.println("crate="+crate+"; slot="+slot+"; channel="+channel);
 				//System.out.println("filling plot: " + "ECAL: Crate " + crate + "; Slot " + slot);
-				int id = getSlotIndex(slot)*2+(crate-1);
+				int id = getSlotIndex(slot)+(crate-1)*14;
 				plots.get(id).fill(channel);
 			}
 		}

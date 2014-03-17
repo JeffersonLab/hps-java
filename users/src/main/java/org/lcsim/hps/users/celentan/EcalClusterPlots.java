@@ -69,12 +69,19 @@ public class EcalClusterPlots extends Driver implements Resettable {
         aida.tree().cd("/");
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Size", 10, -0.5, 9.5);
-
+        clusterEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Energy", 1000, -0.1, maxE);
+        clusterMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Cluster Energy In Event", 1000, -0.1, maxE);      
+        edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Cluster center from hits", 93, -23.25, 23.25, 21, -5.25, 5.25);
+        clusterTimes = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Mean", 400, 0, 4.0 * 100);
+        clusterTimeSigma = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Sigma", 100, 0, 40);
+        
+        
         // Create the plotter regions.
-        plotter1.createRegions(1, 2);
+        plotter1.createRegions(2, 2);
         plotter1.region(0).plot(clusterCountPlot);
         plotter1.region(1).plot(clusterSizePlot);
-
+        plotter1.region(2).plot(edgePlot);
+        plotter1.region(3).plot(clusterMaxEnergyPlot);
 
         // Setup the plotter.
         plotter2 = plotterFactory.create("Cluster Energies");
@@ -86,9 +93,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
         }
 
-        clusterEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Energy", 1000, -0.1, maxE);
-        clusterMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Cluster Energy In Event", 1000, -0.1, maxE);
-
+     
 
         // Create the plotter regions.
         plotter2.createRegions(1, 2);
@@ -102,8 +107,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter3.createRegions(1, 2);
         plotter3.style().yAxisStyle().setParameter("scale", "log");
 
-        clusterTimes = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Mean", 400, 0, 4.0 * 100);
-        clusterTimeSigma = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Sigma", 100, 0, 40);
+      
         plotter3.region(0).plot(clusterTimes);
         plotter3.region(1).plot(clusterTimeSigma);
 
@@ -115,8 +119,8 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter4.style().zAxisStyle().setParameter("scale", "log");
         plotter4.createRegion();
 
-        edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Cluster center from hits", 93, -23.25, 23.25, 21, -5.25, 5.25);
-        plotter4.region(0).plot(edgePlot);
+       
+      
 
         //plotterFrame.setVisible(true);
         //plotterFrame.pack();
