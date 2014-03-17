@@ -67,7 +67,7 @@ public class GBLTrackData implements GenericObject {
 			System.out.printf("%s: ERROR to large matrix\n", this.getClass().getSimpleName());
 			System.exit(1);
 		}
-		this.bank_double[idx] = val;
+		this.bank_double[idx+5] = val;
 	}
 	
 

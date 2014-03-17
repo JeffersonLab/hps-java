@@ -200,6 +200,15 @@ public class GBLOutput {
         }
         
         
+        
+        //GBLDATA
+        for(int row=0; row<perToClPrj.getNRows();++row) {
+        	for(int col=0; col<perToClPrj.getNColumns();++col) {
+        		gtd.setPrjPerToCl(row, col, perToClPrj.e(row, col));
+        	}
+        }
+        
+        
         // print chi2 of fit
         if(textFile != null) {
         	textFile.printChi2(htf.chisq(),htf.ndf());
