@@ -52,14 +52,18 @@ import org.lcsim.util.xml.ElementFactory.ElementCreationException;
 
 public class BuildCompact {
 
-	private static final int runNumber = 1351;
-	private static final String detectorName = "HPS-TestRun-v7";
+	private static int runNumber = -1; //1351;
+	private static String detectorName = ""; //"HPS-TestRun-v7";
 	private static ConditionsManager conditionsManager = null;
+	private static double corrScaleFactor = -1.;
 	
 	private static Options createCmdLineOpts() {
 		Options options = new Options();
 		options.addOption(new Option("c",true,"The path to the compact xml file."));
 		options.addOption(new Option("o",true,"The name of the new compact xml file."));
+		options.addOption(new Option("d",true,"Detector name."));
+		options.addOption(new Option("r",true,"Run number."));
+		
 		return options;
 	}
 	
@@ -169,8 +173,8 @@ public class BuildCompact {
 			try {
 			//for(String v : vals) System.out.println("\"" + v + "\"");
 			setId(Integer.parseInt(vals[0]));
-			setValue(Float.parseFloat(vals[1]));
-			setPresigma(Float.parseFloat(vals[2]));
+			setValue( corrScaleFactor * Double.parseDouble(vals[1]) );
+			setPresigma(Double.parseDouble(vals[2]));
 			
 			} catch (NumberFormatException e) {
 				System.out.println(vals[0] + " " + vals[1] + " " + vals[2]);
@@ -221,7 +225,7 @@ public class BuildCompact {
 			return value;
 		}
 
-		public void setValue(float value) {
+		public void setValue(double value) {
 			this.value = value;
 		}
 
@@ -229,7 +233,7 @@ public class BuildCompact {
 			return presigma;
 		}
 
-		public void setPresigma(float presigma) {
+		public void setPresigma(double presigma) {
 			this.presigma = presigma;
 		}
 	}
@@ -258,15 +262,28 @@ public class BuildCompact {
 			printHelpAndExit(options);
 		}
 		
+		if(cl.hasOption("d")) {
+			detectorName = cl.getOptionValue("d");
+		} else {
+			printHelpAndExit(options);
+		}
+
+		if(cl.hasOption("r")) {
+			runNumber = Integer.parseInt(cl.getOptionValue("r"));
+		} else {
+			printHelpAndExit(options);
+		}
+
 		String compactFilenameNew = "compact_new.xml";
 		if(cl.hasOption("o")) {
 			compactFilenameNew = cl.getOptionValue("o");
 		}
 
+		
+		
 		File compactFile = new File(compactFilename);
 		
 		// read XML
-		List<Element> xml_constants = new ArrayList<Element>();
 		SAXBuilder builder = new SAXBuilder();
 		Document compact_document = null;
 		try {
@@ -372,7 +389,7 @@ public class BuildCompact {
 				node.setAttribute("value", String.format("%.6f",value));
 			}
 			Hep3Vector u = getMeasuredCoordinate( (SiSensor )set.getDetector());
-			//System.out.println("u  " + u.toString());
+			System.out.println("u  " + u.toString());
 			System.out.println("t (local)  " + set.getLocalTranslation().toString());
 			System.out.println("t (global) " + set.getGlobalTranslation().toString());
 			System.out.println("r (local)  " + set.getLocalRotation().toString());

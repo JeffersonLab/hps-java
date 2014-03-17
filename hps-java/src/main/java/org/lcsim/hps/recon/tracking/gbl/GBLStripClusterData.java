@@ -6,6 +6,12 @@ import hep.physics.vec.Hep3Vector;
 import org.lcsim.event.GenericObject;
 import org.lcsim.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 
+/**
+ * A class providing for storing strip clusters for GBL
+ * 
+ * @author phansson
+ *
+ */
 public class GBLStripClusterData implements GenericObject {
 	
 	/*

@@ -3,7 +3,6 @@
  * and open the template in the editor.
  */
 package org.lcsim.hps.recon.tracking.gbl;
-
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
@@ -661,15 +660,7 @@ public class GBLOutput {
     }
     
     
-    BasicMatrix gblSimpleJacobian(double ds,double cosl,double bfac) {
-        BasicMatrix mat = new BasicMatrix(5,5);
-        this.initUnit(mat);
-        mat.setElement(1, 0, -bfac * ds * cosl);
-        mat.setElement(3, 0, -0.5 * bfac * ds * ds * cosl);
-        mat.setElement(3, 1, ds);
-        mat.setElement(4, 2, ds);
-        return mat;
-    }
+   
 
     
     
