@@ -111,7 +111,7 @@ public class DatabaseConditionsReader extends ConditionsReader {
             
         // Register the converters on the manager.         
         // FIXME: This should really only happen once instead of being called here every time.
-        ConditionsConverterRegister.register(manager);
+        ConditionsConverterRegistery.register(manager);
                 
         // Open a connection to the database.
         connection = ConnectionManager.getConnectionManager().createConnection();

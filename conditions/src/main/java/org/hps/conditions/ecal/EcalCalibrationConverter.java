@@ -3,6 +3,8 @@ package org.hps.conditions.ecal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
@@ -28,9 +30,6 @@ public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCa
      */
     public EcalCalibrationCollection getData(ConditionsManager manager, String name) {
 
-        // Collection to be returned to caller.
-        EcalCalibrationCollection calibrations = new EcalCalibrationCollection();
-
         // Get the ConditionsRecord with the meta-data, which will use the
         // current run number from the manager.
         ConditionsRecord record = ConditionsRecord.find(manager, name).get(0);
@@ -39,16 +38,19 @@ public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCa
         // applicable conditions.
         String tableName = record.getTableName();
         String fieldName = record.getFieldName();
-        int fieldValue = record.getFieldValue();
+        int collectionId = record.getFieldValue();
+        
+        // Collection to be returned to caller.
+        EcalCalibrationCollection collection = new EcalCalibrationCollection(getTableMetaData(name), collectionId, true);
 
         // References to database objects.
         ResultSet resultSet = null;
         ConnectionManager connectionManager = getConnectionManager();
 
         // The query to get conditions.
-        String query = "SELECT ecal_channel_id, pedestal, noise FROM " 
+        String query = "SELECT id, ecal_channel_id, pedestal, noise FROM " 
                 + tableName + " WHERE " 
-                + fieldName + " = " + fieldValue + " ORDER BY ecal_channel_id ASC";
+                + fieldName + " = " + collectionId + " ORDER BY ecal_channel_id ASC";
 
         // Execute the query.
         resultSet = connectionManager.query(query);
@@ -56,22 +58,25 @@ public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCa
         try {
             // Loop over the records.
             while (resultSet.next()) {
-                // Create calibration object from record.
-                int channelId = resultSet.getInt(1);
-                double pedestal = resultSet.getDouble(2);
-                double noise = resultSet.getDouble(3);
-                calibrations.put(channelId, new EcalCalibration(pedestal, noise));
+                int rowId = resultSet.getInt(1);                 
+                FieldValueMap fieldValues = new FieldValueMap();
+                fieldValues.put("ecal_channel_id", resultSet.getInt(2));
+                fieldValues.put("pedestal", resultSet.getDouble(3));
+                fieldValues.put("noise", resultSet.getDouble(4));
+                EcalCalibration newObject = _objectFactory.createObject(EcalCalibration.class, tableName, rowId, fieldValues, true);                
+                collection.add(newObject);
             }
         } catch (SQLException x) {
-            throw new RuntimeException("Database error.", x);
-        } 
+            throw new RuntimeException("Database error", x);
+        } catch (ConditionsObjectException x) {
+            throw new RuntimeException("Error converting to " + getType().getSimpleName() + " object", x);
+        }
         
-        return calibrations;
+        return collection;
     }
 
     /**
      * Get the type handled by this converter.
-     * 
      * @return The type handled by this converter.
      */
     public Class<EcalCalibrationCollection> getType() {

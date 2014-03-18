@@ -1,7 +1,6 @@
 package org.hps.conditions;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
  * The basic implementation of the {@link ConditionsObjectFactory} interface.
@@ -50,10 +49,19 @@ public class BasicConditionsObjectFactory implements ConditionsObjectFactory {
         return (T)newObject;
     }   
     
+    /**
+     * Get the <code>ConditionsTableRegistry</code> that will be used by the factory to get
+     * table meta data.
+     * @return The conditions table registry.
+     */
     public ConditionsTableRegistry getTableRegistry() {
         return _tableRegistry;
     }
     
+    /**
+     * Get table meta data by name from the registry.
+     * @return The table meta data or null if does not exist.
+     */
     public ConditionsTableMetaData getTableMetaData(String name) {
         return _tableRegistry.getTableMetaData(name);
     }

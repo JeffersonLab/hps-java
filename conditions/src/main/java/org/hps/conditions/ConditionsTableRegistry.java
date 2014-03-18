@@ -5,6 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A central registry of {@link ConditionsTableMetaData} objects for use by converters.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class ConditionsTableRegistry {
     
     Map<String, ConditionsTableMetaData> _tableMetaDataMap = new HashMap<String, ConditionsTableMetaData>();
@@ -23,15 +27,13 @@ public class ConditionsTableRegistry {
     void registerDefaultTableMetaData() {
         
         Set<String> fields;
-        ConditionsTableMetaData tableMetaData;
         
         // SVT gains
         fields = new HashSet<String>();
         fields.add("svt_channel_id");
         fields.add("gain");
         fields.add("offset");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_GAINS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_GAINS, fields));
         
         // SVT pulse parameters
         fields = new HashSet<String>();
@@ -40,16 +42,14 @@ public class ConditionsTableRegistry {
         fields.add("t0");
         fields.add("tp");
         fields.add("chisq");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_PULSE_PARAMETERS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_PULSE_PARAMETERS, fields));
 
         // SVT gains
         fields = new HashSet<String>();
         fields.add("svt_channel_id");
         fields.add("noise");
         fields.add("pedestal");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_CALIBRATIONS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_CALIBRATIONS, fields));
         
         // SVT channels
         fields = new HashSet<String>();
@@ -57,22 +57,41 @@ public class ConditionsTableRegistry {
         fields.add("fpga");
         fields.add("hybrid");
         fields.add("channel");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_CHANNELS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_CHANNELS, fields));
 
         // SVT time shift
         fields = new HashSet<String>();
         fields.add("fpga");
         fields.add("hybrid");
         fields.add("time_shift");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_TIME_SHIFTS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_TIME_SHIFTS, fields));
         
         // SVT bad channels
         fields = new HashSet<String>();
         fields.add("svt_channel_id");
-        tableMetaData = new ConditionsTableMetaData(ConditionsConstants.SVT_BAD_CHANNELS, fields);
-        addTableMetaData(tableMetaData);
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_BAD_CHANNELS, fields));
         
+        // ECal bad channels
+        fields = new HashSet<String>();
+        fields.add("ecal_channel_id");
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_BAD_CHANNELS, fields));
+        
+        // ECal gains
+        fields = new HashSet<String>();
+        fields.add("ecal_channel_id");
+        fields.add("gain");
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_GAINS, fields));
+        
+        // Ecal calibrations
+        fields = new HashSet<String>();
+        fields.add("ecal_channel_id");
+        fields.add("noise");
+        fields.add("pedestal");
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_CALIBRATIONS, fields));
+        
+        // Beam current
+        fields = new HashSet<String>();
+        fields.add("beam_current");
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.BEAM_CURRENT, fields));
     }
 }

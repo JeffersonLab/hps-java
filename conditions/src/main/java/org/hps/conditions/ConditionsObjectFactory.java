@@ -1,10 +1,10 @@
 package org.hps.conditions;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
- * This is the primary interface in the API for generically instantiating {@link ConditionsObject} objects.
+ * This is the primary interface in the API for generically instantiating {@link ConditionsObject} objects
+ * from the database.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface ConditionsObjectFactory {

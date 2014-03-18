@@ -1,35 +1,29 @@
 package org.hps.conditions.ecal;
 
+import org.hps.conditions.AbstractConditionsObject;
+
 /**
  * This class is a simplistic representation of ECal pedestal and noise
  * values from the conditions database.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class EcalCalibration {
-       
-    /** The pedestal value. */
-    private double pedestal;
-    
-    /** The noise value. */
-    private double noise;
+public class EcalCalibration extends AbstractConditionsObject {
     
     /**
-     * Fully qualified class constructor.
-     * @param pedestal The pedestal value.
-     * @param noise The noise value.
+     * Get the channel ID.
+     * @return The channel ID.
      */
-    EcalCalibration(double pedestal, double noise) {
-        this.pedestal = pedestal;
-        this.noise = noise;
+    public int getChannelId() {
+        return getFieldValue("ecal_channel_id");
     }
-        
+    
     /**
      * Get the pedestal value.
      * @return The gain value.
      */
     public double getPedestal() {
-        return pedestal;
+        return getFieldValue("pedestal");
     }       
     
     /**
@@ -37,6 +31,6 @@ class EcalCalibration {
      * @return The noise value.
      */
     public double getNoise() {
-        return noise;
+        return getFieldValue("noise");
     }
 }

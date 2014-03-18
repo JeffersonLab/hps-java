@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
+import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;

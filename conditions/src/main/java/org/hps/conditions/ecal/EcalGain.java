@@ -1,29 +1,27 @@
 package org.hps.conditions.ecal;
 
+import org.hps.conditions.AbstractConditionsObject;
+
 /**
- * This class is a simplistic representation of gain values from the ECAL
+ * This class is a simplistic representation of gain values from the ECal
  * conditions database.     
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class EcalGain {
-       
-    /** The gain value. */
-    private double gain;
-    
-    /**
-     * Fully qualified class constructor.
-     * @param id
-     * @param gain
-     */
-    EcalGain(double gain) {
-        this.gain = gain;
-    }
-    
+public class EcalGain extends AbstractConditionsObject {
+               
     /**
      * Get the gain value.
      * @return The gain value.
      */
     public double getGain() {
-        return gain;
+        return getFieldValue("gain");
     }       
+    
+    /**
+     * Get the ECal channel ID.
+     * @return The ECal channel ID.
+     */
+    public int getChannelId() {
+        return getFieldValue("ecal_channel_id");
+    }
 }

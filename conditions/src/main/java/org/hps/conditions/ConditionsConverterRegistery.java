@@ -20,7 +20,7 @@ import org.lcsim.conditions.ConditionsManager;
  * This class registers the full set of conditions converters onto the manager.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class ConditionsConverterRegister {
+class ConditionsConverterRegistery {
     
     /**
      * This method will register all the conditions converters onto the given manager.
@@ -32,7 +32,7 @@ class ConditionsConverterRegister {
         ConditionsTableRegistry tableRegistry = new ConditionsTableRegistry();
         tableRegistry.registerDefaultTableMetaData();
         
-        // Create the object factory for SVT.
+        // Create the object factory.
         ConditionsObjectFactory factory = 
                 new BasicConditionsObjectFactory(ConnectionManager.getConnectionManager(), tableRegistry);
                 
@@ -60,27 +60,27 @@ class ConditionsConverterRegister {
         // SVT bad channels.
         manager.registerConditionsConverter(new SvtBadChannelConverter(factory));       
         
-        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-        // TODO: Remaining to convert to new API...
-        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
-                
         // ECAL bad channels.
         manager.registerConditionsConverter(new EcalBadChannelConverter(factory));
         
-        // ECAL channel map.
-        manager.registerConditionsConverter(new EcalChannelMapConverter(factory));
-        
         // ECAL gains.
         manager.registerConditionsConverter(new EcalGainConverter(factory));
-                
+        
         // ECAL calibrations.
         manager.registerConditionsConverter(new EcalCalibrationConverter(factory));
-                        
+        
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        // TODO: Remaining to convert to new API...
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
+                                                                        
         // ECAL combined conditions.
         manager.registerConditionsConverter(new EcalConditionsConverter(factory));
         
         // Beam current condition.
-        manager.registerConditionsConverter(new BeamCurrentConverter(factory));        
+        manager.registerConditionsConverter(new BeamCurrentConverter(factory));
+        
+        // ECAL channel map.
+        manager.registerConditionsConverter(new EcalChannelMapConverter(factory));
         
         ///////////////////////////////////////////////////////////////////////////////
         // This one will be a pain so convert to new API last once others are working.

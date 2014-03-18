@@ -133,12 +133,7 @@ public interface ConditionsObject {
      */
     void setIsReadOnly();
     
-    /**
-     * Generic Exception type throw by methods in this interface.
-     */
-    public static final class ConditionsObjectException extends Exception {
-        public ConditionsObjectException(String message) {
-            super(message);
-        }
-    }    
+    // String getTableName();
+    
+    // String[] getFieldNames();
 }

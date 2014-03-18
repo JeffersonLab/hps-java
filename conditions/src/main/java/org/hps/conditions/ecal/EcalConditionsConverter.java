@@ -1,15 +1,15 @@
 package org.hps.conditions.ecal;
 
-import static org.hps.conditions.ConditionsConstants.ECAL_BAD_CHANNELS;
-import static org.hps.conditions.ConditionsConstants.ECAL_CALIBRATIONS;
-import static org.hps.conditions.ConditionsConstants.ECAL_CHANNELS;
-import static org.hps.conditions.ConditionsConstants.ECAL_GAINS;
+import static org.hps.conditions.ConditionsTableConstants.ECAL_BAD_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.ECAL_CALIBRATIONS;
+import static org.hps.conditions.ConditionsTableConstants.ECAL_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.ECAL_GAINS;
 
 import java.util.Map.Entry;
 
-import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class loads all ecal conditions into an {@link EcalConditions} object
@@ -38,26 +38,24 @@ public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalCon
                                        
         // Add gains.
         EcalGainCollection gains = manager.getCachedConditions(EcalGainCollection.class, ECAL_GAINS).getCachedData();        
-        for (Entry<Integer,EcalGain> entry : gains.entrySet()) {
-            EcalChannel channel = channelMap.get(entry.getKey());
-            EcalGain gain = entry.getValue();
+        for (EcalGain gain : gains.getObjects()) {
+            EcalChannel channel = channelMap.get(gain.getChannelId());
             conditions.getChannelConstants(channel).setGain(gain);
         }
         
         // Add bad channels.
         EcalBadChannelCollection badChannels = manager.getCachedConditions(
                 EcalBadChannelCollection.class, ECAL_BAD_CHANNELS).getCachedData();
-        for (Integer badChannel : badChannels) {
-            EcalChannel channel = channelMap.get(badChannel);
+        for (EcalBadChannel badChannel : badChannels.getObjects()) {
+            EcalChannel channel = channelMap.get(badChannel.getChannelId());
             conditions.getChannelConstants(channel).setBadChannel(true);
         }
         
         // Add calibrations including pedestal and noise values.
         EcalCalibrationCollection calibrations = 
                 manager.getCachedConditions(EcalCalibrationCollection.class, ECAL_CALIBRATIONS).getCachedData();
-        for (Entry<Integer,EcalCalibration> entry : calibrations.entrySet()) {
-            EcalChannel channel = channelMap.get(entry.getKey());
-            EcalCalibration calibration = entry.getValue();
+        for (EcalCalibration calibration : calibrations.getObjects()) {
+            EcalChannel channel = channelMap.get(calibration.getChannelId());
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }       
         

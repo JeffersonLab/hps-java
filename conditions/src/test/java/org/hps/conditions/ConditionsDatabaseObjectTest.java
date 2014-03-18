@@ -7,7 +7,6 @@ import java.util.Set;
 import junit.framework.TestCase;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
 
 /**
  * Test the basic functionality of a {@link ConditionsObject} on a dummy database.

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
-
 public class ConditionsObjectCollection<T extends ConditionsObject> {
 
     List<T> objects = new ArrayList<T>();    

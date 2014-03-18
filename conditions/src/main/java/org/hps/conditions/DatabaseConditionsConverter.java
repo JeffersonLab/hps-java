@@ -28,4 +28,8 @@ public abstract class DatabaseConditionsConverter<T> implements ConditionsConver
     protected void setObjectFactory(ConditionsObjectFactory objectFactory) {
         _objectFactory = objectFactory;
     }               
+    
+    public final ConditionsTableMetaData getTableMetaData(String tableName) {
+        return _objectFactory.getTableRegistry().getTableMetaData(tableName);
+    }
 }

@@ -1,14 +1,12 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.ConditionsConstants.SVT_BAD_CHANNELS;
-import static org.hps.conditions.ConditionsConstants.SVT_CALIBRATIONS;
-import static org.hps.conditions.ConditionsConstants.SVT_CHANNELS;
-import static org.hps.conditions.ConditionsConstants.SVT_DAQ_MAP;
-import static org.hps.conditions.ConditionsConstants.SVT_GAINS;
-import static org.hps.conditions.ConditionsConstants.SVT_PULSE_PARAMETERS;
-import static org.hps.conditions.ConditionsConstants.SVT_TIME_SHIFTS;
-
-import java.util.Map.Entry;
+import static org.hps.conditions.ConditionsTableConstants.SVT_BAD_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_CALIBRATIONS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_DAQ_MAP;
+import static org.hps.conditions.ConditionsTableConstants.SVT_GAINS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_PULSE_PARAMETERS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_TIME_SHIFTS;
 
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;

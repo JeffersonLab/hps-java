@@ -1,6 +1,6 @@
 package org.hps.conditions.ecal;
 
-import static org.hps.conditions.ConditionsConstants.ECAL_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.ECAL_CHANNELS;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

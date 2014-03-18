@@ -13,8 +13,8 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 import org.hps.conditions.ConnectionManager;
 
 /**
- * This test loads conditions data onto the detector and then checks that 
- * all channels of each sensor have non-zero data values for these parameters. 
+ * This test loads {@link SvtConditions} data onto the detector and then checks that 
+ * all channels of each sensor have non-zero data values for applicable parameters. 
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */

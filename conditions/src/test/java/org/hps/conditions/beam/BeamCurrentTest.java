@@ -13,7 +13,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
-import static org.hps.conditions.ConditionsConstants.BEAM_CURRENT;
+import static org.hps.conditions.ConditionsTableConstants.BEAM_CURRENT;
 
 /**
  * This test checks the beam current values by run.
@@ -72,7 +72,8 @@ public class BeamCurrentTest extends TestCase {
         public void process(EventHeader event) {
             if (currentRun != event.getRunNumber()) {
                 currentRun = event.getRunNumber();
-                BeamCurrent beamCurrent = ConditionsManager.defaultInstance().getCachedConditions(BeamCurrent.class, BEAM_CURRENT).getCachedData();
+                BeamCurrentCollection collection = ConditionsManager.defaultInstance().getCachedConditions(BeamCurrentCollection.class, BEAM_CURRENT).getCachedData();
+                BeamCurrent beamCurrent = collection.get(0);
                 System.out.println("Run " + event.getRunNumber() + " has integrated beam current " + beamCurrent.getIntegratedBeamCurrent() + " nC.");
                 assertEquals("Wrong beam current for run.", beamCurrentAnswerKey.get(currentRun), beamCurrent.getIntegratedBeamCurrent());
             }

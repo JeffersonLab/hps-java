@@ -13,8 +13,8 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 import org.hps.conditions.ConnectionManager;
 
 /**
- * This test loads ECal conditions data onto the detector and checks the results
- * for basic validity.  
+ * This test loads ECal conditions data onto the detector 
+ * and checks some of the results for basic validity.  
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsLoaderTest extends TestCase {

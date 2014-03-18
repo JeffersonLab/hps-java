@@ -1,14 +1,13 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.ConditionsConstants.SVT_CHANNELS;
+import static org.hps.conditions.ConditionsTableConstants.SVT_CHANNELS;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObject.ConditionsObjectException;
+import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
-import org.hps.conditions.ConditionsTableMetaData;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;

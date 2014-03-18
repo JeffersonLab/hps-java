@@ -1,14 +1,17 @@
 package org.hps.conditions.ecal;
 
-import java.util.LinkedHashMap;
+import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.ConditionsTableMetaData;
 
 /**
  * This class maps ECAL channel IDs from the database to ECal gain parameters.
  */
-public class EcalGainCollection extends LinkedHashMap<Integer,EcalGain> {
+public class EcalGainCollection extends ConditionsObjectCollection<EcalGain> {
+    
     /**
      * Class constructor.
      */
-    EcalGainCollection() {        
+    EcalGainCollection(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
+        super(tableMetaData, collectionId, isReadOnly);
     }
 }

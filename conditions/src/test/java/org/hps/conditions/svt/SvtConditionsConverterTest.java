@@ -9,8 +9,8 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 import org.hps.conditions.ConnectionManager;
 
 /**
- * This class loads and prints {@link SvtConditions}, which internally uses the  
- * {@link SvtConditionsConverter}.
+ * This test loads and prints {@link SvtConditions}, which internally uses the  
+ * {@link SvtConditionsConverter}.  It does not perform any assertions.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */

@@ -1,12 +1,13 @@
 package org.hps.conditions;
 
 /**
- * Constants for HPS conditions system, such as conditions set key names.
+ * This is a static set of data defining default table names and lookup key values for conditions data.
+ * Unless otherwise requested via the converter interface, these are always the same.
  */
-public final class ConditionsConstants {
+public final class ConditionsTableConstants {
     
     /** Prevent instantiation of this class, which is only a holder of static constant values. */
-    private ConditionsConstants() {}
+    private ConditionsTableConstants() {}
     
     /** Conditions key for ConditionsRecord. */
     public static final String CONDITIONS_RECORD = "conditions_record";
@@ -46,7 +47,7 @@ public final class ConditionsConstants {
     
     /** Conditions key for SVT gain data. */
     public static final String SVT_GAINS = "svt_gains";
-    
+        
     /** Conditions key for SVT time shifts by sensor. */
     public static final String SVT_TIME_SHIFTS = "svt_time_shifts";
     

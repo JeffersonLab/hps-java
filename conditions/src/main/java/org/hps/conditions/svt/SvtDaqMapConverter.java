@@ -1,15 +1,15 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.ConditionsConstants.SVT_DAQ_MAP;
+import static org.hps.conditions.ConditionsTableConstants.SVT_DAQ_MAP;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.hps.util.Pair;
 
 /**

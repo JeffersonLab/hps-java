@@ -1,6 +1,6 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.ConditionsConstants.CONDITIONS_RECORD;
+import static org.hps.conditions.ConditionsTableConstants.CONDITIONS_RECORD;
 
 import java.sql.Blob;
 import java.sql.ResultSet;
@@ -12,7 +12,7 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class represents a single record from the primary conditions data table,
- * which defines the run validity range for a specific conditions set.
+ * which defines the validity range for a specific collection of conditions objects.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */

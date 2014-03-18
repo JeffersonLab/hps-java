@@ -7,6 +7,10 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.hps.conditions.ConnectionManager;
 import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
+/**
+ * Tests that a {@link EcalConditions} objects loads without errors.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class EcalConditionsConverterTest extends TestCase {
     
     /** An example detector from hps-detectors. */
