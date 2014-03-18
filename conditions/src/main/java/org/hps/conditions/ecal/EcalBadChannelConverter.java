@@ -43,12 +43,11 @@ public class EcalBadChannelConverter extends DatabaseConditionsConverter<EcalBad
             // Get the table name, field name, and field value defining the
             // applicable conditions.
             String tableName = record.getTableName();
-            String fieldName = record.getFieldName();
-            int fieldValue = record.getFieldValue();
+            int collectionId = record.getCollectionId();
 
             // Query for getting back bad channel records.
-            String query = "SELECT id, ecal_channel_id FROM " + tableName + " WHERE " 
-                    + fieldName + " = " + fieldValue + " ORDER BY id ASC";
+            String query = "SELECT id, ecal_channel_id FROM " + tableName + " WHERE collection_id = " 
+                    + collectionId + " ORDER BY id ASC";
             ResultSet resultSet = ConnectionManager.getConnectionManager().query(query);
             
             // Loop over the records.

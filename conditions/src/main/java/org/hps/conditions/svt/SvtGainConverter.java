@@ -38,8 +38,7 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
                
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
                 
         // Objects for building the return value.
         ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
@@ -50,8 +49,8 @@ public class SvtGainConverter extends DatabaseConditionsConverter<SvtGainCollect
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching calibration records using the ID field.
-        String query = "SELECT id, svt_channel_id, gain, offset FROM "
-                + tableName + " WHERE " + fieldName + " = " + collectionId
+        String query = "SELECT id, svt_channel_id, gain, offset FROM " + tableName 
+                + " WHERE collection_id = " + collectionId
                 + " ORDER BY svt_channel_id ASC";
             
         // Execute the query and get the results.

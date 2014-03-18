@@ -34,8 +34,7 @@ public class SvtTimeShiftConverter extends DatabaseConditionsConverter<SvtTimeSh
                
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
                 
         // Collection that will be returned. 
         SvtTimeShiftCollection collection = 
@@ -46,8 +45,8 @@ public class SvtTimeShiftConverter extends DatabaseConditionsConverter<SvtTimeSh
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching records.
-        String query = "SELECT id, fpga, hybrid, time_shift FROM "
-                + tableName + " WHERE " + fieldName + " = " + collectionId;
+        String query = "SELECT id, fpga, hybrid, time_shift FROM " + tableName 
+                + " WHERE collection_id = " + collectionId;
             
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);

@@ -41,8 +41,7 @@ public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCali
         // Get the table name, field name, and field value defining the
         // applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
 
         // Objects for building the return value.
         SvtCalibrationCollection collection = 
@@ -51,11 +50,10 @@ public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCali
         // Get a connection from the manager.
         ConnectionManager connectionManager = getConnectionManager();
 
-        // Construct the query to find matching calibration records using the ID
-        // field.
-        String query = "SELECT id, svt_channel_id, noise, pedestal FROM " 
-                + tableName + " WHERE " 
-                + fieldName + " = " + collectionId + " ORDER BY svt_channel_id ASC";
+        // Construct the query to find matching calibration records.
+        String query = "SELECT id, svt_channel_id, noise, pedestal FROM " + tableName 
+                + " WHERE collection_id = " + collectionId 
+                + " ORDER BY svt_channel_id ASC";
 
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);

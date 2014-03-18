@@ -33,8 +33,7 @@ public class BeamCurrentConverter extends DatabaseConditionsConverter<BeamCurren
                
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
         
         // Collection to be returned to caller.
         BeamCurrentCollection collection = new BeamCurrentCollection(getTableMetaData(name), collectionId, true);
@@ -44,7 +43,7 @@ public class BeamCurrentConverter extends DatabaseConditionsConverter<BeamCurren
                                                                                             
         // Construct the query to find matching records using the ID field.
         String query = "SELECT id, beam_current FROM "
-                + tableName + " WHERE " + fieldName + " = " + collectionId;
+                + tableName + " WHERE collection_id = " + collectionId;
             
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);

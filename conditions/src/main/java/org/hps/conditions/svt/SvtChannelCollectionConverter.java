@@ -16,8 +16,7 @@ import org.lcsim.conditions.ConditionsManager;
  * This class converts a table of SVT channel setup data into an {@link SvtChannelCollection}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: This converter and the associated classes and tables need to use the collection ID
-//        concept so that multiple channel maps are supported.
+// TODO: This needs to support different collectionIDs.
 public class SvtChannelCollectionConverter extends DatabaseConditionsConverter<SvtChannelCollection> {
 
     public SvtChannelCollectionConverter(ConditionsObjectFactory objectFactory) {
@@ -53,22 +52,13 @@ public class SvtChannelCollectionConverter extends DatabaseConditionsConverter<S
         try {
             // Loop over records.
             while (resultSet.next()) {
-                // Add SVT channel data for this record.
-                //int id = resultSet.getInt(1);
-                //int fpga = resultSet.getInt(2);
-                //int hybrid = resultSet.getInt(3);
-                //int channel = resultSet.getInt(4);
-                //SvtChannel data = new SvtChannel(id, fpga, hybrid, channel);
-                //channels.put(data.getId(), data);
                 FieldValueMap fieldValues = new FieldValueMap();
                 fieldValues.put("id", resultSet.getInt(1));
                 fieldValues.put("fpga", resultSet.getInt(2));
                 fieldValues.put("hybrid", resultSet.getInt(3));
-                fieldValues.put("channel", resultSet.getInt(4));
-                
+                fieldValues.put("channel", resultSet.getInt(4));                
                 SvtChannel newObject = _objectFactory.createObject(
-                        SvtChannel.class, name, resultSet.getInt(1), fieldValues, true);
-                
+                        SvtChannel.class, name, resultSet.getInt(1), fieldValues, true);                
                 channels.add(newObject);
             }
         } catch (SQLException x) {

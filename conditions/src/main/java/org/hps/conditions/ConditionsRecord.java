@@ -30,8 +30,7 @@ public class ConditionsRecord {
     String name;
     String formatVersion;
     String tableName;
-    String fieldName;
-    int fieldValue;    
+    int collectionId;    
                 
     protected ConditionsRecord() {        
     }
@@ -47,7 +46,7 @@ public class ConditionsRecord {
             runStart = rs.getInt(2);
             runEnd = rs.getInt(3);
             updated = rs.getTimestamp(4);
-            created = rs.getDate(5);
+            created = rs.getTimestamp(5); // ??
             validFrom = rs.getDate(6);
             validTo = rs.getDate(7);
             createdBy = rs.getString(8);
@@ -59,8 +58,7 @@ public class ConditionsRecord {
             name = rs.getString(10);
             formatVersion = rs.getString(11);
             tableName = rs.getString(12);
-            fieldName = rs.getString(13);
-            fieldValue = rs.getInt(14);
+            collectionId = rs.getInt(13);
             
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -162,21 +160,13 @@ public class ConditionsRecord {
     public String getTableName() {
         return tableName;
     }
-    
-    /**
-     * Get the field that will define which set of conditions to fetch.
-     * @return The field used as a group ID of the conditions.
-     */
-    public String getFieldName() {
-        return fieldName;
-    }
-    
+        
     /**
      * Get the value of the identifying field.
      * @return The value of identifying field for these conditions.
      */
-    public int getFieldValue() {
-        return fieldValue;
+    public int getCollectionId() {
+        return collectionId;
     }    
     
     /**
@@ -196,8 +186,7 @@ public class ConditionsRecord {
         buff.append("notes: " + notes + '\n');
         buff.append("formatVersion: " + formatVersion + '\n');
         buff.append("tableName: " + tableName + '\n');
-        buff.append("fieldName: " + fieldName + '\n');
-        buff.append("fieldValue: " + fieldValue + '\n');
+        buff.append("collectionId: " + collectionId + '\n');
         return buff.toString();
     }
     
@@ -216,9 +205,6 @@ public class ConditionsRecord {
         if (conditionsRecords.size() == 0) {
             throw new IllegalArgumentException("No ConditionsRecord with name: " + name);
         }              
-        //if (conditionsRecords.size() > 1) {
-        //    throw new IllegalArgumentException("Duplicate ConditionsRecord with name: " + name);
-        //}
         return conditionsRecords;
     }
     

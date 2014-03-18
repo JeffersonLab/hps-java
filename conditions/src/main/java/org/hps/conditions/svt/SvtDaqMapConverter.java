@@ -38,8 +38,7 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
                
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
         
         // The object to be returned to caller.
         SvtDaqMap collection = 
@@ -49,8 +48,8 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching calibration records using the ID field.
-        String query = "SELECT id, half, layer, hybrid, fpga FROM "
-                + tableName + " WHERE " + fieldName + " = " + collectionId
+        String query = "SELECT id, half, layer, hybrid, fpga FROM " + tableName 
+                + " WHERE collection_id = " + collectionId
                 + " ORDER BY half ASC, layer ASC";
                    
         // Execute the query and get the results.
@@ -58,10 +57,8 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
                
         try {
             // Loop over the database records.
-            while(resultSet.next()) {          
-                
-                int rowId = resultSet.getInt(1);
-                
+            while(resultSet.next()) {                          
+                int rowId = resultSet.getInt(1);                
                 FieldValueMap fieldValues = new FieldValueMap();
                 fieldValues.put("half", resultSet.getInt(2));
                 fieldValues.put("layer", resultSet.getInt(3));

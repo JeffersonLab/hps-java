@@ -37,8 +37,7 @@ public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCa
         // Get the table name, field name, and field value defining the
         // applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
         
         // Collection to be returned to caller.
         EcalCalibrationCollection collection = new EcalCalibrationCollection(getTableMetaData(name), collectionId, true);
@@ -49,8 +48,8 @@ public class EcalCalibrationConverter extends DatabaseConditionsConverter<EcalCa
 
         // The query to get conditions.
         String query = "SELECT id, ecal_channel_id, pedestal, noise FROM " 
-                + tableName + " WHERE " 
-                + fieldName + " = " + collectionId + " ORDER BY ecal_channel_id ASC";
+                + tableName + " WHERE collection_id = " + collectionId 
+                + " ORDER BY ecal_channel_id ASC";
 
         // Execute the query.
         resultSet = connectionManager.query(query);

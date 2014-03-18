@@ -16,6 +16,7 @@ import org.hps.conditions.DatabaseConditionsConverter;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Needs to support different collectionIDs.
 public class EcalChannelMapConverter extends DatabaseConditionsConverter<EcalChannelMap> {
 
     public EcalChannelMapConverter(ConditionsObjectFactory objectFactory) {

@@ -40,8 +40,7 @@ public class SvtPulseParametersConverter extends DatabaseConditionsConverter<Svt
         // Get the table name, field name, and field value defining the
         // applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
 
         // Object for building the return value.
         ConditionsTableMetaData tableMetaData = _objectFactory
@@ -53,12 +52,8 @@ public class SvtPulseParametersConverter extends DatabaseConditionsConverter<Svt
         ConnectionManager connectionManager = getConnectionManager();
 
         // Construct the query to find matching calibration records.
-        String query = "SELECT id, svt_channel_id, amplitude, t0, tp, chisq FROM "
-                + tableName
-                + " WHERE "
-                + fieldName
-                + " = "
-                + collectionId
+        String query = "SELECT id, svt_channel_id, amplitude, t0, tp, chisq FROM " + tableName
+                + " WHERE collection_id = " + collectionId
                 + " ORDER BY id ASC";
 
         // Execute the query and get the results.

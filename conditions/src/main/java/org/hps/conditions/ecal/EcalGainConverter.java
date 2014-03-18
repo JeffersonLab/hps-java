@@ -37,8 +37,7 @@ public class EcalGainConverter extends DatabaseConditionsConverter<EcalGainColle
         // Get the table name, field name, and field value defining the
         // applicable conditions.
         String tableName = record.getTableName();
-        String fieldName = record.getFieldName();
-        int collectionId = record.getFieldValue();
+        int collectionId = record.getCollectionId();
         
         // Objects for building the return value.
         ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
@@ -50,8 +49,8 @@ public class EcalGainConverter extends DatabaseConditionsConverter<EcalGainColle
 
         // Database query on ecal gain table.
         String query = "SELECT id, ecal_channel_id, gain FROM " 
-                + tableName + " WHERE " 
-                + fieldName + " = " + collectionId + " ORDER BY id ASC";
+                + tableName + " WHERE collection_id = " 
+                + collectionId + " ORDER BY id ASC";
 
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);

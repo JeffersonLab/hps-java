@@ -38,36 +38,26 @@ public class SvtBadChannelConverter extends DatabaseConditionsConverter<SvtBadCh
         SvtBadChannelCollection collection = new SvtBadChannelCollection();
         
         // Loop over ConditionsRecords.  For this particular type of condition, multiple
-        // sets of bad channels are possible.
-        
-        // Collection to be returned to caller.
+        // sets of bad channels with overlapping validity are okay.
         for (ConditionsRecord record : records) {
         
-            // Get the table name, field name, and field value defining the
-            // applicable conditions.
             String tableName = record.getTableName();
-            String fieldName = record.getFieldName();
-            int fieldValue = record.getFieldValue();
-
-            ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
+            int collectionId = record.getCollectionId();
             
             // Query for getting back bad channel records.
-            String query = "SELECT id, svt_channel_id FROM " + tableName + " WHERE " 
-                    + fieldName + " = " + fieldValue + " ORDER BY id ASC";
+            String query = "SELECT id, svt_channel_id FROM " + tableName 
+                    + " WHERE collection_id = " + collectionId 
+                    + " ORDER BY id ASC";
+            
             ResultSet resultSet = ConnectionManager.getConnectionManager().query(query);
             
             // Loop over the records.
             try {
                 while (resultSet.next()) {
-                    //int channelId = resultSet.getInt(1);
-                    //badChannels.add(channelId);
-                    int rowId = resultSet.getInt(1);
-                    
+                    int rowId = resultSet.getInt(1);                    
                     FieldValueMap fieldValues = new FieldValueMap();
-                    fieldValues.put("svt_channel_id", resultSet.getInt(2));
-                    
-                    SvtBadChannel newObject = _objectFactory.createObject(SvtBadChannel.class, tableName, rowId, fieldValues, true);
-                    
+                    fieldValues.put("svt_channel_id", resultSet.getInt(2));                    
+                    SvtBadChannel newObject = _objectFactory.createObject(SvtBadChannel.class, tableName, rowId, fieldValues, true);                    
                     collection.add(newObject);
                 }
             } catch (SQLException x) {
