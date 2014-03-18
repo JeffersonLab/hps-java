@@ -12,8 +12,8 @@ public class SvtChannel extends AbstractConditionsObject {
      * Get the channel ID.
      * @return The channel ID.
      */
-    public int getId() {
-        return getFieldValue("id");
+    public int getChannelId() {
+        return getFieldValue("channel_id");
     }
     
     /**
@@ -45,7 +45,7 @@ public class SvtChannel extends AbstractConditionsObject {
      * @return This object as a string.
      */
     public String toString() {
-        return "id: " + getId() + ", fpga: " + getFpga() + ", hybrid: " + getHybrid() + ", channel: " + getChannel();
+        return "channel_id: " + getChannelId() + ", fpga: " + getFpga() + ", hybrid: " + getHybrid() + ", channel: " + getChannel();
     }
     
     /**
@@ -60,7 +60,7 @@ public class SvtChannel extends AbstractConditionsObject {
         if (o == this)
             return true;
         SvtChannel channel = (SvtChannel)o;
-        return getId() == channel.getId() 
+        return getChannelId() == channel.getChannelId() 
                 && getHybrid() == channel.getHybrid() 
                 && getFpga() == channel.getFpga() 
                 && getHybrid() == channel.getHybrid();

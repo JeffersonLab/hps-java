@@ -1,13 +1,12 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.ConditionsTableConstants.SVT_CHANNELS;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
+import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
@@ -17,9 +16,9 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 // TODO: This needs to support different collectionIDs.
-public class SvtChannelCollectionConverter extends DatabaseConditionsConverter<SvtChannelCollection> {
+public class SvtChannelConverter extends DatabaseConditionsConverter<SvtChannelCollection> {
 
-    public SvtChannelCollectionConverter(ConditionsObjectFactory objectFactory) {
+    public SvtChannelConverter(ConditionsObjectFactory objectFactory) {
         super(objectFactory);
     }
     
@@ -32,19 +31,19 @@ public class SvtChannelCollectionConverter extends DatabaseConditionsConverter<S
 
         // Get the connection manager.
         ConnectionManager connectionManager = getConnectionManager();
-
-        // Assign default key name for channel data if none given.
-        if (name == null)
-            name = SVT_CHANNELS;
+        
+        ConditionsRecord record = ConditionsRecord.find(manager, name).get(0);        
+        int collectionId = record.getCollectionId();
         
         // Objects for building the return value.
         SvtChannelCollection channels = new SvtChannelCollection(
                 _objectFactory.getTableRegistry().getTableMetaData(name),
-                -1,
+                collectionId,
                 true);
         
         // Construct the query to get the channel data.
-        String query = "SELECT id, fpga, hybrid, channel FROM " + name;
+        String query = "SELECT id, channel_id, fpga, hybrid, channel FROM " + name
+                + " WHERE collection_id = " + collectionId;
 
         // Execute the query and get the results.
         ResultSet resultSet = connectionManager.query(query);
@@ -52,13 +51,13 @@ public class SvtChannelCollectionConverter extends DatabaseConditionsConverter<S
         try {
             // Loop over records.
             while (resultSet.next()) {
+                int rowId = resultSet.getInt(1);
                 FieldValueMap fieldValues = new FieldValueMap();
-                fieldValues.put("id", resultSet.getInt(1));
-                fieldValues.put("fpga", resultSet.getInt(2));
-                fieldValues.put("hybrid", resultSet.getInt(3));
-                fieldValues.put("channel", resultSet.getInt(4));                
-                SvtChannel newObject = _objectFactory.createObject(
-                        SvtChannel.class, name, resultSet.getInt(1), fieldValues, true);                
+                fieldValues.put("channel_id", resultSet.getInt(2));
+                fieldValues.put("fpga", resultSet.getInt(3));
+                fieldValues.put("hybrid", resultSet.getInt(4));
+                fieldValues.put("channel", resultSet.getInt(5));                
+                SvtChannel newObject = _objectFactory.createObject(SvtChannel.class, name, rowId, fieldValues, true);                
                 channels.add(newObject);
             }
         } catch (SQLException x) {

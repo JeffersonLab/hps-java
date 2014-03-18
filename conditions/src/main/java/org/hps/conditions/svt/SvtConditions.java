@@ -142,7 +142,7 @@ public class SvtConditions {
             SvtCalibration calibration = constants.getCalibration();
             
             // Channel data.
-            buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getId(), channel.getFpga(), channel.getHybrid(), channel.getChannel()));
+            buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelId(), channel.getFpga(), channel.getHybrid(), channel.getChannel()));
 
             // Calibration.
             buff.append(String.format("%-9.4f %-11.4f ", calibration.getNoise(), calibration.getPedestal()));

@@ -64,6 +64,7 @@ public class SvtConditionsLoaderTest extends TestCase {
         final int nchannels = sensors.get(0).getNumberOfChannels();
         int badChannels = 0;
         int pulseNotSet = 0;
+        int nsensors = 0;
         // Loop over sensors.
         for (HpsSiSensor sensor : sensors) {
             // Loop over channels.
@@ -98,6 +99,7 @@ public class SvtConditionsLoaderTest extends TestCase {
                 if (sensor.isBadChannel(channel)) {
                     ++badChannels;
                 }
+                ++nsensors;
             }
 
             // Check that time shift is set for the sensor.  When unset, it's value will be NaN.
@@ -112,6 +114,8 @@ public class SvtConditionsLoaderTest extends TestCase {
 
         // There should be exactly 4 channels where the pulse parameters are all zeroes.
         assertEquals("The number of channels for which pulse was not set is wrong.", PULSE_NOT_SET_ANSWER, pulseNotSet);
+        
+        System.out.println("Successfully loaded conditions data onto " + nsensors + " SVT sensors!");
         
         // Cleanup the database connection.
         ConnectionManager.getConnectionManager().disconnect();

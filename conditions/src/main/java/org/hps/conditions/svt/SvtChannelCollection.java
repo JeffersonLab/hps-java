@@ -25,10 +25,10 @@ public class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel>
     
     public void add(SvtChannel channel) {
         // Add to map.
-        if (channelMap.containsKey(channel.getId())) {
-            throw new IllegalArgumentException("Channel ID already exists: " + channel.getId());
+        if (channelMap.containsKey(channel.getChannelId())) {
+            throw new IllegalArgumentException("Channel ID already exists: " + channel.getChannelId());
         }
-        channelMap.put(channel.getId(), channel);
+        channelMap.put(channel.getChannelId(), channel);
         
         // Add to collection.
         super.add(channel);

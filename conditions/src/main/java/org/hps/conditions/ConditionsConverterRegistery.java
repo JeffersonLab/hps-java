@@ -9,7 +9,7 @@ import org.hps.conditions.ecal.EcalGainConverter;
 import org.hps.conditions.svt.SvtPulseParametersConverter;
 import org.hps.conditions.svt.SvtBadChannelConverter;
 import org.hps.conditions.svt.SvtCalibrationConverter;
-import org.hps.conditions.svt.SvtChannelCollectionConverter;
+import org.hps.conditions.svt.SvtChannelConverter;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDaqMapConverter;
 import org.hps.conditions.svt.SvtGainConverter;
@@ -53,7 +53,7 @@ class ConditionsConverterRegistery {
         
         // SVT channel map.
         // TODO: Needs to support unique collection IDs.
-        manager.registerConditionsConverter(new SvtChannelCollectionConverter(factory));
+        manager.registerConditionsConverter(new SvtChannelConverter(factory));
 
         // SVT time shift by sensor.
         manager.registerConditionsConverter(new SvtTimeShiftConverter(factory));
