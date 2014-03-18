@@ -90,12 +90,21 @@ public class ConditionsTableRegistry {
         fields.add("gain");
         addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_GAINS, fields));
         
-        // Ecal calibrations
+        // ECal calibrations
         fields = new HashSet<String>();
         fields.add("ecal_channel_id");
         fields.add("noise");
         fields.add("pedestal");
         addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_CALIBRATIONS, fields));
+        
+        // ECal channels
+        fields = new HashSet<String>();
+        fields.add("crate");
+        fields.add("slot");
+        fields.add("channel");
+        fields.add("x");
+        fields.add("y"); 
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.ECAL_CHANNELS, fields));
         
         // Beam current
         fields = new HashSet<String>();

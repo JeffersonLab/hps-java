@@ -5,10 +5,9 @@ import static org.hps.conditions.ConditionsTableConstants.ECAL_CALIBRATIONS;
 import static org.hps.conditions.ConditionsTableConstants.ECAL_CHANNELS;
 import static org.hps.conditions.ConditionsTableConstants.ECAL_GAINS;
 
-import java.util.Map.Entry;
-
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.hps.conditions.ecal.EcalChannelMap.ChannelId;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -39,7 +38,9 @@ public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalCon
         // Add gains.
         EcalGainCollection gains = manager.getCachedConditions(EcalGainCollection.class, ECAL_GAINS).getCachedData();        
         for (EcalGain gain : gains.getObjects()) {
-            EcalChannel channel = channelMap.get(gain.getChannelId());
+            ChannelId channelId = new ChannelId();
+            channelId.id = gain.getChannelId();
+            EcalChannel channel = channelMap.findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(gain);
         }
         
@@ -47,7 +48,9 @@ public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalCon
         EcalBadChannelCollection badChannels = manager.getCachedConditions(
                 EcalBadChannelCollection.class, ECAL_BAD_CHANNELS).getCachedData();
         for (EcalBadChannel badChannel : badChannels.getObjects()) {
-            EcalChannel channel = channelMap.get(badChannel.getChannelId());
+            ChannelId channelId = new ChannelId();
+            channelId.id = badChannel.getChannelId();
+            EcalChannel channel = channelMap.findChannel(channelId);
             conditions.getChannelConstants(channel).setBadChannel(true);
         }
         
@@ -55,7 +58,9 @@ public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalCon
         EcalCalibrationCollection calibrations = 
                 manager.getCachedConditions(EcalCalibrationCollection.class, ECAL_CALIBRATIONS).getCachedData();
         for (EcalCalibration calibration : calibrations.getObjects()) {
-            EcalChannel channel = channelMap.get(calibration.getChannelId());
+            ChannelId channelId = new ChannelId();
+            channelId.id = calibration.getChannelId();
+            EcalChannel channel = channelMap.findChannel(channelId);
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }       
         

@@ -5,10 +5,12 @@ import static org.hps.conditions.ConditionsTableConstants.ECAL_CHANNELS;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates the {@link EcalChannelMap} from the conditions table
@@ -30,16 +32,17 @@ public class EcalChannelMapConverter extends DatabaseConditionsConverter<EcalCha
      */
     public EcalChannelMap getData(ConditionsManager manager, String name) {
 
-        // Collection to be returned to caller.
-        EcalChannelMap channels = new EcalChannelMap();
-
         // References to database objects.
         ResultSet resultSet = null;
         ConnectionManager connectionManager = getConnectionManager();
+        
+        // Collection to be returned to caller.
+        EcalChannelMap collection = new EcalChannelMap();
 
         // Assign default key name if none was given.
-        if (name == null)
-            name = ECAL_CHANNELS;
+        String tableName = name;
+        if (tableName == null)
+            tableName = ECAL_CHANNELS;
 
         // Query to retrieve channel data.
         String query = "SELECT id, x, y, crate, slot, channel FROM " + name;
@@ -50,21 +53,24 @@ public class EcalChannelMapConverter extends DatabaseConditionsConverter<EcalCha
         try {
             // Loop over the records.
             while (resultSet.next()) {
-                // Create channel data object from database record.
-                int id = resultSet.getInt(1);
-                int x = resultSet.getInt(2);
-                int y = resultSet.getInt(3);
-                int crate = resultSet.getInt(4);
-                int slot = resultSet.getInt(5);
-                int channel = resultSet.getInt(6);
-                EcalChannel channelData = new EcalChannel(id, crate, slot, channel, x, y);
-                channels.put(channelData.getId(), channelData);
+                
+                int rowId = resultSet.getInt(1);                                       
+                FieldValueMap fieldValues = new FieldValueMap();
+                fieldValues.put("x", resultSet.getInt(2));
+                fieldValues.put("y", resultSet.getInt(3));
+                fieldValues.put("crate", resultSet.getInt(4));
+                fieldValues.put("slot", resultSet.getInt(5));
+                fieldValues.put("channel", resultSet.getInt(6));                                
+                EcalChannel newObject = _objectFactory.createObject(EcalChannel.class, tableName, rowId, fieldValues, true);                    
+                collection.add(newObject);
             }
         } catch (SQLException x) {
             throw new RuntimeException("Database error.", x);
-        } 
+        } catch (ConditionsObjectException x) {
+            throw new RuntimeException("Error converting to " + getType().getSimpleName() + " type.", x);
+        }
         
-        return channels;
+        return collection;
     }
 
     /**

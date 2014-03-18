@@ -49,7 +49,7 @@ public class EcalConditions {
      */
     public EcalChannelConstants getChannelConstants(EcalChannel channel) {
         // This channel must come from the map.
-        if (!channelMap.containsValue(channel)) {
+        if (!channelMap.contains(channel)) {
             System.err.println("Channel not found in map => " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
@@ -98,7 +98,7 @@ public class EcalConditions {
         buff.append('\n');
         
         // Loop over all channels.
-        for (EcalChannel channel : channelMap.values()) {
+        for (EcalChannel channel : channelMap.getObjects()) {
             
             EcalChannelConstants constants = getChannelConstants(channel);
             

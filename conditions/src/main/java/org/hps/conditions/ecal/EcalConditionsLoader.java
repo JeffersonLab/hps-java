@@ -2,17 +2,18 @@ package org.hps.conditions.ecal;
 
 import java.util.List;
 
+import org.hps.conditions.ecal.EcalChannelMap.GeometryId;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
 /**
- * Load {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
+ * Load {@link EcalConditions} data onto <code>EcalCrystal</code> objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsLoader {
     
     /**
-     * Load ECal conditions data onto a detector object.
+     * Load ECal conditions data onto a full detector object.
      * @param detector The detector object.
      * @param conditions The conditions object.
      */
@@ -27,11 +28,16 @@ public class EcalConditionsLoader {
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {
             
+            //System.out.println(crystal.getName() + " @ " + crystal.getX() + ", " + crystal.getY());
+            
             // Reset possibly existing conditions data.
             crystal.reset();
             
             // Find the corresponding entry in the channel map for this crystal.
-            EcalChannel channel = channelMap.find(crystal.getX(), crystal.getY());
+            GeometryId geometryId = new GeometryId();
+            geometryId.x = crystal.getX();
+            geometryId.y = crystal.getY();
+            EcalChannel channel = channelMap.findChannel(geometryId);
             if (channel == null) {
                 throw new RuntimeException("EcalChannel not found for crystal: " + crystal.getName());
             }
@@ -48,7 +54,7 @@ public class EcalConditionsLoader {
             // Get the channel constants.
             EcalChannelConstants constants = conditions.getChannelConstants(channel);
             if (constants == null) {
-                throw new RuntimeException("EcalChannelConstants not found for crystal: " + crystal.getName());
+                throw new RuntimeException("EcalChannelConstants object not found for crystal: " + crystal.getName());
             }
                         
             // Set bad channel.

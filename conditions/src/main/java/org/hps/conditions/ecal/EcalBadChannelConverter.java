@@ -52,15 +52,11 @@ public class EcalBadChannelConverter extends DatabaseConditionsConverter<EcalBad
             
             // Loop over the records.
             try {
-                while (resultSet.next()) {
-                    
-                    int rowId = resultSet.getInt(1);
-                                        
+                while (resultSet.next()) {                    
+                    int rowId = resultSet.getInt(1);                                       
                     FieldValueMap fieldValues = new FieldValueMap();
-                    fieldValues.put("ecal_channel_id", resultSet.getInt(2));
-                    
-                    EcalBadChannel newObject = _objectFactory.createObject(EcalBadChannel.class, tableName, rowId, fieldValues, true);
-                    
+                    fieldValues.put("ecal_channel_id", resultSet.getInt(2));                    
+                    EcalBadChannel newObject = _objectFactory.createObject(EcalBadChannel.class, tableName, rowId, fieldValues, true);                    
                     collection.add(newObject);
                 }
             } catch (SQLException x) {

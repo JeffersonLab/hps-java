@@ -1,13 +1,28 @@
 package org.hps.conditions.ecal;
 
-import java.util.HashMap;
+import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * This class maps ID values from the database to detailed ECal channel information.
  * There should really only be one of these data structures per job, as the EcalChannel 
  * objects are used as unique identifiers in the {@link EcalConditions} class.
  */
-public class EcalChannelMap extends HashMap<Integer, EcalChannel> {
+public class EcalChannelMap extends ConditionsObjectCollection<EcalChannel> {
+    
+    public static final class DaqId {
+        public int crate;
+        public int slot;
+        public int channel;
+    }
+    
+    public static final class GeometryId {
+        public int x;
+        public int y;
+    }
+    
+    public static final class ChannelId {
+        public int id;
+    }
     
     /**
      * Class constructor.
@@ -22,11 +37,11 @@ public class EcalChannelMap extends HashMap<Integer, EcalChannel> {
      * @param channelNumber The channel number.
      * @return The matching channel or null if does not exist.
      */
-    public EcalChannel find(int crate, int slot, int channelNumber) {
-        for (EcalChannel channel : values()) {
-            if (channel.getCrate() == crate 
-                    && channel.getSlot() == slot 
-                    && channel.getChannel() == channelNumber) {
+    public EcalChannel findChannel(DaqId daqId) {
+        for (EcalChannel channel : getObjects()) {
+            if (channel.getCrate() == daqId.crate 
+                    && channel.getSlot() == daqId.slot 
+                    && channel.getChannel() == daqId.channel) {
                 return channel;
             }
         }
@@ -38,12 +53,19 @@ public class EcalChannelMap extends HashMap<Integer, EcalChannel> {
      * @param x The x value.
      * @param y The y value.
      * @return The matching channel or null if does not exist.
-     * 
-     * FIXME: Improve performance of this method from O(N).
      */
-    public EcalChannel find(int x, int y) {
-        for (EcalChannel channel : values()) {
-            if (channel.getX() == x && channel.getY()== y) {
+    public EcalChannel findChannel(GeometryId geometryId) {
+        for (EcalChannel channel : getObjects()) {
+            if (channel.getX() == geometryId.x && channel.getY() == geometryId.y) {
+                return channel;
+            }
+        }
+        return null;
+    }
+    
+    public EcalChannel findChannel(ChannelId channelId) {
+        for (EcalChannel channel : getObjects()) {
+            if (channel.getId() == channelId.id) {
                 return channel;
             }
         }

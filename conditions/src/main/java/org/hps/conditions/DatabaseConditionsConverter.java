@@ -3,8 +3,7 @@ package org.hps.conditions;
 import org.lcsim.conditions.ConditionsConverter;
 
 /**
- * This class is basically just a typedef right now but functionality may be added here
- * that all converters can use.
+ * The abstract base class for database conditions converters to extend.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class DatabaseConditionsConverter<T> implements ConditionsConverter<T> {   

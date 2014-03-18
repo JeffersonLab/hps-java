@@ -33,6 +33,10 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     public List<T> getObjects() {
         return Collections.unmodifiableList(objects);
     }
+    
+    public boolean contains(Object object) {
+        return getObjects().contains(object);
+    }
         
     public void add(T object) {
         if (objects.contains(object)) {
