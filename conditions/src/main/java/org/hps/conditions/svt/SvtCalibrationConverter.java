@@ -45,9 +45,8 @@ public class SvtCalibrationConverter extends DatabaseConditionsConverter<SvtCali
         int collectionId = record.getFieldValue();
 
         // Objects for building the return value.
-        ConditionsTableMetaData tableMetaData = _objectFactory.getTableRegistry().getTableMetaData(tableName);
         SvtCalibrationCollection collection = 
-                new SvtCalibrationCollection(tableMetaData, collectionId, true); 
+                new SvtCalibrationCollection(this.getTableMetaData(tableName), collectionId, true); 
 
         // Get a connection from the manager.
         ConnectionManager connectionManager = getConnectionManager();

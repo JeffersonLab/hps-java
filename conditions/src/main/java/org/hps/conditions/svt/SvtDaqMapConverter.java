@@ -5,12 +5,13 @@ import static org.hps.conditions.ConditionsTableConstants.SVT_DAQ_MAP;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import org.hps.conditions.ConditionsObjectException;
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.hps.util.Pair;
 
 /**
  * This class creates a {@link SvtDaqMap} from the conditions database.
@@ -31,24 +32,25 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
         if (name == null) {
             name = SVT_DAQ_MAP;
         }
-        
-        // The object to be returned to caller.
-        SvtDaqMap daqMap = new SvtDaqMap();
-        
+                
         // Get the ConditionsRecord with the meta-data, which will use the current run number from the manager.
         ConditionsRecord record = ConditionsRecord.find(manager, name).get(0);
                
         // Get the table name, field name, and field value defining the applicable conditions.
         String tableName = record.getTableName();
         String fieldName = record.getFieldName();
-        int fieldValue = record.getFieldValue();
+        int collectionId = record.getFieldValue();
+        
+        // The object to be returned to caller.
+        SvtDaqMap collection = 
+               new SvtDaqMap(this.getTableMetaData(tableName), collectionId, true); 
                         
         // Get the connection manager.
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
                                                                                             
         // Construct the query to find matching calibration records using the ID field.
-        String query = "SELECT half, layer, hybrid, fpga FROM "
-                + tableName + " WHERE " + fieldName + " = " + fieldValue
+        String query = "SELECT id, half, layer, hybrid, fpga FROM "
+                + tableName + " WHERE " + fieldName + " = " + collectionId
                 + " ORDER BY half ASC, layer ASC";
                    
         // Execute the query and get the results.
@@ -58,21 +60,25 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
             // Loop over the database records.
             while(resultSet.next()) {          
                 
-                // Get record data.
-                int half = resultSet.getInt(1);
-                int layer = resultSet.getInt(2);
-                int hybrid = resultSet.getInt(3);
-                int fpga = resultSet.getInt(4);
-                                
-                // Add data to DAQ map: half => layer => DAQ pair               
-                daqMap.add(half, layer, new Pair<Integer,Integer>(fpga, hybrid));
+                int rowId = resultSet.getInt(1);
+                
+                FieldValueMap fieldValues = new FieldValueMap();
+                fieldValues.put("half", resultSet.getInt(2));
+                fieldValues.put("layer", resultSet.getInt(3));
+                fieldValues.put("hybrid", resultSet.getInt(4));
+                fieldValues.put("fpga", resultSet.getInt(5));
+                SvtDaqMapping newObject = _objectFactory.createObject(
+                        SvtDaqMapping.class, tableName, rowId, fieldValues, true);
+                collection.add(newObject);
             }            
         } catch (SQLException x) {
             throw new RuntimeException("Database error.", x);
-        } 
+        } catch (ConditionsObjectException x) {
+            throw new RuntimeException("Error creating object of " + getType().getSimpleName() + " type.", x);
+        }
         
         // Return DAQ map to caller.
-        return daqMap;
+        return collection;
     }
 
     /**

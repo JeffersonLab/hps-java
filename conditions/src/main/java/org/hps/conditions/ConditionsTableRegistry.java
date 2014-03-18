@@ -71,6 +71,14 @@ public class ConditionsTableRegistry {
         fields.add("svt_channel_id");
         addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_BAD_CHANNELS, fields));
         
+        // SVT DAQ map
+        fields = new HashSet<String>();
+        fields.add("half");
+        fields.add("layer");
+        fields.add("fpga");
+        fields.add("hybrid");
+        addTableMetaData(new ConditionsTableMetaData(ConditionsTableConstants.SVT_DAQ_MAP, fields));
+        
         // ECal bad channels
         fields = new HashSet<String>();
         fields.add("ecal_channel_id");

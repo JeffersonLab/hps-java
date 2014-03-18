@@ -52,6 +52,7 @@ class ConditionsConverterRegistery {
         manager.registerConditionsConverter(new SvtCalibrationConverter(factory));
         
         // SVT channel map.
+        // TODO: Needs to support unique collection IDs.
         manager.registerConditionsConverter(new SvtChannelCollectionConverter(factory));
 
         // SVT time shift by sensor.
@@ -69,22 +70,20 @@ class ConditionsConverterRegistery {
         // ECAL calibrations.
         manager.registerConditionsConverter(new EcalCalibrationConverter(factory));
         
-        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-        // TODO: Remaining to convert to new API...
-        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
-                                                                        
         // ECAL combined conditions.
         manager.registerConditionsConverter(new EcalConditionsConverter(factory));
         
         // Beam current condition.
         manager.registerConditionsConverter(new BeamCurrentConverter(factory));
         
-        // ECAL channel map.
-        manager.registerConditionsConverter(new EcalChannelMapConverter(factory));
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        // TODO: Remaining to convert to new API...
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
         
-        ///////////////////////////////////////////////////////////////////////////////
-        // This one will be a pain so convert to new API last once others are working.
         // SVT DAQ map.
         manager.registerConditionsConverter(new SvtDaqMapConverter(factory));
+        
+        // ECAL channel map.
+        manager.registerConditionsConverter(new EcalChannelMapConverter(factory));        
     }
 }

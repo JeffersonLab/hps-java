@@ -38,9 +38,9 @@ public class SvtConditionsLoader {
             
             // Get info from the DAQ map about this sensor. 
             Pair<Integer, Integer> daqPair = null;            
-            int half = SvtDaqMap.TOP;
+            int half = SvtDaqMap.TOP_HALF;
             if (sensor.isBottomLayer()) {
-                half = SvtDaqMap.BOTTOM;
+                half = SvtDaqMap.BOTTOM_HALF;
             }             
             daqPair = daqMap.get(half, layerNumber);
             if (daqPair == null) {
