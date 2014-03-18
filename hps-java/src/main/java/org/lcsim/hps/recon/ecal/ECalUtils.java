@@ -23,7 +23,9 @@ public class ECalUtils {
     public static final int nBit = 12;  //number of bits used by the fADC to code a value
     public static final double maxVolt = 2.0;   //maximum volt intput of the fADC
     public static final double Req = 1.0 / 27.5; // equivalent resistance of the amplification chain
-    public static final double gainFactor = 2.0 / ((Math.pow(2, nBit) - 1) * Req * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge);
+    public static final double adcResolution = 2.0 / (Math.pow(2, nBit) - 1); //volts per ADC count
+    public static final double readoutGain = Req * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge;// = 15.0545 volt-seconds/GeV
+    public static final double gainFactor = adcResolution / readoutGain;
     public static final double ecalReadoutPeriod = 4.0; // readout period in ns, it is hardcoded in the public declaration of EcalReadoutDriver. 
 
     /**

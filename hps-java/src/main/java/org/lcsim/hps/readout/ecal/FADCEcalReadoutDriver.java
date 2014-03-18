@@ -51,7 +51,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     //length of readout pipeline (in readout cycles)
     private int pipelineLength = 2000;
     //switch between two pulse shape functions
-    private boolean useCRRCShape = false;
+    private boolean useCRRCShape = true;
     //shaper time constant in ns; negative values generate square pulses of the given width (for test run sim)
     private double tp = 14.0;
     //delay (number of readout periods) between start of summing window and output of hit to clusterer
@@ -413,7 +413,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (addNoise) {
                 //add preamp noise and photoelectron Poisson noise in quadrature
                 double noise;
-                if (useCRRCShape) {
+                if (!useCRRCShape) {
                     noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
                 } else {
                     noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
@@ -494,12 +494,12 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 corrGain = 1.0 / EcalConditions.physicalToGain(cellID);
             }
 
-            double norm = ((riseTime + fallTime) / 2) * Math.sqrt(2 * Math.PI) / Req; //to ensure the total integral is equal to 1/R, R is necessary for homogeneity
+            double norm = ((riseTime + fallTime) / 2) * Math.sqrt(2 * Math.PI); //to ensure the total integral is equal to 1: = 33.8
 
             if (time < 3 * riseTime) {
-                return corrGain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, riseTime) / norm;
+                return corrGain * readoutGain * funcGaus(time - 3 * riseTime, riseTime) / norm;
             } else {
-                return corrGain * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge * funcGaus(time - 3 * riseTime, fallTime) / norm;
+                return corrGain * readoutGain * funcGaus(time - 3 * riseTime, fallTime) / norm;
             }
         }
     }

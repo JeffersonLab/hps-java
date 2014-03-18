@@ -52,6 +52,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     IHistogram2D clusterEnergy2DAll, clusterSumDiff2DAll, energyDistance2DAll, clusterAngles2DAll, clusterCoplanarity2DAll;
     IHistogram2D clusterEnergy2D, clusterSumDiff2D, energyDistance2D, clusterAngles2D, clusterCoplanarity2D;
     IHistogram1D triggerBits1D, triggerTimes1D;
+    int truthPeriod = 250;
     private boolean useQuadrants = false;
     protected String clusterCollectionName = "EcalClusters";
 
@@ -105,12 +106,21 @@ public class FADCTriggerDriver extends TriggerDriver {
     }
 
     protected double getBeamEnergyFromDetector(Detector detector) {
-        if (detector.getName().contains("1pt1")) return 1.1;
-        else if (detector.getName().contains("2pt2")) return 2.2;
-        else if (detector.getName().contains("6pt6")) return 6.6;
-        else return -1.0;
+        if (detector.getName().contains("1pt1")) {
+            return 1.1;
+        } else if (detector.getName().contains("2pt2")) {
+            return 2.2;
+        } else if (detector.getName().contains("6pt6")) {
+            return 6.6;
+        } else {
+            return -1.0;
+        }
     }
-    
+
+    public void setTruthPeriod(int truthPeriod) {
+        this.truthPeriod = truthPeriod;
+    }
+
     @Override
     public void detectorChanged(Detector detector) {
         setBeamEnergy(this.getBeamEnergyFromDetector(detector));
@@ -128,7 +138,7 @@ public class FADCTriggerDriver extends TriggerDriver {
         clusterAngles2D = aida.histogram2D("Passed other cuts: cluster angle (less energetic vs. more energetic)", 100, -180.0, 180.0, 100, -180.0, 180.0);
 
         triggerBits1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger bits", 17, -1.5, 15.5);
-        triggerTimes1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger times", 500, -0.5, 499.5);
+        triggerTimes1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger times", truthPeriod, -0.5, truthPeriod - 0.5);
     }
 
     @Override
@@ -284,7 +294,7 @@ public class FADCTriggerDriver extends TriggerDriver {
         }
         if (trigger) {
             triggerBits1D.fill(-1);
-            triggerTimes1D.fill(ClockSingleton.getClock() % 500);
+            triggerTimes1D.fill(ClockSingleton.getClock() % truthPeriod);
         }
         return trigger;
     }

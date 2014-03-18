@@ -20,7 +20,8 @@ import org.lcsim.util.aida.AIDA;
  * Diagnostic plots for HPS ECal.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalTriggerPlotsDriver.java,v 1.7 2013/02/25 22:39:26 meeg Exp $
+ * @version $Id: HPSEcalTriggerPlotsDriver.java,v 1.7 2013/02/25 22:39:26 meeg
+ * Exp $
  */
 public class HPSEcalTriggerPlotsDriver extends Driver {
 
@@ -28,6 +29,7 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     String clusterCollectionName = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
     IHistogram2D hitXYPlot;
+    IHistogram2D hitXYPlot50;
     IHistogram2D hitXYPlot100;
     IHistogram2D hitXYPlot200;
     IHistogram2D hitXYPlot500;
@@ -54,6 +56,9 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     public void startOfData() {
         hitXYPlot = aida.histogram2D(
                 "Trigger plots: " + ecalCollectionName + " : Hits",
+                46, -23, 23, 11, -5.5, 5.5);
+        hitXYPlot50 = aida.histogram2D(
+                "Trigger plots: " + ecalCollectionName + " : Hits above 50 MeV",
                 46, -23, 23, 11, -5.5, 5.5);
         hitXYPlot100 = aida.histogram2D(
                 "Trigger plots: " + ecalCollectionName + " : Hits above 100 MeV",
@@ -103,15 +108,18 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
         for (CalorimeterHit hit : hits) {
             int ix = hit.getIdentifierFieldValue("ix");
             int iy = hit.getIdentifierFieldValue("iy");
-            hitXYPlot.fill(ix-0.5*Math.signum(ix), iy, 1.0 / coincidenceWindow);
-            if (hit.getRawEnergy() > 100.0 * ECalUtils.MeV) {
-                hitXYPlot100.fill(ix-0.5*Math.signum(ix), iy, 1.0 / coincidenceWindow);
-                if (hit.getRawEnergy() > 200.0 * ECalUtils.MeV) {
-                    hitXYPlot200.fill(ix-0.5*Math.signum(ix), iy, 1.0 / coincidenceWindow);
-                    if (hit.getRawEnergy() > 500.0 * ECalUtils.MeV) {
-                        hitXYPlot500.fill(ix-0.5*Math.signum(ix), iy, 1.0 / coincidenceWindow);
-                        if (hit.getRawEnergy() > 1000.0 * ECalUtils.MeV) {
-                            hitXYPlot1000.fill(ix-0.5*Math.signum(ix), iy, 1.0 / coincidenceWindow);
+            hitXYPlot.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+            if (hit.getRawEnergy() > 50.0 * ECalUtils.MeV) {
+                hitXYPlot50.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+                if (hit.getRawEnergy() > 100.0 * ECalUtils.MeV) {
+                    hitXYPlot100.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+                    if (hit.getRawEnergy() > 200.0 * ECalUtils.MeV) {
+                        hitXYPlot200.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+                        if (hit.getRawEnergy() > 500.0 * ECalUtils.MeV) {
+                            hitXYPlot500.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+                            if (hit.getRawEnergy() > 1000.0 * ECalUtils.MeV) {
+                                hitXYPlot1000.fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+                            }
                         }
                     }
                 }
@@ -120,11 +128,11 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
             for (int time = 0; time < 500; time++) {
                 if (hit.getRawEnergy() * pulseAmplitude(time) > threshold) {
                     deadTime += 1e-6; //units of milliseconds
-                } else if (time > 2*tp || deadTime != 0) {
+                } else if (time > 2 * tp || deadTime != 0) {
                     break;
                 }
             }
-            crystalDeadTime.fill(ix-0.5*Math.signum(ix), iy, deadTime / coincidenceWindow);
+            crystalDeadTime.fill(ix - 0.5 * Math.signum(ix), iy, deadTime / coincidenceWindow);
         }
 
         for (HPSEcalCluster clus : clusters) {
