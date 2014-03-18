@@ -46,7 +46,9 @@ public class FilterMCBunches {
         options.addOption(opt_e);
         //options.addOption(new Option("e", true, "Interval between non-empty events"));
         options.addOption(new Option("n", true, "Number of events to read"));
+        options.addOption(new Option("w", true, "Number of events to write"));
         options.addOption(new Option("a", false, "All events - no cuts"));
+        options.addOption(new Option("d", false, "Filter requiring enough ECal hit energy in both top and bottom"));
         options.addOption(new Option("t", false, "Filter requiring enough SimTrackerHits to make tracks in top and bottom"));
         options.addOption(new Option("r", false, "Filter requiring enough RawTrackerHits to make tracks in top and bottom"));
         options.addOption(new Option("p", false, "Filter requiring at least 2 particles with enough hits to make tracks"));
@@ -94,6 +96,13 @@ public class FilterMCBunches {
                 tester = new EcalEventTester(0.05);
             }
         }
+        if (cl.hasOption("d")) {
+            if (cl.hasOption("E")) {
+                tester = new EcalPairEventTester(Double.valueOf(cl.getOptionValue("E")));
+            } else {
+                tester = new EcalPairEventTester(0.05);
+            }
+        }
         if (cl.hasOption("t")) {
             if (cl.hasOption("L")) {
                 tester = new TrackerEventTester(Integer.valueOf(cl.getOptionValue("L")));
@@ -125,8 +134,12 @@ public class FilterMCBunches {
         }
 
         int nEvents = -1;
+        int nEventsToWrite = -1;
         if (cl.hasOption("n")) {
             nEvents = Integer.valueOf(cl.getOptionValue("n"));
+        }
+        if (cl.hasOption("w")) {
+            nEventsToWrite = Integer.valueOf(cl.getOptionValue("w"));
         }
         int readEvents = 0;
         int writtenEvents = 0;
@@ -175,6 +188,9 @@ public class FilterMCBunches {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                    }
+                    if (nEventsToWrite != -1 && writtenEvents == nEventsToWrite) {
+                        break fileLoop;
                     }
                 }
             }
@@ -261,6 +277,7 @@ public class FilterMCBunches {
     }
 
     private static class TrackerEventTester extends EventTester {
+
         private int hitsNeeded;
 
         public TrackerEventTester(int hitsNeeded) {
@@ -301,7 +318,7 @@ public class FilterMCBunches {
         @Override
         public boolean goodEvent(EventHeader event) {
             List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
-            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+//            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
 
             double maxE = 0;
             double totalE = 0;
@@ -316,6 +333,36 @@ public class FilterMCBunches {
 //        return (ecalHits.size() + trackerHits.size() != 0);
 //        return (totalE > 0.05 || !trackerHits.isEmpty());
             return (totalE > eCut);
+        }
+    }
+
+    private static class EcalPairEventTester extends EventTester {
+
+        double eCut;
+
+        public EcalPairEventTester(double eCut) {
+            this.eCut = eCut;
+            LCSimConditionsManagerImplementation.register();
+        }
+
+        @Override
+        public boolean goodEvent(EventHeader event) {
+            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
+//            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+
+            double topE = 0, botE = 0;
+            for (SimCalorimeterHit hit : ecalHits) {
+                if (hit.getIdentifierFieldValue("iy") > 0) {
+                    topE += hit.getRawEnergy();
+                } else {
+                    botE += hit.getRawEnergy();
+                }
+            }
+
+//        System.out.format("%d SimCalorimeterHits, %d SimTrackerHits, maxE %f, totalE %f\n", ecalHits.size(), trackerHits.size(), maxE, totalE);
+//        return (ecalHits.size() + trackerHits.size() != 0);
+//        return (totalE > 0.05 || !trackerHits.isEmpty());
+            return (topE > eCut && botE > eCut);
         }
     }
 
