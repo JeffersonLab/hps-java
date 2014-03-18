@@ -36,7 +36,7 @@ public class TestRunTriggeredReconToLcio extends Driver {
     private int eventsWritten = 0;
     private int eventNum = 0;
     //interval for trigger candidates (tridents, A'), if used
-    private int triggerSpacing = 500;
+    private int triggerSpacing = 250;
     private boolean rejectBackground = false;
 //    HPSEcalConditions ecalIDConverter = null;
     ECalHitWriter ecalWriter = null;

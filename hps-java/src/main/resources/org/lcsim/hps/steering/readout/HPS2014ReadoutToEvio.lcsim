@@ -45,7 +45,7 @@
             <scaleFactor>1</scaleFactor>
 <!--            <fixedGain>0.15</fixedGain>-->
 <!--            <debug>true</debug>-->
-            <useCRRCShape>true</useCRRCShape>
+            <useCRRCShape>false</useCRRCShape>
         </driver>
 
         <driver name="EcalConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
@@ -53,6 +53,7 @@
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <gain>0.15</gain>
             <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>true</use2014Gain>
 <!--            <debug>true</debug>-->
         </driver>	
 
