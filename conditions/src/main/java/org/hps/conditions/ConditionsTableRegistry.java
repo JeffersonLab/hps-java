@@ -53,7 +53,7 @@ public class ConditionsTableRegistry {
         
         // SVT channels
         fields = new HashSet<String>();
-        fields.add("id"); // TODO: Change to svt_channel_id
+        fields.add("channel_id");
         fields.add("fpga");
         fields.add("hybrid");
         fields.add("channel");

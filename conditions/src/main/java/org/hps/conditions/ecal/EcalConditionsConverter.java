@@ -7,7 +7,7 @@ import static org.hps.conditions.ConditionsTableConstants.ECAL_GAINS;
 
 import org.hps.conditions.ConditionsObjectFactory;
 import org.hps.conditions.DatabaseConditionsConverter;
-import org.hps.conditions.ecal.EcalChannelMap.ChannelId;
+import org.hps.conditions.ecal.EcalChannelCollection.ChannelId;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -30,7 +30,7 @@ public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalCon
         EcalConditions conditions = new EcalConditions();
                                
         // Get the channel information from the database.                
-        EcalChannelMap channelMap = manager.getCachedConditions(EcalChannelMap.class, ECAL_CHANNELS).getCachedData();
+        EcalChannelCollection channelMap = manager.getCachedConditions(EcalChannelCollection.class, ECAL_CHANNELS).getCachedData();
         
         // Set the channel map.
         conditions.setChannelMap(channelMap);

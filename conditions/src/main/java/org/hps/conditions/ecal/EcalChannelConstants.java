@@ -3,7 +3,7 @@ package org.hps.conditions.ecal;
 /**
  * This class represents ECAL conditions per channel.  Individual channel
  * settings can be retrieved using the {@link EcalConditions} object
- * and its {@link EcalChannelMap}.
+ * and its {@link EcalChannelCollection}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalChannelConstants {

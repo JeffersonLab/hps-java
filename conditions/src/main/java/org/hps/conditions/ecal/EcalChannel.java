@@ -8,7 +8,7 @@ import org.hps.conditions.AbstractConditionsObject;
  * from the DAQ hardware, and the physical x and y values of the geometric crystal volumes. 
  * Each of these three pieces of data specifies a unique channel, so the information is in 
  * some sense redundant.  This class allows all these values to be associated by channel 
- * in the same place.  The object references are used as keys into a {@link EcalChannelMap}
+ * in the same place.  The object references are used as keys into a {@link EcalChannelCollection}
  * in the {@link EcalConditions} object for getting channel data.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -59,9 +59,8 @@ public class EcalChannel extends AbstractConditionsObject {
      * Get the ID.
      * @return The ID of the channel.
      */
-    public int getId() {
-        // FIXME: Needs to be changed to channel ID reference.
-        return this.getRowId();
+    public int getChannelId() {
+        return getFieldValue("channel_id");
     }
     
     /**
@@ -79,7 +78,7 @@ public class EcalChannel extends AbstractConditionsObject {
             return true;
         }
         EcalChannel c = (EcalChannel)o;
-        return c.getId() == getId() 
+        return c.getChannelId() == getChannelId() 
                 && c.getCrate() == getCrate()
                 && c.getSlot() == getSlot()
                 && c.getChannel() == getChannel()
@@ -88,11 +87,11 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Implement of string conversion.
+     * Implementation of string conversion.
      * @return The string representation of this channel data.
      */
     public String toString() {
-        return "id: " + getId() 
+        return "id: " + getChannelId() 
                 + ", crate: " + getCrate() 
                 + ", slot: " + getSlot()
                 + ", channel: " + getChannel() 

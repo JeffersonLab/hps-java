@@ -38,6 +38,9 @@ public class EcalConditionsLoaderTest extends TestCase {
     private static final int MAX_SLOT_ANSWER = 19;
     private static final int MIN_CHANNEL_ANSWER = 0;
     private static final int MAX_CHANNEL_ANSWER = 19;
+    
+    // The total number of crystals that should be processed.
+    private static final int CRYSTAL_COUNT = 442;
                                            
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
@@ -73,6 +76,7 @@ public class EcalConditionsLoaderTest extends TestCase {
         int badChannelCount = 0;
         
         // Loop over crystals.
+        int ncrystals = 0;
         for (EcalCrystal crystal : crystals) {
             
             // Get DAQ information.
@@ -100,11 +104,16 @@ public class EcalConditionsLoaderTest extends TestCase {
             if (badChannel)
                 ++badChannelCount;
             
+            ++ncrystals;
         }
+        
+        assertEquals("The number of crystals was wrong.", CRYSTAL_COUNT, ncrystals);
         
         // Check total number of bad channels.
         assertEquals("Wrong number of bad channels.", BAD_CHANNELS_ANSWER, badChannelCount);
 
+        System.out.println("Successfully loaded conditions onto " + ncrystals + " ECal crystals!");
+        
         // Cleanup the database connection.
         ConnectionManager.getConnectionManager().disconnect();
     }

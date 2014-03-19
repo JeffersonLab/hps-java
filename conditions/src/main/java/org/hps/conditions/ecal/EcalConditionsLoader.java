@@ -2,7 +2,7 @@ package org.hps.conditions.ecal;
 
 import java.util.List;
 
-import org.hps.conditions.ecal.EcalChannelMap.GeometryId;
+import org.hps.conditions.ecal.EcalChannelCollection.GeometryId;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
@@ -23,7 +23,7 @@ public class EcalConditionsLoader {
         List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
         
         // Get the full channel map created by the conditions system.
-        EcalChannelMap channelMap = conditions.getChannelMap();
+        EcalChannelCollection channelMap = conditions.getChannelMap();
                 
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {

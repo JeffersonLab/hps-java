@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * There should really only be one of these data structures per job, as the EcalChannel 
  * objects are used as unique identifiers in the {@link EcalConditions} class.
  */
-public class EcalChannelMap extends ConditionsObjectCollection<EcalChannel> {
+public class EcalChannelCollection extends ConditionsObjectCollection<EcalChannel> {
     
     public static final class DaqId {
         public int crate;
@@ -27,7 +27,7 @@ public class EcalChannelMap extends ConditionsObjectCollection<EcalChannel> {
     /**
      * Class constructor.
      */
-    EcalChannelMap() {        
+    EcalChannelCollection() {        
     }
     
     /**
@@ -65,7 +65,7 @@ public class EcalChannelMap extends ConditionsObjectCollection<EcalChannel> {
     
     public EcalChannel findChannel(ChannelId channelId) {
         for (EcalChannel channel : getObjects()) {
-            if (channel.getId() == channelId.id) {
+            if (channel.getChannelId() == channelId.id) {
                 return channel;
             }
         }

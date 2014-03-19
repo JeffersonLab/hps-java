@@ -34,6 +34,9 @@ public class SvtConditionsLoaderTest extends TestCase {
     
     /** The number of channels where pulse information is all zeroes. */
     private static final int PULSE_NOT_SET_ANSWER = 4;
+    
+    // Total number of sensors that should be processed.
+    private static final int SENSOR_COUNT = 12800;
             
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
@@ -106,6 +109,9 @@ public class SvtConditionsLoaderTest extends TestCase {
             assertTrue("Time shift was not set.", sensor.getTimeShift() != Double.NaN);
         }
         
+        // Check for correct number of sensors processed.
+        assertEquals("The number of sensors was wrong.", SENSOR_COUNT, nsensors);
+        
         // Check that there were at least some bad channels.
         assertTrue("Number of bad channels was zero.", badChannels != 0);
         
@@ -114,7 +120,7 @@ public class SvtConditionsLoaderTest extends TestCase {
 
         // There should be exactly 4 channels where the pulse parameters are all zeroes.
         assertEquals("The number of channels for which pulse was not set is wrong.", PULSE_NOT_SET_ANSWER, pulseNotSet);
-        
+                
         System.out.println("Successfully loaded conditions data onto " + nsensors + " SVT sensors!");
         
         // Cleanup the database connection.

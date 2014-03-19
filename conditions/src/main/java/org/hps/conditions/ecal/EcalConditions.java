@@ -12,7 +12,7 @@ import java.util.Map;
 public class EcalConditions {
     
     /** Channel map. */
-    EcalChannelMap channelMap = new EcalChannelMap();
+    EcalChannelCollection channelMap = new EcalChannelCollection();
     
     /** Map between channels and conditions data. */
     Map<EcalChannel,EcalChannelConstants> channelData = new HashMap<EcalChannel,EcalChannelConstants>();
@@ -27,7 +27,7 @@ public class EcalConditions {
      * Set the channel map.
      * @param channels The channel map.
      */
-    void setChannelMap(EcalChannelMap channelMap) {
+    void setChannelMap(EcalChannelCollection channelMap) {
         this.channelMap = channelMap;
     }
         
@@ -35,7 +35,7 @@ public class EcalConditions {
      * Get the map between database IDs and <code>EcalChannel</code> objects.
      * @return The channel map.
      */
-    public EcalChannelMap getChannelMap() {
+    public EcalChannelCollection getChannelMap() {
         return channelMap;
     }
        
@@ -109,7 +109,7 @@ public class EcalConditions {
             
             // Channel data.
             buff.append(String.format("%-5d %-6d %-6d %-8d %-6d %-6d", 
-                    channel.getId(), channel.getCrate(), channel.getSlot(), channel.getChannel(), 
+                    channel.getChannelId(), channel.getCrate(), channel.getSlot(), channel.getChannel(), 
                     channel.getX(), channel.getY()));
             
             // Constants.
