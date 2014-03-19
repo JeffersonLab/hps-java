@@ -202,10 +202,6 @@ public class LheToStdhep {
 			// Get the PDG ID of the particle
 			pdgID[particleIndex] = Integer.valueOf(eventTokens[PDG_ID_INDEX]);
 			
-			// If the PDG ID is equal to 611/-611 (trident electron) change it back to 11/-11. 
-			// Otherwise, SLIC won't do anything with them.
-			if(pdgID[particleIndex] == 611) pdgID[particleIndex] = 11;
-			else if(pdgID[particleIndex] == -611) pdgID[particleIndex] = -11;
 			
 			System.out.println(">>> PDG ID: " + pdgID[particleIndex]);
 			
@@ -216,8 +212,14 @@ public class LheToStdhep {
 			
 			 // Get the mothers of a particle.  If the particle is a trident electron, then assign it
 			 // a mother value of 10 so it's distinguishable from the beam electron.
-			if(Math.abs(pdgID[particleIndex]) == 611){
+			if(pdgID[particleIndex] == 611){
 				motherParticles[particleIndex*2] = 10;
+				// If the PDG ID is equal to 611/-611 (trident electron) change it back to 11/-11. 
+				// Otherwise, SLIC won't do anything with them.
+				pdgID[particleIndex] = 11;
+			} else if(pdgID[particleIndex] == -611){
+				motherParticles[particleIndex*2] = 10;
+				pdgID[particleIndex] = -11; 
 			} else {
 				motherParticles[particleIndex*2] = Integer.valueOf(eventTokens[FIRST_MOTHER_INDEX]);
 			}
