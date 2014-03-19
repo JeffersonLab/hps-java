@@ -73,6 +73,9 @@ public class PEventViewer extends PassiveViewer {
 		// Suppress the calorimeter panel's redrawing.
 		ecalPanel.setSuppressRedraw(true);
 		
+		// Clear the panel data.
+		ecalPanel.clearCrystals();
+		
         // Display the hits.
         for (EcalHit h : hitList) {
             int ix = toPanelX(h.getX());
