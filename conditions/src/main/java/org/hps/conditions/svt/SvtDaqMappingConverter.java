@@ -14,19 +14,19 @@ import org.hps.conditions.DatabaseConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
- * This class creates a {@link SvtDaqMap} from the conditions database.
+ * This class creates a {@link SvtDaqMappingCollection} from the conditions database.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
+public class SvtDaqMappingConverter extends DatabaseConditionsConverter<SvtDaqMappingCollection> {
 
-    public SvtDaqMapConverter(ConditionsObjectFactory objectFactory) {
+    public SvtDaqMappingConverter(ConditionsObjectFactory objectFactory) {
         super(objectFactory);
     }
     
     /**
-     * Create an {@link SvtDaqMap} object from the database.
+     * Create an {@link SvtDaqMappingCollection} object from the database.
      */
-    public SvtDaqMap getData(ConditionsManager manager, String name) {
+    public SvtDaqMappingCollection getData(ConditionsManager manager, String name) {
         
         // Use default key name if not set.
         if (name == null) {
@@ -41,8 +41,8 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
         int collectionId = record.getCollectionId();
         
         // The object to be returned to caller.
-        SvtDaqMap collection = 
-               new SvtDaqMap(this.getTableMetaData(tableName), collectionId, true); 
+        SvtDaqMappingCollection collection = 
+               new SvtDaqMappingCollection(this.getTableMetaData(tableName), collectionId, true); 
                         
         // Get the connection manager.
         ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
@@ -82,8 +82,8 @@ public class SvtDaqMapConverter extends DatabaseConditionsConverter<SvtDaqMap> {
      * Get the type handled by this converter.
      * @return The type handled by this converter.
      */
-    public Class<SvtDaqMap> getType() {
-        return SvtDaqMap.class;
+    public Class<SvtDaqMappingCollection> getType() {
+        return SvtDaqMappingCollection.class;
     }
 
 }

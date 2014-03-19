@@ -36,7 +36,7 @@ public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtCondi
         SvtConditions conditions = new SvtConditions(channels);
         
         // Create the DAQ map.
-        SvtDaqMap daqMap = manager.getCachedConditions(SvtDaqMap.class, SVT_DAQ_MAP).getCachedData();
+        SvtDaqMappingCollection daqMap = manager.getCachedConditions(SvtDaqMappingCollection.class, SVT_DAQ_MAP).getCachedData();
         conditions.setDaqMap(daqMap);
                                                
         // Add calibrations by channel.

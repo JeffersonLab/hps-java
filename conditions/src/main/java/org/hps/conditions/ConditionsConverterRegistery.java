@@ -11,7 +11,7 @@ import org.hps.conditions.svt.SvtBadChannelConverter;
 import org.hps.conditions.svt.SvtCalibrationConverter;
 import org.hps.conditions.svt.SvtChannelConverter;
 import org.hps.conditions.svt.SvtConditionsConverter;
-import org.hps.conditions.svt.SvtDaqMapConverter;
+import org.hps.conditions.svt.SvtDaqMappingConverter;
 import org.hps.conditions.svt.SvtGainConverter;
 import org.hps.conditions.svt.SvtTimeShiftConverter;
 import org.lcsim.conditions.ConditionsManager;
@@ -46,7 +46,7 @@ class ConditionsConverterRegistery {
         manager.registerConditionsConverter(new SvtChannelConverter(factory));
         
         // SVT DAQ map.
-        manager.registerConditionsConverter(new SvtDaqMapConverter(factory));
+        manager.registerConditionsConverter(new SvtDaqMappingConverter(factory));
                         
         // SVT gains.  
         manager.registerConditionsConverter(new SvtGainConverter(factory));

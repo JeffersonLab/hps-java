@@ -9,7 +9,7 @@ import org.lcsim.hps.util.Pair;
  * for the top and bottom halves of the detector. 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtDaqMap extends ConditionsObjectCollection<SvtDaqMapping> {
+public class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
     
     /**
      * Flag values for top or bottom half.
@@ -17,7 +17,7 @@ public class SvtDaqMap extends ConditionsObjectCollection<SvtDaqMapping> {
     public static final int TOP_HALF = 0;
     public static final int BOTTOM_HALF = 1;
     
-    public SvtDaqMap(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
+    public SvtDaqMappingCollection(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
         super(tableMetaData, collectionId, isReadOnly);
     }
       

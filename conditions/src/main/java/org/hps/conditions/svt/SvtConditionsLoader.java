@@ -24,7 +24,7 @@ public class SvtConditionsLoader {
         // Find sensor objects.        
         List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
-        SvtDaqMap daqMap = conditions.getDaqMap();
+        SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtTimeShiftCollection timeShifts = conditions.getTimeShifts();
         
         // Loop over sensors.
@@ -38,9 +38,9 @@ public class SvtConditionsLoader {
             
             // Get info from the DAQ map about this sensor. 
             Pair<Integer, Integer> daqPair = null;            
-            int half = SvtDaqMap.TOP_HALF;
+            int half = SvtDaqMappingCollection.TOP_HALF;
             if (sensor.isBottomLayer()) {
-                half = SvtDaqMap.BOTTOM_HALF;
+                half = SvtDaqMappingCollection.BOTTOM_HALF;
             }             
             daqPair = daqMap.get(half, layerNumber);
             if (daqPair == null) {

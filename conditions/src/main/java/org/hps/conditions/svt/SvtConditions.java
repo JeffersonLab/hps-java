@@ -16,7 +16,7 @@ public class SvtConditions {
     /** SVT conditions data. */
     private Map<SvtChannel, ChannelConstants> channelData = new HashMap<SvtChannel, ChannelConstants>();
     private SvtChannelCollection channelMap = null;
-    private SvtDaqMap daqMap = null;
+    private SvtDaqMappingCollection daqMap = null;
     private SvtTimeShiftCollection timeShifts = null;
     
     /**
@@ -56,10 +56,10 @@ public class SvtConditions {
     }
     
     /**
-     * Get the {@link SvtDaqMap} associated with these conditions.
+     * Get the {@link SvtDaqMappingCollection} associated with these conditions.
      * @return The SVT DAQ map.
      */
-    public SvtDaqMap getDaqMap() {
+    public SvtDaqMappingCollection getDaqMap() {
         return daqMap;
     }
     
@@ -72,10 +72,10 @@ public class SvtConditions {
     }
     
     /**
-     * Set the {@link SvtDaqMap} associated with these conditions.
+     * Set the {@link SvtDaqMappingCollection} associated with these conditions.
      * @param daqMap The SVT DAQ map.
      */
-    void setDaqMap(SvtDaqMap daqMap) {
+    void setDaqMap(SvtDaqMappingCollection daqMap) {
         this.daqMap = daqMap;
     }
     

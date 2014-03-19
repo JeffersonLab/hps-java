@@ -16,7 +16,7 @@ public class ConditionsTableMetaData {
         _tableName = tableName;
         _fieldNames = fieldNames;
     }
-    
+        
     /*
     ConditionsTableMetaData(String tableName, String[] fields) {
         _tableName = tableName;
