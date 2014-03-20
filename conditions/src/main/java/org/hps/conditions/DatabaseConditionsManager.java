@@ -12,6 +12,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.conditions.readers.BaseClasspathConditionsReader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
@@ -19,6 +20,8 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  * This class should be used as the top-level ConditionsManager for HPS when legacy access to text
  * conditions is not needed.
  */
+// TODO: Add a method to set the "base" reader for resource or file-based conditions, instead
+// of hard-coding to BaseClasspathConditionsReader.
 public class DatabaseConditionsManager extends LCSimConditionsManagerImplementation {
 
     static DatabaseConditionsManager _instance;
@@ -45,7 +48,18 @@ public class DatabaseConditionsManager extends LCSimConditionsManagerImplementat
      */
     public void setup() {
         try {
-            //setConditionsReader(new DatabaseConditionsReader(getConditionsReader()), _detectorName);
+            // Setup a reader to handle both jar based detector resources (given first priority) 
+            // and database conditions via the DatabaseConditionsReader.
+            try {
+                // FIXME: Make the reader passed to the DataConditionsReader configurable via public method or XML arg.
+                setConditionsReader(new DatabaseConditionsReader(
+                        new BaseClasspathConditionsReader( _detectorName)), 
+                        _detectorName);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+            // Setup the manager with the detector and run number.
             setDetector(_detectorName, _runNumber);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
