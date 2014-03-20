@@ -55,7 +55,7 @@ public class ConditionsDriverTest extends TestCase {
         
         // Reconfigure the conditions system to override the manager created by LCSimLoop.
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
         
         // Configure the loop.
         loop.setLCIORecordSource(testFile);

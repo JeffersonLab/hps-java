@@ -44,7 +44,7 @@ public class EcalConditionsLoaderTest extends TestCase {
     public void setUp() {
         // Create and configure the conditions manager.
         conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
         conditionsManager.setDetectorName(detectorName);
         conditionsManager.setRunNumber(runNumber);
         conditionsManager.setup();
