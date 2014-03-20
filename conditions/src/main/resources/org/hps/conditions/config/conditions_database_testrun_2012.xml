@@ -9,6 +9,10 @@
         <read_only>true</read_only>
         <conditions_table>conditions_dev</conditions_table>
     </connection>
+    
+    <readers>
+        <reader class="org.lcsim.conditions.readers.BaseClasspathConditionsReader" />
+    </readers>
 
     <converters>
 
