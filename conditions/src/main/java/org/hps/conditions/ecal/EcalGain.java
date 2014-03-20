@@ -1,6 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * This class is a simplistic representation of gain values from the ECal
@@ -8,6 +9,9 @@ import org.hps.conditions.AbstractConditionsObject;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalGain extends AbstractConditionsObject {
+    
+    public static class EcalGainCollection extends ConditionsObjectCollection<EcalGain> {
+    }
                
     /**
      * Get the gain value.

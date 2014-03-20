@@ -1,6 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * This class is a simplistic representation of ECal pedestal and noise
@@ -9,6 +10,9 @@ import org.hps.conditions.AbstractConditionsObject;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCalibration extends AbstractConditionsObject {
+    
+    public static class EcalCalibrationCollection extends ConditionsObjectCollection<EcalCalibration> {
+    }
     
     /**
      * Get the channel ID.

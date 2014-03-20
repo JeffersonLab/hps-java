@@ -10,6 +10,7 @@ import java.util.Map.Entry;
  * The abstract implementation of {@link ConditionsObject}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// FIXME: Database query methods need to be rewritten to use QueryBuilder (which itself needs to be written).
 public abstract class AbstractConditionsObject implements ConditionsObject {
 
     private ConnectionManager _connectionManager = null;

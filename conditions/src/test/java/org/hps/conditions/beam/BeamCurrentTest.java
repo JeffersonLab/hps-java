@@ -1,5 +1,7 @@
 package org.hps.conditions.beam;
 
+import static org.hps.conditions.ConditionsTableConstants.BEAM_CURRENT;
+
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -7,13 +9,13 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.beam.BeamCurrent.BeamCurrentCollection;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-
-import static org.hps.conditions.ConditionsTableConstants.BEAM_CURRENT;
 
 /**
  * This test checks the beam current values by run.
@@ -50,8 +52,14 @@ public class BeamCurrentTest extends TestCase {
         FileCache cache = new FileCache();
         File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
         
-        // Run the ConditionsDriver over test data containing multiple runs from the Test Run.
+        // Create the LCSimLoop.
         LCSimLoop loop = new LCSimLoop();
+        
+        // Reconfigure the conditions system to override the manager created by LCSimLoop.
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.createInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        
+        // Configure and run the loop.
         loop.setLCIORecordSource(testFile);
         loop.add(new BeamCurrentChecker());
         loop.loop(-1, null);

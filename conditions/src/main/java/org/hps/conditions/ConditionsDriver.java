@@ -16,11 +16,11 @@ import static org.hps.conditions.ConditionsTableConstants.ECAL_CONDITIONS;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsDriver extends Driver {
-
+    
     /**
      * This method updates a new detector with SVT and ECal conditions data.
      */
-    public void detectorChanged(Detector detector) {        
+    public void detectorChanged(Detector detector) {
         loadSvtConditions(detector);       
         loadEcalConditions(detector);
     }

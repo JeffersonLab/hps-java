@@ -4,13 +4,10 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.hps.conditions.ConnectionManager;
+import org.hps.conditions.DatabaseConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
-
-import org.hps.conditions.ConnectionManager;
 
 /**
  * This test loads {@link SvtConditions} data onto the detector and then checks that 
@@ -37,26 +34,28 @@ public class SvtConditionsLoaderTest extends TestCase {
     
     // Total number of sensors that should be processed.
     private static final int SENSOR_COUNT = 12800;
-            
+    
+    DatabaseConditionsManager conditionsManager;
+    
+    public void setUp() {
+        // Create and configure the conditions manager.
+        conditionsManager = DatabaseConditionsManager.createInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        conditionsManager.setDetectorName(detectorName);
+        conditionsManager.setRunNumber(runNumber);
+        conditionsManager.setup();
+    }
+    
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
      */
     public void test() {
-        
-        // Setup the conditions manager.        
-        ConditionsManager.setDefaultConditionsManager(new LCSimConditionsManagerImplementation());
-        ConditionsManager manager = ConditionsManager.defaultInstance();
-        try {
-            manager.setDetector(detectorName, runNumber);
-        } catch (ConditionsNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        
+               
         // Get the detector.
-        Detector detector = manager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
+        Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
         
         // Get conditions.
-        SvtConditions conditions = manager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
+        SvtConditions conditions = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
 
         // Load conditions onto detector.
         SvtConditionsLoader loader = new SvtConditionsLoader();

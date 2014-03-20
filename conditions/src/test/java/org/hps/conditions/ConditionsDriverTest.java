@@ -21,7 +21,7 @@ import org.lcsim.util.loop.LCSimLoop;
  */
 public class ConditionsDriverTest extends TestCase {
     
-    /** This test file has a few events from the "good runs" of the Test Run. */
+    /** This test file has a few events from each of the "good runs" of the 2012 Test Run. */
     private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
     
     /** Answer key for number of bad channels by run. */
@@ -46,15 +46,23 @@ public class ConditionsDriverTest extends TestCase {
      */
     public void test() throws Exception {
 
-        // Cache file locally from URL.
+        // Cache a data file from the www.
         FileCache cache = new FileCache();
         File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
         
-        // Run the ConditionsDriver over test data containing multiple runs from the Test Run.
+        // Create the record loop.        
         LCSimLoop loop = new LCSimLoop();
+        
+        // Reconfigure the conditions system to override the manager created by LCSimLoop.
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.createInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        
+        // Configure the loop.
         loop.setLCIORecordSource(testFile);
         loop.add(new ConditionsDriver());  
         loop.add(new SvtBadChannelChecker());
+        
+        // Run over all events.
         loop.loop(-1, null);
     }
     
@@ -64,7 +72,7 @@ public class ConditionsDriverTest extends TestCase {
      */
     class SvtBadChannelChecker extends Driver {
         
-        int currentRun = Integer.MIN_VALUE;
+        int currentRun = -1;
         
         /**
          * This method will check the number of bad channels against the answer key

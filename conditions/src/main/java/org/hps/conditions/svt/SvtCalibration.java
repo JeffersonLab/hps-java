@@ -1,13 +1,17 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * This class represents a noise and pedestal measurement for an SVT channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtCalibration extends AbstractConditionsObject {
-                
+
+    public static class SvtCalibrationCollection extends ConditionsObjectCollection<SvtCalibration> {
+    }
+    
     /**
      * Get the channel ID.
      * @return The channel ID.

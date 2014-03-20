@@ -1,0 +1,187 @@
+<conditions_database name="hps_conditions_test" version="1.0" author="jeremym">
+
+    <connection>
+        <user>rd_hps_cond_ro</user>
+        <password>2jumpinphotons.</password>
+        <database>rd_hps_cond</database>
+        <hostname>mysql-node03.slac.stanford.edu</hostname>
+        <port>3306</port>
+        <read_only>true</read_only>
+        <conditions_table>conditions_dev</conditions_table>
+    </connection>
+
+    <converters>
+
+        <!-- ConditionsRecord converter -->
+        <converter class="org.hps.conditions.ConditionsRecordConverter"/>
+
+        <!-- SVT converters -->
+        <converter class="org.hps.conditions.svt.SvtConditionsConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtCalibrationConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtChannelConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtDaqMappingConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtPulseParametersConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtTimeShiftConverter"/>
+
+        <!-- ECal converters -->
+        <converter class="org.hps.conditions.ecal.EcalConditionsConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalBadChannelConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalChannelConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalGainConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalCalibrationConverter"/>
+
+        <!-- Beam conditions converter -->
+        <converter class="org.hps.conditions.beam.BeamConverterRegistry$BeamCurrentConverter"/>
+    </converters>
+
+    <tables>
+    
+        <table name="svt_channels">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtChannel"/>
+                <collection class="org.hps.conditions.svt.SvtChannel$SvtChannelCollection"/>
+            </classes>
+            <fields>
+                <field name="channel_id" />
+                <field name="fpga" />
+                <field name="hybrid" />
+                <field name="channel" />
+            </fields>
+        </table>
+    
+        <table name="svt_gains">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtGain"/> 
+                <collection class="org.hps.conditions.svt.SvtGain$SvtGainCollection"/>
+            </classes>            
+            <fields>
+                <field name="svt_channel_id" />
+                <field name="gain" />
+                <field name="offset" />
+            </fields>
+        </table>
+        
+        <table name="svt_pulse_parameters">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtPulseParameters"/>
+                <collection class="org.hps.conditions.svt.SvtPulseParameters$SvtPulseParametersCollection"/>
+            </classes>
+            <fields>
+                <field name="svt_channel_id" />
+                <field name="amplitude" />
+                <field name="t0" />
+                <field name="tp" />
+                <field name="chisq" />
+            </fields>        
+        </table>
+        
+        <table name="svt_calibrations">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtCalibration"/>
+                <collection class="org.hps.conditions.svt.SvtCalibration$SvtCalibrationCollection"/>
+            </classes>
+            <fields>
+                <field name="svt_channel_id" />
+                <field name="noise" />
+                <field name="pedestal" />
+            </fields>        
+        </table>
+        
+        <table name="svt_time_shifts">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtTimeShift"/>
+                <collection class="org.hps.conditions.svt.SvtTimeShift$SvtTimeShiftCollection"/>
+            </classes>
+            <fields>
+                <field name="fpga" />
+                <field name="hybrid" />
+                <field name="time_shift" />
+            </fields>        
+        </table>
+        
+        <table name="svt_bad_channels">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtBadChannel"/>
+                <collection class="org.hps.conditions.svt.SvtBadChannel$SvtBadChannelCollection"/>
+            </classes>
+            <fields>
+                <field name="svt_channel_id" />
+            </fields>        
+        </table>
+        
+        <table name="svt_daq_map">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtDaqMapping"/>
+                <collection class="org.hps.conditions.svt.SvtDaqMapping$SvtDaqMappingCollection"/>
+            </classes>
+            <fields>
+                <field name="half" />
+                <field name="layer" />
+                <field name="fpga" />
+                <field name="hybrid" />
+            </fields>  
+        </table>
+        
+        <table name="ecal_bad_channels">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalBadChannel"/>
+                <collection class="org.hps.conditions.ecal.EcalBadChannel$EcalBadChannelCollection"/>
+            </classes>
+            <fields>
+                <field name="ecal_channel_id" />
+            </fields>  
+        </table>
+        
+        <table name="ecal_gains">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalGain"/>
+                <collection class="org.hps.conditions.ecal.EcalGain$EcalGainCollection"/>
+            </classes>
+            <fields>
+                <field name="ecal_channel_id" />
+                <field name="gain" />
+            </fields>  
+        </table>
+        
+        <table name="ecal_calibrations">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalCalibration"/>
+                <collection class="org.hps.conditions.ecal.EcalCalibration$EcalCalibrationCollection"/>
+            </classes>
+            <fields>
+                <field name="ecal_channel_id" />
+                <field name="noise" />
+                <field name="pedestal" />
+            </fields>  
+        </table>
+        
+        <table name="ecal_channels">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalChannel"/>
+                <collection class="org.hps.conditions.ecal.EcalChannel$EcalChannelCollection"/>
+            </classes>
+            <fields>
+                <field name="channel_id" />                
+                <field name="crate" />
+                <field name="slot" />
+                <field name="channel" />
+                <field name="x" />
+                <field name="y" />
+            </fields>  
+        </table>
+        
+        <table name="beam_current">
+            <classes>
+                <object class="org.hps.conditions.beam.BeamCurrent"/>
+                <collection class="org.hps.conditions.beam.BeamCurrent$BeamCurrentCollection"/>
+            </classes>
+            <fields>
+                <field name="beam_current" />
+            </fields>
+        </table>
+                       
+    </tables>
+
+</conditions_database>

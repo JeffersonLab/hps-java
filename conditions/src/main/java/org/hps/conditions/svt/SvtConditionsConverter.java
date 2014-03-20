@@ -8,20 +8,22 @@ import static org.hps.conditions.ConditionsTableConstants.SVT_GAINS;
 import static org.hps.conditions.ConditionsTableConstants.SVT_PULSE_PARAMETERS;
 import static org.hps.conditions.ConditionsTableConstants.SVT_TIME_SHIFTS;
 
-import org.hps.conditions.ConditionsObjectFactory;
-import org.hps.conditions.DatabaseConditionsConverter;
+import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
+import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.SvtGain.SvtGainCollection;
+import org.hps.conditions.svt.SvtPulseParameters.SvtPulseParametersCollection;
+import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates an {@link SvtConditions} object from the database,
  * based on the current run number known by the conditions manager.
  */
-public class SvtConditionsConverter extends DatabaseConditionsConverter<SvtConditions> {
-      
-    public SvtConditionsConverter(ConditionsObjectFactory objectFactory) {
-        super(objectFactory);
-    }
-    
+public class SvtConditionsConverter implements ConditionsConverter<SvtConditions> {
+          
     /**
      * Create and return the SVT conditions object.  
      * @param manager The current conditions manager.

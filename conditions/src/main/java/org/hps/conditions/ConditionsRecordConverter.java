@@ -3,6 +3,7 @@ package org.hps.conditions;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -10,15 +11,8 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy Exp $
  */
-public class ConditionsRecordConverter extends DatabaseConditionsConverter<ConditionsRecordCollection> {
-           
-    /**
-     * Class constructor.
-     */
-    public ConditionsRecordConverter(ConditionsObjectFactory objectFactory) {
-        super(objectFactory);
-    }
-        
+public class ConditionsRecordConverter implements ConditionsConverter<ConditionsRecordCollection> {
+                       
     /**
      * Get the ConditionsRecords for a run.  This method ignores the name argument 
      * and will fetch all conditions records for the current run.
@@ -30,7 +24,8 @@ public class ConditionsRecordConverter extends DatabaseConditionsConverter<Condi
                                 
         ConditionsRecordCollection records = new ConditionsRecordCollection();
         
-        ConnectionManager connectionManager = this.getConnectionManager();
+        ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
+        
         String tableName = connectionManager.getConnectionParameters().getConditionsTable();
         
         String query = "SELECT * from " 

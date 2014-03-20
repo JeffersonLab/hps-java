@@ -3,6 +3,10 @@ package org.hps.conditions.svt;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+
 /**
  * This class contains all SVT conditions data by readout channel.
  * {@link SvtChannel} objects from the {@linkSvtChannelMap} should be 

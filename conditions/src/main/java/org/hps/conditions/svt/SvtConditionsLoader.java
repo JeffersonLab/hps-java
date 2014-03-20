@@ -3,6 +3,9 @@ package org.hps.conditions.svt;
 import java.util.Collection;
 import java.util.List;
 
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.util.Pair;

@@ -3,9 +3,15 @@ package org.hps.conditions.ecal;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+
 /**
  * This class provides access to all ECal conditions from the database,
- * including gain, pedestal and bad channel settings, per crystal. 
+ * including gain, pedestal and bad channel settings, per crystal.
+ * 
+ * Unlike most conditions data types, it does not extend 
+ * {@link org.hps.conditions.ConditionsObject}, because it is a composite
+ * object containing data assembled from many other <code>ConditionsObjects</code>
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -121,5 +127,5 @@ public class EcalConditions {
             buff.append('\n');
         }
         return buff.toString();
-    }
+    }    
 }

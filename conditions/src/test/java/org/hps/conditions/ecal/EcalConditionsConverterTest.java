@@ -2,10 +2,8 @@ package org.hps.conditions.ecal;
 
 import junit.framework.TestCase;
 
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.hps.conditions.ConnectionManager;
-import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
+import org.hps.conditions.DatabaseConditionsManager;
 
 /**
  * Tests that a {@link EcalConditions} objects loads without errors.
@@ -13,25 +11,24 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  */
 public class EcalConditionsConverterTest extends TestCase {
     
-    /** An example detector from hps-detectors. */
-    private static final String detectorName = "HPS-conditions-test";
+    final String detectorName = "HPS-conditions-test";
+    final int runNumber = 777;
     
-    /** The run number of the conditions set in the database. */
-    private static final int runNumber = 777;
-        
+    DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+    
+    public void setUp() {
+        // Create and configure the conditions manager.
+        conditionsManager = DatabaseConditionsManager.createInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2013.xml");
+        conditionsManager.setDetectorName(detectorName);
+        conditionsManager.setRunNumber(runNumber);
+        conditionsManager.setup();
+    }
+            
     public void test() {
-        
-        // Setup the conditions manager.        
-        ConditionsManager.setDefaultConditionsManager(new LCSimConditionsManagerImplementation());
-        ConditionsManager manager = ConditionsManager.defaultInstance();
-        try {
-            manager.setDetector(detectorName, runNumber);
-        } catch (ConditionsNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-                                        
+                                                
         // Test that the manager gets ECAL conditions.
-        EcalConditions conditions = manager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();        
+        EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();        
         assertNotNull(conditions);
         System.out.println(conditions);
         

@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS `beam_current`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `beam_current` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) DEFAULT NULL,
+  `collection_id` int(11) NOT NULL,
   `beam_current` double DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
@@ -50,10 +50,9 @@ CREATE TABLE `conditions_dev` (
   `name` varchar(40) NOT NULL,
   `format_version` varchar(16) DEFAULT NULL,
   `table_name` varchar(50) NOT NULL,
-  `field_name` varchar(50) NOT NULL,
-  `field_value` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +65,7 @@ DROP TABLE IF EXISTS `ecal_bad_channels`;
 CREATE TABLE `ecal_bad_channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ecal_channel_id` int(11) NOT NULL,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -81,7 +80,7 @@ DROP TABLE IF EXISTS `ecal_calibrations`;
 CREATE TABLE `ecal_calibrations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ecal_channel_id` int(11) NOT NULL,
-  `set_id` int(11) DEFAULT NULL,
+  `collection_id` int(11) NOT NULL,
   `pedestal` double NOT NULL,
   `noise` double NOT NULL,
   PRIMARY KEY (`id`)
@@ -97,6 +96,8 @@ DROP TABLE IF EXISTS `ecal_channels`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ecal_channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `collection_id` int(11) NOT NULL,
+  `channel_id` int(11) NOT NULL,
   `x` smallint(6) NOT NULL,
   `y` smallint(6) NOT NULL,
   `crate` smallint(6) NOT NULL,
@@ -115,7 +116,7 @@ DROP TABLE IF EXISTS `ecal_gains`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ecal_gains` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `ecal_channel_id` int(11) NOT NULL,
   `gain` double NOT NULL,
   PRIMARY KEY (`id`)
@@ -131,7 +132,7 @@ DROP TABLE IF EXISTS `svt_bad_channels`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_bad_channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `svt_channel_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3117 DEFAULT CHARSET=latin1;
@@ -160,7 +161,7 @@ DROP TABLE IF EXISTS `svt_calibrations`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_calibrations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `svt_channel_id` int(11) NOT NULL,
   `noise` double NOT NULL,
   `pedestal` double NOT NULL,
@@ -177,6 +178,8 @@ DROP TABLE IF EXISTS `svt_channels`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `collection_id` int(11) NOT NULL,
+  `channel_id` int(11) NOT NULL,
   `fpga` int(11) NOT NULL,
   `hybrid` int(11) NOT NULL,
   `channel` int(11) NOT NULL,
@@ -193,7 +196,7 @@ DROP TABLE IF EXISTS `svt_daq_map`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_daq_map` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `set_id` int(10) unsigned NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `half` tinyint(3) unsigned NOT NULL,
   `layer` tinyint(3) unsigned NOT NULL,
   `hybrid` tinyint(3) unsigned NOT NULL,
@@ -211,7 +214,7 @@ DROP TABLE IF EXISTS `svt_gains`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_gains` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `svt_channel_id` int(11) NOT NULL,
   `gain` double NOT NULL,
   `offset` double NOT NULL,
@@ -228,7 +231,7 @@ DROP TABLE IF EXISTS `svt_pulse_parameters`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_pulse_parameters` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(11) NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `svt_channel_id` int(11) NOT NULL,
   `amplitude` double NOT NULL,
   `t0` double NOT NULL,
@@ -247,7 +250,7 @@ DROP TABLE IF EXISTS `svt_time_shifts`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `svt_time_shifts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `set_id` int(10) unsigned NOT NULL,
+  `collection_id` int(11) NOT NULL,
   `fpga` tinyint(3) unsigned NOT NULL,
   `hybrid` tinyint(3) unsigned NOT NULL,
   `time_shift` double NOT NULL,
@@ -264,4 +267,4 @@ CREATE TABLE `svt_time_shifts` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-03-13 15:02:29
+-- Dump completed on 2014-03-19 16:58:56

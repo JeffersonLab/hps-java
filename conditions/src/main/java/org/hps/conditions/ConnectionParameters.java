@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.jdom.Element;
+
 /**
  * This class encapsulates the parameters for connecting to a database, 
  * including hostname, port, user and password.  It can also create and 
@@ -126,4 +128,14 @@ public final class ConnectionParameters {
         String conditionsTable = properties.getProperty("conditionsTable").toString();
         return new ConnectionParameters(user, password, database, hostname, port, conditionsTable);
     }    
+    
+    public static final ConnectionParameters fromXML(Element element) {
+        String user = element.getChild("user").getText();
+        String password = element.getChild("password").getText();
+        String database = element.getChild("database").getText();
+        String hostname = element.getChild("hostname").getText();
+        int port = Integer.parseInt(element.getChild("port").getText());
+        String conditionsTable = element.getChild("conditions_table").getText();
+        return new ConnectionParameters(user, password, database, hostname, port, conditionsTable);        
+    }
 }

@@ -131,9 +131,5 @@ public interface ConditionsObject {
     /**
      * Set the object to read only mode.  This cannot be changed back once it is set.
      */
-    void setIsReadOnly();
-    
-    // String getTableName();
-    
-    // String[] getFieldNames();
+    void setIsReadOnly();    
 }

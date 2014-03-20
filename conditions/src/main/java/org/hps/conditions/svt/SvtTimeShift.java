@@ -1,6 +1,8 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
+import org.lcsim.hps.util.Pair;
 
 /**
  * This class is a data holder for associating a time shift with a specific sensor
@@ -8,6 +10,21 @@ import org.hps.conditions.AbstractConditionsObject;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtTimeShift extends AbstractConditionsObject {
+    
+    public static class SvtTimeShiftCollection extends ConditionsObjectCollection<SvtTimeShift> {
+        
+        SvtTimeShiftCollection find(Pair<Integer,Integer> pair) {
+            SvtTimeShiftCollection timeShifts = new SvtTimeShiftCollection();
+            int fpga = pair.getFirstElement();
+            int hybrid = pair.getSecondElement();
+            for (SvtTimeShift timeShift : getObjects()) {
+                if (timeShift.getFpga() == fpga && timeShift.getHybrid() == hybrid) {
+                    timeShifts.add(timeShift);
+                }
+            }
+            return timeShifts;
+        }
+    }
     
     /**
      * Get the FPGA number.

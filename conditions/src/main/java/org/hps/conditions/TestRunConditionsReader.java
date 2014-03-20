@@ -18,11 +18,15 @@ public class TestRunConditionsReader extends DatabaseConditionsReader {
     private String detectorName = null;
     //private int run;
 
-    public TestRunConditionsReader(ConditionsReader reader) {
+    public TestRunConditionsReader(ConditionsReader reader) {        
         super(reader);
+        System.out.println("TestRunConditionsReader - " + reader.getClass().getSimpleName());
     }
 
     public InputStream open(String name, String type) throws IOException {
+        
+        System.out.println(this.getClass().getSimpleName() + ".open - " + name);
+        
         // 1) Check the detector base directory.
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
@@ -43,7 +47,6 @@ public class TestRunConditionsReader extends DatabaseConditionsReader {
 
     public void close() throws IOException {
     }
-
 
     public boolean update(ConditionsManager manager, String detectorName, int run) throws IOException {
 //            loadCalibsByRun(run);

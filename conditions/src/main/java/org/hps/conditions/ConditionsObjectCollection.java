@@ -9,7 +9,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
 
     List<T> objects = new ArrayList<T>();    
     ConditionsTableMetaData _tableMetaData;
-    int _collectionId;
+    int _collectionId = -1;
     boolean _isReadOnly;
     boolean _isDirty;
     boolean _isNew;
@@ -84,6 +84,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         }
     }
 
+    // TODO: This method needs to get the next collection ID if it doesn't have one already.
     public void insertAll() throws ConditionsObjectException, SQLException {
         if (!isNew()) {
             throw new ConditionsObjectException("Collection already exists in the database.");
@@ -112,5 +113,13 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     
     public boolean isNew() {
         return _isNew;
+    }
+    
+    void setCollectionId(int collectionId) {
+        _collectionId = collectionId;
+    }
+    
+    void setIsReadOnly(boolean isReadOnly) {
+        _isReadOnly = isReadOnly;
     }
 }

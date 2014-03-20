@@ -1,8 +1,9 @@
 package org.hps.conditions;
 
 /**
- * This is a static set of data defining default table names and lookup key values for conditions data.
- * Unless otherwise requested via the converter interface, these are always the same.
+ * This is a static set of constants defining default table names and lookup key values for conditions data.
+ * The actual table names for the conditions data are defined externally in an XML configuration file read by the 
+ * {@link DatabaseConditionsManager}.
  */
 public final class ConditionsTableConstants {
     

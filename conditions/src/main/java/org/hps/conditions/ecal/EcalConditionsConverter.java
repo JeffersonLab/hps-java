@@ -5,9 +5,12 @@ import static org.hps.conditions.ConditionsTableConstants.ECAL_CALIBRATIONS;
 import static org.hps.conditions.ConditionsTableConstants.ECAL_CHANNELS;
 import static org.hps.conditions.ConditionsTableConstants.ECAL_GAINS;
 
-import org.hps.conditions.ConditionsObjectFactory;
-import org.hps.conditions.DatabaseConditionsConverter;
-import org.hps.conditions.ecal.EcalChannelCollection.ChannelId;
+import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
+import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
+import org.hps.conditions.ecal.EcalChannel.ChannelId;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -15,15 +18,13 @@ import org.lcsim.conditions.ConditionsManager;
  * from the database, based on the current run number known by the conditions manager.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConditionsConverter extends DatabaseConditionsConverter<EcalConditions> {
-    
-    public EcalConditionsConverter(ConditionsObjectFactory objectFactory) {
-        super(objectFactory);
-    }
-    
+// FIXME: This converter is not needed.  The data loading can be done from within EcalConditions itself.
+public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
+      
     /**
      * Create ECAL conditions object containing all data for the current run.
      */
+    // TODO: This should be a method on EcalConditions itself.
     public EcalConditions getData(ConditionsManager manager, String name) {
         
         // Create new, empty conditions object to fill with data.

@@ -2,7 +2,8 @@ package org.hps.conditions.ecal;
 
 import java.util.List;
 
-import org.hps.conditions.ecal.EcalChannelCollection.GeometryId;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
