@@ -2,7 +2,6 @@ package org.hps.conditions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
@@ -14,19 +13,14 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsReader;
 
 /**
- * <p>
- * This a rewritten version of Dima's ExampleDatabaseConditionsReader that attempts to handle 
- * the conditions and their meta data in a fully generic fashion.
- * </p>
+ * This is more-or-less a placeholder class for a database conditions reader.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: DatabaseConditionsReader.java,v 1.21 2013/10/18 06:08:55 jeremy Exp $ 
  */
+// TODO: Add a multi reader class that can have an arbitrary number of readers it may call, with precedence.
 public class DatabaseConditionsReader extends ConditionsReader {
-        
-    /** Database connection. */
-    private Connection _connection = null;    
-    
+            
     /** Base ConditionsReader for getting the Detector. */
     private final ConditionsReader _reader;
     
@@ -89,29 +83,14 @@ public class DatabaseConditionsReader extends ConditionsReader {
             _logger.warning("Conditions already cached for run <" + run + ">.");
             return false;
         }
-            
-        // Register the converters on the manager.         
-        // FIXME: This should really only happen once instead of being called here every time.
-        //ConditionsConverterRegistery.register(manager);
-                
-        // Open a connection to the database.
-        _connection = ConnectionManager.getConnectionManager().createConnection();
-        
+                                    
         // Cache the ConditionsRecords.
         try {
             setup(run);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-                               
-        // Close the database connection.
-        try {
-            _connection.close();
-            _connection = null;
-        } catch (SQLException x) {
-            throw new IOException("Failed to close connection", x);
-        }
-                
+                                               
         return true;
     }
 
@@ -137,6 +116,6 @@ public class DatabaseConditionsReader extends ConditionsReader {
      * @throws IOException
      */
     private final void setup(int run) throws SQLException, IOException {
-        ConditionsRecord.find(run);
-    }           
+        ConditionsRecord.find(run); // FIXME: Does this even need to happen here?
+    }
 }
