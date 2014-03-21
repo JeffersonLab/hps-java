@@ -94,6 +94,9 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        int flags = 0;
+        flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
+
         if (!runBackwards) {
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
 
@@ -113,6 +116,7 @@ public class EcalRawConverterDriver extends Driver {
                         newHits.add(newHit);
                     }
                 }
+                event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
             if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
                 List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
@@ -135,10 +139,8 @@ public class EcalRawConverterDriver extends Driver {
                         newHits.add(newHit);
                     }
                 }
+                event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
-            int flags = 0;
-            flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
-            event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
         } else {
             ArrayList<RawCalorimeterHit> newHits = new ArrayList<RawCalorimeterHit>();
             if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
@@ -156,10 +158,8 @@ public class EcalRawConverterDriver extends Driver {
                         newHits.add(newHit);
                     }
                 }
+                event.put(rawCollectionName, newHits, RawCalorimeterHit.class, flags, ecalReadoutName);
             }
-            int flags = 0;
-            flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
-            event.put(rawCollectionName, newHits, RawCalorimeterHit.class, flags, ecalReadoutName);
         }
     }
 }
