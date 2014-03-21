@@ -2,7 +2,6 @@ package org.lcsim.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ import org.lcsim.util.Driver;
  * For a hit to be a cluster center, it is required to have an energy
  * above some tunable minimum threshold. Additionally, the hit must be
  * a local maximum with respect to its neighbors and itself over a
- * tunable (default 4) clock cycles. Hits that pass these checks are
+ * tunable (default 2) clock cycles. Hits that pass these checks are
  * then required to additional have a total cluster energy that exceeds
  * another tunable minimum threshold.
  * 
@@ -72,20 +71,11 @@ public class CTPCalorimeterClusterer extends Driver {
     /**
      * <b>clusterWindow</b><br/><br/>
      * <code>private int <b>clusterWindow</b></code><br/><br/>
-     * Indicates the number of clock cycles before and after a given
-     * cycle that should be considered when checking if a cluster is
-     * a local maximum in space-time.
+     * Indicates the number of FADC clock cycles (each cycle is 4 ns) before and
+     * after a given cycle that should be considered when checking if a cluster
+     * is a local maximum in space-time.
      */
     int clusterWindow = 2;
-    
-    /**
-     * <b>eventBuffer</b><br/><br/>
-     * <code>private LinkedList<EventHeader> <b>eventBuffer</b></code><br/><br/>
-     * Stores the <code>EventHeader</code> objects that occurred within
-     * the cluster window so that clusters may be attached to the event
-     * in which the seed hit occurred.
-     */
-    private LinkedList<EventHeader> eventBuffer;
     
     /**
      * <b>hitBuffer</b><br/><br/>
@@ -119,16 +109,16 @@ public class CTPCalorimeterClusterer extends Driver {
      * cluster center. Hits with energy less than this value will
      * be ignored.
      */
-    double seedEnergyThreshold = 0.0;
-    
+    double seedEnergyThreshold = 0.05;
+
     /**
-     * <b>validClusterCrystals</b><br/><br/>
-     * <code>private Set<Long> <b>validClusterCrystals</b></code><br/><br/>
-     * Contains the <code>long</code> crystal ID of every crystal that
-     * is a valid cluster center.
+     * <b>addEnergyThreshold</b><br/><br/>
+     * <code>private double <b>addEnergyThreshold</b></code><br/><br/>
+     * The minimum energy required for a hit to be added to a cluster. Hits with
+     * energy less than this value will be ignored.
      */
-    private Set<Long> validClusterCrystals = null;
-    
+    double addEnergyThreshold = 0.03;
+
     /**
      * <b>detectorChanged</b><br/><br/>
      * <code>public void <b>detectorChanged</b>(Detector detector)</code><br/><br/>
@@ -147,62 +137,6 @@ public class CTPCalorimeterClusterer extends Driver {
         
         // Get a map to associate crystals with their neighbors.
         neighborMap = calorimeter.getNeighborMap();
-        
-        // Store the crystals that are allowed to be cluster centers.
-        validClusterCrystals = new HashSet<Long>();
-        
-        // Populate the list of valid cluster centers.
-        for (Long cellID : neighborMap.keySet()) {
-        	// Store whether the current crystal is a valid cluster center.
-            boolean isValidCenter = true;
-            
-            // Get the set of neighbors for the current crystal.
-            Set<Long> neighbors = neighborMap.get(cellID);
-            
-            // Sort over the list of neighbors.
-            for (Long neighborID : neighbors) {
-            	// Get the neighbor's list of neighbors as well as itself.
-                Set<Long> neighborNeighbors = new HashSet<Long>();
-                neighborNeighbors.addAll(neighborMap.get(neighborID));
-                neighborNeighbors.add(neighborID);
-                
-                // If the current crystal's neighbors include all of
-                // one of its neighbor's neighbors, then it is an edge
-                // crystal and is not a valid center for clusters.
-                if (neighborNeighbors.containsAll(neighbors)) {
-                    isValidCenter = false;
-                    break;
-                }
-            }
-            
-            // If the current crystal survived the above test, it is
-            // a valid cluster center. Add it to the list.
-            if (isValidCenter) { validClusterCrystals.add(cellID); }
-        }
-    }
-    
-    /**
-     * <b>endOfData</b><br/><br/>
-     * <code>public void <b>endOfData</b>()</code><br/><br/>
-     * Empties the remaining events from the event buffer and processes
-     * any remaining clusters.
-     */
-    public void endOfData() {
-    	// At the end of the data run, not all filled events in the hit
-    	// buffer will have been processed. We add additional empty
-    	// events to the end of the event buffer and continue to process
-    	// events until all the remaining legitimate events have been
-    	// processed.
-    	for(int i = 0; i < clusterWindow; i++) {
-        	// Remove the last event from the hit buffer a blank one.
-        	hitBuffer.removeLast();
-        	hitBuffer.addFirst(new HashMap<Long, CalorimeterHit>(0));
-        	eventBuffer.removeLast();
-        	eventBuffer.addFirst(null);
-        	
-        	// Process the event.
-        	processEvent();
-    	}
     }
     
     /**
@@ -225,11 +159,8 @@ public class CTPCalorimeterClusterer extends Driver {
     	// For a hit to be a cluster center, it must be a local maximum
     	// both with respect to its neighbors and itself both in the
     	// present time and at all times within the event buffer.
+        seedLoop:
     	for(Long currentID : currentHits.keySet()) {
-    		// If this hit is not a valid cluster center, we do not
-    		// need to perform any additional checks.
-    		if(validClusterCrystals.contains(currentID)) { continue; }
-    		
     		// Get the actual hit object.
     		CalorimeterHit currentHit = currentHits.get(currentID);
     		
@@ -238,91 +169,68 @@ public class CTPCalorimeterClusterer extends Driver {
     		
     		// If the hit energy is lower than the minimum threshold,
     		// then we immediately reject this hit as a possible cluster.
-    		if(currentEnergy < seedEnergyThreshold) { continue; }
+    		if(currentEnergy < seedEnergyThreshold) { continue seedLoop; }
     		
-    		// Store the cluster energy for the potential cluster as we
-    		// sort through the buffer.
-    		double clusterEnergy = 0.0;
-    		
-    		// Store the crystals that are part of this cluster.
-    		Set<CalorimeterHit> clusterComponentHits = new HashSet<CalorimeterHit>();
+    		// Store the crystals that are part of this potential cluster.
+            HPSEcalCluster cluster = new HPSEcalCluster(currentHit);
+            cluster.addHit(currentHit);
     		
     		// Get the set of neighbors for this hit.
     		Set<Long> neighbors = neighborMap.get(currentHit.getCellID());
     		
-    		// Store whether the current hit is a cluster center.
-    		boolean isCluster = true;
-    		
     		// Sort through each event stored in the buffer.
-    		for(Map<Long, CalorimeterHit> bufferHits : hitBuffer) {
-    			// Get the hit energy at the current hit's position in
-    			// the buffer, if it exists.
-    			double bufferHitEnergy = 0.0;
-    			CalorimeterHit bufferHit = bufferHits.get(currentID);
-    			if(bufferHit != null) { bufferHitEnergy = bufferHit.getRawEnergy(); }
+            addLoop:
+            for (Map<Long, CalorimeterHit> bufferHits : hitBuffer) {
+                // Get the hit energy at the current hit's position in
+                // the buffer, if it exists.
+                CalorimeterHit bufferHit = bufferHits.get(currentID);
+                if (bufferHit != null) {
+                    double bufferHitEnergy = bufferHit.getRawEnergy();
+
+                    // Check to see if the hit at this point in the buffer
+                    // is larger than then original hit. If it is, we may
+                    // stop the comparison because this is not a cluster.
+                    if (bufferHitEnergy > currentEnergy) {
+                        continue seedLoop;
+                    } // If the buffer hit is smaller, then add its energy
+                    // to the cluster total energy.
+                    else {
+                        if (bufferHit != currentHit && bufferHitEnergy > addEnergyThreshold) {
+                            cluster.addHit(bufferHit);
+                        }
+                    }
+                }
     			
-    			// Check to see if the hit at this point in the buffer
-    			// is larger than then original hit. If it is, we may
-    			// stop the comparison because this is not a cluster.
-    			if(bufferHitEnergy > currentEnergy) {
-    				isCluster = false;
-    				break;
-    			}
-    			
-    			// If the buffer hit is smaller, then add its energy
-    			// to the cluster total energy.
-    			else {
-    				clusterEnergy += bufferHitEnergy;
-    				if(bufferHit != currentHit) { clusterComponentHits.add(bufferHit); }
-    			}
-    			
-    			// We must also make sure that the original hit is
-    			// larger than all of the neighboring hits at this
-    			// point in the buffer as well.
-    			for(Long neighborID : neighbors) {
-    				// Get the neighbor hit energy if it exists.
-        			double neighborHitEnergy = 0.0;
-        			CalorimeterHit neighborHit = bufferHits.get(neighborID);
-        			if(neighborHit != null) { neighborHitEnergy = neighborHit.getRawEnergy(); }
-        			
-        			// Check to see if the neighbor hit at this point
-        			// in the buffer is larger than then original hit.
-        			// If it is, we may stop the comparison because this
-        			// is not a cluster.
-        			if(neighborHitEnergy > currentEnergy) {
-        				isCluster = false;
-        				break;
-        			}
-        			
-        			// If the buffer neighbor hit is smaller, then
-        			// add its energy to the cluster total energy.
-        			else {
-        				clusterEnergy += neighborHitEnergy;
-        				clusterComponentHits.add(neighborHit);
-        			}
-    			}
-    			
-    			// If we exit from the neighbor loop and isCluster is
-    			// false, then one of the neighboring crystals had a
-    			// larger energy and we may break from this iteration.
-    			if(!isCluster) { break; }
+                // We must also make sure that the original hit is
+                // larger than all of the neighboring hits at this
+                // point in the buffer as well.
+                for (Long neighborID : neighbors) {
+                    // Get the neighbor hit energy if it exists.
+                    CalorimeterHit neighborHit = bufferHits.get(neighborID);
+                    if (neighborHit != null) {
+                        double neighborHitEnergy = neighborHit.getRawEnergy();
+
+                        // Check to see if the neighbor hit at this point
+                        // in the buffer is larger than then original hit.
+                        // If it is, we may stop the comparison because this
+                        // is not a cluster.
+                        if (neighborHitEnergy > currentEnergy) {
+                            continue seedLoop;
+                        } // If the buffer neighbor hit is smaller, then
+                        // add its energy to the cluster total energy.
+                        else if (neighborHitEnergy > addEnergyThreshold) {
+                            cluster.addHit(neighborHit);
+                        }
+                    }
+                }
     		}
     		
-    		// If the potential cluster center is still a valid, check
+    		// If the potential cluster center is still valid, check
     		// that its cluster energy is above the minimum threshold.
-    		if(isCluster && clusterEnergy >= clusterEnergyThreshold) {
-    			// Generate a new cluster from this information.
-                CalorimeterHit seedHit = new HPSCalorimeterHit(0.0, currentHit.getTime(), currentID, currentHit.getType());
-                seedHit.setMetaData(currentHit.getMetaData());
-                HPSEcalCluster cluster = new HPSEcalCluster(seedHit);
-                
-                // Add all of the neighbors to the cluster.
-                for(CalorimeterHit neighbor : clusterComponentHits) { cluster.addHit(neighbor); }
-                
+    		if(cluster.getEnergy() >= clusterEnergyThreshold) {
                 // Add the cluster to the list of clusters.
                 clusters.add(cluster);
     		}
-    		
     	}
     	
     	// Return the generated list of clusters.
@@ -338,48 +246,30 @@ public class CTPCalorimeterClusterer extends Driver {
      * @param event - The event to process.
      */
     public void process(EventHeader event) {
-    	// Get the list calorimeter hits from the event.
-    	List<CalorimeterHit> hitList = event.get(CalorimeterHit.class, hitCollectionName);
-    	
-    	// Store each hit in a set by its cell ID so that it may be
-    	// easily acquired later.
-    	HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>(hitList.size());
-    	for(CalorimeterHit hit : hitList) { hitMap.put(hit.getCellID(), hit); }
-    	
-    	// Remove the last event from the hit buffer and the new one.
-    	hitBuffer.removeLast();
-    	hitBuffer.addFirst(hitMap);
-    	eventBuffer.removeLast();
-    	eventBuffer.addFirst(event);
-    	
-    	// Process the current event.
-    	processEvent();
-    }
-    
-    /**
-     * <b>processEvent</b><br/><br/>
-     * <code>private void <b>processEvent</b>()</code><br/><br/>
-     * Handles running the clustering algorithm and placing the results
-     * in the appropriate event header. Note that this is separate from
-     * <code>process</code> so that it can be called from <code>endOfData
-     * </code> as well.
-     */
-    private void processEvent() {
-    	// Get the current event.
-    	EventHeader event = eventBuffer.get(clusterWindow);
-    	
-    	// If the current event is null, then it is a blank event we
-    	// have inserted to simulate either past events at the start
-    	// of a run, or future events at the end of one. It requires
-    	// no further action.
-    	if(event == null) { return; }
-    	
-    	// Run the clustering algorithm on the buffer.
-    	List<HPSEcalCluster> clusterList = getClusters();
-    	
-    	// Store the cluster list in the LCIO collection.
-    	int flag = 1 << LCIOConstants.CLBIT_HITS;
-    	event.put(clusterCollectionName, clusterList, HPSEcalCluster.class, flag);
+        // Only run the clusterer if this event has the calorimeter hit collection. 
+        // This ensures this driver makes clusters in sync with the FADC readout cycle.
+        if (event.hasCollection(CalorimeterHit.class, hitCollectionName)) {
+            // Get the list of calorimeter hits from the event.
+            List<CalorimeterHit> hitList = event.get(CalorimeterHit.class, hitCollectionName);
+
+            // Store each hit in a set by its cell ID so that it may be
+            // easily acquired later.
+            HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
+            for (CalorimeterHit hit : hitList) {
+                hitMap.put(hit.getCellID(), hit);
+            }
+
+            // Remove the last event from the hit buffer and add the new one.
+            hitBuffer.removeLast();
+            hitBuffer.addFirst(hitMap);
+
+            // Run the clustering algorithm on the buffer.
+            List<HPSEcalCluster> clusterList = getClusters();
+
+            // Store the cluster list in the LCIO collection.
+            int flag = 1 << LCIOConstants.CLBIT_HITS;
+            event.put(clusterCollectionName, clusterList, HPSEcalCluster.class, flag);
+        }
     }
     
     /**
@@ -447,10 +337,8 @@ public class CTPCalorimeterClusterer extends Driver {
     	// The cluster window of must always be at least zero.
     	if(clusterWindow < 0) { this.clusterWindow = 0; }
     	
-    	// If the cluster window is non-zero, then store it. Note that
-    	// we double the size of the window because events are 2 ns,
-    	// while clock cycles are 4 ns.
-    	else { this.clusterWindow = 2 * clusterWindow; }
+    	// If the cluster window is non-zero, then store it.
+    	else { this.clusterWindow = clusterWindow; }
     }
     
     /**
@@ -469,6 +357,24 @@ public class CTPCalorimeterClusterer extends Driver {
     	// If the energy threshold is valid, then use it.
     	else { this.seedEnergyThreshold = seedEnergyThreshold; }
     }
+    
+    /**
+     * <b>setAddEnergyThreshold</b><br/><br/>
+     * <code>public void <b>setAddEnergyThreshold</b>(double addEnergyThreshold)</code><br/><br/>
+     * Sets the minimum energy threshold below which a hit will not be added to
+     * a cluster.
+     *
+     * @param addEnergyThreshold - The minimum amount of energy for a cluster
+     * hit.
+     */
+    public void setAddEnergyThreshold(double addEnergyThreshold) {
+    	// A negative energy threshold is non-physical. All thresholds
+    	// be at least zero.
+    	if(addEnergyThreshold < 0.0) { this.addEnergyThreshold = 0.0; }
+    	
+    	// If the energy threshold is valid, then use it.
+    	else { this.addEnergyThreshold = addEnergyThreshold; }
+    }    
     
     /**
      * <b>startOfData</b><br/><br/>
@@ -492,7 +398,6 @@ public class CTPCalorimeterClusterer extends Driver {
         
         // Initiate the hit buffer.
         hitBuffer = new LinkedList<Map<Long, CalorimeterHit>>();
-        eventBuffer = new LinkedList<EventHeader>();
         
         // Populate the event buffer with (2 * clusterWindow + 1)
         // empty events. These empty events represent the fact that
@@ -501,7 +406,6 @@ public class CTPCalorimeterClusterer extends Driver {
         int bufferSize = (2 * clusterWindow) + 1;
         for(int i = 0; i < bufferSize; i++) {
         	hitBuffer.add(new HashMap<Long, CalorimeterHit>(0));
-        	eventBuffer.add(null);
         }
     }
 }
