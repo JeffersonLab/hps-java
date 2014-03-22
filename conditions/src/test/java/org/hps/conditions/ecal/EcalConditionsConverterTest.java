@@ -14,7 +14,7 @@ public class EcalConditionsConverterTest extends TestCase {
     final String detectorName = "HPS-conditions-test";
     final int runNumber = 777;
     
-    DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+    DatabaseConditionsManager conditionsManager;
     
     public void setUp() {
         // Create and configure the conditions manager.

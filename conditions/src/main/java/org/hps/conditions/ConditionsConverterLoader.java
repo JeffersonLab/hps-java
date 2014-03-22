@@ -13,7 +13,7 @@ import org.lcsim.conditions.ConditionsConverter;
  *  
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ConverterXMLLoader {
+public class ConditionsConverterLoader {
     
     List<ConditionsConverter> _converterList;
     

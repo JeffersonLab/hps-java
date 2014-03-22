@@ -2,6 +2,7 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.ConditionsObjectException;
 import org.lcsim.hps.util.Pair;
 
 /**
@@ -19,7 +20,11 @@ public class SvtTimeShift extends AbstractConditionsObject {
             int hybrid = pair.getSecondElement();
             for (SvtTimeShift timeShift : getObjects()) {
                 if (timeShift.getFpga() == fpga && timeShift.getHybrid() == hybrid) {
-                    timeShifts.add(timeShift);
+                    try {
+                        timeShifts.add(timeShift);
+                    } catch (ConditionsObjectException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             return timeShifts;

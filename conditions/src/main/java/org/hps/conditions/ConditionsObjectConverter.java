@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import org.hps.conditions.ConditionsObject.FieldValueMap;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -32,7 +32,9 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         }
         
         // Get the table meta data from the key given by the caller.
-        ConditionsTableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
+        TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
+        if (tableMetaData == null)
+            throw new RuntimeException("Table meta data for " + name + " was not found.");
         
         // Create a collection to return.
         ConditionsObjectCollection collection;
@@ -54,10 +56,14 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
                 // then this is a fatal error.
                 throw new RuntimeException("Multiple conditions records returned but this is not allowed.");
         } else {
-            // The collection ID is only set on the collection object if all rows have the same
-            // collection ID.  Otherwise, the collection contains a mix of objects with different 
-            // collectionIDs and has no meaningful ID of its own.
-            collection.setCollectionId(conditionsRecords.get(0).getCollectionId());
+            // The collection ID and table meta data are only set on the collection object 
+            // if all rows have the same collection ID.
+            try {
+                collection.setCollectionId(conditionsRecords.get(0).getCollectionId());
+                collection.setTableMetaData(tableMetaData);
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         // Loop over conditions records.  This will usually just be one record.
@@ -73,6 +79,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             String query = QueryBuilder.buildSelect(tableName, collectionId, tableMetaData.getFieldNames(), "id ASC");
         
             // Query the database.
+            // TODO: Get the connection from the manager rather than the static instance.
             ResultSet resultSet = ConnectionManager.getConnectionManager().query(query);
             
             try {
@@ -81,10 +88,11 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
                     // Create new ConditionsObject.
                     ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
                     
-                    // Add new object to collection, which will also assign it a collection ID if applicable.
+                    // Add new object to collection, which will also assign it a 
+                    // collection ID if applicable.                    
                     collection.add(newObject);
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }                 
         }
@@ -94,7 +102,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
     }
 
     private ConditionsObject createConditionsObject(ResultSet resultSet, 
-            ConditionsTableMetaData tableMetaData) throws SQLException {
+            TableMetaData tableMetaData) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int rowId = resultSet.getInt(1);
         int ncols = metaData.getColumnCount();

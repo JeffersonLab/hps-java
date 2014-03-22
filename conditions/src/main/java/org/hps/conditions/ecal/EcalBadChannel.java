@@ -3,6 +3,10 @@ package org.hps.conditions.ecal;
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 
+/**
+ * This class represents an ECAL channel that is considered "bad" which means
+ * it should not be used in reconstruction.
+ */
 public class EcalBadChannel extends AbstractConditionsObject {
     
     public static class EcalBadChannelCollection extends ConditionsObjectCollection<EcalBadChannel> {    

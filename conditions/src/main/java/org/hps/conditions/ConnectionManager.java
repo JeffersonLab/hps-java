@@ -1,14 +1,9 @@
 package org.hps.conditions;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
 
 /**
  * This class provides various database utilities for the conditions system, primarily the
@@ -18,9 +13,9 @@ import java.util.Properties;
  */
 public class ConnectionManager {
 
-    private ConnectionParameters connectionParameters = new ConnectionParameters();
-    private static ConnectionManager instance = null;
-    private Connection connection = null;
+    private ConnectionParameters _connectionParameters;
+    private static ConnectionManager _instance = null;
+    private Connection _connection = null;
 
     /**
      * Class constructor.  Override at your own risk!
@@ -33,10 +28,10 @@ public class ConnectionManager {
      * @return The instance of this class.
      */
     public static ConnectionManager getConnectionManager() {
-        if (instance == null) {
-            instance = new ConnectionManager();
+        if (_instance == null) {
+            _instance = new ConnectionManager();
         }
-        return instance;
+        return _instance;
     }
 
     /**
@@ -44,7 +39,7 @@ public class ConnectionManager {
      * @param connectionParameters The connection parameters.
      */
     void setConnectionParameters(ConnectionParameters connectionParameters) {
-        this.connectionParameters = connectionParameters;
+        this._connectionParameters = connectionParameters;
     }
 
     /**
@@ -52,7 +47,7 @@ public class ConnectionManager {
      * @return The connection parameters.
      */
     public ConnectionParameters getConnectionParameters() {
-        return connectionParameters;
+        return _connectionParameters;
     }
 
     /**
@@ -60,10 +55,12 @@ public class ConnectionManager {
      * @return The database connection.
      */
     Connection createConnection() {
-        Connection newConnection = connectionParameters.createConnection();
+        if (_connectionParameters == null)
+            throw new RuntimeException("Connection parameters have not been set.");
+        Connection newConnection = _connectionParameters.createConnection();
         try {
-            System.out.println("USE " + connectionParameters.getDatabase());
-            newConnection.createStatement().execute("USE " + connectionParameters.getDatabase());
+            System.out.println("USE " + _connectionParameters.getDatabase());
+            newConnection.createStatement().execute("USE " + _connectionParameters.getDatabase());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to connect to database.", e);
         }
@@ -116,11 +113,11 @@ public class ConnectionManager {
         
         System.out.println(query);
         
-        if (connection == null)
-            connection = createConnection();
+        if (_connection == null)
+            _connection = createConnection();
         ResultSet result = null;
         try {
-            Statement statement = connection.createStatement();
+            Statement statement = _connection.createStatement();
             result = statement.executeQuery(query);
         } catch (SQLException x) {
             throw new RuntimeException("Error in query: " + query, x);
@@ -137,12 +134,12 @@ public class ConnectionManager {
         
         System.out.println(query);
         
-        if (connection == null)
-            connection = createConnection();
+        if (_connection == null)
+            _connection = createConnection();
         int key = -1;
         try {
             // NOTE: Assumes only one row is updated!
-            Statement statement = connection.createStatement();
+            Statement statement = _connection.createStatement();
             statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS); 
             ResultSet resultSet = statement.getGeneratedKeys();
             if (resultSet.next()) {
@@ -155,18 +152,6 @@ public class ConnectionManager {
     }
         
     public void disconnect() {
-        cleanup(connection);
-    }
-
-    public void setupFromProperties(File propertiesFile) {
-        Properties p = new Properties();
-        try {
-            p.load(new FileInputStream(propertiesFile));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        connectionParameters = ConnectionParameters.fromProperties(p);
-    }
+        cleanup(_connection);
+    }  
 }

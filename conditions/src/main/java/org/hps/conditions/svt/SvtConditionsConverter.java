@@ -1,12 +1,12 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.ConditionsTableConstants.SVT_BAD_CHANNELS;
-import static org.hps.conditions.ConditionsTableConstants.SVT_CALIBRATIONS;
-import static org.hps.conditions.ConditionsTableConstants.SVT_CHANNELS;
-import static org.hps.conditions.ConditionsTableConstants.SVT_DAQ_MAP;
-import static org.hps.conditions.ConditionsTableConstants.SVT_GAINS;
-import static org.hps.conditions.ConditionsTableConstants.SVT_PULSE_PARAMETERS;
-import static org.hps.conditions.ConditionsTableConstants.SVT_TIME_SHIFTS;
+import static org.hps.conditions.TableConstants.SVT_BAD_CHANNELS;
+import static org.hps.conditions.TableConstants.SVT_CALIBRATIONS;
+import static org.hps.conditions.TableConstants.SVT_CHANNELS;
+import static org.hps.conditions.TableConstants.SVT_DAQ_MAP;
+import static org.hps.conditions.TableConstants.SVT_GAINS;
+import static org.hps.conditions.TableConstants.SVT_PULSE_PARAMETERS;
+import static org.hps.conditions.TableConstants.SVT_TIME_SHIFTS;
 
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;

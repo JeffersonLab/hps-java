@@ -6,7 +6,7 @@ public class DatabaseConditionsManagerTest extends TestCase {
     
     String detectorName = "HPS-conditions-test";
     int runNumber = 1351;
-    DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+    DatabaseConditionsManager conditionsManager;
     
     public void setUp() {
         // Create and configure the conditions manager.
@@ -20,7 +20,7 @@ public class DatabaseConditionsManagerTest extends TestCase {
     @SuppressWarnings("rawtypes")
     public void testLoad() {                       
         // Load data from every table registered with the manager.
-        for (ConditionsTableMetaData metaData : conditionsManager.getTableMetaDataList()) {
+        for (TableMetaData metaData : conditionsManager.getTableMetaDataList()) {
             System.out.println(">>>> loading conditions from table: " + metaData.getTableName());
             ConditionsObjectCollection conditionsObjects = 
                     conditionsManager.getConditionsData(metaData.getCollectionClass(), metaData.getTableName());

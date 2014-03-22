@@ -1,6 +1,6 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.ConditionsTableConstants.CONDITIONS_RECORD;
+import static org.hps.conditions.TableConstants.CONDITIONS_RECORD;
 
 import java.sql.Blob;
 import java.sql.ResultSet;

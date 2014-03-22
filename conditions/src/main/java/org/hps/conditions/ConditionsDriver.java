@@ -8,8 +8,8 @@ import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsLoader;
 import org.lcsim.util.Driver;
 
-import static org.hps.conditions.ConditionsTableConstants.SVT_CONDITIONS;
-import static org.hps.conditions.ConditionsTableConstants.ECAL_CONDITIONS;
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
 
 /**
  * This {@link org.lcsim.util.Driver} loads conditions onto an HPS detector.

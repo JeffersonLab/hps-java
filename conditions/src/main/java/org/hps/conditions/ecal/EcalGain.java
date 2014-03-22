@@ -4,8 +4,8 @@ import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 
 /**
- * This class is a simplistic representation of gain values from the ECal
- * conditions database.     
+ * A simplistic representation of gain values from the ECal conditions database.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalGain extends AbstractConditionsObject {
@@ -14,7 +14,7 @@ public class EcalGain extends AbstractConditionsObject {
     }
                
     /**
-     * Get the gain value.
+     * Get the gain value in units of MeV/ADC count.
      * @return The gain value.
      */
     public double getGain() {

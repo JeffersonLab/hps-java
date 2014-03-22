@@ -6,12 +6,13 @@ import java.util.Map;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 
 /**
- * This class provides access to all ECal conditions from the database,
+ * This class provides access to all ECAL conditions from the database,
  * including gain, pedestal and bad channel settings, per crystal.
  * 
  * Unlike most conditions data types, it does not extend 
  * {@link org.hps.conditions.ConditionsObject}, because it is a composite
- * object containing data assembled from many other <code>ConditionsObjects</code>
+ * object containing data assembled from many other 
+ * {@link org.hps.conditions.ConditionsObjects}.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */

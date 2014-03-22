@@ -13,14 +13,14 @@ import java.util.Set;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
-public class ConditionsTableMetaData {
+public class TableMetaData {
     
     String _tableName;
     Class<? extends ConditionsObject> _objectClass;
     Class<? extends ConditionsObjectCollection<?>> _collectionClass;
     Set<String> _fieldNames = new LinkedHashSet<String>();
         
-    ConditionsTableMetaData(String tableName, 
+    TableMetaData(String tableName, 
             Class<? extends ConditionsObject> objectClass, 
             Class<? extends ConditionsObjectCollection<?>> collectionClass) {
         _tableName = tableName;

@@ -1,8 +1,6 @@
 package org.hps.conditions;
 
-import java.sql.SQLException;
-
-import org.hps.conditions.AbstractConditionsObject.FieldValueMap;
+import java.util.LinkedHashMap;
 
 /**
  * This is an ORM interface for accessing conditions database information by row.
@@ -16,7 +14,7 @@ public interface ConditionsObject {
      * Get the database table meta data associated to this object.
      * @return The database table meta data associated to this object.
      */
-    ConditionsTableMetaData getTableMetaData();
+    TableMetaData getTableMetaData();
     
     /**
      * Get the row ID of this object.
@@ -43,12 +41,12 @@ public interface ConditionsObject {
     /**
      * Insert this object into the database using a SQL INSERT statement.     
      */
-    void insert() throws ConditionsObjectException, SQLException;
+    void insert() throws ConditionsObjectException;
     
     /**
      * Select data into this object from the database using a SQL SELECT statement.     
      */
-    void select() throws ConditionsObjectException, SQLException;
+    void select() throws ConditionsObjectException;
     
     /**
      * Return true if this object is read-only.
@@ -97,20 +95,12 @@ public interface ConditionsObject {
     public <T> T getFieldValue(String field);
     
     /**
-     * Set the ConnectionManager of this object.
-     * This cannot be reset once set.
-     * @param connectionManager The ConnectionManager.
-     * @throws ConditionsObjectException if already set
-     */
-    void setConnectionManager(ConnectionManager connectionManager) throws ConditionsObjectException ;
-
-    /**
      * Set the ConditionsTableMetaData of this object.
      * This cannot be reset once set.
      * @param tableMetaData The ConditionsTableMetaData.
      * @throws ConditionsObjectException if already set
      */
-    void setTableMetaData(ConditionsTableMetaData tableMetaData) throws ConditionsObjectException;
+    void setTableMetaData(TableMetaData tableMetaData) throws ConditionsObjectException;
     
     /**
      * Set the collection ID of this object.
@@ -132,4 +122,18 @@ public interface ConditionsObject {
      * Set the object to read only mode.  This cannot be changed back once it is set.
      */
     void setIsReadOnly();    
+    
+    /**
+     * Simple class extending <code>java.lang.Map</code> that maps field names to values.
+     */
+    public static final class FieldValueMap extends LinkedHashMap<String, Object> {       
+        
+        Object[] valuesToArray() {
+            return values().toArray();
+        }
+        
+        String[] fieldsToArray() {
+            return keySet().toArray(new String[] {});
+        }
+    }      
 }

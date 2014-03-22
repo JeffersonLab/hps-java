@@ -5,32 +5,46 @@ import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * This class encapsulates all the setup information about a single ECal channel, e.g. one crystal.
- * This includes the channel ID from the conditions database; the crate, slot, and channel numbers
- * from the DAQ hardware, and the physical x and y values of the geometric crystal volumes. 
- * Each of these three pieces of data specifies a unique channel, so the information is in 
- * some sense redundant.  This class allows all these values to be associated by channel 
- * in the same place.  The object references are used as keys into a {@link EcalChannelCollection}
- * in the {@link EcalConditions} object for getting channel data.
+ *
+ * Any one of the three ID types specifies a unique channel.  This class allows all these values to be 
+ * associated together by channel in the same place for ease of lookup.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalChannel extends AbstractConditionsObject {
     
+    /**
+     * The <code>DaqId</code> is the combination of crate, slot and channel that specify the channel's 
+     * DAQ configuration.
+     */
     public static final class DaqId {
         public int crate;
         public int slot;
         public int channel;
     }
     
+    /**
+     * The <code>GeometryId</code> contains the x and y indices of the crystal in the LCSIM-based geometry 
+     * representation.
+     */
     public static final class GeometryId {
         public int x;
         public int y;
     }
     
+    /**
+     * The <code>channelId</code> is a unique number identifying the channel within its conditions collection.
+     * The channels in the database are given sequential channel IDs from 1 to N in semi-arbitrary order.
+     * The channel ID is generally the number used to connect other conditions objects such as {@link EcalGain}
+     * or {@link EcalCalibration} to the appropriate crystal in the calorimeter.
+     */
     public static final class ChannelId {
         public int id;
     }
     
+    /**
+     * A collection of {@link EcalChannel} objects that can be queried.         
+     */
     public static class EcalChannelCollection extends ConditionsObjectCollection<EcalChannel> {
                     
         /**
@@ -66,6 +80,11 @@ public class EcalChannel extends AbstractConditionsObject {
             return null;
         }
         
+        /**
+         * Find a channel by its channel ID.
+         * @param channelId The channel ID to find.
+         * @return The matching channel or null if does not exist.
+         */
         public EcalChannel findChannel(ChannelId channelId) {
             for (EcalChannel channel : getObjects()) {
                 if (channel.getChannelId() == channelId.id) {
@@ -77,7 +96,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Get the crate number.
+     * Get the crate number of the channel.
      * @return The crate number.
      */
     public int getCrate() {
@@ -85,7 +104,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Get the slot number.
+     * Get the slot number of the channel.
      * @return The slot number.
      */
     public int getSlot() {
@@ -93,7 +112,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Get the channel number.
+     * Get the channel number of the channel.
      * @return The channel number.
      */
     public int getChannel() {
@@ -101,7 +120,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Get the x value.
+     * Get the x value of the channel.
      * @return The x value.
      */
     public int getX() {
@@ -109,7 +128,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
     
     /**
-     * Get the y value.
+     * Get the y value of the channel.
      * @return The y value.
      */
     public int getY() {
@@ -117,7 +136,7 @@ public class EcalChannel extends AbstractConditionsObject {
     }
 
     /**
-     * Get the ID.
+     * Get the ID of the channel.
      * @return The ID of the channel.
      */
     public int getChannelId() {
@@ -126,7 +145,7 @@ public class EcalChannel extends AbstractConditionsObject {
     
     /**
      * Implementation of equals.
-     * @return True if objects are equal; false if not.
+     * @return True if objects are equal.
      */
     public boolean equals(Object o) {
         if (o == null) {

@@ -13,10 +13,10 @@ public final class ConditionsObjectException extends Exception {
         super(message);
     }
 
-    public ConditionsObjectException(ConditionsObject object, String message) {
+    public ConditionsObjectException(String message, ConditionsObject object) {
         super(message);
     }
-
+    
     public ConditionsObject getConditionsObject() {
         return _object;
     }

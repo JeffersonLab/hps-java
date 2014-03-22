@@ -16,19 +16,12 @@ import org.jdom.Element;
  */
 public final class ConnectionParameters {
     
-    /** Default values for the MySQL test database at SLAC. */
-    private String user = "rd_hps_cond_ro";
-    private String password = "2jumpinphotons.";
-    private int port = 3306;
-    private String hostname = "mysql-node03.slac.stanford.edu";
-    private String database = "rd_hps_cond";
-    private String conditionsTable = "conditions_dev";
-
-    /**
-     * No argument constructor that uses the defaults.
-     */
-    ConnectionParameters() {
-    }
+    private String user;
+    private String password;
+    private int port;
+    private String hostname;
+    private String database;
+    private String conditionsTable;
 
     /**
      * Fully qualified constructor.
@@ -81,6 +74,20 @@ public final class ConnectionParameters {
     public String getDatabase() {
         return database;
     }
+    
+    /**
+     * Get the user name.
+     */
+    public String getUser() {
+        return user;
+    }
+    
+    /**
+     * Get the password.
+     */
+    public String getPassword() {
+        return password;
+    }
 
     /**
      * Get the connection string for these parameters.
@@ -115,22 +122,17 @@ public final class ConnectionParameters {
     }
     
     /**
-     * Create ConnectionParameters from data in a properties file.
-     * @param properties The properties file.
-     * @return The ConnectionParameters created from the properties file.
+     * Create the connection parameters from an XML container node 
+     * with the appropriate child elements.    
+     * @param element The connection XML element.
+     * @return The ConnectionParameters created from XML.
      */
-    public static final ConnectionParameters fromProperties(Properties properties) {        
-        String user = properties.get("user").toString();
-        String password = properties.getProperty("password").toString();
-        String database = properties.getProperty("database").toString();
-        String hostname = properties.getProperty("hostname").toString();
-        int port = Integer.parseInt(properties.getProperty("port").toString());
-        String conditionsTable = properties.getProperty("conditionsTable").toString();
-        return new ConnectionParameters(user, password, database, hostname, port, conditionsTable);
-    }    
-    
     public static final ConnectionParameters fromXML(Element element) {
+        if (element.getChild("user") == null)
+            throw new IllegalArgumentException("missing user element");
         String user = element.getChild("user").getText();
+        if (element.getChild("password") == null)
+            throw new IllegalArgumentException("missing password element");
         String password = element.getChild("password").getText();
         String database = element.getChild("database").getText();
         String hostname = element.getChild("hostname").getText();

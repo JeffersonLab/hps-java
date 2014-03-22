@@ -27,7 +27,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/conditions/ConditionsDatabaseObjectTest.java</exclude>
+                        <exclude>org/hps/conditions/ConditionsObjectTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

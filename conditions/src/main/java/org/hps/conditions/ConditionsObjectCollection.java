@@ -8,7 +8,7 @@ import java.util.List;
 public class ConditionsObjectCollection<T extends ConditionsObject> {
 
     List<T> objects = new ArrayList<T>();    
-    ConditionsTableMetaData _tableMetaData;
+    TableMetaData _tableMetaData;
     int _collectionId = -1;
     boolean _isReadOnly;
     boolean _isDirty;
@@ -16,8 +16,8 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     
     protected ConditionsObjectCollection() {
     }
-    
-    public ConditionsObjectCollection(ConditionsTableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
+            
+    public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
         _tableMetaData = tableMetaData;
         _collectionId = collectionId;
         _isReadOnly = isReadOnly;
@@ -38,7 +38,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         return getObjects().contains(object);
     }
         
-    public void add(T object) {
+    public void add(T object) throws ConditionsObjectException {
         if (objects.contains(object)) {
             throw new IllegalArgumentException("Collection already contains this object.");
         }
@@ -49,12 +49,15 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         } catch (ConditionsObjectException x) {
             throw new IllegalArgumentException("Error assigning collection ID to object.", x);
         }
+        // Set the table meta data if the object does not have any.
+        if (object.getTableMetaData() == null && _tableMetaData != null)
+            object.setTableMetaData(_tableMetaData);
         objects.add(object);
         if (!isNew())
             setIsDirty(true);
     }
 
-    public ConditionsTableMetaData getTableMetaData() {
+    public TableMetaData getTableMetaData() {
         return _tableMetaData;        
     }
 
@@ -115,11 +118,17 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         return _isNew;
     }
     
-    void setCollectionId(int collectionId) {
+    public void setCollectionId(int collectionId) throws ConditionsObjectException {
+        if (_collectionId != -1)
+            throw new ConditionsObjectException("The collection ID is already set.");
         _collectionId = collectionId;
     }
     
-    void setIsReadOnly(boolean isReadOnly) {
-        _isReadOnly = isReadOnly;
+    public void setTableMetaData(TableMetaData tableMetaData) {
+        _tableMetaData = tableMetaData;
     }
+    
+    public void setIsReadOnly(boolean isReadOnly) {
+        _isReadOnly = isReadOnly;
+    }    
 }

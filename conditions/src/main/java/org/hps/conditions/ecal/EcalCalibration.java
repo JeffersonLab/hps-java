@@ -7,6 +7,9 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class is a simplistic representation of ECal pedestal and noise
  * values from the conditions database.
  * 
+ * The pedestal and noise are in units of ADC counts.  They are the mean and the
+ * standard deviation of the digitized pre-amp output.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCalibration extends AbstractConditionsObject {
@@ -23,7 +26,8 @@ public class EcalCalibration extends AbstractConditionsObject {
     }
     
     /**
-     * Get the pedestal value.
+     * Get the pedestal value in units of ADC counts, which is the 
+     * mean of the digitized pre-amp output.
      * @return The gain value.
      */
     public double getPedestal() {
@@ -31,7 +35,8 @@ public class EcalCalibration extends AbstractConditionsObject {
     }       
     
     /**
-     * Get the noise value.
+     * Get the noise value in units of ADC counts, which is the 
+     * standard deviation of the digitized pre-amp output.
      * @return The noise value.
      */
     public double getNoise() {

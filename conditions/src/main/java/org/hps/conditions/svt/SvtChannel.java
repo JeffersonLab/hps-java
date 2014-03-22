@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.ConditionsObjectException;
 import org.lcsim.hps.util.Pair;
 
 /**
@@ -28,7 +29,11 @@ public class SvtChannel extends AbstractConditionsObject {
             channelMap.put(channel.getChannelId(), channel);
             
             // Add to collection.
-            super.add(channel);
+            try {
+                super.add(channel);
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
         }
         
         public SvtChannel findChannel(int channelId) {

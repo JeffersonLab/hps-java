@@ -5,10 +5,10 @@ package org.hps.conditions;
  * The actual table names for the conditions data are defined externally in an XML configuration file read by the 
  * {@link DatabaseConditionsManager}.
  */
-public final class ConditionsTableConstants {
+public final class TableConstants {
     
     /** Prevent instantiation of this class, which is only a holder of static constant values. */
-    private ConditionsTableConstants() {}
+    private TableConstants() {}
     
     /** Conditions key for ConditionsRecord. */
     public static final String CONDITIONS_RECORD = "conditions_record";

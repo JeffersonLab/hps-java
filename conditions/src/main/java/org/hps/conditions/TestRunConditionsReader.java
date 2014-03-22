@@ -7,7 +7,7 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsReader;
 
 /**
- * This is a simple extension of {@org.lcsim.conditions.ConditionsReader} to find
+ * This is a simple extension of {@link org.lcsim.conditions.ConditionsReader} to find
  * text file conditions data for the HPS Test Run 2012.  It basically just checks
  * two resource locations for files and fails if they do not exist.
  * 
@@ -19,17 +19,17 @@ public class TestRunConditionsReader extends ConditionsReader {
 
     private String detectorName = null;
 
-    public TestRunConditionsReader(ConditionsReader reader) {       
+    public TestRunConditionsReader(ConditionsReader reader) {
     }
 
     public InputStream open(String name, String type) throws IOException {
         
         //System.out.println(this.getClass().getSimpleName() + ".open - " + name + ", " + type);
         
-        // 1) Check the detector base directory.
+        // Check the detector base directory.
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
-            // 2) Check for embedded jar resources e.g. in hps-java.
+            // Check for embedded jar resources e.g. in hps-java.
             in = getClass().getResourceAsStream("/org/lcsim/hps/calib/testrun/" + name + "." + type);
 
             // If these failed to find conditions, then something went wrong.

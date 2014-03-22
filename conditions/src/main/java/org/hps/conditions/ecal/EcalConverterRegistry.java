@@ -6,7 +6,10 @@ import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
 
-
+/**
+ * This is a set of data converters for ECAL conditions in the database.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class EcalConverterRegistry {
     
     public static final class EcalBadChannelConverter extends ConditionsObjectConverter<EcalBadChannelCollection> {         
