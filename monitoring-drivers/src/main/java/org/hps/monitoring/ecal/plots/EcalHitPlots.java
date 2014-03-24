@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.celentan;
+package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -18,13 +18,14 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.hps.evio.TriggerData;
 import org.lcsim.hps.monitoring.deprecated.Resettable;
 import org.lcsim.hps.monitoring.deprecated.Redrawable;
-import org.lcsim.hps.users.celentan.EcalMonitoringUtils;
+
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.freehep.swing.popup.GlobalMouseListener;
 import org.freehep.swing.popup.GlobalPopupListener;
 
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
 
 import javax.swing.JPanel;
 //import org.jfree.chart.ChartPanel;

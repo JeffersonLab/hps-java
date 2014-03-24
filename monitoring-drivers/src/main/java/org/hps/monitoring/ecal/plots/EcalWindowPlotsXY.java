@@ -1,4 +1,4 @@
-package main.java.org.lcsim.hps.users.celentan;
+package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;

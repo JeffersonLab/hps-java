@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.celentan;
+package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogram1D;
@@ -18,6 +18,8 @@ import org.lcsim.hps.monitoring.deprecated.Resettable;
 import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
 
 public class EcalMonitoringPlots extends Driver implements Resettable, Redrawable {
 
@@ -53,6 +55,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     }
 
     protected void detectorChanged(Detector detector) {
+        System.out.println("EcalMonitoringPlots:: detector changed was called");
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots").create("HPS ECal Monitoring Plots");
         // Setup plots.

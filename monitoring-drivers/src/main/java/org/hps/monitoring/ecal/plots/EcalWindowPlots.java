@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.celentan;
+package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
@@ -135,7 +135,7 @@ public class EcalWindowPlots extends Driver implements ActionListener {
                 int crate = EcalConditions.getCrate(daqId);
                 int slot = EcalConditions.getSlot(daqId);
                 int channel = EcalConditions.getChannel(daqId);
-//				System.out.println("got hit: crate " + crate + ", slot " + slot + ", channel " + channel);
+//System.out.println("got hit: crate " + crate + ", slot " + slot + ", channel " + channel);
                 if (hit.getADCValues().length != window) {
                     throw new RuntimeException("Hit has unexpected window length " + hit.getADCValues().length + ", not " + window);
                 }
