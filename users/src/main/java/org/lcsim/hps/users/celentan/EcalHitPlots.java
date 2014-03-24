@@ -25,14 +25,11 @@ import org.lcsim.util.aida.AIDA;
 import org.freehep.swing.popup.GlobalMouseListener;
 import org.freehep.swing.popup.GlobalPopupListener;
 
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.InputEvent; 
 
 import javax.swing.JPanel;
 //import org.jfree.chart.ChartPanel;
 
-public class EcalHitPlots extends Driver implements Resettable, MouseListener{
+public class EcalHitPlots extends Driver implements Resettable{
 
     //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
@@ -83,7 +80,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
     @Override
     protected void detectorChanged(Detector detector) {
     	
-      //  plotterFrame = new AIDAFrame();
+       //plotterFrame = new AIDAFrame();
        // plotterFrame.setTitle("HPS ECal Hit Plots");
     	System.out.println("Detector changed called: "+ detector.getClass().getName());
     	aida.tree().cd("/");
@@ -291,6 +288,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
                 if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
                   	id = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
                 	channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
+                	channelTimePlot.get(id).fill(hit.getTime());
                 }
                 
                 if (hit.getTime() < orTime) {
@@ -351,6 +349,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
         hitMaxEnergyPlot.reset();
         for(int id = 0; id < (47*11); id = id +1){   	  
       	  channelEnergyPlot.get(id).reset();
+    	  channelTimePlot.get(id).reset();
         }
     }
 
@@ -358,35 +357,7 @@ public class EcalHitPlots extends Driver implements Resettable, MouseListener{
     public void endOfData() {
         //plotterFrame.dispose();
     }
-    
-    
-    public void mousePressed(MouseEvent e) {}
-    public void mouseReleased(MouseEvent e) {}
-    public void mouseEntered(MouseEvent e) {}
-    public void mouseExited(MouseEvent e) {}
-    public void mouseClicked(MouseEvent e) {
-        switch(e.getModifiers()) {
-          case InputEvent.BUTTON1_MASK: {
-            System.out.println("That's the LEFT button");    
-            break;
-            }
-          case InputEvent.BUTTON2_MASK: {
-        	  System.out.println(e.getSource().getClass().getName());
-        	  if (e.getSource().getClass().getName() == "org.jfree.chart.ChartPanel"){
-        		  	 JPanel panel=(JPanel)e.getSource();  
-        		  	 JPanel father=(JPanel)panel.getParent(); 
-        	  }
-            break;
-            }
-          case InputEvent.BUTTON3_MASK: {
-            System.out.println("That's the RIGHT button");     
-            break;
-            }
-          }
-        }   
-
-
-   
+       
  
 }
 
