@@ -39,7 +39,7 @@
         </driver>
 			
         <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
-            <coincidenceWindow>2</coincidenceWindow>
+            <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
@@ -59,15 +59,16 @@
 <!--            <debug>true</debug>-->
         </driver>	
 
-        <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.CTPEcalClusterer">
+        <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.GTPEcalClusterer">
             <ecalName>Ecal</ecalName>
-            <clusterWindow>8.0</clusterWindow>
+            <clusterWindow>1</clusterWindow>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
         </driver>
 
         <driver name="EcalTrigger" type="org.lcsim.hps.readout.ecal.FADCTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
+            <pairCoincidence>2</pairCoincidence>
             <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	
         <driver name="SimpleSVTReadout" type="org.lcsim.hps.recon.tracking.SimpleSvtReadout">

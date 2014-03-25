@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.evio.TriggerData;
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.hps.util.ClockSingleton;
@@ -27,8 +27,6 @@ import org.lcsim.util.aida.AIDA;
  */
 public class FADCTriggerDriver extends TriggerDriver {
 
-    // A list to contain all cluster pairs in an event
-    List<HPSEcalCluster[]> clusterPairs;
     int nTriggers;
     int totalEvents;
     protected double beamEnergy = 2.2 * ECalUtils.GeV;
@@ -41,6 +39,8 @@ public class FADCTriggerDriver extends TriggerDriver {
 //    private double energyDistanceThreshold = 0.8 / 2.2;
     private double energyDistanceDistance = 200; // mm
     private double energyDistanceThreshold = 0.5;
+    // maximum time difference between two clusters, in units of readout cycles (4 ns).
+    private int pairCoincidence = 2;
     int allPairs;
     int oppositeQuadrantCount;
     int clusterEnergyCount;
@@ -55,6 +55,10 @@ public class FADCTriggerDriver extends TriggerDriver {
     int truthPeriod = 250;
     private boolean useQuadrants = false;
     protected String clusterCollectionName = "EcalClusters";
+    // FIFO queues of lists of clusters in each ECal half.
+    // Each list corresponds to one readout cycle.
+    private Queue<List<HPSEcalCluster>> topClusterQueue = null;
+    private Queue<List<HPSEcalCluster>> botClusterQueue = null;
 
     private enum Flag {
 
@@ -72,10 +76,6 @@ public class FADCTriggerDriver extends TriggerDriver {
             }
             return mask;
         }
-    }
-
-    public FADCTriggerDriver() {
-        clusterPairs = new LinkedList<HPSEcalCluster[]>();
     }
 
     public void setClusterCollectionName(String clusterCollectionName) {
@@ -121,6 +121,10 @@ public class FADCTriggerDriver extends TriggerDriver {
         this.truthPeriod = truthPeriod;
     }
 
+    public void setPairCoincidence(int pairCoincidence) {
+        this.pairCoincidence = pairCoincidence;
+    }
+
     @Override
     public void detectorChanged(Detector detector) {
         setBeamEnergy(this.getBeamEnergyFromDetector(detector));
@@ -143,6 +147,15 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     @Override
     public void startOfData() {
+        //initialize queues and fill with empty lists
+        topClusterQueue = new LinkedList<List<HPSEcalCluster>>();
+        botClusterQueue = new LinkedList<List<HPSEcalCluster>>();
+        for (int i = 0; i < 2 * pairCoincidence + 1; i++) {
+            topClusterQueue.add(new ArrayList<HPSEcalCluster>());
+        }
+        for (int i = 0; i < pairCoincidence + 1; i++) {
+            botClusterQueue.add(new ArrayList<HPSEcalCluster>());
+        }
         super.startOfData();
         if (clusterCollectionName == null) {
             throw new RuntimeException("The parameter clusterCollectionName was not set!");
@@ -158,23 +171,28 @@ public class FADCTriggerDriver extends TriggerDriver {
     }
 
     @Override
+    public void process(EventHeader event) {
+        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+            // this needs to run every readout cycle whether or not trigger is live
+            updateClusterQueues(event.get(HPSEcalCluster.class, clusterCollectionName));
+        }
+        super.process(event);
+    }
+
+    @Override
     protected boolean triggerDecision(EventHeader event) {
         // Get the list of raw ECal hits.
         if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
-            return testTrigger(event.get(HPSEcalCluster.class, clusterCollectionName));
+            return testTrigger();
         } else {
             return false;
         }
     }
 
-    public boolean testTrigger(List<HPSEcalCluster> clusters) {
+    public boolean testTrigger() {
         boolean trigger = false;
 
-        if (useQuadrants) {
-            getClusterPairs(clusters);
-        } else {
-            getClusterPairsTopBot(clusters);
-        }
+        List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
 
         //--- Apply Trigger Cuts ---//
 
@@ -323,70 +341,53 @@ public class FADCTriggerDriver extends TriggerDriver {
         writer.close();
     }
 
+    protected void updateClusterQueues(List<HPSEcalCluster> ecalClusters) {
+        ArrayList<HPSEcalCluster> topClusterList = new ArrayList<HPSEcalCluster>();
+        ArrayList<HPSEcalCluster> botClusterList = new ArrayList<HPSEcalCluster>();
+        for (HPSEcalCluster ecalCluster : ecalClusters) {
+//            System.out.format("add cluster\t%f\t%d\n", ecalCluster.getSeedHit().getTime(), ecalCluster.getSeedHit().getIdentifierFieldValue("iy"));
+            if (ecalCluster.getSeedHit().getIdentifierFieldValue("iy") > 0) {
+                topClusterList.add(ecalCluster);
+            } else {
+                botClusterList.add(ecalCluster);
+            }
+        }
+
+        topClusterQueue.add(topClusterList);
+        botClusterQueue.add(botClusterList);
+        topClusterQueue.remove();
+        botClusterQueue.remove();
+    }
+
     /**
      * Get a list of all unique cluster pairs in the event
      *
      * @param ecalClusters : List of ECal clusters
-     * @return true if there are any cluster pairs
+     * @return list of cluster pairs
      */
-    protected boolean getClusterPairs(List<HPSEcalCluster> ecalClusters) {
-        // Create a list which will hold all neighboring cluster to the cluster
-        // of interest
-        List< HPSEcalCluster> ecalClusterNeighbors = new LinkedList< HPSEcalCluster>();
-        ecalClusterNeighbors.addAll(ecalClusters);
-
-        // Clear the list of cluster pairs
-        clusterPairs.clear();
-
-        for (HPSEcalCluster ecalCluster : ecalClusters) {
-            // Create a list of neighbors to the cluster of interest
-            ecalClusterNeighbors.remove(ecalCluster);
-
-            // Loop over all neigboring clusters and check to see if there is
-            // any which lie in opposing quadrants to the cluster of interest.
-            // If so, add them to the list of cluster pairs
-            for (HPSEcalCluster ecalClusterNeighbor : ecalClusterNeighbors) {
-                if (ecalCluster.getEnergy() > ecalClusterNeighbor.getEnergy()) {
-                    HPSEcalCluster[] clusterPair = {ecalCluster, ecalClusterNeighbor};
-                    clusterPairs.add(clusterPair);
-                } else {
-                    HPSEcalCluster[] clusterPair = {ecalClusterNeighbor, ecalCluster};
-                    clusterPairs.add(clusterPair);
-                }
-            }
-        }
-
-        return !clusterPairs.isEmpty();
-    }
-
-    protected boolean getClusterPairsTopBot(List<HPSEcalCluster> ecalClusters) {
-        // Create a list which will hold all neighboring cluster to the cluster
-        // of interest
-        List< HPSEcalCluster> topClusters = new ArrayList< HPSEcalCluster>();
-        List< HPSEcalCluster> botClusters = new ArrayList< HPSEcalCluster>();
-        for (HPSEcalCluster ecalCluster : ecalClusters) {
-            if (ecalCluster.getSeedHit().getIdentifierFieldValue("iy") > 0) {
-                topClusters.add(ecalCluster);
-            } else {
-                botClusters.add(ecalCluster);
-            }
-        }
-        // Clear the list of cluster pairs
-        clusterPairs.clear();
+    protected List<HPSEcalCluster[]> getClusterPairsTopBot() {
+        // Make a list of cluster pairs
+        List<HPSEcalCluster[]> clusterPairs = new ArrayList<HPSEcalCluster[]>();
 
         // Loop over all top-bottom pairs of clusters; higher-energy cluster goes first in the pair
-        for (HPSEcalCluster topCluster : topClusters) {
-            for (HPSEcalCluster botCluster : botClusters) {
-                if (topCluster.getEnergy() > botCluster.getEnergy()) {
-                    HPSEcalCluster[] clusterPair = {topCluster, botCluster};
-                    clusterPairs.add(clusterPair);
-                } else {
-                    HPSEcalCluster[] clusterPair = {botCluster, topCluster};
-                    clusterPairs.add(clusterPair);
+        // To apply pair coincidence time, use only bottom clusters from the 
+        // readout cycle pairCoincidence readout cycles ago, and top clusters 
+        // from all 2*pairCoincidence+1 previous readout cycles
+        for (HPSEcalCluster botCluster : botClusterQueue.element()) {
+            for (List<HPSEcalCluster> topClusters : topClusterQueue) {
+                for (HPSEcalCluster topCluster : topClusters) {
+//                    System.out.format("%f\t%f\n", topCluster.getSeedHit().getTime(), botCluster.getSeedHit().getTime());
+                    if (topCluster.getEnergy() > botCluster.getEnergy()) {
+                        HPSEcalCluster[] clusterPair = {topCluster, botCluster};
+                        clusterPairs.add(clusterPair);
+                    } else {
+                        HPSEcalCluster[] clusterPair = {botCluster, topCluster};
+                        clusterPairs.add(clusterPair);
+                    }
                 }
             }
         }
-        return !clusterPairs.isEmpty();
+        return clusterPairs;
     }
 
     /**

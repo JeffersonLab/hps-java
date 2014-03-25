@@ -71,10 +71,12 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
         	//for(HPSEcalCluster cl : unique_clusters) {
         	//	System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
         	//}
-        	
-            boolean foundClusterPairs = getClusterPairs(unique_clusters);
-            
-            if( foundClusterPairs) {
+
+            updateClusterQueues(unique_clusters);
+            List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+            boolean foundClusterPairs = !clusterPairs.isEmpty();
+
+            if (foundClusterPairs) {
 
             int ipair = 0;
             for(HPSEcalCluster[] pair : clusterPairs) {
