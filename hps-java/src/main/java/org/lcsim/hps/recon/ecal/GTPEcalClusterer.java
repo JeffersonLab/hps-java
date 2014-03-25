@@ -151,7 +151,8 @@ public class GTPEcalClusterer extends Driver {
                 continue seedLoop;
             }
 
-            // Store the crystals that are part of this potential cluster.
+            // Store the crystals that are part of this potential cluster, 
+            // starting with the cluster seed candidate.
             HPSEcalCluster cluster = new HPSEcalCluster(currentHit);
             cluster.addHit(currentHit);
 
@@ -162,9 +163,9 @@ public class GTPEcalClusterer extends Driver {
             addLoop:
             for (Map<Long, CalorimeterHit> bufferHits : hitBuffer) {
                 // Get the hit energy at the current hit's position in
-                // the buffer, if it exists.
+                // the buffer, if it exists. Ignore the current seed candidate.
                 CalorimeterHit bufferHit = bufferHits.get(currentID);
-                if (bufferHit != null) {
+                if (bufferHit != null && bufferHit != currentHit) {
                     double bufferHitEnergy = bufferHit.getRawEnergy();
 
                     // Check to see if the hit at this point in the buffer
