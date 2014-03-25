@@ -30,12 +30,30 @@ import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
 import javax.swing.JPanel;
 //import org.jfree.chart.ChartPanel;
 
+/**
+ * The driver <code>EcalHitPlots</code> implements the histogram shown to the user 
+ * in the second tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
+ * These histograms shows single-channels distributions:
+ * - First sub-tab shows the hits distribution*  (Histogram2D), the occupancy* (Histogram2D), the number of hits per event (Histogram1D),
+ *   the time distribution of the hits (Histogram1D)
+ *   The first two histograms are defined in <code>EcalMonitoringPlots</code>.
+ * - Second sub-tab shows the energy distribution of the hits (Histogram1D), and the maximum energy in each event (Histogram1D)
+ * - Third sub-tab shows the time distribution of the first hit per event, for the Ecal top (Histogram1D),  for the Ecal bottom (Histogram1D),  for both  for the Ecal top (Histogram1D).
+ * 
+ * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event refresh rate configured in the <code> EcalMonitoringPlots </code> driver
+ * 
+ * This driver also creates histogram with the energy distribution and the time distribution for each channel.
+ * These are not shown here, but are used in the <code>EcalEventDisplay</code> driver. 
+ * However, it seemed to me this is the best place where to put them.
+ * @author Andrea Celentano
+ *
+ */
 public class EcalHitPlots extends Driver implements Resettable{
 
     //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
     AIDA aida = AIDA.defaultInstance();
-    IPlotter plotter, plotter2, plotter3, plotter4;
+    IPlotter plotter, plotter2, plotter3;
 
     IHistogram1D hitCountPlot;
     IHistogram1D hitTimePlot;
@@ -49,10 +67,10 @@ public class EcalHitPlots extends Driver implements Resettable{
     IHistogram2D occupancyPlot;
    
   
-    //Plotter5
+   
     ArrayList<IHistogram1D> channelEnergyPlot;
     ArrayList<IHistogram1D> channelTimePlot;
-    
+    ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
   
     int eventn = 0;
     int eventRefreshRate = 1;
@@ -80,17 +98,14 @@ public class EcalHitPlots extends Driver implements Resettable{
 
     @Override
     protected void detectorChanged(Detector detector) {
-    	
-       //plotterFrame = new AIDAFrame();
-       // plotterFrame.setTitle("HPS ECal Hit Plots");
-    	System.out.println("Detector changed called: "+ detector.getClass().getName());
-    	aida.tree().cd("/");
+        
+        System.out.println("Detector changed called: "+ detector.getClass().getName());
+        aida.tree().cd("/");
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
         // Setup the plotter.
         plotter = plotterFactory.create("Hit Counts");
         plotter.setTitle("Hit Counts");
-     //   plotterFrame.addPlotter(plotter);
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
 
         // Setup plots.
@@ -116,20 +131,23 @@ public class EcalHitPlots extends Driver implements Resettable{
         
         channelEnergyPlot=new ArrayList<IHistogram1D>();
         channelTimePlot=new ArrayList<IHistogram1D>();
+        channelTimeVsEnergyPlot=new ArrayList<IHistogram2D>();
+        //create the histograms for single channel energy and time distribution.
+        //these are NOT shown in this plotter, but are used in the event display.
         for(int id = 0; id < (47*11); id = id +1){
-        	  int row=EcalMonitoringUtils.getRowFromHistoID(id);
-        	  int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
-        	  //create the histograms
-        	  channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
-        	  channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
+              int row=EcalMonitoringUtils.getRowFromHistoID(id);
+              int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
+              channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
+              channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
+              channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400,100, -0.1, maxEch));     
         }
         
         
         // Create the plotter regions.
-        plotter.createRegions(2, 2);
-        plotter.region(3).plot(hitCountPlot);
-        plotter.region(1).plot(hitTimePlot);
+        plotter.createRegions(2,2);
         plotter.region(0).plot(hitNumberPlot);
+        plotter.region(1).plot(hitTimePlot);
+        plotter.region(3).plot(hitCountPlot);
         IPlotterStyle style = plotter.region(2).style();
         style.setParameter("hist2DStyle", "colorMap");
         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
@@ -139,12 +157,8 @@ public class EcalHitPlots extends Driver implements Resettable{
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
-      //  plotter2.addMouseListener(this);
-     //   plotterFrame.addPlotter(plotter2);
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
 
-  
-//        hitEnergyPlot.addMouseListener(this);
         
         if (logScale) {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
@@ -153,24 +167,12 @@ public class EcalHitPlots extends Driver implements Resettable{
         // Create the plotter regions.
         plotter2.createRegions(1, 2);
         plotter2.region(0).plot(hitEnergyPlot);
-        plotter2.region(1).plot(hitMaxEnergyPlot);
-
-    
-  
-      
-     
-         
-        
-        
-        
+        plotter2.region(1).plot(hitMaxEnergyPlot); 
+               
         plotter3 = plotterFactory.create("Hit Times");
         plotter3.setTitle("Hit Times");
-      //  plotterFrame.addPlotter(plotter3);
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter3.createRegions(3, 3);
-
-      
-        // Create the plotter regions.
+        plotter3.createRegions(3, 3);      
         plotter3.region(0).plot(topTimePlot);
         plotter3.region(1).plot(botTimePlot);
         plotter3.region(2).plot(orTimePlot);
@@ -192,34 +194,18 @@ public class EcalHitPlots extends Driver implements Resettable{
                 plotter3.region(i).style().zAxisStyle().setParameter("scale", "log");
             }
         }
-
-       // plotter4 = plotterFactory.create("Edges");
-       // plotter4.setTitle("Edges");
-      //  plotterFrame.addPlotter(plotter4);
-       // plotter4.style().setParameter("hist2DStyle", "colorMap");
-       // plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-       // plotter4.style().zAxisStyle().setParameter("scale", "log");
-      //  plotter4.createRegion();
-
-       //
-       // plotter4.region(0).plot(edgePlot);
-
         
         if (!hide) {
-        	plotter.show();
-        	plotter2.show();
-        	plotter3.show(); 
-        //	plotter4.show(); 
-        //	plotter5.show(); Andrea: not yet.
+            plotter.show();
+            plotter2.show();
+            plotter3.show(); 
         }
-        //plotterFrame.setVisible(true);
-        //plotterFrame.pack();
     }
 
     @Override
     public void process(EventHeader event) {
-    	
-    	
+        
+        
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
@@ -282,14 +268,15 @@ public class EcalHitPlots extends Driver implements Resettable{
                
                 hitEnergyPlot.fill(hit.getRawEnergy());
                 hitTimePlot.fill(hit.getTime());
-                
+            
                 
                 column=hit.getIdentifierFieldValue("ix");
                 row=hit.getIdentifierFieldValue("iy"); 
                 if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
-                  	id = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
-                	channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
-                	channelTimePlot.get(id).fill(hit.getTime());
+                    id = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
+                    channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
+                    channelTimePlot.get(id).fill(hit.getTime());
+                    channelTimeVsEnergyPlot.get(id).fill(hit.getTime(),hit.getRawEnergy());
                 }
                 
                 if (hit.getTime() < orTime) {
@@ -348,9 +335,9 @@ public class EcalHitPlots extends Driver implements Resettable{
         hitTimePlot.reset();
         hitEnergyPlot.reset();
         hitMaxEnergyPlot.reset();
-        for(int id = 0; id < (47*11); id = id +1){   	  
-      	  channelEnergyPlot.get(id).reset();
-    	  channelTimePlot.get(id).reset();
+        for(int id = 0; id < (47*11); id = id +1){         
+            channelEnergyPlot.get(id).reset();
+            channelTimePlot.get(id).reset();
         }
     }
 
@@ -358,8 +345,6 @@ public class EcalHitPlots extends Driver implements Resettable{
     public void endOfData() {
         //plotterFrame.dispose();
     }
-       
- 
 }
 
    

@@ -20,12 +20,25 @@ import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+/**
+ * The driver <code>EcalCluster</code> implements the histogram shown to the user 
+ * in the third tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
+ * These histograms shows single-channels distributions:
+ * - First sub-tab shows the cluster counts per event (Histogram1D), the number of hits in a cluster (Histogram1D),  the cluster centers distribution* (Histogram2D), the maximum cluster energy in an event (Histogram1D)
+ * - Second sub-tab shows the energy distribution of the cluster (Histogram1D), and the maximum cluster energy in each event (Histogram1D)
+ * - Third sub-tab shows the time distribution of the cluster (Histogram1D),  taken from the mean of the times forming the cluster, as well as the RMS (Histogram1D).
+ * - Last sub-tab is a "zoom" of the the cluster centers distribution
+ * All histograms are updated continously.
+ * 
+ * The cluster center is calculated from the energy center of gravity of the hits forming a cluster.
+ * @author Andrea Celentano
+ *
+ */
+
 public class EcalClusterPlots extends Driver implements Resettable {
 
-	//AIDAFrame plotterFrame;
     String inputCollection = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
-    
     
     IPlotter plotter1, plotter2, plotter3, plotter4;
     IHistogram1D clusterCountPlot;
@@ -54,17 +67,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
 
     @Override
     protected void detectorChanged(Detector detector) {
-
-    	//plotterFrame = new AIDAFrame();
-        //plotterFrame.setTitle("HPS ECal Cluster Plots");
-    	
-        // Setup the plotter factory.
-    	IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Cluster Plots");
-    	plotter1 = plotterFactory.create("Cluster Counts");
-        plotter1.setTitle("Cluster Counts");
-        //plotterFrame.addPlotter(plotter);
-        plotter1.style().dataStyle().errorBarStyle().setVisible(false);
-
         // Setup plots.
         aida.tree().cd("/");
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Count per Event", 10, -0.5, 9.5);
@@ -75,61 +77,51 @@ public class EcalClusterPlots extends Driver implements Resettable {
         clusterTimes = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Mean", 400, 0, 4.0 * 100);
         clusterTimeSigma = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Sigma", 100, 0, 40);
         
-        
+        // Setup the plotter factory.
+        IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Cluster Plots");
+      
         // Create the plotter regions.
+        plotter1 = plotterFactory.create("Cluster Counts");
+        plotter1.setTitle("Cluster Counts");
+        plotter1.style().dataStyle().errorBarStyle().setVisible(false);
         plotter1.createRegions(2, 2);
         plotter1.region(0).plot(clusterCountPlot);
         plotter1.region(1).plot(clusterSizePlot);
         plotter1.region(2).plot(edgePlot);
         plotter1.region(3).plot(clusterMaxEnergyPlot);
 
-        // Setup the plotter.
+        
         plotter2 = plotterFactory.create("Cluster Energies");
+        plotter2.createRegions(1,2);
         plotter2.setTitle("Cluster Energies");
-        //plotterFrame.addPlotter(plotter2);
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
-
         if (logScale) {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
         }
-
-     
-
-        // Create the plotter regions.
-        plotter2.createRegions(1, 2);
         plotter2.region(0).plot(clusterEnergyPlot);
         plotter2.region(1).plot(clusterMaxEnergyPlot);
 
         plotter3 = plotterFactory.create("Cluster Times");
         plotter3.setTitle("Cluster Times");
-        //plotterFrame.addPlotter(plotter3);
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.createRegions(1, 2);
         plotter3.style().yAxisStyle().setParameter("scale", "log");
-
-      
         plotter3.region(0).plot(clusterTimes);
         plotter3.region(1).plot(clusterTimeSigma);
 
         plotter4 = plotterFactory.create("Cluster Center");
         plotter4.setTitle("Edges");
-        //plotterFrame.addPlotter(plotter4);
         plotter4.style().setParameter("hist2DStyle", "colorMap");
         plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotter4.style().zAxisStyle().setParameter("scale", "log");
-        plotter4.createRegion();
-
-       
-      
-
-        //plotterFrame.setVisible(true);
-        //plotterFrame.pack();
+        plotter4.createRegion(); 
+        plotter4.region(0).plot(edgePlot);
         
         if (!hide){
-        	plotter1.show();
-        	plotter2.show();
-        	plotter3.show();
-        	plotter4.show();
+            plotter1.show();
+            plotter2.show();
+            plotter3.show();
+            plotter4.show();
         }
     }
 
@@ -142,7 +134,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
             List<TriggerData> triggerList = event.get(TriggerData.class, "TriggerBank");
             if (!triggerList.isEmpty()) {
                 TriggerData triggerData = triggerList.get(0);
-
                 orTrig = triggerData.getOrTrig();
                 topTrig = triggerData.getTopTrig();
                 botTrig = triggerData.getBotTrig();
@@ -168,11 +159,10 @@ public class EcalClusterPlots extends Driver implements Resettable {
 //                    System.out.format("cluster:\n");
                 for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     if (hit.getRawEnergy() != 0) {
-                    	energies[size] = hit.getRawEnergy();
+                    energies[size] = hit.getRawEnergy();
                         times[size] = hit.getTime();
                         X += energies[size] * hit.getIdentifierFieldValue("ix");
                         Y += energies[size] * hit.getIdentifierFieldValue("iy");
-                        //clusterTimes.fill(hit.getTime());
                         size++;
 //                            System.out.format("x=%d, y=%d, time=%f, energy=%f\n", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), hit.getTime(), hit.getRawEnergy());
                     }
@@ -183,9 +173,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
                 clusterSizePlot.fill(size); //The number of "hits" in a "cluster"
                 clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(times, 0, size)));
                 edgePlot.fill(X,Y);
-            
-             
-//                }
             }
             clusterMaxEnergyPlot.fill(maxEnergy);
         } else {
@@ -203,6 +190,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
 
     @Override
     public void endOfData() {
-    	//plotterFrame.dispose();
+    //plotterFrame.dispose();
     }
 }

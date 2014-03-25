@@ -36,6 +36,18 @@ import org.hps.monitoring.ecal.util.CrystalEvent;
 import org.hps.monitoring.ecal.util.CrystalListener;
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
 
+/**
+ *  The driver <code>EcalEvendDisplay</code> implements the histogram shown to the user 
+ * in the fifth tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
+ * IT ALSO OPENS KYLE's EVENT DISPLAY <code>PEventViewer</code>.
+ * The implementation is as follows:
+ * - The event display is opened in a separate window
+ * - It is updated regularly, according to the event refresh rate
+ * - If the user clicks on a crystal, the corresponding energy and time distributions (both Histogram1D) are shown in the last panel of the MonitoringApplicatopn
+ * The single channel plots are created in the  <code>EcalHitPlots</code> driver.
+ * @author Andrea Celentano
+ *  *
+ */
 
 public class EcalEventDisplay extends Driver implements CrystalListener,ActionListener {
 
@@ -52,6 +64,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
     private PEventViewer viewer; //this is the Kyle event viewer.    
 
     IHistogram1D hEnergy,hEnergyDraw,hTime,hTimeDraw;
+    IHistogram2D hTimeVsEnergy,hTimeVsEnergyDraw;
     
     public EcalEventDisplay() {
     	
@@ -79,11 +92,12 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
     	
        	hEnergy = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (iy) + " "+ (ix)+ ": "+id);
        	hTime = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (iy) + " "+ (ix)+ ": "+id);
+       	hTimeVsEnergy = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (iy) + " "+ (ix)+ ": "+id);
        			
       	
     	hEnergyDraw=aida.histogram1D("hEnergy",hEnergy.axis().bins(),hEnergy.axis().lowerEdge(),hEnergy.axis().upperEdge());
     	hTimeDraw=aida.histogram1D("hTime",hTime.axis().bins(),hTime.axis().lowerEdge(),hTime.axis().upperEdge());
- 		
+    	hTimeVsEnergyDraw=aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (iy) + " "+ (ix)+ ": "+id,hTimeVsEnergy.xAxis().bins(),hTimeVsEnergy.xAxis().lowerEdge(),hTimeVsEnergy.xAxis().upperEdge(),hTimeVsEnergy.yAxis().bins(),hTimeVsEnergy.yAxis().lowerEdge(),hTimeVsEnergy.yAxis().upperEdge());
     			
     			
     			
@@ -98,6 +112,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         plotter.createRegions(2,2);
         plotter.region(0).plot(hEnergyDraw);
         plotter.region(1).plot(hTimeDraw);
+        plotter.region(2).plot(hTimeVsEnergyDraw);
         //plotter.region(1).plot();
         //plotter.region(2).plot();
         //plotter.region(3).plot();
@@ -174,6 +189,10 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
        	hTimeDraw.setTitle(hTime.title());
        	hTimeDraw.add(hTime);
         
+    	hTimeVsEnergy = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (iy) + " "+ (ix)+ ": "+id);
+      	hTimeVsEnergyDraw.reset();
+       	hTimeVsEnergyDraw.setTitle(hTimeVsEnergy.title());
+       	hTimeVsEnergyDraw.add(hTimeVsEnergy);
           
     }
     
@@ -236,6 +255,12 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         plotter.region(1).setTitle(hTime.title());
        	hTimeDraw.setTitle(hTime.title());
        	hTimeDraw.add(hTime);
+       	
+     	hTimeVsEnergy = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (iy) + " "+ (ix)+ ": "+id);
+       	hTimeVsEnergyDraw.reset();
+        plotter.region(2).setTitle(hTimeVsEnergy.title());
+       	hTimeVsEnergyDraw.setTitle(hTimeVsEnergy.title());
+       	hTimeVsEnergyDraw.add(hTimeVsEnergy);
 	}    
 }
 

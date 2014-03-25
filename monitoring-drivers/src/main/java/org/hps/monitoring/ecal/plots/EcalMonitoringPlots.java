@@ -21,6 +21,18 @@ import org.lcsim.util.aida.AIDA;
 
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
 
+/**
+ * The driver <code>EcalMonitoringPlots</code> implements the histogram shown to the user 
+ * in the first tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
+ * It contains only a sub-tab, with 3 histograms.
+ * - Hit counts by channel (Histogram2D), Occupancy by channel (Histogram2D), Cluster counts by channel (Histogram2D) 
+ * Each cluster is associated with the seed crystal.
+ * 
+ * These plots are updated regularly, according to the event refresh rate.
+ * @author Andrea Celentano
+ *
+ */
+
 public class EcalMonitoringPlots extends Driver implements Resettable, Redrawable {
 
     String inputCollection = "EcalReadoutHits";
@@ -53,6 +65,16 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void setHide(boolean hide) {
         this.hide = hide;
     }
+    
+    /**
+     * Set the refresh rate for histograms in this driver
+     * @param eventRefreshRate: the refresh rate, defined as number of events to accumulate before
+     * refreshing the plot
+     */
+    @Override
+    public void setEventRefreshRate(int eventRefreshRate) {
+        this.eventRefreshRate = eventRefreshRate;
+    }
 
     protected void detectorChanged(Detector detector) {
         System.out.println("EcalMonitoringPlots:: detector changed was called");
@@ -68,8 +90,8 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
 
         occupancyPlots=new ArrayList<IHistogram1D>();
         for (int ii=0;ii<(11*47);ii++){
-        	 int row=EcalMonitoringUtils.getRowFromHistoID(ii);
-       	     int column=EcalMonitoringUtils.getColumnFromHistoID(ii);     
+             int row=EcalMonitoringUtils.getRowFromHistoID(ii);
+             int column=EcalMonitoringUtils.getColumnFromHistoID(ii);     
              occupancyPlots.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy : " + (row) + " "+ (column)+ ": "+ii, 101,0,1));  
         }
         
@@ -98,15 +120,15 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     }
  
     public void process(EventHeader event) {
-    	int nhits=0;
-    	int chits[]=new int[11*47];
+        int nhits=0;
+        int chits[]=new int[11*47];
         if (event.hasCollection(BaseRawCalorimeterHit.class, inputCollection)) {
             List<BaseRawCalorimeterHit> hits = event.get(BaseRawCalorimeterHit.class, inputCollection);
             for (BaseRawCalorimeterHit hit : hits) {
-            	int column=hit.getIdentifierFieldValue("ix");
-            	int row=hit.getIdentifierFieldValue("iy");
-            	int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
-            	hitCountFillPlot.fill(column,row);
+                int column=hit.getIdentifierFieldValue("ix");
+                int row=hit.getIdentifierFieldValue("iy");
+                int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
+                hitCountFillPlot.fill(column,row);
                 chits[id]++;
                 nhits++;
             }
@@ -114,10 +136,10 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         if (event.hasCollection(RawTrackerHit.class, inputCollection)) {
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollection);
             for (RawTrackerHit hit : hits) { 
-            	int column=hit.getIdentifierFieldValue("ix");
-            	int row=hit.getIdentifierFieldValue("iy");
-            	int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
-            	hitCountFillPlot.fill(column,row);
+                int column=hit.getIdentifierFieldValue("ix");
+                int row=hit.getIdentifierFieldValue("iy");
+                int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
+                hitCountFillPlot.fill(column,row);
                 chits[id]++;
                 nhits++;
             }
@@ -125,10 +147,10 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
             for (CalorimeterHit hit : hits) {
-            	int column=hit.getIdentifierFieldValue("ix");
-            	int row=hit.getIdentifierFieldValue("iy");
-            	int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
-            	hitCountFillPlot.fill(column,row);
+                int column=hit.getIdentifierFieldValue("ix");
+                int row=hit.getIdentifierFieldValue("iy");
+                int id=EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
+                hitCountFillPlot.fill(column,row);
                 chits[id]++;
                 nhits++;
             }
@@ -137,16 +159,15 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         
         
         
-  	  if (nhits>0) {
+        if (nhits>0) {
         for (int ii=0;ii<(11*47);ii++){
-        	occupancyPlots.get(ii).fill(chits[ii]*1./(nhits ));                
-        }
-  	  }        
+            occupancyPlots.get(ii).fill(chits[ii]*1./(nhits ));                
+            }
+        }        
         
             
         if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);
-//if (clusters.size()>1)            
+            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);           
             for (HPSEcalCluster cluster : clusters) {
                 clusterCountFillPlot.fill(cluster.getSeedHit().getIdentifierFieldValue("ix"), cluster.getSeedHit().getIdentifierFieldValue("iy"));
             }
@@ -170,7 +191,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         
         occupancyDrawPlot.reset();
         for (int id=0;id<(47*11);id++){
-        	occupancyPlots.get(id).reset();
+            occupancyPlots.get(id).reset();
         }
     }
 
@@ -182,17 +203,14 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         clusterCountDrawPlot.add(clusterCountFillPlot);        
         occupancyDrawPlot.reset();
         for (int id=0;id<(47*11);id++){
-        		int row=EcalMonitoringUtils.getRowFromHistoID(id);
-        		int column=EcalMonitoringUtils.getColumnFromHistoID(id);
-        		double mean=occupancyPlots.get(id).mean();
-        		if ((row!=0)&&(column!=0)&&(!EcalMonitoringUtils.isInHole(row, column))) occupancyDrawPlot.fill(column,row,mean);
-        	}
-    	} 
+                int row=EcalMonitoringUtils.getRowFromHistoID(id);
+                int column=EcalMonitoringUtils.getColumnFromHistoID(id);
+                double mean=occupancyPlots.get(id).mean();
+                if ((row!=0)&&(column!=0)&&(!EcalMonitoringUtils.isInHole(row, column))) occupancyDrawPlot.fill(column,row,mean);
+            }
+        } 
 
-    @Override
-    public void setEventRefreshRate(int eventRefreshRate) {
-        this.eventRefreshRate = eventRefreshRate;
-    }
+  
 
     private IHistogram2D makeCopy(IHistogram2D hist) {
         return aida.histogram2D(hist.title() + "_copy", hist.xAxis().bins(), hist.xAxis().lowerEdge(), hist.xAxis().upperEdge(), hist.yAxis().bins(), hist.yAxis().lowerEdge(), hist.yAxis().upperEdge());
