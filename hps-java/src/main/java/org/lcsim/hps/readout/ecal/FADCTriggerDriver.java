@@ -30,6 +30,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     int nTriggers;
     int totalEvents;
     protected double beamEnergy = 2.2 * ECalUtils.GeV;
+    private int minHitCount = 1;
     private double clusterEnergyHigh = 1.85 / 2.2;
     private double clusterEnergyLow = .1 / 2.2;
     private double energySumThreshold = 1.0;
@@ -49,8 +50,8 @@ public class FADCTriggerDriver extends TriggerDriver {
     int energyDistanceCount;
     int coplanarityCount;
     AIDA aida = AIDA.defaultInstance();
-    IHistogram2D clusterEnergy2DAll, clusterSumDiff2DAll, energyDistance2DAll, clusterAngles2DAll, clusterCoplanarity2DAll;
-    IHistogram2D clusterEnergy2D, clusterSumDiff2D, energyDistance2D, clusterAngles2D, clusterCoplanarity2D;
+    IHistogram2D clusterHitCount2DAll, clusterEnergy2DAll, clusterSumDiff2DAll, energyDistance2DAll, clusterAngles2DAll, clusterCoplanarity2DAll;
+    IHistogram2D clusterHitCount2D, clusterEnergy2D, clusterSumDiff2D, energyDistance2D, clusterAngles2D, clusterCoplanarity2D;
     IHistogram1D triggerBits1D, triggerTimes1D;
     int truthPeriod = 250;
     private boolean useQuadrants = false;
@@ -62,7 +63,7 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     private enum Flag {
 
-        CLUSTER_ENERGY(3), ENERGY_SUM_DIFF(2), ENERGY_DISTANCE(1), COPLANARITY(0);
+        CLUSTER_HITCOUNT(4), CLUSTER_ENERGY(3), ENERGY_SUM_DIFF(2), ENERGY_DISTANCE(1), COPLANARITY(0);
         private final int index;
 
         Flag(int i) {
@@ -129,19 +130,21 @@ public class FADCTriggerDriver extends TriggerDriver {
     public void detectorChanged(Detector detector) {
         setBeamEnergy(this.getBeamEnergyFromDetector(detector));
 
+        clusterHitCount2DAll = aida.histogram2D("All cluster pairs: hit count (less energetic vs. more energetic)", 9, 0.5, 9.5, 9, 0.5, 9.5);
         clusterSumDiff2DAll = aida.histogram2D("All cluster pairs: energy difference vs. sum", 100, 0.0, 2 * beamEnergy, 100, 0.0, beamEnergy);
         clusterEnergy2DAll = aida.histogram2D("All cluster pairs: energy (less energetic vs. more energetic)", 100, 0.0, 2 * beamEnergy, 100, 0.0, beamEnergy);
         energyDistance2DAll = aida.histogram2D("All cluster pairs: distance vs. energy (less energetic cluster)", 100, 0.0, 0.5 * beamEnergy, 25, 0.0, 400.0);
         clusterCoplanarity2DAll = aida.histogram2D("All cluster pairs: cluster angle uncoplanarity vs. less energetic cluster angle", 100, -180.0, 180.0, 100, -180.0, 180.0);
         clusterAngles2DAll = aida.histogram2D("All cluster pairs: cluster angle (less energetic vs. more energetic)", 100, -180.0, 180.0, 100, -180.0, 180.0);
 
+        clusterHitCount2D = aida.histogram2D("Passed other cuts: hit count (less energetic vs. more energetic)", 9, 0.5, 9.5, 9, 0.5, 9.5);
         clusterSumDiff2D = aida.histogram2D("Passed other cuts: energy difference vs. sum", 100, 0.0, 2 * beamEnergy, 100, 0.0, beamEnergy);
         clusterEnergy2D = aida.histogram2D("Passed other cuts: energy (less energetic vs. more energetic)", 100, 0.0, 2 * beamEnergy, 100, 0.0, beamEnergy);
         energyDistance2D = aida.histogram2D("Passed other cuts: distance vs. energy (less energetic cluster)", 100, 0.0, 0.5 * beamEnergy, 25, 0.0, 400.0);
         clusterCoplanarity2D = aida.histogram2D("Passed other cuts: cluster angle uncoplanarity vs. less energetic cluster angle", 100, -180.0, 180.0, 100, -180.0, 180.0);
         clusterAngles2D = aida.histogram2D("Passed other cuts: cluster angle (less energetic vs. more energetic)", 100, -180.0, 180.0, 100, -180.0, 180.0);
 
-        triggerBits1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger bits", 17, -1.5, 15.5);
+        triggerBits1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger bits", 33, -1.5, 31.5);
         triggerTimes1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger times", truthPeriod, -0.5, truthPeriod - 0.5);
     }
 
@@ -224,6 +227,12 @@ public class FADCTriggerDriver extends TriggerDriver {
                 oppositeQuadrantCount++;
             }
 
+            // Require the components of a cluster pair to have at least one 
+            // hit each (should always be true)
+            if (clusterHitCount(clusterPair)) {
+                bits.add(Flag.CLUSTER_HITCOUNT);
+            }
+
             // Require the components of a cluster pair to have an energy in
             // the range of 100 MeV to 1.85 GeV
             if (clusterECut(clusterPair)) {
@@ -282,11 +291,16 @@ public class FADCTriggerDriver extends TriggerDriver {
                 outputStream.println("Failed cluster energy cut");
             }
 
+            clusterHitCount2DAll.fill(clusterPair[0].getCalorimeterHits().size(), clusterPair[1].getCalorimeterHits().size());
             clusterSumDiff2DAll.fill(clusterPair[0].getEnergy() + clusterPair[1].getEnergy(), clusterPair[0].getEnergy() - clusterPair[1].getEnergy());
             clusterEnergy2DAll.fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             energyDistance2DAll.fill(clusterPair[1].getEnergy(), getClusterDistance(clusterPair[1]));
             clusterCoplanarity2DAll.fill(getClusterAngle(clusterPair[1]), pairUncoplanarity(clusterPair));
             clusterAngles2DAll.fill(getClusterAngle(clusterPair[0]), getClusterAngle(clusterPair[1]));
+
+            if (bits.containsAll(EnumSet.complementOf(EnumSet.of(Flag.CLUSTER_HITCOUNT)))) {
+                clusterHitCount2D.fill(clusterPair[0].getCalorimeterHits().size(), clusterPair[1].getCalorimeterHits().size());
+            }
 
             if (bits.containsAll(EnumSet.complementOf(EnumSet.of(Flag.ENERGY_SUM_DIFF, Flag.CLUSTER_ENERGY)))) { //cluster energy, energy-distance, coplanarity
                 clusterSumDiff2D.fill(clusterPair[0].getEnergy() + clusterPair[1].getEnergy(), clusterPair[0].getEnergy() - clusterPair[1].getEnergy());
@@ -408,6 +422,18 @@ public class FADCTriggerDriver extends TriggerDriver {
         else {
             return ((quad1 & 1) == (quad2 & 1));
         }
+    }
+
+    /**
+     * Checks if the ECal clusters making up a cluster pair both have at least
+     * the minimum number of hits.
+     *
+     * @param clusterPair: pair of clusters
+     * @return true if pair passes cut, false if fail
+     */
+    protected boolean clusterHitCount(HPSEcalCluster[] clusterPair) {
+        return (clusterPair[0].getCalorimeterHits().size() >= minHitCount
+                && clusterPair[1].getCalorimeterHits().size() >= minHitCount);
     }
 
     /**
