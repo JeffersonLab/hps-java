@@ -33,7 +33,7 @@
         </driver>
         <driver name="BadChannelFilter" type="org.lcsim.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
         <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
-            <coincidenceWindow>2</coincidenceWindow>
+            <coincidenceWindow>8</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
