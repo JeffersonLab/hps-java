@@ -2,37 +2,26 @@ package org.hps.conditions.ecal;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DefaultTestSetup;
 
 /**
  * Tests that a {@link EcalConditions} objects loads without errors.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsConverterTest extends TestCase {
-    
-    final String detectorName = "HPS-conditions-test";
-    final int runNumber = 777;
-    
-    DatabaseConditionsManager conditionsManager;
-    
+      
     public void setUp() {
-        // Create and configure the conditions manager.
-        conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setDetectorName(detectorName);
-        conditionsManager.setRunNumber(runNumber);
-        conditionsManager.setup();
+        new DefaultTestSetup().configure().setup();
     }
             
     public void test() {
-                                                
+        
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        
         // Test that the manager gets ECAL conditions.
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();        
         assertNotNull(conditions);
         System.out.println(conditions);
-        
-        // Cleanup the connection.
-        ConnectionManager.getConnectionManager().disconnect();
     }    
 }

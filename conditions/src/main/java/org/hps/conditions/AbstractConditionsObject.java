@@ -3,12 +3,12 @@ package org.hps.conditions;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * The abstract implementation of {@link ConditionsObject}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Database query methods need to be rewritten to use QueryBuilder (which itself needs to be written).
 public abstract class AbstractConditionsObject implements ConditionsObject {
 
     private TableMetaData _tableMetaData = null;
@@ -24,7 +24,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
     protected AbstractConditionsObject() {     
         _fieldValues = new FieldValueMap();
     }
-        
+            
     public TableMetaData getTableMetaData() {
         return _tableMetaData;
     }
@@ -54,11 +54,10 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
             throw new ConditionsObjectException("This object is set to read only.");
         }
         if (isNew()) {
-            throw new ConditionsObjectException("This object is not in the database and cannot be deleted.");
+            throw new ConditionsObjectException("This object is not in the database and so cannot be deleted.");
         }
         String query = QueryBuilder.buildDelete(_tableMetaData.getTableName(), _rowId);
-        ConnectionManager.getConnectionManager().update(query);
-        // TODO: Need to check here if delete was successful!
+        DatabaseConditionsManager.getInstance().update(query);
         _rowId = -1;
     }
     
@@ -75,9 +74,11 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
                 getCollectionId(),
                 getTableMetaData().getFieldNames(),
                 _fieldValues.valuesToArray());
-        int key = ConnectionManager.getConnectionManager().update(query);
-        // TODO: Need to check here that insert was succcessful!
-        _rowId = key;
+        List<Integer> keys = DatabaseConditionsManager.getInstance().update(query);
+        if (keys.size() == 0 || keys.size() > 1) {
+            throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
+        }
+        _rowId = keys.get(0);
     }
 
     public void select() throws ConditionsObjectException {
@@ -86,7 +87,8 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         } 
         String query = QueryBuilder.buildSelect(
                 getTableMetaData().getTableName(), _collectionId, _fieldValues.fieldsToArray(), "id ASC");
-        ResultSet resultSet = ConnectionManager.getConnectionManager().query(query);  
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        ResultSet resultSet = manager.query(query);  
         try {
             ResultSetMetaData metadata = resultSet.getMetaData();
             int ncolumns = metadata.getColumnCount();
@@ -98,6 +100,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         } catch (SQLException e) {
             throw new ConditionsObjectException(e.getMessage(), this);
         }
+        DatabaseConditionsManager.close(resultSet);
     }
         
     public void update() throws ConditionsObjectException {
@@ -115,7 +118,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
                 _rowId, 
                 _fieldValues.fieldsToArray(), 
                 _fieldValues.valuesToArray());
-        ConnectionManager.getConnectionManager().update(query);
+        DatabaseConditionsManager.getInstance().update(query);
         setIsDirty(false);
     }
     

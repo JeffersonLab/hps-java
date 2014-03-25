@@ -3,7 +3,7 @@ package org.hps.conditions;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lcsim.conditions.ConditionsConverter;
+import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -11,44 +11,52 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy Exp $
  */
-public class ConditionsRecordConverter implements ConditionsConverter<ConditionsRecordCollection> {
+public class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
                        
     /**
-     * Get the ConditionsRecords for a run.  This method ignores the name argument 
-     * and will fetch all conditions records for the current run.
+     * Get the ConditionsRecords for a run based on current configuration of the
+     * <code>DatabaseConditionsManager</code>.   
      * @param manager The current conditions manager.
      * @param name The name of the conditions set.
      * @return The matching ConditionsRecords.
      */
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
                                 
-        ConditionsRecordCollection records = new ConditionsRecordCollection();
-        
-        ConnectionManager connectionManager = ConnectionManager.getConnectionManager();
-        
-        String tableName = connectionManager.getConnectionParameters().getConditionsTable();
+        DatabaseConditionsManager databaseConditionsManager = getDatabaseConditionsManager(manager);
+        TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
         
         String query = "SELECT * from " 
-                + tableName
+                + name
                 + " WHERE "
                 + "run_start <= "
                 + manager.getRun()
                 + " AND run_end >= "
                 + manager.getRun();
                
-        ResultSet resultSet = connectionManager.query(query);
+        ResultSet resultSet = databaseConditionsManager.query(query);
+        
+        // Create a collection to return.
+        ConditionsObjectCollection collection;
+        try {
+             collection = tableMetaData.getCollectionClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
         
         try {
             while(resultSet.next()) {                  
-                ConditionsRecord record = new ConditionsRecord();
-                record.load(resultSet);
-                records.add(record);
+                ConditionsObject conditionsRecord = createConditionsObject(resultSet, tableMetaData);
+                try {
+                    collection.add(conditionsRecord);
+                } catch (ConditionsObjectException e) {
+                    throw new RuntimeException(e);
+                }
             }            
         } catch (SQLException x) {
             throw new RuntimeException("Database error", x);
         } 
         
-        return records;
+        return getType().cast(collection);
     }
 
     /**
@@ -58,4 +66,8 @@ public class ConditionsRecordConverter implements ConditionsConverter<Conditions
     public Class<ConditionsRecordCollection> getType() {
         return ConditionsRecordCollection.class;
     }        
+    
+    public boolean allowMultipleCollections() {
+        return true;
+    }
 }

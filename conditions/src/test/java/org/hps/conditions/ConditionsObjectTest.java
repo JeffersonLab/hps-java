@@ -1,7 +1,5 @@
 package org.hps.conditions;
 
-import java.sql.SQLException;
-
 import junit.framework.TestCase;
 
 import org.hps.conditions.svt.SvtGain;
@@ -14,26 +12,20 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
+// TODO: Add test of collection operations similar to the one for individual objects.
 public class ConditionsObjectTest extends TestCase {
     
-    String detectorName = "HPS-conditions-test";
-    int runNumber = 1351;
-    DatabaseConditionsManager conditionsManager;
+    DatabaseConditionsManager _conditionsManager;
     
-    public void setUp() {
-        // Create and configure the conditions manager.
-        conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_dev.xml");
-        conditionsManager.setDetectorName(detectorName);
-        conditionsManager.setRunNumber(runNumber);
-        conditionsManager.setup();
+    public void setUp() {        
+        _conditionsManager = new DefaultTestSetup().configure().setup();
     }
     
     public void testBasicOperations() throws ConditionsObjectException {    
-        
-        // Create a new collection.
-        TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
-        int collectionId = conditionsManager.getNextCollectionId(tableMetaData.getTableName());        
+                
+        // Create a new collection, setting its table meta data and collection ID.
+        TableMetaData tableMetaData = _conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
+        int collectionId = _conditionsManager.getNextCollectionId(tableMetaData.getTableName());        
         SvtGainCollection collection = new SvtGainCollection();
         collection.setTableMetaData(tableMetaData);
         try {
@@ -65,6 +57,7 @@ public class ConditionsObjectTest extends TestCase {
         selectGain.setRowId(gain.getRowId());
         selectGain.setTableMetaData(tableMetaData);
         selectGain.select();
+        // TODO: Check values here against the original object.
         
         // Update the value in the database.
         double newValue = 2.345;
@@ -74,7 +67,7 @@ public class ConditionsObjectTest extends TestCase {
         
         // Delete the object.
         gain.delete();
-        assertEquals("The deleted object still has a row ID.", -1, gain.getRowId());
+        assertEquals("The deleted object still has a valid row ID.", -1, gain.getRowId());
         
         // Try an update which should fail.
         try {

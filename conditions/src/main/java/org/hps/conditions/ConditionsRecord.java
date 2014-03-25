@@ -1,14 +1,6 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.TableConstants.CONDITIONS_RECORD;
-
-import java.sql.Blob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
-
-import org.lcsim.conditions.CachedConditions;
-import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class represents a single record from the primary conditions data table,
@@ -16,69 +8,34 @@ import org.lcsim.conditions.ConditionsManager;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ConditionsRecord {
+// TODO: Check behavior of select, delete, update and insert operations.
+// TODO: Override default behavior of methods in super class that don't make sense.
+public class ConditionsRecord extends AbstractConditionsObject {
 
-    int id;
-    int runStart;
-    int runEnd;
-    Date updated;
-    Date created;
-    Date validFrom;
-    Date validTo;
-    String createdBy;
-    String notes;
-    String name;
-    String formatVersion;
-    String tableName;
-    int collectionId;    
-                
+    /**
+     * Collection type.
+     */
+    public static class ConditionsRecordCollection extends ConditionsObjectCollection<ConditionsRecord> {
+        /**
+         * Since ConditionsRecord collections are always "mixed", meaning the collection ID values
+         * are usually all going to be different, the default behavior of the super class is overridden.
+         */
+        public void add(ConditionsRecord record) {
+            _objects.add(record);
+        }
+        
+        // FIXME: Should probably override more methods here that don't make sense for this type!
+    }
+                      
     protected ConditionsRecord() {        
     }
-    
-    /**
-     * Load state into this object from a ResultSet, which must be positioned a priori
-     * to the correct row number.
-     * @param rs The ResultSet containing database records from the conditions table.
-     */
-    void load(ResultSet rs) {
-        try {            
-            id = rs.getInt(1);
-            runStart = rs.getInt(2);
-            runEnd = rs.getInt(3);
-            updated = rs.getTimestamp(4);
-            created = rs.getTimestamp(5); // ??
-            validFrom = rs.getDate(6);
-            validTo = rs.getDate(7);
-            createdBy = rs.getString(8);
-            Blob blob = rs.getBlob(9);
-            if (blob != null) {
-                byte[] blobData = blob.getBytes(1, (int)blob.length());
-                notes = new String(blobData);
-            }
-            name = rs.getString(10);
-            formatVersion = rs.getString(11);
-            tableName = rs.getString(12);
-            collectionId = rs.getInt(13);
-            
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-     
-    /**
-     * Get the unique ID.
-     * @return The unique ID.
-     */
-    public int getId() {
-        return id;
-    }
-    
+                   
     /**
      * Get the starting run number.
      * @return The starting run number.
      */
     public int getRunStart() {
-        return runStart;
+        return getFieldValue("run_start");
     }
     
     /**
@@ -86,7 +43,7 @@ public class ConditionsRecord {
      * @return The ending run number.
      */
     public int getRunEnd() {
-        return runEnd;
+        return getFieldValue("run_end");
     }
     
     /**
@@ -94,7 +51,7 @@ public class ConditionsRecord {
      * @return The date this record was updated.
      */
     public Date getUpdated() {
-        return updated;
+        return getFieldValue("updated");
     }
     
     /**
@@ -102,7 +59,7 @@ public class ConditionsRecord {
      * @return The date this record was created.
      */
     public Date getCreated() {
-        return created;
+        return getFieldValue("created");
     }
     
     /**
@@ -110,7 +67,7 @@ public class ConditionsRecord {
      * @return The starting valid time.
      */
     public Date getValidFrom() {
-        return validFrom;
+        return getFieldValue("valid_from");
     }
     
     /**
@@ -118,7 +75,7 @@ public class ConditionsRecord {
      * @return The ending valid time.
      */
     public Date getValidTo() {
-        return validTo;
+        return getFieldValue("valid_to");                
     }
 
     /**
@@ -126,7 +83,7 @@ public class ConditionsRecord {
      * @return The name of the person who created the record.
      */
     public String getCreatedBy() {
-        return createdBy;
+        return getFieldValue("created_by");
     }
 
     /**
@@ -134,15 +91,16 @@ public class ConditionsRecord {
      * @return The notes about this condition.
      */
     public String getNotes() {
-        return notes;
+        return getFieldValue("notes");
     }
     
     /**
      * Get the name of these conditions, which should be unique by run number.
+     * This is called the "key" in the table meta data to distinguish it from "table name".
      * @return The name of the conditions.
      */
     public String getName() {
-        return name;
+        return getFieldValue("name");
     }
     
     /**
@@ -150,7 +108,7 @@ public class ConditionsRecord {
      * @return The conditions version.
      */
     public String getFormatVersion() {
-        return formatVersion;
+        return getFieldValue("format_version");
     }
     
     /**
@@ -158,90 +116,36 @@ public class ConditionsRecord {
      * @return The name of the table with the conditions data. 
      */
     public String getTableName() {
-        return tableName;
+        return getFieldValue("table_name");
     }
-        
+    
     /**
-     * Get the value of the identifying field.
-     * @return The value of identifying field for these conditions.
+     * Get the collection ID, overriding this method from the parent class.
+     * @return The collection ID.
      */
     public int getCollectionId() {
-        return collectionId;
-    }    
-    
+        return getFieldValue("collection_id");
+    }
+           
     /**
      * Convert this record to a human readable string, one field per line.
      * @return This object represented as a string.
      */
     public String toString() {
         StringBuffer buff = new StringBuffer();
-        buff.append("id: " + id + '\n');
-        buff.append("runStart: " + runStart + '\n');
-        buff.append("runEnd: " + runEnd + '\n');
-        buff.append("updated: " + updated + '\n');
-        buff.append("created: " + created + '\n');
-        buff.append("validFrom: " + validFrom + '\n');
-        buff.append("validTo: " + validTo + '\n');
-        buff.append("createdBy: " + createdBy + '\n');
-        buff.append("notes: " + notes + '\n');
-        buff.append("formatVersion: " + formatVersion + '\n');
-        buff.append("tableName: " + tableName + '\n');
-        buff.append("collectionId: " + collectionId + '\n');
+        buff.append("id: " + getRowId() + '\n');
+        buff.append("name: " + getName() + '\n');
+        buff.append("runStart: " + getRunStart() + '\n');
+        buff.append("runEnd: " + getRunEnd() + '\n');
+        buff.append("tableName: " + getTableName() + '\n');
+        buff.append("collectionId: " + getCollectionId() + '\n');
+        buff.append("updated: " + getUpdated() + '\n');
+        buff.append("created: " + getCreated() + '\n');
+        buff.append("validFrom: " + getValidFrom() + '\n');
+        buff.append("validTo: " + getValidTo() + '\n');
+        buff.append("createdBy: " + getCreatedBy() + '\n');
+        buff.append("formatVersion: " + getFormatVersion() + '\n');
+        buff.append("notes: " + getNotes() + '\n');        
         return buff.toString();
-    }
-    
-    /**
-     * Find a ConditionsRecord with conditions key matching <code>name</code>.
-     * @param manager The current conditions manager.
-     * @param name The name of the conditions key.
-     * @return The matching ConditionsRecord.
-     * @throws IllegalArgumentException if no records are found.
-     * @throws IllegalArgumentException if more than one record is found.
-     */
-    public static ConditionsRecordCollection find(ConditionsManager manager, String name) {
-        CachedConditions<ConditionsRecordCollection> c = manager.getCachedConditions(ConditionsRecordCollection.class, CONDITIONS_RECORD);
-        ConditionsRecordCollection conditionsRecords = c.getCachedData();
-        conditionsRecords = conditionsRecords.find(name);
-        if (conditionsRecords.size() == 0) {
-            throw new IllegalArgumentException("No ConditionsRecord with name: " + name);
-        }              
-        return conditionsRecords;
-    }
-    
-    /**
-     * Find conditions records of all types in the database by run number.
-     * @param run The run number.
-     * @return The set of matching ConditionsRecords.
-     */
-    public static ConditionsRecordCollection find(int run) {
-        
-        ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
-        
-        ConnectionManager manager = ConnectionManager.getConnectionManager();
-        String db = manager.getConnectionParameters().getDatabase();
-        String table = manager.getConnectionParameters().getConditionsTable();
-                
-        String query = "SELECT * FROM " 
-                + db + "." + table                       
-                + " WHERE "
-                + "run_start <= "
-                + run
-                + " AND run_end >= "
-                + run;
-        
-        ResultSet resultSet = manager.query(query);
-            
-        // Iterate over conditions records.
-        try {
-            while (resultSet.next()) {
-                ConditionsRecord record = new ConditionsRecord();
-                record.load(resultSet);
-                conditionsRecords.add(record);
-            } 
-        } catch (SQLException x) {
-            throw new RuntimeException("Database error", x);
-        } 
-                   
-        return conditionsRecords;
-    }
+    }          
 }

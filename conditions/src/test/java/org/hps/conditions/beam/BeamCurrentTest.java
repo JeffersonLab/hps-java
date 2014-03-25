@@ -10,6 +10,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DefaultTestSetup;
 import org.hps.conditions.beam.BeamCurrent.BeamCurrentCollection;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
@@ -56,8 +57,7 @@ public class BeamCurrentTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         
         // Reconfigure the conditions system to override the manager created by LCSimLoop.
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+        new DefaultTestSetup().configure();
         
         // Configure and run the loop.
         loop.setLCIORecordSource(testFile);

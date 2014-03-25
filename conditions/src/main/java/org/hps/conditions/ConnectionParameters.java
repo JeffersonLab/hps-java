@@ -1,11 +1,12 @@
 package org.hps.conditions;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-
-import org.jdom.Element;
 
 /**
  * This class encapsulates the parameters for connecting to a database, 
@@ -21,7 +22,6 @@ public final class ConnectionParameters {
     private int port;
     private String hostname;
     private String database;
-    private String conditionsTable;
 
     /**
      * Fully qualified constructor.
@@ -31,20 +31,19 @@ public final class ConnectionParameters {
      * @param port The port number.
      * @param conditionsTable The table containing conditions validity data.
      */
-    ConnectionParameters(String user, String password, String database, String hostname, int port, String conditionsTable) {
+    ConnectionParameters(String user, String password, String database, String hostname, int port) {
         this.user = user;
         this.password = password;
         this.database = database;
         this.hostname = hostname;
         this.port = port;
-        this.conditionsTable = conditionsTable;
     }
 
     /**
      * Get Properties object for this connection.
      * @return The Properties for this connection.
      */
-    public Properties getConnectionProperties() {
+    Properties getConnectionProperties() {
         Properties p = new Properties();
         p.put("user", user);
         p.put("password", password);
@@ -55,7 +54,7 @@ public final class ConnectionParameters {
      * Get the hostname.
      * @return The hostname.
      */
-    public String getHostname() {
+    String getHostname() {
         return hostname;
     }
 
@@ -63,7 +62,7 @@ public final class ConnectionParameters {
      * Get the port number.
      * @return The port number.
      */
-    public int getPort() {
+    int getPort() {
         return port;
     }
     
@@ -71,21 +70,21 @@ public final class ConnectionParameters {
      * Get the name of the database.
      * @return The name of the database.
      */
-    public String getDatabase() {
+    String getDatabase() {
         return database;
     }
     
     /**
      * Get the user name.
      */
-    public String getUser() {
+    String getUser() {
         return user;
     }
     
     /**
      * Get the password.
      */
-    public String getPassword() {
+    String getPassword() {
         return password;
     }
 
@@ -93,28 +92,21 @@ public final class ConnectionParameters {
      * Get the connection string for these parameters.
      * @return The connection string.
      */
-    public String getConnectionString() {
+    String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
     }       
     
     /**
-     * Get the name of the conditions validity data.
-     * @return The name of the conditions validity data table. 
-     */
-    public String getConditionsTable() {
-        return conditionsTable;
-    }
-    
-    /**
      * Create a database connection from these parameters.  
-     * The caller is responsible for closing it when finished.
+     * The caller becomes the "owner" and is responsible for closing it when finished.
      * @return The Connection object.
      */
-    public Connection createConnection() {
+    Connection createConnection() {               
         Properties connectionProperties = getConnectionProperties();
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(getConnectionString(), connectionProperties);
+            connection.createStatement().execute("USE " + getDatabase());
         } catch (SQLException x) {
             throw new RuntimeException("Failed to connect to database: " + getConnectionString(), x);
         }
@@ -122,22 +114,22 @@ public final class ConnectionParameters {
     }
     
     /**
-     * Create the connection parameters from an XML container node 
-     * with the appropriate child elements.    
-     * @param element The connection XML element.
-     * @return The ConnectionParameters created from XML.
+     * Configure the connection parameters from a properties file. 
+     * @param file The properties file.
+     * @return The connection parameters.
      */
-    public static final ConnectionParameters fromXML(Element element) {
-        if (element.getChild("user") == null)
-            throw new IllegalArgumentException("missing user element");
-        String user = element.getChild("user").getText();
-        if (element.getChild("password") == null)
-            throw new IllegalArgumentException("missing password element");
-        String password = element.getChild("password").getText();
-        String database = element.getChild("database").getText();
-        String hostname = element.getChild("hostname").getText();
-        int port = Integer.parseInt(element.getChild("port").getText());
-        String conditionsTable = element.getChild("conditions_table").getText();
-        return new ConnectionParameters(user, password, database, hostname, port, conditionsTable);        
+    public static final ConnectionParameters fromProperties(File file) {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(file));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String user = properties.getProperty("user");
+        String password = properties.getProperty("password");
+        String database = properties.getProperty("database");
+        String hostname = properties.getProperty("hostname");
+        int port = Integer.parseInt(properties.getProperty("port"));
+        return new ConnectionParameters(user, password, database, hostname, port);
     }
 }

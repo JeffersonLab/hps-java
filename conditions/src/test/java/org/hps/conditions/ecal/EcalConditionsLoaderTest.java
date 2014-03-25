@@ -4,8 +4,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DefaultTestSetup;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
@@ -15,13 +15,7 @@ import org.lcsim.geometry.Detector;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsLoaderTest extends TestCase {
-    
-    /** An example detector from hps-detectors. */
-    private static final String detectorName = "HPS-conditions-test";
-    
-    /** The run number of the conditions set in the database. */
-    private static final int runNumber = 1351;
-    
+        
     /** Expected number of crystals. */
     private static final int CRYSTAL_COUNT_ANSWER = 442;
     
@@ -38,23 +32,18 @@ public class EcalConditionsLoaderTest extends TestCase {
     
     // The total number of crystals that should be processed.
     private static final int CRYSTAL_COUNT = 442;
-    
-    DatabaseConditionsManager conditionsManager;
-    
+        
     public void setUp() {
-        // Create and configure the conditions manager.
-        conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setDetectorName(detectorName);
-        conditionsManager.setRunNumber(runNumber);
-        conditionsManager.setup();
+        new DefaultTestSetup().configure().setup();
     }
                                            
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
      */
-    public void test() {
-                
+    public void testLoad() {
+        
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        
         // Get the detector.
         Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
         
@@ -112,8 +101,5 @@ public class EcalConditionsLoaderTest extends TestCase {
         assertEquals("Wrong number of bad channels.", BAD_CHANNELS_ANSWER, badChannelCount);
 
         System.out.println("Successfully loaded conditions onto " + ncrystals + " ECal crystals!");
-        
-        // Cleanup the database connection.
-        ConnectionManager.getConnectionManager().disconnect();
     }
 }

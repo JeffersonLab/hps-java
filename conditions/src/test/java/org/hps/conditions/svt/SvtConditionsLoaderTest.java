@@ -4,8 +4,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.ConnectionManager;
 import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DefaultTestSetup;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
@@ -16,13 +16,7 @@ import org.lcsim.geometry.Detector;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtConditionsLoaderTest extends TestCase {
-    
-    /** An example detector from hps-detectors. */
-    private static final String detectorName = "HPS-conditions-test";
-    
-    /** The run number of the conditions set in the database. */
-    private static final int runNumber = 1351;
-    
+        
     /**
      * The number of bad channels that should be returned for the run.
      * One of these is a duplicate so the row count is actually 442 in the database. 
@@ -36,14 +30,9 @@ public class SvtConditionsLoaderTest extends TestCase {
     private static final int SENSOR_COUNT = 12800;
     
     DatabaseConditionsManager conditionsManager;
-    
+            
     public void setUp() {
-        // Create and configure the conditions manager.
-        conditionsManager = DatabaseConditionsManager.createInstance();
-        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setDetectorName(detectorName);
-        conditionsManager.setRunNumber(runNumber);
-        conditionsManager.setup();
+        conditionsManager = new DefaultTestSetup().configure().setup();
     }
     
     /**
@@ -121,8 +110,5 @@ public class SvtConditionsLoaderTest extends TestCase {
         assertEquals("The number of channels for which pulse was not set is wrong.", PULSE_NOT_SET_ANSWER, pulseNotSet);
                 
         System.out.println("Successfully loaded conditions data onto " + nsensors + " SVT sensors!");
-        
-        // Cleanup the database connection.
-        ConnectionManager.getConnectionManager().disconnect();
     }
 }

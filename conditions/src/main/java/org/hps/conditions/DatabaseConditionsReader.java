@@ -2,7 +2,6 @@ package org.hps.conditions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -14,11 +13,11 @@ import org.lcsim.conditions.ConditionsReader;
 
 /**
  * This is more-or-less a placeholder class for a database conditions reader.
+ * The {@link DatabaseConditionsManager} and the converter classes perform
+ * the real work.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: DatabaseConditionsReader.java,v 1.21 2013/10/18 06:08:55 jeremy Exp $ 
  */
-// TODO: Add a multi reader class that can have an arbitrary number of readers it may call, with precedence.
 public class DatabaseConditionsReader extends ConditionsReader {
             
     /** Base ConditionsReader for getting the Detector. */
@@ -83,14 +82,7 @@ public class DatabaseConditionsReader extends ConditionsReader {
             _logger.warning("Conditions already cached for run <" + run + ">.");
             return false;
         }
-                                    
-        // Cache the ConditionsRecords.
-        try {
-            setup(run);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-                                               
+                                                                                   
         return true;
     }
 
@@ -107,15 +99,5 @@ public class DatabaseConditionsReader extends ConditionsReader {
      */
     public InputStream open(String name, String type) throws IOException {
         return _reader.open(name, type);
-    }
-     
-    /**
-     * This will cache the ConditionsRecords for the run.
-     * @param run The run number.
-     * @throws SQLException
-     * @throws IOException
-     */
-    private final void setup(int run) throws SQLException, IOException {
-        ConditionsRecord.find(run); // FIXME: Does this even need to happen here?
-    }
+    }    
 }
