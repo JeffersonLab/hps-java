@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>hps-tracking</artifactId>
+    <name>tracking</name>
+    <description>HPS tracking reconstruction module</description>
+    
+    <parent>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-parent</artifactId>
+        <relativePath>../parent/pom.xml</relativePath>
+        <version>3.0.2-SNAPSHOT</version>
+    </parent>
+    
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/tracking/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</developerConnection>
+    </scm>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>org/lcsim/hps/recon/tracking/TruthResidualTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.lcsim</groupId>
+            <artifactId>lcsim-distribution</artifactId>
+            <version>${lcsimVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-conditions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-ecal-readout-sim</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.2</version>
+        </dependency>
+    </dependencies>
+    
+</project>
