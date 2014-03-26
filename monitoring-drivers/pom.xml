@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-java</artifactId>
+            <artifactId>hps-recon</artifactId>
         </dependency>
     </dependencies>
     

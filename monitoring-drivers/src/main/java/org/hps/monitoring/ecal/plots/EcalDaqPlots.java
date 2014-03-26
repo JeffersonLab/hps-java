@@ -4,24 +4,19 @@ import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.plotter.PlotterRegion;
-import jas.hist.JASHist;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawCalorimeterHit;
+import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.Subdetector;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.EcalConditions; //THIS IS THE OLD ONE
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-import org.hps.conditions.ecal.*;  //This is the new condition system
+//THIS IS THE OLD ONE
 /**
  * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user 
  * in the fourth tab of the Monitoring Application, when using the Ecal monitoring lcsim file.

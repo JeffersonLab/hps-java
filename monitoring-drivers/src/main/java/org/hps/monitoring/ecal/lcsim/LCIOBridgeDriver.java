@@ -1,23 +1,14 @@
 package org.hps.monitoring.ecal.lcsim;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
-
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.EventHeader;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.util.Driver;
 
 import org.hps.monitoring.ecal.event.Cluster;
 import org.hps.monitoring.ecal.event.EcalHit;
 import org.hps.monitoring.ecal.ui.PEventViewer;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.EventHeader;
+import org.lcsim.util.Driver;
 
 /**
  * Class <code>LCIOBridgeDriver</code> displays LCIO events on the

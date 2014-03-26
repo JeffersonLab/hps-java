@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.plots;
+package org.hps.monitoring.drivers.ecal;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
@@ -22,7 +22,7 @@ import org.lcsim.util.aida.AIDA;
 
 public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
-    private String subdetectorName= "Ecal";
+    private String subdetectorName;
     private String inputCollection;
     private IPlotter plotter;
     private AIDAFrame plotterFrame;
@@ -90,7 +90,6 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     }
 
     private void setupPlots() {
-    	System.out.println("ECAL WINDOW PLOTS START");
         if (plotterFrame != null) {
             plotterFrame.dispose();
         }
@@ -120,8 +119,6 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
         plotterFrame.getControlsPanel().add(yLabel);
         plotterFrame.getControlsPanel().add(yCombo);
         plotterFrame.pack();
-        
-        plotterFrame.show();
     }
 
     public void endOfData() {

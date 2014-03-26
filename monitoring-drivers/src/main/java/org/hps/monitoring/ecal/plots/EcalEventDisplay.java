@@ -3,38 +3,25 @@ package org.hps.monitoring.ecal.plots;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
 import hep.aida.IPlotterFactory;
-import hep.aida.ref.plotter.PlotterUtilities;
 
-
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.Point;
 import java.util.List;
 
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-
-import org.lcsim.geometry.Detector;
-import org.hps.util.AIDAFrame;
-
-
-import org.lcsim.hps.recon.ecal.EcalConditions;
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.base.BaseRawCalorimeterHit;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-//import org.lcsim.hps.users.celentan.EcalEventDisplayListener;
-import org.hps.monitoring.ecal.ui.PEventViewer;
 import org.hps.monitoring.ecal.event.Cluster;
 import org.hps.monitoring.ecal.event.EcalHit;
+//import org.lcsim.hps.users.celentan.EcalEventDisplayListener;
+import org.hps.monitoring.ecal.ui.PEventViewer;
 import org.hps.monitoring.ecal.util.CrystalEvent;
 import org.hps.monitoring.ecal.util.CrystalListener;
-import org.hps.monitoring.ecal.plots.EcalMonitoringUtils;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.Detector;
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 
 /**
  *  The driver <code>EcalEvendDisplay</code> implements the histogram shown to the user 
