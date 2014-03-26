@@ -5,9 +5,7 @@ import java.util.List;
 
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.SimTrackerHit;
 import org.lcsim.hps.readout.ecal.ReadoutTimestamp;
 import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.util.Driver;
@@ -28,6 +26,7 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
     private int relationFlags = 0;
     private boolean correctT0Shift = false;
     private boolean useTimestamps = false;
+    private boolean useTruthTime = false;
 
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -39,6 +38,15 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
 
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
+    }
+
+    /**
+     * Report time relative to the nearest expected truth event time.
+     *
+     * @param useTruthTime
+     */
+    public void setUseTruthTime(boolean useTruthTime) {
+        this.useTruthTime = useTruthTime;
     }
 
     public void setFitAlgorithm(String fitAlgorithm) {
@@ -88,16 +96,20 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
             ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             HPSShapeFitParameters fit = _shaper.fitShape(hit, constants);
             if (correctT0Shift) {
-                double corMod = 0;
-                if (useTimestamps) {
-                    double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
-                    double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event);
-                    corMod += (t0Svt - t0Trig);
-                }
-                corMod -= constants.getT0Shift();
+                fit.setT0(fit.getT0() - constants.getT0Shift());
+            }
+            if (useTimestamps) {
+                double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
+                double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event);
+                double corMod = (t0Svt - t0Trig);
                 fit.setT0(fit.getT0() + corMod);
-//                fit.setT0(fit.getT0() - constants.getT0Shift());
+            }
+            if (useTruthTime) {
+                double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
+                double absoluteHitTime = fit.getT0() + t0Svt;
+                double relativeHitTime = ((absoluteHitTime + 250.0) % 500.0) - 250.0;
 
+                fit.setT0(relativeHitTime);
             }
             if (debug) {
                 System.out.println(fit);

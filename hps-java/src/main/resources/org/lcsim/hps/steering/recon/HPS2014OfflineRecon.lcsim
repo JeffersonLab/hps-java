@@ -30,11 +30,12 @@
             <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>true</useTimestamps>
             <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
         </driver>
         <driver name="TrackerHitDriver" type="org.lcsim.hps.recon.tracking.DataTrackerHitDriver" />     
         <driver name="HelicalTrackHitDriver" type="org.lcsim.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>4.0</clusterTimeCut>
+            <clusterTimeCut>8.0</clusterTimeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
@@ -43,6 +44,7 @@
         </driver>        
         <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>true</use2014Gain>
         </driver>
         <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.EcalClusterer">
             <ecalName>Ecal</ecalName>
