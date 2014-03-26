@@ -134,7 +134,7 @@ public final class TrackerReconDriver extends Driver {
         //
 
         if (!strategyResource.startsWith("/")) {
-            strategyResource = "/org/lcsim/hps/recon/tracking/strategies/" + strategyResource;
+            strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
         }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
         SeedTracker stFinal = new SeedTracker(sFinallist,this._useHPSMaterialManager,this.includeMS);

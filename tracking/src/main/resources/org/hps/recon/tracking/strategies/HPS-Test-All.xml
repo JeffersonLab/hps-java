@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://lcsim.org/recon/tracking/seedtracker/strategybuilder/strategies.xsd">
+    <TargetDetector>HPS-Test-All</TargetDetector>
+	
+    <Strategy name="Strategy1-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+
+    <Strategy name="Strategy1-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+
+    <Strategy name="Strategy2-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy2-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+
+	<Strategy name="Strategy3-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy3-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    
+    
+    <Strategy name="Strategy4-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy4-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+     <Strategy name="Strategy5-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy5-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    <Strategy name="Strategy6-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy6-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    <Strategy name="Strategy7-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    
+    <Strategy name="Strategy7-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    <Strategy name="Strategy8-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy8-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy9-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    <Strategy name="Strategy9-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    <Strategy name="Strategy10-1">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    <Strategy name="Strategy10-2">        
+        <MinPT>0.250</MinPT>
+        <MinHits>4</MinHits>
+        <MinConfirm>1</MinConfirm>        
+        <MaxDCA>80.0</MaxDCA>
+        <MaxZ0>80.0</MaxZ0>
+        <MaxChisq>25.0</MaxChisq>
+        <BadHitChisq>10.0</BadHitChisq>
+        <Layers>                 
+            <Layer type="Seed" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
+        </Layers>
+    </Strategy>
+    
+    
+    
+
+    
+</StrategyList>
+
