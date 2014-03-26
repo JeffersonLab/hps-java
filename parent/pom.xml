@@ -161,6 +161,11 @@
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
+                <artifactId>hps-steering-files</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
                 <version>3.0.2-SNAPSHOT</version>
             </dependency>

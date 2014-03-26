@@ -65,9 +65,10 @@
     </build>
 
     <dependencies>
+        <!-- This pulls in recon et al transitively. -->
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-recon</artifactId>
+            <artifactId>hps-analysis</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
@@ -76,6 +77,10 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-app</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-steering-files</artifactId>
         </dependency>
     </dependencies>
 

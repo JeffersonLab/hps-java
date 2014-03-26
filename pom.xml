@@ -148,6 +148,7 @@
                 <module>monitoring-app</module>
                 <module>analysis</module>
                 <module>users</module>
+                <module>steering-files</module>
                 <module>distribution</module>
                 <module>plugin</module>
             </modules>
