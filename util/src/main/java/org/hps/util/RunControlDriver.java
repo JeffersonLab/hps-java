@@ -1,4 +1,4 @@
-package org.hps.monitoring.deprecated;
+package org.hps.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
