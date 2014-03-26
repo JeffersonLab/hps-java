@@ -85,8 +85,12 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-monitoring-drivers</artifactId>
+            <artifactId>hps-evio</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-monitoring-drivers</artifactId>
+        </dependency>        
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
