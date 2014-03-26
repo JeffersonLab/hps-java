@@ -1,4 +1,4 @@
-package org.lcsim.hps.monitoring.svt;
+package org.hps.monitoring.drivers.svt;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
