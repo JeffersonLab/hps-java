@@ -9,6 +9,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.evio.EventConstants;
+import org.hps.evio.LCSimEventBuilder;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.et.exception.EtTimeoutException;
@@ -16,8 +18,6 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.evio.EventConstants;
-import org.lcsim.hps.evio.LCSimEventBuilder;
 import org.lcsim.job.JobControlManager;
 
 /**

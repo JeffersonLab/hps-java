@@ -28,7 +28,6 @@ import static org.hps.monitoring.MonitoringCommands.setMaxEventsCmd;
 import static org.hps.monitoring.MonitoringCommands.steeringFileCmd;
 import static org.hps.monitoring.MonitoringCommands.steeringResourceCmd;
 import static org.hps.monitoring.MonitoringCommands.updateTimeCmd;
-import hep.aida.jfree.AnalysisFactory;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -82,8 +81,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.lcsim.hps.evio.LCSimEventBuilder;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
+import org.hps.evio.LCSimEventBuilder;
+import org.hps.util.Resettable;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
