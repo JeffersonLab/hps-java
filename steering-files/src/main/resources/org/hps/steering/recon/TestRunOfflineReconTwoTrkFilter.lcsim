@@ -1,0 +1,53 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <driver name="TwoTrackFilter"/>
+   
+    </execute>    
+    <drivers>    
+        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+<!--            <runNumber>${runNumber}</runNumber>-->
+        </driver>   
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>        
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+            <fitAlgorithm>Analytic</fitAlgorithm>
+            <correctT0Shift>true</correctT0Shift>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
+        <driver name="HelicalTrackHitDriver"
+                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        <driver name="TrackerReconDriver"
+                type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+        </driver>        
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>
+        <driver name="TwoTrackFilter" 
+                type="org.hps.util.TwoTrackFilterDriver">
+                <debug>false</debug>
+                <outputFilePath>${outputFile}</outputFilePath>
+	</driver>
+    </drivers>
+</lcsim>

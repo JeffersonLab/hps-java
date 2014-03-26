@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <inputFiles>
+      <file>${inputFile}</file>
+    </inputFiles>
+    <execute>
+        <driver name="EventMarkerDriver" />
+        <driver name="MuonAnalysis" />
+        <driver name="AidaSaveDriver" />
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+        <driver name="MuonAnalysis" type="org.hps.analysis.muon.SimpleMuonAnalysis">
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>muon_plots</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>

@@ -1,0 +1,94 @@
+
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+    <control>
+        <numberOfEvents>-1</numberOfEvents>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>    
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>
+        <driver name="EcalRawConverter"/>
+        <driver name="EcalClusterer"/>
+        <driver name="RawTrackerHitFitterDriver"/>
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+<!--        <driver name="EcalDaqPlots"/>-->
+        <driver name="EcalMonitoringPlots"/>
+<!--        <driver name="EcalEventMonitor"/>-->
+<!--        <driver name="SVTOccupancyPlots"/>-->
+        <driver name="SVTSimpleEventDisplay"/>
+<!--        <driver name="SVTPulsePlots"/>-->
+        <driver name="SVTMonitoringPlots"/>
+        <driver name="SVTPulseFitPlots"/>
+<!--        <driver name="SVTHitRecoPlots"/>-->
+        <driver name="CleanupDriver"/>
+
+    </execute>    
+    <drivers>
+        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="EcalRawConverter" 
+                type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>
+        <driver name="EcalClusterer"
+                type="org.hps.recon.ecal.EcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver"
+                type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+            <fitAlgorithm>Analytic</fitAlgorithm>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver"/>
+        <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.EcalDaqPlots">
+        </driver>
+        <driver name="CleanupDriver" 
+                type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver>
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.EcalMonitoringPlots">
+            <eventRefreshRate>100</eventRefreshRate>
+        </driver>
+        <driver name="EcalEventMonitor" type="org.hps.monitoring.ecal.EcalEventMonitor">
+            <eventRefreshRate>1</eventRefreshRate>
+        </driver>
+        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.svt.SensorOccupancyPlotsDriver">
+            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
+            <eventRefreshRate>100</eventRefreshRate>
+        </driver>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+        <driver name="HelicalTrackHitDriver"
+                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        <driver name="TrackerReconDriver"
+                type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+        </driver>        
+        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.svt.SVTSimpleEventDisplay">
+            <inputCollection>SVTRawTrackerHits</inputCollection>
+            <singleEvent>false</singleEvent>
+        </driver>
+        <driver name="SVTPulsePlots"
+                type="org.hps.monitoring.svt.SVTHitPulsePlots">
+            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>   
+        </driver>    
+        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.svt.SVTMonitoringPlots">
+        </driver>
+        <driver name="SVTPulseFitPlots"
+                type="org.hps.monitoring.svt.SVTPulseFitPlots">
+            <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
+        </driver>
+        <driver name="SVTHitRecoPlots"
+                type="org.hps.monitoring.svt.SVTHitReconstructionPlots">
+            <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
+        </driver>
+    </drivers>
+</lcsim>

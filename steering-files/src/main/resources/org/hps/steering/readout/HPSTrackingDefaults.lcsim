@@ -1,0 +1,53 @@
+
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    
+    <control>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+    
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>
+        <driver name="TrackerDigiDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+        <driver name="LCIOWriter"/>
+    </execute>
+    
+    <drivers>
+        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+<!--            <runNumber>1351</runNumber>    -->
+        </driver>
+
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+    
+        <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
+<!--            <dropBadChannels>true</dropBadChannels>-->
+            <debug>false</debug>
+        </driver>
+              
+        <driver name="HelicalTrackHitDriver"
+                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        
+        <driver name="TrackerReconDriver"
+                type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
+        </driver>
+
+        <driver name="LCIOWriter"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
+                                                                    
+    </drivers>
+</lcsim>
