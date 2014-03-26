@@ -7,6 +7,7 @@ import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.ref.histogram.DataPoint;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -14,12 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
-import org.lcsim.hps.recon.tracking.SvtUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

@@ -7,15 +7,17 @@ import hep.aida.IPlotter;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
+
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.evio.TriggerData;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.hps.util.Resettable;
+import org.hps.recon.ecal.ECalUtils;
 
 public class EcalClusterPlots extends Driver implements Resettable {
 

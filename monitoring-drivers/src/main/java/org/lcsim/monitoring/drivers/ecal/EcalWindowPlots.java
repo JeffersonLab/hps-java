@@ -14,7 +14,7 @@ import javax.swing.JLabel;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
+import org.hps.util.AIDAFrame;
 import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;

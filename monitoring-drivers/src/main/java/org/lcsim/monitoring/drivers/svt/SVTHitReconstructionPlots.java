@@ -23,7 +23,7 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
+import org.hps.util.Resettable;
 import org.lcsim.hps.recon.tracking.HPSFittedRawTrackerHit;
 import org.lcsim.hps.recon.tracking.SvtUtils;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;

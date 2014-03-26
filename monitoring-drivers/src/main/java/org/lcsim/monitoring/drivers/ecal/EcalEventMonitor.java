@@ -14,9 +14,10 @@ import javax.swing.JCheckBox;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.hps.recon.ecal.HPSEcalCluster;
 
 public class EcalEventMonitor extends Driver implements ItemListener {
 

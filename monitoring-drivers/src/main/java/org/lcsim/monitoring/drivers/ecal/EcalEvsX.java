@@ -15,9 +15,10 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
-import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.hps.conditions.deprecated.EcalConditions;
 
 public class EcalEvsX extends Driver {
 

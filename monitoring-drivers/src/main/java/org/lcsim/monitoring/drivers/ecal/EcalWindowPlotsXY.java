@@ -16,7 +16,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.compact.Subdetector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
+import org.hps.util.AIDAFrame;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

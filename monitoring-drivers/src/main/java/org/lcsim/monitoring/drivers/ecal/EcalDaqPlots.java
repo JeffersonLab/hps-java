@@ -14,10 +14,11 @@ import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.Subdetector;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.hps.util.Resettable;
+import org.hps.conditions.deprecated.EcalConditions;
 
 public class EcalDaqPlots extends Driver implements Resettable {
 

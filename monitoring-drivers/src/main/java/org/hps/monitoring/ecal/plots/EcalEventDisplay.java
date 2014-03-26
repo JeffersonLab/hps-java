@@ -17,7 +17,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
+import org.hps.util.AIDAFrame;
 
 
 import org.lcsim.hps.recon.ecal.EcalConditions;

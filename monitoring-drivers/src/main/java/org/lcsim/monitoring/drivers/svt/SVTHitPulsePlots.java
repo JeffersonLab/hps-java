@@ -20,7 +20,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
+import org.hps.util.Resettable;
 import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;

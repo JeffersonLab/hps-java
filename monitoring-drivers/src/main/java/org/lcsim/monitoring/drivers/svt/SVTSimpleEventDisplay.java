@@ -11,7 +11,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
+import org.hps.util.Resettable;
 import org.lcsim.hps.recon.tracking.SvtUtils;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.util.Driver;
