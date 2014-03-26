@@ -4,8 +4,8 @@ package org.lcsim.hps.recon.tracking.apv25;
 import org.lcsim.hps.recon.tracking.HPSSVTConstants;
 
 //--- hps-java ---//
-import org.lcsim.hps.util.ClockSingleton;
-import org.lcsim.hps.util.RingBuffer;
+import org.hps.util.ClockSingleton;
+import org.hps.util.RingBuffer;
 
 /**
  * 

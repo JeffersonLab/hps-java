@@ -9,7 +9,7 @@ import java.util.Map;
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.conditions.ConditionsObjectException;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
  * This class represents SVT channel setup information, including hybrid, FPGA, and channel numbers.

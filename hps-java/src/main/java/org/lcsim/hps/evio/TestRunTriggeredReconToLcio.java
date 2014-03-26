@@ -18,7 +18,7 @@ import org.lcsim.hps.conditions.CalibrationDriver;
 import org.lcsim.hps.conditions.QuietBaseLCSimEvent;
 import org.lcsim.hps.readout.ecal.ReadoutTimestamp;
 import org.lcsim.hps.readout.ecal.TriggerDriver;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOWriter;
 

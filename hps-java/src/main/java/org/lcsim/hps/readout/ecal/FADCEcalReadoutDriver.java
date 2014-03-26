@@ -21,7 +21,7 @@ import org.lcsim.hps.evio.EventConstants;
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.hps.recon.ecal.EcalConditions;
 import org.lcsim.hps.recon.ecal.HPSRawCalorimeterHit;
-import org.lcsim.hps.util.*;
+import org.hps.util.*;
 import org.lcsim.lcio.LCIOConstants;
 import static org.lcsim.hps.recon.ecal.ECalUtils.*;
 

@@ -1,10 +1,11 @@
-package org.hps.examples;
+package org.hps.analysis.examples;
 
-import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;

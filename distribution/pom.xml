@@ -67,7 +67,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-java</artifactId>
+            <artifactId>hps-recon</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>

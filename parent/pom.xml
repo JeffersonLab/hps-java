@@ -107,9 +107,41 @@
                 <artifactId>hps-conditions</artifactId>
                 <version>3.0.2-SNAPSHOT</version>
             </dependency>
+<!--            
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-java</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+-->            
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-ecal-recon</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-ecal-readout-sim</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-tracking</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-evio</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-recon</artifactId>
+                <version>3.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-analysis</artifactId>
                 <version>3.0.2-SNAPSHOT</version>
             </dependency>
             <dependency>

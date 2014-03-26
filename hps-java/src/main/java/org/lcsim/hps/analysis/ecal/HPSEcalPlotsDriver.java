@@ -24,7 +24,7 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.hps.readout.ecal.TriggerDriver;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 import org.lcsim.units.SystemOfUnits;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;

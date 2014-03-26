@@ -5,7 +5,7 @@ import java.util.List;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.util.RandomGaussian;
+import org.hps.util.RandomGaussian;
 import org.lcsim.util.Driver;
 
 /**

@@ -21,7 +21,7 @@ import org.lcsim.util.swim.Trajectory;
 import org.lcsim.spacegeom.SpaceVector;
 import static org.lcsim.constants.Constants.fieldConversion;
 import org.lcsim.event.MCParticle;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
  * Class HPSTrack: extension of HelicalTrackFit to include HPS-specific

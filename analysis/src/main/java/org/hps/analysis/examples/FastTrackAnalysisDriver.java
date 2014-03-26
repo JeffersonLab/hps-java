@@ -1,4 +1,4 @@
-package org.hps.examples;
+package org.hps.analysis.examples;
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.SymmetricMatrix;
@@ -17,6 +17,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.recon.tracking.FindableTrack;
+import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.recon.tracking.TrackAnalysis;
+import org.hps.recon.vertexing.BilliorTrack;
+import org.hps.recon.vertexing.BilliorVertex;
+import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
@@ -32,12 +38,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.TrackDirection;
-import org.hps.recon.vertexing.BilliorTrack;
-import org.hps.recon.vertexing.BilliorVertex;
-import org.hps.recon.vertexing.StraightLineTrack;
-import org.hps.recon.tracking.FindableTrack;
-import org.hps.recon.tracking.TrackAnalysis;
-import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;

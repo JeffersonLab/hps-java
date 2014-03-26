@@ -1,4 +1,4 @@
-package org.lcsim.hps.util;
+package org.hps.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

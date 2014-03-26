@@ -40,7 +40,7 @@ import org.lcsim.util.Driver;
 //--- hps-java ---//
 import org.lcsim.hps.recon.tracking.apv25.HPSAPV25.APV25Channel.APV25AnalogPipeline;
 import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 
 /**
  * Class used to Readout HPS APV25's

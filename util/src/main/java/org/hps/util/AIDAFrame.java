@@ -1,4 +1,4 @@
-package org.lcsim.hps.util;
+package org.hps.util;
 
 import hep.aida.*;
 import hep.aida.ref.plotter.PlotterUtilities;

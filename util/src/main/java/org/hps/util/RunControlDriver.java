@@ -1,4 +1,4 @@
-package org.lcsim.hps.monitoring.deprecated;
+package org.hps.monitoring.deprecated;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

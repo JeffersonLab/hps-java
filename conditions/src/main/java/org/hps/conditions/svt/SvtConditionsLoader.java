@@ -8,7 +8,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
  * This class loads {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.

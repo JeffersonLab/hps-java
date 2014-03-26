@@ -22,7 +22,7 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-analysis</artifactId>
-        </dependency>        
+        </dependency> 
     </dependencies>
     
     <build>

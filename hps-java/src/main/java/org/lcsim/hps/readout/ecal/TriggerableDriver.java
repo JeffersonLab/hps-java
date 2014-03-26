@@ -3,7 +3,7 @@ package org.lcsim.hps.readout.ecal;
 import java.util.LinkedList;
 import java.util.Queue;
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 import org.lcsim.util.Driver;
 
 /**

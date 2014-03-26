@@ -3,7 +3,7 @@ package org.hps.conditions.svt;
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.conditions.ConditionsObjectException;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
  * This class is a data holder for associating a time shift with a specific sensor

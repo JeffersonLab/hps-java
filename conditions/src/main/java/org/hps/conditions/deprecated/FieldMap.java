@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
 

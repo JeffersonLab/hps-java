@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lcsim.event.EventHeader;
 import org.lcsim.hps.evio.TriggerData;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 import org.lcsim.lcio.LCIOWriter;
 
 /**

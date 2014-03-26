@@ -2,7 +2,7 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 public class SvtDaqMapping extends AbstractConditionsObject {
 

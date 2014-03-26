@@ -27,7 +27,7 @@ import org.lcsim.util.Driver;
 
 //--- hps-java ---//
 import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 
 //--- Constants ---//
 import static org.lcsim.hps.recon.tracking.HPSSVTConstants.TOTAL_APV25_CHANNELS;

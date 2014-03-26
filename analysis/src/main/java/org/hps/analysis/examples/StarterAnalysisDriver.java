@@ -1,9 +1,12 @@
-package org.hps.examples;
+package org.hps.analysis.examples;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hps.recon.tracking.LCIOTrackAnalysis;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
@@ -16,7 +19,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.Field;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.hps.recon.tracking.LCIOTrackAnalysis;
 
 /*
  * Example analysis driver.

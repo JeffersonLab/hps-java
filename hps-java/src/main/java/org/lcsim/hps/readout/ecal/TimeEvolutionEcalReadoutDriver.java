@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.hps.recon.ecal.HPSCalorimeterHit;
-import org.lcsim.hps.util.ClockSingleton;
-import org.lcsim.hps.util.RingBuffer;
+import org.hps.util.ClockSingleton;
+import org.hps.util.RingBuffer;
 
 /**
  * Performs readout of ECal hits.

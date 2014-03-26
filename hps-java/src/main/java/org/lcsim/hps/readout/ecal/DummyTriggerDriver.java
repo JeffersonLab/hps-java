@@ -1,7 +1,7 @@
 package org.lcsim.hps.readout.ecal;
 
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 
 /**
  * Free-running trigger - triggers on every Nth event

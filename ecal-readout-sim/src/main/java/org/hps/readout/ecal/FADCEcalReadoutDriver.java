@@ -27,7 +27,7 @@ import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.hps.util.RandomGaussian;
+import org.hps.util.RandomGaussian;
 import org.lcsim.lcio.LCIOConstants;
 
 /**

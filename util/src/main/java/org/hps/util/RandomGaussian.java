@@ -1,4 +1,4 @@
-package org.lcsim.hps.util;
+package org.hps.util;
 
 //--- java ---//
 import java.util.Random;

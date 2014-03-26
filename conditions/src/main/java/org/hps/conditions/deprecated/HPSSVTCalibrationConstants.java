@@ -16,7 +16,7 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
  *

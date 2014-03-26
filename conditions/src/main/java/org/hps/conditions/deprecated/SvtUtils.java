@@ -18,7 +18,8 @@ import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.util.Pair;
+
+import org.hps.util.Pair;
 
 import static org.hps.conditions.deprecated.StereoPair.detectorVolume;
 

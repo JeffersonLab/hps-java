@@ -18,7 +18,7 @@ import org.lcsim.event.GenericObject;
 //--- hps-java ---//
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 import org.lcsim.lcio.LCIOUtil;
 //--- Constants ---//
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;

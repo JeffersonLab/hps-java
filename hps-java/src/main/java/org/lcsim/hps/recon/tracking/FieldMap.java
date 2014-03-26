@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.hps.event.BeamlineConstants;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 
 /**
 

@@ -19,7 +19,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.hps.conditions.CalibrationDriver;
-import org.lcsim.hps.util.CompareHistograms;
+import org.hps.util.CompareHistograms;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;

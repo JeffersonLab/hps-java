@@ -28,9 +28,9 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.util.AIDAFrame;
-import org.lcsim.hps.util.Resettable;
-import org.lcsim.hps.util.Redrawable;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Resettable;
+import org.hps.util.Redrawable;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

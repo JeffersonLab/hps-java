@@ -9,6 +9,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.recon.tracking.kalman.KalmanSurface;
+import org.hps.recon.tracking.kalman.PropDCAXY;
+import org.hps.recon.tracking.kalman.PropXYDCA;
+import org.hps.recon.tracking.kalman.ShapeDispatcher;
+import org.hps.recon.tracking.kalman.util.PropDCAZ;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ILogicalVolume;
 import org.lcsim.detector.IPhysicalVolume;

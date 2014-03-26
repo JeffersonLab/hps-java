@@ -1,5 +1,5 @@
 
-package org.lcsim.hps.util;
+package org.hps.util;
 
 
 /**

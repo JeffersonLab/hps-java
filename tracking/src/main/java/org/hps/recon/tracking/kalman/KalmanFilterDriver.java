@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.hps.recon.tracking.kalman;
 
 import java.util.List;

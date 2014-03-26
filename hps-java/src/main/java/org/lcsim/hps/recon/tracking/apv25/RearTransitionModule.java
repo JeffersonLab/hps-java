@@ -11,7 +11,7 @@ import org.lcsim.hps.recon.tracking.HPSSVTConstants;
 import org.lcsim.util.Driver;
 
 //--- hps-java ---//
-import org.lcsim.hps.util.RandomGaussian;
+import org.hps.util.RandomGaussian;
 
 //--- Constants ---//
 import static org.lcsim.hps.recon.tracking.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;

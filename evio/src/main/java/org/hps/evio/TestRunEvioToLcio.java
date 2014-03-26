@@ -19,7 +19,7 @@ import org.apache.commons.cli.PosixParser;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.util.RunControlDialog;
+import org.hps.util.RunControlDialog;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
 

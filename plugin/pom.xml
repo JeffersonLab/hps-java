@@ -52,7 +52,6 @@
                     </redirectUrls>
                     <includes>
                         <include>org.hps:hps-users</include>
-                        <include>org.hps:hps-java</include>
                         <include>org.hps:hps-conditions</include>
                         <include>org.hps:hps-util</include>
                         <include>org.hps:hps-detector-data</include>
@@ -83,7 +82,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-java</artifactId>
+            <artifactId>hps-recon</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>

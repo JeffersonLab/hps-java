@@ -1,4 +1,4 @@
-package org.lcsim.hps.util;
+package org.hps.util;
 
 /**
  * Drivers that will be attached to monitoring system should implement 

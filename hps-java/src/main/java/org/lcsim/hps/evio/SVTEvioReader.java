@@ -23,7 +23,7 @@ import org.lcsim.hps.recon.tracking.HPSSVTData;
 import static org.lcsim.hps.evio.EventConstants.SVT_BANK_TAG;
 import org.lcsim.hps.recon.tracking.HPSSVTConstants;
 import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.util.Pair;
+import org.hps.util.Pair;
 import org.lcsim.lcio.LCIOUtil;
 
 /**

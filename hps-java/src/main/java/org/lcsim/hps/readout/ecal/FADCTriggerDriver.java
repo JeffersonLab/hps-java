@@ -14,7 +14,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.util.ClockSingleton;
+import org.hps.util.ClockSingleton;
 import org.lcsim.util.aida.AIDA;
 
 /**

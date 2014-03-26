@@ -9,8 +9,8 @@ import org.lcsim.hps.recon.tracking.apv25.HPSAPV25.APV25Channel.APV25AnalogPipel
 import org.lcsim.util.aida.AIDA;
 
 //--- hps-java ---//
-import org.lcsim.hps.util.ClockSingleton;
-import org.lcsim.hps.util.RingBuffer;
+import org.hps.util.ClockSingleton;
+import org.hps.util.RingBuffer;
 
 /**
  *

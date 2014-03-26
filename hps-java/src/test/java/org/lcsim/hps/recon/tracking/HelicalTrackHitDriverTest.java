@@ -25,7 +25,7 @@ import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 import org.lcsim.hps.conditions.CalibrationDriver;
-import org.lcsim.hps.util.CompareHistograms;
+import org.hps.util.CompareHistograms;
 
 import org.freehep.record.loop.RecordLoop.Command;
 
