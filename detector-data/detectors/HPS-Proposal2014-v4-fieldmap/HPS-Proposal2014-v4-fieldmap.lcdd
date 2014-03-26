@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-Proposal2014-v4-fieldmap" />
-    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v4-fieldmap/compact.xml" checksum="94465312" />
+    <generator name="GeomConverter" version="1.0" file="./detectors/HPS-Proposal2014-v4-fieldmap/compact.xml" checksum="507755576" />
     <author name="NONE" />
     <comment>HPS detector for 2014 proposal @ 2.2GeV</comment>
   </header>
@@ -5393,7 +5393,7 @@
     </setup>
   </gdml>
   <fields>
-    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/HPS_b18d36_unfolded.dat" xoffset="2.117" yoffset="0.0" zoffset="45.72" />
+    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/HPS_b18d36_unfolded.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
   </fields>
 </lcdd>
 

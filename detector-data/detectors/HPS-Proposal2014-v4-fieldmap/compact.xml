@@ -347,9 +347,9 @@
             type="FieldMap3D"
             name="HPSDipoleFieldMap3D" 
             filename="fieldmap/HPS_b18d36_unfolded.dat" 
-            xoffset="2.117"
-            yoffset="0"
-            zoffset="45.72"
+            xoffset="2.117*cm"
+            yoffset="0.0*cm"
+            zoffset="45.72*cm"
         />
     </fields>
 
