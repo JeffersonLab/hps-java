@@ -89,7 +89,7 @@
             <inputCollection>EcalReadoutHits</inputCollection>
         </driver> -->
         
-        <!-- <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.EcalPedestalPlots">
+        <!-- <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>-->
