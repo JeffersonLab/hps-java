@@ -48,7 +48,7 @@
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-Lyr50.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-Lyr50.xml</strategyResource>
         </driver>
 
         <driver name="AnalysisDriver" type="org.hps.users.mgraham.FastTrackAnalysisDriver">

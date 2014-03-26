@@ -34,7 +34,7 @@
     <drivers>
         <driver name="MPAlignment" 
                 type="org.hps.users.phansson.RunMPAlignment">
-                <residualLimitFileName>/Users/phansson/work/HPS/software/reco/hps-java/src/main/java/org/lcsim/hps/users/phansson/residualLimits.txt</residualLimitFileName>
+                <residualLimitFileName>/Users/phansson/work/HPS/software/reco/hps-java/src/main/java/org/hps/users/phansson/residualLimits.txt</residualLimitFileName>
                 <debug>true</debug>
                 <hideFrame>false</hideFrame>
                 <milleFile>${milleFile}</milleFile>
@@ -86,7 +86,7 @@
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <includeMS>true</includeMS>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-TestRun-357.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-TestRun-357.xml</strategyResource>
         </driver>        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

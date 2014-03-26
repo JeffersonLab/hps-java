@@ -73,7 +73,7 @@
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.AxialTrackReconDriver">
             <debug>true</debug>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
         </driver>        
 
      	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">

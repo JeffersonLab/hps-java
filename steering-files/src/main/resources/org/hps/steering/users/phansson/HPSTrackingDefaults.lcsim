@@ -56,7 +56,7 @@
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>
 
         <driver name="LCIOWriter"
