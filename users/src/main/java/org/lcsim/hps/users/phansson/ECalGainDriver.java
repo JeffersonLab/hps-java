@@ -1,13 +1,17 @@
 package org.lcsim.hps.users.phansson;
 
-import org.lcsim.hps.recon.ecal.*;
-
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.PlotterRegion;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,17 +20,18 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
+import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.EcalTrackMatch;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Redrawable;
+import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.monitoring.deprecated.Redrawable;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.recon.tracking.EcalTrackMatch;
-import org.lcsim.hps.recon.tracking.TrackUtils;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

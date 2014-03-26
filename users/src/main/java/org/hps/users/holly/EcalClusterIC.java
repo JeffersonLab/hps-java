@@ -1,24 +1,19 @@
 package org.hps.users.holly;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
-import org.lcsim.hps.recon.ecal.ECalUtils;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 

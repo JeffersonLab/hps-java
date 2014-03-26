@@ -4,17 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.MCParticle;
-import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.hps.recon.ecal.ECalUtils;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
 
 /**
  * This is a test

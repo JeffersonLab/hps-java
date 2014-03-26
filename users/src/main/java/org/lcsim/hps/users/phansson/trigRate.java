@@ -4,14 +4,20 @@
  */
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import hep.aida.IAnalysisFactory;
+import hep.aida.ITree;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.cli.*;
-import org.lcsim.util.aida.AIDA;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 
 /**
  *

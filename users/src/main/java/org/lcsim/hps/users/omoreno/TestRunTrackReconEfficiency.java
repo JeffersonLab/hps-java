@@ -1,10 +1,6 @@
 package org.lcsim.hps.users.omoreno;
 
 //--- java ---//
-import java.util.ArrayList;
-import java.util.List;
-
-
 //--- hep ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
@@ -12,18 +8,19 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.util.ArrayList;
+import java.util.List;
 
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
+import org.lcsim.event.Track;
+import org.lcsim.geometry.Detector;
 //--- lcsim ---//
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.event.Track;
-import org.lcsim.event.GenericObject;
-
 //--- hps-java ---//
-import org.lcsim.hps.recon.tracking.TrackUtils;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 
 /**
  * Class to calculate track reconstruction efficiency using a tag and probe

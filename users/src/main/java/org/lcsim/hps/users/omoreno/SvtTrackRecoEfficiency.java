@@ -1,33 +1,28 @@
 package org.lcsim.hps.users.omoreno;
 
 //--- java ---//
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.ArrayList;
-
 //--- aida ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
-
 import hep.physics.vec.BasicHep3Vector;
 //--- hep ---//
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
-import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
-import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
-//--- lcsim ---//
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.FindableTrack;
+import org.hps.recon.tracking.TrackAnalysis;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
@@ -40,14 +35,13 @@ import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
-
-import org.lcsim.hps.recon.tracking.FindableTrack.Ignore;
-import org.lcsim.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
+import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
+import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
+//--- lcsim ---//
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 //--- hps-java ---//
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.TrackAnalysis;
-import org.lcsim.hps.recon.tracking.TrackUtils;
-import org.lcsim.hps.recon.tracking.FindableTrack;
 
 /**
  * 

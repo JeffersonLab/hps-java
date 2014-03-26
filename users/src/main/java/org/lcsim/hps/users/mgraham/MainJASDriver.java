@@ -1,8 +1,10 @@
 package org.lcsim.hps.users.mgraham;
 
-import org.lcsim.hps.recon.tracking.DataTrackerHitDriver;
-import org.lcsim.hps.conditions.CalibrationDriver;
-import org.lcsim.hps.recon.tracking.*;
+import org.hps.conditions.deprecated.CalibrationDriver;
+import org.hps.recon.tracking.DataTrackerHitDriver;
+import org.hps.recon.tracking.HPSRawTrackerHitFitterDriver;
+import org.hps.recon.tracking.HelicalTrackHitDriver;
+import org.hps.recon.tracking.TrackerReconDriver;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.util.Driver;
 

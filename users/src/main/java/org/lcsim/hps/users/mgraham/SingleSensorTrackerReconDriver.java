@@ -1,17 +1,17 @@
 package org.lcsim.hps.users.mgraham;
 
-import org.lcsim.hps.recon.tracking.*;
 import hep.physics.vec.BasicHep3Vector;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.SeedTracker;
+import org.hps.recon.tracking.TrackerDigiDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.event.HPSTransformations;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;

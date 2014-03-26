@@ -5,9 +5,6 @@
 package org.lcsim.hps.users.phansson;
 
 
-import hep.aida.IHistogram1D;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *

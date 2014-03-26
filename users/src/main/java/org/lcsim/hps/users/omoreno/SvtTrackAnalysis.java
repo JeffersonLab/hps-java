@@ -1,13 +1,19 @@
 package org.lcsim.hps.users.omoreno;
 
 //--- java ---//
+//--- hep ---//
+import hep.aida.IPlotter;
+import hep.physics.vec.Hep3Vector;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Resettable;
 //--- org.lcsim ---//
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -17,21 +23,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-
-
-//--- hep ---//
-import hep.aida.IPlotter;
-import hep.physics.vec.Hep3Vector;
-
-
-
 //--- hps-java ---//
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.recon.tracking.HPSFittedRawTrackerHit;
-import org.lcsim.hps.recon.tracking.TrackUtils;
 
 /**
  * 

@@ -4,7 +4,13 @@
  */
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.PlotterRegion;
 
 import java.io.IOException;
@@ -13,6 +19,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.deprecated.BeamlineConstants;
+import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.EcalTrackMatch;
+import org.hps.util.AIDAFrame;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -23,11 +34,6 @@ import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.hps.event.BeamlineConstants;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.recon.ecal.EcalConditions;
-import org.lcsim.hps.recon.tracking.EcalTrackMatch;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

@@ -4,17 +4,13 @@ package org.lcsim.hps.users.omoreno;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.util.Resettable;
 //--- org.lcsim ---//
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
-
 //--- hps-java ---//
-import org.lcsim.hps.monitoring.deprecated.Resettable;
 
 /**
  * 

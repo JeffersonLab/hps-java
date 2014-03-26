@@ -21,8 +21,8 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-java</artifactId>
-        </dependency>
+            <artifactId>hps-analysis</artifactId>
+        </dependency>        
     </dependencies>
     
     <build>

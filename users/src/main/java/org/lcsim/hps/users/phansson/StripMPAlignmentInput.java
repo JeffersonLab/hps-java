@@ -1,6 +1,11 @@
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.ICloud1D;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IHistogram;
+import hep.aida.IPlotter;
+import hep.aida.IProfile1D;
 import hep.aida.ref.plotter.PlotterRegion;
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.MatrixOp;
@@ -8,18 +13,25 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.*;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.TrackUtils;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.fit.helicaltrack.HelicalTrackHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
+import org.lcsim.fit.helicaltrack.HelixUtils;
+import org.lcsim.fit.helicaltrack.MultipleScatter;
+import org.lcsim.fit.helicaltrack.TrackDirection;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 

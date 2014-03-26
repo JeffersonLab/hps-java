@@ -1,30 +1,33 @@
 package org.lcsim.hps.users.mgraham;
 
-import hep.aida.*;
-import hep.physics.vec.Hep3Vector;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IFitFactory;
+import hep.aida.IFitResult;
+import hep.aida.IFitter;
+import hep.aida.IHistogram1D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.readout.ecal.ReadoutTimestamp;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.*;
-import org.lcsim.event.base.BaseTrack;
-import org.lcsim.fit.helicaltrack.HelicalTrackFit;
+import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.readout.ecal.ReadoutTimestamp;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
-import org.lcsim.hps.recon.tracking.HPSTrack;
-import org.lcsim.hps.recon.vertexing.HelixConverter;
-import org.lcsim.hps.recon.vertexing.StraightLineTrack;
-import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

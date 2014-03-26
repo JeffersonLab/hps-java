@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+import org.hps.readout.ecal.ClockSingleton;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.hps.util.ClockSingleton;
 import org.lcsim.util.Driver;
 
 /**

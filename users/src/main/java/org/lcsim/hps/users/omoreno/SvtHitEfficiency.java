@@ -16,14 +16,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-//--- lcsim ---//
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackerHitUtils;
+import org.hps.util.AIDAFrame;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
@@ -31,14 +34,10 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.detector.tracker.silicon.ChargeCarrier;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
+//--- lcsim ---//
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 //--- hps-java ---//
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.TrackUtils;
-import org.lcsim.hps.recon.tracking.TrackerHitUtils;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 
 public class SvtHitEfficiency extends Driver {
 

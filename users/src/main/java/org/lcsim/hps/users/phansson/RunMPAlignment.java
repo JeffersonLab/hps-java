@@ -1,19 +1,19 @@
 package org.lcsim.hps.users.phansson;
 
 import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.lcsim.event.*;
-import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
+
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

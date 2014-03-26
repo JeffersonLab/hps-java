@@ -1,16 +1,17 @@
 package org.lcsim.hps.users.sarah;
 
-import org.lcsim.hps.users.mgraham.*;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+
 import java.util.List;
+
+import org.hps.util.AIDAFrame;
+import org.hps.util.Resettable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

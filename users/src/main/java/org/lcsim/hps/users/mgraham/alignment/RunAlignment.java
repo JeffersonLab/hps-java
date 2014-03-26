@@ -1,6 +1,5 @@
 package org.lcsim.hps.users.mgraham.alignment;
 
-import hep.aida.IAnalysisFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;

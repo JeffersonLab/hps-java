@@ -1,15 +1,29 @@
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
+import hep.aida.ITree;
+import hep.aida.ITreeFactory;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.geometry.util.DetectorLocator;
-import org.lcsim.hps.recon.ecal.ECalUtils;
-import org.lcsim.hps.recon.ecal.EcalConditions;
-import org.lcsim.util.aida.AIDA;
 
 /**
  *

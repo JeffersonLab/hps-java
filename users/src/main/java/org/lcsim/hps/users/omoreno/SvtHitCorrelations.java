@@ -1,23 +1,22 @@
 package org.lcsim.hps.users.omoreno;
 
 //--- java ---//
+//--- aida ---//
+import hep.aida.IPlotter;
+
 import java.util.ArrayList;
 import java.util.List;
 
-//--- org.lcsim ---//
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-
+//--- org.lcsim ---//
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 //--- hps-java ---//
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-
-//--- aida ---//
-import hep.aida.IPlotter;
 
 /**
  * 

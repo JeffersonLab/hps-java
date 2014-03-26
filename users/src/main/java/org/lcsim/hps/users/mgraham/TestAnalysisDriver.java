@@ -6,21 +6,22 @@ package org.lcsim.hps.users.mgraham;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IProfile1D;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.lcsim.event.*;
+
+import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.TrackAnalysis;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseRelationalTable;
-import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.hps.recon.tracking.HPSFittedRawTrackerHit;
-import org.lcsim.hps.recon.tracking.TrackAnalysis;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

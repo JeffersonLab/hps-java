@@ -15,6 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.HPSShapeFitParameters;
+import org.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.apv25.SvtReadout;
+import org.hps.util.AIDAFrame;
 //--- lcsim ---//
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -29,21 +38,9 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 //--- hps-java ---//
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.tracking.HPSFittedRawTrackerHit;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants.ChannelConstants;
-import org.lcsim.hps.recon.tracking.HPSShapeFitParameters;
-import org.lcsim.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.TrackUtils;
-import org.lcsim.hps.util.Pair;
-import org.lcsim.hps.recon.tracking.apv25.SvtReadout;
-
-
 //--- Constants ---//
-import static org.lcsim.hps.recon.tracking.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 
 /**
  * SVT Quality Assurance Driver

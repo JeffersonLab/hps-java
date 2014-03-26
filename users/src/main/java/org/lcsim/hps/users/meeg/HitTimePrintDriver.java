@@ -1,10 +1,11 @@
 package org.lcsim.hps.users.meeg;
 
 import java.util.List;
+
+import org.hps.readout.ecal.ReadoutTimestamp;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.hps.readout.ecal.ReadoutTimestamp;
 import org.lcsim.util.Driver;
 
 /**

@@ -5,31 +5,31 @@
 package org.lcsim.hps.users.mgraham;
 
 import hep.physics.vec.Hep3Vector;
+
 import java.util.List;
+
+import org.hps.recon.tracking.TrackAnalysis;
+import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.geometry.Detector;
-import org.lcsim.hps.recon.tracking.kalman.FullFitKalman;
-import org.lcsim.hps.recon.tracking.kalman.ShapeDispatcher;
-import org.lcsim.hps.recon.tracking.kalman.TrackUtils;
-import org.lcsim.recon.tracking.trfbase.ETrack;
-import org.lcsim.util.Driver;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.hps.recon.tracking.TrackAnalysis;
+import org.lcsim.geometry.Detector;
+import org.lcsim.recon.tracking.trfbase.ETrack;
 import org.lcsim.recon.tracking.trfbase.PropDir;
 import org.lcsim.recon.tracking.trfbase.Propagator;
 import org.lcsim.recon.tracking.trfbase.TrackError;
 import org.lcsim.recon.tracking.trfbase.TrackVector;
 import org.lcsim.recon.tracking.trfbase.VTrack;
 import org.lcsim.recon.tracking.trfdca.SurfDCA;
+import org.lcsim.recon.tracking.trffit.FullFitKalman;
 import org.lcsim.recon.tracking.trffit.HTrack;
-import org.lcsim.recon.tracking.trfxyp.SurfXYPlane;
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**

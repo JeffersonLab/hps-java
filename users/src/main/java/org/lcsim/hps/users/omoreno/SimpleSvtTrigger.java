@@ -5,17 +5,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-//--- lcsim ---//
-import org.lcsim.util.Driver;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.FindableTrack;
+import org.hps.recon.tracking.apv25.Apv25Full;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
-
+//--- lcsim ---//
+import org.lcsim.util.Driver;
 //--- hps-java ---//
-import org.lcsim.hps.recon.tracking.FindableTrack;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.apv25.Apv25Full;
 
 public class SimpleSvtTrigger extends Driver {
     

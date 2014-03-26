@@ -4,12 +4,17 @@
  */
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.plotter.PlotterRegion;
+
 import java.io.IOException;
+
 import org.lcsim.util.aida.AIDA;
 
 /**

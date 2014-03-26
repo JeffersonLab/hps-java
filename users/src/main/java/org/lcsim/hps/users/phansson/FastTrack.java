@@ -6,11 +6,7 @@ package org.lcsim.hps.users.phansson;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import java.util.List;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.tracker.silicon.*;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.TrackerHit;
+
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
 /**

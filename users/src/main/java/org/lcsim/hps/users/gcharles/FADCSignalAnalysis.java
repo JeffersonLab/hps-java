@@ -5,12 +5,12 @@ import hep.aida.IHistogram2D;
 
 import java.util.List;
 
+import org.hps.readout.ecal.FADCEcalReadoutDriver;
+import org.hps.readout.ecal.RingBuffer;
+import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalRawConverterDriver;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver;
-import org.lcsim.hps.recon.ecal.ECalUtils;
-import org.lcsim.hps.recon.ecal.EcalRawConverterDriver;
-import org.lcsim.hps.util.RingBuffer;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

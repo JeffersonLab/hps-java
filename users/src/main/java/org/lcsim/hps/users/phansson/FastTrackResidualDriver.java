@@ -4,23 +4,30 @@
  */
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.PlotterRegion;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.tracker.silicon.*;
-import org.lcsim.event.*;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;

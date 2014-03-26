@@ -10,18 +10,20 @@ package org.lcsim.hps.users.mgraham.alignment;
  */
 
 //import static org.lcsim.units.clhep.SystemOfUnits.*;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.Transform3D;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.VecOp;
-import java.util.ArrayList;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
 import org.lcsim.detector.solids.GeomOp2D;
 import org.lcsim.detector.solids.GeomOp3D;
 import org.lcsim.detector.solids.Line3D;
@@ -31,7 +33,6 @@ import org.lcsim.detector.solids.Polygon3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.ChargeDistribution;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 
 /**

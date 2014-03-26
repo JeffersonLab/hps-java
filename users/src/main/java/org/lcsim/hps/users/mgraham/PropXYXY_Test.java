@@ -9,7 +9,6 @@
 package org.lcsim.hps.users.mgraham;
 
 //import junit.framework.TestCase;
-import org.lcsim.hps.recon.tracking.kalman.PropXYXY;
 import org.lcsim.recon.tracking.spacegeom.SpacePath;
 import org.lcsim.recon.tracking.spacegeom.SpacePoint;
 import org.lcsim.recon.tracking.trfbase.ETrack;
@@ -22,6 +21,7 @@ import org.lcsim.recon.tracking.trfbase.TrackError;
 import org.lcsim.recon.tracking.trfbase.TrackVector;
 import org.lcsim.recon.tracking.trfbase.VTrack;
 import org.lcsim.recon.tracking.trfutil.Assert;
+import org.lcsim.recon.tracking.trfxyp.PropXYXY;
 import org.lcsim.recon.tracking.trfxyp.SurfXYPlane;
 import org.lcsim.util.Driver;
 

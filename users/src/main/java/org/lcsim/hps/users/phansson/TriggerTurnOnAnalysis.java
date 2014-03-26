@@ -4,20 +4,25 @@
  */
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
 import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.ecal.TriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.base.ParticleTypeClassifier;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.lcsim.hps.evio.TriggerData;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 

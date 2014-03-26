@@ -1,7 +1,10 @@
 package org.lcsim.hps.users.mgraham;
 
-import Jama.*;
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
 
@@ -11,24 +14,33 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.deprecated.BeamlineConstants;
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.DumbShaperFit;
+import org.hps.recon.tracking.HPSShaperFitAlgorithm;
+import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.*;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
-import org.lcsim.hps.event.BeamlineConstants;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.monitoring.deprecated.Resettable;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.recon.tracking.*;
-import org.lcsim.hps.recon.vertexing.HelixConverter;
-import org.lcsim.hps.recon.vertexing.StraightLineTrack;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import Jama.Matrix;
+import Jama.SingularValueDecomposition;
 
 /**
  *

@@ -1,27 +1,26 @@
 package org.lcsim.hps.users.mgraham;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
 import hep.physics.vec.Hep3Vector;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import org.hps.conditions.deprecated.BeamlineConstants;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.StraightLineTrack;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.event.BeamlineConstants;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.hps.recon.tracking.HPSTrack;
-import org.lcsim.hps.recon.tracking.TrackUtils;
-import org.lcsim.hps.recon.vertexing.HelixConverter;
-import org.lcsim.hps.recon.vertexing.StraightLineTrack;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;

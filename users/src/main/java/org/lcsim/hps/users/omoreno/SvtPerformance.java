@@ -12,22 +12,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+import org.hps.recon.tracking.HPSShapeFitParameters;
+import org.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.geometry.Detector;
-
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants;
-import org.lcsim.hps.recon.tracking.HPSSVTCalibrationConstants.ChannelConstants;
-import org.lcsim.hps.recon.tracking.HPSShapeFitParameters;
-import org.lcsim.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
 
 /**
  * Driver that looks at the performance of the SVT.

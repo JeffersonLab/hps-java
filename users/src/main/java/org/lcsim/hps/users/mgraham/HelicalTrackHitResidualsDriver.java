@@ -7,27 +7,31 @@ import hep.aida.IPlotter;
 import hep.aida.ref.plotter.PlotterRegion;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.EventQuality;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.*;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.hps.recon.tracking.TrackUtils;
 import org.lcsim.hps.users.phansson.TrigRateDriver;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.hps.recon.tracking.EventQuality;
 
 /**
  *

@@ -1,24 +1,15 @@
 package org.lcsim.hps.users.omoreno;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
-import org.lcsim.hps.recon.tracking.SvtUtils;
-import org.lcsim.util.aida.AIDA;
-
-import hep.aida.IHistogram2D;
-
 import hep.aida.ICloud2D;
 //--- hep ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
-import hep.physics.vec.Hep3Vector;
+
+import org.hps.conditions.deprecated.SvtUtils;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.util.aida.AIDA;
 
 public class PlotUtils {
 

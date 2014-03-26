@@ -1,18 +1,27 @@
 package org.lcsim.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.ICloud1D;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
+import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.ParticleTypeClassifier;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.lcsim.hps.monitoring.deprecated.AIDAFrame;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
