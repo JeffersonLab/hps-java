@@ -4,7 +4,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 import junit.framework.TestCase;
+
+import org.hps.users.ngraf.NearestNeighborClusterDriver;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -16,6 +19,7 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IPlotter;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
