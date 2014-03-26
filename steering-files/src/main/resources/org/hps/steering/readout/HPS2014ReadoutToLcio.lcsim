@@ -31,7 +31,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>    -->
         </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
@@ -80,9 +80,9 @@
             <triggerLatencyTime>240</triggerLatencyTime>
         </driver>
         
-        <driver name="Digitization" type="org.hps.recon.tracking.RearTransitionModule" />
+        <driver name="Digitization" type="org.hps.recon.tracking.apv25.RearTransitionModule" />
 
-        <driver name="DataProcessing" type="org.hps.recon.tracking.TestRunDataProcessingModule" >
+        <driver name="DataProcessing" type="org.hps.recon.tracking.apv25.TestRunDataProcessingModule" >
             <enablePileUpCut>true</enablePileUpCut>
             <enableThresholdCut>true</enableThresholdCut>
             <noiseThreshold>2</noiseThreshold>
@@ -95,7 +95,7 @@
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
         </driver>
 
-        <driver name="ClockDriver" type="org.hps.util.ClockDriver"/>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver> 

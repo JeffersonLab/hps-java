@@ -11,12 +11,12 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
             <!--            <runNumber>17</runNumber>    -->
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="PedestalPlots"
-                type="org.lcsim.hps.monitoring.svt.PedestalPlots">
+                type="org.hps.monitoring.drivers.svt.PedestalPlots">
             <fitFile>${outputFile}_pedestals.txt</fitFile>
             <plotTimeSeries>true</plotTimeSeries>
         </driver>

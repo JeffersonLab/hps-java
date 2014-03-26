@@ -9,8 +9,8 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="SVTSetupDriver" type="org.hps.recon.tracking.HPSSVTSensorSetup"/>
-        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.svt.SensorOccupancyPlotsDriver">
+        <driver name="SVTSetupDriver" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>
+        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
     </drivers>   

@@ -19,9 +19,9 @@
             <eventInterval>1000</eventInterval>
         </driver> 
         
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
 
-        <driver name="StarterAnalysisDriver" type="org.hps.examples.StarterAnalysisDriver">
+        <driver name="StarterAnalysisDriver" type="org.hps.analysis.examples.StarterAnalysisDriver">
         </driver>
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

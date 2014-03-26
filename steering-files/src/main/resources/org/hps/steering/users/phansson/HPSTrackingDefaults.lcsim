@@ -26,13 +26,13 @@
  
     <drivers>
         <driver name="GBLDriver"
-                type="org.lcsim.hps.recon.tracking.gbl.GBLOutputDriver">
+                type="org.hps.recon.tracking.gbl.GBLOutputDriver">
                 <debug>0</debug>
                 <hideFrame>false</hideFrame>
                 <outputPlotFileName></outputPlotFileName>
                 <gblFileName>gblinput.txt</gblFileName>
 	</driver>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>    -->
         </driver>
 
@@ -41,20 +41,20 @@
             <eventInterval>100</eventInterval>
         </driver>
     
-        <driver name="TrackerDigiDriver" type="org.lcsim.hps.users.meeg.SimpleTrackerDigiDriver">
+        <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
 <!--            <dropBadChannels>true</dropBadChannels>-->
             <debug>false</debug>
         </driver>
               
         <driver name="HelicalTrackHitDriver"
-                type="org.lcsim.hps.recon.tracking.HelicalTrackHitDriver">
+                type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
         
         <driver name="TrackerReconDriver"
-                type="org.lcsim.hps.recon.tracking.TrackerReconDriver">
+                type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>

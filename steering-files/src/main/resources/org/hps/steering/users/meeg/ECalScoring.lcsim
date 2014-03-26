@@ -17,7 +17,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver> 
-        <driver name="ECalScoringMatch" type="org.lcsim.hps.examples.ECalScoringMatchDriver"/>
+        <driver name="ECalScoringMatch" type="org.hps.analysis.examples.ECalScoringMatchDriver"/>
 
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

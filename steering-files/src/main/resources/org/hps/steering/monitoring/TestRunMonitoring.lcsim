@@ -28,7 +28,7 @@
 
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -43,19 +43,19 @@
             <fitAlgorithm>Analytic</fitAlgorithm>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver"/>
-        <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.EcalDaqPlots">
+        <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">
         </driver>
         <driver name="CleanupDriver" 
                 type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="EcalEventMonitor" type="org.hps.monitoring.ecal.EcalEventMonitor">
+        <driver name="EcalEventMonitor" type="org.hps.monitoring.drivers.ecal.EcalEventMonitor">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
-        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.svt.SensorOccupancyPlotsDriver">
+        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
@@ -72,22 +72,22 @@
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         </driver>        
-        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.svt.SVTSimpleEventDisplay">
+        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
             <inputCollection>SVTRawTrackerHits</inputCollection>
             <singleEvent>false</singleEvent>
         </driver>
         <driver name="SVTPulsePlots"
-                type="org.hps.monitoring.svt.SVTHitPulsePlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>   
         </driver>    
-        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.svt.SVTMonitoringPlots">
+        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.drivers.svt.SVTMonitoringPlots">
         </driver>
         <driver name="SVTPulseFitPlots"
-                type="org.hps.monitoring.svt.SVTPulseFitPlots">
+                type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
         </driver>
         <driver name="SVTHitRecoPlots"
-                type="org.hps.monitoring.svt.SVTHitReconstructionPlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
         </driver>
     </drivers>

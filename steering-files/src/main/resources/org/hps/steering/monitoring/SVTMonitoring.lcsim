@@ -26,11 +26,11 @@
         <driver name="AidaSaveDriver"/>
     </execute>
     <drivers>
-        <driver name="RunControlDriver" type="org.hps.monitoring.RunControlDriver"/>
+        <driver name="RunControlDriver" type="org.hps.util.RunControlDriver"/>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>17</runNumber>    -->
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
@@ -54,30 +54,30 @@
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
         </driver>
-        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.svt.TrackingReconstructionPlots">
+        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
 <!--            <outputPlots>HPSTestRunTrackingPlots.aida</outputPlots>-->
         </driver>
-        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.svt.SVTSimpleEventDisplay">
+        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
             <inputCollection>SVTRawTrackerHits</inputCollection>
             <singleEvent>false</singleEvent>
         </driver>
-        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.svt.SVTMonitoringPlots">
+        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.drivers.svt.SVTMonitoringPlots">
         </driver>
         <driver name="SVTPulseFitPlots"
-                type="org.hps.monitoring.svt.SVTPulseFitPlots">
+                type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
         </driver>        
         <driver name="SVTPulsePlots"
-                type="org.hps.monitoring.svt.SVTHitPulsePlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>   
         </driver>    
         <driver name="SVTHitRecoPlots"
-                type="org.hps.monitoring.svt.SVTHitReconstructionPlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
         </driver>
-        <driver name="TrackTimePlots" type="org.hps.monitoring.svt.TrackTimePlots"/>
+        <driver name="TrackTimePlots" type="org.hps.monitoring.drivers.svt.TrackTimePlots"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver> 

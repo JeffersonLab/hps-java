@@ -15,7 +15,7 @@
        <driver name="TwoTrackAnalysis" />
     </execute>    
     <drivers>    
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
@@ -46,7 +46,7 @@
         	<driver name="ElwinsVertexing" type="org.hps.users.mgraham.ElwinsTrackingRecon">
                 <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
-	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.svt.TrackingReconstructionPlots">
+	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
                 <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
         <driver name="TwoTrackAnalysis" type="org.hps.users.mgraham.TwoTrackAnalysis">  

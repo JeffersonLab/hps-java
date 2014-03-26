@@ -19,7 +19,7 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -38,17 +38,17 @@
                 type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver>
-        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.svt.SensorOccupancyPlotsDriver">
+        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
             <eventRefreshRate>10</eventRefreshRate>
         </driver>
         <driver name="SVTHitPulsePlots"
-                type="org.hps.monitoring.svt.SVTHitPulsePlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>   
         </driver>  
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
         </driver>
-        <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.EcalHitPlots">
+        <driver name="EcalHitPlots" type="org.hps.monitoring.drivers.ecal.EcalHitPlots">
             <maxE>2000</maxE>
             <logScale>true</logScale>
         </driver>

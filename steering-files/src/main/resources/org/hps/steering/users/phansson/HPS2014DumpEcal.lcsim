@@ -24,12 +24,12 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
         </driver>
         
 
 
-    <driver name="EcalReadout" type="org.lcsim.hps.readout.ecal.FADCEcalReadoutDriver">
+    <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <readoutPeriod>4.0</readoutPeriod>
             <coincidenceWindow>2</coincidenceWindow>
             <ecalName>Ecal</ecalName>
@@ -43,7 +43,7 @@
 <!--            <debug>true</debug>-->
         </driver>
 
-        <driver name="EcalConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
 <!--            <gain>0.15</gain>-->
@@ -52,7 +52,7 @@
         </driver>	
 
 
-        <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.CTPEcalClusterer">
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.CTPEcalClusterer">
             <ecalName>Ecal</ecalName>
             <clusterWindow>8.0</clusterWindow>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
@@ -60,7 +60,7 @@
 
 
 
-        <driver name="EcalTriggerVariables" type="org.lcsim.hps.readout.ecal.FADCTriggerVariableDriver">
+        <driver name="EcalTriggerVariables" type="org.hps.readout.ecal.FADCTriggerVariableDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <outputFileName>${outputFile}.txt</outputFileName>
         </driver>	
@@ -69,7 +69,7 @@
 
 
 
-        <driver name="ClockDriver" type="org.lcsim.hps.util.ClockDriver"/>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver> 

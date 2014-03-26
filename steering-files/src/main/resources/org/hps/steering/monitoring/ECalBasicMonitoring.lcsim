@@ -16,7 +16,7 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/> 
 
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
@@ -27,7 +27,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
         
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.BasicMonitoringPlotsDriver"/>
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.BasicMonitoringPlotsDriver"/>
 
     </drivers>
 </lcsim>

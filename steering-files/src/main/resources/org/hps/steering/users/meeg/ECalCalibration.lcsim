@@ -17,20 +17,20 @@
 -->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
         </driver>
-        <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.lcsim.hps.monitoring.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="EcalEventMonitor" type="org.lcsim.hps.monitoring.ecal.EcalEventMonitor">
+        <driver name="EcalEventMonitor" type="org.hps.monitoring.drivers.ecal.EcalEventMonitor">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
-        <driver name="EcalWindowPlots" type="org.lcsim.hps.monitoring.ecal.EcalWindowPlotsXY">
+        <driver name="EcalWindowPlots" type="org.hps.monitoring.ecal.EcalWindowPlotsXY">
             <inputCollection>EcalReadoutHits</inputCollection>
         </driver>
-        <driver name="EcalPedestalPlots" type="org.lcsim.hps.monitoring.ecal.EcalPedestalPlots">
+        <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.EcalPedestalPlots">
             <inputCollection>EcalReadoutHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
             <calWindow>5</calWindow>

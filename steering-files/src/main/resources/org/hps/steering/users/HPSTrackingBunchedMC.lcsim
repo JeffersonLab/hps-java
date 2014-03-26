@@ -25,7 +25,7 @@
     <drivers>
 
         <driver name="SVTSetupDriver"
-                type="org.hps.recon.tracking.HPSSVTSensorSetup">   
+                type="org.hps.conditions.deprecated.HPSSVTSensorSetup">   
         </driver>
 
         <driver name="EventMarkerDriver"

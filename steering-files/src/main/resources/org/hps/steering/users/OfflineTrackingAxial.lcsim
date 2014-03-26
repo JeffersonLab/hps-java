@@ -38,25 +38,25 @@
                 type="org.hps.recon.tracking.DataTrackerHitDriver"/>
 
          <driver name="SVTEventPlots"
-                type="org.hps.monitoring.svt.SVTEventInfo">
+                type="org.hps.monitoring.drivers.svt.SVTEventInfo">
                  <outputPlots>svtEventInfoPlots.aida</outputPlots>
         </driver>
 
         <driver name="SVTHitRecoPlots"
-                type="org.hps.monitoring.svt.SVTHitReconstructionPlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
              <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
              <outputPlots>svtHitRecoPlots.aida</outputPlots>
         </driver>
 
         <driver name="SVTPulsePlots"
-                type="org.hps.monitoring.svt.SVTHitPulsePlots">
+                type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
         <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>  
              <outputPlots>svtPulsePlots.aida</outputPlots> 
         </driver>    
 
 
         <driver name="SVTSetupDriver"
-                type="org.hps.recon.tracking.HPSSVTSensorSetup">
+                type="org.hps.conditions.deprecated.HPSSVTSensorSetup">
         </driver>        
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
@@ -76,7 +76,7 @@
             <strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
         </driver>        
 
-     	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.svt.TrackingReconstructionPlots">
+     	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
                 <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
 

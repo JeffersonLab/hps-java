@@ -12,7 +12,7 @@
     </execute> 
 
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="DummyTrigger" type="org.hps.readout.ecal.DummyTriggerDriver">
             <period>1</period>
@@ -22,7 +22,7 @@
         <driver name="TestRunReconToEvio" type="org.hps.evio.TestRunTriggeredReconToEvio">
             <evioOutputFile>${outputFile}.evio</evioOutputFile>
         </driver>
-        <driver name="ClockDriver" type="org.hps.util.ClockDriver">
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver">
         </driver>
     </drivers>
 </lcsim>

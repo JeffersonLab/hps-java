@@ -36,16 +36,16 @@
             <eventInterval>1</eventInterval>
         </driver>
         
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         
-        <driver name="EcalRawConverter" type="org.lcsim.hps.recon.ecal.EcalRawConverterDriver">
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
 <!--            <dropBadFADC>true</dropBadFADC>-->
         </driver>
         
-  <!--    <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.EcalClusterer">-->
-          <driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.EcalClusterIC">
+  <!--    <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">-->
+          <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">
 <!--            <clusterWindow>32.0</clusterWindow>-->
                 <ecalName>Ecal</ecalName>
                 <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -76,26 +76,26 @@
         
         
 <!-- Here are commented drivers -->
-          <!--<driver name="RunControlDriver" type="org.lcsim.hps.monitoring.RunControlDriver"> -->
+          <!--<driver name="RunControlDriver" type="org.hps.util.RunControlDriver"> -->
         
-          <!--<driver name="EcalClusterer" type="org.lcsim.hps.recon.ecal.HPSEcalCTPClusterer"> -->
+          <!--<driver name="EcalClusterer" type="org.hps.recon.ecal.HPSEcalCTPClusterer"> -->
         
-          <!--  <driver name="EcalEvsX" type="org.lcsim.hps.monitoring.ecal.EcalEvsX">
+          <!--  <driver name="EcalEvsX" type="org.hps.monitoring.ecal.EcalEvsX">
             <targetZ>674</targetZ>
             <inputCollection>EcalClusters</inputCollection>
         </driver> -->
     
-        <!-- <driver name="EcalWindowPlots" type="org.hps.monitoring.ecal.plots.EcalWindowPlots">
+        <!-- <driver name="EcalWindowPlots" type="org.hps.monitoring.drivers.ecal.plots.EcalWindowPlots">
             <inputCollection>EcalReadoutHits</inputCollection>
         </driver> -->
         
-        <!-- <driver name="EcalPedestalPlots" type="org.lcsim.hps.monitoring.ecal.EcalPedestalPlots">
+        <!-- <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>-->
        
       
-       <!--  <driver name="TriggerPlots" type="org.lcsim.hps.monitoring.ecal.TriggerPlots">
+       <!--  <driver name="TriggerPlots" type="org.hps.monitoring.ecal.TriggerPlots">
             <clusterEnergyCut>0.500</clusterEnergyCut>
         </driver>-->
           

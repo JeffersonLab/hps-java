@@ -18,7 +18,7 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>
@@ -49,7 +49,7 @@
         <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
             <noPileup>true</noPileup>
         </driver>
-        <driver name="ClockDriver" type="org.hps.util.ClockDriver"/>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>

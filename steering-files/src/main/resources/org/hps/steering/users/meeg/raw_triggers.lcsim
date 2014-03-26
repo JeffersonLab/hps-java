@@ -18,20 +18,20 @@
 		<driver name="ClockDriver"/>
 	</execute>
 	<drivers>
-        <driver name="CalibrationDriver" type="org.lcsim.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
 		<driver name="EcalClusterer"
-                type="org.lcsim.hps.recon.ecal.EcalClusterer">
+                type="org.hps.recon.ecal.EcalClusterer">
 			<ecalName>Ecal</ecalName>
 			<ecalCollectionName>EcalHits</ecalCollectionName>
             <addEMin>0.075</addEMin>
 		</driver>
 		<driver name="EcalTrigger"
-                type="org.lcsim.hps.analysis.ecal.TestRunRateAnalysis">
+                type="org.hps.analysis.ecal.TestRunRateAnalysis">
 			<clusterCollectionName>EcalClusters</clusterCollectionName>
             <clusterEnergyLow>0.6</clusterEnergyLow>
 		</driver>
 		<driver name="MCParticlePlots"
-                type="org.lcsim.hps.analysis.ecal.HPSMCParticlePlotsDriver">
+                type="org.hps.analysis.ecal.HPSMCParticlePlotsDriver">
 		</driver>
 		<driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
@@ -42,7 +42,7 @@
 			<outputFileName>${inputFile}_ecalPlots</outputFileName>
 		</driver>
 		<driver name="ClockDriver"
-                type="org.lcsim.hps.util.ClockDriver">
+                type="org.hps.readout.ecal.ClockDriver">
 		</driver>
 	</drivers>
 </lcsim>

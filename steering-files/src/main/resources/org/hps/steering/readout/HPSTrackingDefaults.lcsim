@@ -17,7 +17,7 @@
     </execute>
     
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>    -->
         </driver>
 

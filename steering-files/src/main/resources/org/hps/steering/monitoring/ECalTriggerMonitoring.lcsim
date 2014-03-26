@@ -25,7 +25,7 @@
         <!--<driver name="AidaSaveDriver"/>-->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalReadoutToTriggerConverterDriver">
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
@@ -39,19 +39,19 @@
             <inputCollection>EcalCalHits</inputCollection>
             <outputCollection>EcalFilteredHits</outputCollection>
         </driver>        
-        <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.EcalDaqPlots">
+        <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
-        <driver name="EcalEventMonitor" type="org.hps.monitoring.ecal.EcalEventMonitor">
+        <driver name="EcalEventMonitor" type="org.hps.monitoring.drivers.ecal.EcalEventMonitor">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
-<!--        <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.EcalPedestalPlots">
+<!--        <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>-->
-        <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.EcalPedestalPlots">
+        <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <maxE>10000</maxE>
             <eventRefreshRate>100</eventRefreshRate>
@@ -65,11 +65,11 @@
             <clusterWindow>32.0</clusterWindow>
             <ecalCollectionName>EcalFilteredHits</ecalCollectionName>
         </driver>
-        <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.EcalHitPlots">
+        <driver name="EcalHitPlots" type="org.hps.monitoring.drivers.ecal.EcalHitPlots">
         </driver>
-        <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.EcalClusterPlots">
+        <driver name="EcalClusterPlots" type="org.hps.monitoring.drivers.ecal.EcalClusterPlots">
         </driver>
-        <driver name="TriggerPlots" type="org.hps.monitoring.ecal.TriggerPlots">
+        <driver name="TriggerPlots" type="org.hps.monitoring.drivers.ecal.TriggerPlots">
             <clusterEnergyCut>1280</clusterEnergyCut>
             <eventRefreshRate>10000</eventRefreshRate>
         </driver>

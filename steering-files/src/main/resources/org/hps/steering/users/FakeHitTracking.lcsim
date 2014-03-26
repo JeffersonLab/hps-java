@@ -47,7 +47,7 @@
             <eventInterval>1</eventInterval>
         </driver>
         
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver">
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
         </driver>
         
         <driver name="CreateHelixTracks" type="org.hps.users.phansson.ParticleHelixProducer">
@@ -67,7 +67,7 @@
             <doHth>false</doHth>
         </driver>
         <driver name="TrackerDigiDriver"
-                type="org.hps.users.meeg.SimpleTrackerDigiDriver">
+                type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <readoutCollectionName>FakeTrackerHits</readoutCollectionName>
             <debug>false</debug>
         </driver>
@@ -86,11 +86,11 @@
             <simTrackerHitCollectionName>FakeTrackerHits</simTrackerHitCollectionName>
         </driver>
         
-        <driver name="Digitization" type="org.hps.recon.tracking.RearTransitionModule" >
+        <driver name="Digitization" type="org.hps.recon.tracking.apv25.RearTransitionModule" >
             <noiseless>true</noiseless>
         </driver>
 
-        <driver name="DataProcessing" type="org.hps.recon.tracking.TestRunDataProcessingModule" >
+        <driver name="DataProcessing" type="org.hps.recon.tracking.apv25.TestRunDataProcessingModule" >
             <enablePileUpCut>false</enablePileUpCut>
             <enableThresholdCut>true</enableThresholdCut>
             <noiseThreshold>2</noiseThreshold>
@@ -136,7 +136,7 @@
             <hideFrame>false</hideFrame>
         </driver>
         
-        <driver name="ClockDriver" type="org.hps.util.ClockDriver" />
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver" />
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits FakeTrackerHits</collectionNames>

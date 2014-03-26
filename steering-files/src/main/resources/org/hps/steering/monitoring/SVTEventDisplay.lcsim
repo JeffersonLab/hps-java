@@ -25,7 +25,7 @@
 
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.CalibrationDriver"/>   
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -57,7 +57,7 @@
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         </driver>        
-        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.svt.SVTSimpleEventDisplay">
+        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
             <inputCollection>SVTRawTrackerHits</inputCollection>
             <singleEvent>false</singleEvent>
         </driver>
