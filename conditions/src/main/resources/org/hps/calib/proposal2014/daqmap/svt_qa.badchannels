@@ -1,0 +1,8 @@
+#
+# Bad/Noisy channels found during QA testing of 2014 HPS detector. 
+# author: Omar Moreno <omoreno1@ucsc.edu>
+# $Id: svt_qa.badchannels,v 1.1 2012/11/01 00:18:04 omoreno Exp $
+#
+#  bad channel #  fpga #   hybrid #
+#-----------------------------------
+#

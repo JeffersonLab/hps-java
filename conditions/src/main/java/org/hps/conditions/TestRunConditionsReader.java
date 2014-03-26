@@ -30,7 +30,7 @@ public class TestRunConditionsReader extends ConditionsReader {
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
             // Check for embedded jar resources e.g. in hps-java.
-            in = getClass().getResourceAsStream("/org/lcsim/hps/calib/testrun/" + name + "." + type);
+            in = getClass().getResourceAsStream("/org/hps/calib/testrun/" + name + "." + type);
 
             // If these failed to find conditions, then something went wrong.
             if (in == null) {
