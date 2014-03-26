@@ -90,7 +90,13 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
-        </dependency>        
+        </dependency>       
+        <!-- Since monitoring app is not packaged with distribution,
+             include all the steering files in the bin jar. --> 
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-steering-files</artifactId>
+        </dependency>
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>

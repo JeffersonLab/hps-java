@@ -45,15 +45,6 @@
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-detector-data</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
             <artifactId>hps-ecal-readout-sim</artifactId>
         </dependency>
         <dependency>
