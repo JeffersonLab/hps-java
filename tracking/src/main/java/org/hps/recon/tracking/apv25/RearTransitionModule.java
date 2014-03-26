@@ -2,15 +2,16 @@ package org.hps.recon.tracking.apv25;
 
 //--- java ---//
 //--- Constants ---//
+import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
-import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
+import org.hps.util.RandomGaussian;
 //--- org.lcsim ---//
 import org.lcsim.event.EventHeader;
-import org.lcsim.hps.util.RandomGaussian;
 import org.lcsim.util.Driver;
 //--- hps-java ---//
 

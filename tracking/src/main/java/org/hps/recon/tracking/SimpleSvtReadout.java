@@ -14,6 +14,7 @@ import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerableDriver;
+import org.hps.util.RandomGaussian;
 //--- lcsim ---//
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -24,7 +25,6 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.hps.util.RandomGaussian;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeData;

@@ -8,9 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hps.conditions.deprecated.StereoPair.detectorVolume;
-
 import org.hps.conditions.deprecated.StereoPair;
+import org.hps.conditions.deprecated.StereoPair.detectorVolume;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;

@@ -12,12 +12,12 @@ import java.util.Map;
 
 import org.hps.conditions.deprecated.BeamSpot;
 import org.hps.conditions.deprecated.FieldMap;
+import org.hps.util.Pair;
 import org.lcsim.event.MCParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
-import org.lcsim.hps.util.Pair;
 import org.lcsim.spacegeom.CartesianVector;
 import org.lcsim.spacegeom.SpacePoint;
 import org.lcsim.spacegeom.SpaceVector;
