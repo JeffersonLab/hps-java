@@ -23,7 +23,7 @@ public class HpsConditionsReader extends ConditionsReader {
     public InputStream open(String name, String type) throws IOException {
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
-            in = getClass().getResourceAsStream("/org/lcsim/hps/calib/proposal2014/" + name + "." + type);
+            in = getClass().getResourceAsStream("/org/hps/calib/proposal2014/" + name + "." + type);
             if (in == null) {
                 throw new IOException("Conditions " + name + " for " + detectorName + " with type " + type + " were not found");
             }
