@@ -17,5 +17,13 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/util/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/util/</developerConnection>
     </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.lcsim</groupId>
+            <artifactId>lcsim-distribution</artifactId>
+            <version>${lcsimVersion}</version>
+        </dependency>
+    </dependencies>
     
 </project>
