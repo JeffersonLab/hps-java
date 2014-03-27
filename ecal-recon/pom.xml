@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-util</artifactId>
+            <artifactId>hps-conditions</artifactId>
         </dependency>
     </dependencies>
     

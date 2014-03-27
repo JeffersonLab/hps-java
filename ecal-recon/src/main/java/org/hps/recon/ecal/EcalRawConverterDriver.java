@@ -2,13 +2,15 @@ package org.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hps.conditions.deprecated.EcalConditions;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.util.Driver;
 
 /**
  *

@@ -2,6 +2,8 @@ package org.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hps.conditions.deprecated.EcalConditions;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRawCalorimeterHit;

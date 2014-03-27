@@ -1,7 +1,10 @@
 package org.hps.recon.ecal;
 
 import hep.physics.vec.Hep3Vector;
+
 import java.util.Comparator;
+
+import org.hps.conditions.deprecated.EcalConditions;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IDetectorElementContainer;
 import org.lcsim.event.CalorimeterHit;

@@ -1,5 +1,6 @@
 package org.hps.recon.ecal;
 
+import org.hps.conditions.deprecated.EcalConditions;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;

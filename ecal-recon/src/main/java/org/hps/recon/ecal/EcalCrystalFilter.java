@@ -18,6 +18,10 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
+import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.util.AIDAFrame;
+import org.hps.util.Redrawable;
+import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -28,9 +32,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
-import org.hps.util.AIDAFrame;
-import org.hps.util.Resettable;
-import org.hps.util.Redrawable;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
