@@ -1,5 +1,7 @@
 package org.hps.users.holly;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,20 +25,19 @@ import org.lcsim.util.Driver;
  *
  *
  * @author Holly Szumila-Vance <hszumila@jlab.org>
- * @author Kyle McCarty <mccaky@gmail.com>
  *
- * @version $Id: EcalClusterer.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class EcalClusterIC extends Driver {
-
+	FileWriter writeHits;
     HPSEcal3 ecal;
     String ecalCollectionName;
     String ecalName = "Ecal";
     String clusterCollectionName = "EcalClusters";
     // Map of crystals to their neighbors.
     NeighborMap neighborMap = null;
-    //Minimum energy that counts as hit
-    double Emin = 0.0009;
+    //Minimum energy that counts as hit (GeV)
+    double Emin = 0.0075;
+    
 
     public EcalClusterIC() {
     }
@@ -61,6 +62,12 @@ public class EcalClusterIC extends Driver {
         if (ecalName == null) {
             throw new RuntimeException("The parameter ecalName was not set!");
         }
+        
+    	try{
+    		writeHits = new FileWriter("cluster-hit-IC.txt");
+    		writeHits.write("");
+    	}
+    	catch(IOException e) {};
     }
 
     public void detectorChanged(Detector detector) {
@@ -72,7 +79,7 @@ public class EcalClusterIC extends Driver {
     }
 
     public void process(EventHeader event) {
-
+	
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
             // Get the list of raw ECal hits.
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
@@ -88,11 +95,15 @@ public class EcalClusterIC extends Driver {
             
             // Put Cluster collection into event.
             int flag = 1 << LCIOConstants.CLBIT_HITS;
-            event.put(clusterCollectionName, createClusters(hitMap), HPSEcalCluster.class, flag);
+            try {
+
+            	event.put(clusterCollectionName, createClusters(hitMap), HPSEcalCluster.class, flag);
+            }
+            catch(IOException e) { }
         }
     }
 
-    public List<HPSEcalCluster> createClusters(Map<Long, CalorimeterHit> map) {
+    public List<HPSEcalCluster> createClusters(Map<Long, CalorimeterHit> map) throws IOException {
 
         // New Cluster list to be added to event.
         List<HPSEcalCluster> clusters = new ArrayList<HPSEcalCluster>();
@@ -100,7 +111,7 @@ public class EcalClusterIC extends Driver {
         //Create a Calorimeter hit list in each event, then sort with highest energy first
         ArrayList<CalorimeterHit> chitList = new ArrayList<CalorimeterHit>(map.size());
         for(CalorimeterHit h : map.values()) {
-        	if(h.getRawEnergy()>Emin){
+        	if(h.getCorrectedEnergy()>Emin){
         	chitList.add(h);}
         
         	Collections.sort(chitList, new EnergyComparator());}
@@ -109,7 +120,7 @@ public class EcalClusterIC extends Driver {
         List<CalorimeterHit> seedHits = new ArrayList<CalorimeterHit>();
 
       	//Create map to contain common hits for evaluation later, key is crystal and values are seed
-      	Map<CalorimeterHit, CalorimeterHit> commonHits = new HashMap<CalorimeterHit, CalorimeterHit>();
+      	Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new HashMap<CalorimeterHit, List<CalorimeterHit>>();
       	
       	//Created map to contain seeds with listed hits, key is crystal, and value is seed
       	Map<CalorimeterHit, CalorimeterHit> clusterHits = new HashMap<CalorimeterHit, CalorimeterHit>();
@@ -120,44 +131,135 @@ public class EcalClusterIC extends Driver {
       	//Quick Map to access hits from cell IDs
       	Map<Long, CalorimeterHit> hitID = new HashMap<Long, CalorimeterHit>();
       	
+      	//List to contain all hits already put into clusters
+      	List<CalorimeterHit> clusterHitList = new ArrayList<CalorimeterHit>();
+      	
+      	//List to contain hits immediately around a seed
+//      	List<CalorimeterHit> surrSeedList = new ArrayList<CalorimeterHit>();
+      	
         //Fill Map with cell ID and hit
       	for (CalorimeterHit hit : chitList){
       		hitID.put(hit.getCellID(), hit);
       	}
-
+        
         for (CalorimeterHit hit : chitList) { 
-            //Check seed? Check common hit? Add to cluster...
-        	Set<Long> neighbors = neighborMap.get(hit.getCellID()); //obtains up to 8 neighboring cell ids
-        	for(Long neighbor : neighbors){
-        		if(hitID.containsKey(neighbor)){//check if this neighbor is in hit list 
-        			CalorimeterHit adjacent = hitID.get(neighbor);
-        			if (clusterHits.containsKey(adjacent)){//does current hit have neighbors that are cluster hits?
-        				CalorimeterHit adjHit = adjacent;////get adjacent hit from neighbors
-        				CalorimeterHit seed = clusterHits.get(adjHit);//seed value with adjHit
-        				if(adjHit.getRawEnergy()>hit.getRawEnergy())//adjHit energy is > hit energy, add to cluster
-        				{
-        					clusterHits.put(hit, seed);
-        				}
-        				else{//hit energy is greater than adjHit energy, add to common hit
-        					commonHits.put(hit, seed);
-        					if(clusterHits.containsKey(hit)){//is this hit in clusterHits
-        						CalorimeterHit prevSeed = clusterHits.get(hit);//get previous seed value from clusterHits map
-        						clusterHits.remove(hit);
-        						commonHits.put(hit,seed);//previous seed value
-        					}
-        					else{continue;}
-        					}			
-        				}
-        			else if(!seedHits.contains(hit)){//check if seed already in list
-        				seedHits.add(hit);//add to list of seeds
-        				clusterHits.put(hit, hit);//add to list of cluster hits
-        				continue;}
-        			else {continue;}
-        		}
-        		else {continue;}
+        Set<Long> neighbors = neighborMap.get(hit.getCellID()); //get all neighbors of hit
+        List<CalorimeterHit> neighborHits = new ArrayList<CalorimeterHit>();
+        for(Long neighbor : neighbors){
+        	if(hitID.containsKey(neighbor)){//map contains (neighbor's cell id, neighbor hit)
+        		neighborHits.add(hitID.get(neighbor));
         	}
         }
         
+    	Collections.sort(neighborHits, new EnergyComparator());
+        
+        boolean highestE = true;
+        for(CalorimeterHit neighborHit : neighborHits){//check for seed hit
+        	if(hit.getCorrectedEnergy()>neighborHit.getCorrectedEnergy()){
+        		continue;
+        			}
+        	else {
+        		highestE = false;
+        		break;
+        	}	
+        }
+        
+        if (highestE == true){//seed hit, local maximum
+        	seedHits.add(hit);
+        	clusterHits.put(hit, hit);
+        	clusterHitList.add(hit);
+        }
+        
+        //not seed hit
+        else { 
+        	//builds immediate clusters around seed hits
+        	for(CalorimeterHit neighborHit : neighborHits){
+        		//if neighbor to seed, add to seed
+        		if (seedHits.contains(neighborHit)&&!clusterHits.containsKey(hit)){  
+					CalorimeterHit seed = clusterHits.get(neighborHit);
+        			clusterHits.put(hit, seed);
+        			clusterHitList.add(hit);
+//        			surrSeedList.add(hit);
+        		}
+        		//if neighbor to two seeds, add to common hits
+        		else if (seedHits.contains(neighborHit)&&clusterHits.containsKey(hit)){
+        			CalorimeterHit prevSeed = clusterHits.get(neighborHit);
+        			CalorimeterHit currSeed = clusterHits.get(hit);
+        			List<CalorimeterHit> commonHitList = new ArrayList<CalorimeterHit>();
+        			commonHitList.add(prevSeed);
+        			commonHitList.add(currSeed);
+        			commonHits.put(hit, commonHitList);
+        		}
+        	}
+        }
+        }
+        
+        //loop over hit list, find neighbors, compare energies, add to list 
+        for(CalorimeterHit nHit : chitList){
+        	Set<Long> neighbors2 = neighborMap.get(nHit.getCellID()); //get all neighbors of hit
+            List<CalorimeterHit> neighborHits2 = new ArrayList<CalorimeterHit>();
+            for(Long neighbor : neighbors2){
+            	if(hitID.containsKey(neighbor)){//map contains (neighbor's cell id, neighbor hit)
+            		if(!clusterHitList.contains(hitID.get(neighbor))){
+            			neighborHits2.add(hitID.get(neighbor));
+            		}
+            	}
+            }
+            
+        	Collections.sort(neighborHits2, new EnergyComparator());
+        	for(CalorimeterHit neighbor : neighborHits2){
+        		if(neighbor.getCorrectedEnergy()<nHit.getCorrectedEnergy()){
+        			CalorimeterHit seed = clusterHits.get(nHit);
+					clusterHits.put(neighbor, seed);
+					clusterHitList.add(neighbor);
+        		}
+        		else{continue;}
+        	}
+        }
+        //loop over cluster hits, compare energies of neighbors with diff seeds, if min->add to commonHits
+        for (CalorimeterHit mHit : clusterHitList){
+        	//exclude seed hits as possible common hits
+        	if(clusterHits.get(mHit) != mHit){//changed this line
+//        	if((clusterHits.get(mHit)!=mHit)&&!surrSeedList.contains(mHit)){
+        		
+        		Set<Long> neighbors3 = neighborMap.get(mHit.getCellID()); //get all neighbors of hit
+                List<CalorimeterHit> neighborHits3 = new ArrayList<CalorimeterHit>();
+                for(Long neighbor : neighbors3){
+                	if(hitID.containsKey(neighbor)){//map contains (neighbor's cell id, neighbor hit)
+                		neighborHits3.add(hitID.get(neighbor));
+                		
+                	}
+                }
+                
+            	Collections.sort(neighborHits3, new EnergyComparator());
+            	
+            	CalorimeterHit compSeed = clusterHits.get(mHit);
+            	for(CalorimeterHit neighbor : neighborHits3){
+            		if(clusterHits.get(neighbor)!=compSeed){//borders clusters
+            			if(mHit.getCorrectedEnergy() < neighbor.getCorrectedEnergy()){
+            				//add to common hits, 
+            				List<CalorimeterHit> commonHitList = new ArrayList<CalorimeterHit>();
+                			commonHitList.add(compSeed);
+                			commonHitList.add(clusterHits.get(neighbor));
+                			commonHits.put(mHit, commonHitList);
+            			}	
+            		}
+            	}	
+        	}
+        }
+        
+        //remove common hits from cluster hits list
+        for(CalorimeterHit commHit : clusterHitList){
+        	if(clusterHitList.contains(commHit)&&commonHits.containsKey(commHit)){
+        		clusterHits.remove(commHit);
+        	}
+        	else{
+        		continue;
+        	}
+        }
+        
+
+        		       	
         //Get energy of each cluster, excluding common hits
         for(CalorimeterHit iSeed : seedHits){
         seedEnergy.put(iSeed, 0.0);
@@ -166,22 +268,96 @@ public class EcalClusterIC extends Driver {
         for (Map.Entry<CalorimeterHit, CalorimeterHit> entry : clusterHits.entrySet()) {
         	CalorimeterHit eSeed = entry.getValue();
         	double eEnergy = seedEnergy.get(eSeed);
-        	eEnergy += entry.getKey().getRawEnergy();
-        	seedEnergy.remove(eSeed);
+        	eEnergy += entry.getKey().getCorrectedEnergy();
         	seedEnergy.put(eSeed, eEnergy);
         }
-                   
         
-        //Add back in energy from common hits to each cluster, as well as hit
-        //energy fraction looks like common hit energy*(energy of cluster adding into)/(sum of energies of all clusters it belongs to)
+        //Distribute common hit energies with clusters
+        Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
+        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
+        	CalorimeterHit commonCell = entry1.getKey();
+        	List<CalorimeterHit> commSeedList = entry1.getValue();
+        	CalorimeterHit seedA = commSeedList.get(0);
+        	CalorimeterHit seedB = commSeedList.get(1);
+        	double eFractionA = Math.abs(Math.log10(seedEnergy.get(seedA)))/Math.abs(Math.log10((seedEnergy.get(seedA)))+Math.abs(Math.log10(seedEnergy.get(seedB))));
+        	double eFractionB = Math.abs(Math.log10(seedEnergy.get(seedB)))/Math.abs(Math.log10((seedEnergy.get(seedA)))+Math.abs(Math.log10(seedEnergy.get(seedB))));
+//        	double eFractionA = seedEnergy.get(seedA)/(seedEnergy.get(seedA)+seedEnergy.get(seedB));
+//        	double eFractionB = seedEnergy.get(seedB)/(seedEnergy.get(seedA)+seedEnergy.get(seedB));
+        	double currEnergyA = seedEnergyTot.get(seedA);
+        	double currEnergyB = seedEnergyTot.get(seedB);
+        	currEnergyA += eFractionA*commonCell.getCorrectedEnergy();
+        	currEnergyB += eFractionB*commonCell.getCorrectedEnergy();
+        	
+        	seedEnergyTot.put(seedA, currEnergyA);
+        	seedEnergyTot.put(seedB, currEnergyB);
+        }
         
-        //Do some system.out for number of crystals in each cluster, energy of each cluster
-        System.out.println("Number of clusters: "+seedHits.size());
-        for (Map.Entry<CalorimeterHit, Double> output : seedEnergy.entrySet()) {
-        	System.out.println("\t Cluster position = "+output.getKey().getCellID()+"\t Cluster energy = "+output.getValue());}
+        //Stictly for histograms:
+//        double runSum = 0.0;
+//        for (Map.Entry<CalorimeterHit, Double> entryEnergy : seedEnergyTot.entrySet()){
+//    	  runSum = entryEnergy.getValue();	
+//        	runSum ++;
+//    	  writeHits.append("\n"+runSum);
 
+//      }
+
+
+                   
        
-        //Clear all maps for next event iteration
+        //Do some system.out for number of crystals in each cluster, energy of each cluster
+//        for (Map.Entry<CalorimeterHit, Double> entryEnergy : seedEnergyTot.entrySet()){
+//        	System.out.println(entryEnergy.getKey().getCellID()+"\t"+entryEnergy.getKey().getCorrectedEnergy()+
+//        			"\t"+entryEnergy.getValue());
+//        }
+        
+        System.out.println("Number of clusters: "+seedHits.size());    
+
+        
+      	if (map.size()!=0){
+//          	writeHits.append("Event"+"\t"+"1"+"\n");
+          	for (CalorimeterHit n : chitList){
+//          		writeHits.append("EcalHit" + "\t" + n.getIdentifierFieldValue("ix") + "\t" + n.getIdentifierFieldValue("iy")
+//          		+ "\t" +n.getCorrectedEnergy() + "\n");
+          	}
+          	
+      		for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : clusterHits.entrySet()){
+      			if (entry2.getKey()==entry2.getValue()){//seed
+//      				writeHits.append("Cluster" + "\t" + entry2.getKey().getIdentifierFieldValue("ix")+
+//        				"\t"+entry2.getKey().getIdentifierFieldValue("iy")+"\t"+seedEnergyTot.get(entry2.getKey())+"\n");
+      				
+//      				HPSEcalCluster cluster = new HPSEcalCluster(entry2.getKey());
+ //                   cluster.addHit(entry2.getKey());
+//      				int runSum = 0;
+      				
+                    for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : clusterHits.entrySet()){
+      					if (entry3.getValue() == entry2.getValue()){
+//      						writeHits.append("CompHit" + "\t" + entry3.getKey().getIdentifierFieldValue("ix")+ "\t"
+//      			        	+entry3.getKey().getIdentifierFieldValue("iy") + "\n");
+//      						cluster.addHit(entry3.getKey());
+//      						runSum ++;
+      					}
+      				}
+      				for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()){
+      					if (entry4.getValue().contains(entry2.getKey())){      						
+//      						writeHits.append("SharHit" + "\t" + entry4.getKey().getIdentifierFieldValue("ix")+ "\t"
+//      						+entry4.getKey().getIdentifierFieldValue("iy") + "\n");
+//      						cluster.addHit(entry4.getKey());
+//      						runSum ++;
+      						
+      					}
+      				}
+//                	  writeHits.append("\n"+runSum);
+
+      				
+ //     				clusters.add(cluster);
+      			}
+
+      		}
+//      		writeHits.append("EndEvent\n");
+      		
+      	}
+      	
+      	 //Clear all maps for next event iteration
         hitID.clear();
         clusterHits.clear();
         seedHits.clear();
@@ -190,16 +366,25 @@ public class EcalClusterIC extends Driver {
         seedEnergy.clear();
  
         return clusters;
+      	
+      	
+      	
 
-    }
+      }
     
+    public void endOfData() {
+    	try{
+    	writeHits.close();
+    	}
+    	catch (IOException e){ }
+    }
 
     private class EnergyComparator implements Comparator<CalorimeterHit>{
 
 		@Override
 		public int compare(CalorimeterHit o1, CalorimeterHit o2) {
 			// TODO Auto-generated method stub
-			double diff = o1.getRawEnergy()-o2.getRawEnergy();
+			double diff = o1.getCorrectedEnergy()-o2.getCorrectedEnergy();
 			if(diff < 0) { return 1; }
 			if(diff > 0) { return -1; } 
 			else { return 0; }
