@@ -26,11 +26,11 @@ public class TestRunConditionsReader extends ConditionsReader {
         
         //System.out.println(this.getClass().getSimpleName() + ".open - " + name + ", " + type);
         
-        // Check the detector base directory.
+        // Check the detector base directory.        
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
             // Check for embedded jar resources e.g. in hps-java.
-            in = getClass().getResourceAsStream("/org/lcsim/calib/testrun/" + name + "." + type);
+            in = getClass().getResourceAsStream("/org/hps/calib/testrun/" + name + "." + type);
 
             // If these failed to find conditions, then something went wrong.
             if (in == null) {
