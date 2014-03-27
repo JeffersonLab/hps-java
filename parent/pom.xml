@@ -284,7 +284,7 @@
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <phase>generate-test-resources</phase>
+                        <phase>post-clean</phase>
                         <configuration>
                             <target>
                                 <!-- Create the directory for test output. -->
