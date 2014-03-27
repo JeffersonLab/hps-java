@@ -215,7 +215,7 @@
     </reporting>
 
     <build>
-        <defaultGoal>install</defaultGoal>
+        <defaultGoal>post-clean install</defaultGoal>
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
