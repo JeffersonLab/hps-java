@@ -7,6 +7,7 @@ import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 
 /**
  *
@@ -17,7 +18,7 @@ public class TriggerDataWriter implements HitWriter {
 
     @Override
     public boolean hasData(EventHeader event) {
-        return event.hasCollection(TriggerData.class, TriggerData.TRIG_COLLECTION);
+        return event.hasCollection(GenericObject.class, TriggerData.TRIG_COLLECTION);
     }
 
     @Override
