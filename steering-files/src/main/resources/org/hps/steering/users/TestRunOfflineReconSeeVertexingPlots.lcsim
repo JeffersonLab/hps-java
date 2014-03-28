@@ -29,8 +29,8 @@
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <stripMaxSeparation>20.0</stripMaxSeparation>
-            <stripTolerance>1.0</stripTolerance>
+            <!--<stripMaxSeparation>20.0</stripMaxSeparation>-->
+            <!--<stripTolerance>1.0</stripTolerance>-->
         </driver>        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

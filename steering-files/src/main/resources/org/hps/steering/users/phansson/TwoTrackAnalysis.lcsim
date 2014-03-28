@@ -35,7 +35,6 @@
         <driver name="GBLDriver"
                 type="org.hps.recon.tracking.gbl.GBLOutputDriver">
                 <debug>0</debug>
-                <hideFrame>false</hideFrame>
                 <isMC>${isMC}</isMC>
                 <outputPlotFileName></outputPlotFileName>
                 <gblFileName>gblinput.txt</gblFileName>
@@ -43,7 +42,6 @@
         <driver name="ROOTFlatTupleDriver" 
                 type="org.hps.users.phansson.ROOTFlatTupleDriver">
                 <debug>false</debug>
-                <hideFrame>true</hideFrame>
                 <outputPlotFileName></outputPlotFileName>
                 <outputNameTextTuple>${outputFile}</outputNameTextTuple>
                 <trackCollectionName>MatchedTracks</trackCollectionName>
@@ -58,7 +56,7 @@
      	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
                 <outputPlots></outputPlots>
         </driver>
-        <driver name="PrintGeometryDriver" type="org.hps.util.PrintGeometryDriver"/>
+        <driver name="PrintGeometryDriver" type="org.hps.analysis.examples.PrintGeometryDriver"/>
         
 
 
