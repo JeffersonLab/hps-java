@@ -6,8 +6,8 @@ import hep.aida.IPlotter;
 
 import java.util.List;
 
+import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.ecal.TriggerData;
 import org.hps.util.Redrawable;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;

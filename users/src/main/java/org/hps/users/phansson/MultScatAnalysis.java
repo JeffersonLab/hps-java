@@ -17,8 +17,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.ecal.TriggerData;
 import org.hps.recon.tracking.EcalTrackMatch;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.AIDAFrame;

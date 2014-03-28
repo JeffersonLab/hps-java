@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.TriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
 

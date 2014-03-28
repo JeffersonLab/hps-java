@@ -1,4 +1,4 @@
-package org.hps.recon.ecal;
+package org.hps.users.phansson;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -19,6 +19,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.readout.ecal.TriggerData;
 import org.hps.util.AIDAFrame;
 import org.hps.util.Redrawable;
 import org.hps.util.Resettable;

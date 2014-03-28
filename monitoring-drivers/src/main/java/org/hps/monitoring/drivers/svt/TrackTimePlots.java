@@ -10,7 +10,7 @@ import hep.aida.ref.plotter.PlotterRegion;
 import java.util.List;
 
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.ecal.TriggerData;
+import org.hps.readout.ecal.TriggerData;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;

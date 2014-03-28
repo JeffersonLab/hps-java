@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.ecal.TriggerData;
 import org.lcsim.event.EventHeader;
 
 /**

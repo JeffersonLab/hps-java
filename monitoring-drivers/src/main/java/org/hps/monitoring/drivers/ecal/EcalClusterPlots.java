@@ -7,8 +7,8 @@ import hep.aida.IPlotter;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
+import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.TriggerData;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;

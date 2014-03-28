@@ -1,4 +1,4 @@
-package org.hps.recon.ecal;
+package org.hps.readout.ecal;
 
 import org.lcsim.event.GenericObject;
 
