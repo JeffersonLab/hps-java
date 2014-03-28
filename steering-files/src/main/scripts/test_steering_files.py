@@ -11,9 +11,13 @@ jar = "~/.m2/repository/org/hps/hps-distribution/3.0.2-SNAPSHOT/hps-distribution
 if len(sys.argv) > 1:
   jar = sys.argv[1]
 
+# verbosity
+verbose = True
+
 # basic command to run the steering file
-run_cmd = "java -jar %s -x" % jar    
+run_cmd = "java -jar %s -x -v" % jar    
 print "base run command: %s" % run_cmd 
+print
 
 # make a list of steering files to check
 steering_files = []
@@ -64,11 +68,12 @@ for steering_file in steering_files:
     # print out lines with exceptions and all subsequent output
     if 'Exception' in line:
       printLine = True
-    if printLine:
+    if printLine or verbose:
       print "  %s" % line,
       
   # print the return value
   retval = process.wait()
+  print
   print "  return value: %d" % retval
   print
   
