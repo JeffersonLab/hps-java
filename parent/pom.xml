@@ -393,6 +393,16 @@
             </roles>
             <timezone>-8</timezone>
         </developer>
+	<developer>
+            <name>Holly Szumila-Vance</name>
+            <email>hvanc001@odu.edu</email>
+            <organization>Old Dominion University</organization>
+            <organizationUrl>http://www.odu.edu/physics/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
     </developers>
     <contributors>
         <contributor>
