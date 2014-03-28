@@ -8,7 +8,6 @@ import hep.aida.IPlotterStyle;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -16,7 +15,14 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-//THIS IS THE OLD ONE
+/*Conditions system imports*/
+import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DefaultTestSetup;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalChannelConstants;
+
+
+
 /**
  * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user 
  * in the fourth tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
@@ -38,7 +44,10 @@ public class EcalDaqPlots extends Driver implements Resettable {
     private List<IHistogram1D> plots;
     private static final short[] slots = {10, 13, 9, 14, 8, 15, 7, 16, 6, 17, 5, 18, 4, 19};
 
+    private EcalChannel.EcalChannelCollection channels;
+    private DatabaseConditionsManager manager;
     public EcalDaqPlots() {
+    	manager = DatabaseConditionsManager.getInstance();
     }
 
     public void setSubdetectorName(String subdetectorName) {
@@ -51,8 +60,18 @@ public class EcalDaqPlots extends Driver implements Resettable {
 
     public void detectorChanged(Detector detector) {
 
+    	
+    
+    	
+    	
+    	
         this.detector = detector;
-
+    	/*Setup the conditions system*/
+        
+    	 // Get the channel information from the database.                
+        channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
+     
+        
         if (subdetectorName == null) {
             throw new RuntimeException("The subdetectorName parameter was not set.");
         }
@@ -117,33 +136,27 @@ public class EcalDaqPlots extends Driver implements Resettable {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
             for (CalorimeterHit hit : hits) {
             	
-            	//EcalChannel.GeometryId geomID;
-            	//EcalChannel channel;
-            	//geomID.x=hit.getIdentifierFieldValue("ix");
-            	//geomID.y=hit.getIdentifierFieldValue("iy");
-            	//channel=EcalChannel.findChannel(geomID);
+           
+
+            	// Make an ID to find.
+          //  	EcalChannel daq = new EcalChannel.DaqId();
+            //	daq.crate = 1;
+            //	daq.slot = 2;
+           // 	daq.channel = 3;
+
+            	// Find the matching channel.                                     	
+            	EcalChannel.GeometryId geomID=new EcalChannel.GeometryId();
+            	geomID.x=hit.getIdentifierFieldValue("ix");
+            	geomID.y=hit.getIdentifierFieldValue("iy");
+            	EcalChannel channel=channels.findChannel(geomID);
             			
-                Long daqId = EcalConditions.physicalToDaqID(hit.getCellID());
-                int crate = EcalConditions.getCrate(daqId);
-                int slot = EcalConditions.getSlot(daqId);
-                int channel = EcalConditions.getChannel(daqId);
-                int id = getSlotIndex(slot)+(crate-1)*14;
-                plots.get(id).fill(channel);
+            	int crateN=channel.getCrate();
+            	int slotN=channel.getSlot();
+            	int channelN=channel.getChannel();
+
+            	System.out.println("found channel at " + geomID.x + " " + geomID.y + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
             }
         }
-/*        
- *          if (event.hasCollection(RawTrackerHit.class, inputCollection)) {
-            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollection);
-            for (RawTrackerHit hit : hits) {
-                Long daqId = EcalConditions.physicalToDaqID(hit.getCellID());
-                int crate = EcalConditions.getCrate(daqId);
-                int slot =  EcalConditions.getSlot(daqId);
-                int channel = EcalConditions.getChannel(daqId);
-                int id = getSlotIndex(slot)+(crate-1)*14;
-                plots.get(id).fill(channel);
-            }
-        }
-        */
     }
     
     
