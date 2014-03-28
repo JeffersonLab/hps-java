@@ -28,9 +28,9 @@
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
-            <useTimestamps>true</useTimestamps>
-            <correctT0Shift>true</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
+            <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>true</useTruthTime>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
