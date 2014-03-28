@@ -345,6 +345,16 @@
             </properties>
         </developer>
         <developer>
+            <name>Maurik Holtrop</name>
+            <email>maurik@physics.unh.edu</email>
+            <organization>University of New Hampshire</organization>
+            <organizationUrl>http://nuclear.unh.edu/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+        <developer>
             <name>Matthew Graham</name>
             <email>mgraham@slac.stanford.edu</email>
             <organization>SLAC National Accelerator Laboratory</organization>
