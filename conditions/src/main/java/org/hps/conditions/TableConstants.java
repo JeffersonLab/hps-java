@@ -1,9 +1,15 @@
 package org.hps.conditions;
 
 /**
+ * <p>
  * This is a static set of constants defining default table names and lookup key values for conditions data.
  * The actual table names for the conditions data are defined externally in an XML configuration file read by the 
  * {@link DatabaseConditionsManager}.
+ * </p>
+ * <p>
+ * It is possible that the key and table names are defined differently in the XML configuration, e.g. if the 
+ * name of the key is not exactly the same as the table name, but usually they are the same value.
+ * </p> 
  */
 public final class TableConstants {
     
