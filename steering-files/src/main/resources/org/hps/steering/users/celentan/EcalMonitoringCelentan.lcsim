@@ -8,6 +8,7 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="ConditionsDriver"/>
         <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
@@ -35,7 +36,11 @@
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        
+
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <conditionsReaderClass>org.hps.conditions.deprecated.TestRunConditionsReader</conditionsReaderClass>
+        </driver>
+
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
