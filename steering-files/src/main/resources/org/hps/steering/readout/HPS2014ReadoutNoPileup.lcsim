@@ -37,8 +37,9 @@
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
             <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
         </driver>
-        <driver name="EcalTriggerClusterer" type="org.hps.recon.ecal.CTPEcalClusterer">
+        <driver name="EcalTriggerClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
             <ecalName>Ecal</ecalName>
+            <clusterWindow>0</clusterWindow>
             <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
         </driver>
@@ -46,6 +47,7 @@
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
             <outputFileName>${outputFile}.triggers</outputFileName>
             <deadTime>0</deadTime>
+            <pairCoincidence>0</pairCoincidence>
             <lcioFile>${outputFile}.slcio</lcioFile>
         </driver>	
         
