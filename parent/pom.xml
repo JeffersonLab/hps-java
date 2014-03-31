@@ -403,6 +403,16 @@
             </roles>
             <timezone>-5</timezone>
         </developer>
+    <developer>
+            <name>Andrea Celentano</name>
+            <email>andrea.celentano@ge.infn.it</email>
+            <organization>INFN Genova</organization>
+            <organizationUrl>http://www.ge.infn.it/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
     </developers>
     <contributors>
         <contributor>
