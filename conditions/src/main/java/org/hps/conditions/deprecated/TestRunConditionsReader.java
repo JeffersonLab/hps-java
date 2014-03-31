@@ -19,9 +19,13 @@ public class TestRunConditionsReader extends ConditionsReader {
 
     private String detectorName = null;
 
+    public TestRunConditionsReader() {
+    }
+    
+    // FIXME: The reader argument is never used anywhere so this ctor is not needed.
     public TestRunConditionsReader(ConditionsReader reader) {
     }
-
+    
     public InputStream open(String name, String type) throws IOException {
         
         //System.out.println(this.getClass().getSimpleName() + ".open - " + name + ", " + type);

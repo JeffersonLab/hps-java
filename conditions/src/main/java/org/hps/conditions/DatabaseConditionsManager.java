@@ -58,6 +58,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     String _conditionsTableName;
     boolean _wasConfigured = false;
     boolean _isConnected = false;
+    static DatabaseConditionsManager _instance;
 
     /**
      * Class constructor, which is only package accessible.
@@ -98,14 +99,16 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     void register() {
         ConditionsManager.setDefaultConditionsManager(this);
+        _instance = this;
     }
 
     /**
-     * Get the static instance of this class.
+     * Get the static instance of this class, which must have been
+     * registered first from a call to {@link #register()}.
      * @return The static instance of the manager.
      */
     public static DatabaseConditionsManager getInstance() {
-        return (DatabaseConditionsManager)ConditionsManager.defaultInstance();
+        return _instance;
     }
     
     /**
@@ -141,7 +144,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param name The name of the conditions set.
      * @return The conditions or null if does not exist.
      */
-    // TODO: Need to check if this returns null or will throw an exception if does not exist.
     public <T> T getConditionsData(Class<T> type, String name) {
         _logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
@@ -420,9 +422,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         // Load the converter classes.
         loadConverters(config);        
         
-        // Open a connection to the database.
-        //openConnection();
-        
+        // Set configured state to true.
         _wasConfigured = true;
     }
     

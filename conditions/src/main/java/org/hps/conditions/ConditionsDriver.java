@@ -1,15 +1,16 @@
 package org.hps.conditions;
 
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.geometry.Detector;
+import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsLoader;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsLoader;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.conditions.ConditionsReader;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
-import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
 
 /**
  * This {@link org.lcsim.util.Driver} loads conditions onto an HPS detector.
@@ -53,6 +54,22 @@ public class ConditionsDriver extends Driver {
      */
     public void setConnectionResource(String resource) {
         _manager.setConnectionResource(resource);
+    }
+    
+    /**
+     * Set the class of the conditions reader to use.
+     */
+    public void setConditionsReaderClass(String className) {        
+        try {
+            Object object = Class.forName(className).newInstance();
+            ConditionsReader reader = (ConditionsReader)object;
+            if (reader != null)
+                _manager.setBaseConditionsReader(reader);
+            else 
+                throw new IllegalArgumentException("The class " + className + " does not extend ConditionsReader.");
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
     
     /**
