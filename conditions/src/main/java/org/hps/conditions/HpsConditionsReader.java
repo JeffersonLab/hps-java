@@ -10,6 +10,7 @@ import org.lcsim.conditions.ConditionsReader;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: HpsConditionsReader.java,v 1.3 2012/11/20 19:56:40 meeg Exp $
  */
+// FIXME: Move to conditions.deprecated package and update detector.properties files.
 public class HpsConditionsReader extends ConditionsReader {
 
     private String detectorName = null;
@@ -22,7 +23,7 @@ public class HpsConditionsReader extends ConditionsReader {
     public InputStream open(String name, String type) throws IOException {
         InputStream in = getClass().getResourceAsStream("/" + detectorName + "/" + name + "." + type);
         if (in == null) {
-            in = getClass().getResourceAsStream("/org/lcsim/hps/calib/proposal2014/" + name + "." + type);
+            in = getClass().getResourceAsStream("/org/hps/calib/proposal2014/" + name + "." + type);
             if (in == null) {
                 throw new IOException("Conditions " + name + " for " + detectorName + " with type " + type + " were not found");
             }
