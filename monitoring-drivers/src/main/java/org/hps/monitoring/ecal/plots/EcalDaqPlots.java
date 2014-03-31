@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.util.Resettable;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -45,9 +46,11 @@ public class EcalDaqPlots extends Driver implements Resettable {
     private static final short[] slots = {10, 13, 9, 14, 8, 15, 7, 16, 6, 17, 5, 18, 4, 19};
 
     private EcalChannel.EcalChannelCollection channels;
-    private DatabaseConditionsManager manager;
+    //private DatabaseConditionsManager manager;
+    private ConditionsManager manager;
     public EcalDaqPlots() {
-    	manager = DatabaseConditionsManager.getInstance();
+    	//manager = DatabaseConditionsManager.getInstance();
+    	manager = ConditionsManager.defaultInstance();
     }
 
     public void setSubdetectorName(String subdetectorName) {
