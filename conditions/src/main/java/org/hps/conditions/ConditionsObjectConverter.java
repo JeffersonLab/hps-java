@@ -91,7 +91,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             String query = QueryBuilder.buildSelect(tableName, collectionId, tableMetaData.getFieldNames(), "id ASC");
         
             // Query the database.
-            ResultSet resultSet = databaseConditionsManager.query(query);
+            ResultSet resultSet = databaseConditionsManager.selectQuery(query);
             
             try {
                 // Loop over rows.

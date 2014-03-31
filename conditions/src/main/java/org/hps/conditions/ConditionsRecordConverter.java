@@ -33,7 +33,7 @@ public class ConditionsRecordConverter extends ConditionsObjectConverter<Conditi
                 + " AND run_end >= "
                 + manager.getRun();
                
-        ResultSet resultSet = databaseConditionsManager.query(query);
+        ResultSet resultSet = databaseConditionsManager.selectQuery(query);
         
         // Create a collection to return.
         ConditionsObjectCollection collection;

@@ -57,7 +57,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
             throw new ConditionsObjectException("This object is not in the database and so cannot be deleted.");
         }
         String query = QueryBuilder.buildDelete(_tableMetaData.getTableName(), _rowId);
-        DatabaseConditionsManager.getInstance().update(query);
+        DatabaseConditionsManager.getInstance().updateQuery(query);
         _rowId = -1;
     }
     
@@ -74,7 +74,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
                 getCollectionId(),
                 getTableMetaData().getFieldNames(),
                 _fieldValues.valuesToArray());
-        List<Integer> keys = DatabaseConditionsManager.getInstance().update(query);
+        List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
         if (keys.size() == 0 || keys.size() > 1) {
             throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
         }
@@ -88,7 +88,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         String query = QueryBuilder.buildSelect(
                 getTableMetaData().getTableName(), _collectionId, _fieldValues.fieldsToArray(), "id ASC");
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        ResultSet resultSet = manager.query(query);  
+        ResultSet resultSet = manager.selectQuery(query);  
         try {
             ResultSetMetaData metadata = resultSet.getMetaData();
             int ncolumns = metadata.getColumnCount();
@@ -118,7 +118,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
                 _rowId, 
                 _fieldValues.fieldsToArray(), 
                 _fieldValues.valuesToArray());
-        DatabaseConditionsManager.getInstance().update(query);
+        DatabaseConditionsManager.getInstance().updateQuery(query);
         setIsDirty(false);
     }
     

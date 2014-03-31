@@ -1,5 +1,7 @@
 package org.hps.conditions;
 
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+
 /**
  * <p>
  * This is a static utility class for setting up the conditions system for test cases
@@ -34,28 +36,43 @@ package org.hps.conditions;
  */
 public final class DefaultTestSetup {
 
+    // Default conditions manager parameters.
+    static String _connectionResource = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
+    static String _conditionsConfig = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    
+    // Default test detector and run number for test cases not using real data.
     static String _detectorName = "HPS-conditions-test";
     static int _runNumber = 1351;
-    static String _connectionProperties = "./src/main/config/conditions_database_testrun_2012_connection.properties";
-    static String _conditionsConfig = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     
     DatabaseConditionsManager _conditionsManager;
     boolean _wasConfigured = false;
     
+    /**
+     * Configure and register the {@link DatabaseConditionsManager} with default parameters.
+     * @return an instance of this class for chaining (e.g. to call {@link #setup()}.
+     */
     public DefaultTestSetup configure() {        
-        _conditionsManager = DatabaseConditionsManager.createInstance();
-        _conditionsManager.setConnectionProperties(_connectionProperties);
+        _conditionsManager = new DatabaseConditionsManager();
+        _conditionsManager.setConnectionResource(_connectionResource);
         _conditionsManager.configure(_conditionsConfig);
+        _conditionsManager.register();
         _wasConfigured = true;
         return this;
     }
     
+    /**
+     * Setup the detector and run number conditions for the conditions manager.
+     * This is mostly useful for test cases not using an <code>LCSimLoop</code>.
+     * @return the conditions manager
+     */
     public DatabaseConditionsManager setup() {
         if (!_wasConfigured)
             configure();
-        _conditionsManager.setDetectorName(_detectorName);
-        _conditionsManager.setRunNumber(_runNumber);
-        _conditionsManager.setup();
+        try {
+            _conditionsManager.setDetector(_detectorName, _runNumber);
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         return _conditionsManager;
     }
 }

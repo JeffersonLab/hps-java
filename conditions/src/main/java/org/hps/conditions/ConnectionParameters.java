@@ -2,7 +2,9 @@ package org.hps.conditions;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -118,10 +120,36 @@ public final class ConnectionParameters {
      * @param file The properties file.
      * @return The connection parameters.
      */
-    public static final ConnectionParameters fromProperties(File file) {
+    public static final ConnectionParameters fromProperties(File file) {            
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException(file.getPath() + " does not exist.", e);
+        }
+        return fromProperties(fin);
+    }
+    
+    /**
+     * Configure the connection parameters from an embedded classpath resource 
+     * which should be a properties file.
+     * @param String The resource path.
+     * @return The connection parameters.
+     */
+    public static final ConnectionParameters fromResource(String resource) {
+        return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
+    }
+    
+    /**
+     * Configure the connection parameters from an <code>InputStream</code> of properties. 
+     * @param in The InputStream of the properties.
+     * @return The connection parameters.
+     * @throws RuntimeException if the InputStream is invalid
+     */
+    private static final ConnectionParameters fromProperties(InputStream in) {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(file));
+            properties.load(in);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
