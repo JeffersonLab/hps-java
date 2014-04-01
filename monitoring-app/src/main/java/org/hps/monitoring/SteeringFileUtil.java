@@ -21,7 +21,7 @@ public class SteeringFileUtil {
      * Get the files that end in .lcsim from all loaded jar files.
      * @return
      */
-    public static String[] getAvailableSteeringFileResources() {
+    public static String[] getAvailableSteeringFileResources(String packageName) {
         List<String> resources = new ArrayList<String>();
         URL url = SteeringFileUtil.class.getResource("SteeringFileUtil.class");
         String scheme = url.getProtocol();
@@ -34,7 +34,7 @@ public class SteeringFileUtil {
             Enumeration<JarEntry> entries = archive.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith(".lcsim")) {
+                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
                     resources.add(entry.getName());
                 }
             }
