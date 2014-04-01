@@ -19,10 +19,10 @@ final class JobSettings {
     boolean warnBeforeDisconnect = true;
     Level logLevel = Level.ALL;
     int steeringType = 0; // resource = 0; file = 1
-    String steeringResource = "org/lcsim/hps/steering/monitoring/TestRunMonitoring.lcsim";
+    String steeringResource = "org/hps/steering/monitoring/TestRunMonitoring.lcsim";
     String steeringFile = "";
     String detectorName = "HPS-TestRun-v5";
-    String eventBuilderClassName = "org.lcsim.hps.evio.LCSimTestRunEventBuilder";
+    String eventBuilderClassName = "org.hps.evio.LCSimTestRunEventBuilder";
     boolean logToFile = false;
     String logFileName = "";
     boolean autoSaveAida = false;

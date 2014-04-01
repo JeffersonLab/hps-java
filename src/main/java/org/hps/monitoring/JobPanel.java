@@ -36,6 +36,8 @@ class JobPanel extends FieldsPanel {
     private JComboBox logLevelComboBox;
     private JTextField aidaSaveField;
     private JCheckBox aidaSaveCheckBox;
+    
+    private String steeringPackage = "org/hps/steering/monitoring/";
 
     private String defaultEventBuilderClassName = (new JobSettings()).eventBuilderClassName;
 
@@ -72,7 +74,8 @@ class JobPanel extends FieldsPanel {
         logLevelComboBox.setActionCommand(MonitoringCommands.logLevelCmd);
         steeringTypeComboBox = addComboBox("Steering Type", steeringTypes);  
         steeringFileField = addField("Steering File", 35);  	      
-        steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", SteeringFileUtil.getAvailableSteeringFileResources());
+        steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", 
+                SteeringFileUtil.getAvailableSteeringFileResources(steeringPackage));
         //steeringResourcesComboBox = addComboBox("Steering File Resource", new String[]{});
         steeringResourcesComboBox.setActionCommand(MonitoringCommands.steeringResourceCmd);
         detectorNameField = addField("Detector Name", 20);
