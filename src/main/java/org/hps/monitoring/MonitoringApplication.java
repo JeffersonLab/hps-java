@@ -172,9 +172,6 @@ public class MonitoringApplication {
     // Format for screenshots. Hard-coded to PNG.
     private static final String screenshotFormat = "png";
 
-    // The AIDA remote server.
-    private AIDAServer server;
-
     // Listener for processing EtEvents.
     private EtEventListener etListener = new MonitoringApplicationEtListener();
 
@@ -894,14 +891,7 @@ public class MonitoringApplication {
 
                 // Push final event counts to GUI.
                 eventPanel.endJob();
-
-                // Disconnect from remote AIDA session if active.
-                if (server != null) {
-                    log(Level.INFO, "Closing remote AIDA server.");
-                    server.close();
-                    server = null;
-                    log(Level.INFO, "Remote AIDA server was closed.");
-                }
+                
             } catch (Exception e) {
                 e.printStackTrace();
                 log(Level.WARNING, "Error cleaning up job <" + e.getMessage() + ">.");
@@ -1340,9 +1330,6 @@ public class MonitoringApplication {
             // Setup LCSim.
             setupLCSim();
 
-            // Start a remote AIDA session if selected in GUI.
-            setupRemoteAida();
-
             // Connect to the ET system.
             connect();
 
@@ -1372,23 +1359,6 @@ public class MonitoringApplication {
         }
 
         log("Finished monitoring session.");
-    }
-
-    /**
-     * Setup a remote AIDA session if user selected this option.
-     */
-    private void setupRemoteAida() {
-        if (jobPanel.isAidaServerEnabled()) {
-            log("Starting remote AIDA server.");
-            this.server = new AIDAServer(jobPanel.getRemoteAidaName());
-            boolean ok = this.server.start();
-            if (ok) {
-                log("Remote AIDA server started with name <" + jobPanel.getRemoteAidaName() + ">.");
-            } else {
-                this.server = null;
-                log(Level.SEVERE, "Failed to start remote AIDA server.");
-            }
-        }
     }
 
     /**
