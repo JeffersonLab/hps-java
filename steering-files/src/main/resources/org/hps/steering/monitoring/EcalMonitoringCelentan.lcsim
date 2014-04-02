@@ -10,14 +10,15 @@
         <driver name="EventMarkerDriver"/>
         <driver name="ConditionsDriver"/>
         <driver name="CalibrationDriver"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalClusterer"/>
-<!--        <driver name="EcalPedestalPlots"/>-->
-        <driver name="EcalMonitoringPlots"/>     <!-- General plots -->
-        <driver name="EcalHitPlots"/>            <!-- Single hit distributions -->
-        <driver name="EcalClusterPlots"/>        <!-- Clusters distributions -->
-        <driver name="EcalDaqPlots"/>            <!-- DAQ Plots -->
-        <driver name="EcalEventDisplay"/>       <!-- Ecal event display -->
+        <driver name="EcalRawConverter"/> 
+        <driver name="EcalClusterer"/> 
+        <driver name="EcalMonitoringPlots"/>      <!-- General plots -->
+        <driver name="EcalHitPlots"/>             <!-- Single hit distributions -->
+        <driver name="EcalClusterPlots"/>         <!-- Clusters distributions -->
+        <driver name="EcalDaqPlots"/>              <!-- DAQ Plots -->
+        <driver name="EcalEventDisplay"/>         <!-- Ecal event display -->
+
+
 <!--    <driver name="EcalWindowPlots"/>        -->
 
 <!--   <driver name="EcalEvsX"/>    -->           
@@ -32,13 +33,13 @@
     
 <!--  Here starts the drivers description -->
     <drivers>
-       <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
 
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
             <conditionsReaderClass>org.hps.conditions.deprecated.TestRunConditionsReader</conditionsReaderClass>
+            <defaultRunNumber>1351</defaultRunNumber>
         </driver>
 
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
