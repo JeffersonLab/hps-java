@@ -91,16 +91,18 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
         </dependency>       
-        <!-- Since monitoring app is not packaged with distribution,
-             include all the steering files in the bin jar. --> 
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-steering-files</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-users</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
-            <version>1.1</version>
+            <version>1.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>  
                     <groupId>jdom</groupId>
@@ -109,25 +111,6 @@
                 <exclusion>  
                     <groupId>commons-math</groupId>
                     <artifactId>commons-math</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.freehep</groupId>
-                    <artifactId>freehep-jminuit-jdk1.4</artifactId>
-                </exclusion>
-            </exclusions>             
-        </dependency>                
-        <dependency>
-            <groupId>org.freehep</groupId>
-            <artifactId>freehep-jaida-remote</artifactId>
-            <version>3.4.8</version>
-            <exclusions>
-                <exclusion>  
-                    <groupId>commons-math</groupId>
-                    <artifactId>commons-math</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>jdom</groupId>
-                    <artifactId>jdom</artifactId>
                 </exclusion>
             </exclusions>             
         </dependency>

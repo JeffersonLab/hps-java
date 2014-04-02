@@ -30,8 +30,6 @@ class JobPanel extends FieldsPanel {
     private JComboBox steeringResourcesComboBox;
     private JCheckBox logCheckBox;
     private JTextField logFileField;
-    private JCheckBox remoteAidaCheckBox;
-    private JTextField remoteAidaNameField;
     private JCheckBox pauseModeCheckBox;
     private JComboBox logLevelComboBox;
     private JTextField aidaSaveField;
@@ -85,8 +83,6 @@ class JobPanel extends FieldsPanel {
         logFileField = addField("Log File", "", "Full path to log file.", 30, false);
         aidaSaveCheckBox = addCheckBox("Save AIDA at End of Job", false, false);
         aidaSaveField = addField("AIDA Auto Save File Name", "", 30, false);
-        remoteAidaCheckBox = addCheckBox("Enable remote AIDA", false, true);
-        remoteAidaNameField = addField("Remote AIDA name", "", 15, true);
         
         // Set default job settings.
         setJobSettings(new JobSettings());
@@ -100,8 +96,6 @@ class JobPanel extends FieldsPanel {
         detectorNameField.setEnabled(enable);
         eventBuilderField.setEnabled(enable);
         pauseModeCheckBox.setEnabled(enable);
-        remoteAidaCheckBox.setEnabled(enable);
-        remoteAidaNameField.setEnabled(enable);
         steeringTypeComboBox.setEnabled(enable);
         steeringFileField.setEnabled(enable);   
         steeringResourcesComboBox.setEnabled(enable);
@@ -356,15 +350,7 @@ class JobPanel extends FieldsPanel {
     String getLogFileName() {
         return logFileField.getText();
     }    
-    
-    /**
-     * Get whether the AIDA server is enabled.
-     * @return True if the AIDA server is enabled; false if not.
-     */
-    boolean isAidaServerEnabled() {
-        return remoteAidaCheckBox.isSelected();
-    }
-    
+        
     /**
      * Get whether AIDA autosave is enabled.
      * @return True if AIDA autosave is enabled; false if not.
@@ -380,15 +366,7 @@ class JobPanel extends FieldsPanel {
     String getAidaAutoSaveFileName() {
         return aidaSaveField.getText();
     }
-    
-    /**
-     * Get the name of the remote AIDA server.
-     * @return The remote AIDA server name.
-     */
-    String getRemoteAidaName() {
-        return remoteAidaNameField.getText();
-    }
-                  
+                      
     /**
      * Set whether to disconnect if errors occur.
      * @param b The disconnect on error setting.
@@ -496,31 +474,7 @@ class JobPanel extends FieldsPanel {
             }
         });
     }
-    
-    /**
-     * Enable remote AIDA.
-     * @param b The remote AIDA setting; true to enable; false to disable.
-     */
-    private void enableRemoteAida(final boolean b) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                remoteAidaCheckBox.setSelected(b);
-            }
-        });
-    }
-    
-    /**
-     * Set the name of the remote AIDA server.
-     * @param s The name of the remote AIDA server.
-     */
-    private void setRemoteAidaName(final String s) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                remoteAidaNameField.setText(s);
-            }
-        });
-    }
-    
+        
     /**
      * Get the resource path for the steering file.
      * @return The resource path for the steering file.
@@ -556,8 +510,6 @@ class JobPanel extends FieldsPanel {
         settings.logFileName = getLogFileName();
         settings.autoSaveAida = isAidaAutoSaveEnabled();
         settings.autoSaveAidaFileName = getAidaAutoSaveFileName();
-        settings.remoteAidaName = getRemoteAidaName();
-        settings.enableRemoteAida = remoteAidaCheckBox.isSelected();
         return settings;
     }
                
@@ -579,8 +531,6 @@ class JobPanel extends FieldsPanel {
         setLogFile(settings.logFileName);
         enableAidaAutoSave(settings.autoSaveAida);
         setAidaAutoSaveFileName(settings.autoSaveAidaFileName);
-        enableRemoteAida(settings.enableRemoteAida);
-        setRemoteAidaName(settings.remoteAidaName);
     }
     
     /**
