@@ -58,7 +58,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     String _conditionsTableName;
     boolean _wasConfigured = false;
     boolean _isConnected = false;
-    static DatabaseConditionsManager _instance;
+    static DatabaseConditionsManager _instance; // FIXME: Prefer using the ConditionsManager's instance if possible.
 
     /**
      * Class constructor, which is only package accessible.
@@ -116,19 +116,27 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     @Override
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
+        
         _logger.fine("set detector " + detectorName);
         _logger.fine("set run number " + runNumber);
+        
         _runNumber = runNumber;
+        
+        setup(detectorName);
+
+        super.setDetector(detectorName, runNumber);
+    }    
+    
+    public void setup(String detectorName) {
         if (_baseReader instanceof BaseClasspathConditionsReader) {
             ((BaseClasspathConditionsReader)_baseReader).setResourcePath(detectorName);
-            _logger.config("set resource path to " + detectorName + " on conditions reader");
+            _logger.config("set resource path " + detectorName + " on conditions reader");
         }
         if (!isConnected())
             openConnection();
         else
-            _logger.config("using existing connection " + _connectionParameters.getConnectionString());
-        super.setDetector(detectorName, runNumber);
-    }    
+            _logger.config("using existing connection " + _connectionParameters.getConnectionString());        
+    }
 
     /**
      * Get the lcsim compact <code>Detector</code> object from the conditions system.
@@ -154,10 +162,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param file The XML file.
      */
     public void configure(File file) {
-        try {
-            _logger.info("configuring from file: " + file.getCanonicalPath());
-        } catch (IOException e) {
-        }
+        _logger.config("setting configuration from file " + file.getPath());
         if (!file.exists()) {
             throw new IllegalArgumentException("Config file does not exist.");
         }
@@ -165,7 +170,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             configure(new FileInputStream(file));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
-        }
+        }        
     }
 
     /**
@@ -173,11 +178,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param resource The embedded XML resource.
      */
     public void configure(String resource) {
-        _logger.config("configuring from resource: " + resource);
+        _logger.config("setting configuration from resource " + resource);
         InputStream in = getClass().getResourceAsStream(resource);
         if (in == null)
             throw new IllegalArgumentException("The resource does not exist.");
-        configure(in);
+        configure(in);        
     }
     
     /**
@@ -185,9 +190,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param file The properties file
      */
     public void setConnectionProperties(File file) {
+        _logger.config("setting connection prop file " + file.getPath());
         if (!file.exists())
             throw new IllegalArgumentException("The connection properties file does not exist: " + _connectionPropertiesFile.getPath());
-        _connectionParameters = ConnectionParameters.fromProperties(file);
+        _connectionParameters = ConnectionParameters.fromProperties(file);        
     }
     
     /**
@@ -195,7 +201,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param resource The classpath resource
      */
     public void setConnectionResource(String resource) {
-        _connectionParameters = ConnectionParameters.fromResource(resource);
+        _logger.config("setting connection resource " + resource);
+        _connectionParameters = ConnectionParameters.fromResource(resource);        
     }
 
     /**
@@ -204,7 +211,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param reader The base ConditionsReader.
      */
     public void setBaseConditionsReader(ConditionsReader reader) {
-        _baseReader = reader;
+        _logger.config("setting conditions reader to " + reader.getClass().getCanonicalName());
+        _baseReader = reader;        
     }
 
     /**
@@ -577,6 +585,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @author Jeremy McCormick <jeremym@slac.stanford.edu>
      */
     class ConditionsConverterLoader {
+        
         void load(Element element) {
             _converters = new ArrayList<ConditionsConverter>();
             for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
@@ -598,4 +607,5 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }
     }
+    
 }
