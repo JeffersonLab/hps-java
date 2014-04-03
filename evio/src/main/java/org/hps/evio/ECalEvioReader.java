@@ -15,6 +15,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
+import org.lcsim.lcio.LCIOConstants;
 
 /**
  *
@@ -36,6 +37,7 @@ public class ECalEvioReader extends EvioReader {
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
         hitClass = Object.class;
+        int flags = 0;
         for (BaseStructure bank : event.getChildren()) {
             BaseStructureHeader header = bank.getHeader();
             int crateBankTag = header.getTag();
@@ -66,14 +68,17 @@ public class ECalEvioReader extends EvioReader {
                                     case EventConstants.ECAL_WINDOW_BANK_TAG:
                                         hits.addAll(makeWindowHits(cdata, crateBankTag));
                                         hitClass = RawTrackerHit.class;
+                                        flags = 0;
                                         break;
                                     case EventConstants.ECAL_PULSE_BANK_TAG:
                                         hits.addAll(makePulseHits(cdata, crateBankTag));
                                         hitClass = RawTrackerHit.class;
+                                        flags = 0;
                                         break;
                                     case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
                                         hits.addAll(makeIntegralHits(cdata, crateBankTag));
                                         hitClass = BaseRawCalorimeterHit.class;
+                                        flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
                                         break;
                                     default:
                                         throw new RuntimeException("Unsupported ECal format - bank tag " + slotBank.getHeader().getTag());
@@ -87,7 +92,7 @@ public class ECalEvioReader extends EvioReader {
             }
         }
         String readoutName = EcalConditions.getSubdetector().getReadout().getName();
-        lcsimEvent.put(hitCollectionName, hits, hitClass, 0, readoutName);
+        lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
 //        for (Object hit : hits) {
 //            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
 //        }

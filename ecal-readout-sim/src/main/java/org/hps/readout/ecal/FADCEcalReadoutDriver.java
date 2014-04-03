@@ -98,7 +98,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
     public FADCEcalReadoutDriver() {
         flags = 0;
-        flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
+        flags += 1 << LCIOConstants.RCHBIT_TIME; //store timestamp
         hitClass = HPSRawCalorimeterHit.class;
         setReadoutPeriod(ecalReadoutPeriod);
 //        converter = new HPSEcalConverter(null);

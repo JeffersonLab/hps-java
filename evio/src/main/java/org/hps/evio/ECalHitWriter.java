@@ -394,7 +394,7 @@ public class ECalHitWriter implements HitWriter {
                 List<RawCalorimeterHit> rawCalorimeterHits = event.get(RawCalorimeterHit.class, hitCollectionName);
                 System.out.println("Writing " + rawCalorimeterHits.size() + " ECal hits in integral format");
                 int flags = 0;
-                flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
+                flags += 1 << LCIOConstants.RCHBIT_TIME; //store timestamp
                 toEvent.put(hitCollectionName, rawCalorimeterHits, RawCalorimeterHit.class, flags, readoutName);
                 break;
             default:
