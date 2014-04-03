@@ -1,7 +1,7 @@
 package org.hps.users.jeremym;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.ICloud1D;
+import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
@@ -37,8 +37,22 @@ public class EcalConditionsTestDriver extends Driver {
     EcalChannelCollection channels = null;    
     IPlotter plotter;
     AIDA aida = AIDA.defaultInstance();
-    ICloud1D ecalEnergyPlot;
-    double maxEnergy = 0.0;
+    
+    IHistogram1D ecalRawEnergyPlot;
+    IHistogram1D ecalCalibratedEnergyPlot;
+    IHistogram1D ecalEnergyDiffPlot;
+    IHistogram1D ecalTimePlot;
+    
+    
+    double minRawEnergy = Double.MAX_VALUE;
+    double maxRawEnergy = 0.0;
+    double minCalibratedEnergy = Double.MAX_VALUE;
+    double maxCalibratedEnergy = 0.0;
+    double minTime = Double.MAX_VALUE;
+    double maxTime = 0;    
+    
+    // Time window in ADC clocks which is 35*4 ns (from Sho).  
+    static int ECAL_TIME_WINDOW = 35;
     
     public void detectorChanged(Detector detector) {
         System.out.println(this.getClass().getName() + ".detectorChanged");
@@ -53,32 +67,101 @@ public class EcalConditionsTestDriver extends Driver {
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         ITree tree = analysisFactory.createTreeFactory().create();
         IHistogramFactory histogramFactory = analysisFactory.createHistogramFactory(tree);
-        IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("ECAL Conditions Test");
-        IPlotter plotter = plotterFactory.create("ECAL Hits");
-        ecalEnergyPlot = histogramFactory.createCloud1D("ADC * Gain [GeV]");        
+        IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("ECAL Raw Hits");
+        
+        IPlotter plotter = plotterFactory.create("Raw Energy");
+        ecalRawEnergyPlot = histogramFactory.createHistogram1D("Raw Hit Energy [GeV]", 60, 0., 15);
         plotter.createRegion();
-        plotter.region(0).plot(ecalEnergyPlot);
+        plotter.region(0).plot(ecalRawEnergyPlot);
         plotter.show();        
+        
+        plotter = plotterFactory.create("Calibrated Energy");
+        ecalCalibratedEnergyPlot = histogramFactory.createHistogram1D("Calibrated Energy [GeV]", 60, -2, 13);
+        plotter.createRegion();
+        plotter.region(0).plot(ecalCalibratedEnergyPlot);
+        plotter.show();
+        
+        plotter = plotterFactory.create("Time");
+        ecalTimePlot = histogramFactory.createHistogram1D("Hit Time [ns]", 100, 0., 400);
+        plotter.createRegion();
+        plotter.region(0).plot(ecalTimePlot);
+        plotter.show();
+        
+        plotter = plotterFactory.create("Raw minus Calibrated Energy");
+        ecalEnergyDiffPlot = histogramFactory.createHistogram1D("Raw Minus Calibrated Energy [GeV]", 50, -2, 5);
+        plotter.createRegion();
+        plotter.region(0).plot(ecalEnergyDiffPlot);
+        plotter.show();
     }
        
     public void process(EventHeader event) {
         if (event.hasCollection(RawCalorimeterHit.class, collectionName)) {
             List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, collectionName);
             for (RawCalorimeterHit hit : hits) {
+                
+                // Get conditions for channel.
                 EcalChannelConstants channelConstants = findChannelConstants(hit.getCellID());
                 double gain = channelConstants.getGain().getGain();
-                double energy = this.calculateEnergy(hit, gain);
-                ecalEnergyPlot.fill(energy);
+                double pedestal = channelConstants.getCalibration().getPedestal();                
+                
+                // Plot raw energy.
+                double rawEnergy = calculateRawEnergy(hit, gain);
+                if (rawEnergy > this.maxRawEnergy)
+                    maxRawEnergy = rawEnergy;
+                if (rawEnergy < this.minRawEnergy)
+                    minRawEnergy = rawEnergy;
+                //System.out.println("energy: " + energy);
+                
+                ecalRawEnergyPlot.fill(rawEnergy);
+                
+                // Plot calibrated energy.
+                double calibratedEnergy = calculateCalibratedEnergy(hit, gain, pedestal, ECAL_TIME_WINDOW);
+                if (calibratedEnergy > this.maxCalibratedEnergy)
+                    maxCalibratedEnergy = calibratedEnergy;
+                if (calibratedEnergy < this.minCalibratedEnergy)
+                    minCalibratedEnergy = calibratedEnergy;
+                //System.out.println("calibrated energy: " + calibratedEnergy);
+                ecalCalibratedEnergyPlot.fill(calibratedEnergy);
+                
+                // Plot raw minus calibrated energy.
+                ecalEnergyDiffPlot.fill(rawEnergy - calibratedEnergy);
+                
+                // Plot time.
+                //System.out.println("timestamp: " + hit.getTimeStamp());
+                double time = calculateTime(hit);
+                if (time > this.maxTime)
+                    maxTime = time;
+                if (time < this.minTime)
+                    minTime = time;
+                //System.out.println("time: " + time);
+                ecalTimePlot.fill(time);
+                                
+                //System.out.println();
             }
         }
     }    
-    
-    // Get energy in MeV from ADC counts and gain.
-    private double calculateEnergy(RawCalorimeterHit hit, double gain) {
-        int adc = hit.getAmplitude();
-        return gain * adc * ECalUtils.MeV;
+
+    // Calculate energy of a raw ECAL hit only using gain and ADC.
+    private double calculateRawEnergy(RawCalorimeterHit hit, double gain) {
+        return hit.getAmplitude() * gain * ECalUtils.MeV;
+    }
+  
+    // Calculate calibrated energy of a raw ECAL hit, applying pedestal.
+    private double calculateCalibratedEnergy(RawCalorimeterHit hit, double gain, double pedestal, int window) {
+        double adcSum = hit.getAmplitude() - window * pedestal;
+        double energy = gain * adcSum * ECalUtils.MeV;
+        return energy;
     }
     
+    // Copied and modified from EcalRawConverter in ecal-recon.
+    private double calculateTime(RawCalorimeterHit hit) {
+        if (hit.getTimeStamp() % 64 != 0) {
+            throw new RuntimeException("unexpected timestamp " + hit.getTimeStamp());
+        }
+        double time = ((double)hit.getTimeStamp()) / 16.0;
+        return time;
+    }    
+   
     // Find ECAL channel constants from hit ID.
     EcalChannelConstants findChannelConstants(long rawId) {
         IIdentifier id = new Identifier(rawId);
@@ -90,4 +173,14 @@ public class EcalConditionsTestDriver extends Driver {
         EcalChannel channel = channels.findChannel(geometryId);
         return ecalConditions.getChannelConstants(channel);
     }        
+    
+    public void endOfData() {
+        this.ecalConditions = null;
+        System.out.println("minRawEnergy: " + this.minRawEnergy);
+        System.out.println("maxRawEnergy: " + this.maxRawEnergy);
+        System.out.println("minCalibratedEnergy: " + this.minCalibratedEnergy);
+        System.out.println("maxCalibratedEnergy: " + this.maxCalibratedEnergy);
+        System.out.println("minTime: " + this.minTime);
+        System.out.println("maxTime: " + this.maxTime);
+    }
 }
