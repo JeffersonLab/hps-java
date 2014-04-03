@@ -39,7 +39,6 @@
 
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
             <conditionsReaderClass>org.hps.conditions.deprecated.TestRunConditionsReader</conditionsReaderClass>
-            <defaultRunNumber>1351</defaultRunNumber>
         </driver>
 
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
