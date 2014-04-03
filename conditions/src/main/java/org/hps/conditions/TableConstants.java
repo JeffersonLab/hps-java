@@ -12,8 +12,7 @@ package org.hps.conditions;
  * </p> 
  */
 public final class TableConstants {
-    
-    /** Prevent instantiation of this class, which is only a holder of static constant values. */
+        
     private TableConstants() {}
     
     /** Conditions key for ConditionsRecord. */
@@ -33,6 +32,9 @@ public final class TableConstants {
     
     /** Conditions key for ECal calibration information. */
     public static final String ECAL_CALIBRATIONS = "ecal_calibrations";
+    
+    /** ECAL time shifts. */
+    public static final String ECAL_TIME_SHIFTS = "ecal_time_shifts";
     
     /** Conditions key for combined ECal conditions. */
     public static final String SVT_CONDITIONS = "svt_conditions";
