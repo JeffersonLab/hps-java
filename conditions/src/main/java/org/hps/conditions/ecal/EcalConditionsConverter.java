@@ -4,12 +4,14 @@ import static org.hps.conditions.TableConstants.ECAL_BAD_CHANNELS;
 import static org.hps.conditions.TableConstants.ECAL_CALIBRATIONS;
 import static org.hps.conditions.TableConstants.ECAL_CHANNELS;
 import static org.hps.conditions.TableConstants.ECAL_GAINS;
+import static org.hps.conditions.TableConstants.ECAL_TIME_SHIFTS;
 
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.ChannelId;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -62,6 +64,16 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
             EcalChannel channel = channelMap.findChannel(channelId);
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }       
+        
+        // Add time shifts.
+        EcalTimeShiftCollection timeShifts =
+                manager.getCachedConditions(EcalTimeShiftCollection.class, ECAL_TIME_SHIFTS).getCachedData();
+        for (EcalTimeShift timeShift : timeShifts.getObjects()) {
+            ChannelId channelId = new ChannelId();
+            channelId.id = timeShift.getChannelId();
+            EcalChannel channel = channelMap.findChannel(channelId);
+            conditions.getChannelConstants(channel).setTimeShift(timeShift);
+        }
         
         // Return the conditions object to caller.
         return conditions;

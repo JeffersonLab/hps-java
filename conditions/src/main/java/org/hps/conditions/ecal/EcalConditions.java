@@ -97,9 +97,11 @@ public class EcalConditions {
         buff.append("   ");
         buff.append("noise");
         buff.append("      ");
+        buff.append("time_shift");
+        buff.append(" ");
         buff.append("bad");
         buff.append('\n');
-        for (int i=0; i<80; i++) {
+        for (int i=0; i<91; i++) {
             buff.append("-");
         }        
         buff.append('\n');
@@ -112,7 +114,8 @@ public class EcalConditions {
             double gain = constants.getGain().getGain();
             double pedestal = constants.getCalibration().getPedestal();
             double noise = constants.getCalibration().getNoise();
-            boolean bad = constants.isBadChannel();
+            double timeShift = constants.getTimeShift().getTimeShift();
+            boolean bad = constants.isBadChannel();            
             
             // Channel data.
             buff.append(String.format("%-5d %-6d %-6d %-8d %-6d %-6d", 
@@ -120,7 +123,7 @@ public class EcalConditions {
                     channel.getX(), channel.getY()));
             
             // Constants.
-            buff.append(String.format("%-10.4f %-10.4f %-10.4f ", gain, pedestal, noise));
+            buff.append(String.format("%-10.4f %-10.4f %-10.4f %-11.4f", gain, pedestal, noise, timeShift));
             
             // Bad channel.
             buff.append(bad);
