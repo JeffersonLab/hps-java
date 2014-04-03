@@ -16,14 +16,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.util.RunControlDialog;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
+import org.hps.util.RunControlDialog;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
-import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
 /**
  * This class is for converting Test Run EVIO to LCIO events and performing an
@@ -40,7 +38,7 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 public class TestRunEvioToLcio {
 
     private static final String defaultDetectorName = "";
-    private static final String defaultSteeringFile = "/org/lcsim/hps/steering/monitoring/DummyMonitoring.lcsim";
+    private static final String defaultSteeringFile = "/org/hps/steering/monitoring/DummyMonitoring.lcsim";
 
     /**
      * Defines command line options for this program.
@@ -118,9 +116,7 @@ public class TestRunEvioToLcio {
         }
 
         // LCSim XML file to execute inline.
-        boolean haveSteering = false;
         if (cl.hasOption("x")) {
-            haveSteering = true;
             String lcsimXmlName = cl.getOptionValue("x");
             if (cl.hasOption("r")) {
                 steeringStream = TestRunEvioToLcio.class.getResourceAsStream(lcsimXmlName);
@@ -163,9 +159,7 @@ public class TestRunEvioToLcio {
         }
 
         // LCSim job manager.
-        JobControlManager jobManager = null;
-        if (haveSteering)
-            jobManager = new JobControlManager();
+        JobControlManager jobManager = new JobControlManager();
 
         if (cl.hasOption("D")) {
             String[] steeringOptions = cl.getOptionValues("D");
@@ -180,14 +174,8 @@ public class TestRunEvioToLcio {
             }
         }
 
-        if (haveSteering) {
-            // Setup the job manager, which will also initialize the conditions system.
-            jobManager.setup(steeringStream);
-            jobManager.configure();
-        } else {
-            // Initialize conditions system if not using the job manager.
-            ConditionsManager.setDefaultConditionsManager(new LCSimConditionsManagerImplementation());
-        }
+        jobManager.setup(steeringStream);
+        jobManager.configure();
 
         // LCSim event builder.
         LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
@@ -268,8 +256,7 @@ public class TestRunEvioToLcio {
 //                                    }
 //                                }
 //                            }
-                            if (haveSteering)
-                                jobManager.processEvent(lcioEvent);
+                            jobManager.processEvent(lcioEvent);
                             if (writer != null) {
                                 writer.write(lcioEvent);
                                 writer.flush();
@@ -298,10 +285,8 @@ public class TestRunEvioToLcio {
 
         if (!cl.hasOption("w")) {
             System.out.println("Exiting");
-            if (haveSteering) {
-                jobManager.finish();
-                System.out.println("jobManager finished");
-            }
+            jobManager.finish();
+            System.out.println("jobManager finished");
         }
 
         if (writer != null) {
