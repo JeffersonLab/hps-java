@@ -47,8 +47,8 @@ public class ConditionsDriverTest extends TestCase {
         RunNumberDriver runNumberDriver = new RunNumberDriver();
         loop.add(runNumberDriver);
         
-        // Turn off the chatty conditions manager.
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.OFF);
+        // Turn off the log messages.
+        //DatabaseConditionsManager.getInstance().setLogLevel(Level.OFF);
         
         // Run over all events.
         loop.loop(-1, null);
