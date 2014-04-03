@@ -21,7 +21,7 @@ public class ConditionsRecord extends AbstractConditionsObject {
          * are usually all going to be different, the default behavior of the super class is overridden.
          */
         public void add(ConditionsRecord record) {
-            _objects.add(record);
+            objects.add(record);
         }
         
         // FIXME: Should probably override more methods here that don't make sense for this type!

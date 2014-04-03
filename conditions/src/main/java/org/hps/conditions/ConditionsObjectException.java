@@ -7,7 +7,7 @@ package org.hps.conditions;
 @SuppressWarnings("serial")
 public final class ConditionsObjectException extends Exception {
 
-    ConditionsObject _object;
+    ConditionsObject object;
 
     public ConditionsObjectException(String message) {
         super(message);
@@ -15,9 +15,10 @@ public final class ConditionsObjectException extends Exception {
 
     public ConditionsObjectException(String message, ConditionsObject object) {
         super(message);
+        this.object = object;
     }
     
     public ConditionsObject getConditionsObject() {
-        return _object;
+        return object;
     }
 }

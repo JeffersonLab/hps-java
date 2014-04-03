@@ -9,32 +9,32 @@ import java.util.List;
 // TODO: Collections with a mix of different collection IDs on their objects should always be read only.
 public class ConditionsObjectCollection<T extends ConditionsObject> {
 
-    protected List<T> _objects = new ArrayList<T>();    
-    protected TableMetaData _tableMetaData;
-    protected int _collectionId = -1;
-    protected boolean _isReadOnly;
-    protected boolean _isDirty;
-    protected boolean _isNew;
-    protected ConditionsRecord _conditionsRecord;
+    protected List<T> objects = new ArrayList<T>();    
+    protected TableMetaData tableMetaData;
+    protected int collectionId = -1;
+    protected boolean isReadOnly;
+    protected boolean isDirty;
+    protected boolean isNew;
+    protected ConditionsRecord conditionsRecord;
     
     protected ConditionsObjectCollection() {
     }
             
     public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
-        _tableMetaData = tableMetaData;
-        _collectionId = collectionId;
-        _isReadOnly = isReadOnly;
+        this.tableMetaData = tableMetaData;
+        this.collectionId = collectionId;
+        this.isReadOnly = isReadOnly;
         if (collectionId == -1) {
-            _isNew = true;
+            this.isNew = true;
         }
     }
     
     public T get(int index) {
-        return _objects.get(index);
+        return objects.get(index);
     }
     
     public List<T> getObjects() {
-        return Collections.unmodifiableList(_objects);
+        return Collections.unmodifiableList(objects);
     }
     
     public boolean contains(Object object) {
@@ -45,7 +45,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     // from this collection's, in which case this collection becomes "mixed" and it should be
     // flagged as read only.
     public void add(T object) throws ConditionsObjectException {
-        if (_objects.contains(object)) {
+        if (objects.contains(object)) {
             throw new IllegalArgumentException("Collection already contains this object.");
         }
         try {
@@ -57,25 +57,25 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
             throw new IllegalArgumentException("Error assigning collection ID to object.", x);
         }
         // Set the table meta data on the object if it does not have any.
-        if (object.getTableMetaData() == null && _tableMetaData != null)
-            object.setTableMetaData(_tableMetaData);
-        _objects.add(object);
+        if (object.getTableMetaData() == null && tableMetaData != null)
+            object.setTableMetaData(tableMetaData);
+        objects.add(object);
         if (!isNew())
             setIsDirty(true);
     }
 
     public TableMetaData getTableMetaData() {
-        return _tableMetaData;        
+        return tableMetaData;        
     }
 
     public int getCollectionId() {
-        return _collectionId;
+        return collectionId;
     }
     
     // TODO: Should this also insert new records that do not exist?
     // TODO: This operation should lock the table.
     public void update() throws ConditionsObjectException {
-        for (ConditionsObject object : _objects) {            
+        for (ConditionsObject object : objects) {            
             object.update();
         }        
         setIsDirty(false);
@@ -86,7 +86,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         if (isReadOnly()) {
             throw new ConditionsObjectException("Collection is read only.");
         }
-        for (ConditionsObject object : _objects) {            
+        for (ConditionsObject object : objects) {            
             object.delete();
         }                
     }
@@ -94,7 +94,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     // TODO: This should not loop.  It should select all the objects with a matching collection ID
     // from the database.
     public void select() throws ConditionsObjectException, SQLException {
-        for (ConditionsObject object : _objects) {
+        for (ConditionsObject object : objects) {
             object.select();
         }
     }
@@ -105,48 +105,48 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         if (!isNew()) {
             throw new ConditionsObjectException("Collection already exists in the database.");
         }
-        for (ConditionsObject object : _objects) {
+        for (ConditionsObject object : objects) {
             //if (object.isNew()) {
             object.insert();
             //}
         }
-        _isNew = false;
+        isNew = false;
     }
 
     public boolean isDirty() {
-        return _isDirty;
+        return isDirty;
     }
 
     public boolean isReadOnly() {
-        return _isReadOnly;
+        return isReadOnly;
     }
     
     void setIsDirty(boolean isDirty) {
-        _isDirty = isDirty;
+        this.isDirty = isDirty;
     }
     
     // TODO: This can probably just check if collection ID is not valid e.g. equals -1.    
     public boolean isNew() {
-        return _isNew;
+        return isNew;
     }
     
     public void setCollectionId(int collectionId) throws ConditionsObjectException {
-        if (_collectionId != -1)
+        if (this.collectionId != -1)
             throw new ConditionsObjectException("The collection ID is already set.");
-        _collectionId = collectionId;
+        this.collectionId = collectionId;
     }
     
     public void setTableMetaData(TableMetaData tableMetaData) {
-        _tableMetaData = tableMetaData;
+        this.tableMetaData = tableMetaData;
     }
     
     public void setIsReadOnly(boolean isReadOnly) {
-        _isReadOnly = isReadOnly;
+        this.isReadOnly = isReadOnly;
     }    
     
     public void setConditionsRecord(ConditionsRecord conditionsRecord) throws ConditionsObjectException {
-        if (_conditionsRecord != null)
+        if (this.conditionsRecord != null)
             throw new ConditionsObjectException("The ConditionsRecord is already set on this collection.");
-        _conditionsRecord = conditionsRecord;
+        this.conditionsRecord = conditionsRecord;
     }
 }
