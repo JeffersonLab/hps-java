@@ -8,6 +8,7 @@ public class EcalChannelConstants {
     
     EcalGain gain = null;
     EcalCalibration calibration = null;
+    EcalTimeShift timeShift = null;
     boolean badChannel = false;
     
     /**
@@ -33,8 +34,16 @@ public class EcalChannelConstants {
     }
     
     /**
-     * Set the bad channel setting.
-     * @param badChannel The bad channel setting.
+     * Set the time shift.
+     * @param timeShift the time shift
+     */
+    void setTimeShift(EcalTimeShift timeShift) {
+        this.timeShift = timeShift;
+    }
+    
+    /**
+     * Set whether this is a bad channel.
+     * @param badChannel set to true to flag channel as bad
      */
     void setBadChannel(boolean badChannel) {
         this.badChannel = badChannel;
@@ -54,6 +63,14 @@ public class EcalChannelConstants {
      */
     public EcalCalibration getCalibration() {
         return calibration;
+    }
+    
+    /**
+     * Get the time shift.
+     * @return the time shift
+     */
+    public EcalTimeShift getTimeShift() {
+        return timeShift;
     }
     
     /**
