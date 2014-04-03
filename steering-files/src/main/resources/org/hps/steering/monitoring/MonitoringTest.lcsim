@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <control>
-        <numberOfEvents>10</numberOfEvents> 
+        <numberOfEvents>-1</numberOfEvents> 
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
@@ -12,7 +12,7 @@
         <driver name="EcalPlotsDriver" />
     </execute>   
     <drivers>
-       <driver name="EventMarkerDriver"
+        <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
