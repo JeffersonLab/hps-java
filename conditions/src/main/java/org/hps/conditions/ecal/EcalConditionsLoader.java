@@ -32,7 +32,7 @@ public class EcalConditionsLoader {
             //System.out.println(crystal.getName() + " @ " + crystal.getX() + ", " + crystal.getY());
             
             // Reset possibly existing conditions data.
-            crystal.reset();
+            crystal.resetConditions();
             
             // Find the corresponding entry in the channel map for this crystal.
             GeometryId geometryId = new GeometryId();
@@ -69,6 +69,9 @@ public class EcalConditionsLoader {
             
             // Set gain.
             crystal.setGain(constants.getGain().getGain());
+            
+            // Set time shift.
+            crystal.setTimeShift(constants.getTimeShift().getTimeShift());
         }
     }
 }
