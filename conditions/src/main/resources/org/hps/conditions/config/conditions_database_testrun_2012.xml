@@ -21,6 +21,7 @@
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalChannelConverter"/>
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalGainConverter"/>
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalCalibrationConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalTimeShiftConverter"/>
 
         <!-- Beam conditions converter -->
         <converter class="org.hps.conditions.beam.BeamConverterRegistry$BeamCurrentConverter"/>
@@ -180,6 +181,17 @@
                 <field name="channel" />
                 <field name="x" />
                 <field name="y" />
+            </fields>  
+        </table>
+        
+        <table key="ecal_time_shifts" name="ecal_time_shifts">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalTimeShift"/>
+                <collection class="org.hps.conditions.ecal.EcalTimeShift$EcalTimeShiftCollection"/>
+            </classes>
+            <fields>
+                <field name="ecal_channel_id" />
+                <field name="time_shift" />
             </fields>  
         </table>
         
