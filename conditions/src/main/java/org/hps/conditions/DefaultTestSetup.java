@@ -37,26 +37,26 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 public final class DefaultTestSetup {
 
     // Default conditions manager parameters.
-    static String _connectionResource = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
-    static String _conditionsConfig = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    static String connectionResource = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
+    static String conditionsConfig = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     
     // Default test detector and run number for test cases not using real data.
-    static String _detectorName = "HPS-conditions-test";
-    static int _runNumber = 1351;
+    static String detectorName = "HPS-conditions-test";
+    static int runNumber = 1351;
     
-    DatabaseConditionsManager _conditionsManager;
-    boolean _wasConfigured = false;
+    DatabaseConditionsManager conditionsManager;
+    boolean wasConfigured = false;
     
     /**
      * Configure and register the {@link DatabaseConditionsManager} with default parameters.
      * @return an instance of this class for chaining (e.g. to call {@link #setup()}.
      */
     public DefaultTestSetup configure() {        
-        _conditionsManager = new DatabaseConditionsManager();
-        _conditionsManager.setConnectionResource(_connectionResource);
-        _conditionsManager.configure(_conditionsConfig);
-        _conditionsManager.register();
-        _wasConfigured = true;
+        conditionsManager = new DatabaseConditionsManager();
+        conditionsManager.setConnectionResource(connectionResource);
+        conditionsManager.configure(conditionsConfig);
+        conditionsManager.register();
+        wasConfigured = true;
         return this;
     }
     
@@ -66,13 +66,13 @@ public final class DefaultTestSetup {
      * @return the conditions manager
      */
     public DatabaseConditionsManager setup() {
-        if (!_wasConfigured)
+        if (!wasConfigured)
             configure();
         try {
-            _conditionsManager.setDetector(_detectorName, _runNumber);
+            conditionsManager.setDetector(detectorName, runNumber);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return _conditionsManager;
+        return conditionsManager;
     }
 }

@@ -43,29 +43,35 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */ 
+// FIXME: Run number is not being stored correctly.  System thinks it is a new run every time.  (see test 
+// Driver output)
+// FIXME: Seems to be precaching all conditions which should be avoided.
+// FIXME: Hangs process at end of job???
 @SuppressWarnings("rawtypes")
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
-    int _runNumber = -1;
-    String _detectorName;
-    List<TableMetaData> _tableMetaData;    
-    List<ConditionsConverter> _converters;
-    File _connectionPropertiesFile;
-    ConditionsReader _baseReader;    
-    static Logger _logger = null;
-    ConnectionParameters _connectionParameters;
-    Connection _connection;
-    String _conditionsTableName;
-    boolean _wasConfigured = false;
-    boolean _isConnected = false;
-    static DatabaseConditionsManager _instance; // FIXME: Prefer using the ConditionsManager's instance if possible.
+    int runNumber = -1;
+    String detectorName;
+    List<TableMetaData> tableMetaData;    
+    List<ConditionsConverter> converters;
+    File connectionPropertiesFile;
+    ConditionsReader baseReader;    
+    static Logger logger = null;
+    ConnectionParameters connectionParameters;
+    Connection connection;
+    String conditionsTableName;
+    boolean wasConfigured = false;
+    boolean isConnected = false;
+    
+    // FIXME: Prefer using the ConditionsManager's instance if possible.
+    static DatabaseConditionsManager instance; 
 
     /**
      * Class constructor, which is only package accessible.
      */
     DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
-        _baseReader = new BaseClasspathConditionsReader();
+        baseReader = new BaseClasspathConditionsReader();
     }
 
     /**
@@ -84,14 +90,14 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Setup the logger for this class, with initial level of ALL.
      */
     static {
-        _logger = Logger.getLogger(DatabaseConditionsManager.class.getSimpleName());
-        _logger.setUseParentHandlers(false);
-        _logger.setLevel(Level.ALL);
+        logger = Logger.getLogger(DatabaseConditionsManager.class.getSimpleName());
+        logger.setUseParentHandlers(false);
+        logger.setLevel(Level.ALL);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         handler.setFormatter(new LogFormatter());
-        _logger.addHandler(handler);
-        _logger.config("logger initialized with level " + handler.getLevel());
+        logger.addHandler(handler);
+        logger.config("logger initialized with level " + handler.getLevel());
     }
     
     /**
@@ -99,7 +105,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     void register() {
         ConditionsManager.setDefaultConditionsManager(this);
-        _instance = this;
+        instance = this;
     }
 
     /**
@@ -108,34 +114,46 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The static instance of the manager.
      */
     public static DatabaseConditionsManager getInstance() {
-        return _instance;
+        return instance;
     }
     
     /**
      * This method catches changes to the detector name and run number.    
      */
     @Override
+    // FIXME: Check if detectorName and runNumber are already the same.
+    // To add:
+    // 1) If run number changes then update.
+    // 2) If detector changes and run doesn't then this is an error.
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
+        //System.out.println(this.getClass().getSimpleName() + ".setDetector called from...");
+        //new RuntimeException().printStackTrace();
         
-        _logger.fine("set detector " + detectorName);
-        _logger.fine("set run number " + runNumber);
+        // Detector update.
+        if (getDetector() == null || !getDetector().equals(detectorName)) {
+            logger.config("setting new detector " + detectorName);
+            setup(detectorName);
+        }
         
-        _runNumber = runNumber;
+        // Run number update.
+        if (this.runNumber != runNumber) {
+            logger.config("setting new run number " + runNumber);
+            this.runNumber = runNumber;
+        }
         
-        setup(detectorName);
-
+        // Let the super class do whatever it think it needs to do (???).
         super.setDetector(detectorName, runNumber);
     }    
     
     public void setup(String detectorName) {
-        if (_baseReader instanceof BaseClasspathConditionsReader) {
-            ((BaseClasspathConditionsReader)_baseReader).setResourcePath(detectorName);
-            _logger.config("set resource path " + detectorName + " on conditions reader");
+        if (baseReader instanceof BaseClasspathConditionsReader) {
+            ((BaseClasspathConditionsReader)baseReader).setResourcePath(detectorName);
+            logger.config("set resource path " + detectorName + " on conditions reader");
         }
         if (!isConnected())
             openConnection();
         else
-            _logger.config("using existing connection " + _connectionParameters.getConnectionString());        
+            logger.config("using existing connection " + connectionParameters.getConnectionString());        
     }
 
     /**
@@ -153,7 +171,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The conditions or null if does not exist.
      */
     public <T> T getConditionsData(Class<T> type, String name) {
-        _logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
+        logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
     }
 
@@ -162,7 +180,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param file The XML file.
      */
     public void configure(File file) {
-        _logger.config("setting configuration from file " + file.getPath());
+        logger.config("setting configuration from file " + file.getPath());
         if (!file.exists()) {
             throw new IllegalArgumentException("Config file does not exist.");
         }
@@ -178,7 +196,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param resource The embedded XML resource.
      */
     public void configure(String resource) {
-        _logger.config("setting configuration from resource " + resource);
+        logger.config("setting configuration from resource " + resource);
         InputStream in = getClass().getResourceAsStream(resource);
         if (in == null)
             throw new IllegalArgumentException("The resource does not exist.");
@@ -190,10 +208,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param file The properties file
      */
     public void setConnectionProperties(File file) {
-        _logger.config("setting connection prop file " + file.getPath());
+        logger.config("setting connection prop file " + file.getPath());
         if (!file.exists())
-            throw new IllegalArgumentException("The connection properties file does not exist: " + _connectionPropertiesFile.getPath());
-        _connectionParameters = ConnectionParameters.fromProperties(file);        
+            throw new IllegalArgumentException("The connection properties file does not exist: " + connectionPropertiesFile.getPath());
+        connectionParameters = ConnectionParameters.fromProperties(file);        
     }
     
     /**
@@ -201,8 +219,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param resource The classpath resource
      */
     public void setConnectionResource(String resource) {
-        _logger.config("setting connection resource " + resource);
-        _connectionParameters = ConnectionParameters.fromResource(resource);        
+        logger.config("setting connection resource " + resource);
+        connectionParameters = ConnectionParameters.fromResource(resource);        
     }
 
     /**
@@ -211,8 +229,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param reader The base ConditionsReader.
      */
     public void setBaseConditionsReader(ConditionsReader reader) {
-        _logger.config("setting conditions reader to " + reader.getClass().getCanonicalName());
-        _baseReader = reader;        
+        logger.config("setting conditions reader to " + reader.getClass().getCanonicalName());
+        baseReader = reader;        
     }
 
     /**
@@ -234,7 +252,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        _logger.fine("new collection ID " + collectionId + " created for table " + tableName);
+        logger.fine("new collection ID " + collectionId + " created for table " + tableName);
         return collectionId;
     }
 
@@ -243,7 +261,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The list of table meta data.
      */
     public List<TableMetaData> getTableMetaDataList() {
-        return _tableMetaData;
+        return tableMetaData;
     }
 
     /**
@@ -252,7 +270,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The table's meta data or null if does not exist.
      */
     public TableMetaData findTableMetaData(String name) {
-        for (TableMetaData meta : _tableMetaData) {
+        for (TableMetaData meta : tableMetaData) {
             if (meta.getTableName().equals(name))
                 return meta;
         }
@@ -265,7 +283,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The table meta data.
      */
     public TableMetaData findTableMetaData(Class type) {
-        for (TableMetaData meta : _tableMetaData) {
+        for (TableMetaData meta : tableMetaData) {
             if (meta.getCollectionClass().equals(type)) {
                 return meta;
             }
@@ -279,11 +297,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The ResultSet from the query or null.
      */
     public ResultSet selectQuery(String query) {
-        _logger.fine(query);
+        logger.fine(query);
         ResultSet result = null;
         Statement statement = null;
         try {
-            statement = _connection.createStatement();
+            statement = connection.createStatement();
             result = statement.executeQuery(query);
         } catch (SQLException x) {
             throw new RuntimeException("Error in query: " + query, x);
@@ -297,11 +315,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The keys of the rows affected.
      */
     public List<Integer> updateQuery(String query) {        
-        _logger.fine(query);
+        logger.fine(query);
         List<Integer> keys = new ArrayList<Integer>();
         Statement statement = null;
         try {
-            statement = _connection.createStatement();
+            statement = connection.createStatement();
             statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS); 
             ResultSet resultSet = statement.getGeneratedKeys();            
             while (resultSet.next()) {
@@ -321,9 +339,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param level The log level.
      */
     public void setLogLevel(Level level) {
-        _logger.config("setting log level to " + level);
-        _logger.setLevel(level);
-        _logger.getHandlers()[0].setLevel(level);
+        logger.config("setting log level to " + level);
+        logger.setLevel(level);
+        logger.getHandlers()[0].setLevel(level);
     }
     
     /**
@@ -331,7 +349,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The name of the conditions table with validity data.
      */
     public String getConditionsTableName() {
-        return _conditionsTableName;
+        return conditionsTableName;
     }
 
     /**
@@ -343,7 +361,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public ConditionsRecordCollection findConditionsRecords(String name) {
         ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, getConditionsTableName());
-        _logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records ...");
+        logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records ...");
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
         for (ConditionsRecord record : runConditionsRecords.getObjects()) {
             if (record.getName().equals(name)) {
@@ -352,7 +370,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
         if (foundConditionsRecords.getObjects().size() > 0) {
             for (ConditionsRecord record : foundConditionsRecords.getObjects()) {
-                _logger.fine("found ConditionsRecord with key " + name + " ..." 
+                logger.fine("found ConditionsRecord with key " + name + " ..." 
                         + '\n' + record.toString());
             }
         }
@@ -364,7 +382,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return true if connection parameters are non-null
      */
     public boolean hasConnectionParameters() {
-        return _connectionParameters != null;
+        return connectionParameters != null;
     }
     
     /**
@@ -372,7 +390,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return true if manager was configured
      */
     public boolean wasConfigured() {
-        return _wasConfigured;
+        return wasConfigured;
     }
         
     /**
@@ -385,7 +403,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 if (!statement.isClosed())
                     statement.close();
                 else
-                    _logger.log(Level.WARNING, "Statement is already closed!");
+                    logger.log(Level.WARNING, "Statement is already closed!");
             } catch (SQLException x) {
                 throw new RuntimeException("Failed to close statement.", x);
             }
@@ -403,7 +421,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 if (!statement.isClosed())
                     statement.close();
                 else
-                    _logger.log(Level.WARNING, "Statement is already closed!");
+                    logger.log(Level.WARNING, "Statement is already closed!");
             } catch (SQLException x) {
                 throw new RuntimeException("Failed to close statement.", x);
             }
@@ -411,7 +429,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
     
     private boolean isConnected() {
-        return _isConnected;
+        return isConnected;
     }
 
     /**
@@ -431,7 +449,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         loadConverters(config);        
         
         // Set configured state to true.
-        _wasConfigured = true;
+        wasConfigured = true;
     }
     
     /**
@@ -462,9 +480,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         // Register the list of converters with this manager.
         // FIXME: Should this happen here or when setup is called on the manager?
-        for (ConditionsConverter converter : _converters) {
+        for (ConditionsConverter converter : converters) {
             registerConditionsConverter(converter);
-            _logger.config("registered converter " + converter.getClass().getSimpleName());
+            logger.config("registered converter " + converter.getClass().getSimpleName());
         }
         
         // Find the mandatory converter for ConditionsRecord class which must be present in the configuration.
@@ -472,8 +490,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         if (conditionsTableMetaData == null) {
             throw new RuntimeException("No conditions converter found for ConditionsRecord type in the supplied configuration.");            
         }
-        _conditionsTableName = conditionsTableMetaData.getTableName();
-        _logger.config("conditions validity table set to " + _conditionsTableName);
+        conditionsTableName = conditionsTableMetaData.getTableName();
+        logger.config("conditions validity table set to " + conditionsTableName);
     }
     
     /**
@@ -489,29 +507,38 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Open the database connection.
      */
     private void openConnection() {
-        if (_connectionParameters == null)
+        if (connectionParameters == null)
             throw new RuntimeException("The connection parameters were not configured.");
-        _connection = _connectionParameters.createConnection();
-        _logger.config("created connection " + _connectionParameters.getConnectionString());
-        _isConnected = true;
+        connection = connectionParameters.createConnection();
+        logger.config("created connection " + connectionParameters.getConnectionString());
+        isConnected = true;
     }
     
     /**
      * Close the database connection.
      */
-    // FIXME: When should this be called, if ever?
-    private void closeConnection() {
-        if (_connection != null) {
+    public void closeConnection() {
+        logger.config("closing connection");
+        if (connection != null) {
             try {
-                if (!_connection.isClosed()) {
-                    _connection.close();
+                if (!connection.isClosed()) {
+                    connection.close();
+                    logger.config("connection closed");
+                } else {
+                    logger.config("connection already closed");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
-        _connection = null;
-        _connectionParameters = null;
+        connection = null;
+        connectionParameters = null;
+    }
+    
+    @Override
+    public void finalize() {
+        if (isConnected())
+            closeConnection();
     }
        
     /**
@@ -528,7 +555,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
          */
         void load(Element element) {
 
-            _tableMetaData = new ArrayList<TableMetaData>();
+            tableMetaData = new ArrayList<TableMetaData>();
 
             for (Iterator<?> iterator = element.getChildren("table").iterator(); iterator.hasNext();) {
                 Element tableElement = (Element) iterator.next();
@@ -573,7 +600,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                     tableData.addField(fieldName);
                 }
 
-                _tableMetaData.add(tableData);
+                tableMetaData.add(tableData);
             }
         }      
     }
@@ -587,14 +614,14 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     class ConditionsConverterLoader {
         
         void load(Element element) {
-            _converters = new ArrayList<ConditionsConverter>();
+            converters = new ArrayList<ConditionsConverter>();
             for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
                 Element converterElement = (Element) iterator.next();
                 try {
                     Class converterClass = Class.forName(converterElement.getAttributeValue("class"));
                     if (ConditionsConverter.class.isAssignableFrom(converterClass)) {
                         try {
-                            _converters.add((ConditionsConverter) converterClass.newInstance());
+                            converters.add((ConditionsConverter) converterClass.newInstance());
                         } catch (InstantiationException | IllegalAccessException e) {
                             throw new RuntimeException(e);
                         }

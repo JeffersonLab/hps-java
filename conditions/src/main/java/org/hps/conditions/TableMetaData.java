@@ -19,11 +19,11 @@ import java.util.Set;
  */
 public class TableMetaData {
     
-    String _tableName;
-    String _key;
-    Class<? extends ConditionsObject> _objectClass;
-    Class<? extends ConditionsObjectCollection<?>> _collectionClass;
-    Set<String> _fieldNames = new LinkedHashSet<String>();
+    String tableName;
+    String key;
+    Class<? extends ConditionsObject> objectClass;
+    Class<? extends ConditionsObjectCollection<?>> collectionClass;
+    Set<String> fieldNames = new LinkedHashSet<String>();
         
     /**
      * The fully qualified constructor.
@@ -36,9 +36,9 @@ public class TableMetaData {
             String tableName, 
             Class<? extends ConditionsObject> objectClass, 
             Class<? extends ConditionsObjectCollection<?>> collectionClass) {
-        _tableName = tableName;
-        _objectClass = objectClass;
-        _collectionClass = collectionClass;
+        this.tableName = tableName;
+        this.objectClass = objectClass;
+        this.collectionClass = collectionClass;
     }
     
     /**
@@ -46,7 +46,7 @@ public class TableMetaData {
      * @return The type of object.
      */
     Class<? extends ConditionsObject> getObjectClass() {
-        return _objectClass;
+        return objectClass;
     }
     
     /**
@@ -54,7 +54,7 @@ public class TableMetaData {
      * @return
      */
     Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
-        return _collectionClass;
+        return collectionClass;
     }
     
     /**
@@ -63,7 +63,7 @@ public class TableMetaData {
      * @return The names of the fields.
      */
     String[] getFieldNames() {
-        return _fieldNames.toArray(new String[]{});
+        return fieldNames.toArray(new String[]{});
     }
      
     /**
@@ -71,10 +71,10 @@ public class TableMetaData {
      * @param name The name of the field.
      */
     void addField(String name) {
-        if (_fieldNames.contains(name)) {
+        if (fieldNames.contains(name)) {
             throw new RuntimeException("The table meta data already has a field called " + name);
         }
-        _fieldNames.add(name);
+        fieldNames.add(name);
     }
     
     /**
@@ -82,7 +82,7 @@ public class TableMetaData {
      * @return The name of the table.
      */
     public String getTableName() {
-        return _tableName;
+        return tableName;
     }
     
     /**
@@ -91,6 +91,6 @@ public class TableMetaData {
      * @return The key name of the conditions type.
      */
     public String getKey() {
-        return _key;
+        return key;
     }
 }
