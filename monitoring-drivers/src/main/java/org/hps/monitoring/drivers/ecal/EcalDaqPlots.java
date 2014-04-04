@@ -113,17 +113,5 @@ public class EcalDaqPlots extends Driver implements Resettable {
 				aida.histogram1D("ECAL: Crate " + crate + "; Slot " + slot).fill(channel);
 			}
 		}
-		if (event.hasCollection(RawTrackerHit.class, inputCollection)) {
-			List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollection);
-			for (RawTrackerHit hit : hits) {
-				Long daqId = EcalConditions.physicalToDaqID(hit.getCellID());
-				int crate = EcalConditions.getCrate(daqId);
-				int slot = EcalConditions.getSlot(daqId);
-				int channel = EcalConditions.getChannel(daqId);
-				//System.out.println("crate="+crate+"; slot="+slot+"; channel="+channel);
-				//System.out.println("filling plot: " + "ECAL: Crate " + crate + "; Slot " + slot);
-				aida.histogram1D("ECAL: Crate " + crate + "; Slot " + slot).fill(channel);
-			}
-		}
 	}
 }
