@@ -7,6 +7,7 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.ITree;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.conditions.TableConstants;
@@ -28,34 +29,39 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Test plots using ECAL conditions data such as per channel gain values.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsTestDriver extends Driver {
         
+    // Collection info
     String collectionName = "EcalReadoutHits";
-    EcalConditions ecalConditions = null;
-    IIdentifierHelper helper = null;
-    EcalChannelCollection channels = null;    
-    IPlotter plotter;
-    AIDA aida = AIDA.defaultInstance();
+    IIdentifierHelper helper = null;    
     
+    // ECAL conditions objects
+    EcalConditions ecalConditions = null;
+    EcalChannelCollection channels = null;    
+    
+    // AIDA stuff
+    AIDA aida = AIDA.defaultInstance();       
+    List<IPlotter> plotters;
     IHistogram1D ecalRawEnergyPlot;
     IHistogram1D ecalCalibratedEnergyPlot;
     IHistogram1D ecalEnergyDiffPlot;
     IHistogram1D ecalTimePlot;
-    
-    
+        
+    // Job summary variables
     double minRawEnergy = Double.MAX_VALUE;
     double maxRawEnergy = 0.0;
     double minCalibratedEnergy = Double.MAX_VALUE;
     double maxCalibratedEnergy = 0.0;
     double minTime = Double.MAX_VALUE;
-    double maxTime = 0;    
+    double maxTime = 0;
     
-    // Time window in ADC clocks which is 35*4 ns (from Sho).  
+    // Time window in ADC clocks which equates to 35*4 ns (from Sho)
     static int ECAL_TIME_WINDOW = 35;
     
     public void detectorChanged(Detector detector) {
-        System.out.println(this.getClass().getName() + ".detectorChanged");
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = ecalConditions.getChannelMap();
@@ -64,31 +70,34 @@ public class EcalConditionsTestDriver extends Driver {
          
     public void startOfData() {
         
-        IAnalysisFactory analysisFactory = IAnalysisFactory.create();
-        ITree tree = analysisFactory.createTreeFactory().create();
-        IHistogramFactory histogramFactory = analysisFactory.createHistogramFactory(tree);
+        plotters = new ArrayList<IPlotter>();
+        
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("ECAL Raw Hits");
         
         IPlotter plotter = plotterFactory.create("Raw Energy");
-        ecalRawEnergyPlot = histogramFactory.createHistogram1D("Raw Hit Energy [GeV]", 60, 0., 15);
+        plotters.add(plotter);
+        ecalRawEnergyPlot = aida.histogram1D("Raw Hit Energy [GeV]", 180, 0., 15);
         plotter.createRegion();
         plotter.region(0).plot(ecalRawEnergyPlot);
         plotter.show();        
         
         plotter = plotterFactory.create("Calibrated Energy");
-        ecalCalibratedEnergyPlot = histogramFactory.createHistogram1D("Calibrated Energy [GeV]", 60, -2, 13);
+        plotters.add(plotter);
+        ecalCalibratedEnergyPlot = aida.histogram1D("Calibrated Energy [GeV]", 180, -2, 13);
         plotter.createRegion();
         plotter.region(0).plot(ecalCalibratedEnergyPlot);
         plotter.show();
         
         plotter = plotterFactory.create("Time");
-        ecalTimePlot = histogramFactory.createHistogram1D("Hit Time [ns]", 100, 0., 400);
+        plotters.add(plotter);
+        ecalTimePlot = aida.histogram1D("Hit Time [ns]", 200, 0., 400);
         plotter.createRegion();
         plotter.region(0).plot(ecalTimePlot);
         plotter.show();
         
         plotter = plotterFactory.create("Raw minus Calibrated Energy");
-        ecalEnergyDiffPlot = histogramFactory.createHistogram1D("Raw Minus Calibrated Energy [GeV]", 50, -2, 5);
+        plotters.add(plotter);
+        ecalEnergyDiffPlot = aida.histogram1D("Raw Minus Calibrated Energy [GeV]", 150, -2, 5);
         plotter.createRegion();
         plotter.region(0).plot(ecalEnergyDiffPlot);
         plotter.show();
@@ -102,7 +111,10 @@ public class EcalConditionsTestDriver extends Driver {
                 // Get conditions for channel.
                 EcalChannelConstants channelConstants = findChannelConstants(hit.getCellID());
                 double gain = channelConstants.getGain().getGain();
-                double pedestal = channelConstants.getCalibration().getPedestal();                
+                double pedestal = channelConstants.getCalibration().getPedestal();
+                
+                //System.out.println("gain: " + gain);
+                //System.out.println("pedestal: " + pedestal);
                 
                 // Plot raw energy.
                 double rawEnergy = calculateRawEnergy(hit, gain);
@@ -136,12 +148,12 @@ public class EcalConditionsTestDriver extends Driver {
                 //System.out.println("time: " + time);
                 ecalTimePlot.fill(time);
                                 
-                //System.out.println();
+                //System.out.println();                                  
             }
-        }
+        }        
     }    
 
-    // Calculate energy of a raw ECAL hit only using gain and ADC.
+    // Calculate energy of a raw ECAL hit, only using gain and ADC.
     private double calculateRawEnergy(RawCalorimeterHit hit, double gain) {
         return hit.getAmplitude() * gain * ECalUtils.MeV;
     }
@@ -153,7 +165,7 @@ public class EcalConditionsTestDriver extends Driver {
         return energy;
     }
     
-    // Copied and modified from EcalRawConverter in ecal-recon.
+    // Calculate the hit time.
     private double calculateTime(RawCalorimeterHit hit) {
         if (hit.getTimeStamp() % 64 != 0) {
             throw new RuntimeException("unexpected timestamp " + hit.getTimeStamp());
@@ -162,7 +174,7 @@ public class EcalConditionsTestDriver extends Driver {
         return time;
     }    
    
-    // Find ECAL channel constants from hit ID.
+    // Find the ECAL channel conditions constants from a hit ID.
     EcalChannelConstants findChannelConstants(long rawId) {
         IIdentifier id = new Identifier(rawId);
         int x = helper.getValue(id, "ix");
@@ -176,11 +188,20 @@ public class EcalConditionsTestDriver extends Driver {
     
     public void endOfData() {
         this.ecalConditions = null;
+        this.channels = null;
+        System.out.println("------- Job Summary -------");
         System.out.println("minRawEnergy: " + this.minRawEnergy);
         System.out.println("maxRawEnergy: " + this.maxRawEnergy);
         System.out.println("minCalibratedEnergy: " + this.minCalibratedEnergy);
         System.out.println("maxCalibratedEnergy: " + this.maxCalibratedEnergy);
         System.out.println("minTime: " + this.minTime);
         System.out.println("maxTime: " + this.maxTime);
+        System.out.println("------------------------");
+        
+        // The plotters must be hidden or the job hangs at the end!
+        for (IPlotter plotter : plotters) {
+            System.out.println("destroying plotter " + plotter.title());
+            plotter.hide();
+        }        
     }
 }
