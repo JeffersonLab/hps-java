@@ -7,18 +7,23 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver" />
-        <driver name="ConditionsDriver" />
-        <driver name="EcalPlotsDriver" />
+        <driver name="EventMarkerDriver"/>
+        <driver name="ConditionsDriver"/>
+        <driver name="EcalPlotsDriver"/>
+        <driver name="AidaSaveDriver"/>
     </execute>   
     <drivers>
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
             <conditionsReaderClass>org.hps.conditions.deprecated.TestRunConditionsReader</conditionsReaderClass>
         </driver>
         <driver name="EcalPlotsDriver" type="org.hps.users.jeremym.EcalConditionsTestDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>./conditions_test_plots.aida</outputFileName>
+<!--            <outputFileName>./conditions_test_plots.root</outputFileName>-->
+        </driver>
     </drivers>
 </lcsim>
