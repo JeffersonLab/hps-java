@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
-import org.hps.recon.tracking.TrackAnalysis;
+import org.hps.analysis.examples.TrackAnalysis;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
@@ -45,7 +45,7 @@ public class TestAnalysisDriver extends Driver {
         nevents++;
 
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        List<HPSFittedRawTrackerHit> fittedrawHits = event.get(HPSFittedRawTrackerHit.class, "SVTFittedRawTrackerHits");
+        List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, "SVTFittedRawTrackerHits");
 
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
     
@@ -57,7 +57,7 @@ Map<Track, TrackAnalysis> tkanalMap = new HashMap<Track, TrackAnalysis>();
         Map<Track, Double> l1DeltaZ = new HashMap<Track, Double>();
         
         String fittedHitsDir = "FittedHits/";
-        for(HPSFittedRawTrackerHit hrth:fittedrawHits){
+        for(FittedRawTrackerHit hrth:fittedrawHits){
             double fittedAmp=hrth.getAmp();
             double fittedT0=hrth.getT0();
             String sensorName=hrth.getRawTrackerHit().getDetectorElement().getName();

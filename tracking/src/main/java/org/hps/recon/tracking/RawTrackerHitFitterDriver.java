@@ -14,13 +14,14 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mgraham
+ * 
+ * @author Matt Graham
  */
-public class HPSRawTrackerHitFitterDriver extends Driver {
+// TODO: Add class documentation.
+public class RawTrackerHitFitterDriver extends Driver {
 
     private boolean debug = false;
-    private HPSShaperFitAlgorithm _shaper = new DumbShaperFit();
+    private ShaperFitAlgorithm _shaper = new DumbShaperFit();
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
@@ -32,7 +33,7 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
 
     /**
      * Report time relative to the nearest expected truth event time.
-     *
+     * 
      * @param useTruthTime
      */
     public void setUseTruthTime(boolean useTruthTime) {
@@ -53,7 +54,7 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
 
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic")) {
-            _shaper = new HPSShaperAnalyticFitAlgorithm();
+            _shaper = new ShaperAnalyticFitAlgorithm();
         } else {
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
         }
@@ -81,7 +82,7 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
-            //System.out.println(rawHitCollectionName + " does not exist; skipping event");
+            // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
         }
 
@@ -89,14 +90,14 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
         if (rawHits == null) {
             throw new RuntimeException("Event is missing SVT hits collection!");
         }
-        List<HPSFittedRawTrackerHit> hits = new ArrayList<HPSFittedRawTrackerHit>();
-        List<HPSShapeFitParameters> fits = new ArrayList<HPSShapeFitParameters>();
+        List<FittedRawTrackerHit> hits = new ArrayList<FittedRawTrackerHit>();
+        List<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
 
-        //  Make a fitted hit from this cluster
+        // Make a fitted hit from this cluster
         for (RawTrackerHit hit : rawHits) {
             int strip = hit.getIdentifierFieldValue("strip");
             ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
-            HPSShapeFitParameters fit = _shaper.fitShape(hit, constants);
+            ShapeFitParameters fit = _shaper.fitShape(hit, constants);
             if (correctT0Shift) {
                 fit.setT0(fit.getT0() - constants.getT0Shift());
             }
@@ -117,14 +118,14 @@ public class HPSRawTrackerHitFitterDriver extends Driver {
                 System.out.println(fit);
             }
             fits.add(fit);
-            HPSFittedRawTrackerHit hth = new HPSFittedRawTrackerHit(hit, fit);
+            FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
             hits.add(hth);
-            if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { //drop unbonded channel
+            if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { // drop unbonded channel
                 continue;
             }
             hit.getDetectorElement().getReadout().addHit(hth);
         }
-        event.put(fitCollectionName, fits, HPSShapeFitParameters.class, genericObjectFlags);
-        event.put(fittedHitCollectionName, hits, HPSFittedRawTrackerHit.class, relationFlags);
+        event.put(fitCollectionName, fits, ShapeFitParameters.class, genericObjectFlags);
+        event.put(fittedHitCollectionName, hits, FittedRawTrackerHit.class, relationFlags);
     }
 }

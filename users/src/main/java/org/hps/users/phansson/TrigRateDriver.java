@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.users.phansson;
 
 import hep.aida.IAnalysisFactory;
@@ -22,7 +18,6 @@ import java.util.logging.Logger;
 import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.tracking.EcalTrackMatch;
 import org.hps.util.AIDAFrame;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;

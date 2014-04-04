@@ -2,7 +2,7 @@ package org.hps.users.mgraham;
 
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.recon.tracking.DataTrackerHitDriver;
-import org.hps.recon.tracking.HPSRawTrackerHitFitterDriver;
+import org.hps.recon.tracking.RawTrackerHitFitterDriver;
 import org.hps.recon.tracking.HelicalTrackHitDriver;
 import org.hps.recon.tracking.TrackerReconDriver;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
@@ -22,7 +22,7 @@ public final class MainJASDriver extends Driver {
         add(new CalibrationDriver());
         add(new RawTrackerHitSensorSetup());
         //   Can remove HPSRawTrackerHitFitterDriver and DataTrackerHitDriver for integrated MC
-        HPSRawTrackerHitFitterDriver hitfitter=new HPSRawTrackerHitFitterDriver();
+        RawTrackerHitFitterDriver hitfitter=new RawTrackerHitFitterDriver();
         hitfitter.setCorrectT0Shift(true);
         hitfitter.setFitAlgorithm("Analytic");
         add(hitfitter);

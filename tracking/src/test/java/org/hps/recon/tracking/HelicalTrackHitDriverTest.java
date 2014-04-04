@@ -55,7 +55,7 @@ public class HelicalTrackHitDriverTest extends TestCase {
         int nEvents = 5000; 
 
         // Setup the drivers
-        HPSRawTrackerHitFitterDriver hitFitter = new HPSRawTrackerHitFitterDriver();
+        RawTrackerHitFitterDriver hitFitter = new RawTrackerHitFitterDriver();
         hitFitter.setFitAlgorithm("Analytic");
         hitFitter.setCorrectT0Shift(true);
 
@@ -162,6 +162,7 @@ public class HelicalTrackHitDriverTest extends TestCase {
                 aida.saveAs(outputFile);
             } catch(IOException exception){
                 Logger.getLogger(ComparisonPlotsDriver.class.getName()).log(Level.SEVERE, "Unable to save to file " + outputFile.getName());
+                throw new RuntimeException("Failed to save AIDA file.", exception);
             }
         
             nTopClusters.reset();

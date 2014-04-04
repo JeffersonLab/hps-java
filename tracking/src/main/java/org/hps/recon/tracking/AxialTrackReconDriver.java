@@ -28,18 +28,16 @@ import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
 import org.lcsim.util.Driver;
 
 /**
- * This class runs the Track Reconstruction for the HPS Test Proposal detector.
- * The tracker digitization must be run in front of it. It is intended to work
- * with the {@link TrackerDigiDriver} digitization Driver.
- *
- * @author jeremym
- * @version $Id: TrackerReconDriver.java,v 1.18 2012/05/03 20:50:29 mgraham Exp
- * $
+ * Axial track reconstruction.
+ * 
+ * @author Matt Graham
+ * @version $Id: TrackerReconDriver.java,v 1.18 2012/05/03 20:50:29 mgraham Exp $
  */
+// TODO: Add more documentation about what this Driver does. --JM
 public final class AxialTrackReconDriver extends Driver {
 
     // Debug flag.
-    //private final static boolean DEBUG = false;
+    // private final static boolean DEBUG = false;
     private boolean debug = false;
     // Tracks found across all events.
     int ntracks = 0;
@@ -86,9 +84,8 @@ public final class AxialTrackReconDriver extends Driver {
 
     /**
      * Set the tracking strategy resource.
-     *
-     * @param strategyResource The absolute path to the strategy resource in the
-     * hps-java jar.
+     * 
+     * @param strategyResource The absolute path to the strategy resource in the hps-java jar.
      */
     public void setStrategyResource(String strategyResource) {
         this.strategyResource = strategyResource;
@@ -128,9 +125,8 @@ public final class AxialTrackReconDriver extends Driver {
 
     /**
      * Set the SimTrackerHit collection to be used for tracking.
-     *
-     * @param simTrackerHitCollectionName The name of the SimTrackerHit
-     * collection in the event.
+     * 
+     * @param simTrackerHitCollectionName The name of the SimTrackerHit collection in the event.
      */
     public void setSimTrackerHitCollectionName(String simTrackerHitCollectionName) {
         this.simTrackerHitCollectionName = simTrackerHitCollectionName;
@@ -171,16 +167,15 @@ public final class AxialTrackReconDriver extends Driver {
             throw new RuntimeException("No SiTrackerModules found in detector.");
         }
 
-
         // Create the Driver.
         HelicalTrackHitDriver hthdriver = new HelicalTrackHitDriver();
         hthdriver.addCollection(stripHitsCollectionName);
         hthdriver.setOutputCollectionName(hthOutputCollectionName);
-//        hthdriver.setHitRelationName(helicalTrackHitRelationsCollectionName);
-//        hthdriver.setMCRelationName(helicalTrackMCRelationsCollectionName);
+        // hthdriver.setHitRelationName(helicalTrackHitRelationsCollectionName);
+        // hthdriver.setMCRelationName(helicalTrackMCRelationsCollectionName);
 
-  //      hthdriver.setStripMaxSeparation(stripMaxSeparation);
-  //      hthdriver.setStripTolerance(stripTolerance); // user parameter?
+        // hthdriver.setStripMaxSeparation(stripMaxSeparation);
+        // hthdriver.setStripTolerance(stripTolerance); // user parameter?
         hthdriver.setTransformToTracking(true);
         hthdriver.setDebug(true);
         add(hthdriver);
@@ -205,15 +200,13 @@ public final class AxialTrackReconDriver extends Driver {
     }
 
     /**
-     * This method is used to run the reconstruction and print debug
-     * information.
+     * This method is used to run the reconstruction and print debug information.
      */
     public void process(EventHeader event) {
         // This call runs the track reconstruction using the sub-Drivers.
         super.process(event);
         double maxChi2 = 250;
         List<HelicalTrackHit> hth = event.get(HelicalTrackHit.class, stInputCollectionName);
-
 
         System.out.println("The HelicalTrackHit collection " + hthOutputCollectionName + " has " + hth.size() + " hits.");
         List<HelicalTrackHit> hitsLayer1 = getLayerHits(hth, 1);
@@ -227,25 +220,25 @@ public final class AxialTrackReconDriver extends Driver {
             for (HelicalTrackHit h3 : hitsLayer3) {
                 for (HelicalTrackHit h5 : hitsLayer5) {
                     for (HelicalTrackHit h7 : hitsLayer7) {
-//                        for (HelicalTrackHit h9 : hitsLayer9) {
+                        // for (HelicalTrackHit h9 : hitsLayer9) {
 
-                            SeedCandidate seed = new SeedCandidate(sFinallist.get(0), bfield);
-                            seed.addHit(h1);
-                            seed.addHit(h3);
-                            seed.addHit(h5);
-                            seed.addHit(h7);
-//                            seed.addHit(h9);
+                        SeedCandidate seed = new SeedCandidate(sFinallist.get(0), bfield);
+                        seed.addHit(h1);
+                        seed.addHit(h3);
+                        seed.addHit(h5);
+                        seed.addHit(h7);
+                        // seed.addHit(h9);
 
-                            HelicalTrackFit fitRes = fit(seed);
-                            if (fitRes != null) {
-                                seed.setHelix(fitRes);
-                                if (fitRes.chisq()[1] > maxChi2)
-                                    continue;
+                        HelicalTrackFit fitRes = fit(seed);
+                        if (fitRes != null) {
+                            seed.setHelix(fitRes);
+                            if (fitRes.chisq()[1] > maxChi2)
+                                continue;
 
-                                seedtracks.add(seed);
-//                       System.out.println(fitRes.toString());
-                            }
-//                        }
+                            seedtracks.add(seed);
+                            // System.out.println(fitRes.toString());
+                        }
+                        // }
                     }
                 }
             }
@@ -280,11 +273,11 @@ public final class AxialTrackReconDriver extends Driver {
         SlopeInterceptLineFitter _lfitter = new SlopeInterceptLineFitter();
         SlopeInterceptLineFit _lfit;
         boolean success = false;
-        //  Check if we have enough pixel hits to do a straight-line fit of s vs z
+        // Check if we have enough pixel hits to do a straight-line fit of s vs z
         int npix = hitcol.size();
-        //  Calculate the arc lengths from the DCA to each hit and check for backwards hits
+        // Calculate the arc lengths from the DCA to each hit and check for backwards hits
         Map<HelicalTrackHit, Double> smap = getPathLengths(hitcol);
-        //  Create the objects that will hold the fit output
+        // Create the objects that will hold the fit output
         double[] chisq = new double[2];
         int[] ndof = new int[2];
         ndof[0] = 0;
@@ -292,13 +285,12 @@ public final class AxialTrackReconDriver extends Driver {
         double[] par = new double[5];
         SymmetricMatrix cov = new SymmetricMatrix(5);
 
-
-        //  Setup for the line fit
+        // Setup for the line fit
         double[] s = new double[npix];
         double[] z = new double[npix];
         double[] dz = new double[npix];
 
-        //  Store the coordinates and errors for the line fit
+        // Store the coordinates and errors for the line fit
         for (int i = 0; i < npix; i++) {
             HelicalTrackHit hit = hitcol.get(i);
             z[i] = hit.z();
@@ -308,48 +300,48 @@ public final class AxialTrackReconDriver extends Driver {
             System.out.println(z[i] + " " + dz[i] + " " + s[i]);
         }
 
-        //  Call the line fitter and check for success
+        // Call the line fitter and check for success
         success = _lfitter.fit(s, z, dz, npix);
         if (!success) {
             return null;
         }
 
-        //  Save the line fit, chi^2, and DOF
+        // Save the line fit, chi^2, and DOF
         _lfit = _lfitter.getFit();
         chisq[1] = _lfit.chisquared();
         ndof[1] = npix - 2;
 
-        //  Save the line fit parameters
+        // Save the line fit parameters
         par[HelicalTrackFit.z0Index] = _lfit.intercept();
         par[HelicalTrackFit.slopeIndex] = _lfit.slope();
         par[HelicalTrackFit.curvatureIndex] = 0.0001;
         par[HelicalTrackFit.dcaIndex] = 0.0001;
         par[HelicalTrackFit.phi0Index] = 0.000;
 
-
-        //  Save the line fit covariance matrix elements
+        // Save the line fit covariance matrix elements
         cov.setElement(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index, Math.pow(_lfit.interceptUncertainty(), 2));
         cov.setElement(HelicalTrackFit.z0Index, HelicalTrackFit.slopeIndex, _lfit.covariance());
         cov.setElement(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex, Math.pow(_lfit.slopeUncertainty(), 2));
         cov.setElement(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex, 0);
         cov.setElement(HelicalTrackFit.curvatureIndex, HelicalTrackFit.phi0Index, 0);
         cov.setElement(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index, 0);
-        cov.setElement(HelicalTrackFit.curvatureIndex, HelicalTrackFit.dcaIndex, 0);  // fix d0 sign convention
-        cov.setElement(HelicalTrackFit.phi0Index, HelicalTrackFit.dcaIndex, 0);  // fix d0 sign convention
+        cov.setElement(HelicalTrackFit.curvatureIndex, HelicalTrackFit.dcaIndex, 0); // fix d0 sign
+                                                                                     // convention
+        cov.setElement(HelicalTrackFit.phi0Index, HelicalTrackFit.dcaIndex, 0); // fix d0 sign
+                                                                                // convention
         cov.setElement(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex, 0);
 
-
-        //  Create the HelicalTrackFit for this helix
+        // Create the HelicalTrackFit for this helix
         return new HelicalTrackFit(par, cov, chisq, ndof, smap, msmap);
 
     }
 
     private Map<HelicalTrackHit, Double> getPathLengths(List<HelicalTrackHit> hits) {
 
-        //  Create a map to store the arc lengths
+        // Create a map to store the arc lengths
         Map<HelicalTrackHit, Double> smap = new HashMap<HelicalTrackHit, Double>();
 
-        //  Initialize looper tracking and iterate over ordered list of hits
+        // Initialize looper tracking and iterate over ordered list of hits
         double slast = 0.;
         int ilast = -1;
         double s;
@@ -359,10 +351,10 @@ public final class AxialTrackReconDriver extends Driver {
             HelicalTrackHit hit = hits.get(i);
             if (hit instanceof HelicalTrack2DHit) {
 
-                //  Axial hit - measure from the DCA (can't handle loopers)
-//                s = HelixUtils.PathLength(_cfit, hit);
+                // Axial hit - measure from the DCA (can't handle loopers)
+                // s = HelixUtils.PathLength(_cfit, hit);
                 s = hit.getPosition()[0];
-                //  Save the arc length for this hit
+                // Save the arc length for this hit
                 smap.put(hit, s);
             }
         }
@@ -387,45 +379,44 @@ public final class AxialTrackReconDriver extends Driver {
     }
 
     private void addTracksToEvent(EventHeader event, List<SeedCandidate> seedlist, double bfield) {
-        //  Create a the track list
+        // Create a the track list
         List<Track> tracks = new ArrayList<Track>();
 
-        //  Initialize the reference point to the origin
+        // Initialize the reference point to the origin
         double[] ref = new double[3];
         ref[0] = 0.;
         ref[1] = 0.;
         ref[2] = 0.;
-        //  Loop over the SeedCandidates that have survived
+        // Loop over the SeedCandidates that have survived
         for (SeedCandidate trackseed : seedlist) {
 
-            //  Create a new SeedTrack (SeedTrack extends BaseTrack)
+            // Create a new SeedTrack (SeedTrack extends BaseTrack)
             SeedTrack trk = new SeedTrack();
 
-            //  Add the hits to the track
+            // Add the hits to the track
             for (HelicalTrackHit hit : trackseed.getHits()) {
                 trk.addHit((TrackerHit) hit);
             }
 
-            //  Retrieve the helix and save the relevant bits of helix info
+            // Retrieve the helix and save the relevant bits of helix info
             HelicalTrackFit helix = trackseed.getHelix();
             trk.setTrackParameters(helix.parameters(), bfield);
             trk.setCovarianceMatrix(helix.covariance());
             trk.setChisq(helix.chisqtot());
             trk.setNDF(helix.ndf()[0] + helix.ndf()[1]);
 
-            //  Flag that the fit was successful and set the reference point
+            // Flag that the fit was successful and set the reference point
             trk.setFitSuccess(true);
             trk.setReferencePoint(ref);
             trk.setRefPointIsDCA(true);
 
-            //  Set the strategy used to find this track
+            // Set the strategy used to find this track
             trk.setStratetgy(trackseed.getSeedStrategy());
 
-            //  Set the SeedCandidate this track is based on
+            // Set the SeedCandidate this track is based on
             trk.setSeedCandidate(trackseed);
 
-
-            //  Add the track to the list of tracks
+            // Add the track to the list of tracks
             tracks.add((Track) trk);
         }
 

@@ -18,9 +18,9 @@ import java.util.Set;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
-import org.hps.recon.tracking.HPSShapeFitParameters;
-import org.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
+import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.apv25.SvtReadout;
 import org.hps.util.AIDAFrame;
@@ -51,7 +51,7 @@ import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SEN
 public class SvtQA extends Driver {
 
     private AIDA aida;
-    private HPSShaperAnalyticFitAlgorithm shaperFitter = new HPSShaperAnalyticFitAlgorithm();
+    private ShaperAnalyticFitAlgorithm shaperFitter = new ShaperAnalyticFitAlgorithm();
     private List<AIDAFrame>    frames   = new ArrayList<AIDAFrame>();
     private List<IHistogram1D> histos1D = new ArrayList<IHistogram1D>();
     private List<IHistogram2D> histos2D = new ArrayList<IHistogram2D>();
@@ -473,7 +473,7 @@ public class SvtQA extends Driver {
 
         SiSensor sensor = null;
         ChannelConstants constants = null;
-        HPSShapeFitParameters fit = null;
+        ShapeFitParameters fit = null;
         for(RawTrackerHit rawHit : rawHits){
 
             // Get the sensor on which this hit occurred
@@ -554,17 +554,17 @@ public class SvtQA extends Driver {
         }*/
 
         // If the event doesn't contain FittedRawTrackerHits then skip it
-        if(!event.hasCollection(HPSFittedRawTrackerHit.class, fittedHitCollectionName)){
+        if(!event.hasCollection(FittedRawTrackerHit.class, fittedHitCollectionName)){
             if(verbose) System.out.println("Event doesn't contain FittedRawTrackerHits! Skipping event ...");
             return;
         }
 
         // Get the RawTrackerHits from the event
-        List<HPSFittedRawTrackerHit> fittedHits = event.get(HPSFittedRawTrackerHit.class, fittedHitCollectionName);
+        List<FittedRawTrackerHit> fittedHits = event.get(FittedRawTrackerHit.class, fittedHitCollectionName);
         
         //System.out.println(this.getClass().getSimpleName() + ": Number of FittedRawTrackerHits " + fittedHits.size());
 
-        for(HPSFittedRawTrackerHit fittedHit : fittedHits){
+        for(FittedRawTrackerHit fittedHit : fittedHits){
 
 
             // Get the channel number

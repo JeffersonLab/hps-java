@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
@@ -53,7 +53,7 @@ public class TruthResiduals {
      * Bz in Tesla
      */
     public TruthResiduals(Hep3Vector bfield) {
-        _B = HPSTransformations.transformVectorToTracking(bfield);
+        _B = CoordinateTransformations.transformVectorToTracking(bfield);
         System.out.printf("%s: B field %s\n",this.getClass().getSimpleName(),_B.toString());
     }
     public void setDebug(int debug) {
@@ -73,7 +73,7 @@ public class TruthResiduals {
         Map<Integer, List<SimTrackerHit>> simHitsLayerMap = new HashMap<Integer, List<SimTrackerHit> >();
         Map<MCParticle, List<SimTrackerHit> > mcPartSimHitsMap = new HashMap<MCParticle, List<SimTrackerHit > >();
         for(SimTrackerHit sh : simTrackerHits) {
-        	 Hep3Vector shpos = HPSTransformations.transformVectorToTracking(sh.getPositionVec());
+        	 Hep3Vector shpos = CoordinateTransformations.transformVectorToTracking(sh.getPositionVec());
         	if(Math.abs(shpos.x()) < 50.0) {
         		 System.out.printf("%s: Weird hit at %s (%s) in layer %d for MC part %d org %s p %s\n",
                          this.getClass().getSimpleName(),sh.getPositionVec().toString(),shpos.toString(),sh.getIdentifierFieldValue("layer"),
@@ -119,7 +119,7 @@ public class TruthResiduals {
                     if(mcp.getMomentum().magnitude()<0.5) continue;
                 	
                     // Position in tracking coord
-                    Hep3Vector simHitPosTracking = HPSTransformations.transformVectorToTracking(simHit.getPositionVec());
+                    Hep3Vector simHitPosTracking = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
                     
                     if(_debug>0) {
                         System.out.printf("%s: simHit for layer %d at %s (%s) from MC part %d org %s p %s\n",
@@ -139,7 +139,7 @@ public class TruthResiduals {
                     Hep3Vector trkposExtraPolator = TrackUtils.extrapolateTrack(htfTruth,simHitPosTracking.x());
                     //System.out.printf("trkposextrapol (det) %s\n",trkposExtraPolator.toString());
                     
-                    trkposExtraPolator = HPSTransformations.transformVectorToTracking(trkposExtraPolator);
+                    trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(trkposExtraPolator);
                     
                     // Calculate residuals
                     Hep3Vector res = VecOp.sub(simHitPosTracking, trkposExtraPolator);
@@ -175,7 +175,7 @@ public class TruthResiduals {
                     	double xpos = mcp.getOriginZ();
                     	while(xpos< 100.) {
                     		xpos += dx;
-                    		trkposExtraPolator = HPSTransformations.transformVectorToTracking(TrackUtils.extrapolateTrack(htfTruth,xpos));
+                    		trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(TrackUtils.extrapolateTrack(htfTruth,xpos));
                     		double ypos = trkposExtraPolator.y();
                     		trkpos_y_vs_x.fill(xpos,ypos);
                     	}

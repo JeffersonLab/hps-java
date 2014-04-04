@@ -3,7 +3,7 @@ package org.hps.recon.filtering;
 import java.util.List;
 
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -31,12 +31,12 @@ public class InTimeHitsFilter extends EventReconFilter{
     @Override
     public void process(EventHeader event){
        incrementEventProcessed();
-        if(!event.hasCollection(HPSFittedRawTrackerHit.class, hitCollectionName))
+        if(!event.hasCollection(FittedRawTrackerHit.class, hitCollectionName))
             skipEvent(); 
         if(hitTimeCut<0)  //why are you even doing this???
             return;
 
-        List<HPSFittedRawTrackerHit> hits=event.get(HPSFittedRawTrackerHit.class, hitCollectionName);
+        List<FittedRawTrackerHit> hits=event.get(FittedRawTrackerHit.class, hitCollectionName);
 
         int totalTopHit=0;
         int totalBotHit=0;
@@ -46,7 +46,7 @@ public class InTimeHitsFilter extends EventReconFilter{
         int[] layersTop={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         int[] layersBot={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        for(HPSFittedRawTrackerHit hit : hits){
+        for(FittedRawTrackerHit hit : hits){
             boolean timeCut=inTime(hit.getT0());
 //            System.out.println("t0 =" + hit.getT0());
             if(timeCut){

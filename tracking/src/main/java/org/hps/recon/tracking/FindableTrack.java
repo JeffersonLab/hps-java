@@ -30,61 +30,65 @@ import org.lcsim.recon.tracking.seedtracker.SeedLayer.SeedType;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 
 /**
- *
+ * 
  * @author Richard Partridge
  * @version $Id: FindableTrack.java,v 1.4 2012/11/08 01:22:41 omoreno Exp $
  */
+// FIXME: This class is used in some analyses but is not actually created by the recon.
+// Should it be put someplace else like in the analysis module? --JM
 public class FindableTrack {
 
     public enum Ignore {
         NoPTCut, NoDCACut, NoZ0Cut, NoSeedCheck, NoConfirmCheck, NoMinHitCut
     };
-    
+
     private double _bfield;
     private RelationalTable<SimTrackerHit, MCParticle> _hittomc;
     private HitIdentifier _ID;
-    private int _nlayersTot=10;
-    
-    public FindableTrack(EventHeader event, List<SimTrackerHit> simTrackerHits){
-        
+    private int _nlayersTot = 10;
+
+    public FindableTrack(EventHeader event, List<SimTrackerHit> simTrackerHits) {
+
         // Get the magnetic field
         Hep3Vector IP = new BasicHep3Vector(0., 0., 1.);
         _bfield = event.getDetector().getFieldMap().getField(IP).y();
-        
-        //  Instantiate the hit identifier class
+
+        // Instantiate the hit identifier class
         _ID = new HitIdentifier();
-        
-        //  Create a relational table that maps SimTrackerHits to MCParticles
+
+        // Create a relational table that maps SimTrackerHits to MCParticles
         _hittomc = new BaseRelationalTable<SimTrackerHit, MCParticle>(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        
+
         List<List<SimTrackerHit>> simTrackerHitCollections = new ArrayList<List<SimTrackerHit>>();
-        
+
         // If the collection of SimTrackerHits is not specified get the collection from the event.
         // Otherwise, add the collection to the list of collections to be processed.
-        if(simTrackerHits == null) simTrackerHitCollections.addAll(event.get(SimTrackerHit.class));
-        else simTrackerHitCollections.add(simTrackerHits);
-        
-        //  Loop over the SimTrackerHits and fill in the relational table
-        for (List<SimTrackerHit> simlist : simTrackerHitCollections){
+        if (simTrackerHits == null)
+            simTrackerHitCollections.addAll(event.get(SimTrackerHit.class));
+        else
+            simTrackerHitCollections.add(simTrackerHits);
+
+        // Loop over the SimTrackerHits and fill in the relational table
+        for (List<SimTrackerHit> simlist : simTrackerHitCollections) {
             for (SimTrackerHit simhit : simlist)
                 if (simhit.getMCParticle() != null)
                     _hittomc.add(simhit, simhit.getMCParticle());
         }
     }
-    
-    public FindableTrack(EventHeader event, List<SimTrackerHit> simTrackerHits, int nLayersTot){
+
+    public FindableTrack(EventHeader event, List<SimTrackerHit> simTrackerHits, int nLayersTot) {
         this(event, simTrackerHits);
         this._nlayersTot = nLayersTot;
     }
-    
-    public FindableTrack(EventHeader event){
+
+    public FindableTrack(EventHeader event) {
         this(event, null);
     }
 
-    public FindableTrack(EventHeader event, int nLayersTot){
+    public FindableTrack(EventHeader event, int nLayersTot) {
         this(event, null, nLayersTot);
     }
-    
+
     public boolean isFindable(MCParticle mcp, List<SeedStrategy> slist, Ignore ignore) {
         List<Ignore> ignores = new ArrayList<Ignore>();
         ignores.add(ignore);
@@ -97,44 +101,44 @@ public class FindableTrack {
 
     public boolean isFindable(MCParticle mcp, List<SeedStrategy> slist, List<Ignore> ignores) {
 
-        //  We can't find neutral particles'
+        // We can't find neutral particles'
         if (mcp.getCharge() == 0)
             return false;
 
-        //  Find the helix parameters in the L3 convention used by org.lcsim
+        // Find the helix parameters in the L3 convention used by org.lcsim
         HelixParamCalculator helix = new HelixParamCalculator(mcp, _bfield);
 
-        //  We haven't yet determined the track is findable
+        // We haven't yet determined the track is findable
         boolean findable = false;
 
-        //  Loop over strategies and check if the track is findable
+        // Loop over strategies and check if the track is findable
         for (SeedStrategy strat : slist) {
 
-            //  Check the MC Particle's pT
+            // Check the MC Particle's pT
             if (!CheckPT(helix, ignores, strat))
                 continue;
 
-            //  Check the MC Particle's DCA
+            // Check the MC Particle's DCA
             if (!CheckDCA(helix, ignores, strat))
                 continue;
 
-            //  Check the MC Particle's Z0
+            // Check the MC Particle's Z0
             if (!CheckZ0(helix, ignores, strat))
                 continue;
 
-            //  Check that we have hits on the seed layers
+            // Check that we have hits on the seed layers
             if (!CheckSeed(mcp, ignores, strat))
                 continue;
 
-            //  Check that we have the required confirmation hits
+            // Check that we have the required confirmation hits
             if (!CheckConfirm(mcp, ignores, strat))
                 continue;
 
-            //  Check for the minimum number of hits
+            // Check for the minimum number of hits
             if (!CheckMinHits(mcp, ignores, strat))
                 continue;
 
-            //  Passed all the checks - track is findable
+            // Passed all the checks - track is findable
             findable = true;
             break;
         }
@@ -144,13 +148,13 @@ public class FindableTrack {
 
     public int LayersHit(MCParticle mcp) {
 
-        //  Get the list of hits associated with the MCParticle
+        // Get the list of hits associated with the MCParticle
         Set<SimTrackerHit> hitlist = _hittomc.allTo(mcp);
 
-        //  Create a set of the identifiers for the hit layers
+        // Create a set of the identifiers for the hit layers
         Set<String> idset = new HashSet<String>();
 
-        //  Create the set of identifiers
+        // Create the set of identifiers
         for (SimTrackerHit simhit : hitlist) {
 
             String identifier_old = _ID.Identifier(getDetectorElement(simhit));
@@ -161,76 +165,82 @@ public class FindableTrack {
 
         return idset.size();
     }
-    
-    public boolean isTrackFindable(MCParticle mcParticle, int nLayers){
-        
-        if(nLayers%2 == 1) throw new RuntimeException(this.getClass().getSimpleName() + ": The required number of layers hit must be even");
-        
+
+    public boolean isTrackFindable(MCParticle mcParticle, int nLayers) {
+
+        if (nLayers % 2 == 1)
+            throw new RuntimeException(this.getClass().getSimpleName() + ": The required number of layers hit must be even");
+
         // A neutral particle can't be found
-        if(mcParticle.getCharge() == 0) return false;
-        
+        if (mcParticle.getCharge() == 0)
+            return false;
+
         // Get the list of SimTrackerHits associated with the MC particle
         Set<SimTrackerHit> simHits = _hittomc.allTo(mcParticle);
-        
+
         // Find the layers hit
         boolean[] layerHit = new boolean[_nlayersTot];
-        for(SimTrackerHit simHit : simHits){
-            layerHit[simHit.getLayer()-1] = true;
+        for (SimTrackerHit simHit : simHits) {
+            layerHit[simHit.getLayer() - 1] = true;
         }
-        
+
         int nLayersHit = 0;
         // Check how many pairs of layers were hit
-        for(int index = 0; index < _nlayersTot; index += 2){
-            if(layerHit[index] && layerHit[index+1]) nLayersHit += 2; 
+        for (int index = 0; index < _nlayersTot; index += 2) {
+            if (layerHit[index] && layerHit[index + 1])
+                nLayersHit += 2;
         }
-        
+
         return nLayersHit >= nLayers;
     }
-    
-    public Set<SimTrackerHit> getSimTrackerHits(MCParticle mcParticle){
+
+    public Set<SimTrackerHit> getSimTrackerHits(MCParticle mcParticle) {
         return _hittomc.allTo(mcParticle);
     }
-    
+
     public boolean InnerTrackerIsFindable(MCParticle mcp, int nlayers, boolean printout) {
         Set<SimTrackerHit> hitlist = _hittomc.allTo(mcp);
-        boolean[] layerHit={false,false,false,false,false,false,false,false,false,false,false,false};
+        boolean[] layerHit = { false, false, false, false, false, false, false, false, false, false, false, false };
         for (SimTrackerHit simhit : hitlist) {
-            layerHit[simhit.getLayer()-1]=true;
+            layerHit[simhit.getLayer() - 1] = true;
         }
-        for(int i=0;i<nlayers;i++){
+        for (int i = 0; i < nlayers; i++) {
             System.out.println(layerHit[i]);
-            if(layerHit[i]==false)return false;
+            if (layerHit[i] == false)
+                return false;
         }
         return true;
     }
 
-       public boolean InnerTrackerIsFindable(MCParticle mcp, int nlayers) {
+    public boolean InnerTrackerIsFindable(MCParticle mcp, int nlayers) {
         Set<SimTrackerHit> hitlist = _hittomc.allTo(mcp);
-        boolean[] layerHit={false,false,false,false,false,false,false,false,false,false,false,false};
+        boolean[] layerHit = { false, false, false, false, false, false, false, false, false, false, false, false };
         for (SimTrackerHit simhit : hitlist) {
-            layerHit[simhit.getLayer()-1]=true;
+            layerHit[simhit.getLayer() - 1] = true;
         }
-        for(int i=0;i<nlayers;i++){
-            if(layerHit[i]==false)return false;
+        for (int i = 0; i < nlayers; i++) {
+            if (layerHit[i] == false)
+                return false;
         }
         return true;
     }
 
-      public boolean OuterTrackerIsFindable(MCParticle mcp, int start) {
+    public boolean OuterTrackerIsFindable(MCParticle mcp, int start) {
         Set<SimTrackerHit> hitlist = _hittomc.allTo(mcp);
-        boolean[] layerHit={false,false,false,false,false,false,false,false,false,false,false,false};
+        boolean[] layerHit = { false, false, false, false, false, false, false, false, false, false, false, false };
         for (SimTrackerHit simhit : hitlist) {
-            layerHit[simhit.getLayer()-1]=true;
+            layerHit[simhit.getLayer() - 1] = true;
         }
-        for(int i=start;i<_nlayersTot;i++){
-            if(layerHit[i]==false)return false;
+        for (int i = start; i < _nlayersTot; i++) {
+            if (layerHit[i] == false)
+                return false;
         }
         return true;
     }
 
     private boolean CheckPT(HelixParamCalculator helix, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoPTCut))
             return true;
 
@@ -239,7 +249,7 @@ public class FindableTrack {
 
     private boolean CheckDCA(HelixParamCalculator helix, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoDCACut))
             return true;
 
@@ -248,7 +258,7 @@ public class FindableTrack {
 
     private boolean CheckZ0(HelixParamCalculator helix, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoZ0Cut))
             return true;
 
@@ -257,7 +267,7 @@ public class FindableTrack {
 
     private boolean CheckSeed(MCParticle mcp, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoSeedCheck))
             return true;
 
@@ -266,7 +276,7 @@ public class FindableTrack {
 
     private boolean CheckConfirm(MCParticle mcp, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoConfirmCheck))
             return true;
 
@@ -275,7 +285,7 @@ public class FindableTrack {
 
     private boolean CheckMinHits(MCParticle mcp, List<Ignore> ignores, SeedStrategy strat) {
 
-        //  First see if we are skipping this check
+        // First see if we are skipping this check
         if (ignores.contains(Ignore.NoMinHitCut))
             return true;
 
@@ -284,40 +294,41 @@ public class FindableTrack {
 
     private int HitCount(MCParticle mcp, List<SeedLayer> lyrlist) {
 
-        //  Get the list of hits associated with the MCParticle
+        // Get the list of hits associated with the MCParticle
         Set<SimTrackerHit> hitlist = _hittomc.allTo(mcp);
 
-        //  Count the number of layers with hits in them
+        // Count the number of layers with hits in them
         int hitcount = 0;
         for (SeedLayer lyr : lyrlist)
-            //  Loop over the hits for this MCParticle
+            // Loop over the hits for this MCParticle
             for (SimTrackerHit simhit : hitlist) {
 
-                //  Get the detector element for this hit
-//                IDetectorElement de = getDetectorElement(simhit);
+                // Get the detector element for this hit
+                // IDetectorElement de = getDetectorElement(simhit);
 
-                //  Check names
-//                String detname_old = _ID.getName(de);
+                // Check names
+                // String detname_old = _ID.getName(de);
                 String detname_new = simhit.getSubdetector().getName();
-                //               if (!detname_old.equals(detname_new)) {
-                //                   System.out.println("Detector name mismatch - old: "+detname_old+ " new: "+detname_new);
-                //               }
-                //               int layer_old = _ID.getLayer(de);
+                // if (!detname_old.equals(detname_new)) {
+                // System.out.println("Detector name mismatch - old: "+detname_old+
+                // " new: "+detname_new);
+                // }
+                // int layer_old = _ID.getLayer(de);
                 int layer_new = simhit.getLayer();
-                //               if (layer_old != layer_new) {
-                //                   System.out.println("Layer number mismatch - old: "+layer_old+" new: "+layer_new);
-                //               }
-//                BarrelEndcapFlag be_old = _ID.getBarrelEndcapFlag(de);
+                // if (layer_old != layer_new) {
+                // System.out.println("Layer number mismatch - old: "+layer_old+" new: "+layer_new);
+                // }
+                // BarrelEndcapFlag be_old = _ID.getBarrelEndcapFlag(de);
                 BarrelEndcapFlag be_new = simhit.getBarrelEndcapFlag();
-                //               if (!be_old.equals(be_new)) {
-                //                   System.out.println("BarrelEndcapFlag mismatch - old: "+be_old+" new: "+be_new);
-                //               }
+                // if (!be_old.equals(be_new)) {
+                // System.out.println("BarrelEndcapFlag mismatch - old: "+be_old+" new: "+be_new);
+                // }
 
-                //  See if this hit is on the layer we are checking
-//               if (!lyr.getDetName().equals(_ID.getName(de))) continue;
-//                if (lyr.getLayer() != _ID.getLayer(de)) continue;
-//                if (!lyr.getBarrelEndcapFlag().equals(_ID.getBarrelEndcapFlag(de)))
-//                    continue;
+                // See if this hit is on the layer we are checking
+                // if (!lyr.getDetName().equals(_ID.getName(de))) continue;
+                // if (lyr.getLayer() != _ID.getLayer(de)) continue;
+                // if (!lyr.getBarrelEndcapFlag().equals(_ID.getBarrelEndcapFlag(de)))
+                // continue;
                 if (!lyr.getDetName().equals(detname_new))
                     continue;
                 if (lyr.getLayer() != layer_new)

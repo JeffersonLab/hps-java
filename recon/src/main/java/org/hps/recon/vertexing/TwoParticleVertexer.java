@@ -7,7 +7,7 @@ package org.hps.recon.vertexing;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.event.MCParticle;
 
 /**
@@ -39,10 +39,10 @@ public class TwoParticleVertexer extends TwoLineVertexer {
         }
         
         //set the member variables
-        A1 = HPSTransformations.transformVectorToTracking(PA1);
-        A2 = HPSTransformations.transformVectorToTracking(PA2);
-        B1 = HPSTransformations.transformVectorToTracking(PB1);
-        B2 = HPSTransformations.transformVectorToTracking(PB2);
+        A1 = CoordinateTransformations.transformVectorToTracking(PA1);
+        A2 = CoordinateTransformations.transformVectorToTracking(PA2);
+        B1 = CoordinateTransformations.transformVectorToTracking(PB1);
+        B2 = CoordinateTransformations.transformVectorToTracking(PB2);
 
     }
     

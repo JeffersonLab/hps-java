@@ -47,7 +47,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
         <driver name="RawTrackerHitFitterDriver"
-                type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+                type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
 <!--                <fitAlgorithm>Dumb</fitAlgorithm>  -->
             <fitAlgorithm>Analytic</fitAlgorithm>
         </driver>

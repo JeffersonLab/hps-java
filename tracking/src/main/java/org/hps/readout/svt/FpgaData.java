@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.readout.svt;
 
 //--- java ---//
 import static org.hps.conditions.deprecated.HPSSVTConstants.ADC_TEMP_COUNT;
@@ -19,15 +19,18 @@ import java.util.List;
 
 //--- org.lcsim ---//
 import org.lcsim.event.GenericObject;
+
 //-- Constants ---//
 
 /**
- * Generic object to contain hybrid temperatures and data tail value. Converts
- * and ADC value to a temperature in celsius
- *
+ * Generic object to contain hybrid temperatures and data tail value. Converts and ADC value to a
+ * temperature in celsius
+ * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @version $Id: FpgaData.java,v 1.3 2012/08/16 01:06:30 meeg Exp $
  */
+// FIXME: This seems like it might belong in org.hps.evio where it is used most.
+// It is also used by the apv25 package so leaving here for now. --JM
 public class FpgaData implements GenericObject {
 
     int fpgaID;
@@ -36,7 +39,7 @@ public class FpgaData implements GenericObject {
     private static double[] temperatureTable = null;
 
     /**
-     *
+     * 
      * @param temperature : array containing hybrid temperatures
      * @param tail : word present at the end of a FPGA data set
      */
@@ -70,10 +73,10 @@ public class FpgaData implements GenericObject {
 
     /**
      * Extract temperatures from the SVT data stream
-     *
+     * 
      * @param data : array containing temperature data
      * @return temperatures
-     *
+     * 
      */
     public static int[] extractTemperature(int[] data) {
         int[] temperatures = new int[(data.length) * 2];
@@ -88,8 +91,7 @@ public class FpgaData implements GenericObject {
     }
 
     /**
-     * Temperature lookup table. Takes an ADC value and returns a temperature in
-     * Celsius
+     * Temperature lookup table. Takes an ADC value and returns a temperature in Celsius
      */
     private static void fillTemperatureTable() {
 
@@ -192,6 +194,5 @@ public class FpgaData implements GenericObject {
     @Override
     public boolean isFixedSize() {
         return false;
-    }
-;
+    };
 }

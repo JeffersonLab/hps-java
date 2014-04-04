@@ -16,13 +16,11 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.SeedTrackerDiagnostics;
 import org.lcsim.util.Driver;
 
 /**
- * This class runs the Track Reconstruction for the HPS Test Proposal detector.
- * The tracker digitization must be run in front of it. It is intended to work
- * with the {@link TrackerDigiDriver} digitization Driver.
- *
- * @author jeremym
- * @version $Id: TrackerReconDriver.java,v 1.18 2012/05/03 20:50:29 mgraham Exp
- * $
+ * This class runs the Track Reconstruction for the HPS Test Proposal detector. The tracker
+ * digitization must be run in front of it. It is intended to work with the
+ * {@link TrackerDigiDriver} digitization Driver.
+ * 
+ * @author Matt Graham
  */
 public final class TrackerReconDriver extends Driver {
 
@@ -52,7 +50,7 @@ public final class TrackerReconDriver extends Driver {
     private boolean _useHPSMaterialManager = true;
     // enable the use of sectoring using sector binning in SeedTracker
     private boolean _applySectorBinning = true;
-    
+
     public TrackerReconDriver() {
     }
 
@@ -62,9 +60,8 @@ public final class TrackerReconDriver extends Driver {
 
     /**
      * Set the tracking strategy resource.
-     *
-     * @param strategyResource The absolute path to the strategy resource in the
-     * hps-java jar.
+     * 
+     * @param strategyResource The absolute path to the strategy resource in the hps-java jar.
      */
     public void setStrategyResource(String strategyResource) {
         this.strategyResource = strategyResource;
@@ -81,29 +78,29 @@ public final class TrackerReconDriver extends Driver {
     public void setIncludeMS(boolean incMS) {
         this.includeMS = incMS;
     }
-    
-     /**
-     * Set to enable the use of the HPS material manager implementation 
+
+    /**
+     * Set to enable the use of the HPS material manager implementation
      * 
      * @param useHPSMaterialManager switch
      */
     public void setUseHPSMaterialManager(boolean useHPSMaterialManager) {
         this._useHPSMaterialManager = useHPSMaterialManager;
     }
-    
+
     public void setIterativeFits(int val) {
         this._iterativeConfirmed = val;
     }
-    
-     /**
+
+    /**
      * Set to enable the sectoring to use the sector bins in checking for consistent hits.
-     *
+     * 
      * @param applySectorBinning apply sector binning switch
      */
     public void setApplySectorBinning(boolean applySectorBinning) {
         this._applySectorBinning = applySectorBinning;
     }
-   
+
     /**
      * This is used to setup the Drivers after XML config.
      */
@@ -116,7 +113,7 @@ public final class TrackerReconDriver extends Driver {
         // FIXME Is this always right?
         this.bfield = Math.abs((detector.getFieldMap().getField(new BasicHep3Vector(0, 0, 0)).y()));
         if (debug) {
-            System.out.printf("%s: Set B-field to %.3f\n",this.getClass().getSimpleName(),this.bfield);
+            System.out.printf("%s: Set B-field to %.3f\n", this.getClass().getSimpleName(), this.bfield);
         }
 
         initialize();
@@ -137,17 +134,17 @@ public final class TrackerReconDriver extends Driver {
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
         }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
-        SeedTracker stFinal = new SeedTracker(sFinallist,this._useHPSMaterialManager,this.includeMS);
+        SeedTracker stFinal = new SeedTracker(sFinallist, this._useHPSMaterialManager, this.includeMS);
         stFinal.setApplySectorBinning(_applySectorBinning);
         stFinal.setUseDefaultXPlane(false);
         stFinal.setDebug(this.debug);
         stFinal.setIterativeConfirmed(_iterativeConfirmed);
-        stFinal.setMaterialManagerTransform(HPSTransformations.getTransform());
+        stFinal.setMaterialManagerTransform(CoordinateTransformations.getTransform());
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);
         stFinal.setDiagnostics(new SeedTrackerDiagnostics());
-//        stFinal.setSectorParams(false); //this doesn't actually seem to do anything
+        // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
 
@@ -158,8 +155,7 @@ public final class TrackerReconDriver extends Driver {
     }
 
     /**
-     * This method is used to run the reconstruction and print debug
-     * information.
+     * This method is used to run the reconstruction and print debug information.
      */
     @Override
     public void process(EventHeader event) {
@@ -168,7 +164,7 @@ public final class TrackerReconDriver extends Driver {
 
         // Debug printouts.
         if (debug) {
-            if(event.hasCollection(HelicalTrackHit.class,stInputCollectionName)) {
+            if (event.hasCollection(HelicalTrackHit.class, stInputCollectionName)) {
                 System.out.println(this.getClass().getSimpleName() + ": The HelicalTrackHit collection " + stInputCollectionName + " has " + event.get(HelicalTrackHit.class, stInputCollectionName).size() + " hits.");
             } else {
                 System.out.println(this.getClass().getSimpleName() + ": No HelicalTrackHit collection for this event");

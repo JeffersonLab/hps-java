@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import org.hps.recon.tracking.HPSSVTData;
+import org.hps.readout.svt.SVTData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
@@ -50,10 +50,10 @@ public class SVTCellIDPrintDriver extends Driver {
 
 	public void process(EventHeader event) {
 		// Get the list of ECal hits.
-		if (event.hasCollection(HPSSVTData.class, rawTrackerHitCollectionName)) {
-			List<HPSSVTData> hits = event.get(HPSSVTData.class, rawTrackerHitCollectionName);
+		if (event.hasCollection(SVTData.class, rawTrackerHitCollectionName)) {
+			List<SVTData> hits = event.get(SVTData.class, rawTrackerHitCollectionName);
 			//outputStream.println("Reading RawCalorimeterHit from event " + event.getEventNumber());
-			for (HPSSVTData hit : hits) {
+			for (SVTData hit : hits) {
 				outputStream.printf("FPGA=%d\thybrid=%d\tchannel=%d\n", hit.getFPGAAddress(), hit.getHybridNumber(), hit.getChannelNumber());
 			}
 		}

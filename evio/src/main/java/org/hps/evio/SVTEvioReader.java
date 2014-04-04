@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.FpgaData;
-import org.hps.recon.tracking.HPSSVTData;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
 //--- Coda ---//
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -20,6 +20,8 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.hps.util.Pair;
 import org.lcsim.lcio.LCIOUtil;
+
+
 //--- Constants ---//
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
@@ -105,7 +107,7 @@ public class SVTEvioReader extends EvioReader {
 
                     if (debug) {
                         System.out.println(this.getClass().getSimpleName() + ": The temperatures are: ");
-                        double[] temps = HPSSVTData.getTemperature(temperatureData);
+                        double[] temps = SVTData.getTemperature(temperatureData);
                         for (int index = 0; index < temps.length; index++) {
                             System.out.println("Temp " + index + ": " + temps[index]);
                         }
@@ -149,12 +151,12 @@ public class SVTEvioReader extends EvioReader {
 
     private static RawTrackerHit makeHit(int[] data) {
         int hitTime = 0;
-        Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(HPSSVTData.getFPGAAddress(data), HPSSVTData.getHybridNumber(data));
+        Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(SVTData.getFPGAAddress(data), SVTData.getHybridNumber(data));
         SiSensor sensor = SvtUtils.getInstance().getSensor(daqPair);
 
-        int sensorChannel = HPSSVTData.getSensorChannel(data);
+        int sensorChannel = SVTData.getSensorChannel(data);
         long cell_id = SvtUtils.makeCellID(sensor, sensorChannel);
 
-        return new BaseRawTrackerHit(hitTime, cell_id, HPSSVTData.getAllSamples(data), null, sensor);
+        return new BaseRawTrackerHit(hitTime, cell_id, SVTData.getAllSamples(data), null, sensor);
     }
 }

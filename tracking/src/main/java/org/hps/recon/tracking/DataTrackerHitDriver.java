@@ -17,19 +17,21 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mgraham
+ * 
+ * @author Matt Graham
  */
+// TODO: Add documentation about what this Driver does. --JM
 public class DataTrackerHitDriver extends Driver {
+
     // Debug switch for development.
 
     private boolean debug = false;
     // Collection name.
-//    private String readoutCollectionName = "TrackerHits";
+    // private String readoutCollectionName = "TrackerHits";
     // Subdetector name.
     private String subdetectorName = "Tracker";
     // Name of RawTrackerHit output collection.
-//    private String rawTrackerHitOutputCollectionName = "RawTrackerHitMaker_RawTrackerHits";
+    // private String rawTrackerHitOutputCollectionName = "RawTrackerHitMaker_RawTrackerHits";
     // Name of StripHit1D output collection.
     private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     // Clustering parameters.
@@ -50,19 +52,19 @@ public class DataTrackerHitDriver extends Driver {
     private List<IDetectorElement> processDEs = new ArrayList<IDetectorElement>();
     private Set<SiSensor> processSensors = new HashSet<SiSensor>();
     // Digi class objects.
-//    private SiDigitizer stripDigitizer;
-//    private HPSFittedRawTrackerHitMaker hitMaker;
-    private HPSStripMaker stripClusterer;
-    //  private    DumbShaperFit shaperFit;
+    // private SiDigitizer stripDigitizer;
+    // private HPSFittedRawTrackerHitMaker hitMaker;
+    private StripMaker stripClusterer;
+    // private DumbShaperFit shaperFit;
     int[][] counts = new int[2][10];
 
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
-//    public void setReadoutCollectionName(String readoutCollectionName) {
-//        this.readoutCollectionName = readoutCollectionName;
-//    }
+    // public void setReadoutCollectionName(String readoutCollectionName) {
+    // this.readoutCollectionName = readoutCollectionName;
+    // }
     public void setSubdetectorName(String subdetectorName) {
         this.subdetectorName = subdetectorName;
     }
@@ -140,23 +142,22 @@ public class DataTrackerHitDriver extends Driver {
 
         for (IDetectorElement detectorElement : processDEs) {
             processSensors.addAll(detectorElement.findDescendants(SiSensor.class));
-            //if (debug)
-            //    System.out.println("added " + processSensors.size() + " sensors");
+            // if (debug)
+            // System.out.println("added " + processSensors.size() + " sensors");
         }
 
         // Create the sensor simulation.
         CDFSiSensorSim stripSim = new CDFSiSensorSim();
 
-
         // Create Strip clustering algorithm.
-        HPSNearestNeighborRMS stripClusteringAlgo = new HPSNearestNeighborRMS();
+        NearestNeighborRMSClusterer stripClusteringAlgo = new NearestNeighborRMSClusterer();
         stripClusteringAlgo.setSeedThreshold(clusterSeedThreshold);
         stripClusteringAlgo.setNeighborThreshold(clusterNeighborThreshold);
         stripClusteringAlgo.setClusterThreshold(clusterThreshold);
 
-//         hitMaker=new HPSFittedRawTrackerHitMaker(shaperFit);    
+        // hitMaker=new HPSFittedRawTrackerHitMaker(shaperFit);
         // Create the clusterers and set hit-making parameters.
-        stripClusterer = new HPSStripMaker(stripSim, stripClusteringAlgo);
+        stripClusterer = new StripMaker(stripSim, stripClusteringAlgo);
 
         stripClusterer.setMaxClusterSize(clusterMaxSize);
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
@@ -178,16 +179,16 @@ public class DataTrackerHitDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         // Call sub-Driver processing.
-//        super.process(event);
+        // super.process(event);
 
         // Make new lists for output.
-//        List<HPSFittedRawTrackerHit> rawHits = new ArrayList<HPSFittedRawTrackerHit>();
+        // List<HPSFittedRawTrackerHit> rawHits = new ArrayList<HPSFittedRawTrackerHit>();
         List<SiTrackerHit> stripHits1D = new ArrayList<SiTrackerHit>();
 
-//        // Make HPS hits.
-//        for (SiSensor sensor : processSensors) {            
-//            rawHits.addAll(hitMaker.makeHits(sensor));
-//        }
+        // // Make HPS hits.
+        // for (SiSensor sensor : processSensors) {
+        // rawHits.addAll(hitMaker.makeHits(sensor));
+        // }
 
         // Make strip hits.
         for (SiSensor sensor : processSensors) {
@@ -196,15 +197,19 @@ public class DataTrackerHitDriver extends Driver {
 
         // Debug prints.
         if (debug) {
-//            List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, this.readoutCollectionName);
-//            System.out.println("SimTrackerHit collection " + this.readoutCollectionName + " has " + simHits.size() + " hits.");
-//            System.out.println("RawTrackerHit collection " + this.rawTrackerHitOutputCollectionName + " has " + rawHits.size() + " hits.");
+            // List<SimTrackerHit> simHits = event.get(SimTrackerHit.class,
+            // this.readoutCollectionName);
+            // System.out.println("SimTrackerHit collection " + this.readoutCollectionName +
+            // " has " + simHits.size() + " hits.");
+            // System.out.println("RawTrackerHit collection " +
+            // this.rawTrackerHitOutputCollectionName + " has " + rawHits.size() + " hits.");
             System.out.println("TrackerHit collection " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
         }
 
         // Put output hits into collection.
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.
-//        event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag, toString());
+        // event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag,
+        // toString());
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
         if (debug) {
             for (int mod = 0; mod < 2; mod++) {

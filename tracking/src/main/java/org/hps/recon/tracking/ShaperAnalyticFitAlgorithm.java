@@ -6,40 +6,41 @@ import org.lcsim.event.RawTrackerHit;
 //import org.lcsim.math.chisq.ChisqProb;
 
 /**
- * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
- * fits values and errors for T0 and amplitude.
- *
- * @author meeg
- * @version $Id: HPSShaperAnalyticFitAlgorithm.java,v 1.4 2012/04/25 18:01:32
- * mgraham Exp $
+ * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants; fits values and
+ * errors for T0 and amplitude.
+ * 
+ * @author Sho Uemura
  */
-public class HPSShaperAnalyticFitAlgorithm implements HPSShaperFitAlgorithm {
+public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 
     @Override
-    public HPSShapeFitParameters fitShape(RawTrackerHit rth, ChannelConstants constants) {
+    public ShapeFitParameters fitShape(RawTrackerHit rth, ChannelConstants constants) {
         short[] samples = rth.getADCValues();
         return this.fitShape(samples, constants);
     }
 
-    public HPSShapeFitParameters fitShape(short[] samples, ChannelConstants constants) {
+    public ShapeFitParameters fitShape(short[] samples, ChannelConstants constants) {
         double minChisq = Double.POSITIVE_INFINITY;
         int bestStart = 0;
-        HPSShapeFitParameters fit = new HPSShapeFitParameters();
+        ShapeFitParameters fit = new ShapeFitParameters();
         for (int i = 0; i < samples.length - 2; i++) {
             double chisq = fitSection(samples, constants, fit, i);
-//            System.out.println("i = " + i + ", " + fit);
+            // System.out.println("i = " + i + ", " + fit);
             if (chisq < minChisq) {
                 minChisq = chisq;
                 bestStart = i;
             }
         }
         fitSection(samples, constants, fit, bestStart);
-//        System.out.format("%f\t%f\t%f\t%f\t%f\t%f\n", samples[0] - constants.getPedestal(), samples[1] - constants.getPedestal(), samples[2] - constants.getPedestal(), samples[3] - constants.getPedestal(), samples[4] - constants.getPedestal(), samples[5] - constants.getPedestal());
-//        System.out.println("start = " + bestStart + ", " + fit);
+        // System.out.format("%f\t%f\t%f\t%f\t%f\t%f\n", samples[0] - constants.getPedestal(),
+        // samples[1] - constants.getPedestal(), samples[2] - constants.getPedestal(), samples[3] -
+        // constants.getPedestal(), samples[4] - constants.getPedestal(), samples[5] -
+        // constants.getPedestal());
+        // System.out.println("start = " + bestStart + ", " + fit);
         return fit;
     }
 
-    private double fitSection(short[] samples, ChannelConstants constants, HPSShapeFitParameters fit, int start) {
+    private double fitSection(short[] samples, ChannelConstants constants, ShapeFitParameters fit, int start) {
         int length = samples.length - start;
         double[] y = new double[length];
         double[] t = new double[length];
@@ -97,7 +98,7 @@ public class HPSShaperAnalyticFitAlgorithm implements HPSShaperFitAlgorithm {
         fit.setChiSq(chisq);
 
         if (A > 0) {
-//			return ChisqProb.gammp(samples.length - 2, chisq);
+            // return ChisqProb.gammp(samples.length - 2, chisq);
             return chisq / (samples.length - 2);
         } else {
             return Double.POSITIVE_INFINITY;

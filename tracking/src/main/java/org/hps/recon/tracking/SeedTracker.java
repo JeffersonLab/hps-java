@@ -12,7 +12,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrackFinder;
 /**
  * Class extending lcsim version to allow extra flexibility
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: SeedTracker.java,v 1.4 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author: phansson $ 
  */
 public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracker  {
 
@@ -71,6 +70,4 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
         _finder.getConfirmer().setApplySectorBinning(applySectorBinning);
         
     }
-
-
 }

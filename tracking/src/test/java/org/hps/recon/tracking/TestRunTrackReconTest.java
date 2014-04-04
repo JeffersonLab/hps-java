@@ -208,7 +208,7 @@ public class TestRunTrackReconTest extends TestCase {
             //calibDriver.setRunNumber(1351); //not sure what should be done here!? -> FIX THIS!
             add(calibDriver);
             add(new RawTrackerHitSensorSetup());
-            HPSRawTrackerHitFitterDriver hitfitter = new HPSRawTrackerHitFitterDriver();
+            RawTrackerHitFitterDriver hitfitter = new RawTrackerHitFitterDriver();
             hitfitter.setFitAlgorithm("Analytic");
             hitfitter.setCorrectT0Shift(true);
             add(hitfitter);

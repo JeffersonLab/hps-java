@@ -26,26 +26,29 @@ import org.lcsim.util.swim.Line;
 import org.lcsim.util.swim.Trajectory;
 
 /**
- * Class HPSTrack: extension of HelicalTrackFit to include HPS-specific
- * variables other useful things.
- *
+ * Class HPSTrack: extension of HelicalTrackFit to include HPS-specific variables other useful
+ * things.
+ * 
  * @author mgraham created on 6/27/2011
  */
+// TODO: Check how much of the added behavior and information is really needed here.
+// It might be better to pull out a lot of the analytical functionality into a utility class.
+// FIXME: There are many instance variables marked as unused in my IDE.
 public class HPSTrack extends HelicalTrackFit {
 
     private BeamSpot _beam;
-    //all of the variables defined below are in the jlab (detector) frame
-    //this position & momentum are measured at the DOCA to the Y-axis,
-    //which is where the tracking returns it's parameters by default
+    // all of the variables defined below are in the jlab (detector) frame
+    // this position & momentum are measured at the DOCA to the Y-axis,
+    // which is where the tracking returns it's parameters by default
     private Hep3Vector _pDocaY;
     private Hep3Vector _posDocaY;
-    //the position & momentum of the track at the intersection of the target (z=0)
+    // the position & momentum of the track at the intersection of the target (z=0)
     private Hep3Vector _pTarget;
     private Hep3Vector _posTarget;
-    //the position & momentum of the track at DOCA to the beam axis (z)
+    // the position & momentum of the track at DOCA to the beam axis (z)
     private Hep3Vector _pDocaZ;
     private Hep3Vector _posDocaZ;
-    private double bField = 0.491;  //  make this set-able
+    private double bField = 0.491; // make this set-able
     private boolean _debug = false;
     private boolean _debugForward = false;
     private Trajectory _trajectory;
@@ -53,9 +56,7 @@ public class HPSTrack extends HelicalTrackFit {
     Map<Pair<Integer, Integer>, Pair<Double, Double>> _fieldBins;
     private MCParticle mcParticle;
 
-    public HPSTrack(double[] pars, SymmetricMatrix cov, double[] chisq, int[] ndf,
-            Map<HelicalTrackHit, Double> smap, Map<HelicalTrackHit, MultipleScatter> msmap,
-            BeamSpot beam) {
+    public HPSTrack(double[] pars, SymmetricMatrix cov, double[] chisq, int[] ndf, Map<HelicalTrackHit, Double> smap, Map<HelicalTrackHit, MultipleScatter> msmap, BeamSpot beam) {
         super(pars, cov, chisq, ndf, smap, msmap);
         _beam = beam;
         calculateParametersAtTarget();
@@ -63,8 +64,7 @@ public class HPSTrack extends HelicalTrackFit {
         calculateParametersAtDocaZ();
     }
 
-    public HPSTrack(double[] pars, SymmetricMatrix cov, double[] chisq, int[] ndf,
-            Map<HelicalTrackHit, Double> smap, Map<HelicalTrackHit, MultipleScatter> msmap) {
+    public HPSTrack(double[] pars, SymmetricMatrix cov, double[] chisq, int[] ndf, Map<HelicalTrackHit, Double> smap, Map<HelicalTrackHit, MultipleScatter> msmap) {
         super(pars, cov, chisq, ndf, smap, msmap);
         calculateParametersAtTarget();
         calculateParametersAtDocaY();
@@ -86,8 +86,7 @@ public class HPSTrack extends HelicalTrackFit {
         calculateParametersAtDocaZ();
     }
 
-    public HPSTrack(double[] parameters, SymmetricMatrix covariance, double[] chiSquared, int[] ndf,
-            Map<HelicalTrackHit, Double> sMap, Map<HelicalTrackHit, MultipleScatter> msMap, MCParticle mcParticle) {
+    public HPSTrack(double[] parameters, SymmetricMatrix covariance, double[] chiSquared, int[] ndf, Map<HelicalTrackHit, Double> sMap, Map<HelicalTrackHit, MultipleScatter> msMap, MCParticle mcParticle) {
         super(parameters, covariance, chiSquared, ndf, sMap, msMap);
 
         // Set the MC particle associated with this fit
@@ -103,7 +102,7 @@ public class HPSTrack extends HelicalTrackFit {
         Double zVal = zStart;
         Integer nstep = 0;
         while (zVal < zStop) {
-            Double[] xyz = {0.0, 0.0, 0.0};
+            Double[] xyz = { 0.0, 0.0, 0.0 };
             double s = HelixUtils.PathToXPlane(this, zVal, 1000.0, 1).get(0);
             xyz[0] = HelixUtils.PointOnHelix(this, s).y();
             xyz[1] = HelixUtils.PointOnHelix(this, s).z();
@@ -125,7 +124,7 @@ public class HPSTrack extends HelicalTrackFit {
 
         Integer nstep = 0;
         while (zVal < zStop) {
-            Double[] xyz = {0.0, 0.0, 0.0};
+            Double[] xyz = { 0.0, 0.0, 0.0 };
             double s = HelixUtils.PathToXPlane(this, zVal, 1000.0, 1).get(0);
             xyz[0] = HelixUtils.Direction(this, s).y();
             xyz[1] = HelixUtils.Direction(this, s).z();
@@ -139,12 +138,12 @@ public class HPSTrack extends HelicalTrackFit {
 
     private void calculateParametersAtTarget() {
         double pTot = this.p(bField);
-        //currently, PathToXPlane only returns a single path (no loopers!)
+        // currently, PathToXPlane only returns a single path (no loopers!)
         List<Double> paths = HelixUtils.PathToXPlane(this, 0.0, 100.0, 1);
         Hep3Vector posTargetTrkSystem = HelixUtils.PointOnHelix(this, paths.get(0));
         Hep3Vector dirTargetTrkSystem = HelixUtils.Direction(this, paths.get(0));
-        _posTarget = HPSTransformations.transformVectorToDetector(posTargetTrkSystem);
-        _pTarget = VecOp.mult(pTot, HPSTransformations.transformVectorToDetector(dirTargetTrkSystem));
+        _posTarget = CoordinateTransformations.transformVectorToDetector(posTargetTrkSystem);
+        _pTarget = VecOp.mult(pTot, CoordinateTransformations.transformVectorToDetector(dirTargetTrkSystem));
 
     }
 
@@ -152,8 +151,8 @@ public class HPSTrack extends HelicalTrackFit {
         double pTot = this.p(bField);
         Hep3Vector posDocaYTrkSystem = HelixUtils.PointOnHelix(this, 0);
         Hep3Vector dirDocaYTrkSystem = HelixUtils.Direction(this, 0);
-        _posDocaY = HPSTransformations.transformVectorToDetector(posDocaYTrkSystem);
-        _pDocaY = VecOp.mult(pTot, HPSTransformations.transformVectorToDetector(dirDocaYTrkSystem));
+        _posDocaY = CoordinateTransformations.transformVectorToDetector(posDocaYTrkSystem);
+        _pDocaY = VecOp.mult(pTot, CoordinateTransformations.transformVectorToDetector(dirDocaYTrkSystem));
 
     }
 
@@ -162,25 +161,25 @@ public class HPSTrack extends HelicalTrackFit {
         double sAtDocaZ = findPathToDocaZ();
         Hep3Vector posDocaZTrkSystem = HelixUtils.PointOnHelix(this, sAtDocaZ);
         Hep3Vector dirDocaZTrkSystem = HelixUtils.Direction(this, sAtDocaZ);
-        _posDocaZ = HPSTransformations.transformVectorToDetector(posDocaZTrkSystem);
-        _pDocaZ = VecOp.mult(pTot, HPSTransformations.transformVectorToDetector(dirDocaZTrkSystem));
+        _posDocaZ = CoordinateTransformations.transformVectorToDetector(posDocaZTrkSystem);
+        _pDocaZ = VecOp.mult(pTot, CoordinateTransformations.transformVectorToDetector(dirDocaZTrkSystem));
     }
 
-//    public Hep3Vector getPositionAtZ(double xFinal, double fringeHalfWidth, double step) {
-//        double startFringeUpstream = -2 * fringeHalfWidth;
-//        double stopFringeUpstream = 0;
-//        if (_debug)
-//            System.out.println(this.toString());
-//
-//
-//    }
+    // public Hep3Vector getPositionAtZ(double xFinal, double fringeHalfWidth, double step) {
+    // double startFringeUpstream = -2 * fringeHalfWidth;
+    // double stopFringeUpstream = 0;
+    // if (_debug)
+    // System.out.println(this.toString());
+    //
+    //
+    // }
     public Hep3Vector getPositionAtZ(double xFinal, double start, double stop, double step) {
 
         double startFringe = start;
         double stopFringe = stop;
-        //       _debugForward = false;
-        //       if (xFinal > 900)
-        //           _debugForward = true;
+        // _debugForward = false;
+        // if (xFinal > 900)
+        // _debugForward = true;
         // if looking upstream, we'll be propagating backwards
         if (xFinal < 0) {
             step = -step;
@@ -206,14 +205,9 @@ public class HPSTrack extends HelicalTrackFit {
         double q = Math.signum(this.curvature());
         double phitmp = getPhi(xtmp, ytmp, xCtmp, yCtmp, q);
         if (_debugForward) {
-            System.out.println("\nOriginal xtmp = " + xtmp
-                    + "; ytmp = " + ytmp
-                    + "; ztmp = " + ztmp
-                    + "; phitmp = " + phitmp);
+            System.out.println("\nOriginal xtmp = " + xtmp + "; ytmp = " + ytmp + "; ztmp = " + ztmp + "; phitmp = " + phitmp);
 
-            System.out.println("nOriginal Rorig = " + Rorig
-                    + "; xCtmp = " + xCtmp
-                    + "; yCtmp = " + yCtmp);
+            System.out.println("nOriginal Rorig = " + Rorig + "; xCtmp = " + xCtmp + "; yCtmp = " + yCtmp);
         }
         if (_debugForward) {
             System.out.println("Original Direction at Fringe: " + HelixUtils.Direction(this, startFringe).toString());
@@ -238,7 +232,7 @@ public class HPSTrack extends HelicalTrackFit {
             System.out.println("Extrpolating straight back from startFringe = (" + fooFinal.x() + "," + fooFinal.y() + "," + fooFinal.z() + ")");
 
         }
-        //follow trajectory while:  in fringe field, before end point, and we don't have a looper
+        // follow trajectory while: in fringe field, before end point, and we don't have a looper
         while (Math.signum(step) * xtmp < Math.signum(step) * stopFringe && Math.signum(step) * xtmp < Math.signum(step) * xFinal && Math.signum(pXOrig * pXTmp) > 0) {
             if (_debugForward) {
                 System.out.println("New step in Fringe Field");
@@ -249,7 +243,7 @@ public class HPSTrack extends HelicalTrackFit {
             }
 
             double fringeFactor = getFringe(Math.signum(step) * (fringeMid - rTmp.x()), fringeHalfWidth);
-//            double myBField=bField * fringeFactor;
+            // double myBField=bField * fringeFactor;
             double myBField = FieldMap.getFieldFromMap(rTmp.x(), rTmp.y());
             if (_debugForward) {
                 System.out.println("rTmp.x() = " + rTmp.x() + " field = " + myBField);
@@ -266,38 +260,34 @@ public class HPSTrack extends HelicalTrackFit {
             }
             totalS += step;
         }
-        //ok, done with field...extrapolate straight back...
+        // ok, done with field...extrapolate straight back...
         Hep3Vector pointInTrking;
         if (Math.signum(step) * xtmp < Math.signum(step) * xFinal) {
-            //get direction of the track before it hits fringe field
+            // get direction of the track before it hits fringe field
             double deltaX = xFinal - xtmp;
             Hep3Vector dir = _trajectory.getUnitTangentAtLength(0);
-//            double deltaY = deltaX * dir.y();
-//            double deltaZ = deltaX * dir.z();
+            // double deltaY = deltaX * dir.y();
+            // double deltaZ = deltaX * dir.z();
             Hep3Vector delta = extrapolateStraight(dir, deltaX);
-//            double deltaZ = Math.sqrt(deltaX*deltaX+deltaY*deltaY)* dir.z();
+            // double deltaZ = Math.sqrt(deltaX*deltaX+deltaY*deltaY)* dir.z();
             pointInTrking = new BasicHep3Vector(xFinal, delta.y() + ytmp, delta.z() + ztmp);
 
             if (_debugForward) {
-                System.out.println("Pointing straight forward from xtmp = " + xtmp
-                        + "; ytmp = " + ytmp
-                        + "; ztmp = " + ztmp
-                        + "; deltaX= " + deltaX);
+                System.out.println("Pointing straight forward from xtmp = " + xtmp + "; ytmp = " + ytmp + "; ztmp = " + ztmp + "; deltaX= " + deltaX);
                 System.out.println("Directions:  " + dir.toString());
                 System.out.println("Position at ECal:  x = " + xFinal + "; y = " + pointInTrking.y() + "; z = " + pointInTrking.z());
 
             }
-        } else {  // still in the fringe field...just return the current position
-//            pointInTrking = new BasicHep3Vector(xFinal, ytmp, ztmp);
+        } else { // still in the fringe field...just return the current position
+        // pointInTrking = new BasicHep3Vector(xFinal, ytmp, ztmp);
             pointInTrking = new BasicHep3Vector(rTmp.x(), rTmp.y(), rTmp.z());
         }
-        return HPSTransformations.transformVectorToDetector(pointInTrking);
+        return CoordinateTransformations.transformVectorToDetector(pointInTrking);
     }
 
     /**
-     * Get the position and direction on the track using B-field map for
-     * extrapolation
-     *
+     * Get the position and direction on the track using B-field map for extrapolation
+     * 
      * @param start = starting z-position of extrapolation
      * @param zFinal = final z-position
      * @param step = step size
@@ -336,14 +326,9 @@ public class HPSTrack extends HelicalTrackFit {
         double q = Math.signum(this.curvature());
         double phitmp = getPhi(xtmp, ytmp, xCtmp, yCtmp, q);
         if (_debugForward) {
-            System.out.println("\nOriginal xtmp = " + xtmp
-                    + "; ytmp = " + ytmp
-                    + "; ztmp = " + ztmp
-                    + "; phitmp = " + phitmp);
+            System.out.println("\nOriginal xtmp = " + xtmp + "; ytmp = " + ytmp + "; ztmp = " + ztmp + "; phitmp = " + phitmp);
 
-            System.out.println("nOriginal Rorig = " + Rorig
-                    + "; xCtmp = " + xCtmp
-                    + "; yCtmp = " + yCtmp);
+            System.out.println("nOriginal Rorig = " + Rorig + "; xCtmp = " + xCtmp + "; yCtmp = " + yCtmp);
         }
         if (_debugForward) {
             System.out.println("Original Direction at Fringe: " + HelixUtils.Direction(this, startFringe).toString());
@@ -368,7 +353,7 @@ public class HPSTrack extends HelicalTrackFit {
             System.out.println("Extrpolating straight back from startFringe = (" + fooFinal.x() + "," + fooFinal.y() + "," + fooFinal.z() + ")");
 
         }
-        //follow trajectory while:  in fringe field, before end point, and we don't have a looper
+        // follow trajectory while: in fringe field, before end point, and we don't have a looper
         while (Math.signum(step) * xtmp < Math.signum(step) * xFinal && Math.signum(pXOrig * pXTmp) > 0) {
             if (_debugForward) {
                 System.out.println("New step in Fringe Field");
@@ -395,7 +380,7 @@ public class HPSTrack extends HelicalTrackFit {
             totalS += step;
         }
 
-        //Go with finer granularity in the end
+        // Go with finer granularity in the end
         rTmp = _trajectory.getPointAtDistance(0);
         xtmp = rTmp.x();
         pTmp = VecOp.mult(pTot, _trajectory.getUnitTangentAtLength(step));
@@ -428,18 +413,18 @@ public class HPSTrack extends HelicalTrackFit {
             totalS += step;
         }
 
-        //ok, done with field.
+        // ok, done with field.
         Hep3Vector pointInTrking = new BasicHep3Vector(rTmp.x(), rTmp.y(), rTmp.z());
         if (_debugForward) {
             System.out.println("Position xfinal (tracking) :  x = " + xFinal + "; y = " + pointInTrking.y() + "; z = " + pointInTrking.z());
         }
-        Hep3Vector[] out = {HPSTransformations.transformVectorToDetector(pointInTrking), HPSTransformations.transformVectorToDetector(pTmp)};
+        Hep3Vector[] out = { CoordinateTransformations.transformVectorToDetector(pointInTrking), CoordinateTransformations.transformVectorToDetector(pTmp) };
 
         return out;
     }
 
     private double getPhi(double x, double y, double xc, double yc, double sign) {
-        //      System.out.println("Math.atan2(y - yc, x - xc)="+Math.atan2(y - yc, x - xc));
+        // System.out.println("Math.atan2(y - yc, x - xc)="+Math.atan2(y - yc, x - xc));
         return Math.atan2(y - yc, x - xc) - sign * Math.PI / 2;
     }
 
@@ -449,9 +434,9 @@ public class HPSTrack extends HelicalTrackFit {
         return new BasicHep3Vector(deltaX, deltaY, deltaZ);
     }
 
-    //field that changes linearly from Bmax->0
+    // field that changes linearly from Bmax->0
     private double getFringe(double x, double halfWidth) {
-//        System.out.println("x = " + x + "; halfWidth = " + halfWidth);
+        // System.out.println("x = " + x + "; halfWidth = " + halfWidth);
         if (x / halfWidth > 1) {
             return 1;
         }
@@ -466,18 +451,18 @@ public class HPSTrack extends HelicalTrackFit {
         double ux = Math.cos(phi) * this.sth();
         double uy = Math.sin(phi) * this.sth();
         double uz = this.cth();
-        //  Return the direction unit vector
+        // Return the direction unit vector
         return new BasicHep3Vector(ux, uy, uz);
     }
 
     private double findPathToDocaZ() {
-        double step = 0.1;//100 um step size
-        double maxS = 100.0; //go to 10cm
+        double step = 0.1;// 100 um step size
+        double maxS = 100.0; // go to 10cm
         double s = -30;
         double minDist = 999999;
         double minS = s;
         double dist = 999998;
-        //once the distance starts increasing, quit and return
+        // once the distance starts increasing, quit and return
         while (dist < minDist) {
             Hep3Vector pos = HelixUtils.PointOnHelix(this, s);
             dist = pos.y() * pos.y() + pos.z() * pos.z();
@@ -506,7 +491,7 @@ public class HPSTrack extends HelicalTrackFit {
 
     /**
      * Get the MC Particle associated with the HelicalTrackFit
-     *
+     * 
      * @return mcParticle :
      */
     public MCParticle getMCParticle() {
@@ -515,7 +500,7 @@ public class HPSTrack extends HelicalTrackFit {
 
     /**
      * Set the MC Particle associated with the HelicalTrackFit
-     *
+     * 
      * @param mcParticle :
      */
     public void setMCParticle(MCParticle mcParticle) {

@@ -7,10 +7,10 @@ package org.hps.recon.tracking;
 import org.lcsim.event.GenericObject;
 
 /**
- *
- * @author mgraham
+ * 
+ * @author Matt Graham
  */
-public class HPSShapeFitParameters implements GenericObject {
+public class ShapeFitParameters implements GenericObject {
 
     private double _t0 = Double.NaN;
     private double _t0Err = Double.NaN;
@@ -20,10 +20,10 @@ public class HPSShapeFitParameters implements GenericObject {
     private double _tpErr = Double.NaN;
     private double _chiSq = Double.NaN;
 
-    public HPSShapeFitParameters() {
+    public ShapeFitParameters() {
     }
 
-    public HPSShapeFitParameters(double t0, double amplitude) {
+    public ShapeFitParameters(double t0, double amplitude) {
         _t0 = t0;
         _amp = amplitude;
     }

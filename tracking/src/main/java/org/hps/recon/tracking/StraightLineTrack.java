@@ -4,7 +4,7 @@ import hep.physics.matrix.SymmetricMatrix;
 
 /**
  * Encapsulate position, direction, and covariance matrix for a straight-line track
- *
+ * 
  * @author Richard Partridge
  */
 public class StraightLineTrack {
@@ -19,15 +19,15 @@ public class StraightLineTrack {
     private double _dydx;
     private double _dzdx;
     private SymmetricMatrix _cov;
-    private double[] _poca = {0, 0, 0};
-    private double[] _yzT = {0, 0};
+    private double[] _poca = { 0, 0, 0 };
+    private double[] _yzT = { 0, 0 };
 
     /**
-     * Fully qualified constructor for the StraightLineTrack class.  A StraightLineTrack
-     * is specified by providing a position and the direction derivatives dydx and dzdx used
-     * in the vertex fitting.  It is assumed that the track is traveling in the +x direction
-     * (i.e., from the field-free region into the magnetized region).
-     *
+     * Fully qualified constructor for the StraightLineTrack class. A StraightLineTrack is
+     * specified by providing a position and the direction derivatives dydx and dzdx used in the
+     * vertex fitting. It is assumed that the track is traveling in the +x direction (i.e., from
+     * the field-free region into the magnetized region).
+     * 
      * @param x0 x coordinate of the reference plane
      * @param y0 y coordinate at the reference plane
      * @param z0 z coordinate at the reference plane
@@ -48,7 +48,7 @@ public class StraightLineTrack {
 
     /**
      * Return the x coordinate of the reference plane.
-     *
+     * 
      * @return x coordinate of the reference plane
      */
     public double x0() {
@@ -57,7 +57,7 @@ public class StraightLineTrack {
 
     /**
      * Return the y coordinate at the reference plane.
-     *
+     * 
      * @return y coordinate
      */
     public double y0() {
@@ -66,7 +66,7 @@ public class StraightLineTrack {
 
     /**
      * Return the z coordinate at the reference plane.
-     *
+     * 
      * @return z coordinate
      */
     public double z0() {
@@ -75,7 +75,7 @@ public class StraightLineTrack {
 
     /**
      * Return the direction derivative dy/dx.
-     *
+     * 
      * @return dy/dx
      */
     public double dydx() {
@@ -84,7 +84,7 @@ public class StraightLineTrack {
 
     /**
      * Return the direction derivative dz/dx.
-     *
+     * 
      * @return dz/dx
      */
     public double dzdx() {
@@ -93,7 +93,7 @@ public class StraightLineTrack {
 
     /**
      * Return the xPoca .
-     *
+     * 
      * @return xPoca
      */
     public double xPoca() {
@@ -102,7 +102,7 @@ public class StraightLineTrack {
 
     /**
      * Return the yPoca .
-     *
+     * 
      * @return yPoca
      */
     public double yPoca() {
@@ -111,7 +111,7 @@ public class StraightLineTrack {
 
     /**
      * Return the zPoca .
-     *
+     * 
      * @return zPoca
      */
     public double zPoca() {
@@ -120,7 +120,7 @@ public class StraightLineTrack {
 
     /**
      * Return the Doca .
-     *
+     * 
      * @return Doca
      */
     public double Doca() {
@@ -129,7 +129,7 @@ public class StraightLineTrack {
 
     /**
      * Return the Poca .
-     *
+     * 
      * @return Poca
      */
     public double[] Poca() {
@@ -138,56 +138,57 @@ public class StraightLineTrack {
 
     /**
      * Return the Y and Z positions of the track at X=0 (target).
-     *
+     * 
      * @return yzT
      */
     public double[] TargetYZ() {
         return _yzT;
     }
-    
-    public double[] getYZAtX(double xVal){
+
+    public double[] getYZAtX(double xVal) {
         return calculateYZAtX(xVal);
-    }   
-    
+    }
+
     /**
      * Return the covariance matrix.
-     *
+     * 
      * @return covariance matrix
      */
     public SymmetricMatrix cov() {
         return _cov;
     }
 
-    //  mg--for now just calculate the simple POCA (to the x-axis)...no errors
+    // mg--for now just calculate the simple POCA (to the x-axis)...no errors
     private void calculatePoca() {
-        _poca[0] = _x0-(_y0 * _dydx + _z0 * _dzdx) / (_dydx * _dydx + _dzdx * _dzdx);
-        _poca[1] = _y0 + _dydx * (_poca[0]-_x0);
-        _poca[2] = _z0 + _dzdx * (_poca[0]-_x0);
+        _poca[0] = _x0 - (_y0 * _dydx + _z0 * _dzdx) / (_dydx * _dydx + _dzdx * _dzdx);
+        _poca[1] = _y0 + _dydx * (_poca[0] - _x0);
+        _poca[2] = _z0 + _dzdx * (_poca[0] - _x0);
     }
 
     private void calculateTargetYZ() {
         _yzT[0] = _y0 - _x0 * _dydx;
         _yzT[1] = _z0 - _x0 * _dzdx;
     }
-    
+
     private double[] calculateYZAtX(double xVal) {
-        double[] yzAtX={-66,-66};
-        if(xVal>_x0)   //_x0 is where the field region starts...if xVal is bigger than this, need to get position on helix
+        double[] yzAtX = { -66, -66 };
+        if (xVal > _x0) // _x0 is where the field region starts...if xVal is bigger than this, need
+                        // to get position on helix
             return yzAtX;
-        yzAtX[0] = _y0 + (xVal-_x0) * _dydx;
-        yzAtX[1] = _z0 + (xVal-_x0) * _dzdx;
+        yzAtX[0] = _y0 + (xVal - _x0) * _dydx;
+        yzAtX[1] = _z0 + (xVal - _x0) * _dzdx;
         return yzAtX;
     }
-    
-    public double calculateXAtZEquals0() {       
-        return _x0-_z0/_dzdx;
+
+    public double calculateXAtZEquals0() {
+        return _x0 - _z0 / _dzdx;
     }
-    
-    public double[] calculateXYAtZ(double zVal) {       
-        double[] xyAtZ = {-99999,-99999};
-        xyAtZ[0] = (zVal-_z0)/(_dzdx)+_x0;
+
+    public double[] calculateXYAtZ(double zVal) {
+        double[] xyAtZ = { -99999, -99999 };
+        xyAtZ[0] = (zVal - _z0) / (_dzdx) + _x0;
         xyAtZ[1] = this.calculateYZAtX(xyAtZ[0])[0];
         return xyAtZ;
     }
-    
+
 }

@@ -22,7 +22,7 @@
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>true</correctT0Shift>
         </driver>

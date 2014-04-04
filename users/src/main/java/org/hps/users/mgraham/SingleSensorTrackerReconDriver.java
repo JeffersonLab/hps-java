@@ -5,7 +5,7 @@ import hep.physics.vec.BasicHep3Vector;
 import java.util.Arrays;
 import java.util.List;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.SeedTracker;
 import org.hps.recon.tracking.TrackerDigiDriver;
 import org.lcsim.event.EventHeader;
@@ -113,7 +113,7 @@ public final class SingleSensorTrackerReconDriver extends Driver {
         }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
         SeedTracker stFinal = new SeedTracker(sFinallist,this.includeMS);
-        stFinal.setMaterialManagerTransform(HPSTransformations.getTransform());
+        stFinal.setMaterialManagerTransform(CoordinateTransformations.getTransform());
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);

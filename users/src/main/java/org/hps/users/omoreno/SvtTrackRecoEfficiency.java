@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hps.analysis.examples.TrackAnalysis;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FindableTrack;
-import org.hps.recon.tracking.TrackAnalysis;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;

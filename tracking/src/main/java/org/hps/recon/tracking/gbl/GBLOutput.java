@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MaterialSupervisor.DetectorPlane;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
@@ -81,7 +81,7 @@ public class GBLOutput {
     	}
         _materialmanager = new MaterialSupervisor();
         _scattering = new MultipleScattering(_materialmanager);
-        _B = HPSTransformations.transformVectorToTracking(bfield);
+        _B = CoordinateTransformations.transformVectorToTracking(bfield);
         _scattering.setBField(Math.abs(_B.z())); // only absolute of B is needed as it's used for momentum calculation only
     }
 
@@ -323,7 +323,7 @@ public class GBLOutput {
                 	if(_debug>0) {
                 		double s_truthSimHit = HelixUtils.PathToXPlane(htfTruth, simHit.getPositionVec().z(), 0, 0).get(0);
                 		Hep3Vector trkposTruthSimHit = HelixUtils.PointOnHelix(htfTruth, s_truthSimHit);
-                		Hep3Vector resTruthSimHit = VecOp.sub(HPSTransformations.transformVectorToTracking(simHit.getPositionVec()),trkposTruthSimHit);
+                		Hep3Vector resTruthSimHit = VecOp.sub(CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec()),trkposTruthSimHit);
                 		System.out.printf("TruthSimHit residual %s for layer %d\n",resTruthSimHit.toString(),strip.layer());
                 	}
                 }
@@ -416,7 +416,7 @@ public class GBLOutput {
                 // sim hit residual
                 
                 if(simHit!=null) { 
-                    Hep3Vector simHitPos = HPSTransformations.transformVectorToTracking(simHit.getPositionVec());
+                    Hep3Vector simHitPos = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
                     if(_debug>0) System.out.printf("simHitPos  %s\n",simHitPos.toString());
                     Hep3Vector vdiffSimHit = VecOp.sub(simHitPos, trkpos);
                     Hep3Vector simHitPos_meas = VecOp.mult(trkToStripRot, vdiffSimHit);

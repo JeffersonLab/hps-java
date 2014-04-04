@@ -33,7 +33,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.hps.conditions.deprecated.HPSSVTSensorSetup;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -507,7 +507,7 @@ public class BuildCompact {
         // p-side unit vector
         ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
         Hep3Vector measuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
-        measuredCoordinate = VecOp.mult(VecOp.mult(HPSTransformations.getMatrix(),electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
+        measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(),electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
         return measuredCoordinate;
     }
 	

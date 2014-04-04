@@ -6,7 +6,6 @@ import hep.aida.IHistogram2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.tracking.LCIOTrackAnalysis;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;

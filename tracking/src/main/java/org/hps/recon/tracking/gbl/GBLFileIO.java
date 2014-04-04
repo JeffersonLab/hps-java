@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking.gbl;
 
 import hep.physics.matrix.BasicMatrix;
@@ -15,9 +11,9 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.tracking.RunAlignment;
 import org.hps.recon.tracking.gbl.GBLOutput.ClParams;
 import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
+import org.hps.svt.alignment.RunAlignment;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**

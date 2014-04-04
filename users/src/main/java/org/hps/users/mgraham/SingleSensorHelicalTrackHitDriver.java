@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.SiTrackerModule;
@@ -355,9 +355,9 @@ public class SingleSensorHelicalTrackHitDriver extends org.lcsim.fit.helicaltrac
                 String detname = strip.detector();
                 int layer = strip.layer();
                 BarrelEndcapFlag bec = strip.BarrelEndcapFlag();
-                Hep3Vector neworigin = HPSTransformations.transformVectorToTracking(origin);
-                Hep3Vector newu = HPSTransformations.transformVectorToTracking(u);
-                Hep3Vector newv = HPSTransformations.transformVectorToTracking(v);
+                Hep3Vector neworigin = CoordinateTransformations.transformVectorToTracking(origin);
+                Hep3Vector newu = CoordinateTransformations.transformVectorToTracking(u);
+                Hep3Vector newv = CoordinateTransformations.transformVectorToTracking(v);
                 HelicalTrackStrip newstrip = new HelicalTrackStrip(neworigin, newu, newv, umeas, du, vmin, vmax, dedx, time, rthList, detname, layer, bec);
                 for (MCParticle p : strip.MCParticles()) {
                     newstrip.addMCParticle(p);

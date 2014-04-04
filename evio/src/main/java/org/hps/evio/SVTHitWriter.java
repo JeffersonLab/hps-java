@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.FpgaData;
-import org.hps.recon.tracking.HPSSVTData;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
@@ -80,11 +80,11 @@ public class SVTHitWriter implements HitWriter {
             int fpgaAddress = SvtUtils.getInstance().getFPGA((SiSensor) hit.getDetectorElement());
             int hybridNumber = SvtUtils.getInstance().getHybrid((SiSensor) hit.getDetectorElement());
             int sensorChannel = hit.getIdentifierFieldValue("strip");
-            int apvNumber = HPSSVTData.getAPV(sensorChannel);
-            int channelNumber = HPSSVTData.getAPVChannel(sensorChannel);
+            int apvNumber = SVTData.getAPV(sensorChannel);
+            int channelNumber = SVTData.getAPVChannel(sensorChannel);
 
             int[] data = new int[4];
-            HPSSVTData.createSVTDataPacket(hybridNumber, apvNumber, channelNumber, fpgaAddress, hit.getADCValues(), data);
+            SVTData.createSVTDataPacket(hybridNumber, apvNumber, channelNumber, fpgaAddress, hit.getADCValues(), data);
             fpgaHits.get(fpgaAddress).add(data);
         }
 

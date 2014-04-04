@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.readout.svt;
 
 //--- java ---//
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDriver;
 
 /**
- *
+ * 
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: SimpleSvtReadout.java,v 1.19 2013/08/07 23:38:32 meeg Exp $
  */
@@ -44,7 +44,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private String outputCollection = "SVTRawTrackerHits";
     private String relationCollection = "SVTTrueHitRelations";
     private Map<SiSensor, PriorityQueue<StripHit>[]> hitMap = new HashMap<SiSensor, PriorityQueue<StripHit>[]>();
-    //readout period time offset in ns
+    // readout period time offset in ns
     private double readoutOffset = 0.0;
     private double readoutLatency = 240.0;
     private double pileupCutoff = 300.0;
@@ -52,7 +52,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private double timeOffset = 30.0;
     private boolean noPileup = false;
     private boolean addNoise = true;
-    //cut settings
+    // cut settings
     private boolean enableThresholdCut = true;
     private int samplesAboveThreshold = 3;
     private double noiseThreshold = 2.0;
@@ -99,7 +99,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     public void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
 
-        String[] readouts = {readout};
+        String[] readouts = { readout };
         readoutDriver.setCollections(readouts);
 
         if (!noPileup) {
@@ -137,7 +137,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int i = 0; i < hitQueues.length; i++) {
                     if (hitQueues[i] != null) {
                         while (!hitQueues[i].isEmpty() && hitQueues[i].peek().time < ClockSingleton.getTime() - (readoutLatency + pileupCutoff)) {
-//                                System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
+                            // System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
                             hitQueues[i].poll();
                         }
                         if (hitQueues[i].isEmpty()) {
@@ -170,24 +170,26 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int i = 0; i < 6; i++) {
                     double time = i * HPSSVTConstants.SAMPLING_INTERVAL - timeOffset;
                     signal[i] += amplitude * pulseAmplitude(time, HPSSVTCalibrationConstants.getTShaping(sensor, channel));
-//                    signal[i] += amplitude * pulseAmplitude(time, HPSSVTCalibrationConstants.getTShaping(sensor, channel)) + HPSSVTCalibrationConstants.getPedestal(sensor, channel);
+                    // signal[i] += amplitude * pulseAmplitude(time,
+                    // HPSSVTCalibrationConstants.getTShaping(sensor, channel)) +
+                    // HPSSVTCalibrationConstants.getPedestal(sensor, channel);
                     samples[i] = (short) Math.round(signal[i]);
                 }
 
                 long cell_id = SvtUtils.makeCellID(sensor, channel);
 
                 RawTrackerHit hit = new BaseRawTrackerHit(0, cell_id, samples, new ArrayList<SimTrackerHit>(stripHit.simHits), sensor);
-//                        System.out.println("Making RTH");
+                // System.out.println("Making RTH");
                 if (readoutCuts(hit)) {
-//                    System.out.println("RTH passed cuts");
+                    // System.out.println("RTH passed cuts");
                     hits.add(hit);
                 }
             }
 
             int flags = 1 << LCIOConstants.TRAWBIT_ID1;
-//            flags += 1 << LCIOConstants.RTHBIT_HITS;
+            // flags += 1 << LCIOConstants.RTHBIT_HITS;
             event.put(outputCollection, hits, RawTrackerHit.class, flags, readout);
-//            System.out.println("Made " + hits.size() + " RawTrackerHits");
+            // System.out.println("Made " + hits.size() + " RawTrackerHits");
         }
     }
 
@@ -209,7 +211,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
                     SiElectrodeDataCollection electrodeDataCol = electrodeDataMap.get(carrier);
 
-                    // If there is no electrode data available create a new instance of electrode data
+                    // If there is no electrode data available create a new instance of electrode
+                    // data
                     if (electrodeDataCol == null) {
                         electrodeDataCol = new SiElectrodeDataCollection();
                     }
@@ -221,7 +224,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         SiElectrodeData electrodeData = electrodeDataCol.get(channel);
                         Set<SimTrackerHit> simHits = electrodeData.getSimulatedHits();
 
-                        // compute hit time as the unweighted average of SimTrackerHit times; this is dumb but okay since there's generally only one SimTrackerHit
+                        // compute hit time as the unweighted average of SimTrackerHit times; this
+                        // is dumb but okay since there's generally only one SimTrackerHit
                         double time = 0.0;
                         for (SimTrackerHit hit : simHits) {
                             time += hit.getTime();
@@ -232,7 +236,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         // Get the charge in units of electrons
                         double charge = electrodeData.getCharge();
 
-                        double resistorValue = 100;  // Ohms
+                        double resistorValue = 100; // Ohms
                         double inputStageGain = 1.5;
                         double amplitude = (charge / HPSSVTConstants.MIP) * resistorValue * inputStageGain * Math.pow(2, 14) / 2000;
 
@@ -255,15 +259,15 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     private boolean readoutCuts(RawTrackerHit hit) {
         if (enableThresholdCut && !samplesAboveThreshold(hit)) {
-//            System.out.println("Failed threshold cut");
+            // System.out.println("Failed threshold cut");
             return false;
         }
         if (enablePileupCut && !pileupCut(hit)) {
-//            System.out.println("Failed pileup cut");
+            // System.out.println("Failed pileup cut");
             return false;
         }
         if (dropBadChannels && !badChannelCut(hit)) {
-//            System.out.println("Failed bad channel cut");
+            // System.out.println("Failed bad channel cut");
             return false;
         }
         return true;
@@ -289,7 +293,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         int count = 0;
         short[] samples = hit.getADCValues();
         for (int i = 0; i < samples.length; i++) {
-//            System.out.format("%d, %d\n", samples[i] - pedestal, noise * 3.0);
+            // System.out.format("%d, %d\n", samples[i] - pedestal, noise * 3.0);
             if (samples[i] - pedestal > noise * noiseThreshold) {
                 count++;
             }
@@ -302,7 +306,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         if (noPileup) {
             return;
         }
-//            System.out.println("Got trigger");
+        // System.out.println("Got trigger");
 
         // Create a list to hold the analog data
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
@@ -334,10 +338,10 @@ public class SimpleSvtReadout extends TriggerableDriver {
                             double signalAtTime = hit.amplitude * pulseAmplitude(sampleTime - hit.time, HPSSVTCalibrationConstants.getTShaping(sensor, channel));
                             totalContrib += signalAtTime;
                             signal[i] += signalAtTime;
-//                                    System.out.format("new value of signal[%d] = %f\n", i, signal[i]);
+                            // System.out.format("new value of signal[%d] = %f\n", i, signal[i]);
                         }
                         if (totalContrib > 4.0 * HPSSVTCalibrationConstants.getNoise(sensor, channel)) {
-//                            System.out.format("adding %d simHits\n", hit.simHits.size());
+                            // System.out.format("adding %d simHits\n", hit.simHits.size());
                             simHits.addAll(hit.simHits);
                         }
                     }
@@ -347,16 +351,16 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int i = 0; i < 6; i++) {
                     samples[i] = (short) Math.round(signal[i]);
                 }
-//                        if (hitQueues[channel] != null && !hitQueues[channel].isEmpty()) {
-//                            for (int i = 0; i < 6; i++) {
-//                                System.out.format("samples[%d] = %d\n", i, samples[i]);
-//                            }
-//                        }
+                // if (hitQueues[channel] != null && !hitQueues[channel].isEmpty()) {
+                // for (int i = 0; i < 6; i++) {
+                // System.out.format("samples[%d] = %d\n", i, samples[i]);
+                // }
+                // }
                 long cell_id = SvtUtils.makeCellID(sensor, channel);
                 RawTrackerHit hit = new BaseRawTrackerHit(0, cell_id, samples, simHits, sensor);
                 if (readoutCuts(hit)) {
                     hits.add(hit);
-//                    System.out.format("simHits: %d\n", simHits.size());
+                    // System.out.format("simHits: %d\n", simHits.size());
                     for (SimTrackerHit simHit : hit.getSimTrackerHits()) {
                         LCRelation hitRelation = new BaseLCRelation(hit, simHit);
                         trueHitRelations.add(hitRelation);
@@ -366,7 +370,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         }
 
         int flags = 1 << LCIOConstants.TRAWBIT_ID1;
-//            flags += 1 << LCIOConstants.RTHBIT_HITS;
+        // flags += 1 << LCIOConstants.RTHBIT_HITS;
         event.put(outputCollection, hits, RawTrackerHit.class, flags, readout);
         event.put(relationCollection, trueHitRelations, LCRelation.class, 0);
         System.out.println("Made " + hits.size() + " RawTrackerHits");
@@ -376,7 +380,8 @@ public class SimpleSvtReadout extends TriggerableDriver {
     @Override
     public double readoutDeltaT() {
         double triggerTime = ClockSingleton.getTime() + triggerDelay;
-//        int cycle = (int) Math.floor((triggerTime - readoutOffset + ClockSingleton.getDt()) / Apv25Constants.SAMPLING_INTERVAL);
+        // int cycle = (int) Math.floor((triggerTime - readoutOffset + ClockSingleton.getDt()) /
+        // Apv25Constants.SAMPLING_INTERVAL);
         // Calculate time of first sample
         double firstSample = Math.floor((triggerTime - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
 
@@ -418,7 +423,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         }
         return (time / tp) * Math.exp(1.0 - time / tp);
     }
-    
+
     public int getTimestampType() {
         return ReadoutTimestamp.SYSTEM_TRACKER;
     }

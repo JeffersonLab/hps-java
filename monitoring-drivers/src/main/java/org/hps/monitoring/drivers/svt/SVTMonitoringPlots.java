@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -144,9 +144,9 @@ public class SVTMonitoringPlots extends Driver {
             }
         }
 
-        if (event.hasCollection(HPSFittedRawTrackerHit.class, fitCollection)) {
-            List<HPSFittedRawTrackerHit> fits = event.get(HPSFittedRawTrackerHit.class, fitCollection);
-            for (HPSFittedRawTrackerHit fit : fits) {
+        if (event.hasCollection(FittedRawTrackerHit.class, fitCollection)) {
+            List<FittedRawTrackerHit> fits = event.get(FittedRawTrackerHit.class, fitCollection);
+            for (FittedRawTrackerHit fit : fits) {
                 int layer = fit.getRawTrackerHit().getIdentifierFieldValue("layer"); // 1-10; axial layers are odd layers; stereo layers are even
                 int module = fit.getRawTrackerHit().getIdentifierFieldValue("module"); // 0-1; module number is top or bottom
                 int strip = fit.getRawTrackerHit().getIdentifierFieldValue("strip");

@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSSVTData;
+import org.hps.readout.svt.SVTData;
 import org.lcsim.detector.IReadout;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -51,8 +51,8 @@ public class HPSDataProcessingModule extends Driver {
 	List<RawTrackerHit> rawHitsNoCuts;  // No cuts are applied to samples
 	
 	// Collection of all SVT data
-	List<HPSSVTData> svtData;
-	List<HPSSVTData> svtFpgaData;
+	List<SVTData> svtData;
+	List<SVTData> svtFpgaData;
 	List<Double> samples;
 
 	int numberOfSamples = 0;        // Total number of APV25 samples
@@ -82,8 +82,8 @@ public class HPSDataProcessingModule extends Driver {
 		sensorToSamplesMap = new HashMap<SiSensor, Map<Integer, List<Double>>>();
 		rawHits = new ArrayList<RawTrackerHit>();
 		rawHitsNoCuts = new ArrayList<RawTrackerHit>();
-		svtData = new ArrayList<HPSSVTData>();
-		svtFpgaData = new ArrayList<HPSSVTData>();
+		svtData = new ArrayList<SVTData>();
+		svtFpgaData = new ArrayList<SVTData>();
 	}
 
 	/**
@@ -284,7 +284,7 @@ public class HPSDataProcessingModule extends Driver {
 				//if(debug) System.out.println(this.getClass().getSimpleName() + ": Raw Channel Number: " + rawChannel);
 				
 				// Create an svtData packet
-				HPSSVTData data = new HPSSVTData(hybridNumber, apvNumber, rawChannel, fpgaNumber, adc);
+				SVTData data = new SVTData(hybridNumber, apvNumber, rawChannel, fpgaNumber, adc);
 				svtData.add(data);
 				svtFpgaData.add(data);
 				
@@ -388,7 +388,7 @@ public class HPSDataProcessingModule extends Driver {
 
 			// Add SVTData to event
 			System.out.println("Adding SVTData Collection of size: " + svtData.size() + " to the Event");
-			event.put(this.svtCollectionName, this.svtData, HPSSVTData.class, 0);
+			event.put(this.svtCollectionName, this.svtData, SVTData.class, 0);
 
 			
 			//

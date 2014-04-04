@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 // Constants
-import org.hps.recon.tracking.FpgaData;
-import org.hps.recon.tracking.HPSSVTData;
+
+
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
 
 /**
  *
@@ -47,7 +49,7 @@ public class HPSSVTDataBuffer {
      * @param svtData : List of SVT data packets
      * @param fpga : FPGA from which the data emerges from
      */
-    public static void addToBuffer(List<HPSSVTData> svtData, int fpga){
+    public static void addToBuffer(List<SVTData> svtData, int fpga){
         // If the FPGA data block is empty, add header information and data, otherwise
     	// just add the data
     	instance.encapsulateSVTData(svtData, fpga);        
@@ -88,7 +90,7 @@ public class HPSSVTDataBuffer {
      * @param svtData : List of SVT data packets
      * @param fpga : FPGA from which the data emerges from
      */
-    private void encapsulateSVTData(List<HPSSVTData> svtData, int fpga){
+    private void encapsulateSVTData(List<SVTData> svtData, int fpga){
     	// Ignore FPGA 7 for now 
     	if(fpga == 7) return;
     	
@@ -122,7 +124,7 @@ public class HPSSVTDataBuffer {
 
         // Add all samples emerging from this FPGA
         if(!svtData.isEmpty()){
-        	for(HPSSVTData svtDatum : svtData){ 
+        	for(SVTData svtDatum : svtData){ 
             	if(debug){
             		System.out.println("FPGA: " + svtDatum.getFPGAAddress() + " Hybrid: " + svtDatum.getHybridNumber() + " APV: " 
             							+ svtDatum.getAPVNumber() + " Channel: " + svtDatum.getChannelNumber());

@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -124,8 +124,8 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
 
     public void process(EventHeader event) {
         ++eventCount;
-        List<HPSFittedRawTrackerHit> fittedrawHits = event.get(HPSFittedRawTrackerHit.class, fittedTrackerHitCollectionName);
-        for (HPSFittedRawTrackerHit fit : fittedrawHits) {
+        List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
+        for (FittedRawTrackerHit fit : fittedrawHits) {
             SiSensor sensor = (SiSensor) fit.getRawTrackerHit().getDetectorElement();
             int strip = fit.getRawTrackerHit().getIdentifierFieldValue("strip");
             int layer = fit.getRawTrackerHit().getIdentifierFieldValue("layer"); // 1-10; axial layers are odd layers; stereo layers are even

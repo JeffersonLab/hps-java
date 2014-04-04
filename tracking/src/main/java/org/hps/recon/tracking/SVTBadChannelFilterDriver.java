@@ -11,10 +11,10 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 
 /**
- *
+ * 
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: SVTBadChannelFilterDriver.java,v 1.2 2012/08/29 21:02:46 meeg Exp $
  */
+// TODO: Add class documentation.
 public class SVTBadChannelFilterDriver extends Driver {
 
     private String rawTrackerHitCollection = "SVTRawTrackerHits";
@@ -31,7 +31,9 @@ public class SVTBadChannelFilterDriver extends Driver {
                 int strip = hit.getIdentifierFieldValue("strip");
                 SiSensor sensor = (SiSensor) hit.getDetectorElement();
 
-//                System.out.format("module %d, layer %d, strip %d\n", hit.getIdentifierFieldValue("module"), hit.getIdentifierFieldValue("layer"), hit.getIdentifierFieldValue("strip"));
+                // System.out.format("module %d, layer %d, strip %d\n",
+                // hit.getIdentifierFieldValue("module"), hit.getIdentifierFieldValue("layer"),
+                // hit.getIdentifierFieldValue("strip"));
                 if (HPSSVTCalibrationConstants.isBadChannel(sensor, strip)) {
                     i.remove();
                 }

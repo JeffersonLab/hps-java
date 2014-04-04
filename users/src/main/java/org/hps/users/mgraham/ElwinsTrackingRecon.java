@@ -18,7 +18,7 @@ import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.DumbShaperFit;
-import org.hps.recon.tracking.HPSShaperFitAlgorithm;
+import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
@@ -117,7 +117,7 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
     double zAtColl = -1500;
     IHistogram1D trkPx;
     IHistogram1D nTracks;
-    HPSShaperFitAlgorithm _shaper = new DumbShaperFit();
+    ShaperFitAlgorithm _shaper = new DumbShaperFit();
 
     protected void detectorChanged(Detector detector) {
         this.detector = detector;

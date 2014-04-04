@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.readout.svt;
 
 //--- Constants ---//
 
@@ -13,41 +13,39 @@ import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_APV25_PER_HYBR
 import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
 
 /**
- *
- *
+ * 
+ * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @version $Id: HPSSVTData.java,v 1.8 2012/08/16 01:06:30 meeg Exp $
  */
-public class HPSSVTData {
+public class SVTData {
 
-    // 4x32 
+    // 4x32
     int[] data = new int[4];
     // Time of the hit
     int hitTime = 0;
 
     /**
-     *
+     * 
      * Creates an SVT data packet from
-     *
+     * 
      * @param hybridNumber Hybrid number (0-3)
      * @param apvNumber APV25 chip number (0-4)
      * @param channelNumber Sensor strip number (0-127)
      * @param fpgaAddress FPGA address
-     * @param adc ADC samples obtained by sampling the shaper output. Currently,
-     * six samples are obtained per raw hit.
+     * @param adc ADC samples obtained by sampling the shaper output. Currently, six samples are
+     *        obtained per raw hit.
      */
-    public HPSSVTData(int hybridNumber, int apvNumber,
-            int channelNumber, int fpgaAddress, short[] adc) {
-        this.createSVTDataPacket(hybridNumber, apvNumber,
-                channelNumber, fpgaAddress, adc);
+    public SVTData(int hybridNumber, int apvNumber, int channelNumber, int fpgaAddress, short[] adc) {
+        this.createSVTDataPacket(hybridNumber, apvNumber, channelNumber, fpgaAddress, adc);
     }
 
     /**
      * Creates and SVT data packet from existing SVT data
-     *
+     * 
      * @param data The packed data as int array of size 4
      */
-    public HPSSVTData(int[] data) {
+    public SVTData(int[] data) {
         if (data.length != 4) {
             throw new RuntimeException("Data sample size is not valid!");
         }
@@ -57,7 +55,7 @@ public class HPSSVTData {
 
     /**
      * Get the packed data for this sample
-     *
+     * 
      * @return sample The packed data as an int array of size 4.
      */
     public int[] getData() {
@@ -67,24 +65,20 @@ public class HPSSVTData {
     /**
      * Creates and SVT data packet
      */
-    private void createSVTDataPacket(int hybridNumber, int apvNumber,
-            int channelNumber, int fpgaAddress, short[] adc) {
+    private void createSVTDataPacket(int hybridNumber, int apvNumber, int channelNumber, int fpgaAddress, short[] adc) {
         createSVTDataPacket(hybridNumber, apvNumber, channelNumber, fpgaAddress, adc, data);
     }
 
-    public static void createSVTDataPacket(int hybridNumber, int apvNumber,
-            int channelNumber, int fpgaAddress, short[] adc, int[] data) {
+    public static void createSVTDataPacket(int hybridNumber, int apvNumber, int channelNumber, int fpgaAddress, short[] adc, int[] data) {
         /*
-         * Sample Data consists of the following: Z[xx:xx] = Zeros, O[xx:xx] =
-         * Ones data[0] = O[0], Z[0], Hybrid[1:0], Z[0], ApvChip[2:0], Z[0],
-         * Channel[6:0], FpgaAddress[15:0] data[1] = Z[1:0], Sample1[13:0]],
-         * Z[1:0], Sample0[13:0] data[2] = Z[1:0], Sample3[13:0]], Z[1:0],
+         * Sample Data consists of the following: Z[xx:xx] = Zeros, O[xx:xx] = Ones data[0] = O[0],
+         * Z[0], Hybrid[1:0], Z[0], ApvChip[2:0], Z[0], Channel[6:0], FpgaAddress[15:0] data[1] =
+         * Z[1:0], Sample1[13:0]], Z[1:0], Sample0[13:0] data[2] = Z[1:0], Sample3[13:0]], Z[1:0],
          * Sample2[13:0] data[3] = Z[1:0], Sample5[13:0]], Z[1:0], Sample4[13:0]
-         *
          */
 
-        //--- data[0] ---//
-        //-----------------//
+        // --- data[0] ---//
+        // -----------------//
 
         // The most significant digit of data[0] is set to 1
         data[0] |= 0x80000000;
@@ -101,9 +95,8 @@ public class HPSSVTData {
         // Insert the FPGA address
         data[0] = (data[0] &= ~FPGA_MASK) | (fpgaAddress & FPGA_MASK);
 
-
-        //--- data[1] ----//
-        //------------------//
+        // --- data[1] ----//
+        // ------------------//
 
         // Add data 0
         data[1] = (data[1] &= ~SAMPLE_MASK) | (adc[0] & SAMPLE_MASK);
@@ -111,25 +104,20 @@ public class HPSSVTData {
         // Add data 1
         data[1] = (data[1] &= ~(SAMPLE_MASK << 16)) | ((adc[1] & SAMPLE_MASK) << 16);
 
-
-
-        //--- data[2] ----//
-        //------------------//
+        // --- data[2] ----//
+        // ------------------//
 
         // Add sample 2
         data[2] = (data[2] &= ~SAMPLE_MASK) | (adc[2] & SAMPLE_MASK);
 
-
         // Add sample 3
         data[2] = (data[2] &= ~(SAMPLE_MASK << 16)) | ((adc[3] & SAMPLE_MASK) << 16);
 
-
-        //--- data[3] ----//
-        //------------------//
+        // --- data[3] ----//
+        // ------------------//
 
         // Add sample 4
         data[3] = (data[3] &= ~SAMPLE_MASK) | (adc[4] & SAMPLE_MASK);
-
 
         // Add sample 5
         data[3] = (data[3] &= ~(SAMPLE_MASK << 16)) | ((adc[5] & SAMPLE_MASK) << 16);
@@ -137,7 +125,7 @@ public class HPSSVTData {
 
     /**
      * Get the hybrid number associated with this SVT data packet
-     *
+     * 
      * @return hybrid number (0-3)
      */
     public int getHybridNumber() {
@@ -150,7 +138,7 @@ public class HPSSVTData {
 
     /**
      * Get the APV number associated with this SVT data packet
-     *
+     * 
      * @return APV number (0-4)
      */
     public int getAPVNumber() {
@@ -163,7 +151,7 @@ public class HPSSVTData {
 
     /**
      * Get the channel number associated with this SVT data packet
-     *
+     * 
      * @return channel number (0-127)
      */
     public int getChannelNumber() {
@@ -176,7 +164,7 @@ public class HPSSVTData {
 
     /**
      * Get the FPGA address associated with this SVT data packet
-     *
+     * 
      * @return FPGA address
      */
     public int getFPGAAddress() {
@@ -189,12 +177,12 @@ public class HPSSVTData {
 
     /**
      * Get the nth SVT sample
-     *
+     * 
      * @param n The sample number of interest. Valid values are 0 to 5
      * @throws RuntimeException if the sample number is out of range
      * @return ADC value of the nth sample
-     *
-     *
+     * 
+     * 
      */
     public int getSample(int n) {
         return getSample(n, data);
@@ -222,7 +210,7 @@ public class HPSSVTData {
 
     /**
      * Get all SVT samples
-     *
+     * 
      * @return An array containing all SVT Shaper signal samples
      */
     public short[] getAllSamples() {
@@ -241,7 +229,7 @@ public class HPSSVTData {
 
     /**
      * Get the hit time at which the hit occurred
-     *
+     * 
      * @return The time at which the hit occurred with respect to the trigger
      */
     public int getHitTime() {
@@ -250,7 +238,7 @@ public class HPSSVTData {
 
     /**
      * Set the hit time at which the hit occurred
-     *
+     * 
      * @param hitTime : Time at which the hit occurred
      */
     public void setHitTime(int hitTime) {
@@ -275,10 +263,10 @@ public class HPSSVTData {
 
     /**
      * Get the sensor (a k a physical) channel corresponding to a raw chip channel
-     *
+     * 
      * @param apv : APV25 chip number
      * @param channel : APV25 raw channel number
-     *
+     * 
      * @return sensor channel number
      */
     public static int getSensorChannel(int apv, int channel) {

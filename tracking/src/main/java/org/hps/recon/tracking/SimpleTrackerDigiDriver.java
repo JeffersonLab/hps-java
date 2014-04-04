@@ -6,14 +6,13 @@ import org.lcsim.recon.tracking.digitization.sisim.RawTrackerHitMaker;
 import org.lcsim.recon.tracking.digitization.sisim.StripHitMaker;
 
 /**
- * This Driver runs the tracker digitization to create raw hits and strip hits
- * from simulated data. The output can be used by a track reconstruction
- * algorithm like Seed Tracker.
+ * This Driver runs the tracker digitization to create raw hits and strip hits from simulated data.
+ * The output can be used by a track reconstruction algorithm like Seed Tracker.
  * 
- * Copied from org.lcsim.hps.recon.tracking.TrackerDigiDriver, with the difference that this driver does not make noise hits or add noise to hits, and drops bad channels.
+ * Copied from org.lcsim.hps.recon.tracking.TrackerDigiDriver, with the difference that this driver
+ * does not make noise hits or add noise to hits, and drops bad channels.
  * 
- * @author meeg@slac.stanford.edu
- * @version $Id: SimpleTrackerDigiDriver.java,v 1.3 2012/11/20 19:59:35 meeg Exp $
+ * @author Sho Uemura
  */
 public class SimpleTrackerDigiDriver extends TrackerDigiDriver {
 

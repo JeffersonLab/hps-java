@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.tracking.HPSTransformations;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
@@ -320,7 +320,7 @@ public class AlignmentParameters {
     private Hep3Matrix getTrackToStripRotation(HelicalTrackStrip strip) {
         ITransform3D detToStrip = GetGlobalToLocal(strip);
         Hep3Matrix detToStripMatrix = (BasicHep3Matrix) detToStrip.getRotation().getRotationMatrix();
-        Hep3Matrix detToTrackMatrix = (BasicHep3Matrix) HPSTransformations.getMatrix();
+        Hep3Matrix detToTrackMatrix = (BasicHep3Matrix) CoordinateTransformations.getMatrix();
 
         if (_DEBUG) {
             System.out.println("gblToLoc translation:");

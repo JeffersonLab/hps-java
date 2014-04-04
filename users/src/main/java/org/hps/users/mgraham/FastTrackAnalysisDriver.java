@@ -17,9 +17,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.analysis.examples.TrackAnalysis;
 import org.hps.recon.tracking.FindableTrack;
 import org.hps.recon.tracking.StraightLineTrack;
-import org.hps.recon.tracking.TrackAnalysis;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;

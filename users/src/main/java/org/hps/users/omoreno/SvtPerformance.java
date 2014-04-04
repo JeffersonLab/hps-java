@@ -14,8 +14,8 @@ import java.util.List;
 
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-import org.hps.recon.tracking.HPSShapeFitParameters;
-import org.hps.recon.tracking.HPSShaperAnalyticFitAlgorithm;
+import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -37,7 +37,7 @@ public class SvtPerformance extends Driver {
 
     private AIDA aida;
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
-    HPSShaperAnalyticFitAlgorithm shaperFitter = new HPSShaperAnalyticFitAlgorithm();
+    ShaperAnalyticFitAlgorithm shaperFitter = new ShaperAnalyticFitAlgorithm();
     
     File performanceOutputFile;
     BufferedWriter performanceWriter;
@@ -305,7 +305,7 @@ public class SvtPerformance extends Driver {
         int maxClusterChannel = 0; 
         int hitsPerCluster = 0;  
         ChannelConstants constants = null;
-        HPSShapeFitParameters fit = null;
+        ShapeFitParameters fit = null;
         double clusterAmplitude, maxClusterAmplitude;
         double noise = 0;
         double chiSquared = -1;

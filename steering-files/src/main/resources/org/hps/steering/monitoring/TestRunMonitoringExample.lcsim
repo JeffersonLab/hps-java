@@ -30,7 +30,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
         <driver name="RawTrackerHitFitterDriver"
-                type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+                type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver"/>

@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.HPSFittedRawTrackerHit;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -179,7 +179,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
     }
 
     public void process(EventHeader event) {
-        if (!event.hasCollection(HPSFittedRawTrackerHit.class, fittedTrackerHitCollectionName)) {
+        if (!event.hasCollection(FittedRawTrackerHit.class, fittedTrackerHitCollectionName)) {
             System.out.println(fittedTrackerHitCollectionName + " does not exist; skipping event");
             int ns = sensors.size();
             for (int i = 0; i < ns; i++) {
@@ -191,11 +191,11 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         }
 
         ++eventCount;
-        List<HPSFittedRawTrackerHit> fittedrawHits = event.get(HPSFittedRawTrackerHit.class, fittedTrackerHitCollectionName);
+        List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, trackerHitCollectionName);
         int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        for (HPSFittedRawTrackerHit hrth : fittedrawHits) {
+        for (FittedRawTrackerHit hrth : fittedrawHits) {
             SiSensor sensor = (SiSensor) hrth.getRawTrackerHit().getDetectorElement();
             int layer = hrth.getRawTrackerHit().getLayerNumber();
             if (!SvtUtils.getInstance().isTopLayer(sensor)) {
@@ -234,7 +234,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         for (SiSensor sensor : sensors) {
             String sensorName = sensor.getName();
             int nraw = sensor.getReadout().getHits(RawTrackerHit.class).size();
-            int nreco = sensor.getReadout().getHits(HPSFittedRawTrackerHit.class).size();
+            int nreco = sensor.getReadout().getHits(FittedRawTrackerHit.class).size();
             aida.histogram1D(sensorName + "_raw_hits").fill(nraw);
             aida.histogram1D(sensorName + "_reco_hits").fill(nreco);
             if (clustMap.containsKey(sensor)) {
@@ -245,13 +245,13 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         }
     }
 
-    public double getCluAmp(SiTrackerHitStrip1D stripHits, List<HPSFittedRawTrackerHit> hrths) {
+    public double getCluAmp(SiTrackerHitStrip1D stripHits, List<FittedRawTrackerHit> hrths) {
         stripHits.getdEdx();
         List<RawTrackerHit> rawHits = stripHits.getRawHits();
         double sum = 0.0;
         for (RawTrackerHit hit : rawHits) {
             //find the fitted hit amplitude
-            for (HPSFittedRawTrackerHit fittedHit : hrths) {
+            for (FittedRawTrackerHit fittedHit : hrths) {
                 RawTrackerHit fh = fittedHit.getRawTrackerHit();
                 if (fh.equals(hit)) {
                     sum += fittedHit.getAmp();

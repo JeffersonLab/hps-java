@@ -20,9 +20,9 @@ import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.DumbShaperFit;
-import org.hps.recon.tracking.HPSShapeFitParameters;
-import org.hps.recon.tracking.HPSShaperFitAlgorithm;
 import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Resettable;
@@ -96,7 +96,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     double zAtColl = -1500;
     IHistogram1D trkPx;
     IHistogram1D nTracks;
-    HPSShaperFitAlgorithm _shaper = new DumbShaperFit();
+    ShaperFitAlgorithm _shaper = new DumbShaperFit();
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -866,7 +866,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                    double clusterSum=0;                 
                    for(RawTrackerHit rawHit: (List<RawTrackerHit>)hts.rawhits()){
                        ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) rawHit.getDetectorElement(), rawHit.getIdentifierFieldValue("strip"));
-                        HPSShapeFitParameters fit = _shaper.fitShape(rawHit, constants);
+                        ShapeFitParameters fit = _shaper.fitShape(rawHit, constants);
                         double amp = fit.getAmp();
                         clusterSum+=amp;
                          aida.histogram1D("Amp (HitOnTrack)").fill(amp);

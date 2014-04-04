@@ -1,4 +1,4 @@
-package org.hps.recon.tracking;
+package org.hps.users.phansson;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.recon.tracking.HPSTrack;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.ITranslation3D;

@@ -1,11 +1,8 @@
 package org.hps.users.jeremym;
 
-import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
-import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-import hep.aida.ITree;
 
 import java.util.ArrayList;
 import java.util.List;

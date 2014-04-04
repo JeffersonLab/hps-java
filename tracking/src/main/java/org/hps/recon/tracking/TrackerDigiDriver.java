@@ -25,14 +25,12 @@ import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDr
 import org.lcsim.util.Driver;
 
 /**
- * This Driver runs the tracker digitization to create raw hits and strip hits
- * from simulated data. The output can be used by a track reconstruction
- * algorithm like Seed Tracker.
- * 
- * @author jeremym
- * @version $Id: TrackerDigiDriver.java,v 1.12 2012/11/20 19:59:35 meeg Exp $
+ * This Driver runs the tracker digitization to create raw hits and strip hits from simulated data.
+ * The output can be used by a track reconstruction algorithm like Seed Tracker.
  */
+// FIXME: Who authored this Driver?  It wasn't me. --JM
 public class TrackerDigiDriver extends Driver {
+
     // Debug switch for development.
 
     private boolean debug = false;
@@ -206,8 +204,8 @@ public class TrackerDigiDriver extends Driver {
     }
 
     /**
-     * This is executed before detectorChanged and initialization of
-     * digitization objects is done here.
+     * This is executed before detectorChanged and initialization of digitization objects is done
+     * here.
      */
     @Override
     public void startOfData() {
@@ -247,11 +245,11 @@ public class TrackerDigiDriver extends Driver {
 
         for (IDetectorElement detectorElement : processDEs) {
             processSensors.addAll(detectorElement.findDescendants(SiSensor.class));
-            //if (debug)
-            //    System.out.println("added " + processSensors.size() + " sensors");
+            // if (debug)
+            // System.out.println("added " + processSensors.size() + " sensors");
             processModules.addAll(detectorElement.findDescendants(SiTrackerModule.class));
-            //if (debug)
-            //    System.out.println("added " + processModules.size() + " modules");
+            // if (debug)
+            // System.out.println("added " + processModules.size() + " modules");
         }
     }
 

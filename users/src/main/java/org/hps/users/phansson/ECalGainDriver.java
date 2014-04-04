@@ -22,7 +22,6 @@ import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.tracking.EcalTrackMatch;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.AIDAFrame;
 import org.hps.util.Redrawable;

@@ -91,7 +91,7 @@
         </driver>-->
 
 
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.HPSRawTrackerHitFitterDriver">
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <debug>false</debug> 
             <rawHitCollectionName>SVTRawTrackerHits</rawHitCollectionName>  
             <fittedHitCollectionName>SVTFittedRawTrackerHits</fittedHitCollectionName> 
