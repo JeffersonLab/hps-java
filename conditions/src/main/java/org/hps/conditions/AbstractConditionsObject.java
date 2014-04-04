@@ -174,7 +174,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         return collectionId != -1;
     }    
     
-    protected void finalize() {
-        System.out.println("finalizing ConditionsObject " + System.identityHashCode(this));
-    }
+    //protected void finalize() {
+    //    System.out.println("finalizing ConditionsObject " + System.identityHashCode(this));
+    //}
 }
