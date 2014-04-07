@@ -120,6 +120,9 @@ public class TestRunEvioToLcio {
             String lcsimXmlName = cl.getOptionValue("x");
             if (cl.hasOption("r")) {
                 steeringStream = TestRunEvioToLcio.class.getResourceAsStream(lcsimXmlName);
+                if (steeringStream == null) {
+                    throw new RuntimeException("resource " + lcsimXmlName + " not found");
+                }
             } else {
                 try {
                     steeringStream = new FileInputStream(lcsimXmlName);
