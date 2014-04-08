@@ -42,6 +42,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     private double energyDistanceThreshold = 0.5;
     // maximum time difference between two clusters, in units of readout cycles (4 ns).
     private int pairCoincidence = 2;
+    private double originX = 1393.0 * Math.tan(0.03052); //ECal midplane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
     int allPairs;
     int oppositeQuadrantCount;
     int clusterEnergyCount;
@@ -124,6 +125,16 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     public void setPairCoincidence(int pairCoincidence) {
         this.pairCoincidence = pairCoincidence;
+    }
+
+    /**
+     * Set X coordinate used as the origin for cluster coplanarity and distance
+     * calculations. Defaults to the ECal midplane.
+     *
+     * @param originX
+     */
+    public void setOriginX(double originX) {
+        this.originX = originX;
     }
 
     @Override
@@ -512,10 +523,10 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     protected double getClusterAngle(HPSEcalCluster cluster) { //returns angle in range of -180 to 180
         double position[] = cluster.getSeedHit().getPosition();
-        return Math.toDegrees(Math.atan2(position[1], position[0]));
+        return Math.toDegrees(Math.atan2(position[1], position[0] - originX));
     }
 
     protected double getClusterDistance(HPSEcalCluster cluster) {
-        return Math.hypot(cluster.getSeedHit().getPosition()[0], cluster.getSeedHit().getPosition()[1]);
+        return Math.hypot(cluster.getSeedHit().getPosition()[0] - originX, cluster.getSeedHit().getPosition()[1]);
     }
 }
