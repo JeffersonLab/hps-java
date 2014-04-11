@@ -3,7 +3,7 @@
     <inputFiles>
     </inputFiles>
     <control>
-        <numberOfEvents>10000</numberOfEvents>
+        <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
@@ -27,7 +27,7 @@
                 type="org.hps.recon.tracking.gbl.GBLOutputDriver">
                 <debug>0</debug>
                 <isMC>${isMC}</isMC>
-                <gblFileName></gblFileName>
+                <gblFileName>gblinput.txt</gblFileName>
 	</driver>
 
 
