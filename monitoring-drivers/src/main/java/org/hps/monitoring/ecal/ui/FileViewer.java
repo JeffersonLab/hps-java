@@ -25,7 +25,12 @@ public class FileViewer extends ActiveViewer {
     // Map cluster location to a cluster object.
     private HashMap<Point, Cluster> clusterMap = new HashMap<Point, Cluster>();
     // Additional status display field names for this data type.
-    private static final String[] fieldNames = { "Shared Hits", "Component Hits", "Cluster Energy" };
+    private static final String[] fieldNames = { "Event Number", "Shared Hits", "Component Hits", "Cluster Energy" };
+    // Indices for the field values.
+    private static final int EVENT_NUMBER = 0;
+    private static final int SHARED_HITS = 1;
+    private static final int COMPONENT_HITS = 2;
+    private static final int CLUSTER_ENERGY = 3;
     
 	/**
 	 * <b>FileViewer</b><br/><br/>
@@ -49,6 +54,7 @@ public class FileViewer extends ActiveViewer {
     public void displayPreviousEvent() throws IOException { getEvent(false); }
     
     protected void updateStatusPanel() {
+    	// Update the superclass status fields.
     	super.updateStatusPanel();
     	
 		// Get the currently selected crystal.
@@ -67,8 +73,8 @@ public class FileViewer extends ActiveViewer {
 			// Otherwise, define the fields based on the cluster.
 			else {
 				// Get the shared and component hit counts.
-				setStatusField(fieldNames[0], Integer.toString(activeCluster.getSharedHitCount()));
-				setStatusField(fieldNames[1], Integer.toString(activeCluster.getComponentHitCount()));
+				setStatusField(fieldNames[SHARED_HITS], Integer.toString(activeCluster.getSharedHitCount()));
+				setStatusField(fieldNames[COMPONENT_HITS], Integer.toString(activeCluster.getComponentHitCount()));
 				
 				// Format the cluster energy, or account for it if it
 				// doesn't exist.
@@ -78,11 +84,14 @@ public class FileViewer extends ActiveViewer {
 					energy = formatter.format(activeCluster.getClusterEnergy());
 				}
 				else { energy = "---"; }
-				setStatusField(fieldNames[2], energy);
+				setStatusField(fieldNames[CLUSTER_ENERGY], energy);
 			}
 		}
 		// Otherwise, clear the field values.
 		else { for(String field : fieldNames) { setStatusField(field, StatusPanel.NULL_VALUE); } }
+    	
+    	// Set the event number.
+    	setStatusField(fieldNames[EVENT_NUMBER], Integer.toString(em.getEventNumber()));
     }
     
 	/**

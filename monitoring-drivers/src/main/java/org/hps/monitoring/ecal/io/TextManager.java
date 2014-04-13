@@ -65,6 +65,10 @@ public final class TextManager implements EventManager {
         open = false;
     }
     
+    public int getEventNumber() {
+    	return curEvent;
+    }
+    
     public ArrayList<Cluster> getClusters() {
         if (!open) { return null; }
         else { return clusterList; }

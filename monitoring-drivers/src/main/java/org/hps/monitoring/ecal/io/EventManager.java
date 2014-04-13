@@ -23,6 +23,14 @@ public interface EventManager {
      **/
 	public void close() throws IOException;
 	
+	/**
+	 * <b>getEventNumber</b><br/><br/>
+     * <code>public int <b>getEventNumber</b>()</code><br/><br/>
+     * Gets the ordinal number for the currently displayed event.
+	 * @return Returns the current event's ordinal number.
+	 */
+	public int getEventNumber();
+	
     /**
      * <b>getClusters</b><br/><br/>
      * <code>public ArrayList<Cluster> <b>getClusters</b>()</code><br/><br/>

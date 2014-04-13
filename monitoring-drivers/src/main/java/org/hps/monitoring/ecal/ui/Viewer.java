@@ -35,6 +35,10 @@ public abstract class Viewer extends JFrame {
     private ArrayList<CrystalListener> listenerList = new ArrayList<CrystalListener>();
     // The default field names.
     private static final String[] defaultFields = { "x Index", "y Index", "Cell Value" };
+    // Indices for the field values.
+    private static final int X_INDEX = 0;
+    private static final int Y_INDEX = 1;
+    private static final int CELL_VALUE = 2;
     
     /**
      * <b><statusPanel/b><br/><br/>
@@ -79,13 +83,13 @@ public abstract class Viewer extends JFrame {
         super();
         
         // Define the status panel fields and map them to indices.
-        String[] fields = new String[statusFields.length + 3];
+        String[] fields = new String[statusFields.length + defaultFields.length];
         for(int i = 0; i < defaultFields.length; i++) {
         	fields[i] = defaultFields[i];
         	fieldMap.put(defaultFields[i], i);
         }
         for(int i = 0; i < statusFields.length; i++) {
-        	int index = i + 3;
+        	int index = i + defaultFields.length;
         	fields[index] = statusFields[i];
         	fieldMap.put(statusFields[i], index);
         }
@@ -94,8 +98,8 @@ public abstract class Viewer extends JFrame {
         statusPanel = new StatusPanel(fields);
         
         // Set the scaling settings.
-        ecalPanel.setScaleMinimum(0.0001);
-        ecalPanel.setScaleMaximum(3000);
+        ecalPanel.setScaleMinimum(0.00001);
+        ecalPanel.setScaleMaximum(3);
         ecalPanel.setScalingLogarithmic();
         
         // Disable the crystals in the calorimeter panel along the beam gap.
@@ -285,11 +289,11 @@ public abstract class Viewer extends JFrame {
 		
 		// Otherwise, write the crystal's data to the panel.
 		else {
-			setStatusField(defaultFields[0], String.valueOf(toEcalX(crystal.x)));
-			setStatusField(defaultFields[1], String.valueOf(toEcalY(crystal.y)));
+			setStatusField(defaultFields[X_INDEX], String.valueOf(toEcalX(crystal.x)));
+			setStatusField(defaultFields[Y_INDEX], String.valueOf(toEcalY(crystal.y)));
 			DecimalFormat formatter = new DecimalFormat("0.####E0");
 			String energy = formatter.format(ecalPanel.getCrystalEnergy(crystal.x, crystal.y));
-			setStatusField(defaultFields[2], energy);
+			setStatusField(defaultFields[CELL_VALUE], energy);
 		}
 	}
     
