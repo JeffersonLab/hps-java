@@ -20,7 +20,6 @@ import org.lcsim.util.Driver;
  */
 public class EventDisplayOutputDriver extends Driver {
     private FileWriter writer;
-    private FileWriter hitsWriter;
     private int eventNum = 0;
     String ecalCollectionName = "EcalHits";
     String clusterCollectionName = "EcalClusters";
@@ -42,7 +41,6 @@ public class EventDisplayOutputDriver extends Driver {
         try {
             // Initialize the writer.
             writer = new FileWriter(outputFileName);
-            hitsWriter = new FileWriter("raw-hits.txt");
             
             // Clear the file.
             writer.write("");
@@ -54,7 +52,6 @@ public class EventDisplayOutputDriver extends Driver {
     public void endOfData() {
         try {
             // Close the file writer.
-            hitsWriter.close();
             writer.close();
         } catch (IOException e) {
             System.err.println("Error closing output file for event display.");
@@ -93,13 +90,12 @@ public class EventDisplayOutputDriver extends Driver {
         }
         
         try {
-            if(clusters.size() != 0) {
+            if(hits.size() != 0) {//if(clusters.size() != 0) {
                 // Increment the event number.
                 eventNum++;
                 
                 // Write the event header.
                 writer.append("Event\t" + eventNum + "\n");
-                hitsWriter.append("Event\t" + eventNum + "\n");
                 
                 // Process the calorimeter hits.
                 for (CalorimeterHit hit : hits) {
@@ -107,10 +103,10 @@ public class EventDisplayOutputDriver extends Driver {
                     int ix = hit.getIdentifierFieldValue("ix");
                     int iy = hit.getIdentifierFieldValue("iy");
                     double energy = hit.getRawEnergy();
+                    double time = hit.getTime();
                     
                     // Write the hit to the output file.
-                    writer.append(String.format("EcalHit\t%d\t%d\t%f%n", ix, iy, energy));
-                    hitsWriter.append(String.format("EcalHit\t%d\t%d\t%f%n", ix, iy, energy));
+                    writer.append(String.format("EcalHit\t%d\t%d\t%f\t%f%n", ix, iy, energy, time));
                 }
                 
                 // Process the clusters.
@@ -119,12 +115,13 @@ public class EventDisplayOutputDriver extends Driver {
                     HPSCalorimeterHit seedHit = (HPSCalorimeterHit)cluster.getSeedHit();
                     int ix = seedHit.getIdentifierFieldValue("ix");
                     int iy = seedHit.getIdentifierFieldValue("iy");
+                    double time = seedHit.getTime();
                     
                     // Get the cluster's total energy.
                     double energy = cluster.getEnergy();
                     
                     // Write the seed hit to start a cluster.
-                    writer.append(String.format("Cluster\t%d\t%d\t%f%n", ix, iy, energy));
+                    writer.append(String.format("Cluster\t%d\t%d\t%f\t%f%n", ix, iy, energy, time));
                     
                     // Write the component hits to the cluster.
                     for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
@@ -139,7 +136,6 @@ public class EventDisplayOutputDriver extends Driver {
                 
                 // Append the end of event indicator.
                 writer.append("EndEvent\n");
-                hitsWriter.append("EndEvent\n");
             }
         } catch(IOException e) {
             System.err.println("Error writing to output for event display.");
