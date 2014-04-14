@@ -15,10 +15,10 @@ public class DatabaseConditionsManagerTest extends TestCase {
         
         // Load data from every table registered with the manager.
         for (TableMetaData metaData : _conditionsManager.getTableMetaDataList()) {
-            System.out.println(">>>> loading conditions from table: " + metaData.getTableName());
+            System.out.println(">>>> loading conditions from table: " + metaData.getKey());
             ConditionsObjectCollection conditionsObjects = 
-                    _conditionsManager.getConditionsData(metaData.getCollectionClass(), metaData.getTableName());
+                    _conditionsManager.getConditionsData(metaData.getCollectionClass(), metaData.getKey());
             System.out.println("  " + conditionsObjects.getObjects().size() + " " + conditionsObjects.get(0).getClass().getSimpleName() + " objects were created.");
         }
-    }        
+    }
 }
