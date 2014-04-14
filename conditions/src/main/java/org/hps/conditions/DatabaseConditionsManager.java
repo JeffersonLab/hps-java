@@ -55,15 +55,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     static Logger logger = null;
     ConnectionParameters connectionParameters;
     Connection connection;
-    String conditionsTableName;
     boolean wasConfigured = false;
     boolean isConnected = false;
     
-    // FIXME: Prefer using the ConditionsManager's instance if possible.
-    static DatabaseConditionsManager instance; 
-
     /**
      * Class constructor, which is only package accessible.
+     * Users should call {@link #getInstance()} to access the manager.
      */
     DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
@@ -101,7 +98,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     void register() {
         ConditionsManager.setDefaultConditionsManager(this);
-        instance = this;
     }
 
     /**
@@ -110,7 +106,21 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The static instance of the manager.
      */
     public static DatabaseConditionsManager getInstance() {
-        return instance;
+        
+        // Perform default setup if necessary.
+        if (!ConditionsManager.isSetup()) {
+            DatabaseConditionsManager manager = new DatabaseConditionsManager();
+            manager.register();
+        }
+        
+        // Get the instance of the manager from the conditions system and 
+        // that the type is valid.
+        ConditionsManager manager = ConditionsManager.defaultInstance();
+        if (!(manager instanceof DatabaseConditionsManager)) {
+            throw new RuntimeException("The default ConditionsManager has the wrong type.");
+        }
+        
+        return (DatabaseConditionsManager)manager;
     }
     
     /**
@@ -137,6 +147,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         super.setDetector(detectorName, runNumber);
     }    
     
+    /**
+     * Perform setup for a new detector description.
+     * @param detectorName the name of the detector
+     */
     void setup(String detectorName) {
         if (baseReader instanceof BaseClasspathConditionsReader) {
             ((BaseClasspathConditionsReader)baseReader).setResourcePath(detectorName);
@@ -338,14 +352,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
     
     /**
-     * Get the name of the conditions table containing validity data.
-     * @return The name of the conditions table with validity data.
-     */
-    public String getConditionsTableName() {
-        return conditionsTableName;
-    }
-
-    /**
      * Find a collection of conditions validity records by key name.
      * The key name is distinct from the table name, but they are usually
      * set to the same value in the XML configuration.    
@@ -421,6 +427,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
     }
     
+    /**
+     * Check if connected to the database.
+     * @return true if connected
+     */
     private boolean isConnected() {
         return isConnected;
     }
@@ -476,15 +486,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         for (ConditionsConverter converter : converters) {
             registerConditionsConverter(converter);
             logger.config("registered converter " + converter.getClass().getSimpleName());
-        }
-        
-        // Find the mandatory converter for ConditionsRecord class which must be present in the configuration.
-        TableMetaData conditionsTableMetaData = findTableMetaData(ConditionsRecordCollection.class);
-        if (conditionsTableMetaData == null) {
-            throw new RuntimeException("No conditions converter found for ConditionsRecord type in the supplied configuration.");            
-        }
-        conditionsTableName = conditionsTableMetaData.getTableName();
-        logger.config("conditions validity table set to " + conditionsTableName);
+        }        
     }
     
     /**
@@ -541,11 +543,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     class TableMetaDataLoader {
 
-        @SuppressWarnings("unchecked")
         /**
          * This method expects an XML element containing child "table" elements.
          * @param element
          */
+        @SuppressWarnings("unchecked")
         void load(Element element) {
 
             tableMetaData = new ArrayList<TableMetaData>();
