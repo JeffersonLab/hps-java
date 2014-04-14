@@ -6,6 +6,7 @@ ecal_bad_channels \
 ecal_calibrations \
 ecal_channels \
 ecal_gains \
+ecal_time_shifts \
 svt_bad_channels \
 svt_bad_channels_scratch \
 svt_calibrations \
