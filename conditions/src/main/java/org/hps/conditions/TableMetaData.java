@@ -36,6 +36,7 @@ public class TableMetaData {
             String tableName, 
             Class<? extends ConditionsObject> objectClass, 
             Class<? extends ConditionsObjectCollection<?>> collectionClass) {
+        this.key = key;
         this.tableName = tableName;
         this.objectClass = objectClass;
         this.collectionClass = collectionClass;

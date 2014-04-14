@@ -43,10 +43,6 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */ 
-// FIXME: Run number is not being stored correctly.  System thinks it is a new run every time.  (see test 
-// Driver output)
-// FIXME: Seems to be precaching all conditions which should be avoided.
-// FIXME: Hangs process at end of job???
 @SuppressWarnings("rawtypes")
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
@@ -119,16 +115,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     /**
      * This method catches changes to the detector name and run number.    
+     * Somewhat unintuitively, this method is actually called every time
+     * an lcsim event is created, so it has internal logic to figure out
+     * if the conditions system actually needs to be updated.
      */
     @Override
-    // FIXME: Check if detectorName and runNumber are already the same.
-    // To add:
-    // 1) If run number changes then update.
-    // 2) If detector changes and run doesn't then this is an error.
-    public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
-        //System.out.println(this.getClass().getSimpleName() + ".setDetector called from...");
-        //new RuntimeException().printStackTrace();
-        
+    public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {        
         // Detector update.
         if (getDetector() == null || !getDetector().equals(detectorName)) {
             logger.config("setting new detector " + detectorName);
@@ -141,11 +133,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             this.runNumber = runNumber;
         }
         
-        // Let the super class do whatever it think it needs to do (???).
+        // Let the super class do whatever it think it needs to do.
         super.setDetector(detectorName, runNumber);
     }    
     
-    public void setup(String detectorName) {
+    void setup(String detectorName) {
         if (baseReader instanceof BaseClasspathConditionsReader) {
             ((BaseClasspathConditionsReader)baseReader).setResourcePath(detectorName);
             logger.config("set resource path " + detectorName + " on conditions reader");
@@ -238,7 +230,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
-    // TODO: If there are no collections that exist, this method should simply return the value '1'
+    // FIXME: If there are no collections that exist, this method should simply return the value '1'
     // or it could throw an exception.
     public int getNextCollectionId(String tableName) {
         TableMetaData tableData = findTableMetaData(tableName);
@@ -265,14 +257,15 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     /**
-     * Find a table's meta data.
+     * Find a table's meta data by key.
      * @param name The name of the table.
      * @return The table's meta data or null if does not exist.
      */
     public TableMetaData findTableMetaData(String name) {
         for (TableMetaData meta : tableMetaData) {
-            if (meta.getTableName().equals(name))
+            if (meta.getKey().equals(name)) {
                 return meta;
+            } 
         }
         return null;
     }
@@ -360,7 +353,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The set of matching conditions records.
      */
     public ConditionsRecordCollection findConditionsRecords(String name) {
-        ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, getConditionsTableName());
+        ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, TableConstants.CONDITIONS_RECORD);
         logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records ...");
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
         for (ConditionsRecord record : runConditionsRecords.getObjects()) {

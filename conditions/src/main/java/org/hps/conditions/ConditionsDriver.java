@@ -35,7 +35,6 @@ public class ConditionsDriver extends Driver {
      * default connection parameters and configuration.
      */
     public ConditionsDriver() {
-        System.out.println("ConditionsDriver.ctor");
         manager = new DatabaseConditionsManager();
         manager.setConnectionResource(_defaultConnectionResource);
         manager.configure(_defaultConfigResource);

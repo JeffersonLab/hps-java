@@ -16,7 +16,7 @@ public final class TableConstants {
     private TableConstants() {}
     
     /** Conditions key for ConditionsRecord. */
-    public static final String CONDITIONS_RECORD = "conditions_record";
+    public static final String CONDITIONS_RECORD = "conditions_records";
 
     /** Conditions key for combined ECal conditions. */
     public static final String ECAL_CONDITIONS = "ecal_conditions";

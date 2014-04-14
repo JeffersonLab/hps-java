@@ -20,13 +20,17 @@ public class ConditionsRecordConverter extends ConditionsObjectConverter<Conditi
      * @param name The name of the conditions set.
      * @return The matching ConditionsRecords.
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
                                 
         DatabaseConditionsManager databaseConditionsManager = getDatabaseConditionsManager(manager);
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
         
+        if (tableMetaData == null)
+            throw new RuntimeException("Failed to find meta data with key " + name);
+        
         String query = "SELECT * from " 
-                + name
+                + tableMetaData.getTableName()
                 + " WHERE "
                 + "run_start <= "
                 + manager.getRun()
