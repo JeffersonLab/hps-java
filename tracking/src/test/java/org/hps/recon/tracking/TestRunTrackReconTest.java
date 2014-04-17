@@ -21,6 +21,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
+import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
@@ -219,6 +220,7 @@ public class TestRunTrackReconTest extends TestCase {
             add(hth_driver);
             TrackerReconDriver track_recon_driver = new TrackerReconDriver();
             add(track_recon_driver);
+            add(new ReadoutCleanupDriver(Arrays.asList("TrackerHits")));
         }
 
     }
