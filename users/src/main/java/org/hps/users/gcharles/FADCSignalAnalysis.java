@@ -43,20 +43,15 @@ public class FADCSignalAnalysis extends Driver {
     public void startOfData() {
 
         add(readoutDriver);
-        readoutDriver.setCoincidenceWindow(2);
         readoutDriver.setEcalName("Ecal");
         readoutDriver.setEcalCollectionName("EcalHits");
         readoutDriver.setEcalRawCollectionName("EcalRawHits");
-        readoutDriver.setConstantTriggerWindow(true);
-        readoutDriver.setScaleFactor(1);
         readoutDriver.setFixedGain(1);
-        readoutDriver.setUseCRRCShape(false);
 
         add(converterDriver);
         converterDriver.setRawCollectionName("EcalRawHits");
         converterDriver.setEcalCollectionName("EcalCorrectedHits");
         converterDriver.setGain(1.0);
-        converterDriver.setUse2014Gain(true);
 
         super.startOfData();
     }
