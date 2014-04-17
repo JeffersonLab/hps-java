@@ -48,7 +48,7 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
     
     @Override
     public void detectorChanged(Detector detector) {
-        setBeamEnergy(getBeamEnergyFromDetector(detector));
+        setCutsFromBeamEnergy(getBeamEnergyFromDetector(detector));
     }
 
 
