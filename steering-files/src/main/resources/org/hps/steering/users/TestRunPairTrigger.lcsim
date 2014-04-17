@@ -60,7 +60,7 @@
             <eventInterval>1000</eventInterval>
         </driver>
         
-        <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <noPileup>true</noPileup>
         </driver>
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>

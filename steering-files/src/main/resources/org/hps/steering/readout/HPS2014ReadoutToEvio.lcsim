@@ -66,7 +66,7 @@
             <pairCoincidence>2</pairCoincidence>
             <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	
-        <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
         </driver>
 
 <!--        <driver name="AidaSaveDriver"

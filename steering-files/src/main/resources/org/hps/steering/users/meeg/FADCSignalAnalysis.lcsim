@@ -51,7 +51,7 @@
             <deadTime>10</deadTime>
             <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	
-        <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
         </driver>
 
 <!--        <driver name="SVTReadout" type="org.hps.recon.tracking.apv25.SvtReadout">
