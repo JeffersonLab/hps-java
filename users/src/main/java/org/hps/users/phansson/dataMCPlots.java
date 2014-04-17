@@ -4,15 +4,28 @@
  */
 package org.hps.users.phansson;
 
-import hep.aida.*;
-import hep.aida.ref.plotter.Plotter;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IDataPointSet;
+import hep.aida.IDataPointSetFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IPlotter;
+import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.lcsim.util.aida.AIDA;
 
 /**

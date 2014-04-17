@@ -2,6 +2,7 @@ package org.hps.users.ngraf;
 
 import java.util.Map;
 import java.util.Set;
+
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;

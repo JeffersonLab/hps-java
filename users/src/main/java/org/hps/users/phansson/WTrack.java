@@ -7,8 +7,7 @@ package org.hps.users.phansson;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 

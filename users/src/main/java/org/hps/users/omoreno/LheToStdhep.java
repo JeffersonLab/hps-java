@@ -1,6 +1,11 @@
 package org.hps.users.omoreno;
 
 
+import hep.io.stdhep.StdhepEvent;
+import hep.io.stdhep.StdhepWriter;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -11,19 +16,12 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-
 import org.lcsim.detector.IRotation3D;
 import org.lcsim.detector.RotationGeant;
-
-import hep.io.stdhep.StdhepEvent;
-import hep.io.stdhep.StdhepWriter;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
 
 /**
  * A class to convert LHE events to Stdhep.

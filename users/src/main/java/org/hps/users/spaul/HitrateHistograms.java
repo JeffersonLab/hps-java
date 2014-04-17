@@ -8,23 +8,14 @@ import hep.aida.IPlotterFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.EventHeader.LCMetaData;
-import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.util.IDDecoder;
 import org.lcsim.geometry.util.IDDescriptor;
 import org.lcsim.geometry.util.IDDescriptor.IDException;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.lcio.SIOSimCalorimeterHit;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.util.Driver;
 
 public class HitrateHistograms extends Driver{

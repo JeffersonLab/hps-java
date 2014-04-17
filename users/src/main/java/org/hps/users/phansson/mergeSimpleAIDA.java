@@ -1,13 +1,26 @@
 package org.hps.users.phansson;
 
-import hep.aida.*;
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.IManagedObject;
+import hep.aida.ITree;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.lcsim.util.aida.AIDA;
 
 /**

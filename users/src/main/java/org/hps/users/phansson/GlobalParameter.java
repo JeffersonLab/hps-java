@@ -5,7 +5,6 @@
 package org.hps.users.phansson;
 
 import hep.physics.matrix.BasicMatrix;
-import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 
 /**

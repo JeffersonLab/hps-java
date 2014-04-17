@@ -1,10 +1,12 @@
 package org.hps.users.meeg;
 
 import hep.physics.event.generator.MCEvent;
-import java.io.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;

@@ -1,5 +1,8 @@
 package org.lcsim.hps.users.ngraf;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IPlotter;
+
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,12 +19,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-
-import hep.aida.IAnalysisFactory;
-import hep.aida.IPlotter;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 /**
  *

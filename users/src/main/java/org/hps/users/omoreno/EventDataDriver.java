@@ -6,9 +6,9 @@ import java.util.List;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.util.Driver;
-import org.lcsim.event.LCRelation; 
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.util.Driver;
 
 
 public class EventDataDriver extends Driver {

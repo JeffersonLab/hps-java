@@ -7,6 +7,7 @@ package org.hps.users.meeg;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.geometry.Detector;

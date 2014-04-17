@@ -5,8 +5,12 @@
 package org.hps.users.phansson;
 
 import hep.physics.matrix.BasicMatrix;
-import hep.physics.matrix.MatrixOp;
-import hep.physics.vec.*;
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Matrix;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
