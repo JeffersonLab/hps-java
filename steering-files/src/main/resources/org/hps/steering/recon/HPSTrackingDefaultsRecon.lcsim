@@ -17,13 +17,14 @@
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver"/>
         <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
     </execute>
     
     <drivers>
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
 
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
+            <!--            <runNumber>1351</runNumber>    -->
         </driver>
 
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
@@ -57,6 +58,7 @@
                 type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
-                                                                    
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+         
     </drivers>
 </lcsim>

@@ -2,14 +2,12 @@ package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.SeedTrackerDiagnostics;
@@ -34,8 +32,6 @@ public final class TrackerReconDriver extends Driver {
     Detector detector = null;
     // Default B-field value.
     private double bfield = 0.5;
-    // TrackerHit readout name for readout cleanup.
-    private String trackerReadoutName = "TrackerHits";
     // Tracking strategies resource path.
     private String strategyResource = "HPS-Test-4pt1.xml";
     // Output track collection.
@@ -147,11 +143,6 @@ public final class TrackerReconDriver extends Driver {
         // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
-
-        //
-        // 2) Cleanup the readouts for next event.
-        //
-        add(new ReadoutCleanupDriver(Arrays.asList(this.trackerReadoutName)));
     }
 
     /**

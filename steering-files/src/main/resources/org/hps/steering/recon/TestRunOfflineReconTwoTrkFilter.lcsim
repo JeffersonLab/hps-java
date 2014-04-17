@@ -11,11 +11,12 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="TwoTrackFilter"/>
-   
+        <driver name="CleanupDriver"/>
+
     </execute>    
     <drivers>    
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>${runNumber}</runNumber>-->
+            <!--            <runNumber>${runNumber}</runNumber>-->
         </driver>   
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
@@ -46,8 +47,10 @@
         </driver>
         <driver name="TwoTrackFilter" 
                 type="org.hps.util.TwoTrackFilterDriver">
-                <debug>false</debug>
-                <outputFilePath>${outputFile}</outputFilePath>
-	</driver>
+            <debug>false</debug>
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+
     </drivers>
 </lcsim>

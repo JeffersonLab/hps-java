@@ -18,6 +18,7 @@
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />        
         <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
@@ -54,5 +55,6 @@
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>

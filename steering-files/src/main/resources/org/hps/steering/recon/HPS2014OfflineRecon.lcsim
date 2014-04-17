@@ -16,7 +16,9 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />        
+        <driver name="GBLDriver"/> 
         <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
@@ -42,6 +44,12 @@
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         </driver>        
+        <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+            <debug>0</debug>
+            <isMC>false</isMC>
+            <gblFileName></gblFileName>
+        </driver>
+
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
@@ -55,5 +63,6 @@
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>

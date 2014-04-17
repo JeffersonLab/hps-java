@@ -19,6 +19,7 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
 	    <driver name="GBLDriver"/> 
+        <driver name="CleanupDriver"/>
     </execute>    
 
     <drivers>
@@ -68,10 +69,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
 
-
- 
-       
-
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
     </drivers>   
 </lcsim>
