@@ -32,6 +32,7 @@
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
         </driver>
         <driver name="EcalClusterer"
                 type="org.hps.recon.ecal.EcalClusterer">

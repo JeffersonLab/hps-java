@@ -16,9 +16,6 @@
         
         <driver name="SimpleSVTReadout"/>
 
-<!--        <driver name="SVTReadout"/>
-        <driver name="Digitization"/>
-        <driver name="DataProcessing"/>-->
         <driver name="TestRunReconToEvio"/>
 
         <!--<driver name="AidaSaveDriver"/>-->
@@ -43,11 +40,9 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
-            <constantTriggerWindow>true</constantTriggerWindow>
-            <scaleFactor>1</scaleFactor>
+            <addNoise>true</addNoise>
 <!--            <fixedGain>0.15</fixedGain>-->
 <!--            <debug>true</debug>-->
-            <useCRRCShape>false</useCRRCShape>
         </driver>
 
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
@@ -73,22 +68,6 @@
         </driver>	
         <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
         </driver>
-
-<!--        <driver name="SVTReadout" type="org.hps.recon.tracking.apv25.SvtReadout">
-            <debug>false</debug>
-            <pedestalRun>false</pedestalRun>
-            <triggerLatencyTime>240</triggerLatencyTime>
-        </driver>
-        
-        <driver name="Digitization" type="org.hps.recon.tracking.apv25.RearTransitionModule" />
-
-        <driver name="DataProcessing" type="org.hps.recon.tracking.apv25.TestRunDataProcessingModule" >
-            <enablePileUpCut>true</enablePileUpCut>
-            <enableThresholdCut>true</enableThresholdCut>
-            <noiseThreshold>2</noiseThreshold>
-            <numberOfSamplesAboveThreshold>3</numberOfSamplesAboveThreshold>
-            <numberOfSamplesToReadOut>6</numberOfSamplesToReadOut>
-        </driver>-->
 
 <!--        <driver name="AidaSaveDriver"
                         type="org.lcsim.job.AidaSaveDriver">

@@ -35,6 +35,7 @@
             <rawCollectionName>EcalIntegralHits</rawCollectionName>
             <integralWindow>35</integralWindow>
             <gain>1.0</gain>
+            <use2014Gain>false</use2014Gain>
         </driver>
         <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">
         </driver>

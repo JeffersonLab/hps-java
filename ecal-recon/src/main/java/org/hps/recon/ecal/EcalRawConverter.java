@@ -16,7 +16,7 @@ public class EcalRawConverter {
     private boolean debug = false;
     private boolean constantGain = false;
     private double gain;
-    private boolean use2014Gain = false;
+    private boolean use2014Gain = true;
 
     public EcalRawConverter() {
     }

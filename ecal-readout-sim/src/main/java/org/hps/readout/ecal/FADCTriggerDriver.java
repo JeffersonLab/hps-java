@@ -31,15 +31,15 @@ public class FADCTriggerDriver extends TriggerDriver {
     int totalEvents;
     protected double beamEnergy = 2.2 * ECalUtils.GeV;
     private int minHitCount = 1;
-    private double clusterEnergyHigh = 1.85 / 2.2;
-    private double clusterEnergyLow = .1 / 2.2;
-    private double energySumThreshold = 1.0;
-    private double energyDifferenceThreshold = 1.5 / 2.2;
+    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;
+    private double clusterEnergyLow = .1 * ECalUtils.GeV;
+    private double energySumThreshold = 2.2 * ECalUtils.GeV;
+    private double energyDifferenceThreshold = 1.5 * ECalUtils.GeV;
     private double maxCoplanarityAngle = 35; // degrees
 //    private double energyDistanceDistance = 250; // mm
 //    private double energyDistanceThreshold = 0.8 / 2.2;
     private double energyDistanceDistance = 200; // mm
-    private double energyDistanceThreshold = 0.5;
+    private double energyDistanceThreshold = 0.5; // unitless fraction
     // maximum time difference between two clusters, in units of readout cycles (4 ns).
     private int pairCoincidence = 2;
     private double originX = 1393.0 * Math.tan(0.03052); //ECal midplane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
@@ -88,21 +88,21 @@ public class FADCTriggerDriver extends TriggerDriver {
         if (beamEnergy == 1.1) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 1.1 GeV beam");
             maxCoplanarityAngle = 90;
-            clusterEnergyHigh = .7 / beamEnergy;
-            clusterEnergyLow = .1 / beamEnergy;
-            energySumThreshold = 0.8 / beamEnergy;
+            clusterEnergyHigh = .7;
+            clusterEnergyLow = .1;
+            energySumThreshold = 0.8;
         } else if (beamEnergy == 2.2) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 2.2 GeV beam");
-            maxCoplanarityAngle = 45;
-            clusterEnergyHigh = 1.6 / beamEnergy;
-            clusterEnergyLow = .1 / beamEnergy;
-            energySumThreshold = 1.7 / beamEnergy;
+            maxCoplanarityAngle = 35;
+            clusterEnergyHigh = 1.5;
+            clusterEnergyLow = .1;
+            energySumThreshold = 1.9;
         } else if (beamEnergy == 6.6) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 6.6 GeV beam");
             maxCoplanarityAngle = 60;
-            clusterEnergyHigh = 5.0 / beamEnergy;
-            clusterEnergyLow = .1 / beamEnergy;
-            energySumThreshold = 5.5 / beamEnergy;
+            clusterEnergyHigh = 5.0;
+            clusterEnergyLow = .1;
+            energySumThreshold = 5.5;
         }
         this.beamEnergy = beamEnergy * ECalUtils.GeV;
     }
@@ -129,7 +129,7 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     /**
      * Set X coordinate used as the origin for cluster coplanarity and distance
-     * calculations. Defaults to the ECal midplane.
+     * calculations. Defaults to the ECal midplane. Units of mm.
      *
      * @param originX
      */
@@ -455,10 +455,10 @@ public class FADCTriggerDriver extends TriggerDriver {
      * @return true if a pair is found, false otherwise
      */
     protected boolean clusterECut(HPSEcalCluster[] clusterPair) {
-        return (clusterPair[0].getEnergy() < beamEnergy * clusterEnergyHigh
-                && clusterPair[1].getEnergy() < beamEnergy * clusterEnergyHigh
-                && clusterPair[0].getEnergy() > beamEnergy * clusterEnergyLow
-                && clusterPair[1].getEnergy() > beamEnergy * clusterEnergyLow);
+        return (clusterPair[0].getEnergy() < clusterEnergyHigh
+                && clusterPair[1].getEnergy() < clusterEnergyHigh
+                && clusterPair[0].getEnergy() > clusterEnergyLow
+                && clusterPair[1].getEnergy() > clusterEnergyLow);
     }
 
     /**
@@ -470,7 +470,7 @@ public class FADCTriggerDriver extends TriggerDriver {
      */
     protected boolean energySum(Cluster[] clusterPair) {
         double clusterESum = clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
-        return (clusterESum < beamEnergy * energySumThreshold);
+        return (clusterESum < energySumThreshold);
     }
 
     /**
@@ -483,7 +483,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     protected boolean energyDifference(HPSEcalCluster[] clusterPair) {
         double clusterEDifference = clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
 
-        return (clusterEDifference < beamEnergy * energyDifferenceThreshold);
+        return (clusterEDifference < energyDifferenceThreshold);
     }
 
     /**

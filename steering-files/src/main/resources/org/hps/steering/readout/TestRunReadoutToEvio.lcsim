@@ -4,7 +4,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-<!--        <driver name="EventMarkerDriver"/>-->
+        <driver name="EventMarkerDriver"/>
         <driver name="CalibrationDriver"/>   
         <driver name="BadChannelFilter" />
         <driver name="EcalReadout"/>
@@ -13,18 +13,15 @@
         <driver name="EcalClusterer"/>
         <driver name="EcalTrigger"/>
         <driver name="SimpleSVTReadout"/>
-<!--        <driver name="SVTReadout"/>
-        <driver name="Digitization"/>
-        <driver name="DataProcessing"/>-->
         <driver name="ClockDriver"/>
         <driver name="TestRunReconToEvio"/>
         <driver name="CleanupDriver"/>
     </execute> 
 
     <drivers>
-        <!--<driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver> -->
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver> 
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>    -->
         </driver>
@@ -37,10 +34,14 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <constantTriggerWindow>false</constantTriggerWindow>
+            <scaleFactor>128</scaleFactor>
             <triggerThreshold>80</triggerThreshold>
             <readoutThreshold>50</readoutThreshold>
             <pePerMeV>2.0</pePerMeV>
-            <useCRRCShape>true</useCRRCShape>
+            <use2014Gain>false</use2014Gain>
+            <pulseShape>CRRC</pulseShape>
+            <tp>14.0</tp>
         </driver>
 
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalConverterDriver">
@@ -67,22 +68,6 @@
         </driver>	
         <driver name="SimpleSVTReadout" type="org.hps.recon.tracking.SimpleSvtReadout">
         </driver>
-
-<!--        <driver name="SVTReadout" type="org.hps.recon.tracking.apv25.SvtReadout">
-            <debug>false</debug>
-            <pedestalRun>false</pedestalRun>
-            <triggerLatencyTime>288</triggerLatencyTime>
-        </driver>
-        
-        <driver name="Digitization" type="org.hps.recon.tracking.apv25.RearTransitionModule" />
-
-        <driver name="DataProcessing" type="org.hps.recon.tracking.apv25.TestRunDataProcessingModule" >
-            <enablePileUpCut>true</enablePileUpCut>
-            <enableThresholdCut>true</enableThresholdCut>
-            <noiseThreshold>2</noiseThreshold>
-            <numberOfSamplesAboveThreshold>3</numberOfSamplesAboveThreshold>
-            <numberOfSamplesToReadOut>6</numberOfSamplesToReadOut>
-        </driver>-->
 
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">

@@ -31,6 +31,7 @@
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>false</use2014Gain>
 <!--            <dropBadFADC>true</dropBadFADC>-->
         </driver>
         <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">

@@ -33,6 +33,7 @@
         </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
+            <rejectBackground>true</rejectBackground>
         </driver>
 			
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
@@ -70,7 +71,7 @@
         </driver>
 
         <driver name="AidaSaveDriver"
-                type="org.lcsim.job.AidaSaveDriver">
+                        type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
         </driver>
 
