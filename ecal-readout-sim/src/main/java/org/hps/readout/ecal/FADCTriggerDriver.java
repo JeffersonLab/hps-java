@@ -29,13 +29,14 @@ public class FADCTriggerDriver extends TriggerDriver {
 
     int nTriggers;
     int totalEvents;
-    protected double beamEnergy = 2.2 * ECalUtils.GeV;
+    protected double beamEnergy = -1; //by default, get beam energy from detector name
     private int minHitCount = 1;
-    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;
+    private boolean useDefaultCuts = true;
+    private double clusterEnergyHigh = 2.2 * ECalUtils.GeV;
     private double clusterEnergyLow = .1 * ECalUtils.GeV;
     private double energySumThreshold = 2.2 * ECalUtils.GeV;
-    private double energyDifferenceThreshold = 1.5 * ECalUtils.GeV;
-    private double maxCoplanarityAngle = 35; // degrees
+    private double energyDifferenceThreshold = 2.2 * ECalUtils.GeV;
+    private double maxCoplanarityAngle = 90; // degrees
 //    private double energyDistanceDistance = 250; // mm
 //    private double energyDistanceThreshold = 0.8 / 2.2;
     private double energyDistanceDistance = 200; // mm
@@ -84,27 +85,29 @@ public class FADCTriggerDriver extends TriggerDriver {
         this.clusterCollectionName = clusterCollectionName;
     }
 
-    public void setBeamEnergy(double beamEnergy) {
+    public void setCutsFromBeamEnergy(double beamEnergy) {
         if (beamEnergy == 1.1) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 1.1 GeV beam");
             maxCoplanarityAngle = 90;
-            clusterEnergyHigh = .7;
-            clusterEnergyLow = .1;
-            energySumThreshold = 0.8;
+            clusterEnergyHigh = .7 * ECalUtils.GeV;
+            clusterEnergyLow = .1 * ECalUtils.GeV;
+            energySumThreshold = 0.8 * ECalUtils.GeV;
+            energyDifferenceThreshold = beamEnergy;
         } else if (beamEnergy == 2.2) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 2.2 GeV beam");
             maxCoplanarityAngle = 35;
-            clusterEnergyHigh = 1.5;
-            clusterEnergyLow = .1;
-            energySumThreshold = 1.9;
+            clusterEnergyHigh = 1.5 * ECalUtils.GeV;
+            clusterEnergyLow = .1 * ECalUtils.GeV;
+            energySumThreshold = 1.9 * ECalUtils.GeV;
+            energyDifferenceThreshold = beamEnergy;
         } else if (beamEnergy == 6.6) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 6.6 GeV beam");
             maxCoplanarityAngle = 60;
-            clusterEnergyHigh = 5.0;
-            clusterEnergyLow = .1;
-            energySumThreshold = 5.5;
+            clusterEnergyHigh = 5.0 * ECalUtils.GeV;
+            clusterEnergyLow = .1 * ECalUtils.GeV;
+            energySumThreshold = 5.5 * ECalUtils.GeV;
+            energyDifferenceThreshold = beamEnergy;
         }
-        this.beamEnergy = beamEnergy * ECalUtils.GeV;
     }
 
     protected double getBeamEnergyFromDetector(Detector detector) {
@@ -137,9 +140,107 @@ public class FADCTriggerDriver extends TriggerDriver {
         this.originX = originX;
     }
 
+    /**
+     * Used for plot ranges and cuts that scale with energy. 1.1, 2.2 and 6.6
+     * are associated with default cuts. Units of GeV.
+     *
+     * @param beamEnergy
+     */
+    public void setBeamEnergy(double beamEnergy) {
+        this.beamEnergy = beamEnergy;
+    }
+
+    /**
+     * Use default cuts based on beam energy.
+     *
+     * @param useDefaultCuts
+     */
+    public void setUseDefaultCuts(boolean useDefaultCuts) {
+        this.useDefaultCuts = useDefaultCuts;
+    }
+
+    /**
+     * Minimum hit count for a cluster.
+     *
+     * @param minHitCount
+     */
+    public void setMinHitCount(int minHitCount) {
+        this.minHitCount = minHitCount;
+    }
+
+    /**
+     * Maximum energy for a cluster. Units of GeV.
+     *
+     * @param clusterEnergyHigh
+     */
+    public void setClusterEnergyHigh(double clusterEnergyHigh) {
+        this.clusterEnergyHigh = clusterEnergyHigh * ECalUtils.GeV;
+    }
+
+    /**
+     * Minimum energy for a cluster. Units of GeV.
+     *
+     * @param clusterEnergyLow
+     */
+    public void setClusterEnergyLow(double clusterEnergyLow) {
+        this.clusterEnergyLow = clusterEnergyLow * ECalUtils.GeV;
+    }
+
+    /**
+     * Maximum energy sum of the two clusters in a pair. Units of GeV.
+     *
+     * @param energySumThreshold
+     */
+    public void setEnergySumThreshold(double energySumThreshold) {
+        this.energySumThreshold = energySumThreshold * ECalUtils.GeV;
+    }
+
+    /**
+     * Maximum energy difference between the two clusters in a pair. Units of
+     * GeV.
+     *
+     * @param energyDifferenceThreshold
+     */
+    public void setEnergyDifferenceThreshold(double energyDifferenceThreshold) {
+        this.energyDifferenceThreshold = energyDifferenceThreshold * ECalUtils.GeV;
+    }
+
+    /**
+     * Maximum deviation from coplanarity for the two clusters in a pair. Units
+     * of degrees.
+     *
+     * @param maxCoplanarityAngle
+     */
+    public void setMaxCoplanarityAngle(double maxCoplanarityAngle) {
+        this.maxCoplanarityAngle = maxCoplanarityAngle;
+    }
+
+    /**
+     * Distance threshold for the energy-distance cut. Units of mm.
+     *
+     * @param energyDistanceDistance
+     */
+    public void setEnergyDistanceDistance(double energyDistanceDistance) {
+        this.energyDistanceDistance = energyDistanceDistance;
+    }
+
+    /**
+     * Energy threshold for the energy-distance cut. Units of the beam energy.
+     *
+     * @param energyDistanceThreshold
+     */
+    public void setEnergyDistanceThreshold(double energyDistanceThreshold) {
+        this.energyDistanceThreshold = energyDistanceThreshold;
+    }
+
     @Override
     public void detectorChanged(Detector detector) {
-        setBeamEnergy(this.getBeamEnergyFromDetector(detector));
+        if (beamEnergy < 0) {
+            beamEnergy = this.getBeamEnergyFromDetector(detector);
+        }
+        if (useDefaultCuts) {
+            setCutsFromBeamEnergy(beamEnergy);
+        }
 
         clusterHitCount2DAll = aida.histogram2D("All cluster pairs: hit count (less energetic vs. more energetic)", 9, 0.5, 9.5, 9, 0.5, 9.5);
         clusterSumDiff2DAll = aida.histogram2D("All cluster pairs: energy difference vs. sum", 100, 0.0, 2 * beamEnergy, 100, 0.0, beamEnergy);
