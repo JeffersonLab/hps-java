@@ -205,7 +205,7 @@ public class EcalClusterIC extends Driver {
             
         	Collections.sort(neighborHits2, new EnergyComparator());
         	for(CalorimeterHit neighbor : neighborHits2){
-        		if(neighbor.getCorrectedEnergy()<nHit.getCorrectedEnergy()){
+        		if(clusterHits.containsKey(nHit) && neighbor.getCorrectedEnergy()<nHit.getCorrectedEnergy()){
         			CalorimeterHit seed = clusterHits.get(nHit);
 					clusterHits.put(neighbor, seed);
 					clusterHitList.add(neighbor);
@@ -231,7 +231,7 @@ public class EcalClusterIC extends Driver {
             	
             	CalorimeterHit compSeed = clusterHits.get(mHit);
             	for(CalorimeterHit neighbor : neighborHits3){
-            		if(clusterHits.get(neighbor)!=compSeed){//borders clusters
+            		if(clusterHits.containsKey(neighbor) && clusterHits.get(neighbor)!=compSeed){//borders clusters
             			if(mHit.getCorrectedEnergy() < neighbor.getCorrectedEnergy()){
             				//add to common hits, 
             				List<CalorimeterHit> commonHitList = new ArrayList<CalorimeterHit>();
