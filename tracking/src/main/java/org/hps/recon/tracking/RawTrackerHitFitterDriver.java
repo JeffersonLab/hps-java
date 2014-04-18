@@ -11,15 +11,16 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
 
 /**
- * 
+ *
  * @author Matt Graham
  */
 // TODO: Add class documentation.
 public class RawTrackerHitFitterDriver extends Driver {
-
+    
     private boolean debug = false;
     private ShaperFitAlgorithm _shaper = new DumbShaperFit();
     private String rawHitCollectionName = "SVTRawTrackerHits";
@@ -30,28 +31,33 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean correctT0Shift = false;
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
+    private boolean subtractTOF = false;
 
     /**
      * Report time relative to the nearest expected truth event time.
-     * 
+     *
      * @param useTruthTime
      */
     public void setUseTruthTime(boolean useTruthTime) {
         this.useTruthTime = useTruthTime;
     }
-
+    
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
-
+    
     public void setCorrectT0Shift(boolean correctT0Shift) {
         this.correctT0Shift = correctT0Shift;
     }
-
+    
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
     }
-
+    
+    public void setSubtractTOF(boolean subtractTOF) {
+        this.subtractTOF = subtractTOF;
+    }
+    
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic")) {
             _shaper = new ShaperAnalyticFitAlgorithm();
@@ -59,33 +65,33 @@ public class RawTrackerHitFitterDriver extends Driver {
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
         }
     }
-
+    
     public void setFitCollectionName(String fitCollectionName) {
         this.fitCollectionName = fitCollectionName;
     }
-
+    
     public void setFittedHitCollectionName(String fittedHitCollectionName) {
         this.fittedHitCollectionName = fittedHitCollectionName;
     }
-
+    
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
-
+    
     @Override
     public void startOfData() {
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
     }
-
+    
     @Override
     public void process(EventHeader event) {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
         }
-
+        
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
         if (rawHits == null) {
             throw new RuntimeException("Event is missing SVT hits collection!");
@@ -101,6 +107,10 @@ public class RawTrackerHitFitterDriver extends Driver {
             if (correctT0Shift) {
                 fit.setT0(fit.getT0() - constants.getT0Shift());
             }
+            if (subtractTOF) {
+                double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
+                fit.setT0(fit.getT0() - tof);
+            }
             if (useTimestamps) {
                 double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                 double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event);
@@ -111,7 +121,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                 double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                 double absoluteHitTime = fit.getT0() + t0Svt;
                 double relativeHitTime = ((absoluteHitTime + 250.0) % 500.0) - 250.0;
-
+                
                 fit.setT0(relativeHitTime);
             }
             if (debug) {

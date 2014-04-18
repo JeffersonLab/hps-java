@@ -46,7 +46,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private Map<SiSensor, PriorityQueue<StripHit>[]> hitMap = new HashMap<SiSensor, PriorityQueue<StripHit>[]>();
     // readout period time offset in ns
     private double readoutOffset = 0.0;
-    private double readoutLatency = 240.0;
+    private double readoutLatency = 280.0;
     private double pileupCutoff = 300.0;
     private String readout = "TrackerHits";
     private double timeOffset = 30.0;
@@ -90,6 +90,10 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     public void setDropBadChannels(boolean dropBadChannels) {
         this.dropBadChannels = dropBadChannels;
+    }
+
+    public void setReadoutLatency(double readoutLatency) {
+        this.readoutLatency = readoutLatency;
     }
 
     /**

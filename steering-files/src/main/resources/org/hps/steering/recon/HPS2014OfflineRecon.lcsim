@@ -4,7 +4,7 @@
   @version $Id: HPS2014OfflineRecon.lcsim,v 1.7 2013/10/30 16:23:32 phansson Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="CalibrationDriver"/>
@@ -22,7 +22,7 @@
     </execute>    
     <drivers>    
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>${runNumber}</runNumber>-->
+            <!--            <runNumber>${runNumber}</runNumber>-->
         </driver>   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
@@ -42,6 +42,7 @@
             <tolerance>1.0</tolerance>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <strategyResource>HPS-Full.xml</strategyResource>
             <debug>false</debug>
         </driver>        
         <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
