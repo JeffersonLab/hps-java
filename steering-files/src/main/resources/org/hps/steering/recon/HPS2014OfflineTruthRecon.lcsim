@@ -38,7 +38,7 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>8.0</clusterTimeCut>
+            <clusterTimeCut>16.0</clusterTimeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
