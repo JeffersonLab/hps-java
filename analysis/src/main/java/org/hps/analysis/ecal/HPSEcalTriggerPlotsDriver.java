@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.hps.readout.ecal.TriggerDriver;
 import org.hps.recon.ecal.ECalUtils;
+import static org.hps.recon.ecal.ECalUtils.maxVolt;
+import static org.hps.recon.ecal.ECalUtils.nBit;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -41,9 +43,8 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     IHistogram2D triggerClusterHitXYPlot;
     IHistogram2D triggerSeedHitXYPlot;
     
-    private int coincidenceWindow = 2;
-    private double tp = 14.0;
-    private double threshold = 50 * 10 * 0.15 * ECalUtils.MeV;
+    private double tp = 6.95;
+    private double threshold = 10; //ADC counts
 
     public void setEcalCollectionName(String ecalCollectionName) {
         this.ecalCollectionName = ecalCollectionName;
@@ -102,7 +103,7 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
             // is over the current energy threshold/
             for(int e = 0; e < energyCut.length; e++) {
             	if(energy > energyCut[e] * ECalUtils.MeV) {
-            		hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy, 1.0 / coincidenceWindow);
+            		hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy);
             	}
             }
             
@@ -112,7 +113,7 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
                 if (hit.getRawEnergy() * pulseAmplitude(time) > threshold) { deadTime += 1e-6; } // units of milliseconds
                 else if (time > 2 * tp || deadTime != 0) { break; }
             }
-            crystalDeadTime.fill(ix - 0.5 * Math.signum(ix), iy, deadTime / coincidenceWindow);
+            crystalDeadTime.fill(ix - 0.5 * Math.signum(ix), iy, deadTime);
         }
         
         // Check the trigger bit.
@@ -150,6 +151,6 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     
     private double pulseAmplitude(double time) {
         if (time <= 0.0) { return 0.0; }
-        return (time / tp) * Math.exp(1.0 - time / tp);
+        return ECalUtils.readoutGain * ((time * time / (2 * tp * tp * tp)) * Math.exp(-time / tp)) * ((Math.pow(2, nBit) - 1) / maxVolt);
     }
 }
