@@ -2,6 +2,7 @@ package org.hps.readout.ecal;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import java.io.IOException;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     IHistogram2D clusterHitCount2DAll, clusterEnergy2DAll, clusterSumDiff2DAll, energyDistance2DAll, clusterAngles2DAll, clusterCoplanarity2DAll;
     IHistogram2D clusterHitCount2D, clusterEnergy2D, clusterSumDiff2D, energyDistance2D, clusterAngles2D, clusterCoplanarity2D;
     IHistogram1D triggerBits1D, triggerTimes1D;
+    IHistogram2D clusterSeeds, trigClusterSeeds;
     int truthPeriod = 250;
     private boolean useQuadrants = false;
     protected String clusterCollectionName = "EcalClusters";
@@ -62,6 +64,7 @@ public class FADCTriggerDriver extends TriggerDriver {
     // Each list corresponds to one readout cycle.
     private Queue<List<HPSEcalCluster>> topClusterQueue = null;
     private Queue<List<HPSEcalCluster>> botClusterQueue = null;
+    PrintWriter pairWriter;
 
     private enum Flag {
 
@@ -233,6 +236,13 @@ public class FADCTriggerDriver extends TriggerDriver {
         this.energyDistanceThreshold = energyDistanceThreshold;
     }
 
+    public void setPairFile(String pairFile) {
+        try {
+            pairWriter = new PrintWriter(pairFile);
+        } catch (IOException e) {
+        }
+    }
+
     @Override
     public void detectorChanged(Detector detector) {
         if (beamEnergy < 0) {
@@ -258,6 +268,9 @@ public class FADCTriggerDriver extends TriggerDriver {
 
         triggerBits1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger bits", 33, -1.5, 31.5);
         triggerTimes1D = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName + " : trigger times", truthPeriod, -0.5, truthPeriod - 0.5);
+
+        clusterSeeds = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollectionName + " : Cluster seeds", 46, -23, 23, 11, -5.5, 5.5);
+        trigClusterSeeds = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollectionName + " : Cluster seeds, with trigger", 46, -23, 23, 11, -5.5, 5.5);
     }
 
     @Override
@@ -290,6 +303,25 @@ public class FADCTriggerDriver extends TriggerDriver {
         if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
             // this needs to run every readout cycle whether or not trigger is live
             updateClusterQueues(event.get(HPSEcalCluster.class, clusterCollectionName));
+
+            if (pairWriter != null) {
+                List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+                for (HPSEcalCluster[] pair : clusterPairs) {
+                    pairWriter.format("%d\t", ClockSingleton.getClock());
+                    for (HPSEcalCluster cluster : pair) {
+                        pairWriter.format("%f\t", cluster.getSeedHit().getTime());
+                        pairWriter.format("%f\t", cluster.getSeedHit().getRawEnergy());
+                        pairWriter.format("%d\t", cluster.getSeedHit().getIdentifierFieldValue("ix"));
+                        pairWriter.format("%d\t", cluster.getSeedHit().getIdentifierFieldValue("iy"));
+                        pairWriter.format("%d\t", cluster.getSize());
+                        pairWriter.format("%f\t", cluster.getEnergy());
+                        pairWriter.format("%f\t", getClusterAngle(cluster));
+                        pairWriter.format("%f\t", getClusterDistance(cluster));
+                    }
+                    pairWriter.println();
+                }
+                pairWriter.flush();
+            }
         }
         super.process(event);
     }
@@ -434,6 +466,12 @@ public class FADCTriggerDriver extends TriggerDriver {
                     outputStream.println("Passed all cuts");
                 }
                 trigger = true;
+
+                for (HPSEcalCluster cluster : clusterPair) {
+                    int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+                    int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                    trigClusterSeeds.fill(ix - 0.5 * Math.signum(ix), iy);
+                }
             }
         }
         if (trigger) {
@@ -449,6 +487,9 @@ public class FADCTriggerDriver extends TriggerDriver {
             printCounts(outputStream);
         }
         printCounts(new PrintWriter(System.out));
+        if (pairWriter != null) {
+            pairWriter.close();
+        }
         super.endOfData();
     }
 
@@ -477,6 +518,10 @@ public class FADCTriggerDriver extends TriggerDriver {
             } else {
                 botClusterList.add(ecalCluster);
             }
+
+            int ix = ecalCluster.getSeedHit().getIdentifierFieldValue("ix");
+            int iy = ecalCluster.getSeedHit().getIdentifierFieldValue("iy");
+            clusterSeeds.fill(ix - 0.5 * Math.signum(ix), iy);
         }
 
         topClusterQueue.add(topClusterList);
