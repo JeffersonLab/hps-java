@@ -51,22 +51,22 @@ public class EcalRawConverter {
     public CalorimeterHit HitDtoA(RawTrackerHit hit) {
         double time = hit.getTime();
         long id = hit.getCellID();
-        double rawEnergy = adcToEnergy(sumADC(hit), id);      
+        double rawEnergy = adcToEnergy(sumADC(hit), id);
 //        double[] pos = hit.getDetectorElement().getGeometry().getPosition().v();
         CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;
     }
 
-    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window) {
+    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double timeOffset) {
         if (hit.getTimeStamp() % 64 != 0) {
             System.out.println("unexpected timestamp " + hit.getTimeStamp());
         }
         double time = hit.getTimeStamp() / 16.0;
         long id = hit.getCellID();
         double adcSum = hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id);
-        double rawEnergy = adcToEnergy(adcSum, id);  
-        CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
+        double rawEnergy = adcToEnergy(adcSum, id);
+        CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time + timeOffset, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;
     }

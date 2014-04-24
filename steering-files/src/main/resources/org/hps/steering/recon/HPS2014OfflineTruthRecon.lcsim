@@ -55,10 +55,13 @@
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>true</useTruthTime>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <timeCut>true</timeCut>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>

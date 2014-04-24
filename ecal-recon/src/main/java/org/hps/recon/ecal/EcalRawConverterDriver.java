@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -29,6 +30,8 @@ public class EcalRawConverterDriver extends Driver {
     boolean applyBadCrystalMap = true;
     boolean dropBadFADC = false;
     private boolean runBackwards = false;
+    private boolean useTimestamps = false;
+    private boolean useTruthTime = false;
 
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
@@ -74,6 +77,14 @@ public class EcalRawConverterDriver extends Driver {
         this.debug = debug;
     }
 
+    public void setUseTimestamps(boolean useTimestamps) {
+        this.useTimestamps = useTimestamps;
+    }
+
+    public void setUseTruthTime(boolean useTruthTime) {
+        this.useTruthTime = useTruthTime;
+    }
+
     @Override
     public void startOfData() {
         if (ecalCollectionName == null) {
@@ -94,8 +105,38 @@ public class EcalRawConverterDriver extends Driver {
         return (EcalConditions.getCrate(daqID) == 1 && EcalConditions.getSlot(daqID) == 3);
     }
 
+    private static double getTimestamp(int system, EventHeader event) { //FIXME: copied from org.hps.readout.ecal.ReadoutTimestamp
+        if (event.hasCollection(GenericObject.class, "ReadoutTimestamps")) {
+            List<GenericObject> timestamps = event.get(GenericObject.class, "ReadoutTimestamps");
+            for (GenericObject timestamp : timestamps) {
+                if (timestamp.getIntVal(0) == system) {
+                    return timestamp.getDoubleVal(0);
+                }
+            }
+            return 0;
+        } else {
+            return 0;
+        }
+    }
+
     @Override
     public void process(EventHeader event) {
+        final int SYSTEM_TRIGGER = 0;
+        final int SYSTEM_TRACKER = 1;
+        final int SYSTEM_ECAL = 2;
+
+        double timeOffset = 0.0;
+        if (useTimestamps) {
+            double t0ECal = getTimestamp(SYSTEM_ECAL, event);
+            double t0Trig = getTimestamp(SYSTEM_TRIGGER, event);
+            timeOffset += (t0ECal - t0Trig);
+        }
+        if (useTruthTime) {
+            double t0ECal = getTimestamp(SYSTEM_ECAL, event);
+            timeOffset += ((t0ECal + 250.0) % 500.0) - 250.0;
+        }
+
+
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
 
@@ -127,7 +168,7 @@ public class EcalRawConverterDriver extends Driver {
                     if (debug) {
                         System.out.format("old hit energy %d\n", hit.getAmplitude());
                     }
-                    CalorimeterHit newHit = converter.HitDtoA(hit, integralWindow);
+                    CalorimeterHit newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
                     if (newHit.getRawEnergy() > threshold) {
                         if (applyBadCrystalMap && isBadCrystal(newHit)) {
                             continue;
