@@ -294,7 +294,7 @@ public class EcalClusterIC extends Driver {
         //     System.out.println("Number of clusters: "+seedHits.size());    
 
 
-        if (map.size() != 0) {
+ /*       if (map.size() != 0) {
             writeHits.append("Event" + "\t" + "1" + "\n");
             for (CalorimeterHit n : chitList) {
                 writeHits.append("EcalHit" + "\t" + n.getIdentifierFieldValue("ix") + "\t" + n.getIdentifierFieldValue("iy")
@@ -332,7 +332,7 @@ public class EcalClusterIC extends Driver {
             }
             writeHits.append("EndEvent\n");
 
-        }
+        }*/
 
         //Clear all maps for next event iteration
         hitID.clear();
