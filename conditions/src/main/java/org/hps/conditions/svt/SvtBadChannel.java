@@ -3,7 +3,7 @@ package org.hps.conditions.svt;
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 
-public class SvtBadChannel extends AbstractConditionsObject {
+public final class SvtBadChannel extends AbstractConditionsObject {
     
     public static class SvtBadChannelCollection extends ConditionsObjectCollection<SvtBadChannel> {      
     }

@@ -11,7 +11,7 @@ import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
  * This is a set of data converters for ECAL conditions objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConverterRegistry {
+public final class EcalConverterRegistry {
     
     public static final class EcalBadChannelConverter extends ConditionsObjectConverter<EcalBadChannelCollection> {         
         public Class getType() {

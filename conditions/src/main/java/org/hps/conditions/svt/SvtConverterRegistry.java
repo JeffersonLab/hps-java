@@ -11,7 +11,7 @@ import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
 
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SvtConverterRegistry {
+public final class SvtConverterRegistry {
            
     public static class SvtBadChannelConverter extends ConditionsObjectConverter<SvtBadChannelCollection> {         
         public Class getType() {

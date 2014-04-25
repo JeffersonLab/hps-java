@@ -46,16 +46,15 @@ public final class EcalConditionsUtil {
         IIdentifier id = new Identifier(cellId);
 
         // Get physical field values.
+        int system = helper.getValue(id, "system");
         int x = helper.getValue(id, "ix");
         int y = helper.getValue(id, "iy");
 
         // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId();
-        geometryId.x = x;
-        geometryId.y = y;
+        GeometryId geometryId = new GeometryId(helper, new int[] {system, x, y});
 
         // Find the ECAL channel and return the crate number.
-        return conditions.getChannelMap().findChannel(geometryId);
+        return conditions.getChannelCollection().findChannel(geometryId);
     }
     
     /**

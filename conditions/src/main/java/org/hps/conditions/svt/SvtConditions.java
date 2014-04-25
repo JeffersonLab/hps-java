@@ -15,7 +15,7 @@ import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: SvtConditions.java,v 1.11 2013/10/15 23:45:56 jeremy Exp $
  */
-public class SvtConditions {
+public final class SvtConditions {
     
     /** SVT conditions data. */
     private Map<SvtChannel, ChannelConstants> channelData = new HashMap<SvtChannel, ChannelConstants>();

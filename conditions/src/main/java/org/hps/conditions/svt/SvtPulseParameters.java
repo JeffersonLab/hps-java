@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class represents the pulse parameters for an SVT channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtPulseParameters extends AbstractConditionsObject {
+public final class SvtPulseParameters extends AbstractConditionsObject {
     
     public static class SvtPulseParametersCollection extends ConditionsObjectCollection<SvtPulseParameters> {    
     }

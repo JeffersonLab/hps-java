@@ -44,7 +44,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */ 
 @SuppressWarnings("rawtypes")
-public class DatabaseConditionsManager extends ConditionsManagerImplementation {
+public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     int runNumber = -1;
     String detectorName;

@@ -20,7 +20,7 @@ import org.lcsim.conditions.ConditionsManager;
  * from the database, based on the current run number known by the conditions manager.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
+public final class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
       
     /**
      * Create ECAL conditions object containing all data for the current run.
@@ -31,17 +31,18 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
         EcalConditions conditions = new EcalConditions();
                                
         // Get the channel information from the database.                
-        EcalChannelCollection channelMap = manager.getCachedConditions(EcalChannelCollection.class, ECAL_CHANNELS).getCachedData();
+        EcalChannelCollection channels = manager.getCachedConditions(EcalChannelCollection.class, ECAL_CHANNELS).getCachedData();
         
         // Set the channel map.
-        conditions.setChannelMap(channelMap);
+        conditions.setChannelCollection(channels);
+        
+        System.out.println("channel collection size = " + channels.getObjects().size());
                                        
         // Add gains.
         EcalGainCollection gains = manager.getCachedConditions(EcalGainCollection.class, ECAL_GAINS).getCachedData();        
         for (EcalGain gain : gains.getObjects()) {
-            ChannelId channelId = new ChannelId();
-            channelId.id = gain.getChannelId();
-            EcalChannel channel = channelMap.findChannel(channelId);
+            ChannelId channelId = new ChannelId(new int[] {gain.getChannelId()});
+            EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(gain);
         }
         
@@ -49,9 +50,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
         EcalBadChannelCollection badChannels = manager.getCachedConditions(
                 EcalBadChannelCollection.class, ECAL_BAD_CHANNELS).getCachedData();
         for (EcalBadChannel badChannel : badChannels.getObjects()) {
-            ChannelId channelId = new ChannelId();
-            channelId.id = badChannel.getChannelId();
-            EcalChannel channel = channelMap.findChannel(channelId);
+            ChannelId channelId = new ChannelId(new int[] {badChannel.getChannelId()});
+            EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setBadChannel(true);
         }
         
@@ -59,9 +59,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
         EcalCalibrationCollection calibrations = 
                 manager.getCachedConditions(EcalCalibrationCollection.class, ECAL_CALIBRATIONS).getCachedData();
         for (EcalCalibration calibration : calibrations.getObjects()) {
-            ChannelId channelId = new ChannelId();
-            channelId.id = calibration.getChannelId();
-            EcalChannel channel = channelMap.findChannel(channelId);
+            ChannelId channelId = new ChannelId(new int[] {calibration.getChannelId()});
+            EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }       
         
@@ -69,9 +68,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
         EcalTimeShiftCollection timeShifts =
                 manager.getCachedConditions(EcalTimeShiftCollection.class, ECAL_TIME_SHIFTS).getCachedData();
         for (EcalTimeShift timeShift : timeShifts.getObjects()) {
-            ChannelId channelId = new ChannelId();
-            channelId.id = timeShift.getChannelId();
-            EcalChannel channel = channelMap.findChannel(channelId);
+            ChannelId channelId = new ChannelId(new int[] {timeShift.getChannelId()});
+            EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setTimeShift(timeShift);
         }
         

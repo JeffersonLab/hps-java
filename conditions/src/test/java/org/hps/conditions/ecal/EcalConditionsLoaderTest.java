@@ -52,7 +52,7 @@ public class EcalConditionsLoaderTest extends TestCase {
 
         // Load conditions onto detector.
         EcalConditionsLoader loader = new EcalConditionsLoader();
-        loader.load(detector, conditions);
+        loader.load(detector.getSubdetector("Ecal"), conditions);
         
         // Get crystals from detector.
         List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);

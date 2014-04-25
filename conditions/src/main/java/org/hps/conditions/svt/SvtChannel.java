@@ -15,7 +15,7 @@ import org.hps.util.Pair;
  * This class represents SVT channel setup information, including hybrid, FPGA, and channel numbers.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtChannel extends AbstractConditionsObject {
+public final class SvtChannel extends AbstractConditionsObject {
     
     public static class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel> {
         

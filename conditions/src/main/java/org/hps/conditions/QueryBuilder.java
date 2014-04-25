@@ -5,7 +5,7 @@ package org.hps.conditions;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class QueryBuilder {
+final class QueryBuilder {
     
     private QueryBuilder() {}
 

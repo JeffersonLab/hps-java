@@ -4,7 +4,7 @@ import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
-public class SvtDaqMapping extends AbstractConditionsObject {
+public final class SvtDaqMapping extends AbstractConditionsObject {
 
     public static class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
         

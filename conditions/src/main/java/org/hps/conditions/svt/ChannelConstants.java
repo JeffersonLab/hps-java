@@ -7,7 +7,7 @@ package org.hps.conditions.svt;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ChannelConstants.java,v 1.5 2013/10/04 01:43:48 jeremy Exp $
  */
-public class ChannelConstants {
+public final class ChannelConstants {
 
     private SvtCalibration calibration = null;
     private SvtGain gain = null;

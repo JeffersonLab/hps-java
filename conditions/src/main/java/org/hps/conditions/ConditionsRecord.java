@@ -10,7 +10,7 @@ import java.util.Date;
  */
 // TODO: Check behavior of select, delete, update and insert operations.
 // TODO: Override default behavior of methods in super class that don't make sense.
-public class ConditionsRecord extends AbstractConditionsObject {
+public final class ConditionsRecord extends AbstractConditionsObject {
 
     /**
      * Collection type.

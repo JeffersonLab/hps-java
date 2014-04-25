@@ -63,7 +63,7 @@ public class PhysicalToGainTest extends TestCase {
                     .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
             
             // List of channels.
-            channels = ecalConditions.getChannelMap();
+            channels = ecalConditions.getChannelCollection();
             
             // ID helper.
             helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
@@ -100,13 +100,12 @@ public class PhysicalToGainTest extends TestCase {
             IIdentifier id = new Identifier(hit.getCellID());
             
             // Get physical field values.
+            int system = helper.getValue(id, "system");
             int x = helper.getValue(id, "ix");
             int y = helper.getValue(id, "iy");
             
             // Create an ID to search for in channel collection.
-            GeometryId geometryId = new GeometryId();
-            geometryId.x = x;
-            geometryId.y = y;
+            GeometryId geometryId = new GeometryId(helper, new int[] {system, x, y});
             
             // Find the ECAL channel.
             return channels.findChannel(geometryId);

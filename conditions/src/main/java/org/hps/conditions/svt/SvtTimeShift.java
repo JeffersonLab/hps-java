@@ -10,7 +10,7 @@ import org.hps.util.Pair;
  * by FPGA and hybrid numbers.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtTimeShift extends AbstractConditionsObject {
+public final class SvtTimeShift extends AbstractConditionsObject {
     
     public static class SvtTimeShiftCollection extends ConditionsObjectCollection<SvtTimeShift> {
         

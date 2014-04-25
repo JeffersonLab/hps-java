@@ -14,7 +14,7 @@ import org.hps.util.Pair;
  * This class loads {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtConditionsLoader {
+public final class SvtConditionsLoader {
     
     /**
      * Load conditions data onto a detector object.
@@ -22,6 +22,7 @@ public class SvtConditionsLoader {
      * @param detector The detector object.
      * @param conditions The conditions object.
      */
+	// FIXME: Change this to use a Subdetector instead of the Detector.
     public void load(Detector detector, SvtConditions conditions) {
         
         // Find sensor objects.        

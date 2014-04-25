@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class represents an ECAL channel that is considered "bad" which means
  * it should not be used in reconstruction.
  */
-public class EcalBadChannel extends AbstractConditionsObject {
+public final class EcalBadChannel extends AbstractConditionsObject {
     
     public static class EcalBadChannelCollection extends ConditionsObjectCollection<EcalBadChannel> {    
     }

@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class represents a time shift calibration value for an ECAL channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalTimeShift extends AbstractConditionsObject {
+public final class EcalTimeShift extends AbstractConditionsObject {
     
     /**
      * A collection of {@link EcalTimeShift} objects.

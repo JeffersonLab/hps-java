@@ -4,7 +4,7 @@ package org.hps.conditions.ecal;
  * This class represents ECAL conditions per channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalChannelConstants {
+public final class EcalChannelConstants {
     
     EcalGain gain = null;
     EcalCalibration calibration = null;

@@ -17,7 +17,7 @@ import org.lcsim.util.Driver;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ConditionsDriver extends Driver {
+public final class ConditionsDriver extends Driver {
     
     // Static instance of the manager.
     static DatabaseConditionsManager manager;
@@ -29,7 +29,10 @@ public class ConditionsDriver extends Driver {
     // Default database connection parameters, which points to the SLAC development database.
     static String _defaultConnectionResource = 
             "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
-         
+   
+    String ecalSubdetectorName = "Ecal";
+    String svtSubdetectorName = "Tracker";
+    
     /**
      * Constructor which initializes the conditions manager with
      * default connection parameters and configuration.
@@ -72,6 +75,14 @@ public class ConditionsDriver extends Driver {
             throw new RuntimeException(e);
         }
     }
+    
+    public void setEcalSubdetectorName(String ecalSubdetectorName) {
+    	this.ecalSubdetectorName = ecalSubdetectorName;
+    }
+    
+    public void setSvtSubdetectorName(String svtSubdetectorName) {
+    	this.svtSubdetectorName = svtSubdetectorName;
+    }
             
     /**
      * This method updates a new detector with SVT and ECal conditions data.
@@ -99,7 +110,7 @@ public class ConditionsDriver extends Driver {
     private void loadEcalConditions(Detector detector) {
         EcalConditions conditions = manager.getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
         EcalConditionsLoader loader = new EcalConditionsLoader();
-        loader.load(detector, conditions);
+        loader.load(detector.getSubdetector(ecalSubdetectorName), conditions);
     }
     
     public void endOfData() {

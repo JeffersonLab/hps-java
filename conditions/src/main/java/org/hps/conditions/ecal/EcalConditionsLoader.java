@@ -5,39 +5,48 @@ import java.util.List;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.lcsim.detector.converter.compact.EcalCrystal;
-import org.lcsim.geometry.Detector;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.geometry.Subdetector;
 
 /**
  * Load {@link EcalConditions} data onto <code>EcalCrystal</code> objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConditionsLoader {
+public final class EcalConditionsLoader {
     
     /**
      * Load ECal conditions data onto a full detector object.
      * @param detector The detector object.
      * @param conditions The conditions object.
      */
-    public void load(Detector detector, EcalConditions conditions) {
+    public void load(Subdetector subdetector, EcalConditions conditions) {
         
         // Find EcalCrystal objects.        
-        List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
+        List<EcalCrystal> crystals = subdetector.getDetectorElement().findDescendants(EcalCrystal.class);
+        
+        // Get the ID helper.
+        IIdentifierHelper helper = subdetector.getDetectorElement().getIdentifierHelper();
+        
+        // Get the system ID.
+        int system = subdetector.getSystemID();
         
         // Get the full channel map created by the conditions system.
-        EcalChannelCollection channelMap = conditions.getChannelMap();
+        EcalChannelCollection channelMap = conditions.getChannelCollection();
+        
+        // Build the map of geometry IDs.
+        channelMap.buildGeometryMap(helper, system);
                 
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {
             
             //System.out.println(crystal.getName() + " @ " + crystal.getX() + ", " + crystal.getY());
             
-            // Reset possibly existing conditions data.
+            // Reset in case of existing conditions data.
             crystal.resetConditions();
             
             // Find the corresponding entry in the channel map for this crystal.
-            GeometryId geometryId = new GeometryId();
-            geometryId.x = crystal.getX();
-            geometryId.y = crystal.getY();
+            int[] geomValues = new int[] {system, crystal.getX(), crystal.getY()};
+            GeometryId geometryId = new GeometryId(helper, geomValues);
             EcalChannel channel = channelMap.findChannel(geometryId);
             if (channel == null) {
                 throw new RuntimeException("EcalChannel not found for crystal: " + crystal.getName());

@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class is a simple data holder for the integrated beam current condition.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class BeamCurrent extends AbstractConditionsObject {
+public final class BeamCurrent extends AbstractConditionsObject {
     
     public static class BeamCurrentCollection extends ConditionsObjectCollection<BeamCurrent> {
     }

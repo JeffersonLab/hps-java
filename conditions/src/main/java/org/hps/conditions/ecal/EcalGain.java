@@ -8,7 +8,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalGain extends AbstractConditionsObject {
+public final class EcalGain extends AbstractConditionsObject {
     
     public static class EcalGainCollection extends ConditionsObjectCollection<EcalGain> {
     }

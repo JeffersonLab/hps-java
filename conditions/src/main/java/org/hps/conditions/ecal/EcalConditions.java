@@ -16,7 +16,7 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConditions {
+public final class EcalConditions {
     
     /** Channel map. */
     EcalChannelCollection channelMap = new EcalChannelCollection();
@@ -34,7 +34,7 @@ public class EcalConditions {
      * Set the channel map.
      * @param channels The channel map.
      */
-    void setChannelMap(EcalChannelCollection channelMap) {
+    void setChannelCollection(EcalChannelCollection channelMap) {
         this.channelMap = channelMap;
     }
         
@@ -42,7 +42,7 @@ public class EcalConditions {
      * Get the map between database IDs and <code>EcalChannel</code> objects.
      * @return The channel map.
      */
-    public EcalChannelCollection getChannelMap() {
+    public EcalChannelCollection getChannelCollection() {
         return channelMap;
     }
        
@@ -57,10 +57,11 @@ public class EcalConditions {
     public EcalChannelConstants getChannelConstants(EcalChannel channel) {
         // This channel must come from the map.
         if (!channelMap.contains(channel)) {
-            System.err.println("Channel not found in map => " + channel);
+            System.err.println("Channel not found in map: " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
         // If channel has no data yet, then add it.
+        // FIXME: I'm not sure this should happen at all!
         if (!channelData.containsKey(channel))
             channelData.put(channel, new EcalChannelConstants());
         return channelData.get(channel);

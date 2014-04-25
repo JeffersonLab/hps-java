@@ -22,7 +22,7 @@ import org.lcsim.conditions.ConditionsManager;
  * This class creates an {@link SvtConditions} object from the database,
  * based on the current run number known by the conditions manager.
  */
-public class SvtConditionsConverter implements ConditionsConverter<SvtConditions> {
+public final class SvtConditionsConverter implements ConditionsConverter<SvtConditions> {
           
     /**
      * Create and return the SVT conditions object.  

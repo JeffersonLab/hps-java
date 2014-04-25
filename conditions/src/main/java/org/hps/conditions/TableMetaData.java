@@ -17,7 +17,7 @@ import java.util.Set;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
-public class TableMetaData {
+public final class TableMetaData {
     
     String tableName;
     String key;

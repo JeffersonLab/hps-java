@@ -7,7 +7,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * This class represents gain measurements for a single SVT channel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtGain extends AbstractConditionsObject {
+public final class SvtGain extends AbstractConditionsObject {
     
     public static class SvtGainCollection extends ConditionsObjectCollection<SvtGain> {
     }

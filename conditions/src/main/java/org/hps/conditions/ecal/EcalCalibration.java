@@ -12,7 +12,7 @@ import org.hps.conditions.ConditionsObjectCollection;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalCalibration extends AbstractConditionsObject {
+public final class EcalCalibration extends AbstractConditionsObject {
     
     public static class EcalCalibrationCollection extends ConditionsObjectCollection<EcalCalibration> {
     }
