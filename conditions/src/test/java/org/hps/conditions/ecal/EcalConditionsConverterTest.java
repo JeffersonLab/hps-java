@@ -10,18 +10,18 @@ import org.hps.conditions.DefaultTestSetup;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalConditionsConverterTest extends TestCase {
-      
+
     public void setUp() {
         new DefaultTestSetup().configure().setup();
     }
-            
+
     public void test() {
-        
+
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        
+
         // Test that the manager gets ECAL conditions.
-        EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();        
+        EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
         assertNotNull(conditions);
         System.out.println(conditions);
-    }    
+    }
 }

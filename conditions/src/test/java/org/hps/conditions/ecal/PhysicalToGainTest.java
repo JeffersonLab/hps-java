@@ -22,74 +22,72 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This is a simple example of how to retrieve the gain and noise by physical ID (X,Y) in the ECAL.
+ * This is a simple example of how to retrieve the gain and noise by physical ID (X,Y) in
+ * the ECAL.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class PhysicalToGainTest extends TestCase {
 
-    // This test file has a few events from each of the "good runs" of the 2012 Test Run. 
+    // This test file has a few events from each of the "good runs" of the 2012 Test Run.
     private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
-                    
+
     // Run the test.
     public void test() throws Exception {
 
         // Cache a data file from the www.
         FileCache cache = new FileCache();
         File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
-        
-        // Create the record loop.        
+
+        // Create the record loop.
         LCSimLoop loop = new LCSimLoop();
-                        
+
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
         loop.add(new ConditionsDriver());
         loop.add(new PhysicalToGainDriver());
-                
+
         // Run a few events.
-        loop.loop(1, null);        
-    }   
-    
+        loop.loop(1, null);
+    }
+
     static class PhysicalToGainDriver extends Driver {
-        
+
         static final String collectionName = "EcalReadoutHits";
         EcalConditions ecalConditions = null;
         IIdentifierHelper helper = null;
-        EcalChannelCollection channels = null;    
-        
+        EcalChannelCollection channels = null;
+
         public void detectorChanged(Detector detector) {
-            
+
             // ECAL combined conditions object.
-            ecalConditions = ConditionsManager.defaultInstance()
-                    .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-            
+            ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+
             // List of channels.
             channels = ecalConditions.getChannelCollection();
-            
+
             // ID helper.
             helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
         }
-        
+
         public void process(EventHeader event) {
             if (event.hasCollection(RawCalorimeterHit.class, collectionName)) {
-                
+
                 // Get ECAL raw hits from event.
                 List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, collectionName);
-                for (RawCalorimeterHit hit : hits) {    
-                                        
+                for (RawCalorimeterHit hit : hits) {
+
                     // Get the ECAL channel.
                     EcalChannel channel = findChannel(hit);
-                    
+
                     // Get the channel data.
                     EcalChannelConstants channelData = ecalConditions.getChannelConstants(channel);
-                    
+
                     // Get gain and noise.
                     double gain = channelData.getGain().getGain();
                     double noise = channelData.getCalibration().getNoise();
-                    
+
                     // Debug print the channel data.
-                    System.out.println("channel " + channel.getX() + "," + channel.getY() 
-                            + " has gain " + channelData.getGain().getGain() 
-                            + " and noise " + channelData.getCalibration().getNoise());
+                    System.out.println("channel " + channel.getX() + "," + channel.getY() + " has gain " + channelData.getGain().getGain() + " and noise " + channelData.getCalibration().getNoise());
                 }
             }
         }
@@ -98,15 +96,15 @@ public class PhysicalToGainTest extends TestCase {
         private EcalChannel findChannel(RawCalorimeterHit hit) {
             // Make an ID object from raw hit ID.
             IIdentifier id = new Identifier(hit.getCellID());
-            
+
             // Get physical field values.
             int system = helper.getValue(id, "system");
             int x = helper.getValue(id, "ix");
             int y = helper.getValue(id, "iy");
-            
+
             // Create an ID to search for in channel collection.
-            GeometryId geometryId = new GeometryId(helper, new int[] {system, x, y});
-            
+            GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
+
             // Find the ECAL channel.
             return channels.findChannel(geometryId);
         }
