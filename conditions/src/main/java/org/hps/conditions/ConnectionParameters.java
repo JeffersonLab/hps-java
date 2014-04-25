@@ -11,14 +11,14 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * This class encapsulates the parameters for connecting to a database, 
- * including hostname, port, user and password.  It can also create and 
- * return a Connection object based on these parameters.
+ * This class encapsulates the parameters for connecting to a database, including
+ * hostname, port, user and password. It can also create and return a Connection object
+ * based on these parameters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConnectionParameters.java,v 1.8 2013/10/04 01:54:16 jeremy Exp $
  */
 public final class ConnectionParameters {
-    
+
     private String user;
     private String password;
     private int port;
@@ -67,7 +67,7 @@ public final class ConnectionParameters {
     int getPort() {
         return port;
     }
-    
+
     /**
      * Get the name of the database.
      * @return The name of the database.
@@ -75,14 +75,14 @@ public final class ConnectionParameters {
     String getDatabase() {
         return database;
     }
-    
+
     /**
      * Get the user name.
      */
     String getUser() {
         return user;
     }
-    
+
     /**
      * Get the password.
      */
@@ -96,14 +96,14 @@ public final class ConnectionParameters {
      */
     String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
-    }       
-    
+    }
+
     /**
-     * Create a database connection from these parameters.  
-     * The caller becomes the "owner" and is responsible for closing it when finished.
+     * Create a database connection from these parameters. The caller becomes the "owner"
+     * and is responsible for closing it when finished.
      * @return The Connection object.
      */
-    Connection createConnection() {               
+    Connection createConnection() {
         Properties connectionProperties = getConnectionProperties();
         Connection connection = null;
         try {
@@ -114,13 +114,13 @@ public final class ConnectionParameters {
         }
         return connection;
     }
-    
+
     /**
-     * Configure the connection parameters from a properties file. 
+     * Configure the connection parameters from a properties file.
      * @param file The properties file.
      * @return The connection parameters.
      */
-    public static final ConnectionParameters fromProperties(File file) {            
+    public static final ConnectionParameters fromProperties(File file) {
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(file);
@@ -129,19 +129,19 @@ public final class ConnectionParameters {
         }
         return fromProperties(fin);
     }
-    
+
     /**
-     * Configure the connection parameters from an embedded classpath resource 
-     * which should be a properties file.
+     * Configure the connection parameters from an embedded classpath resource which
+     * should be a properties file.
      * @param String The resource path.
      * @return The connection parameters.
      */
     public static final ConnectionParameters fromResource(String resource) {
         return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
     }
-    
+
     /**
-     * Configure the connection parameters from an <code>InputStream</code> of properties. 
+     * Configure the connection parameters from an <code>InputStream</code> of properties.
      * @param in The InputStream of the properties.
      * @return The connection parameters.
      * @throws RuntimeException if the InputStream is invalid

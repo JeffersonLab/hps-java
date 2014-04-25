@@ -5,18 +5,18 @@ package org.hps.conditions.ecal;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class EcalChannelConstants {
-    
+
     EcalGain gain = null;
     EcalCalibration calibration = null;
     EcalTimeShift timeShift = null;
     boolean badChannel = false;
-    
+
     /**
      * Class constructor, which is package protected.
      */
-    EcalChannelConstants() {        
+    EcalChannelConstants() {
     }
-    
+
     /**
      * Set the gain.
      * @param gain The gain object.
@@ -24,7 +24,7 @@ public final class EcalChannelConstants {
     void setGain(EcalGain gain) {
         this.gain = gain;
     }
-    
+
     /**
      * Set the calibration.
      * @param calibration The calibration object.
@@ -32,7 +32,7 @@ public final class EcalChannelConstants {
     void setCalibration(EcalCalibration calibration) {
         this.calibration = calibration;
     }
-    
+
     /**
      * Set the time shift.
      * @param timeShift the time shift
@@ -40,7 +40,7 @@ public final class EcalChannelConstants {
     void setTimeShift(EcalTimeShift timeShift) {
         this.timeShift = timeShift;
     }
-    
+
     /**
      * Set whether this is a bad channel.
      * @param badChannel set to true to flag channel as bad
@@ -48,7 +48,7 @@ public final class EcalChannelConstants {
     void setBadChannel(boolean badChannel) {
         this.badChannel = badChannel;
     }
-    
+
     /**
      * Get the gain.
      * @return The gain.
@@ -56,7 +56,7 @@ public final class EcalChannelConstants {
     public EcalGain getGain() {
         return gain;
     }
-    
+
     /**
      * Get the calibration.
      * @return The calibration.
@@ -64,7 +64,7 @@ public final class EcalChannelConstants {
     public EcalCalibration getCalibration() {
         return calibration;
     }
-    
+
     /**
      * Get the time shift.
      * @return the time shift
@@ -72,7 +72,7 @@ public final class EcalChannelConstants {
     public EcalTimeShift getTimeShift() {
         return timeShift;
     }
-    
+
     /**
      * Get whether this channel is bad or not.
      * @return True if channel is bad; false if not.

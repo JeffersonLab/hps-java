@@ -8,10 +8,10 @@ import org.hps.conditions.ConditionsObjectCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class SvtGain extends AbstractConditionsObject {
-    
+
     public static class SvtGainCollection extends ConditionsObjectCollection<SvtGain> {
     }
-    
+
     /**
      * Get the channel ID.
      * @return The channel ID.
@@ -19,7 +19,7 @@ public final class SvtGain extends AbstractConditionsObject {
     int getChannelID() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
-    
+
     /**
      * Get the gain.
      * @return The gain value.
@@ -27,7 +27,7 @@ public final class SvtGain extends AbstractConditionsObject {
     double getGain() {
         return getFieldValue(Double.class, "gain");
     }
-    
+
     /**
      * Get the offset.
      * @return The offset value.
@@ -35,13 +35,12 @@ public final class SvtGain extends AbstractConditionsObject {
     double getOffset() {
         return getFieldValue(Double.class, "offset");
     }
-    
-    
+
     /**
      * Convert this object to a human-readable string.
      * @return This object converted to a string.
      */
     public String toString() {
         return "" + getGain() + '\t' + getOffset();
-    }   
+    }
 }

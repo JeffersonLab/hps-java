@@ -33,34 +33,35 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 
 /**
  * <p>
- * This class should be used as the top-level ConditionsManager for database access to conditions
- * data.
+ * This class should be used as the top-level ConditionsManager for database access to
+ * conditions data.
  * </p>
  * <p>
- * In general, this will be overriding the <code>LCSimConditionsManagerImplementation</code> which
- * is setup from within <code>LCSimLoop</code>.
+ * In general, this will be overriding the
+ * <code>LCSimConditionsManagerImplementation</code> which is setup from within
+ * <code>LCSimLoop</code>.
  * </p>
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- */ 
+ */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     int runNumber = -1;
     String detectorName;
-    List<TableMetaData> tableMetaData;    
+    List<TableMetaData> tableMetaData;
     List<ConditionsConverter> converters;
     File connectionPropertiesFile;
-    ConditionsReader baseReader;    
+    ConditionsReader baseReader;
     static Logger logger = null;
     ConnectionParameters connectionParameters;
     Connection connection;
     boolean wasConfigured = false;
     boolean isConnected = false;
-    
+
     /**
-     * Class constructor, which is only package accessible.
-     * Users should call {@link #getInstance()} to access the manager.
+     * Class constructor, which is only package accessible. Users should call
+     * {@link #getInstance()} to access the manager.
      */
     DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
@@ -92,74 +93,74 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.addHandler(handler);
         logger.config("logger initialized with level " + handler.getLevel());
     }
-    
+
     /**
-     * Register this conditions manager as the global default. 
+     * Register this conditions manager as the global default.
      */
     void register() {
         ConditionsManager.setDefaultConditionsManager(this);
     }
 
     /**
-     * Get the static instance of this class, which must have been
-     * registered first from a call to {@link #register()}.
+     * Get the static instance of this class, which must have been registered first from a
+     * call to {@link #register()}.
      * @return The static instance of the manager.
      */
     public static DatabaseConditionsManager getInstance() {
-        
+
         // Perform default setup if necessary.
         if (!ConditionsManager.isSetup()) {
             DatabaseConditionsManager manager = new DatabaseConditionsManager();
             manager.register();
         }
-        
-        // Get the instance of the manager from the conditions system and 
+
+        // Get the instance of the manager from the conditions system and
         // that the type is valid.
         ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
             throw new RuntimeException("The default ConditionsManager has the wrong type.");
         }
-        
-        return (DatabaseConditionsManager)manager;
+
+        return (DatabaseConditionsManager) manager;
     }
-    
+
     /**
-     * This method catches changes to the detector name and run number.    
-     * Somewhat unintuitively, this method is actually called every time
-     * an lcsim event is created, so it has internal logic to figure out
-     * if the conditions system actually needs to be updated.
+     * This method catches changes to the detector name and run number. Somewhat
+     * unintuitively, this method is actually called every time an lcsim event is created,
+     * so it has internal logic to figure out if the conditions system actually needs to
+     * be updated.
      */
     @Override
-    public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {        
+    public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
         // Detector update.
         if (getDetector() == null || !getDetector().equals(detectorName)) {
             logger.config("setting new detector " + detectorName);
             setup(detectorName);
         }
-        
+
         // Run number update.
         if (this.runNumber != runNumber) {
             logger.config("setting new run number " + runNumber);
             this.runNumber = runNumber;
         }
-        
+
         // Let the super class do whatever it think it needs to do.
         super.setDetector(detectorName, runNumber);
-    }    
-    
+    }
+
     /**
      * Perform setup for a new detector description.
      * @param detectorName the name of the detector
      */
     void setup(String detectorName) {
         if (baseReader instanceof BaseClasspathConditionsReader) {
-            ((BaseClasspathConditionsReader)baseReader).setResourcePath(detectorName);
+            ((BaseClasspathConditionsReader) baseReader).setResourcePath(detectorName);
             logger.config("set resource path " + detectorName + " on conditions reader");
         }
         if (!isConnected())
             openConnection();
         else
-            logger.config("using existing connection " + connectionParameters.getConnectionString());        
+            logger.config("using existing connection " + connectionParameters.getConnectionString());
     }
 
     /**
@@ -194,7 +195,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             configure(new FileInputStream(file));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
-        }        
+        }
     }
 
     /**
@@ -206,9 +207,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         InputStream in = getClass().getResourceAsStream(resource);
         if (in == null)
             throw new IllegalArgumentException("The resource does not exist.");
-        configure(in);        
+        configure(in);
     }
-    
+
     /**
      * Set the path to a properties file containing connection settings.
      * @param file The properties file
@@ -217,26 +218,26 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.config("setting connection prop file " + file.getPath());
         if (!file.exists())
             throw new IllegalArgumentException("The connection properties file does not exist: " + connectionPropertiesFile.getPath());
-        connectionParameters = ConnectionParameters.fromProperties(file);        
+        connectionParameters = ConnectionParameters.fromProperties(file);
     }
-    
+
     /**
      * Set the connection parameters from an embedded resource.
      * @param resource The classpath resource
      */
     public void setConnectionResource(String resource) {
         logger.config("setting connection resource " + resource);
-        connectionParameters = ConnectionParameters.fromResource(resource);        
+        connectionParameters = ConnectionParameters.fromResource(resource);
     }
 
     /**
-     * Set externally the base ConditionsReader that will be used to find non-database conditions
-     * such as the compact.xml file for the detector.
+     * Set externally the base ConditionsReader that will be used to find non-database
+     * conditions such as the compact.xml file for the detector.
      * @param reader The base ConditionsReader.
      */
     public void setBaseConditionsReader(ConditionsReader reader) {
         logger.config("setting conditions reader to " + reader.getClass().getCanonicalName());
-        baseReader = reader;        
+        baseReader = reader;
     }
 
     /**
@@ -244,7 +245,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
-    // FIXME: If there are no collections that exist, this method should simply return the value '1'
+    // FIXME: If there are no collections that exist, this method should simply return the
+    // value '1'
     // or it could throw an exception.
     public int getNextCollectionId(String tableName) {
         TableMetaData tableData = findTableMetaData(tableName);
@@ -279,11 +281,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (TableMetaData meta : tableMetaData) {
             if (meta.getKey().equals(name)) {
                 return meta;
-            } 
+            }
         }
         return null;
     }
-    
+
     /**
      * Find meta data by collection class type.
      * @param type The collection class.
@@ -297,9 +299,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         return null;
     }
-    
+
     /**
-     * This method can be used to perform a database SELECT query. 
+     * This method can be used to perform a database SELECT query.
      * @param query The SQL query string.
      * @return The ResultSet from the query or null.
      */
@@ -312,23 +314,23 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             result = statement.executeQuery(query);
         } catch (SQLException x) {
             throw new RuntimeException("Error in query: " + query, x);
-        } 
+        }
         return result;
     }
-    
+
     /**
      * Perform a SQL query with an update command like INSERT, DELETE or UPDATE.
      * @param query The SQL query string.
      * @return The keys of the rows affected.
      */
-    public List<Integer> updateQuery(String query) {        
+    public List<Integer> updateQuery(String query) {
         logger.fine(query);
         List<Integer> keys = new ArrayList<Integer>();
         Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS); 
-            ResultSet resultSet = statement.getGeneratedKeys();            
+            statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+            ResultSet resultSet = statement.getGeneratedKeys();
             while (resultSet.next()) {
                 int key = resultSet.getInt(1);
                 keys.add(key);
@@ -340,7 +342,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         return keys;
     }
-                
+
     /**
      * Set the log level.
      * @param level The log level.
@@ -350,11 +352,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
     }
-    
+
     /**
-     * Find a collection of conditions validity records by key name.
-     * The key name is distinct from the table name, but they are usually
-     * set to the same value in the XML configuration.    
+     * Find a collection of conditions validity records by key name. The key name is
+     * distinct from the table name, but they are usually set to the same value in the XML
+     * configuration.
      * @param name The conditions key name.
      * @return The set of matching conditions records.
      */
@@ -369,13 +371,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         if (foundConditionsRecords.getObjects().size() > 0) {
             for (ConditionsRecord record : foundConditionsRecords.getObjects()) {
-                logger.fine("found ConditionsRecord with key " + name + " ..." 
-                        + '\n' + record.toString());
+                logger.fine("found ConditionsRecord with key " + name + " ..." + '\n' + record.toString());
             }
         }
         return foundConditionsRecords;
-    }    
-    
+    }
+
     /**
      * Return true if the connection parameters are valid, e.g. non-null.
      * @return true if connection parameters are non-null
@@ -383,7 +384,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public boolean hasConnectionParameters() {
         return connectionParameters != null;
     }
-    
+
     /**
      * Return if the manager was configured e.g. from an XML configuration file.
      * @return true if manager was configured
@@ -391,7 +392,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public boolean wasConfigured() {
         return wasConfigured;
     }
-        
+
     /**
      * Close a JDBC <code>Statement</code>.
      * @param statement the Statement to close
@@ -408,12 +409,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
         }
     }
-    
+
     /**
      * Close a JDBC <code>ResultSet</code>, or rather the Statement connected to it.
      * @param resultSet the ResultSet to close
      */
-    static void close(ResultSet resultSet) {        
+    static void close(ResultSet resultSet) {
         if (resultSet != null) {
             try {
                 Statement statement = resultSet.getStatement();
@@ -426,7 +427,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
         }
     }
-    
+
     /**
      * Check if connected to the database.
      * @return true if connected
@@ -436,8 +437,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Configure this class from an <code>InputStream</code> which should point 
-     * to an XML document.
+     * Configure this class from an <code>InputStream</code> which should point to an XML
+     * document.
      * @param in the InputStream which should be in XML format
      */
     private void configure(InputStream in) {
@@ -449,12 +450,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         loadTableMetaData(config);
 
         // Load the converter classes.
-        loadConverters(config);        
-        
+        loadConverters(config);
+
         // Set configured state to true.
         wasConfigured = true;
     }
-    
+
     /**
      * Create an XML document from an <code>InputStream</code>.
      * @param in The InputStream.
@@ -477,8 +478,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param config The XML document.
      */
     private void loadConverters(Document config) {
-        
-        // Load the list of converters from the "converters" section of the config document.
+
+        // Load the list of converters from the "converters" section of the config
+        // document.
         (this.new ConditionsConverterLoader()).load(config.getRootElement().getChild("converters"));
 
         // Register the list of converters with this manager.
@@ -486,9 +488,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (ConditionsConverter converter : converters) {
             registerConditionsConverter(converter);
             logger.config("registered converter " + converter.getClass().getSimpleName());
-        }        
+        }
     }
-    
+
     /**
      * Load table meta data configuration from an XML document.
      * @param config The XML document.
@@ -497,7 +499,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Load table meta data from the "tables" section of the config document.
         (this.new TableMetaDataLoader()).load(config.getRootElement().getChild("tables"));
     }
-    
+
     /**
      * Open the database connection.
      */
@@ -508,7 +510,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.config("created connection " + connectionParameters.getConnectionString());
         isConnected = true;
     }
-    
+
     /**
      * Close the database connection.
      */
@@ -529,13 +531,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         connection = null;
         connectionParameters = null;
     }
-    
+
     @Override
     public void finalize() {
         if (isConnected())
             closeConnection();
     }
-       
+
     /**
      * This class loads an XML configuration of conditions table meta data.
      * 
@@ -597,17 +599,17 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
                 tableMetaData.add(tableData);
             }
-        }      
+        }
     }
 
     /**
-     * This class reads in an XML configuration specifying a list of converter classes, e.g. from
-     * the config file for the {@link DatabaseConditionsManager}.
+     * This class reads in an XML configuration specifying a list of converter classes,
+     * e.g. from the config file for the {@link DatabaseConditionsManager}.
      * 
      * @author Jeremy McCormick <jeremym@slac.stanford.edu>
      */
     class ConditionsConverterLoader {
-        
+
         void load(Element element) {
             converters = new ArrayList<ConditionsConverter>();
             for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
@@ -629,5 +631,5 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
         }
     }
-    
+
 }

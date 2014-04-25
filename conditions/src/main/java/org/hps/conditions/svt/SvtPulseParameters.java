@@ -8,10 +8,10 @@ import org.hps.conditions.ConditionsObjectCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class SvtPulseParameters extends AbstractConditionsObject {
-    
-    public static class SvtPulseParametersCollection extends ConditionsObjectCollection<SvtPulseParameters> {    
+
+    public static class SvtPulseParametersCollection extends ConditionsObjectCollection<SvtPulseParameters> {
     }
-    
+
     /**
      * Get the SVT channel ID.
      * @return The SVT channel ID.
@@ -19,39 +19,39 @@ public final class SvtPulseParameters extends AbstractConditionsObject {
     int getChannelId() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
-    
+
     /**
      * Get the amplitude.
      * @return The amplifude.
      */
     double getAmplitude() {
-    	return getFieldValue(Double.class, "amplitude");
+        return getFieldValue(Double.class, "amplitude");
     }
-    
+
     /**
      * Get the starting time.
      * @return The starting time.
      */
     double getT0() {
-    	return getFieldValue(Double.class, "t0");
+        return getFieldValue(Double.class, "t0");
     }
-    
+
     /**
      * Get the time shift.
      * @return The time shift.
      */
     double getTimeShift() {
-    	return getFieldValue(Double.class, "tp");
+        return getFieldValue(Double.class, "tp");
     }
-    
+
     /**
      * Get the chisq.
      * @return The chisq.
      */
     double getChisq() {
-    	return getFieldValue(Double.class, "chisq");
+        return getFieldValue(Double.class, "chisq");
     }
-    
+
     /**
      * Convert this object to a human readable string.
      * @return This object converted to a string.
@@ -59,7 +59,7 @@ public final class SvtPulseParameters extends AbstractConditionsObject {
     public String toString() {
         return "amp: " + getAmplitude() + ", t0: " + getT0() + ", shift: " + getTimeShift() + ", chisq: " + getChisq();
     }
-    
+
     /**
      * Convert this object to an array of doubles.
      * @return This object converted to an array of doubles.

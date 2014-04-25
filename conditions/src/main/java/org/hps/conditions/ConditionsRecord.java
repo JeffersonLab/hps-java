@@ -3,8 +3,8 @@ package org.hps.conditions;
 import java.util.Date;
 
 /**
- * This class represents a single record from the primary conditions data table,
- * which defines the validity range for a specific collection of conditions objects.
+ * This class represents a single record from the primary conditions data table, which
+ * defines the validity range for a specific collection of conditions objects.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -17,19 +17,21 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      */
     public static class ConditionsRecordCollection extends ConditionsObjectCollection<ConditionsRecord> {
         /**
-         * Since ConditionsRecord collections are always "mixed", meaning the collection ID values
-         * are usually all going to be different, the default behavior of the super class is overridden.
+         * Since ConditionsRecord collections are always "mixed", meaning the collection
+         * ID values are usually all going to be different, the default behavior of the
+         * super class is overridden.
          */
         public void add(ConditionsRecord record) {
             objects.add(record);
         }
-        
-        // FIXME: Should probably override more methods here that don't make sense for this type!
+
+        // FIXME: Should probably override more methods here that don't make sense for
+        // this type!
     }
-                      
-    protected ConditionsRecord() {        
+
+    protected ConditionsRecord() {
     }
-                   
+
     /**
      * Get the starting run number.
      * @return The starting run number.
@@ -37,7 +39,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public int getRunStart() {
         return getFieldValue("run_start");
     }
-    
+
     /**
      * Get the ending run number.
      * @return The ending run number.
@@ -45,7 +47,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public int getRunEnd() {
         return getFieldValue("run_end");
     }
-    
+
     /**
      * Get the date this record was last updated.
      * @return The date this record was updated.
@@ -53,7 +55,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public Date getUpdated() {
         return getFieldValue("updated");
     }
-    
+
     /**
      * Get the date this record was created.
      * @return The date this record was created.
@@ -61,7 +63,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public Date getCreated() {
         return getFieldValue("created");
     }
-    
+
     /**
      * Get the starting valid time.
      * @return The starting valid time.
@@ -69,13 +71,13 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public Date getValidFrom() {
         return getFieldValue("valid_from");
     }
-    
+
     /**
      * Get the ending valid time.
      * @return The ending valid time.
      */
     public Date getValidTo() {
-        return getFieldValue("valid_to");                
+        return getFieldValue("valid_to");
     }
 
     /**
@@ -93,16 +95,16 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public String getNotes() {
         return getFieldValue("notes");
     }
-    
+
     /**
-     * Get the name of these conditions, which should be unique by run number.
-     * This is called the "key" in the table meta data to distinguish it from "table name".
+     * Get the name of these conditions, which should be unique by run number. This is
+     * called the "key" in the table meta data to distinguish it from "table name".
      * @return The name of the conditions.
      */
     public String getName() {
         return getFieldValue("name");
     }
-    
+
     /**
      * Get the version of the format these conditions are stored in.
      * @return The conditions version.
@@ -110,15 +112,15 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public String getFormatVersion() {
         return getFieldValue("format_version");
     }
-    
+
     /**
      * Get the name of the table containing the actual raw conditions data.
-     * @return The name of the table with the conditions data. 
+     * @return The name of the table with the conditions data.
      */
     public String getTableName() {
         return getFieldValue("table_name");
     }
-    
+
     /**
      * Get the collection ID, overriding this method from the parent class.
      * @return The collection ID.
@@ -126,7 +128,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public int getCollectionId() {
         return getFieldValue("collection_id");
     }
-           
+
     /**
      * Convert this record to a human readable string, one field per line.
      * @return This object represented as a string.
@@ -145,7 +147,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
         buff.append("validTo: " + getValidTo() + '\n');
         buff.append("createdBy: " + getCreatedBy() + '\n');
         buff.append("formatVersion: " + getFormatVersion() + '\n');
-        buff.append("notes: " + getNotes() + '\n');        
+        buff.append("notes: " + getNotes() + '\n');
         return buff.toString();
-    }          
+    }
 }

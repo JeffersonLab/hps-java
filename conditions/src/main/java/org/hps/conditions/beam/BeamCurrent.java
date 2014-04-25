@@ -8,10 +8,10 @@ import org.hps.conditions.ConditionsObjectCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class BeamCurrent extends AbstractConditionsObject {
-    
+
     public static class BeamCurrentCollection extends ConditionsObjectCollection<BeamCurrent> {
     }
-            
+
     /**
      * Get the integrated beam current.
      * @return The integrated beam current.

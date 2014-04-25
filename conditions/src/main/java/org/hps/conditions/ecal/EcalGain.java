@@ -9,18 +9,18 @@ import org.hps.conditions.ConditionsObjectCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class EcalGain extends AbstractConditionsObject {
-    
+
     public static class EcalGainCollection extends ConditionsObjectCollection<EcalGain> {
     }
-               
+
     /**
      * Get the gain value in units of MeV/ADC count.
      * @return The gain value.
      */
     public double getGain() {
         return getFieldValue("gain");
-    }       
-    
+    }
+
     /**
      * Get the ECal channel ID.
      * @return The ECal channel ID.

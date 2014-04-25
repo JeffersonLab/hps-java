@@ -11,7 +11,7 @@ public final class SvtCalibration extends AbstractConditionsObject {
 
     public static class SvtCalibrationCollection extends ConditionsObjectCollection<SvtCalibration> {
     }
-    
+
     /**
      * Get the channel ID.
      * @return The channel ID.
@@ -19,7 +19,7 @@ public final class SvtCalibration extends AbstractConditionsObject {
     public int getChannelId() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
-    
+
     /**
      * Get the noise value.
      * @return The noise value.
@@ -27,7 +27,7 @@ public final class SvtCalibration extends AbstractConditionsObject {
     public double getNoise() {
         return getFieldValue(Double.class, "noise");
     }
-    
+
     /**
      * Get the pedestal value.
      * @return The pedestal value.
@@ -35,7 +35,7 @@ public final class SvtCalibration extends AbstractConditionsObject {
     public double getPedestal() {
         return getFieldValue(Double.class, "pedestal");
     }
-    
+
     /**
      * Convert this object to a human readable string.
      * @return This object converted to a string.

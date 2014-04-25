@@ -18,7 +18,7 @@ public final class ChannelConstants {
      * Class constructor.
      */
     ChannelConstants() {
-    }    
+    }
 
     /**
      * Set the pulse parameters.
@@ -27,7 +27,7 @@ public final class ChannelConstants {
     void setPulseParameters(SvtPulseParameters pulseParameters) {
         this.pulseParameters = pulseParameters;
     }
-    
+
     /**
      * Set the gain.
      * @param gain The gain object.
@@ -35,15 +35,15 @@ public final class ChannelConstants {
     void setGain(SvtGain gain) {
         this.gain = gain;
     }
-    
+
     /**
      * Set the calibration.
      * @param calibration The calibration object.
      */
     void setCalibration(SvtCalibration calibration) {
         this.calibration = calibration;
-    }      
-    
+    }
+
     /**
      * Set the bad channel flag.
      * @param badChannel The bad channel flag value.
@@ -51,7 +51,7 @@ public final class ChannelConstants {
     void setBadChannel(boolean badChannel) {
         this.badChannel = badChannel;
     }
-        
+
     /**
      * Check if this is a bad channel.
      * @return True if channel is bad; false if not.
@@ -59,7 +59,7 @@ public final class ChannelConstants {
     public boolean isBadChannel() {
         return badChannel;
     }
-        
+
     /**
      * Get the pulse parameters.
      * @return The pulse parameters.
@@ -67,7 +67,7 @@ public final class ChannelConstants {
     public SvtPulseParameters getPulseParameters() {
         return pulseParameters;
     }
-    
+
     /**
      * Get the gain.
      * @return The gain.
@@ -75,7 +75,7 @@ public final class ChannelConstants {
     public SvtGain getGain() {
         return gain;
     }
-    
+
     /**
      * Get the calibration.
      * @return The calibration.
@@ -89,7 +89,7 @@ public final class ChannelConstants {
      * @return This object converted to a string.
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();        
+        StringBuffer buffer = new StringBuffer();
         buffer.append(getCalibration());
         buffer.append(", ");
         buffer.append(getGain());
@@ -98,4 +98,3 @@ public final class ChannelConstants {
         return buffer.toString();
     }
 }
-
