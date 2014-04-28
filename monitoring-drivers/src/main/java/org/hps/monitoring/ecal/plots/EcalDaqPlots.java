@@ -148,16 +148,16 @@ public class EcalDaqPlots extends Driver implements Resettable {
            // 	daq.channel = 3;
 
             	// Find the matching channel.                                     	
-            	EcalChannel.GeometryId geomID=new EcalChannel.GeometryId();
-            	geomID.x=hit.getIdentifierFieldValue("ix");
-            	geomID.y=hit.getIdentifierFieldValue("iy");
-            	EcalChannel channel=channels.findChannel(geomID);
+            	//EcalChannel.GeometryId geomID = new EcalChannel.GeometryId();
+            	//geomID.x=hit.getIdentifierFieldValue("ix");
+            	//geomID.y=hit.getIdentifierFieldValue("iy");
+            	//EcalChannel channel=channels.findChannel(geomID);
             			
-            	int crateN=channel.getCrate();
-            	int slotN=channel.getSlot();
-            	int channelN=channel.getChannel();
+            	//int crateN=channel.getCrate();
+            	//int slotN=channel.getSlot();
+            	//int channelN=channel.getChannel();
 
-            	System.out.println("found channel at " + geomID.x + " " + geomID.y + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
+            	//System.out.println("found channel at " + geomID.x + " " + geomID.y + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
             }
         }
     }
