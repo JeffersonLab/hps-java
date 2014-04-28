@@ -61,7 +61,7 @@ public class EcalConditionsTestDriver extends Driver {
     public void detectorChanged(Detector detector) {
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        channels = ecalConditions.getChannelMap();
+        channels = ecalConditions.getChannelCollection();
         helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
     }
          
@@ -176,9 +176,7 @@ public class EcalConditionsTestDriver extends Driver {
         IIdentifier id = new Identifier(rawId);
         int x = helper.getValue(id, "ix");
         int y = helper.getValue(id, "iy");
-        GeometryId geometryId = new GeometryId();
-        geometryId.x = x;
-        geometryId.y = y;
+        GeometryId geometryId = new GeometryId(helper, new int[] {x, y});
         EcalChannel channel = channels.findChannel(geometryId);
         return ecalConditions.getChannelConstants(channel);
     }        
