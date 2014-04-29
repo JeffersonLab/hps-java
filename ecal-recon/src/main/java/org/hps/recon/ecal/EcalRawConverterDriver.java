@@ -138,7 +138,8 @@ public class EcalRawConverterDriver extends Driver {
 
 
         int flags = 0;
-        flags += 1 << LCIOConstants.RCHBIT_TIME; //store cell ID
+        flags += 1 << LCIOConstants.RCHBIT_TIME; //store hit time
+        flags += 1 << LCIOConstants.RCHBIT_LONG; //store hit position; this flag has no effect for RawCalorimeterHits
 
         if (!runBackwards) {
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
