@@ -3,6 +3,7 @@ package org.hps.users.luca;
 
 //import hep.aida.ITupleColumn.String;
 import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.ParticleID;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
@@ -31,72 +33,58 @@ import org.lcsim.event.base.CalorimeterHitImpl;
 
 // the class has to be derived from the driver class
 public class CalibTest extends Driver {
+int counter=0;
 
   // constructor
   public CalibTest() {
   }
-    String ecalName;
-    String ecalCollectionName;
-    String clusterCollectionName;
-    String calorhit;
+    
   //  overwrite the process method
   @Override
   protected void process(EventHeader event) {
     // Get the list of mc particles from the event
-    //List<MCParticle> mcParticles = event.getMCParticles();
+    List<MCParticle> mcParticles = event.getMCParticles();
     // Print out the number of mc particles
     //System.out.println("Event " + event.getEventNumber() + " contains " + mcParticles.size() + " mc particles.");
-    // get the list of the lists listed in the event list
-    //Set<List> myfirstlist = event.getLists();
-   // System.out.println("this is the number of lists: "+ event.getLists().size());
   
-    if(event.hasCollection(SimCalorimeterHit.class,calorhit))
-    {   List<SimCalorimeterHit> myCalorHit =event.getSimCalorimeterHits(calorhit);
-     System.out.println("This file has " + myCalorHit.size() + "SimClaorimeterHits object");}
-    
-    
+    for (MCParticle particle : mcParticles)
+ {
+     if(particle.getPDGID()==11)
+     {if(particle.getEnergy()> 2.1){
+         counter++;
+       }
+     }
+     
+     //System.out.println(particle.getPDGID());
+ } 
+System.out.println("ho contato" + counter + "elettroni. \n");
+    /*  try
+     {
+    FileOutputStream prova = new FileOutputStream("prova.txt");
+          PrintStream scrivi = new PrintStream(prova);*/
+    //if (event.hasCollection(CalorimeterHit.class, "EcalHits")) {
+   //         List<CalorimeterHit> hits = event.get(CalorimeterHit.class, "EcalHits");
+     
+    //        for (CalorimeterHit hit : hits) {
+    //        energia=hit.getRawEnergy();
+            //scrivi.print(energia );
+            
+            
+            
+     //       }
+            
+            
+            
+            
+          //  }
+    // }
+   /*  catch (IOException e)
+      {
+          System.out.println("Errore: " + e);
+          System.exit(1);
+      }*/
    
-    
-
-    
-    /*for(List  myhit : myCalorHit)
-        { for(Object hit : myhit)
-        {System.out.println("this event has energy: "+ hit.getRawEnergy() + "\n");} }*/
-    
-    
-    /*for(List lista  : myfirstlist )
-    { 
-        System.out.println("This event contains this list: " + lista + "\n");}*/
-  /*  List<Track>  myTrack = event.getTracks();
-    System.out.println("this is what we get printing the tracks: "+ event.getTracks().get(event.getEventNumber()));*/
-
-    //List<Cluster> myCluster = event.getClusters();
-    /* System.out.println("this is what we get printing the Clusters: "+ myCluster.get(event.getEventNumber()));*/
-    
-  /* if (event.hasCollection(SimCalorimeterHit.class,ecalName)){
-    List<SimCalorimeterHit> mySimCalHits = event.getSimCalorimeterHits(ecalName);
-    System.out.println("this is what we get printing the calorimeter hits: "+ mySimCalHits.size());
-   }
-   
-   
-   /* List<SimTrackerHit> mySimTrackerHits = event.getSimTrackerHits(String string);
-    System.out.println("this is what we get printing the tracker hits: "+ mySimTrackerHits.size());*/
-   /* if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
-            // Get the list of raw ECal hits.
-            List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
-
-            // Make a hit map for quick lookup by ID.
-            Map<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
-            
-            for (CalorimeterHit hit : hits) {
-                hitMap.put(hit.getCellID(), hit);
-            }
-            
-            System.out.println("Number of ECal hits: "+hitMap.size());
-           
-            
-            
-        }*/ 
    
   }
+  
 }
