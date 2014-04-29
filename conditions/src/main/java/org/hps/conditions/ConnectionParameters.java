@@ -33,7 +33,7 @@ public final class ConnectionParameters {
      * @param port The port number.
      * @param conditionsTable The table containing conditions validity data.
      */
-    ConnectionParameters(String user, String password, String database, String hostname, int port) {
+   public  ConnectionParameters(String user, String password, String database, String hostname, int port) {
         this.user = user;
         this.password = password;
         this.database = database;
@@ -45,7 +45,7 @@ public final class ConnectionParameters {
      * Get Properties object for this connection.
      * @return The Properties for this connection.
      */
-    Properties getConnectionProperties() {
+  public  Properties getConnectionProperties() {
         Properties p = new Properties();
         p.put("user", user);
         p.put("password", password);
@@ -94,7 +94,7 @@ public final class ConnectionParameters {
      * Get the connection string for these parameters.
      * @return The connection string.
      */
-    String getConnectionString() {
+    public String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
     }
 
@@ -103,7 +103,7 @@ public final class ConnectionParameters {
      * and is responsible for closing it when finished.
      * @return The Connection object.
      */
-    Connection createConnection() {
+    public Connection createConnection() {               
         Properties connectionProperties = getConnectionProperties();
         Connection connection = null;
         try {

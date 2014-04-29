@@ -50,7 +50,7 @@ public final class TableMetaData {
      * Get the type of collection this table maps onto.
      * @return
      */
-    Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
+   public Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
         return collectionClass;
     }
 
