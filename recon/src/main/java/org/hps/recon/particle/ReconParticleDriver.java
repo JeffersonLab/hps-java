@@ -1,24 +1,22 @@
 package org.hps.recon.particle;
 
-//--- java ---//
 import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.BasicHepLorentzVector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-//--- hep ---//
-//--- lcsim ---//
-//--- hps-java ---//
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.TrackUtils;
 
 /**
  * Driver that matches SVT Tracks and Ecal Clusters and creates
@@ -35,7 +33,7 @@ public abstract class ReconParticleDriver extends Driver {
 	boolean debug = false; 
 	
 	// Reconstructed particle collections
-	List<ReconstructedParticle> reconParticles;
+	List<ReconstructedParticle> finalStateParticles;
     List<ReconstructedParticle> candidates;
     List<ReconstructedParticle> candidatesBeamCon;
     List<ReconstructedParticle> candidatesTargetCon;
@@ -45,7 +43,7 @@ public abstract class ReconParticleDriver extends Driver {
     // Collections
     String ecalClustersCollectionName 			= "EcalClusters";
     String tracksCollectionName       			= "MatchedTracks";
-    String finalStateParticlesCollectionName 	= "FinalStateParticles";
+    String finalStateParticlesColName 		    = "FinalStateParticles";
     String candidatesCollectionName 			= null; 
     String candidatesBeamConCollectionName 		= null;
     String candidatesTargetConCollectionName	= null;
@@ -54,7 +52,7 @@ public abstract class ReconParticleDriver extends Driver {
     
     // The beamsize array is in the tracking frame
     double[] beamsize = {0.001, 0.2, 0.02};
-    double maxTrackClusterDistance = 1000; // [mm] 
+    double maxTrackClusterDistance = 10000; // [mm] 
 	double bField; 
     
      
@@ -62,10 +60,9 @@ public abstract class ReconParticleDriver extends Driver {
     //  HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
 	//  so we set the B-field in +iveZ and flip signs of fitted tracks
     //  
-    //  Note:  This should be -1 for Test configurations and +1 for 
-    //         Full (v3.X and lower) configurations this is set by the _config
-    //         variable (detType in HeavyPhotonDriver)
-    int flipSign = 1;
+    //  Note:  This should be -1 for test run configurations and +1 for 
+    //         prop-2014 configurations 
+	int flipSign = 1;
 
     public ReconParticleDriver() {
     }
@@ -84,10 +81,6 @@ public abstract class ReconParticleDriver extends Driver {
 
     public void setTrackCollectoinName(String tracksCollectionName) {
         this.tracksCollectionName = tracksCollectionName;
-    }
-
-    public void setReconParticlesCollectionName(String reconParticlesCollectionName) {
-        this.finalStateParticlesCollectionName = reconParticlesCollectionName;
     }
 
     public void setBeamSigmaX(double sigma_x) {
@@ -110,32 +103,42 @@ public abstract class ReconParticleDriver extends Driver {
 
     public void process(EventHeader event) {
        
-        // If the event does not have Ecal clusters, skip the event
+        // All events should have a collection of Ecal clusters.  If the event 
+    	// doesn't have one, skip the event.
         if (!event.hasCollection(HPSEcalCluster.class, ecalClustersCollectionName)) return;
         
-        // Get the clusters in the event
+        // Get the collection of Ecal clusters from the event. A triggered 
+        // event should have Ecal clusters.  If it doesn't, skip the event.
         List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalClustersCollectionName);
-        if(clusters.isEmpty()) return; 
+        if(clusters.isEmpty()) return;  
         this.printDebug("Number of Ecal clusters: " + clusters.size());
         
-        // Get the tracks in the event
+        // Get the collection of tracks from the event
         List<Track> tracks = event.get(Track.class, tracksCollectionName);
         this.printDebug("Number of Tracks: " + tracks.size()); 
 
-        reconParticles		= new ArrayList<ReconstructedParticle>();
-        electrons 			= new ArrayList<ReconstructedParticle>();
-        positrons 			= new ArrayList<ReconstructedParticle>();
-        candidates 			= new ArrayList<ReconstructedParticle>();
-        candidatesBeamCon 	= new ArrayList<ReconstructedParticle>(); 
-        candidatesTargetCon = new ArrayList<ReconstructedParticle>(); 
+        finalStateParticles		= new ArrayList<ReconstructedParticle>();
+        electrons 				= new ArrayList<ReconstructedParticle>();
+        positrons 				= new ArrayList<ReconstructedParticle>();
+        candidates 				= new ArrayList<ReconstructedParticle>();
+        candidatesBeamCon 		= new ArrayList<ReconstructedParticle>(); 
+        candidatesTargetCon 	= new ArrayList<ReconstructedParticle>(); 
 
-        // If there are clusters and tracks in the event, try to match them
-        // to each other
-        if (!tracks.isEmpty() && !clusters.isEmpty()) this.matchTracksToClusters(clusters, tracks);
+        // 
+        finalStateParticles = this.makeReconstructedParticles(clusters, tracks);
 
         // Put all the reconstructed particles in the event
-        event.put(finalStateParticlesCollectionName, reconParticles, ReconstructedParticle.class, 0);
+        event.put(finalStateParticlesColName, finalStateParticles, ReconstructedParticle.class, 0);
 
+        
+        // Loop through the list of final state particles and separate the
+        // charged particles to either electrons or positrons.  These lists
+        // will be used for vertexing purposes.
+        for(ReconstructedParticle finalStateParticle : finalStateParticles){
+        	if(finalStateParticle.getCharge() > 0) positrons.add(finalStateParticle);
+        	else if(finalStateParticle.getCharge() < 0) electrons.add(finalStateParticle);
+        }
+        
         // Vertex electron and positron candidates 
         vertexParticles(electrons, positrons);
        
@@ -156,129 +159,88 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * 
      */
-    private void matchTracksToClusters(List<HPSEcalCluster> clusters, List<Track> tracks){
+    private List<ReconstructedParticle> makeReconstructedParticles(List<HPSEcalCluster> clusters, List<Track> tracks){
     	
-        	// Instantiate the list of matched tracks and clusters. This list 
-        	// will be used to check if a track has already been previously matched
-        	List<Track> matchedTracks = new ArrayList<Track>(); 
-    	    List<HPSEcalCluster> matchedClusters = new ArrayList<HPSEcalCluster>(); 
-        	
-        	// Loop over all clusters 
-    	    HPSEcalCluster matchedCluster = null;
-        	for(HPSEcalCluster cluster : clusters){
+    	// Instantiate the list of reconstructed particles
+    	List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
     	
-        		// If the cluster has already been matched to a track, continue
-        		// on to the next cluster
-        		if(matchedClusters.contains(cluster)) continue;
-        		matchedCluster = cluster; 	
+       	// Instantiate the list of matched tracks and clusters. This list 
+       	// will be used to check if a track has already been previously matched
+       	List<Track> unmatchedTracks = new ArrayList<Track>(tracks); 
+    	
+  	    Track matchedTrack = null;
+  	    // Loop over all of the Ecal clusters and pair them with tracks
+    	for(HPSEcalCluster cluster : clusters){
+    	
+    		// Get the position of the Ecal cluster
+    		Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+    		this.printDebug("Ecal cluster position: " + clusterPosition.toString());
+    		
+            double rMax = Double.MAX_VALUE;
+    		// Loop over all of the tracks in the event
+    		for(Track track : tracks){
+    		
+    			// Check if the Ecal cluster and track are within the same 
+    			// detector volume i.e. both top or bottom
+    			if(clusterPosition.y()*track.getTrackStates().get(0).getZ0() < 0) continue; 
+    			
+    			// Extrapolate the track to the Ecal cluster position
+    			Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
+    			
+       			// Check if any of the extrapolated values are invalid.
+       			// TODO: There are some track whose extrapolated coordinates
+       			//        are NaN. The problem seems to be that the y-coordinate
+       			//        of the extrapolated helix is found to be non-real. This
+       			//        needs to be fixed.
+        		if(Double.isNaN(trackPosAtEcal.x()) || Double.isNaN(trackPosAtEcal.y())) continue; 
+        		this.printDebug("Track position at shower max: " + trackPosAtEcal.toString());
         		
-        		// Get the Ecal cluster position
-        		Hep3Vector clusterPos = new BasicHep3Vector(cluster.getPosition());
-        		this.printDebug("Ecal cluster position: " + clusterPos.toString());
-        	
-                Track matchedTrack = null; 
-        		Hep3Vector matchedTrackPosition = null; 
-                double rMax = Double.MAX_VALUE;
-        		// Loop over all tracks in the event
-                for(Track track : tracks){        	
-                	
-                	// Check if the track has already been matched to another cluster
-                	if(matchedTracks.contains(track)){
-                		this.printDebug("Track has already been matched"); 
-                		continue; 
-                	}
-                	
-        			
-        			// Extrapolate the track to the Ecal cluster shower max
-        			Hep3Vector trkPosAtShowerMax = TrackUtils.extrapolateTrack(track,clusterPos.z());
-        			// Check if any of the extrapolated values are invalid.
-        			// TODO: There are some track whose extrapolated coordinates
-        			//        are NaN. The problem seems to be that the y-coordinate
-        			//        of the extrapolated helix is found to be non-real. This
-        			//        needs to be fixed.
-        			if(Double.isNaN(trkPosAtShowerMax.x()) || Double.isNaN(trkPosAtShowerMax.y())) continue; 
-        			this.printDebug("Track position at shower max: " + trkPosAtShowerMax.toString());
-        			
-        			// Find the distance between the track position at shower
-        			// max and the cluster position
-        			double r = VecOp.sub(trkPosAtShowerMax, clusterPos).magnitude();
-        			this.printDebug("Distance between Ecal cluster and track position at shower max: " + r + " mm");
-
-        			// Check if the track is the closest to the cluster.  If it is, then
-        			// save the track and contineu looping over all other tracks
-                    if (r < rMax && r <= maxTrackClusterDistance) {
-                        rMax = r;
-                        matchedTrack = track; 
-                        matchedTrackPosition = trkPosAtShowerMax; 
-                    }
+       			double r = VecOp.sub(trackPosAtEcal, clusterPosition).magnitude();
+       			this.printDebug("Distance between Ecal cluster and track position: " + r + " mm");
+        		
+                if (r < rMax && r <= maxTrackClusterDistance) {
+                	rMax = r;
+                	matchedTrack = track; 
                 }
-                
-                
-                // If a matching track isn't found, continue to the next cluster 
-                // in the event. This will occur when a track is found to have 
-                // NaN coordinate values as explained above or when the distance
-                // between a cluster and a track fails the maximum track cluster
-                // distance.
-                if(matchedTrack == null){                
-        			this.printDebug("No matching cluster found!");
-                	continue;
-                }
-                
-                // Check if the track is a closer match to any other cluster in
-                // the event
-                for(HPSEcalCluster ecalCluster : clusters){ 
-                	
-                	// Skip the current cluster and any other cluster that has 
-                	// been matched already
-                	if(ecalCluster.equals(cluster) || matchedClusters.contains(ecalCluster)) continue; 
-                	
-                	// Get the Ecal cluster position
-                	Hep3Vector ecalClusterPos = new BasicHep3Vector(ecalCluster.getPosition());
-                	this.printDebug("Ecal cluster position: " + ecalClusterPos.toString());
-                	
-                	// Get the position of the track at the Ecal cluster shower max
-                	Hep3Vector trkPosAtShowerMax = TrackUtils.extrapolateTrack(matchedTrack,ecalClusterPos.z());
-        			this.printDebug("Track position at shower max: " + trkPosAtShowerMax.toString());
-        			
-        			// Get the distance between the track and the cluster position
-        			// and check if the track has a better cluster match
-        			double r = VecOp.sub(trkPosAtShowerMax, ecalClusterPos).magnitude();
-        			if(r < rMax && r <= maxTrackClusterDistance){
-        				rMax = r; 
-        				matchedCluster = ecalCluster; 
-        			}
-                }
-               
-               // Add the track to the list of matched tracks
-                matchedTracks.add(matchedTrack);
-                matchedClusters.add(matchedCluster);
-                this.printDebug("Matched track position: " + matchedTrackPosition.toString()); 
-                this.printDebug("Matched Cluster Position: " + (new BasicHep3Vector(matchedCluster.getPosition()).toString()));
-                
-                // Create a reconstructed particle and add it to the 
-                // collection of final state particles
-                ReconstructedParticle particle = new BaseReconstructedParticle(); 
-                particle.addCluster(matchedCluster); 
-                particle.addTrack(matchedTrack); 
-                reconParticles.add(particle);	
-        	
-                // Add the particle to either the collection of possible
-                // electrons or positrons
-                if(matchedTrack.getCharge()*flipSign > 0) positrons.add(particle);
-                else electrons.add(particle); 
-        	
-        	}
-        	
-        // After iterating through all tracks, if there still
-        // exist some clusters in the list then assign them 
-        // to their own reconstructed particles
-        if (!clusters.isEmpty()) {
-            for (HPSEcalCluster cluster : clusters) {
-                ReconstructedParticle particle = new BaseReconstructedParticle();
-                particle.addCluster(cluster);
-                reconParticles.add(particle);
-            }
-        }
+    		}
+    		
+    		// Create a reconstructed particle and add it to the 
+    		// collection of particles
+    		ReconstructedParticle particle = new BaseReconstructedParticle(); 
+    		HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+    		particle.addCluster(cluster); 
+    		((BasicHepLorentzVector) fourVector).setT(cluster.getEnergy());
+    		if(matchedTrack != null){
+    			particle.addTrack(matchedTrack);
+    			Hep3Vector momentum = new BasicHep3Vector(matchedTrack.getTrackStates().get(0).getMomentum());
+    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
+    			((BaseReconstructedParticle) particle).setCharge(matchedTrack.getCharge()*flipSign);
+    		
+    			if(unmatchedTracks.contains(matchedTrack)) unmatchedTracks.remove(matchedTrack);
+    		}
+    		((BaseReconstructedParticle) particle).set4Vector(fourVector);
+    	
+    		particles.add(particle);
+    	}
+    	
+    	if(!unmatchedTracks.isEmpty()){
+    		for(Track  track : unmatchedTracks){
+    			// Create a reconstructed particle and add it to the 
+    			// collection of particles
+    			ReconstructedParticle particle = new BaseReconstructedParticle(); 
+    			HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+    			
+    			particle.addTrack(matchedTrack);
+    			Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
+    			((BaseReconstructedParticle) particle).setCharge(track.getCharge()*flipSign);
+    			((BaseReconstructedParticle) particle).set4Vector(fourVector);
+    			
+    			particles.add(particle);
+    		}
+    	}
+        
+    	return particles;
     }
        
     /**
