@@ -24,7 +24,7 @@ import org.hps.recon.tracking.TrackUtils;
  *
  * @author Mathew Graham <mgraham@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: ReconParticleDriver.java,v 1.8 2013/10/14 22:58:03 phansson Exp $ 
+ * @version $Id$ 
  */
 public abstract class ReconParticleDriver extends Driver {
 
