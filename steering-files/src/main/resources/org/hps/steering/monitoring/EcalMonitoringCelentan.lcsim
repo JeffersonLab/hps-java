@@ -72,10 +72,12 @@
         </driver>
               
         <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
+        <inputCollection>EcalCalHits</inputCollection>
         </driver>
        
         <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
+            <maxEch>2.0</maxEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
         

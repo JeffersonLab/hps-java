@@ -30,11 +30,7 @@ import org.lcsim.util.aida.AIDA;
  * - Second sub-tab shows the energy distribution of the hits (Histogram1D), and the maximum energy in each event (Histogram1D)
  * - Third sub-tab shows the time distribution of the first hit per event, for the Ecal top (Histogram1D),  for the Ecal bottom (Histogram1D),  for both  for the Ecal top (Histogram1D).
  * 
- * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event refresh rate configured in the <code> EcalMonitoringPlots </code> driver
- * 
- * This driver also creates histogram with the energy distribution and the time distribution for each channel.
- * These are not shown here, but are used in the <code>EcalEventDisplay</code> driver. 
- * However, it seemed to me this is the best place where to put them.
+ * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event refresh rate configured in the <code> EcalMonitoringPlots </code> driver 
  * @author Andrea Celentano
  *
  */
@@ -58,15 +54,12 @@ public class EcalHitPlots extends Driver implements Resettable{
    
   
    
-    ArrayList<IHistogram1D> channelEnergyPlot;
-    ArrayList<IHistogram1D> channelTimePlot;
-    ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
   
     int eventn = 0;
     int eventRefreshRate = 1;
     int dummy = 0;
     double maxE = 5000 * ECalUtils.MeV;
-    double maxEch = 2500 * ECalUtils.MeV;
+    
     boolean logScale = false;
     boolean hide = false;
     
@@ -78,9 +71,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         this.maxE = maxE;
     }
     
-    public void setMaxEch(double maxEch) {
-        this.maxEch = maxEch;
-    }
+
     
     public void setLogScale(boolean logScale) {
         this.logScale = logScale;
@@ -119,18 +110,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
 
         
-        channelEnergyPlot=new ArrayList<IHistogram1D>();
-        channelTimePlot=new ArrayList<IHistogram1D>();
-        channelTimeVsEnergyPlot=new ArrayList<IHistogram2D>();
-        //create the histograms for single channel energy and time distribution.
-        //these are NOT shown in this plotter, but are used in the event display.
-        for(int id = 0; id < (47*11); id = id +1){
-              int row=EcalMonitoringUtils.getRowFromHistoID(id);
-              int column=EcalMonitoringUtils.getColumnFromHistoID(id);      
-              channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+id, 1000, -0.1, maxEch));  
-              channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400));     
-              channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (row) + " "+ (column)+ ": "+id, 100, 0, 400,100, -0.1, maxEch));     
-        }
+    
         
         
         // Create the plotter regions.
@@ -260,14 +240,7 @@ public class EcalHitPlots extends Driver implements Resettable{
                 hitTimePlot.fill(hit.getTime());
             
                 
-                column=hit.getIdentifierFieldValue("ix");
-                row=hit.getIdentifierFieldValue("iy"); 
-                if ((hit.getIdentifierFieldValue("ix")!=0)&&(hit.getIdentifierFieldValue("iy")!=0)){
-                    id = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
-                    channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
-                    channelTimePlot.get(id).fill(hit.getTime());
-                    channelTimeVsEnergyPlot.get(id).fill(hit.getTime(),hit.getRawEnergy());
-                }
+           
                 
                 if (hit.getTime() < orTime) {
                     orTime = hit.getTime();
@@ -325,10 +298,6 @@ public class EcalHitPlots extends Driver implements Resettable{
         hitTimePlot.reset();
         hitEnergyPlot.reset();
         hitMaxEnergyPlot.reset();
-        for(int id = 0; id < (47*11); id = id +1){         
-            channelEnergyPlot.get(id).reset();
-            channelTimePlot.get(id).reset();
-        }
     }
 
     @Override
