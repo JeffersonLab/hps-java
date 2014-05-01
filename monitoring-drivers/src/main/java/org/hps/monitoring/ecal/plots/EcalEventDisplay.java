@@ -109,8 +109,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
       	
     	hEnergyDraw=aida.histogram1D("Energy",channelEnergyPlot.get(0).axis().bins(), channelEnergyPlot.get(0).axis().lowerEdge(),channelEnergyPlot.get(0).axis().upperEdge());
     	hTimeDraw=aida.histogram1D("Time", channelTimePlot.get(0).axis().bins(),channelTimePlot.get(0).axis().lowerEdge(),channelTimePlot.get(0).axis().upperEdge());
-    	//hTimeVsEnergyDraw=aida.histogram2D("Hit Time Vs Energy" ,channelTimeVsEnergyPlot.get(0).xAxis().bins(),channelTimeVsEnergyPlot.get(0).xAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).xAxis().upperEdge(),channelTimeVsEnergyPlot.get(0).yAxis().bins(),channelTimeVsEnergyPlot.get(0).yAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).yAxis().upperEdge());
-    	hTimeVsEnergyDraw=aida.histogram2D("Time Vs Energy",100,0,400,100,-0.1,maxEch);
+    	hTimeVsEnergyDraw=aida.histogram2D("Hit Time Vs Energy" ,channelTimeVsEnergyPlot.get(0).xAxis().bins(),channelTimeVsEnergyPlot.get(0).xAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).xAxis().upperEdge(),channelTimeVsEnergyPlot.get(0).yAxis().bins(),channelTimeVsEnergyPlot.get(0).yAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).yAxis().upperEdge());
+    	//hTimeVsEnergyDraw=aida.histogram2D("Time Vs Energy",100,0,400,100,-0.1,maxEch);
     			
     			
     			
@@ -180,10 +180,13 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
             	if (do_update) viewer.addHit(new EcalHit(column,row, hit.getRawEnergy()));         
                 if ((row!=0)&&(column!=0)){
                     ii = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
-                    channelEnergyPlot.get(ii).fill(hit.getCorrectedEnergy());
-                    channelTimePlot.get(ii).fill(hit.getTime());
-                    channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getRawEnergy());
-                } 
+                    if (hit.getCorrectedEnergy() > 0) { //A.C. > 0 for the 2D plot drawing
+                    	channelEnergyPlot.get(ii).fill(hit.getCorrectedEnergy());
+                        channelTimePlot.get(ii).fill(hit.getTime());
+                        //channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());
+                        channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),1.);
+                        }
+                 } 
             }
         }
         if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
