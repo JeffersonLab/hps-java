@@ -158,7 +158,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * 
      */
-    private List<ReconstructedParticle> makeReconstructedParticles(List<HPSEcalCluster> clusters, List<Track> tracks){
+    protected List<ReconstructedParticle> makeReconstructedParticles(List<HPSEcalCluster> clusters, List<Track> tracks){
     	
     	// Instantiate the list of reconstructed particles
     	List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
