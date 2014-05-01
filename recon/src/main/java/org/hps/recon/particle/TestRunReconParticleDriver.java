@@ -14,7 +14,7 @@ import org.lcsim.event.base.BaseReconstructedParticle;
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: TestRunReconParticleDriver.java,v 1.3 2013/10/18 16:46:01 phansson Exp $
+ * @version $Id$
  */
 public class TestRunReconParticleDriver extends ReconParticleDriver {
 
@@ -22,7 +22,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
 	
 	@Override
 	protected void startOfData(){
-		candidatesCollectionName = "VertexedReconParticles";
+		unconstrainedV0CandidatesColName = "V0Candidates";
 	}
 	
 	@Override
@@ -45,7 +45,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
 				((BaseReconstructedParticle) candidate).setStartVertex(vertex);
 				candidate.addParticle(electron);
 				candidate.addParticle(positron);
-				candidates.add(candidate); 
+				unconstrainedV0Candidates.add(candidate); 
 			}
 		}
 	}

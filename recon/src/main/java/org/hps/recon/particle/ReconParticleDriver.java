@@ -34,9 +34,9 @@ public abstract class ReconParticleDriver extends Driver {
 	
 	// Reconstructed particle collections
 	List<ReconstructedParticle> finalStateParticles;
-    List<ReconstructedParticle> candidates;
-    List<ReconstructedParticle> candidatesBeamCon;
-    List<ReconstructedParticle> candidatesTargetCon;
+    List<ReconstructedParticle> unconstrainedV0Candidates;
+    List<ReconstructedParticle> beamConV0Candidates;
+    List<ReconstructedParticle> targetConV0Candidates;
     List<ReconstructedParticle> electrons;
     List<ReconstructedParticle> positrons;
     
@@ -44,10 +44,10 @@ public abstract class ReconParticleDriver extends Driver {
     String ecalClustersCollectionName 			= "EcalClusters";
     String tracksCollectionName       			= "MatchedTracks";
     String finalStateParticlesColName 		    = "FinalStateParticles";
-    String candidatesCollectionName 			= null; 
-    String candidatesBeamConCollectionName 		= null;
-    String candidatesTargetConCollectionName	= null;
-    String vertexCandidatesCollectionName       = null;
+    String unconstrainedV0CandidatesColName 	= null; 
+    String beamConV0CandidatesColName 			= null;
+    String targetV0ConCandidatesColName			= null;
+    String vertexCandidatesColName       		= null;
     String vertexBeamConsCandidatesName         = null;
     
     // The beamsize array is in the tracking frame
@@ -74,15 +74,7 @@ public abstract class ReconParticleDriver extends Driver {
     public void setMaxTrackClusterDistance(double maxTrackClusterDistance){
     	this.maxTrackClusterDistance = maxTrackClusterDistance; 
     }
-
-    public void setEcalClusterCollectionName(String ecalClustersCollectionName) {
-        this.ecalClustersCollectionName = ecalClustersCollectionName;
-    }
-
-    public void setTrackCollectoinName(String tracksCollectionName) {
-        this.tracksCollectionName = tracksCollectionName;
-    }
-
+    
     public void setBeamSigmaX(double sigma_x) {
         beamsize[1] = sigma_x; 
     }
@@ -90,7 +82,14 @@ public abstract class ReconParticleDriver extends Driver {
     public void setBeamSigmaY(double sigma_y) {
         beamsize[2] = sigma_y;  
     }
-    
+
+    public void setEcalClusterCollectionName(String ecalClustersCollectionName) {
+        this.ecalClustersCollectionName = ecalClustersCollectionName;
+    }
+
+    public void setTrackCollectoinName(String tracksCollectionName) {
+        this.tracksCollectionName = tracksCollectionName;
+    }    
     
 	@Override
 	protected void detectorChanged(Detector detector){
@@ -117,12 +116,12 @@ public abstract class ReconParticleDriver extends Driver {
         List<Track> tracks = event.get(Track.class, tracksCollectionName);
         this.printDebug("Number of Tracks: " + tracks.size()); 
 
-        finalStateParticles		= new ArrayList<ReconstructedParticle>();
-        electrons 				= new ArrayList<ReconstructedParticle>();
-        positrons 				= new ArrayList<ReconstructedParticle>();
-        candidates 				= new ArrayList<ReconstructedParticle>();
-        candidatesBeamCon 		= new ArrayList<ReconstructedParticle>(); 
-        candidatesTargetCon 	= new ArrayList<ReconstructedParticle>(); 
+        finalStateParticles			= new ArrayList<ReconstructedParticle>();
+        electrons 					= new ArrayList<ReconstructedParticle>();
+        positrons 					= new ArrayList<ReconstructedParticle>();
+        unconstrainedV0Candidates 	= new ArrayList<ReconstructedParticle>();
+        beamConV0Candidates 		= new ArrayList<ReconstructedParticle>(); 
+        targetConV0Candidates 		= new ArrayList<ReconstructedParticle>(); 
 
         // 
         finalStateParticles = this.makeReconstructedParticles(clusters, tracks);
@@ -143,12 +142,12 @@ public abstract class ReconParticleDriver extends Driver {
         vertexParticles(electrons, positrons);
        
         // If the list exist, put the vertexed candidates into the event
-        if(candidatesCollectionName != null)
-        	event.put(candidatesCollectionName, candidates, ReconstructedParticle.class, 0);
-        if(candidatesBeamConCollectionName != null)
-        	event.put(candidatesBeamConCollectionName, candidatesBeamCon, ReconstructedParticle.class, 0);
-        if(candidatesTargetConCollectionName != null)
-        	event.put(candidatesTargetConCollectionName, candidatesTargetCon, ReconstructedParticle.class, 0);
+        if(unconstrainedV0CandidatesColName != null)
+        	event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
+        if(beamConV0CandidatesColName != null)
+        	event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
+        if(targetV0ConCandidatesColName != null)
+        	event.put(targetV0ConCandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
     }
 
     /**
