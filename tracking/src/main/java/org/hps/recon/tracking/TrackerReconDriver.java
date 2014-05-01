@@ -139,7 +139,9 @@ public final class TrackerReconDriver extends Driver {
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);
-        stFinal.setDiagnostics(new SeedTrackerDiagnostics());
+        if (debug) {
+            stFinal.setDiagnostics(new SeedTrackerDiagnostics());
+        }
         // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
