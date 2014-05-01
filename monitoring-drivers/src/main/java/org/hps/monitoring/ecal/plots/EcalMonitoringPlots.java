@@ -111,7 +111,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         style.setParameter("hist2DStyle", "colorMap");
         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         style.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
-        style.zAxisStyle().setParameter("scale", "log");
+        //style.zAxisStyle().setParameter("scale", "log");
         plotter.region(2).plot(occupancyDrawPlot);
         
         

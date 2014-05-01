@@ -84,6 +84,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter1 = plotterFactory.create("Cluster Counts");
         plotter1.setTitle("Cluster Counts");
         plotter1.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter1.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter1.createRegions(2, 2);
         plotter1.region(0).plot(clusterCountPlot);
         plotter1.region(1).plot(clusterSizePlot);
@@ -95,6 +96,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter2.createRegions(1,2);
         plotter2.setTitle("Cluster Energies");
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter2.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         if (logScale) {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
         }
@@ -103,6 +105,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
 
         plotter3 = plotterFactory.create("Cluster Times");
         plotter3.setTitle("Cluster Times");
+        plotter3.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.createRegions(1, 2);
         plotter3.style().yAxisStyle().setParameter("scale", "log");
@@ -112,6 +115,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter4 = plotterFactory.create("Cluster Center");
         plotter4.setTitle("Edges");
         plotter4.style().setParameter("hist2DStyle", "colorMap");
+        plotter4.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotter4.style().zAxisStyle().setParameter("scale", "log");
         plotter4.createRegion(); 
