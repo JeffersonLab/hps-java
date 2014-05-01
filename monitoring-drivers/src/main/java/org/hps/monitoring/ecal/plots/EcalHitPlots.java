@@ -88,7 +88,8 @@ public class EcalHitPlots extends Driver implements Resettable{
         plotter = plotterFactory.create("Hit Counts");
         plotter.setTitle("Hit Counts");
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
-
+        plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
+        
         // Setup plots.
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event", 10, -0.5, 9.5);
         hitTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time", 100, 0 * 4.0, 100 * 4.0);
@@ -121,6 +122,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         IPlotterStyle style = plotter.region(2).style();
         style.setParameter("hist2DStyle", "colorMap");
         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+        style.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         style.zAxisStyle().setParameter("scale", "log");
         plotter.region(2).plot(occupancyPlot);
         
@@ -128,7 +130,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
-
+        plotter2.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         
         if (logScale) {
             plotter2.style().yAxisStyle().setParameter("scale", "log");
@@ -142,6 +144,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         plotter3 = plotterFactory.create("Hit Times");
         plotter3.setTitle("Hit Times");
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter3.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter3.createRegions(3, 3);      
         plotter3.region(0).plot(topTimePlot);
         plotter3.region(1).plot(botTimePlot);

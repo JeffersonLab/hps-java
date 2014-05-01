@@ -96,9 +96,9 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
        for(int ii = 0; ii < (47*11); ii = ii +1){
              int row=EcalMonitoringUtils.getRowFromHistoID(ii);
              int column=EcalMonitoringUtils.getColumnFromHistoID(ii);      
-             channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+ii, 100, -0.1, maxEch));  
+             channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+ii, 100, 0, maxEch));  
              channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+ii, 100, 0, 400));     
-             channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (row) + " "+ (column)+ ": "+ii, 100, 0, 400,100, -0.1, maxEch));              
+             channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (row) + " "+ (column)+ ": "+ii, 100, 0, 400,100, 0, maxEch));              
        }
        id=0;
        iy=EcalMonitoringUtils.getRowFromHistoID(id);
@@ -110,7 +110,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
     	hEnergyDraw=aida.histogram1D("Energy",channelEnergyPlot.get(0).axis().bins(), channelEnergyPlot.get(0).axis().lowerEdge(),channelEnergyPlot.get(0).axis().upperEdge());
     	hTimeDraw=aida.histogram1D("Time", channelTimePlot.get(0).axis().bins(),channelTimePlot.get(0).axis().lowerEdge(),channelTimePlot.get(0).axis().upperEdge());
     	hTimeVsEnergyDraw=aida.histogram2D("Hit Time Vs Energy" ,channelTimeVsEnergyPlot.get(0).xAxis().bins(),channelTimeVsEnergyPlot.get(0).xAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).xAxis().upperEdge(),channelTimeVsEnergyPlot.get(0).yAxis().bins(),channelTimeVsEnergyPlot.get(0).yAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).yAxis().upperEdge());
-    	//hTimeVsEnergyDraw=aida.histogram2D("Time Vs Energy",100,0,400,100,-0.1,maxEch);
+    	
     			
     			
     			
@@ -120,6 +120,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
        
         plotter = plotterFactory.create("Single hits");
         plotter.setTitle("");
+        plotter.style().setParameter("hist2DStyle", "colorMap");
+        plotter.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2,2);
@@ -280,7 +282,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
     	iy=(int) ecalPoint.getY(); //raw
     	id=EcalMonitoringUtils.getHistoIDFromRowColumn(iy,ix);
     	System.out.println("Crystal event: "+ix+" "+iy+" "+id);
-    	
+    	System.out.println("BINS "+hTimeVsEnergyDraw.yAxis().bins());
         //  plotter.hide();
     	//get the new histograms
     
@@ -298,9 +300,12 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
        	
      	
        	hTimeVsEnergyDraw.reset();
-        plotter.region(2).setTitle(channelTimeVsEnergyPlot.get(id).title());
+        
+       	plotter.region(2).setTitle(channelTimeVsEnergyPlot.get(id).title());
        	hTimeVsEnergyDraw.setTitle(channelTimeVsEnergyPlot.get(id).title());
        	hTimeVsEnergyDraw.add(channelTimeVsEnergyPlot.get(id));
-	}    
+
+       	
+    }    
 }
 
