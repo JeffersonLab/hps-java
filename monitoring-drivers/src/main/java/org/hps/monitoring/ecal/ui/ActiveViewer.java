@@ -26,8 +26,6 @@ public abstract class ActiveViewer extends Viewer {
 	protected final EventManager em;
 	
 	/**
-	 * <b>ActiveViewer</b><br/><br/>
-     * <code>public <b>ActiveViewer</b>(EventManager em)</code><br/><br/>
      * Creates an active-type <code>Viewer</code> window which draws
      * events from the indicated data source.
 	 * @param em - The data source event manager.
@@ -35,8 +33,6 @@ public abstract class ActiveViewer extends Viewer {
 	public ActiveViewer(EventManager em) { this(em, new String[0]); }
 	
 	/**
-	 * <b>ActiveViewer</b><br/><br/>
-     * <code>public <b>ActiveViewer</b>(EventManager em, String... fieldNames)</code><br/><br/>
      * Creates an active-type <code>Viewer</code> window which draws
      * events from the indicated data source with additional status
      * fields defined by the <code>fieldNames</code> argument.
@@ -56,16 +52,12 @@ public abstract class ActiveViewer extends Viewer {
 	}
 	
     /**
-     * <b>displayNextEvent</b><br/><br/>
-     * <code>public void <b>displayNextEvent</b>()</code><br/><br/>
      * Feeds the calorimeter panel the data from the next event.
      * @throws IOException Occurs when there is an issue with reading the data file.
      **/
 	public abstract void displayNextEvent() throws IOException;
 	
     /**
-     * <b>displayPreviousEvent</b><br/><br/>
-     * <code>public void <b>displayPreviousEvent</b>()</code><br/><br/>
      * Feeds the calorimeter panel the data from the previous event.
      * @throws IOException Occurs when there is an issue with reading the data file.
      **/
@@ -117,6 +109,18 @@ public abstract class ActiveViewer extends Viewer {
             else if(e.getKeyCode() == 76) {
             	if(ecalPanel.isScalingLinear()) { ecalPanel.setScalingLogarithmic(); }
             	else { ecalPanel.setScalingLinear(); }
+            }
+            
+            // 'x' toggles x-axis mirroring.
+            else if(e.getKeyCode() == 88) {
+            	ecalPanel.setMirrorX(!ecalPanel.isMirroredX());
+            	updateStatusPanel();
+            }
+            
+            // 'y' toggles y-axis mirroring.
+            else if(e.getKeyCode() == 89) {
+            	ecalPanel.setMirrorY(!ecalPanel.isMirroredY());
+            	updateStatusPanel();
             }
             
             // 's' saves the panel to a file.

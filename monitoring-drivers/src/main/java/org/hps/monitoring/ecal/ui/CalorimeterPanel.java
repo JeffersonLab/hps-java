@@ -44,6 +44,10 @@ public final class CalorimeterPanel extends JPanel {
     private int xBoxes = 1;
     // The number of boxes in the y-direction.
     private int yBoxes = 1;
+    // Whether the calorimeter panel should be mirrored along x.
+    private boolean mirrorX = false;
+    // Whether the calorimeter panel should be mirrored along y.
+    private boolean mirrorY = false;
     // The width of the scale.
     private int scaleWidth = 75;
     // Store the crystal panels.
@@ -65,7 +69,6 @@ public final class CalorimeterPanel extends JPanel {
     // ================================================================================
     
     /**
-     * <b>EcalPanel</b><br/><br/>
      * Initializes the calorimeter panel.
      * @param numXBoxes - The number of crystals in the x-direction.
      * @param numYBoxes - The number of crystals in the y-direction.
@@ -102,11 +105,9 @@ public final class CalorimeterPanel extends JPanel {
     // ================================================================================
     
     /**
-     * <b>addAssociation</b><br/><br/>
-     * <code>public void <b>addAssociation</b>(Association crystalAssociation)</code><br/><br/>
      * Connects the parent crystal to the child crystal such that when
      * the parent crystal is active, the child will be highlighted with
-     * the highlight color set in the <code>Asscoiation</code> object.
+     * the highlight color set in the <code>Association</code> object.
      * @param crystalAssociation
      * @throws IndexOutOfBoundsException Occurs when either of the given
      * x/y crystal coordinates for either the parent or child crystals do
@@ -128,8 +129,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>addCrystalEnergy</b><br/><br/>
-     * <code>public void <b>addCrystalEnergy</b>(int xIndex, int yIndex, double energy)</code><br/><br/>
      * Adds the indicated quantity of energy to the crystal at the given
      * coordinates.
      * @param ix - The x-index of the crystal.
@@ -139,13 +138,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      **/
     public void addCrystalEnergy(int ix, int iy, double energy) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
         if (validateIndices(ix, iy)) { crystal[ix][iy].addEnergy(energy); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>addCrystalEnergy</b><br/><br/>
-     * <code>public void <b>addCrystalEnergy</b>(Point ixy, double energy)</code><br/><br/>
      * Adds the indicated quantity of energy to the crystal at the given
      * coordinates.
      * @param ixy - The crystal's x/y-indices.
@@ -158,8 +159,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>autoScale</b><br/><br/>
-     * <code>public void <b>autoScale</b>()</code><br/><br/>
      * Chooses a maximum and minimum value for the scale that goes
      * from slightly under the smallest recorded value to the highest
      * recorded value.
@@ -182,8 +181,6 @@ public final class CalorimeterPanel extends JPanel {
 	}
     
     /**
-     * <b>clearCrystals</b><br/><br/>
-     * <code>public void <b>clearCrystals</b>()</code><br/><br/>
      * Sets all crystal energies to zero, removes all clusters, and
      * clears all highlighting. This <b>does not</b> enable disabled
      * crystals.
@@ -200,8 +197,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>clearHighlight</b><br/><br/>
-     * <code>public void <b>clearHighlight</b>()</code><br/><br/>
      * Clears any highlighting on the crystals.
      */
     public void clearHighlight() {
@@ -211,8 +206,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>clearSelectedCrystal</b><br/><br/>
-     * <code>public void <b>clearSelectedCrystal</b>()</code><br/><br/>
      * Clears crystal selection and sets it to <code>null</code>.
      */
     public void clearSelectedCrystal() {
@@ -224,8 +217,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>getCrystalEnergy</b><br/><br/>
-     * <code>public double <b>getCrystalEnergy</b>(int ix, int iy)</code><br/><br/>
      * Provides the energy stored in the indicated crystal.
      * @param ix - The crystal's x-index.
      * @param iy - The crystal's y-index.
@@ -234,13 +225,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public double getCrystalEnergy(int ix, int iy) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
     	if(validateIndices(ix, iy)) { return crystal[ix][iy].getEnergy(); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>getCrystalEnergy</b><br/><br/>
-     * <code>public double <b>getCrystalEnergy</b>(Point ixy)</code><br/><br/>
      * Provides the energy stored in the indicated crystal.
      * @param ixy - The crystal's x/y-indices.
      * @return Returns the energy as a <code>double</code>.
@@ -252,8 +245,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>getCrystalHighlight</b><br/><br/>
-     * <code>public Color <b>getCrystalHighlight</b>(int ix, int iy)</code><br/><br/>
      * Provides the highlight color for the indicated crystal.
      * @param ix - The crystal's x-index.
      * @param iy - The crystal's y-index.
@@ -263,13 +254,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public Color getCrystalHighlight(int ix, int iy) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
     	if(validateIndices(ix, iy)) { return crystal[ix][iy].getHighlight(); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>getCrystalHighlight</b><br/><br/>
-     * <code>public Color <b>getCrystalHighlight</b>(Point ixy)</code><br/><br/>
      * Provides the highlight color for the indicated crystal.
      * @param ixy - The crystal's x/y-indices.
      * @return Returns the highlight color as a <code>Color</code>
@@ -282,8 +275,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>getCrystalID</b><br/><br/>
-     * <code>public Point <b>getCrystalID</b>(int xCoor, int yCoor)</code><br/><br/>
      * Determines the panel crystal index of the crystal at the given
      * panel coordinates.
      * @param xCoor - The x-coordinate on the panel.
@@ -324,12 +315,10 @@ public final class CalorimeterPanel extends JPanel {
     	if(loc.x == -1 || loc.y == -1) { return null; }
     	
     	// Return the crystal identifier.
-    	return loc;
+    	return getMirroredPoint(loc, mirrorX, mirrorY);
     }
     
     /**
-     * <b>getCrystalID</b><br/><br/>
-     * <code>public Point <b>getCrystalID</b>(Point panelCoor)</code><br/><br/>
      * Determines the panel crystal index of the crystal at the given
      * panel coordinates.
      * @param panelCoor - The x/y-coordinates on the panel.
@@ -340,8 +329,6 @@ public final class CalorimeterPanel extends JPanel {
     public Point getCrystalID(Point panelCoor) { return getCrystalID(panelCoor.x, panelCoor.y); }
     
     /**
-     * <b>getCrystalBounds</b><br/><br/>
-     * <code>public Dimension <b>getCrystalBounds</b>()</code><br/><br/>
      * Returns calorimeter panel's width and height in crystals.
      * @return Returns the number of crystals are on the calorimeter
      * in width and height.
@@ -349,8 +336,6 @@ public final class CalorimeterPanel extends JPanel {
     public Dimension getCrystalBounds() { return new Dimension(xBoxes, yBoxes); }
     
     /**
-     * <b>getNeighbors</b><br/><br/>
-     * <code>public Set<Point> <b>getNeighbors</b>(int cix, int ciy)</code><br/><br/>
      * Gets the set of valid crystals that immediately surround the
      * central crystal. Valid crystals must both have valid indices
      * and also be enabled.
@@ -365,8 +350,6 @@ public final class CalorimeterPanel extends JPanel {
     public Set<Point> getNeighbors(int cix, int ciy) { return getNeighbors(new Point(cix, ciy)); }
     
     /**
-     * <b>getNeighbors</b><br/><br/>
-     * <code>public Set<Point> <b>getNeighbors</b>(Point centralCrystal)</code><br/><br/>
      * Gets the set of valid crystals that immediately surround the
      * central crystal. Valid crystals must both have valid indices
      * and also be enabled.
@@ -378,6 +361,9 @@ public final class CalorimeterPanel extends JPanel {
      * x/y central crystal coordinates do not correspond to a crystal.
      */
     public Set<Point> getNeighbors(Point centralCrystal) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	centralCrystal = getMirroredPoint(centralCrystal, mirrorX, mirrorY);
+    	
     	// Make sure that the root is a valid crystal.
     	if(!validateIndices(centralCrystal)) {
             throw new IndexOutOfBoundsException(String.format("Invalid central crystal address (%2d, %2d).",
@@ -404,7 +390,7 @@ public final class CalorimeterPanel extends JPanel {
     			// if it is active.
     			if(!isRoot && isValid) {
     				if(!crystal[possibleNeighbor.x][possibleNeighbor.y].isDisabled()) {
-    					neighborSet.add(possibleNeighbor);
+    					neighborSet.add(getMirroredPoint(possibleNeighbor, mirrorX, mirrorY));
     				}
     			}
     		}
@@ -415,17 +401,13 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>getSelectedCrystal</b><br/><br/>
-     * <code>public Point <b>getSelectedCrystal</b>()</code><br/><br/>
      * Gives the x/y indices for the currently selected crystal.
      * @return Returns the x/y indices in a <code>Point</code> object.
      * If no crystal is currently selected, returns <code>null</code>.
      */
-    public Point getSelectedCrystal() { return selectedCrystal; }
+    public Point getSelectedCrystal() { return getMirroredPoint(selectedCrystal, mirrorX, mirrorY); }
     
     /**
-     * <b>isCluster</b><br/><br/>
-     * <code>public boolean <b>isCluster</b></code>(int ix, int iy)<br/><br/>
      * Determines if the crystal at the given coordinates is a cluster
      * center or not.
      * @param ix - The x-index of the crystal.
@@ -437,13 +419,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public boolean isCrystalCluster(int ix, int iy) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
     	if(validateIndices(ix, iy)) { return crystal[ix][iy].isClusterCenter(); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>isCluster</b><br/><br/>
-     * <code>public boolean <b>isCluster</b></code>(Point ixy)<br/><br/>
      * Determines if the crystal at the given coordinates is a cluster
      * center or not.
      * @param ixy - The crystal's x/y-indices.
@@ -458,8 +442,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>isCrystalDisabled</b><br/><br/>
-     * <code>public boolean <b>isCrystalDisabled</b></code>(int ix, int iy)<br/><br/>
      * Determines if the crystal at the given coordinates is a active
      * or not.
      * @param xCoor - The x-index of the crystal.
@@ -470,13 +452,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public boolean isCrystalDisabled(int ix, int iy) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
     	if(validateIndices(ix, iy)) { return crystal[ix][iy].isDisabled(); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>isCrystalDisabled</b><br/><br/>
-     * <code>public boolean <b>isCrystalDisabled</b></code>(Point ixy)<br/><br/>
      * Determines if the crystal at the given coordinates is a active
      * or not.
      * @param ixy - The crystal's x/y-indices.
@@ -489,9 +473,11 @@ public final class CalorimeterPanel extends JPanel {
     	return isCrystalDisabled(ixy.x, ixy.y);
     }
     
+    public boolean isMirroredX() { return mirrorX; }
+    
+    public boolean isMirroredY() { return mirrorY; }
+    
     /**
-     * <b>isScalingLinear</b><br/><br/>
-     * <code>public boolean <b>isScalingLinear</b></code>()<br/><br/>
      * Indicates whether the crystal colors are mapped linearly.
      * @return Returns <code>true</code> if the mapping is linear
      * and <code>false</code> otherwise.
@@ -499,8 +485,6 @@ public final class CalorimeterPanel extends JPanel {
     public boolean isScalingLinear() { return scale.isLinear(); }
     
     /**
-     * <b>isScalingLogarithmic</b><br/><br/>
-     * <code>public boolean <b>isScalingLogarithmic</b></code>()<br/><br/>
      * Indicates whether the crystal colors are mapped logarithmically.
      * @return Returns <code>true</code> if the mapping is logarithmic
      * and <code>false</code> otherwise.
@@ -508,8 +492,6 @@ public final class CalorimeterPanel extends JPanel {
     public boolean isScalingLogarithmic() { return scale.isLogarithmic(); }
     
     /**
-     * <b>isSelectionEnabled</b><br/><br/>
-     * <code>public boolean <b>isSelectionEnabled</b></code>()<br/><br/>
      * Indicates whether highlighting of the currently selected crystal
      * is active or not.
      * @return Returns <code>true</code> if the currently selected
@@ -518,8 +500,6 @@ public final class CalorimeterPanel extends JPanel {
     public boolean isSelectionEnabled() { return enabledSelection; }
     
     /**
-     * <b>setClusterColor</b><br/><br/>
-     * <code>public void <b>setClusterColor</b>(Color c)</code><br/><br/>
      * Sets the color of the cluster center marker.
      * @param c - The color to be used for cluster center markers. A
      * value of <code>null</code> will result in seed hit markers being
@@ -528,8 +508,6 @@ public final class CalorimeterPanel extends JPanel {
     public void setClusterColor(Color c) { clusterColor = c; }
     
     /**
-     * <b>setCrystalCluster</b><br/><br/>
-     * <code>public void <b>setCrystalCluster</b>(int ix, int iy, boolean cluster)</code><br/><br/>
      * Sets whether a crystal is also the location of a cluster center.
      * @param ix - The x-index of the crystal.
      * @param iy - The y-index of the crystal.
@@ -539,13 +517,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      **/
     public void setCrystalCluster(int ix, int iy, boolean cluster) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
         if (validateIndices(ix, iy)) { crystal[ix][iy].setClusterCenter(cluster); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>setCrystalCluster</b><br/><br/>
-     * <code>public void <b>setCrystalCluster</b>(Point ixy, boolean cluster)</code><br/><br/>
      * Sets whether a crystal is also the location of a seed hit.
      * @param ixy - The crystal's x/y-indices.
      * @param cluster - This should be <code>true</code> if there
@@ -558,8 +538,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setCrystalEnabled</b><br/><br/>
-     * <code>public void <b>setCrystalEnabled</b>(int ix, int iy, boolean active)</code><br/><br/>
      * Sets whether the indicated crystal is enabled or not.
      * @param ix - The x-index of the crystal.
      * @param iy - The y-index of the crystal.
@@ -569,13 +547,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      **/
     public void setCrystalEnabled(int ix, int iy, boolean active) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
         if (validateIndices(ix, iy)) { crystal[ix][iy].setDisabled(!active); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>setCrystalEnabled</b><br/><br/>
-     * <code>public void <b>setCrystalEnabled</b>(Point ixy, boolean active)</code><br/><br/>
      * Sets whether the indicated crystal is enabled or not.
      * @param ixy - The crystal's x/y-indices.
      * @param active - This should be <code>true</code> if the crystal is
@@ -588,8 +568,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setCrystalHighlight</b><br/><br/>
-     * <code>public void <b>setCrystalHighlight</b>(int ix, int iy, Color highlight)</code><br/><br/>
      * @param ix - The x-index of the crystal.
      * @param iy - The y-index of the crystal.
      * @param highlight - The color which the indicated crystal should
@@ -599,13 +577,15 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public void setCrystalHighlight(int ix, int iy, Color highlight) throws IndexOutOfBoundsException {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
         if (validateIndices(ix, iy)) { crystal[ix][iy].setHighlight(highlight); }
         else { throw new IndexOutOfBoundsException(String.format("Invalid crystal address (%2d, %2d).", ix, iy)); }
     }
     
     /**
-     * <b>setCrystalHighlight</b><br/><br/>
-     * <code>public void <b>setCrystalHighlight</b>(Point ixy, Color highlight)</code><br/><br/>
      * @param ixy - The crystal's x/y-indices.
      * @param highlight - The color which the indicated crystal should
      * be highlighted. A value of <code>null</code> indicates that no
@@ -618,8 +598,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setCrystalDefaultColor</b><br/><br/>
-     * <code>public void <b>setCrystalDefaultColor</b>(Color c)</code><br/><br/>
      * Sets the color that crystals with zero energy will display.
      * @param c - The color to use for zero energy crystals. A value
      * of <code>null</code> will use the appropriate energy color
@@ -643,8 +621,68 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setScaleEnabled</b><br/><br/>
-     * <code>public void <b>setScaleEnabled</b>(boolean enabled)</code><br/><br/>
+     * Sets whether to mirror the x- and y-axes.
+     * @param mirrorX - <code>true</code> indicates that the x-axis
+     * should be mirrored and <code>false</code> that it should not.
+     * @param mirrorY - <code>true</code> indicates that the y-axis
+     * should be mirrored and <code>false</code> that it should not.
+     */
+    public void setMirror(boolean mirrorX, boolean mirrorY) {    	
+    	// Determine whether a given axis should be flipped.
+    	boolean flipX = (this.mirrorX != mirrorX);
+    	boolean flipY = (this.mirrorY != mirrorY);
+    	
+    	// If the axes are already as requested, then no further action
+    	// is necessary.
+    	if(!(flipX || flipY)) { return; }
+    	
+    	// Otherwise, mirror as requested.
+    	this.mirrorX = mirrorX;
+    	this.mirrorY = mirrorY;
+    	
+    	// Loop over the crystals and move them to the appropriate
+    	// mirrored array position.
+    	Crystal[][] mirroredCrystal = new Crystal[xBoxes][yBoxes];
+    	for(int ix = 0; ix < xBoxes; ix++) {
+    		for(int iy = 0; iy < yBoxes; iy++) {
+    			// Mirror the coordinates as appropriate.
+    			int mix = ix;
+    			int miy = iy;
+    			if(flipX) { mix = getMirroredX(ix); }
+    			if(flipY) { miy = getMirroredY(iy); }
+    			
+    			// Place the original crystal in its new position.
+    			mirroredCrystal[mix][miy] = crystal[ix][iy];
+    		}
+    	}
+    	
+    	// Change the selected crystal to the new one.
+    	if(selectedCrystal != null) {
+	    	crystal[selectedCrystal.x][selectedCrystal.y].setSelected(false);
+	    	mirroredCrystal[selectedCrystal.x][selectedCrystal.y].setSelected(true);
+    	}
+    	
+    	
+    	// Replace the original crystal array with the new one and redraw.
+    	crystal = mirroredCrystal;
+    	setSize(getSize());
+    }
+    
+    /**
+     * Sets whether to mirror the x-axis on the calorimeter display.
+     * @param state - <code>true</code> indicates that the axis should
+     * be mirrored and <code>false</code> that it should not.
+     */
+    public void setMirrorX(boolean mirrorX) { setMirror(mirrorX, mirrorY); }
+    
+    /**
+     * Sets whether to mirror the y-axis on the calorimeter display.
+     * @param state - <code>true</code> indicates that the axis should
+     * be mirrored and <code>false</code> that it should not.
+     */
+    public void setMirrorY(boolean mirrorY) { setMirror(mirrorX, mirrorY); }
+    
+    /**
      * Sets whether the scale should be visible or not.
      * @param enabled - <code>true</code> indicates that the scale should
      * be visible and <code>false</code> that it should be hidden.
@@ -656,8 +694,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setScaleMaximum</b><br/><br/>
-     * <code>public void <b>setScaleMaximum</b>(double maximum)</code><br/><br/>
      * Sets the maximum value of the color mapping scale. Energies above this
      * value will all be the same maximum color.
      * @param maximum - The maximum energy to be mapped.
@@ -667,8 +703,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setScaleMinimum</b><br/><br>
-     * <code>public void <b>setScaleMinimum</b>(double minimum)</code><br/><br/>
      * Sets the minimum value of the color mapping scale. Energies below this
      * value will all be the same minimum color.
      * @param minimum - The minimum energy to be mapped.
@@ -678,8 +712,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setScalingLinear</b><br/><br/>
-     * <code>public void <b>setScalingLinear</b>()<br/><br/>
      * Sets the color mapping scale behavior to linear mapping.
      **/
     public void setScalingLinear() {
@@ -689,8 +721,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setScalingLogarithmic</b><br/><br/>
-     * <code>public void <b>setScalingLogarithmic</b>()</code><br/><br/>
      * Sets the color mapping scale behavior to logarithmic mapping.
      **/
     public void setScalingLogarithmic() {
@@ -700,8 +730,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setSelectedCrystal</b><br/><br/>
-     * <code>public void <b>setSelectedCrystal</b></code>(int ix, int iy)<br/><br/>
      * Sets which crystal is currently selected.
      * @param ix - The x-index of the crystal.
      * @param iy - The y-index of the crystal.
@@ -709,6 +737,10 @@ public final class CalorimeterPanel extends JPanel {
      * x/y crystal coordinates do not correspond to a crystal.
      */
     public void setSelectedCrystal(int ix, int iy) {
+    	// Mirror the coordinates if appropriate.
+    	if(mirrorX) { ix = getMirroredX(ix); }
+    	if(mirrorY) { iy = getMirroredY(iy); }
+    	
         if (validateIndices(ix, iy)) {
         	if(selectedCrystal != null) { crystal[selectedCrystal.x][selectedCrystal.y].setSelected(false); }
             crystal[ix][iy].setSelected(true);
@@ -720,8 +752,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setSelectedCrystal</b><br/><br/>
-     * <code>public void <b>setSelectedCrystal</b></code>(Point ixy)<br/><br/>
      * Sets which crystal is currently selected.
      * @param ixy - The crystal's x/y-indices.
      * @throws IndexOutOfBoundsException Occurs when either of the given
@@ -735,8 +765,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setSelectedCrystalHighlight</b><br/><br/>
-     * <code>public void <b>setSelectedCrystalHighlight</b>(Color c)</code><br/><br/>
      * Sets the color in which selected crystals should be highlighted.
      * @param c - The new selection highlight color.
      * @throws IllegalArgumentException Occurs if the selection color
@@ -749,8 +777,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>setSelectionHighlighting</b><br/><br/>
-     * <code>public void <b>setSelectionHighlighting</b>(boolean state)</code><br/><br/>
      * Sets whether or not the currently selected crystal should be
      * highlighted or not.
      * @param state - <code>true</code> indicates that the selected
@@ -846,8 +872,6 @@ public final class CalorimeterPanel extends JPanel {
 	}
     
     /**
-     * <b>setSuppressRedraw</b><br/><br/>
-     * <code>public void <b>setSuppressRedraw</b>(boolean state)</code><br/><br/>
      * Sets whether the panel crystals should repaint automatically
      * whenever their state changes.
      * @param state - <code>true</code> indicates that the crystal
@@ -861,8 +885,44 @@ public final class CalorimeterPanel extends JPanel {
     // ================================================================================
     
     /**
-     * <b>resetCrystalColors</b><br/><br/>
-     * <code>private void <b>resetCrystalColors</b>()</code><br/><br/>
+     * Mirrors the argument point across the x- and y-axes as indicated.
+     * @param p - The point to flip.
+     * @param flipX - <code>true</code> indicates that the x-coordinate
+     * should be flipped and <code>false</code> that it should not.
+     * @param flipY - <code>true</code> indicates that the y-coordinate
+     * should be flipped and <code>false</code> that it should not.
+     * @return Returns the appropriately mirrored point.
+     */
+    private Point getMirroredPoint(Point p, boolean flipX, boolean flipY) {
+    	// Handle the null case.
+    	if(p == null) { return null; }
+    	
+    	// Flip both x and y.
+    	if(flipX && flipY) { return new Point(getMirroredX(p.x), getMirroredY(p.y)); }
+    	
+    	// Flip only x.
+    	else if(flipX && !flipY) { return new Point(getMirroredX(p.x), p.y); } 
+    	
+    	// Flip only y.
+    	else if(!flipX && flipY) { return new Point(p.x, getMirroredY(p.y)); } 
+    	
+    	// Don't flip anything.
+    	else { return p; }
+    }
+    
+    /**
+     * Mirrors the argument coordinate across the x-axis.
+     * @return Returns the appropriately mirrored coordinate.
+     */
+    private int getMirroredX(int ix) { return xBoxes - ix - 1; }
+    
+    /**
+     * Mirrors the argument coordinate across the y-axis.
+     * @return Returns the appropriately mirrored coordinate.
+     */
+    private int getMirroredY(int iy) { return yBoxes - iy - 1; }
+    
+    /**
      * Forces all crystals to revalidate their colors.
      */
     private void resetCrystalColors() {
@@ -873,8 +933,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>validateIndices</b><br/><br/>
-     * <code>private boolean <b>validateIndices</b>(int ix, int iy)</code><br/><br/>
      * Indicates whether the given indices corresponds to a valid
      * crystal or not.
      * @param ix - The crystal's x index.
@@ -892,8 +950,6 @@ public final class CalorimeterPanel extends JPanel {
     }
     
     /**
-     * <b>validateIndices</b><br/><br/>
-     * <code>private boolean <b>validateIndices</b>(Point p)</code><br/><br/>
      * Indicates whether the given indices corresponds to a valid
      * crystal or not.
      * @param p - A <code>Point</code> object containing the crystal's
@@ -931,8 +987,6 @@ public final class CalorimeterPanel extends JPanel {
 		private ArrayList<Association> componentList = new ArrayList<Association>();
 		
 		/**
-		 * <b>Crystal</b><br/><br/>
-		 * <code>public <b>Crystal</b>()</code><br/><br/>
 		 * Initializes a new calorimeter crystal panel.
 		 */
     	public Crystal() {
@@ -941,8 +995,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
 		
 		/**
-		 * <b>addAssociation</b><br/><br/>
-		 * <code>public void <b>addAssociation</b>(Association a)</code><br/><br/>
 		 * Adds a new associated crystal to this crystal.
 		 * @param a - The <code>Association</code> object representing
 		 * the associated crystal and its highlighting color.
@@ -956,8 +1008,6 @@ public final class CalorimeterPanel extends JPanel {
 		}
     	
     	/**
-    	 * <b>addEnergy</b><br/><br/>
-		 * <code>public void <b>addEnergy</b>(double energy)</code><br/><br/>
 		 * Increments the crystal's energy by the given amount.
     	 * @param energy - The energy by which the crystal's stored
     	 * energy should be increased.
@@ -965,8 +1015,6 @@ public final class CalorimeterPanel extends JPanel {
     	public void addEnergy(double energy) { setEnergy(this.energy + energy); }
     	
 		/**
-		 * <b>clearAssociations</b><br/><br/>
-		 * <code>public void <b>clearAssociations</b>()</code><br/><br/>
 		 * Clears all the associated crystal from this crystal.
 		 */
 		public void clearAssociations() {
@@ -981,16 +1029,12 @@ public final class CalorimeterPanel extends JPanel {
 		}
     	
     	/**
-    	 * <b>getEnergy</b><br/><br/>
-		 * <code>public double <b>getEnergy</b>()</code><br/><br/>
 		 * Indicates how much energy is stored in the crystal.
     	 * @return Returns the crystal's energy as a <code>double</code>.
     	 */
     	public double getEnergy() { return energy; }
     	
     	/**
-    	 * <b>isClusterCenter</b><br/><br/>
-		 * <code>public boolean <b>isClusterCenter</b>()</code><br/><br/>
 		 * Indicates whether this crystal is also a cluster center.
     	 * @return Returns <code>true</code> if the crystal is a cluster
     	 * center and <code>false</code> if it is not.
@@ -998,8 +1042,6 @@ public final class CalorimeterPanel extends JPanel {
     	public boolean isClusterCenter() { return cluster; }
     	
     	/**
-    	 * <b>isDisabled</b><br/><br/>
-		 * <code>public boolean <b>isDisabled</b>()</code><br/><br/>
 		 * Indicates whether the crystal is disabled.
     	 * @return Returns <code>true</code> if the crystal is disabled
     	 * and <code>false</code> if it not.
@@ -1043,8 +1085,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>resetColor</b><br/><br/>
-		 * <code>public void <b>resetColor</b>()</code><br/><br/>
 		 * Sets the crystals color to the appropriate value based on
 		 * its settings.
     	 */
@@ -1061,8 +1101,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
 		
 		/**
-		 * <b>setAssociatedActive</b><br/><br/>
-		 * <code>public void <b>setAssociatedActive</b>(boolean state)</code><br/><br/>
 		 * Sets whether the highlighting on this crystal's associated
 		 * crystals should be active or not.
 		 * @param state - <code>true</code> indicates that the crystal
@@ -1080,8 +1118,6 @@ public final class CalorimeterPanel extends JPanel {
 		}
     	
     	/**
-    	 * <b>setClusterCenter</b><br/><br/>
-		 * <code>public void <b>setClusterCenter</b>(boolean state)</code><br/><br/>
 		 * Sets whether or not this crystal is a cluster center.
     	 * @param state - <code>true</code> indicates that this is a
     	 * cluster center and <code>false</code> that it is not.
@@ -1094,8 +1130,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setDisabled</b><br/><br/>
-		 * <code>public void <b>setDisabled</b>(boolean state)</code><br/><br/>
 		 * Sets whether or not this crystal can store energy.
     	 * @param state - <code>true</code> means the crystal can not
     	 * store energy and <code>false</code> that it can.
@@ -1109,8 +1143,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setEnergy</b><br/><br/>
-		 * <code>public void <b>setEnergy</b>(double energy)</code><br/><br/>
 		 * Sets the crystal's stored energy.
     	 * @param energy - The energy stored in the crystal.
     	 */
@@ -1124,8 +1156,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setHighlight</b><br/><br/>
-		 * <code>public void <b>setHighlight</b>(Color highlight)</code><br/><br/>
 		 * Sets what color the crystal should be highlighted with.
 		 * Note that selected crystals will always be highlighted with
 		 * the selected crystal color, though selecting a crystal does
@@ -1141,8 +1171,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setSelected</b><br/><br/>
-		 * <code>public void <b>setSelected</b>(boolean state)</code><br/><br/>
 		 * Sets whether or not this crystal should be highlighted as
 		 * a selected crystal.
     	 * @param state - <code>true</code> means the crystal will be
@@ -1161,8 +1189,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setState</b><br/><br/>
-		 * <code>public void <b>setState</b>(double energy, boolean cluster, Color highlight)</code><br/><br/>
 		 * Sets the crystal's energy, cluster center status, and
 		 * highlighting color. The crystal will redraw itself if needed.
     	 * @param energy - The crystal's energy.
@@ -1199,8 +1225,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>setUseDefaultColor</b><br/><br/>
-		 * <code>public void <b>setUseDefaultColor</b>(boolean state, boolean autoRepaint)</code><br/><br/>
 		 * Sets whether the crystal should use a default color when it
 		 * has no energy.
     	 * @param state - <code>true</code> means the crystal will render
@@ -1217,8 +1241,6 @@ public final class CalorimeterPanel extends JPanel {
     	}
     	
     	/**
-    	 * <b>getHighlight</b><br/><br/>
-		 * <code>public Color <b>getHighlight</b>()</code><br/><br/>
 		 * Gets the highlight color assigned to this crystal.
     	 * @return Returns the highlight color as a <code>Color</code>
     	 * object if it exists. Otherwise, returns <code>null</code>.

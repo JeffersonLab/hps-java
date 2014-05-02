@@ -70,8 +70,6 @@ public abstract class Viewer extends JFrame {
 	public static final Color HIGHLIGHT_CLUSTER_SHARED = Color.YELLOW;
     
     /**
-     * <b>Viewer</b><br/><br/>
-     * <code>public <b>Viewer</b>(String... statusFields)</code><br/><br/>
      * Initializes the viewer window and calorimeter panel.
      * @param statusFields - Additional fields to display in the status
      * panel. This can not be <code>null</code>.
@@ -131,8 +129,6 @@ public abstract class Viewer extends JFrame {
     }
     
     /**
-     * <b>addCrystalListener</b><br/><br/>
-     * <code>public void <b>addCrystalListener</b>(CrystalListener cl)</code><br/><br/>
      * Adds the specified crystal listener to receive crystal events
      * from this component when the calorimeter panel's crystal status
      * is changed. If listener <code>cl</code> is <code>null</code>,
@@ -144,8 +140,6 @@ public abstract class Viewer extends JFrame {
     }
     
     /**
-     * <b>toEcalPoint</b><br/><br/>
-     * <code>public Point <b>toEcalPoint</b>(Point panelPoint)</code><br/><br/>
      * Converts the calorimeter panel's coordinate pair to the LCSim
      * coordinate system.
      * @param panelPoint - A calorimeter panel coordinate pair..
@@ -162,8 +156,6 @@ public abstract class Viewer extends JFrame {
 	}
     
     /**
-     * <b>toEcalX</b><br/><br/>
-     * <code>public int <b>toEcalX</b>(int panelX)</code><br/><br/>
      * Converts the panel x-coordinate to the calorimeter's
      * coordinate system.
      * @param panelX - A panel x-coordinate.
@@ -176,8 +168,6 @@ public abstract class Viewer extends JFrame {
     }
     
     /**
-     * <b>toEcalY</b><br/><br/>
-     * <code>public int <b>toEcalY</b>(int panelY)</code><br/><br/>
      * Converts the panel y-coordinate to the calorimeter's
      * coordinate system.
      * @param panelY - A panel y-coordinate.
@@ -187,8 +177,6 @@ public abstract class Viewer extends JFrame {
     public static final int toEcalY(int panelY) { return 5 - panelY; }
     
     /**
-     * <b>toPanelPoint</b><br/><br/>
-     * <code>public Point <b>toPanelPoint</b>(Point ecalPoint)</code><br/><br/>
      * Converts the LCSim coordinate pair to the calorimeter panel's
      * coordinate system.
      * @param ecalPoint - An LCSim calorimeter coordinate pair..
@@ -205,8 +193,6 @@ public abstract class Viewer extends JFrame {
 	}
     
     /**
-     * <b>toPanelX</b><br/><br/>
-     * <code>public int <b>toPanelX</b>(int ecalX)</code><br/><br/>
      * Converts the LCSim x-coordinate to the calorimeter panel's
      * coordinate system.
      * @param ecalX - An LCSim calorimeter x-coordinate.
@@ -219,8 +205,6 @@ public abstract class Viewer extends JFrame {
     }
     
     /**
-     * <b>toPanelY</b><br/><br/>
-     * <code>public int <b>toPanelY</b>(int ecalY)</code><br/><br/>
      * Converts the LCSim y-coordinate to the calorimeter panel's
      * coordinate system.
      * @param ecalY - An LCSim calorimeter y-coordinate.
@@ -230,8 +214,20 @@ public abstract class Viewer extends JFrame {
     public static final int toPanelY(int ecalY) { return 5 - ecalY; }
     
     /**
-     * <b>removeCrystalListener</b><br/><br/>
-     * <code>public void <b>removeCrystalListener</b>(CrystalListener cl)</code><br/><br/>
+     * Sets whether to mirror the x-axis on the calorimeter display.
+     * @param state - <code>true</code> indicates that the axis should
+     * be mirrored and <code>false</code> that it should not.
+     */
+    public void setMirrorX(boolean state) { ecalPanel.setMirrorX(state); }
+    
+    /**
+     * Sets whether to mirror the y-axis on the calorimeter display.
+     * @param state - <code>true</code> indicates that the axis should
+     * be mirrored and <code>false</code> that it should not.
+     */
+    public void setMirrorY(boolean state) { ecalPanel.setMirrorY(state); }
+    
+    /**
      * Removes the specified crystal listener so that it no longer
      * receives crystal events from this component. This method performs
      * no function, nor does it throw an exception, if the listener
@@ -254,8 +250,6 @@ public abstract class Viewer extends JFrame {
     }
     
     /**
-     * <b>setStatusField</b><br/><br/>
-     * <code>public void <b>setStatusField</b>(String fieldName, String value)</code><br/><br/>
      * Sets the value of the indicated status field on the calorimeter
      * display.
      * @param fieldName - The name of the field to set.
@@ -275,8 +269,6 @@ public abstract class Viewer extends JFrame {
     }
     
 	/**
-	 * <b>updateStatusPanel</b><br/><br/>
-	 * <code>protected void <b>updateStatusPanel</b>()</code><br/><br/>
 	 * Updates the information on the status panel to match that of
 	 * the calorimeter panel's currently selected crystal.
 	 */
@@ -298,8 +290,6 @@ public abstract class Viewer extends JFrame {
 	}
     
     /**
-     * <b>resize</b><br/><br/>
-     * <code>private void <b>resize</b>()</code><br/><br/>
      * Handles proper resizing of the window and its components.
      **/
     private void resize() {
@@ -401,8 +391,6 @@ public abstract class Viewer extends JFrame {
 		}
 		
 		/**
-		 * <b>throwActivationEvent</b><br/><br/>
-		 * <code>private void <b>throwActivationEvent</b>()</code><br/><br/>
 		 * Triggers crystal activation events on all listeners for
 		 * this component.
 		 * @param activatedCrystal - The panel coordinates for the
@@ -417,8 +405,6 @@ public abstract class Viewer extends JFrame {
 		}
 		
 		/**
-		 * <b>throwDeactivationEvent</b><br/><br/>
-		 * <code>private void <b>throwDeactivationEvent</b>()</code><br/><br/>
 		 * Triggers crystal deactivation events on all listeners for
 		 * this component.
 		 * @param deactivatedCrystal - The panel coordinates for the
