@@ -105,13 +105,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
    	   ix=EcalMonitoringUtils.getColumnFromHistoID(id);  
    	   
    	   
-         			
-      	
-    	hEnergyDraw=aida.histogram1D("Energy",channelEnergyPlot.get(0).axis().bins(), channelEnergyPlot.get(0).axis().lowerEdge(),channelEnergyPlot.get(0).axis().upperEdge());
-    	hTimeDraw=aida.histogram1D("Time", channelTimePlot.get(0).axis().bins(),channelTimePlot.get(0).axis().lowerEdge(),channelTimePlot.get(0).axis().upperEdge());
-    	hTimeVsEnergyDraw=aida.histogram2D("Hit Time Vs Energy" ,channelTimeVsEnergyPlot.get(0).xAxis().bins(),channelTimeVsEnergyPlot.get(0).xAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).xAxis().upperEdge(),channelTimeVsEnergyPlot.get(0).yAxis().bins(),channelTimeVsEnergyPlot.get(0).yAxis().lowerEdge(),channelTimeVsEnergyPlot.get(0).yAxis().upperEdge());
     	
-    			
     			
     			
     			
@@ -125,9 +119,9 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter.style().dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2,2);
-        plotter.region(0).plot(hEnergyDraw);
-        plotter.region(1).plot(hTimeDraw);
-        plotter.region(2).plot(hTimeVsEnergyDraw);
+        plotter.region(0).plot(channelEnergyPlot.get(0));
+        plotter.region(1).plot(channelTimePlot.get(0));
+        plotter.region(2).plot(channelTimeVsEnergyPlot.get(0));
         //plotter.region(1).plot();
         //plotter.region(2).plot();
         //plotter.region(3).plot();
@@ -185,8 +179,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
                     if (hit.getCorrectedEnergy() > 0) { //A.C. > 0 for the 2D plot drawing
                     	channelEnergyPlot.get(ii).fill(hit.getCorrectedEnergy());
                         channelTimePlot.get(ii).fill(hit.getTime());
-                        //channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());
-                        channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),1.);
+                        channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());
+                        
                         }
                  } 
             }
@@ -211,24 +205,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         if (do_update){
         viewer.updateDisplay();
         
-        
-        //need also to update single-hit histograms, since they're just a drawing copy!
-        //get the new histograms
-     
-    	//clone hEnergyDraw
-       	hEnergyDraw.reset();
-       	hEnergyDraw.setTitle(channelEnergyPlot.get(id).title());
-       	hEnergyDraw.add(channelEnergyPlot.get(id));
-       	
-   
-       	hTimeDraw.reset();
-       	hTimeDraw.setTitle(channelTimePlot.get(id).title());
-       	hTimeDraw.add(channelTimePlot.get(id));
-        
-    	
-      	hTimeVsEnergyDraw.reset();
-       	hTimeVsEnergyDraw.setTitle(channelTimeVsEnergyPlot.get(id).title());
-       	hTimeVsEnergyDraw.add(channelTimeVsEnergyPlot.get(id));
+      
         }
     }
     
@@ -282,24 +259,25 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
     	iy=(int) ecalPoint.getY(); //raw
     	id=EcalMonitoringUtils.getHistoIDFromRowColumn(iy,ix);
     	System.out.println("Crystal event: "+ix+" "+iy+" "+id);
-    	System.out.println("BINS "+hTimeVsEnergyDraw.yAxis().bins());
         //  plotter.hide();
     	//get the new histograms
     
     	//clone hEnergyDraw
-       	hEnergyDraw.reset();
-        plotter.region(0).setTitle(channelEnergyPlot.get(id).title());
-       	hEnergyDraw.setTitle(channelEnergyPlot.get(id).title());
-       	hEnergyDraw.add(channelEnergyPlot.get(id));
        	
+       	
+       	plotter.region(0).clear();
+        plotter.region(0).plot(channelEnergyPlot.get(id));
     
-       	hTimeDraw.reset();
-        plotter.region(1).setTitle(channelTimePlot.get(id).title());
-       	hTimeDraw.setTitle(channelTimePlot.get(id).title());
-       	hTimeDraw.add(channelTimePlot.get(id));
+        plotter.region(1).clear();
+        plotter.region(1).plot(channelTimePlot.get(id));
+    
        	
      	
-   /*    	hTimeVsEnergyDraw.reset();
+   /*    
+    * 
+    * 
+    * 
+    * hTimeVsEnergyDraw.reset();
         
        	plotter.region(2).setTitle(channelTimeVsEnergyPlot.get(id).title());
        	hTimeVsEnergyDraw.setTitle(channelTimeVsEnergyPlot.get(id).title());
