@@ -299,13 +299,14 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
        	hTimeDraw.add(channelTimePlot.get(id));
        	
      	
-       	hTimeVsEnergyDraw.reset();
+   /*    	hTimeVsEnergyDraw.reset();
         
        	plotter.region(2).setTitle(channelTimeVsEnergyPlot.get(id).title());
        	hTimeVsEnergyDraw.setTitle(channelTimeVsEnergyPlot.get(id).title());
-       	hTimeVsEnergyDraw.add(channelTimeVsEnergyPlot.get(id));
+       	hTimeVsEnergyDraw.add(channelTimeVsEnergyPlot.get(id));*/
 
-       	
+    	plotter.region(2).clear();
+    	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id));
     }    
 }
 
