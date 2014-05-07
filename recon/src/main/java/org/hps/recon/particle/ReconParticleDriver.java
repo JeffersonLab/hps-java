@@ -181,7 +181,10 @@ public abstract class ReconParticleDriver extends Driver {
     		
     			// Check if the Ecal cluster and track are within the same 
     			// detector volume i.e. both top or bottom
-    			if(clusterPosition.y()*track.getTrackStates().get(0).getZ0() < 0) continue; 
+    			if(clusterPosition.y()*track.getTrackStates().get(0).getZ0() < 0){
+    				this.printDebug("Track and Ecal cluster are in opposite volumes. Track Z0 = " + track.getTrackStates().get(0).getZ0());
+    				continue; 
+    			}
     			
     			// Extrapolate the track to the Ecal cluster position
     			Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
@@ -223,16 +226,17 @@ public abstract class ReconParticleDriver extends Driver {
     	}
     	
     	if(!unmatchedTracks.isEmpty()){
-    		for(Track  track : unmatchedTracks){
+    		for(Track  unmatchedTrack : unmatchedTracks){
+    			
     			// Create a reconstructed particle and add it to the 
     			// collection of particles
     			ReconstructedParticle particle = new BaseReconstructedParticle(); 
     			HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
     			
-    			particle.addTrack(matchedTrack);
-    			Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+    			particle.addTrack(unmatchedTrack);
+    			Hep3Vector momentum = new BasicHep3Vector(unmatchedTrack.getTrackStates().get(0).getMomentum());
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
-    			((BaseReconstructedParticle) particle).setCharge(track.getCharge()*flipSign);
+    			((BaseReconstructedParticle) particle).setCharge(unmatchedTrack.getCharge()*flipSign);
     			((BaseReconstructedParticle) particle).set4Vector(fourVector);
     			
     			particles.add(particle);

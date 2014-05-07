@@ -112,9 +112,31 @@ public class HpsReconParticleDriverTest extends TestCase {
     	List<HPSEcalCluster> emptyClusters = new ArrayList<HPSEcalCluster>(); 
     	particleTracks = particleDriver.makeReconstructedParticles(emptyClusters, tracks);
     
+    	//
+    	// The list contains two Tracks which should result in two 
+    	// ReconstructedParticles.
+    	//
     	assertTrue("More particles than expected were created.", particleTracks.size() == 2);
-    	
     	System.out.println("\nThe number of ReconstructedParticles created: " + particleTracks.size());
+    
+    	for(int particleN = 0; particleN < particleTracks.size(); particleN++){
+    	
+    		//
+    		//	Check if the RecontructedParticle track is the same as the track 
+    		//	that created it
+    		// 
+    		assertTrue("The particle track does not match the track that created it",
+    					particleTracks.get(particleN).getTracks().get(0).equals(tracks.get(particleN)));
+    	
+    	
+    		//
+    		// Check that the charge of the ReconstructedParticles was set properly
+    		//
+    		assertTrue("The charge of the ReconstructedParticle is equal to zero.", 
+    					Math.abs(particleTracks.get(particleN).getCharge()) != 0);
+    		System.out.println("The charge of ReconstructedParticle number " + particleN + ": " + particleTracks.get(particleN).getCharge());
+    	
+    	}
     	
     	//
     	// Check that the momentum of the ReconstructedParticles was set properly
@@ -132,15 +154,6 @@ public class HpsReconParticleDriverTest extends TestCase {
     			    particleTracks.get(1).getMomentum().equals(bottomMomentum));
     	
     	System.out.println("The momentum of the second ReconstructedParticle: " + particleTracks.get(1).getMomentum().toString());
-
-    	//
-    	// Check that the charge of the ReconstructedParticles was set properly
-    	//
-    	for(int particleN = 0; particleN < particleTracks.size(); particleN++){
-    		assertTrue("The charge of the ReconstructedParticle is equal to zero.", Math.abs(particleTracks.get(particleN).getCharge()) != 0);
-    		
-    		System.out.println("The charge of ReconstructedParticle number " + particleN + ": " + particleTracks.get(particleN).getCharge());
-    	}
     	
    	}
    	
