@@ -109,7 +109,7 @@ public abstract class ReconParticleDriver extends Driver {
         // Get the collection of Ecal clusters from the event. A triggered 
         // event should have Ecal clusters.  If it doesn't, skip the event.
         List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalClustersCollectionName);
-        if(clusters.isEmpty()) return;  
+        //if(clusters.isEmpty()) return;  
         this.printDebug("Number of Ecal clusters: " + clusters.size());
         
         // Get the collection of tracks from the event
@@ -125,6 +125,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         // 
         finalStateParticles = this.makeReconstructedParticles(clusters, tracks);
+        this.printDebug("Total number of Final State Particles: " + finalStateParticles.size());
 
         // Put all the reconstructed particles in the event
         event.put(finalStateParticlesColName, finalStateParticles, ReconstructedParticle.class, 0);
@@ -143,10 +144,13 @@ public abstract class ReconParticleDriver extends Driver {
        
         // If the list exist, put the vertexed candidates into the event
         if(unconstrainedV0CandidatesColName != null)
+        	this.printDebug("Total number of unconstrained V0 candidates: " + unconstrainedV0Candidates.size());
         	event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
         if(beamConV0CandidatesColName != null)
+        	this.printDebug("Total number of beam constrained V0 candidates: " + unconstrainedV0Candidates.size());
         	event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
         if(targetV0ConCandidatesColName != null)
+        	this.printDebug("Total number of target constrained V0 candidates: " + unconstrainedV0Candidates.size());
         	event.put(targetV0ConCandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
     }
 
