@@ -25,14 +25,15 @@
             <!--            <runNumber>${runNumber}</runNumber>-->
         </driver>   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
-            <useTimestamps>true</useTimestamps>
-            <correctT0Shift>true</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
+            <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>true</useTruthTime>
+            <subtractTOF>true</subtractTOF>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
@@ -54,8 +55,8 @@
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
-            <useTimestamps>true</useTimestamps>
-            <useTruthTime>false</useTruthTime>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>true</useTruthTime>
         </driver>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
             <ecalName>Ecal</ecalName>
@@ -66,6 +67,7 @@
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
+            <!--<writeOnlyCollections>blah</writeOnlyCollections>-->
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
