@@ -1,12 +1,17 @@
 package org.hps.recon.particle;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.BasicHepLorentzVector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.HepLorentzVector;
+import hep.physics.vec.VecOp;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
-
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseReconstructedParticle;
@@ -74,18 +79,49 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
 				candidate.addParticle(electron);
 				candidate.addParticle(positron);
+				// TODO: This should probably be done within BilliorVertex
+				((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
+				Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"), 
+																vtxFit.getParameters().get("p1Y"), 
+																vtxFit.getParameters().get("p1Z"));
+				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"), 
+																			   vtxFit.getParameters().get("p2Y"),
+																			   vtxFit.getParameters().get("p2Z")));
+				HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
 				unconstrainedV0Candidates.add(candidate); 
 				
 				candidate = new BaseReconstructedParticle(); 
 				((BaseReconstructedParticle) candidate).setStartVertex(vtxFitCon);
 				candidate.addParticle(electron);
 				candidate.addParticle(positron);
+				((BaseReconstructedParticle) candidate).setMass(vtxFitCon.getParameters().get("invMass"));
+				fittedMomentum = new BasicHep3Vector(vtxFitCon.getParameters().get("p1X"), 
+																vtxFitCon.getParameters().get("p1Y"), 
+																vtxFitCon.getParameters().get("p1Z"));
+				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitCon.getParameters().get("p2X"), 
+																			   vtxFitCon.getParameters().get("p2Y"),
+																			   vtxFitCon.getParameters().get("p2Z")));
+				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
 				beamConV0Candidates.add(candidate);
 				
 				candidate = new BaseReconstructedParticle(); 
 				((BaseReconstructedParticle) candidate).setStartVertex(vtxFitTarget);
 				candidate.addParticle(electron);
-				candidate.addParticle(positron);
+				candidate.addParticle(positron);  
+				((BaseReconstructedParticle) candidate).setMass(vtxFitTarget.getParameters().get("invMass"));
+				fittedMomentum = new BasicHep3Vector(vtxFitTarget.getParameters().get("p1X"), 
+																vtxFitTarget.getParameters().get("p1Y"), 
+																vtxFitTarget.getParameters().get("p1Z"));
+				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitTarget.getParameters().get("p2X"), 
+																			   vtxFitTarget.getParameters().get("p2Y"),
+																			   vtxFitTarget.getParameters().get("p2Z")));
+				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
 				targetConV0Candidates.add(candidate);
 				
 			}
