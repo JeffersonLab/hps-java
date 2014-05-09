@@ -1,6 +1,8 @@
 package org.hps.users.luca;
 
 //import hep.aida.ITupleColumn.String;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import java.io.IOException;
 import java.io.*;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
 import org.lcsim.event.base.CalorimeterHitImpl;
+import org.lcsim.util.aida.AIDA;
 /**
  * <code>CalbTest2</code> reads the requested information from a SLIC output (non-reconstructed) slcio file and print
  * the results into a text format that can be read offline
@@ -43,8 +46,10 @@ import org.lcsim.event.base.CalorimeterHitImpl;
 // the class has to be derived from the driver class
 public class CalibTest2 extends Driver {
 private FileWriter writer;
-String outputFileName = "data.txt";
-
+String outputFileName = "elettrons.txt";
+private AIDA aida = AIDA.defaultInstance();
+    IHistogram1D thetaPlot = aida.histogram1D("theta", 1000, 0.0, 0.3);
+    IHistogram2D pulses = aida.histogram2D("pulses",1000,-3.0,3.0,1000,-3.0,3.0);
 
 public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
@@ -85,27 +90,30 @@ catch(IOException e){
     List<MCParticle> mcParticles = event.getMCParticles();
     // Print out the number of mc particles
     //System.out.println("Event " + event.getEventNumber() + " contains " + mcParticles.size() + " mc particles.");
-  try{
+ // try{
     for (MCParticle particle : mcParticles)
     {
        if(particle.getPDGID()==11)
        {   if(particle.getEnergy()> 2.1)
-           {
+           { 
            PTOT=Math.sqrt(particle.getPX()*particle.getPX() + particle.getPY()*particle.getPY()+particle.getPZ()*particle.getPZ() );
            theta=Math.acos(particle.getPZ()/PTOT);
            counter++;
-           writer.append(theta+" "+particle.getPX()+" "+particle.getPY()+"\n");
+           //writer.append(theta+" "+particle.getPX()+" "+particle.getPY()+"\n");
+           thetaPlot.fill(theta);
+           pulses.fill(particle.getPX(),particle.getPY());
+           
            }
-       }
+      // }
      
      //System.out.println(particle.getPDGID());
      } //end of for cycle
   }//end of try
  
   
-  catch(IOException e ){
+ /* catch(IOException e ){
   System.err.println("Error writing tooutput for event display");
-  }
+  }*/
 //System.out.println("ho contato" + counter + "elettroni. \n");
     
    
