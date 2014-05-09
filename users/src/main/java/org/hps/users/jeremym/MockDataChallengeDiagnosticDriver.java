@@ -23,6 +23,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -41,39 +42,14 @@ import org.lcsim.util.aida.AIDA;
  * </p>
  *  
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- */
-/* 
-NOTES:
-
-EcalCalHits does not have position stored.
-EcalCalHits does not have raw energy available.
-EcalCalHits corrected energy is sometimes < 0.
-EcalCalHit corrected energy is very often zero or very small.  (Mean 0.041353)
-All ReconstructedParticle collections have zeros for energy, mass, N clusters, N tracks, and momentum.
-MCParticle endpoint is sometimes not available.
-No IdentifierHelper available for RawTrackerHit collection.
-The list of SimTrackerHits in RawTrackerHit is always null.
-dEdx error is always zero for Tracks.  (binning?)
-The dEdx for the TrackerHits is not filled in correctly.  Always seems to be NaN.
-Some HelicalTrackHit times are negative.
-MCParticle energy doesn't look right.  (Weird tail @ 50.)
-MCParticle looks funny.
-Some MCParticle origin's at Z < 0.  What are these?
-RotatedHelicalTrackHits Position Y shows hits in the gap.  Binning issue?  <= coordinate issue
-SVTRawTrackerHit times are all 0.
-StripClusterer_SiTrackerHitStrip1D Position X is screwed.
-*/
- 
+ */ 
 @SuppressWarnings( {"rawtypes", "unchecked" } )
-// FIXME: Add SimTrackerHit plotter.
 public class MockDataChallengeDiagnosticDriver extends Driver {
         
     boolean verbose = false;    
     boolean isSetup = false;
-    AIDA aida = AIDA.defaultInstance();
-    
-    double by;
-        
+    AIDA aida = AIDA.defaultInstance();    
+    double by;        
     Map<String, CollectionPlotter> collectionPlotters = new HashMap<String, CollectionPlotter>();
         
     @Override
@@ -191,8 +167,8 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
                 double[] position = hit.getPosition();            
                 aida.histogram1D("Corrected Energy").fill(correctedEnergy);
                 aida.cloud1D("Position X").fill(position[0]);
-                aida.cloud1D("Position Y").fill(position[0]);
-                aida.cloud1D("Position Z").fill(position[0]);            
+                aida.cloud1D("Position Y").fill(position[1]);
+                aida.cloud1D("Position Z").fill(position[2]);
             }
         }    
     }
@@ -201,19 +177,45 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
         
         void definePlots() {
             aida.histogram1D("Item Count", 20, 0., 20);
+            aida.histogram1D("Cluster_E over Track_P", 200, 0., 10.);
+            aida.histogram1D("Energy", 200, 0., 5.0);
         }
         
         void plot(List<ReconstructedParticle> collection) {
             super.plot(collection);
             for (ReconstructedParticle particle : collection) {
-                aida.cloud1D("Energy").fill(particle.getEnergy());
+                aida.histogram1D("Energy").fill(particle.getEnergy());
                 aida.cloud1D("N Clusters").fill(particle.getClusters().size());
                 aida.cloud1D("N Tracks").fill(particle.getTracks().size());
                 Hep3Vector momentum = particle.getMomentum();
+                aida.cloud1D("P").fill(momentum.magnitude());
                 aida.cloud1D("Px").fill(momentum.x());
                 aida.cloud1D("Py").fill(momentum.y());
                 aida.cloud1D("Pz").fill(momentum.z());
                 aida.cloud1D("Mass").fill(particle.getMass());
+                aida.cloud1D("Energy").fill(particle.getEnergy());
+                aida.cloud1D("Goodness of PID").fill(particle.getGoodnessOfPID());
+                aida.cloud1D("N Particles").fill(particle.getParticles().size());
+                Hep3Vector refPoint = particle.getReferencePoint();
+                aida.cloud1D("Ref Point X").fill(refPoint.x());
+                aida.cloud1D("Ref Point Y").fill(refPoint.y());
+                aida.cloud1D("Ref Point Z").fill(refPoint.z());
+                Vertex vertex = particle.getStartVertex();
+                if (vertex != null) {
+                    aida.cloud1D("Vertex chi2").fill(vertex.getChi2());
+                    aida.cloud1D("Vertex probability").fill(vertex.getProbability());
+                    Hep3Vector vertexPosition = vertex.getPosition();
+                    aida.cloud1D("Vertex Position X").fill(vertexPosition.x());
+                    aida.cloud1D("Vertex Position Y").fill(vertexPosition.y());
+                    aida.cloud1D("Vertex Position Z").fill(vertexPosition.z());
+                }
+                if (particle.getClusters().size() == 1 && particle.getTracks().size() == 1) {
+                    double[] p = particle.getTracks().get(0).getTrackStates().get(0).getMomentum();
+                    Hep3Vector pvec = new BasicHep3Vector(p[0], p[1], p[2]);
+                    double clusterE = particle.getClusters().get(0).getEnergy();
+                    if (clusterE != Double.NaN && clusterE > 0 && pvec.magnitude() != 0)
+                        aida.histogram1D("Cluster_E over Track_P").fill(particle.getClusters().get(0).getEnergy() / pvec.magnitude());
+                }
             }           
         }        
     }
@@ -221,7 +223,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
     class ClusterPlotter extends CollectionPlotter<Cluster> {
                         
         void definePlots() {
-            aida.histogram1D("Energy", 20, 0., 10.);
+            aida.histogram1D("Energy", 50, 0., 2.);
             aida.histogram1D("Item Count", 20, 0., 20.);
             aida.histogram1D("Position X", 66, -300., 360.);
             aida.histogram1D("Position Y", 200, -100., 100.);
@@ -336,7 +338,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
                 // FIXME: Requires missing IdentifierHelper.
                 //cloud1D("Layer Number").fill(hit.getLayerNumber());
                 
-                // FIXME: SimTrackerHit list is null.
+                // FIXME: SimTrackerHit list always points to null.
                 //cloud1D("N SimTrackerHits").fill(hit.getSimTrackerHits().size());
             }
         }
@@ -344,21 +346,32 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
     
     class RawCalorimeterHitPlotter extends CollectionPlotter<RawCalorimeterHit> {
         
+        void definePlots() {
+            super.definePlots();
+            aida.histogram1D("Amplitude", 300, 0., 30000);
+            aida.histogram1D("Timestamp", 260, 0., 6500);
+        }
+        
         void plot(List<RawCalorimeterHit> collection) {
             super.plot(collection);
             for (RawCalorimeterHit hit : collection) {
-                aida.cloud1D("Amplitude").fill(hit.getAmplitude());
-                aida.cloud1D("Timestamp").fill(hit.getTimeStamp());
+                aida.histogram1D("Amplitude").fill(hit.getAmplitude());
+                aida.histogram1D("Timestamp").fill(hit.getTimeStamp());
             }
         }
     }
     
     class TrackerHitPlotter extends CollectionPlotter<TrackerHit> {
         
+        void definePlots() {
+            super.definePlots();
+            aida.histogram1D("dEdx", 500, 0., 1.);
+        }
+        
         void plot(List<TrackerHit> collection) {
             super.plot(collection);
             for (TrackerHit hit : collection) {
-                aida.cloud1D("dEdx").fill(hit.getdEdx()); // FIXME: Turn into histogram with finer binning.
+                aida.histogram1D("dEdx").fill(hit.getdEdx());
                 aida.cloud1D("edep error").fill(hit.getEdepError());
                 double[] position = hit.getPosition();
                 aida.cloud1D("Position X").fill(position[0]);
@@ -374,7 +387,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
         
         void definePlots() {
             super.definePlots();
-            aida.histogram1D("Raw Energy", 100, 0., 5.0);
+            aida.histogram1D("Raw Energy", 200, 0., 2.0);
             aida.histogram1D("Position X", 60, -300., 400.);
             aida.histogram1D("Position Y", 100, -100., 100.);
             aida.histogram1D("Position Z", 50, 1465., 1475.);
@@ -434,7 +447,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
         }
     }
     
-    class LCGenericObjectPlotter extends CollectionPlotter<GenericObject> {
+    class GenericObjectPlotter extends CollectionPlotter<GenericObject> {
         
         void definePlots() {
             super.definePlots();
@@ -483,13 +496,13 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
                 plotter = new SimCalorimeterHitPlotter();
             } else if (type.equals(SimTrackerHit.class)) {
                 plotter = new SimTrackerHitPlotter();
+            } else if (type.equals(GenericObject.class)) {
+                plotter = new GenericObjectPlotter();
             } else {
                 plotter = new DefaultPlotter();
             }            
             plotter.setName(name);
             return plotter;
-        }
-        
-    }
-    
+        }        
+    }    
 }
