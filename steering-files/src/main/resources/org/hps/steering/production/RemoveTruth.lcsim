@@ -1,0 +1,21 @@
+<!-- 
+  Saves a copy of the input file, with truth collections removed.
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: $
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="LCIOWriter"/>
+    </execute>    
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+            <ignoreCollections>MCParticle TrackerHits EcalHits SVTTrueHitRelations</ignoreCollections>
+        </driver>
+    </drivers>
+</lcsim>
