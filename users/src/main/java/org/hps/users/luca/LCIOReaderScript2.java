@@ -37,7 +37,7 @@ public class LCIOReaderScript2 extends Driver {
            
            //see if the particle collection exist
            if(event.hasCollection(MCParticle.class,"MCParticle")){
-              System.out.println("we have /mc/particles!! /n");
+              
                
                //get the MCparticle collection from the event
                
@@ -67,7 +67,7 @@ public class LCIOReaderScript2 extends Driver {
                try{writer.close();}
         catch(IOException e ){System.exit(1);}            
            }
-           System.out.println("ho scritto e ho chiuso! /n");
+           
            
        }
        
