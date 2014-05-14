@@ -11,13 +11,11 @@ import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
 public class LCIOReaderScript2 extends Driver {
-    String InputName;
+    
     String OutputName;
     public void setOutputName(String outputName){
     this.OutputName=outputName;}
-    public void setInputName(String inputName){
-    this.InputName= inputName;}
-
+    
   /* @Override
    public void endOfData(){
    System.out.println("fine dei dati");
@@ -35,11 +33,11 @@ public class LCIOReaderScript2 extends Driver {
            System.exit(1);}
             //get the event number to print a status update.
            int num =event.getEventNumber();
-           if(num % 10000 == 0){System.out.println("Parsing event" + num + ".");}
+           if(num % 100 == 0){System.out.println("Parsing event" + num + ".");}
            
            //see if the particle collection exist
            if(event.hasCollection(MCParticle.class,"MCParticle")){
-              
+              System.out.println("we have /mc/particles!! /n");
                
                //get the MCparticle collection from the event
                
@@ -69,7 +67,7 @@ public class LCIOReaderScript2 extends Driver {
                try{writer.close();}
         catch(IOException e ){System.exit(1);}            
            }
-           
+           System.out.println("ho scritto e ho chiuso! /n");
            
        }
        
