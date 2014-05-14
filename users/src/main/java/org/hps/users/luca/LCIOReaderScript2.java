@@ -33,7 +33,7 @@ public class LCIOReaderScript2 extends Driver {
            System.exit(1);}
             //get the event number to print a status update.
            int num =event.getEventNumber();
-           if(num % 100 == 0){System.out.println("Parsing event" + num + ".");}
+           if(num % 10000 == 0){System.out.println("Parsing event" + num + ".");}
            
            //see if the particle collection exist
            if(event.hasCollection(MCParticle.class,"MCParticle")){
