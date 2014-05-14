@@ -27,9 +27,9 @@ public class LCIOReaderScript2 extends Driver {
            
            //Create an LCIO writer to output the new file
            LCIOWriter writer = null;
-           try {writer = new LCIOWriter(outputFile);}
+           try { writer = new LCIOWriter(outputFile);}
            catch(IOException e)
-           {e.printStackTrace();
+           {
            System.exit(1);}
             //get the event number to print a status update.
            int num =event.getEventNumber();
@@ -47,7 +47,7 @@ public class LCIOReaderScript2 extends Driver {
                event.remove("MCParticle");
                
                //make a nre list for good particles which pass some test
-               ArrayList<MCParticle> goodParticles =new ArrayList<MCParticle>();
+               ArrayList<MCParticle> goodParticles =new ArrayList<>();
                
                //sort trhough the list of MCParticle objects in the full list and add good ones to the good list
               for(MCParticle p : particleList){
@@ -60,7 +60,7 @@ public class LCIOReaderScript2 extends Driver {
               //Write the event back out to the new file
               
                try{writer.write(event);}
-               catch(IOException e){e.printStackTrace();System.exit(1);}
+               catch(IOException e){System.exit(1);}
               //close the writer
         
                
