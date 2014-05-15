@@ -51,6 +51,7 @@ public abstract class ReconParticleDriver extends Driver {
     String vertexBeamConsCandidatesName         = null;
     
     // The beamsize array is in the tracking frame
+    /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
     double[] beamsize = {0.001, 0.2, 0.02};
     double maxTrackClusterDistance = 10000; // [mm] 
 	double bField; 
@@ -185,6 +186,7 @@ public abstract class ReconParticleDriver extends Driver {
     		
     			// Check if the Ecal cluster and track are within the same 
     			// detector volume i.e. both top or bottom
+                    /* TODO:  mg-May 14, 2014 does getTrackStates().get(0).getZ0() really get the z-pos (y in detector frame) @ the ECAL or anywhere other than the POCA??? Where is this calculated*/
     			if(clusterPosition.y()*track.getTrackStates().get(0).getZ0() < 0){
     				this.printDebug("Track and Ecal cluster are in opposite volumes. Track Z0 = " + track.getTrackStates().get(0).getZ0());
     				continue; 
