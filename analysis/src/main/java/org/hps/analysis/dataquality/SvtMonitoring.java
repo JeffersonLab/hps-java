@@ -1,10 +1,7 @@
 package org.hps.analysis.dataquality;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IFitFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
 import org.lcsim.geometry.Detector;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +12,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
 /**
- * DQM driver for the monte carlo for reconstructed track quantities
+ *  DQM driver for the monte carlo for reconstructed track quantities
  *  plots things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit); each on a per/sensor basis
  * saves to DQM database:  <occupancy> 
  * @author mgraham on Mar 28, 2014
@@ -165,6 +162,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                     sensorHist.fill(i, stripOccupancy);
                 avg += stripOccupancy;
             }
+        //do the end-of-run quantities here too since we've already done the loop.  
             avg /= strips.length;        
             avgOccupancyMap.put(sensor.getName(), avg);
         }
@@ -175,13 +173,14 @@ public class SvtMonitoring extends DataQualityMonitor {
         System.out.println("SvtMonitoring::endOfData filling DQM database");
         double s1occ = 0.99;
         String put = "update dqm SET avgOcc_T1=" + s1occ + " WHERE " + getRunRecoString();
-//        manager.updateQuery(put);
-        printDQMData();
+//        manager.updateQuery(put);        
     }
 
+    @Override
     public void printDQMData() {
         for (SiSensor sensor : sensors) {
             System.out.println(avgOccupancyNames.get(sensor.getName()) + ":  " + avgOccupancyMap.get(sensor.getName()));
         }
     }
+      
 }

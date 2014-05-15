@@ -15,7 +15,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 
 /**
- *  DQM driver for the monte carlo for reconstructed track quantities
+ *  DQM driver  for reconstructed track quantities
  *  plots things like number of tracks/event, momentum, chi^2, track parameters (d0/z0/theta/phi/curvature)
  *  @author mgraham on Mar 28, 2014
  */
@@ -96,14 +96,14 @@ public class TrackingMonitoring extends DataQualityMonitor {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         aida.histogram1D("Tracks per Event").fill(tracks.size());
         for (Track trk : tracks) {
-
+            //  fill momentum in ReconMonitoring instead...
             aida.histogram1D("Track Momentum (Px)").fill(trk.getPY());
             aida.histogram1D("Track Momentum (Py)").fill(trk.getPZ());
             aida.histogram1D("Track Momentum (Pz)").fill(trk.getPX());
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             aida.histogram1D("Hits per Track").fill(trk.getTrackerHits().size());
-
+            //why is getTrackParameter depricated?  How am  I supposed to get this? 
             aida.histogram1D("d0 ").fill(trk.getTrackParameter(LCIOParameters.ParameterName.d0.ordinal()));
             aida.histogram1D("sinphi ").fill(Math.sin(trk.getTrackParameter(LCIOParameters.ParameterName.phi0.ordinal())));
             aida.histogram1D("omega ").fill(trk.getTrackParameter(LCIOParameters.ParameterName.omega.ordinal()));

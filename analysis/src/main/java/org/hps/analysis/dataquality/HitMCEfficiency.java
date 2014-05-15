@@ -21,7 +21,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
  * April 29 -- first pass, makes the SimTrackerHits-->SiClusters efficiency vs position (with a settable t0 cut)
  * @author mgraham on April 29, 2014
  */
-// TODO: Add HelicalTrackHit efficiency...this should include the fitted track hit cuts (t0 & chi^2) automatically since that where the cut is applied
+// TODO: Add HelicalTrackHit efficiency...this should include the fitted hit cuts (t0 & chi^2) automatically since that where the cut is applied
 // TODO: Add some quantities for DQM monitoring:  e.g. <efficiency>, probably within first 1 cm or so.   
 public class HitMCEfficiency extends DataQualityMonitor {
 

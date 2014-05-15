@@ -45,6 +45,7 @@ public class DQMDatabaseManager{
      * Class constructor, which is only package accessible.
      */
     DQMDatabaseManager() {
+        System.out.println("Making the instance of DQMDatabaseManager");
             
     }
 

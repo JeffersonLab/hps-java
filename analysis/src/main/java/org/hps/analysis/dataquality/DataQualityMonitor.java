@@ -8,9 +8,11 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * sort of an interface for DQM analysis drivers
- * creates the DQM database manager, checks whether row exists in db etc
+ * sort of an interface for DQM analysis drivers creates the DQM database
+ * manager, checks whether row exists in db etc
+ *
  * @author mgraham on Apr 15, 2014
+ * update mgraham on May 15, 2014 to include calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
 public class DataQualityMonitor extends Driver {
 
@@ -19,6 +21,7 @@ public class DataQualityMonitor extends Driver {
     public String recoVersion = "v0.0";
     public static int runNumber = 1350;
     public boolean overwriteDB = false;
+    public boolean connectToDB = false;
 
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
@@ -28,31 +31,39 @@ public class DataQualityMonitor extends Driver {
         this.overwriteDB = overwrite;
     }
 
+    public void setConnectToDB(boolean connect) {
+        this.overwriteDB = connect;
+    }
+
     public void DataQualityMonitor() {
 
     }
 
     public void endOfData() {
-        manager = DQMDatabaseManager.getInstance();
+        if (connectToDB) {
+            manager = DQMDatabaseManager.getInstance();
         //fill any plots that only get filled at end of data...e.g. SVT occupancy plots
-        fillEndOfRunPlots();
 
-        //check to see if I need to make a new db entry
-        boolean entryExists = false;
-        try {
-            entryExists = checkRowExists();
-            if(entryExists)System.out.println("Found an existing run/reco entry in the dqm database");
-        } catch (SQLException ex) {
-            Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            //check to see if I need to make a new db entry
+            boolean entryExists = false;
+            try {
+                entryExists = checkRowExists();
+                if (entryExists)
+                    System.out.println("Found an existing run/reco entry in the dqm database");
+            } catch (SQLException ex) {
+                Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            if (!entryExists)
+                makeNewRow();
+            else if (!overwriteDB)
+                return; //entry exists and I don't want to overwrite
+            dumpDQMData();
         }
 
-        if (!entryExists)
-            makeNewRow();
-        else
-            if (!overwriteDB)
-                return; //entry exists and I don't want to overwrite
-        
-        dumpDQMData();
+        calculateEndOfRunQuantities();
+        fillEndOfRunPlots();
+        printDQMData();
     }
 
     private void makeNewRow() {
@@ -76,14 +87,27 @@ public class DataQualityMonitor extends Driver {
     }
 
     public String getRunRecoString() {
-        return "run=" + runNumber + " and recoversion='"+recoVersion+"'";
+        return "run=" + runNumber + " and recoversion='" + recoVersion + "'";
     }
 
     //override this method to do something interesting   
+    //like fill some plots that you only want to fill at end of data (e.g. for occupancies)
     public void fillEndOfRunPlots() {
     }
+
     //override this method to do something interesting   
+    //like calculate averages etc. that can then be put in the db  
+    public void calculateEndOfRunQuantities() {
+    }
+
+    
+//override this method to do something interesting   
+    //like write the DQM data to the database
     public void dumpDQMData() {
     }
 
+    //override this method to do something interesting   
+    //like print the DQM data log file
+    public void printDQMData() {
+    }
 }
