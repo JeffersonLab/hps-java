@@ -8,27 +8,18 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.lcio.LCIOWriter;
-import org.lcsim.util.Driver;
 
-public class LCIOReaderScript extends Driver {
-    String InputName;
-    String OutputName;
-    public void setOutputName(String outputName){
-    this.OutputName=outputName;}
-    public void setInputName(String inputName){
-    this.InputName= inputName;}
-	public static void prova (String inputfile, String outputfile) {
-            
-            /*
+public class LCIOReadScript {
+	public static void main(String[] args) {
 		// Make sure there arguments are valid.
 		if(args.length != 2) {
 			System.err.println("Error: Arguments must be [Input_File] [Output_File]");
 			System.exit(1);
 		}
-		*/
+		
 		// Set the input/output files.
-		File inputFile = new File(inputfile);
-		File outputFile = new File(outputfile);
+		File inputFile = new File(args[0]);
+		File outputFile = new File(args[1]);
 		
 		// Make sure that the input file exists.
 		if(!inputFile.canRead()) {
@@ -87,15 +78,13 @@ public class LCIOReaderScript extends Driver {
 				// Write the good particles back to the event.
 				event.put("MCParticle", goodParticles);
 			}
-		//	System.out.println("sto scrivendo l'event nel nuovo file \n");
+			
 			// Write the event back out to the new file.
 			try { writer.write(event); }
 			catch(IOException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}
-                       // System.out.println("Sono alla ine del while");
-                        if(event.getEventNumber()==999999){break;}
 		}
 		
 		// Close the reader and writer.
@@ -108,10 +97,4 @@ public class LCIOReaderScript extends Driver {
 			System.exit(1);
 		}
 	}
-        
-   @Override
-   public void process (EventHeader event){
-   prova(InputName,OutputName);
-   }
-        
 }

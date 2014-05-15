@@ -48,13 +48,15 @@ public class CalibTest2 extends Driver {
 private FileWriter writer;
 String outputFileName = "elettrons.txt";
 private AIDA aida = AIDA.defaultInstance();
-    IHistogram1D thetaPlot = aida.histogram1D("theta", 1000, 0.0, 0.3);
-    IHistogram2D pulses = aida.histogram2D("pulses",1000,-3.0,3.0,1000,-3.0,3.0);
-
+    IHistogram1D thetaPlot = aida.histogram1D("theta", 100, 0.0, 0.3);
+    IHistogram2D pulses = aida.histogram2D("pulses",100,-3.0,3.0,100,-3.0,3.0);
+    IHistogram1D eneMCPlot = aida.histogram1D("energia elettroni coulomb", 100, 0.0, 3);
+    IHistogram1D enetuttiPlot = aida.histogram1D("energia tutti", 100, 0.0, 0.3);
+     IHistogram1D eneTuttiEmenoPlot = aida.histogram1D("energia tutti elettroni", 100, 0.0, 0.3);
 public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }
-    
+ @Override   
 public void startOfData(){
 try{
     //initialize the writer
@@ -66,7 +68,7 @@ catch(IOException e ){
 System.err.println("Error initializing output file for event display.");
 }
 }
-    
+ @Override   
 public void endOfData(){
 try{
 //close the file writer.
@@ -87,14 +89,17 @@ catch(IOException e){
   @Override
   protected void process(EventHeader event) {
     // Get the list of mc particles from the event
-    List<MCParticle> mcParticles = event.getMCParticles();
-    // Print out the number of mc particles
-    //System.out.println("Event " + event.getEventNumber() + " contains " + mcParticles.size() + " mc particles.");
+    
+     if(event.hasCollection(MCParticle.class,"MCParticle"))
+     {
+         List<MCParticle> mcParticles = event.get(MCParticle.class,"MCParticle");
+         
  // try{
     for (MCParticle particle : mcParticles)
-    {
-       if(particle.getPDGID()==11)
-       {   if(particle.getEnergy()> 2.1)
+    { enetuttiPlot.fill(particle.getEnergy());
+       if(particle.getPDGID()>0)
+       {    eneTuttiEmenoPlot.fill(particle.getEnergy());
+             if(particle.getEnergy()> 2.1)
            { 
            PTOT=Math.sqrt(particle.getPX()*particle.getPX() + particle.getPY()*particle.getPY()+particle.getPZ()*particle.getPZ() );
            theta=Math.acos(particle.getPZ()/PTOT);
@@ -102,19 +107,19 @@ catch(IOException e){
            //writer.append(theta+" "+particle.getPX()+" "+particle.getPY()+"\n");
            thetaPlot.fill(theta);
            pulses.fill(particle.getPX(),particle.getPY());
-           
+           eneMCPlot.fill(particle.getEnergy());
            }
       // }
      
      //System.out.println(particle.getPDGID());
-     } //end of for cycle
-  }//end of try
- 
+     } 
+  }
+     }
   
  /* catch(IOException e ){
   System.err.println("Error writing tooutput for event display");
   }*/
-//System.out.println("ho contato" + counter + "elettroni. \n");
+  //System.out.println("ho contato" + counter + "elettroni. \n");
     
    
    
