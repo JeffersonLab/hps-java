@@ -122,8 +122,8 @@ public class TrackUtils {
     // ==========================================================================
 
     /**
-     * Calculate the point of interception between the helix and a plane in space. Uses an
-     * iterative procedure.
+     * Calculate the point of interception between the helix and a plane in space. Uses an iterative procedure.
+     * This function makes assumptions on the sign and convecntion of the B-field. Be careful.
      * @param helfit - helix
      * @param unit_vec_normal_to_plane - unit vector normal to the plane
      * @param point_on_plane - point on the plane
@@ -132,9 +132,10 @@ public class TrackUtils {
      */
     public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, Hep3Vector unit_vec_normal_to_plane, Hep3Vector point_on_plane, double bfield) {
         boolean debug = false;
-        boolean flipBfield = true; // be careful
-        Hep3Vector B = new BasicHep3Vector(0, 0, flipBfield ? -1 : 1);
-        WTrack wtrack = new WTrack(helfit, bfield, flipBfield); //
+        //Hep3Vector B = new BasicHep3Vector(0, 0, -1);
+        //WTrack wtrack = new WTrack(helfit, -1.0*bfield); //
+        Hep3Vector B = new BasicHep3Vector(0, 0, 1);
+        WTrack wtrack = new WTrack(helfit, bfield); //
         if (debug)
             System.out.printf("getHelixPlaneIntercept:find intercept between plane defined by point on plane %s, unit vec %s, bfield %.3f, h=%s and WTrack \n%s \n", point_on_plane.toString(), unit_vec_normal_to_plane.toString(), bfield, B.toString(), wtrack.toString());
         Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept(point_on_plane, unit_vec_normal_to_plane, B);

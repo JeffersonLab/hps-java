@@ -67,9 +67,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
      * @return the points of scatter along the helix
      */
     public ScatterPoints FindHPSScatterPoints(HelicalTrackFit helix) {
-        if (_debug)
+        if (_debug) {
             System.out.printf("\n%s: FindHPSScatters() for helix:\n%s\n", this.getClass().getSimpleName(), helix.toString());
-
+            System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(),helix.p(Math.abs(_bfield)),helix.R(),_bfield);
+        }
+        
         // Check that B Field is set
         if (_bfield == 0.)
             throw new RuntimeException("B Field must be set before calling FindScatters method");
@@ -253,12 +255,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             return null;
 
         if (this._debug) {
-            System.out.printf("%s: found intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
+            System.out.printf("%s: found simple intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
         }
 
         // Check if it's inside sensor and module and if it contradicts the manual calculation
-        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND
-        // module -> FIX THIS!?
+        // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module 
 
         if (!isInsideSolid) {
             if (_debug)
@@ -272,11 +273,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             }
         }
 
-        // Catch special cases where the incidental iteration procedure seem to fail -> FIX THIS!
-        if (helix.p(Math.abs(_bfield)) < 0.3) {
+        // TODO Catch special cases where the incidental iteration procedure seem to fail 
+        if (helix.p(Math.abs(_bfield)) < 0.5) {
 
             if (this._debug)
-                System.out.printf("%s: momentum is low skip the iterative calculation\n", this.getClass().getSimpleName());
+                System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f), skip the iterative calculation\n", this.getClass().getSimpleName(),helix.p(Math.abs(_bfield)),helix.R(),_bfield);
 
             return pos_int_trk;
         }
@@ -284,54 +285,53 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (this._debug)
             System.out.printf("%s: calculate iterative helix intercept\n", this.getClass().getSimpleName());
 
-        pos = TrackUtils.getHelixPlaneIntercept(helix, plane.normal(), plane.origin(), _bfield);
+        Hep3Vector pos_iter_trk = TrackUtils.getHelixPlaneIntercept(helix, plane.normal(), plane.origin(), _bfield);
 
         if (pos == null) {
-
-            // throw new
-            // RuntimeException(String.format("%s: iterative intercept failed for helix \n%s\n with org=%s,w=%s, B=%f\n pdef=%f and pdef_pos=%s",
-            // this.getClass().getSimpleName(),helix.toString(),plane.origin().toString(),plane.normal().toString(),_bfield,s_origin,pos));
-            //
-            System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s => use approx intercept pos=%s at path %f\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString(), pos, s_origin);
-
+            System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString());
+            System.out.printf("%s: => use simple intercept pos=%s\n", this.getClass().getSimpleName(), pos_int_trk);
             return pos_int_trk;
-
         }
 
         if (this._debug) {
-            System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos.toString(), VecOp.sub(pos, pos_int_trk).toString());
+            System.out.printf("%s: iterative helix intercept point at %s (diff to approx: %s) \n", this.getClass().getSimpleName(), pos_iter_trk.toString(), VecOp.sub(pos_iter_trk, pos_int_trk).toString());
         }
 
         // find position in sensor frame
-        pos_int_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos);
-        Hep3Vector pos_int_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos));
+        Hep3Vector pos_iter_det = VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk);
+        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(VecOp.inverse(CoordinateTransformations.getMatrix()), pos_iter_trk));
 
-        if (this._debug)
-            System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_int_sensor.toString());
-        result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_int_sensor);
-        result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_int_det);
+        if (this._debug) {
+            System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
+        }
+        
+        result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
+        result_inside_module = plane.getSensor().getGeometry().getDetectorElement().getParent().getGeometry().inside(pos_iter_det);
 
-        if (this._debug)
+        if (this._debug) {
             System.out.printf("%s: Inside result sensor: %s module: %s\n", this.getClass().getSimpleName(), result_inside.toString(), result_inside_module.toString());
-
+        }
+        
         isInsideSolid = false;
+        
         if (result_inside.equals(Inside.INSIDE) || result_inside.equals(Inside.SURFACE)) {
             isInsideSolid = true;
         }
 
         isInsideSolidModule = false;
+        
         if (result_inside_module.equals(Inside.INSIDE) || result_inside_module.equals(Inside.SURFACE)) {
             isInsideSolidModule = true;
         }
 
         isInside = true;
-        if (Math.abs(pos_int.x()) > plane.getMeasuredDimension() / 2.0) {
+        if (Math.abs(pos_iter_sensor.x()) > plane.getMeasuredDimension() / 2.0) {
             if (this._debug)
                 System.out.printf("%s: intercept is outside in u\n", this.getClass().getSimpleName());
             isInside = false;
         }
 
-        if (Math.abs(pos_int.y()) > plane.getUnmeasuredDimension() / 2.0) {
+        if (Math.abs(pos_iter_sensor.y()) > plane.getUnmeasuredDimension() / 2.0) {
             if (this._debug)
                 System.out.printf("%s: intercept is outside in v\n", this.getClass().getSimpleName());
             isInside = false;
@@ -342,14 +342,17 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         // module -> FIX THIS!?
 
         if (!isInsideSolid) {
-            if (_debug)
+            if (_debug) {
                 System.out.printf("%s: manual iterative calculation says inside sensor, inside solid says outside -> contradiction \n", this.getClass().getSimpleName());
+            }
             if (isInsideSolidModule) {
-                if (_debug)
+                if (_debug) {
                     System.out.printf("%s: this iterative intercept is outside sensor but inside module\n", this.getClass().getSimpleName());
+                }
             } else {
-                if (_debug)
-                    System.out.printf("%s: warning: this iterative intercept %s, sensor frame %s, (sensor origin %s ) is outside sensor and module!\n", this.getClass().getSimpleName(), pos_int_trk.toString(), pos_int.toString(), plane.origin().toString());
+                if (_debug) {
+                    System.out.printf("%s: warning: this iterative intercept %s, sensor frame %s, (sensor origin %s ) is outside sensor and module!\n", this.getClass().getSimpleName(), pos_iter_trk.toString(), pos_iter_sensor.toString(), plane.origin().toString());
+                }
             }
         }
 
@@ -357,10 +360,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             return null;
 
         if (this._debug) {
-            System.out.printf("%s: found intercept at %s \n", this.getClass().getSimpleName(), pos_int_trk.toString());
+            System.out.printf("%s: found intercept at %s \n", this.getClass().getSimpleName(), pos_iter_trk.toString());
         }
 
-        return pos_int_trk;
+        return pos_iter_trk;
     }
 
     @Override

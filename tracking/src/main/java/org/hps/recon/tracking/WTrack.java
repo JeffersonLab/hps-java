@@ -12,44 +12,31 @@ import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
+ * Track parameterization representation.
  * 
  * @author phansson
  */
 public class WTrack {
 
-    private boolean _debug = false;
-
-    public enum PARAM {
-        TEST;
-    }
-
     private double[] _parameters = new double[7];
     public HelicalTrackFit _htf = null;
     private double _bfield;
     private double _a;
+    private boolean _debug = false;
+    private final int max_iterations_intercept = 10;
+    private final double epsilon_intercept = 1e-4;
 
-    static int max_iterations_intercept = 10;
-    static double epsilon_intercept = 1e-4;
-
-    public WTrack(WTrack trk) {
-        _bfield = trk._bfield;
-        _a = trk._a;
-        _parameters = trk._parameters;
-        _htf = trk._htf;
-        _debug = trk._debug;
-    }
-
+      
+    /**
+     * Constructor. Assumes that b-field is in detector z direction. 
+     * 
+     * @param track @ref{HelicalTrackFit} 
+     * @param bfield value and sign of magnetic field
+     */
     public WTrack(HelicalTrackFit track, double bfield) {
-        initWithTrack(track, bfield, false);
-    }
-
-    public WTrack(HelicalTrackFit track, double bfield, boolean flip) {
-        initWithTrack(track, bfield, flip);
-    }
-
-    public void initWithTrack(HelicalTrackFit track, double bfield, boolean flip) {
-        _htf = track;
-        _bfield = flip ? -1.0 * bfield : bfield; // flip if needed
+    	_htf = track;
+    	//_bfield = flip ? -1.0 * bfield : bfield; // flip if needed
+        _bfield = bfield; 
         _a = -1 * Constants.fieldConversion * _bfield * Math.signum(track.R());
         double p = track.p(Math.abs(_bfield));
         double theta = Math.PI / 2.0 - Math.atan(track.slope());
@@ -62,10 +49,25 @@ public class WTrack {
         _parameters[5] = track.dca() * Math.cos(phi); // y0
         _parameters[6] = track.z0(); // z0
         if (_debug) {
-            System.out.printf("%s: WTrack initialized (p=%f,bfield=%f,theta=%f,phi=%f) from HelicalTrackFit:\n%s:%s\n", this.getClass().getSimpleName(), p, _bfield, theta, phi, this.getClass().getSimpleName(), this.toString());
+            System.out.printf("%s: WTrack initialized (p=%f,bfield=%f,theta=%f,phi=%f) from HelicalTrackFit:\n%s: %s\n", this.getClass().getSimpleName(), p, _bfield, theta, phi, this.getClass().getSimpleName(), this.toString());
         }
     }
 
+    
+    /**
+     * Copy constructor
+     * 
+     * @param trk
+     */
+    public WTrack(WTrack trk) {
+        _bfield = trk._bfield;
+        _a = trk._a;
+        _parameters = trk._parameters;
+        _htf = trk._htf;
+        _debug = trk._debug;
+    }
+
+    
     public void setTrackParameters(double[] params) {
         _parameters = params;
     }
@@ -158,25 +160,14 @@ public class WTrack {
             System.out.println(" xp " + xp.toString());
             System.out.println(" eta " + eta.toString());
             System.out.println(" h " + h.toString());
-            System.exit(1);
+            throw new RuntimeException("Problem in calculating the approximate path length to the plane.");
         }
         double root1 = (-B + Math.sqrt(t)) / (2 * A);
         double root2 = (-B - Math.sqrt(t)) / (2 * A);
 
         // choose the smallest positive solution
-        // if both negative choose the smallest negative ???
-        // if(root1==0 || root2==0) root=0;
         double root = Math.abs(root1) <= Math.abs(root2) ? root1 : root2;
-        // else if(Math.signum(root1)>0 && Math.signum(root2)<0) root = root1;
-        // else if(Math.signum(root2)>0 && Math.signum(root1)<0) root = root2;
-        // else if(Math.signum(root1)>0 && Math.signum(root2)>0) root = root1 > root2 ? root2 :
-        // root1;
-        // else if(Math.signum(root1)<0 && Math.signum(root2)<0) root = root1 < root2 ? root2 :
-        // root1;
-        // else {
-        // System.out.println(" I should never get here! (root1=" + root1 + " root2=" + root2+")");
-        // System.exit(1);
-        // }
+
         if (_debug) {
             System.out.println(" getPathLengthToPlaneApprox ");
             System.out.println(" " + track.paramsToString());
@@ -190,11 +181,13 @@ public class WTrack {
 
     }
 
+    /**
+     * Get point on helix at path length s in arbitrary oriented, constant magnetic field with unit vector h
+     * @param s - path length
+     * @param h - magnetic field unit vector
+     * @return
+     */
     private Hep3Vector getPointOnHelix(double s, Hep3Vector h) {
-        /*
-         * Get point on helix at path lenght s in arbitrary oriented, constant magnetic field with
-         * unit vector h
-         */
         WTrack track = this;
         double a = track.a();
         Hep3Vector p0 = track.getP0();
@@ -230,12 +223,15 @@ public class WTrack {
         return p;
     }
 
+    /*
+    	Calculate the exact position of the new helix parameters at path length s in an arbitrarily oriented, 
+    	constant magnetic field point xp is the point h is a unit vector in the direction of the magnetic field.         
+     * @param s - path length
+     * @param h - magnetic field unit vector
+     * @return track parameters
+     */
     private double[] getHelixParametersAtPathLength(double s, Hep3Vector h) {
-        /*
-         * Calculate the exact position of the new helix parameters at path length s in an
-         * arbitrarily oriented, constant magnetic field point xp is the point h is a unit vector
-         * in the direction of the magnetic field
-         */
+        
 
         // Find track parameters at that path length
         Hep3Vector p = getMomentumOnHelix(s, h);
@@ -262,12 +258,15 @@ public class WTrack {
         return pars;
     }
 
+    /**   Find the interception point between the helix and a plane  
+     * @param xp point on the plane
+     * @param eta unit vector of the plane 
+     * @param h unit vector of magnetic field
+     * @return
+     */
     public Hep3Vector getHelixAndPlaneIntercept(Hep3Vector xp, Hep3Vector eta, Hep3Vector h) {
 
-        /*
-         * Find the interception point between the helix and plane xp: point on the plane eta: unit
-         * vector of the plane h: unit vector of magnetic field
-         */
+        
 
         int iteration = 1;
         double s_total = 0.;
