@@ -20,7 +20,10 @@ import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.DefaultTestSetup;
+import org.hps.conditions.TableConstants;
+
 import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 
@@ -47,12 +50,13 @@ public class EcalDaqPlots extends Driver implements Resettable {
     
     private List<Integer> slotsT,slotsB,crates;
     
+    private EcalConditions conditions;
     private EcalChannel.EcalChannelCollection channels;
-    //private DatabaseConditionsManager manager;
-    private ConditionsManager manager;
+    private DatabaseConditionsManager manager;
+    //private ConditionsManager manager;
     public EcalDaqPlots() {
-    	//manager = DatabaseConditionsManager.getInstance();
-    	manager = ConditionsManager.defaultInstance();
+    	manager = DatabaseConditionsManager.getInstance();
+    	//manager = ConditionsManager.defaultInstance();
     }
 
     public void setSubdetectorName(String subdetectorName) {
@@ -80,9 +84,11 @@ public class EcalDaqPlots extends Driver implements Resettable {
         
         
     	/*Setup the conditions system*/
-        
+        conditions=manager.getConditionsData(EcalConditions.class,TableConstants.ECAL_CONDITIONS);
+        channels = conditions.getChannelCollection(); 
+
     	 // Get the channel information from the database.                
-        channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
+        //channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
 
         List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
         /*I do not want the ECAL Crates and Slots to be hard-coded. 
@@ -191,28 +197,26 @@ public class EcalDaqPlots extends Driver implements Resettable {
             //	daq.slot = 2;
             // 	daq.channel = 3;
 
-            	// Find the matching channel.                                     	
-            /*
-            	EcalChannel.GeometryId geomID=new EcalChannel.GeometryId();
-            	geomID.x=hit.getIdentifierFieldValue("ix");
-            	geomID.y=hit.getIdentifierFieldValue("iy");
-            	EcalChannel channel=channels.findChannel(geomID);
+            	// Find the matching channel.        
+            	EcalChannel channel = channels.findGeometric(hit.getCellID());
+            	int row=hit.getIdentifierFieldValue("iy"); 
+            	int column=hit.getIdentifierFieldValue("ix");
 
             	int crateN=channel.getCrate();
             	int slotN=channel.getSlot();
             	int channelN=channel.getChannel();
               
-            	System.out.println("found channel at " + geomID.x + " " + geomID.y + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
+            	System.out.println("found channel at " + column + " " + row + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
                 
             	//Top CRATE
-            	if (geomID.y>0){
+            	if (row>0){
             		 int index = slotsT.indexOf(slotN);
             		    plots.get(index).fill(channelN);
             	}
-            	else if (geomID.y<0){
+            	else if (row<0){
             		 int index = slotsB.indexOf(slotN);
             		 plots.get(index+14).fill(channelN);
-            		}	*/	          
+            		}	          
                 }
         }
     }         
