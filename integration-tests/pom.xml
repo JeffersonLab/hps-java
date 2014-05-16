@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>hps-integration-tests</artifactId>
+    <name>integration-tests</name>
+    <description>Integration test suite</description>
+    
+    <parent>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-parent</artifactId>
+        <relativePath>../parent/pom.xml</relativePath>
+        <version>3.0.2-SNAPSHOT</version>
+    </parent>
+    
+    <scm>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/integration-tests/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/integration-tests/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/integration-tests/</developerConnection>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-distribution</artifactId>
+        </dependency>
+    </dependencies>
+    
+    <profiles>
+        <profile>
+            <id>non-slac</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <file>
+                    <missing>/nfs/slac/g/hps3/</missing>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes>
+                                <exclude>org/hps/EcalReadoutSimTest.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>            
+            </build>
+        </profile>    
+    </profiles>    
+</project>

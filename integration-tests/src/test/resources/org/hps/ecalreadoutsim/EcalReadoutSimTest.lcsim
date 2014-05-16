@@ -1,0 +1,73 @@
+<!-- 
+  Execute full trigger+readout simulation and write the results as an LCIO file.
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: HPS2014ReadoutToLcio.lcsim,v 1.2 2013/03/01 23:22:24 meeg Exp $
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>        
+        <driver name="CalibrationDriver"/>   
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="EcalClusterer"/>
+        <driver name="EcalTrigger"/>        
+        <driver name="SimpleSVTReadout"/>
+        <driver name="TestRunReconToLcio"/>
+        <driver name="ClockDriver"/>
+        <driver name="CleanupDriver"/>
+    </execute> 
+
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver> 
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
+<!--            <runNumber>1351</runNumber>    -->
+        </driver>
+        <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <outputFile>${outputFile}.slcio</outputFile>
+        </driver>
+			
+        <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
+            <coincidenceWindow>1</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <addNoise>false</addNoise>
+<!--            <fixedGain>0.15</fixedGain>-->
+<!--            <debug>true</debug>-->
+        </driver>
+
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+<!--            <gain>0.15</gain>-->
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>true</use2014Gain>
+<!--            <debug>true</debug>-->
+        </driver>	
+
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <clusterWindow>1</clusterWindow>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+        </driver>
+
+        <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>10</deadTime>
+            <pairCoincidence>2</pairCoincidence>
+            <outputFileName>${outputFile}.triggers</outputFileName>
+        </driver>	
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
+            <addNoise>false</addNoise>
+        </driver>
+
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver> 
+    </drivers>
+</lcsim>
+	
