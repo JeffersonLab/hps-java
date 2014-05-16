@@ -179,6 +179,8 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
             aida.histogram1D("Item Count", 20, 0., 20);
             aida.histogram1D("Cluster_E over Track_P", 200, 0., 10.);
             aida.histogram1D("Energy", 200, 0., 5.0);
+            aida.histogram1D("P", 80, 0., 8.);
+            aida.histogram1D("Mass", 100, 0., 1.);
         }
         
         void plot(List<ReconstructedParticle> collection) {
@@ -188,12 +190,11 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
                 aida.cloud1D("N Clusters").fill(particle.getClusters().size());
                 aida.cloud1D("N Tracks").fill(particle.getTracks().size());
                 Hep3Vector momentum = particle.getMomentum();
-                aida.cloud1D("P").fill(momentum.magnitude());
+                aida.histogram1D("P").fill(momentum.magnitude());
                 aida.cloud1D("Px").fill(momentum.x());
                 aida.cloud1D("Py").fill(momentum.y());
                 aida.cloud1D("Pz").fill(momentum.z());
-                aida.cloud1D("Mass").fill(particle.getMass());
-                aida.cloud1D("Energy").fill(particle.getEnergy());
+                aida.histogram1D("Mass").fill(particle.getMass());                
                 aida.cloud1D("Goodness of PID").fill(particle.getGoodnessOfPID());
                 aida.cloud1D("N Particles").fill(particle.getParticles().size());
                 Hep3Vector refPoint = particle.getReferencePoint();
@@ -293,7 +294,12 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
     }
     
     class MCParticlePlotter extends CollectionPlotter<MCParticle> {
-                
+        
+        void definePlots() {
+            super.definePlots();
+            aida.histogram1D("Production Time", 90, 0., 30.);
+        }
+        
         void plot(List<MCParticle> collection) {
             super.plot(collection);
             for (MCParticle particle : collection) {
@@ -320,7 +326,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
                 aida.cloud1D("Origin X").fill(origin.x());
                 aida.cloud1D("Origin Y").fill(origin.y());
                 aida.cloud1D("Origin Z").fill(origin.z());
-                aida.cloud1D("Production Time").fill(prodTime);
+                aida.histogram1D("Production Time").fill(prodTime);
             }
         }
     }

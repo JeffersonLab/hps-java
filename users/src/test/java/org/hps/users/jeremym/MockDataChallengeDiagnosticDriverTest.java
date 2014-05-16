@@ -10,8 +10,7 @@ import org.lcsim.util.loop.LCSimLoop;
 
 public class MockDataChallengeDiagnosticDriverTest {
     
-    //String mockDataUrl = "http://www.slac.stanford.edu/~meeg/hps2/meeg/mock_data/tritrig-beam-tri_1-10_recon.slcio";
-        
+    //String mockDataUrl = "http://www.slac.stanford.edu/~meeg/hps2/meeg/mock_data/tritrig-beam-tri_1-10_recon.slcio";        
     static String mockDataUrl = "file:///u1/projects/svn/hps/java/trunk/recon/target/MockDataReconTest.slcio";
     
     public void testSimpleMdcAnalysisDriver() throws Exception {
@@ -25,7 +24,6 @@ public class MockDataChallengeDiagnosticDriverTest {
         eventMarkerDriver.setEventInterval(100);
         loop.add(eventMarkerDriver);
         MockDataChallengeDiagnosticDriver analysisDriver = new MockDataChallengeDiagnosticDriver();
-        //analysisDriver.setVerbose(true);
         loop.add(analysisDriver);
         loop.loop(-1);
     }
