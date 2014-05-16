@@ -223,8 +223,14 @@ public abstract class ReconParticleDriver extends Driver {
     			Hep3Vector momentum = new BasicHep3Vector(matchedTrack.getTrackStates().get(0).getMomentum());
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
     			((BaseReconstructedParticle) particle).setCharge(matchedTrack.getCharge()*flipSign);
-    		
+    			if(particle.getCharge() > 0){
+    				((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+    			} else if(particle.getCharge() < 0){
+    				((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+    			}
     			if(unmatchedTracks.contains(matchedTrack)) unmatchedTracks.remove(matchedTrack);
+    		} else {
+    			((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
     		}
     		((BaseReconstructedParticle) particle).set4Vector(fourVector);
     	
@@ -241,10 +247,14 @@ public abstract class ReconParticleDriver extends Driver {
     			
     			particle.addTrack(unmatchedTrack);
     			Hep3Vector momentum = new BasicHep3Vector(unmatchedTrack.getTrackStates().get(0).getMomentum());
-    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
+    			((BasicHepLorentzVector) fourVector).setV3(momentum.magnitude(), momentum);
     			((BaseReconstructedParticle) particle).setCharge(unmatchedTrack.getCharge()*flipSign);
     			((BaseReconstructedParticle) particle).set4Vector(fourVector);
-    			
+    			if(particle.getCharge() > 0){
+    				((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+    			} else if(particle.getCharge() < 0){
+    				((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+    			}
     			particles.add(particle);
     		}
     	}
