@@ -3,13 +3,14 @@ package org.hps.conditions;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 // TODO: This class should have a reference to its ConditionsRecord.
 // TODO: Collections with a mix of different collection IDs on their objects should always be read only.
-public class ConditionsObjectCollection<T extends ConditionsObject> {
+public class ConditionsObjectCollection<ObjectType extends ConditionsObject> implements Iterable<ObjectType> {
 
-    protected List<T> objects = new ArrayList<T>();
+    protected List<ObjectType> objects = new ArrayList<ObjectType>();
     protected TableMetaData tableMetaData;
     protected int collectionId = -1;
     protected boolean isReadOnly;
@@ -19,7 +20,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
 
     protected ConditionsObjectCollection() {
     }
-
+        
     public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
         this.tableMetaData = tableMetaData;
         this.collectionId = collectionId;
@@ -28,12 +29,16 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
             this.isNew = true;
         }
     }
+    
+    public ConditionsRecord getConditionsRecord() {
+        return conditionsRecord;
+    }
 
-    public T get(int index) {
+    public ObjectType get(int index) {
         return objects.get(index);
     }
 
-    public List<T> getObjects() {
+    public List<ObjectType> getObjects() {
         return Collections.unmodifiableList(objects);
     }
 
@@ -45,7 +50,7 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
     // from this collection's, in which case this collection becomes "mixed" and it should
     // be
     // flagged as read only.
-    public void add(T object) throws ConditionsObjectException {
+    public void add(ObjectType object) throws ConditionsObjectException {
         if (objects.contains(object)) {
             throw new IllegalArgumentException("Collection already contains this object.");
         }
@@ -151,5 +156,10 @@ public class ConditionsObjectCollection<T extends ConditionsObject> {
         if (this.conditionsRecord != null)
             throw new ConditionsObjectException("The ConditionsRecord is already set on this collection.");
         this.conditionsRecord = conditionsRecord;
+    }
+
+    @Override
+    public Iterator<ObjectType> iterator() {
+        return objects.iterator();
     }
 }
