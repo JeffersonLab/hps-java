@@ -84,11 +84,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         aida.tree().cd("/");
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
-        // Setup the plotter.
-        plotter = plotterFactory.create("Hit Counts");
-        plotter.setTitle("Hit Counts");
-        plotter.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
+       
         
         // Setup plots.
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event", 10, -0.5, 9.5);
@@ -112,7 +108,11 @@ public class EcalHitPlots extends Driver implements Resettable{
 
         
     
-        
+        // Setup the plotter.
+        plotter = plotterFactory.create("Hit Counts");
+        plotter.setTitle("Hit Counts");
+        plotter.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());      
         
         // Create the plotter regions.
         plotter.createRegions(2,2);
@@ -154,7 +154,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         plotter3.region(5).plot(orTrigTimePlot);
         for (int i = 0; i < 6; i++) {
             if (plotter3.region(i).style() != null) {
-                plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
+               // plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
             }
         }
         plotter3.region(6).plot(topTimePlot2D);
@@ -164,7 +164,7 @@ public class EcalHitPlots extends Driver implements Resettable{
             if (plotter3.region(i).style() != null) {
                 plotter3.region(i).style().setParameter("hist2DStyle", "colorMap");
                 plotter3.region(i).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-                plotter3.region(i).style().zAxisStyle().setParameter("scale", "log");
+             //   plotter3.region(i).style().zAxisStyle().setParameter("scale", "log");
             }
         }
         

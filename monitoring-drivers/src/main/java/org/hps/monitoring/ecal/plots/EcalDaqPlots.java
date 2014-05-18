@@ -42,7 +42,7 @@ import org.lcsim.detector.converter.compact.EcalCrystal;
 public class EcalDaqPlots extends Driver implements Resettable {
 
     private String subdetectorName = "Ecal";
-    private String inputCollection = "EcalReadoutHits";
+    private String inputCollection = "EcalCalHits";
     private IPlotter plotter;
     private AIDA aida;
     private Detector detector;
@@ -150,7 +150,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
         }
 
         IPlotterFactory factory= aida.analysisFactory().createPlotterFactory("ECAL DAQ Plots");
-        plotter =factory.create("DAQ Plots");
+        plotter =factory.create("Crates");
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().fillStyle().setColor("orange");
         pstyle.dataStyle().markerStyle().setColor("orange");
@@ -206,7 +206,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
             	int slotN=channel.getSlot();
             	int channelN=channel.getChannel();
               
-            	System.out.println("found channel at " + column + " " + row + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
+            //	System.out.println("found channel at " + column + " " + row + " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
                 
             	//Top CRATE
             	if (row>0){
