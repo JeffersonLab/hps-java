@@ -1,29 +1,30 @@
 <!-- 
-  Offline reconstruction for test run (photon) data.
-  @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: TestRunOfflineRecon.lcsim,v 1.13 2013/10/30 16:23:32 phansson Exp $
+  Steering file for testing DataQualityMonitoring classes
+  @author Matt Graham <mgraham@slac.stanford.edu>
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="DQMDatabaseDriver"/>
+<!--        <driver name="DQMDatabaseDriver"/>  -->
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" /> 
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-       <driver name="TrackerReconDriver"/>
-        <driver name="SVTMonitoring"/>  
+        <driver name="TrackerReconDriver"/>
+        <driver name="ReconParticle" />      
+<!--        <driver name="SVTMonitoring"/>   -->
          <driver name="TrackingMonitoring"/>  
-         <driver name="TrackMCEfficiencyMonitoring"/>  
+         <driver name="ReconMonitoring"/>  
+<!--         <driver name="TrackMCEfficiencyMonitoring"/>  -->
 
         <driver name="AidaSaveDriver"/>
-  <driver name="CleanupDriver"/>
+        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/>
+<!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
      <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
 <!--            <runNumber>1351</runNumber>   -->
         </driver> 
@@ -59,7 +60,7 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
-        <driver name="ReconParticle" type="org.hps.recon.particle.TestRunReconParticleDriver">          
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -72,10 +73,13 @@
         </driver>
        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <overwriteDB>false</overwriteDB>
-        </driver>
- <driver name="TrackMCEfficiencyMonitoring" type="org.hps.analysis.dataquality.TrackMCEfficiencyMonitoring">
+       </driver>
+       <driver name="ReconMonitoring" type="org.hps.analysis.dataquality.ReconMonitoring">
             <overwriteDB>false</overwriteDB>
-        </driver>
+       </driver>
+      <driver name="TrackMCEfficiencyMonitoring" type="org.hps.analysis.dataquality.TrackMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+       </driver> 
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
     </drivers>
