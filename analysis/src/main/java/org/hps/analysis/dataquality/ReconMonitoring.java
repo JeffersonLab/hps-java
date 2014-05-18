@@ -6,7 +6,9 @@ import hep.physics.vec.Hep3Vector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -14,14 +16,14 @@ import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 
 /**
- *  DQM driver  reconstructed particles (i.e. electrons, positrons, photons)
- *  plots things like number of electrons (or positrons)/event, photons/event, e+/e- momentum, 
- *  and track-cluster matching stuff
- * @author mgraham on Mar 28, 2014
- * big update on May 14, 2014...right now the output is crap; 
- * no charge<0 tracks & the track momentum isn't filled; 
- * likely a problem with ReconParticle
- * TODO:  may want to break out the V0 DQM (not written) into it's own class 
+ * DQM driver reconstructed particles (i.e. electrons, positrons, photons) plots
+ * things like number of electrons (or positrons)/event, photons/event, e+/e-
+ * momentum, and track-cluster matching stuff
+ *
+ * @author mgraham on Mar 28, 2014 big update on May 14, 2014...right now the
+ * output is crap; no charge<0 tracks & the track momentum isn't filled; likely
+ * a problem with ReconParticle TODO: may want to break out the V0 DQM (not
+ * written) into it's own class
  */
 public class ReconMonitoring extends DataQualityMonitor {
 
@@ -160,9 +162,7 @@ public class ReconMonitoring extends DataQualityMonitor {
             }
         }
         aida.histogram1D("Number of unassociated tracks per event").fill(nUnAssTracks);
-        aida.histogram1D("Number of photons per event").fill(nPhotons);
-        //Ok...done with the final state tracks!  Now, do the A' candidates.  Soon. 
-
+        aida.histogram1D("Number of photons per event").fill(nPhotons);     
     }
 
     @Override
@@ -172,10 +172,10 @@ public class ReconMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        System.out.println("ReconMonitoring::printDQMData");
-        for(int i =0;i<7;i++){//TODO:  do this in a smarter way...loop over the map
-            System.out.println(fpQuantNames[i]+" = "+monitoredQuantityMap.get(fpQuantNames[i]));
-        }
+         System.out.println("ReconMonitoring::printDQMData");      
+        for(Entry<String,Double> entry:  monitoredQuantityMap.entrySet()){
+            System.out.println(entry.getKey()+" = "+entry.getValue());
+        }      
         System.out.println("*******************************");
     }
 
@@ -192,4 +192,12 @@ public class ReconMonitoring extends DataQualityMonitor {
         monitoredQuantityMap.put(fpQuantNames[5], (double) sumdelY / nTotAss);
         monitoredQuantityMap.put(fpQuantNames[6], (double) sumEoverP / nTotAss);
     }
+
+    @Override
+    public void printDQMStrings() {
+        for (int i = 0; i < 7; i++) {//TODO:  do this in a smarter way...loop over the map
+            System.out.println(fpQuantNames[i]);
+        }
+    }
+
 }

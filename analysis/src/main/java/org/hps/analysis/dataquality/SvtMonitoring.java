@@ -183,4 +183,10 @@ public class SvtMonitoring extends DataQualityMonitor {
         }
     }
       
+      @Override
+    public void printDQMStrings() {
+        for (SiSensor sensor : sensors) {
+            System.out.println(avgOccupancyNames.get(sensor.getName()));
+        }
+    }
 }

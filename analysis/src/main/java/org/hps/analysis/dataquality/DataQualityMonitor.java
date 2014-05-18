@@ -11,8 +11,8 @@ import org.lcsim.util.aida.AIDA;
  * sort of an interface for DQM analysis drivers creates the DQM database
  * manager, checks whether row exists in db etc
  *
- * @author mgraham on Apr 15, 2014
- * update mgraham on May 15, 2014 to include calculateEndOfRunQuantities & printDQMData i.e. useful methods
+ * @author mgraham on Apr 15, 2014 update mgraham on May 15, 2014 to include
+ * calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
 public class DataQualityMonitor extends Driver {
 
@@ -22,6 +22,7 @@ public class DataQualityMonitor extends Driver {
     public static int runNumber = 1350;
     public boolean overwriteDB = false;
     public boolean connectToDB = false;
+    public boolean printDQMStrings = false;
 
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
@@ -35,11 +36,20 @@ public class DataQualityMonitor extends Driver {
         this.overwriteDB = connect;
     }
 
+    public void setPrintDQMStrings(boolean print) {
+        this.printDQMStrings = print;
+    }
+
     public void DataQualityMonitor() {
 
     }
 
     public void endOfData() {
+         calculateEndOfRunQuantities();
+        fillEndOfRunPlots();
+        printDQMData();
+        if(printDQMStrings)
+            printDQMStrings();
         if (connectToDB) {
             manager = DQMDatabaseManager.getInstance();
         //fill any plots that only get filled at end of data...e.g. SVT occupancy plots
@@ -61,9 +71,7 @@ public class DataQualityMonitor extends Driver {
             dumpDQMData();
         }
 
-        calculateEndOfRunQuantities();
-        fillEndOfRunPlots();
-        printDQMData();
+       
     }
 
     private void makeNewRow() {
@@ -100,7 +108,6 @@ public class DataQualityMonitor extends Driver {
     public void calculateEndOfRunQuantities() {
     }
 
-    
 //override this method to do something interesting   
     //like write the DQM data to the database
     public void dumpDQMData() {
@@ -109,5 +116,11 @@ public class DataQualityMonitor extends Driver {
     //override this method to do something interesting   
     //like print the DQM data log file
     public void printDQMData() {
+    }
+
+    //override this method to do something interesting   
+    //like print the DQM db variable strings in a good 
+    //format for making the db column headers
+    public void printDQMStrings() {
     }
 }
