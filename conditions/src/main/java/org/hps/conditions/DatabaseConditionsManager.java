@@ -58,6 +58,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     Connection connection;
     boolean wasConfigured = false;
     boolean isConnected = false;
+    ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
 
     /**
      * Class constructor, which is only package accessible. Users should call
@@ -181,7 +182,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
     }
-
+    
     /**
      * Configure this object from an XML file.
      * @param file The XML file.
@@ -235,9 +236,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * conditions such as the compact.xml file for the detector.
      * @param reader The base ConditionsReader.
      */
-    public void setBaseConditionsReader(ConditionsReader reader) {
-        logger.config("setting conditions reader to " + reader.getClass().getCanonicalName());
-        baseReader = reader;
+    public void setBaseConditionsReader(ConditionsReader baseReader) {
+        logger.config("setting conditions reader to " + baseReader.getClass().getCanonicalName());
+        this.baseReader = baseReader;
     }
 
     /**
@@ -394,6 +395,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
+     * Get the current run number.
+     * @return the current run number
+     */
+    public int getRunNumber() {
+        return runNumber;
+    }
+                
+    /**
      * Close a JDBC <code>Statement</code>.
      * @param statement the Statement to close
      */
@@ -537,7 +546,19 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (isConnected())
             closeConnection();
     }
-
+    
+    public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
+        return conditionsSeriesConverter.createSeries(conditionsKey);
+    }
+       
+    public static DatabaseConditionsManager castFrom(ConditionsManager conditionsManager) {
+        if (conditionsManager instanceof DatabaseConditionsManager) {
+            return (DatabaseConditionsManager) conditionsManager;
+        } else {
+            throw new RuntimeException("The conditionsManager points to an object of the wrong type: " + conditionsManager.getClass().getCanonicalName());
+        }
+    }    
+        
     /**
      * This class loads an XML configuration of conditions table meta data.
      * 
