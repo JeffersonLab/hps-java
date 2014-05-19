@@ -101,14 +101,6 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         d0effElectrons = hf.createProfile1D("Electrons Efficiency vs d0", "", 20, -1., 1.);
         z0effElectrons = hf.createProfile1D("Electrons Efficiency vs z0", "", 20, -1., 1.);
 
-        // Make a list of SiSensors in the SVT.
-        sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
-
-        // Setup the occupancy plots.
-        aida.tree().cd("/");
-        for (int kk = 1; kk < 13; kk++) {
-            IProfile1D clEffic = createLayerPlot("clusterEfficiency", kk, 50, 0, 25.);
-        }
     }
 
     @Override

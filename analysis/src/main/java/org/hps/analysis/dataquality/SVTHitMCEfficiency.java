@@ -23,7 +23,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
  */
 // TODO: Add HelicalTrackHit efficiency...this should include the fitted hit cuts (t0 & chi^2) automatically since that where the cut is applied
 // TODO: Add some quantities for DQM monitoring:  e.g. <efficiency>, probably within first 1 cm or so.   
-public class HitMCEfficiency extends DataQualityMonitor {
+public class SVTHitMCEfficiency extends DataQualityMonitor {
 
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";

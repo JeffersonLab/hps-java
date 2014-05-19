@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.hps.recon.tracking.TrackUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -44,6 +43,7 @@ public class ReconMonitoring extends DataQualityMonitor {
     double sumdelX = 0.0;
     double sumdelY = 0.0;
     double sumEoverP = 0.0;
+    boolean debug = false;
 
     protected void detectorChanged(Detector detector) {
         System.out.println("ReconMonitoring::detectorChanged  Setting up the plotter");
@@ -66,8 +66,8 @@ public class ReconMonitoring extends DataQualityMonitor {
 
         /*  tracks with associated clusters */
         IHistogram1D eneOverp = aida.histogram1D("Cluster Energy Over TrackMomentum", 25, 0, 2.0);
-        IHistogram1D deltaXAtCal = aida.histogram1D("delta X @ ECal (mm)", 25, -10, 10.0);
-        IHistogram1D deltaYAtCal = aida.histogram1D("delta Y @ ECal (mm)", 25, -10, 10.0);
+        IHistogram1D deltaXAtCal = aida.histogram1D("delta X @ ECal (mm)", 25, -100, 100.0);
+        IHistogram1D deltaYAtCal = aida.histogram1D("delta Y @ ECal (mm)", 25, -100, 100.0);
         /* number of unassocaited tracks */
         IHistogram1D nUnAssTracksHisto = aida.histogram1D("Number of unassociated tracks per event", 10, 0, 10);
     }
@@ -75,8 +75,9 @@ public class ReconMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
+        }
 //        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
 //            return;
 //        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
@@ -87,8 +88,14 @@ public class ReconMonitoring extends DataQualityMonitor {
         int nPhotons = 0;  //number of photons 
         int nUnAssTracks = 0; //number of tracks w/o clusters
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class, finalStateParticlesColName);
-//        System.out.println("This events has " + finalStateParticles.size() + " final state particles");
+        if (debug) {
+            System.out.println("This events has " + finalStateParticles.size() + " final state particles");
+        }
         for (ReconstructedParticle fsPart : finalStateParticles) {
+            if (debug) {
+                System.out.println("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = " + fsPart.getMomentum().x());
+            }
+
             // Extrapolate the track to the Ecal cluster position
             boolean isPhoton = false;
             boolean hasCluster = true;
@@ -96,14 +103,17 @@ public class ReconMonitoring extends DataQualityMonitor {
             Cluster fsCluster = null;
             //TODO:  mg-May 14, 2014 use PID to do this instead...not sure if that's implemented yet
             if (fsPart.getTracks().size() == 1)//should always be 1 or zero for final state particles
+            {
                 fsTrack = fsPart.getTracks().get(0);
-            else
+            } else {
                 isPhoton = true;
+            }
             //get the cluster
-            if (fsPart.getClusters().size() == 1)
+            if (fsPart.getClusters().size() == 1) {
                 fsCluster = fsPart.getClusters().get(0);
-            else
+            } else {
                 hasCluster = false;
+            }
 
             //deal with electrons & positrons first
             if (!isPhoton) {
@@ -162,7 +172,7 @@ public class ReconMonitoring extends DataQualityMonitor {
             }
         }
         aida.histogram1D("Number of unassociated tracks per event").fill(nUnAssTracks);
-        aida.histogram1D("Number of photons per event").fill(nPhotons);     
+        aida.histogram1D("Number of photons per event").fill(nPhotons);
     }
 
     @Override
@@ -172,10 +182,10 @@ public class ReconMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-         System.out.println("ReconMonitoring::printDQMData");      
-        for(Entry<String,Double> entry:  monitoredQuantityMap.entrySet()){
-            System.out.println(entry.getKey()+" = "+entry.getValue());
-        }      
+        System.out.println("ReconMonitoring::printDQMData");
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+            System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
         System.out.println("*******************************");
     }
 
