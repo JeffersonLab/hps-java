@@ -48,7 +48,7 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
     }
 
     @Override
-    protected void detectorChanged(Detector detector) {
+    public void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
 
         if (!EcalConditions.calibrationLoaded()) {
