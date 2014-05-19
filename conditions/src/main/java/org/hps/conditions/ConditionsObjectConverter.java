@@ -1,10 +1,8 @@
 package org.hps.conditions;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.hps.conditions.ConditionsObject.FieldValueMap;
 import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
@@ -23,6 +21,8 @@ import org.lcsim.conditions.ConditionsManager;
  * @param <T> The type of the returned data which should be a class extending
  *            {@link ConditionsObjectCollection}.
  */
+// FIXME: This class should only allow one collection to be returned and not mix the database records together.
+// TODO: This class can probably be removed in favor of using the ConditionsSeriesConverter in all cases.
 public abstract class ConditionsObjectConverter<T> implements ConditionsConverter<T> {
 
     public ConditionsObjectConverter() {
@@ -41,7 +41,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         // System.out.println("finding conditions for key " + name + " ...");
 
         // Get the DatabaseConditionsManager which is required for using this converter.
-        DatabaseConditionsManager databaseConditionsManager = getDatabaseConditionsManager(conditionsManager);
+        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.castFrom(conditionsManager);
 
         // Get the table meta data from the key given by the caller.
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
@@ -49,13 +49,8 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             throw new RuntimeException("Table meta data for " + name + " was not found.");
 
         // Create a collection to return.
-        ConditionsObjectCollection collection;
-        try {
-            collection = tableMetaData.getCollectionClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
+        ConditionsObjectCollection collection = ConditionsObjectUtil.createCollection(tableMetaData);
+        
         // Get the ConditionsRecord with the meta-data, which will use the current run
         // number from the manager.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
@@ -101,7 +96,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
                 // Loop over rows.
                 while (resultSet.next()) {
                     // Create new ConditionsObject.
-                    ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
+                    ConditionsObject newObject = ConditionsObjectUtil.createConditionsObject(resultSet, tableMetaData);
 
                     // Add new object to collection, which will also assign it a
                     // collection ID if applicable.
@@ -115,43 +110,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         // Return new collection.
         return (T) collection;
     }
-
-    protected ConditionsObject createConditionsObject(ResultSet resultSet, TableMetaData tableMetaData) throws SQLException {
-        ResultSetMetaData metaData = resultSet.getMetaData();
-        int rowId = resultSet.getInt(1);
-        int ncols = metaData.getColumnCount();
-        FieldValueMap fieldValues = new FieldValueMap();
-        for (int i = 2; i <= ncols; i++) {
-            fieldValues.put(metaData.getColumnName(i), resultSet.getObject(i));
-        }
-        ConditionsObject newObject = null;
-        try {
-            newObject = tableMetaData.getObjectClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            newObject.setRowId(rowId);
-        } catch (ConditionsObjectException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            newObject.setTableMetaData(tableMetaData);
-        } catch (ConditionsObjectException e) {
-            throw new RuntimeException(e);
-        }
-        newObject.setFieldValues(fieldValues);
-        return newObject;
-    }
-
-    protected DatabaseConditionsManager getDatabaseConditionsManager(ConditionsManager conditionsManager) {
-        if (conditionsManager instanceof DatabaseConditionsManager) {
-            return (DatabaseConditionsManager) conditionsManager;
-        } else {
-            throw new RuntimeException("This converter requires a ConditionsManager of type DatabaseConditionsManager.");
-        }
-    }
-
+   
     public boolean allowMultipleCollections() {
         return false;
     }
