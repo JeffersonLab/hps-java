@@ -14,6 +14,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.hps.recon.particle.HpsReconParticleDriver; 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.ecal.HPSEcalCluster;
 
 
@@ -38,30 +39,30 @@ public class HpsReconParticleDriverTest extends TestCase {
    		// Create a pair of ideal e+e- tracks in opposite detector volumes.
    		// The e+ track is created on the bottom half of the detector while
    		// the e- track is created on the top half.
-   		BaseTrack topTrack = new BaseTrack(); 
+   		Track electronTrack = new BaseTrack(); 
    		trackParameters[BaseTrack.D0] = 0.41051;
    		trackParameters[BaseTrack.OMEGA] = -2.2584e-4; 
    		trackParameters[BaseTrack.PHI] = 6.2626; 
    		trackParameters[BaseTrack.TANLAMBDA] = 0.046548; 
    		trackParameters[BaseTrack.Z0] = .23732; 
-   		topTrack.setTrackParameters(trackParameters, B_FIELD);
+   		((BaseTrack) electronTrack).setTrackParameters(trackParameters, B_FIELD);
    		
-   		System.out.println("\n[ Track ] Top:  \n" + topTrack.toString());
+   		System.out.println("\n[ Track ] Electron:  \n" + electronTrack.toString());
    		
-   		BaseTrack bottomTrack = new BaseTrack();
+   		Track positronTrack = new BaseTrack();
    		trackParameters[BaseTrack.D0] = 0.19691;
    		trackParameters[BaseTrack.OMEGA] = 1.005e-4; 
    		trackParameters[BaseTrack.PHI] = 6.2447; 
    		trackParameters[BaseTrack.TANLAMBDA] = -0.024134; 
    		trackParameters[BaseTrack.Z0] = -0.040231; 
-   		bottomTrack.setTrackParameters(trackParameters, B_FIELD);
+   		((BaseTrack) positronTrack).setTrackParameters(trackParameters, B_FIELD);
 
-   		System.out.println("\n[ Track ] Bottom: \n" + bottomTrack.toString());
+   		System.out.println("\n[ Track ] Positron: \n" + positronTrack.toString());
 
    		// Add the tracks to the list of tracks that will be used for test
    		// purposes.
-   		tracks.add(topTrack);
-   		tracks.add(bottomTrack);
+   		tracks.add(electronTrack);
+   		tracks.add(positronTrack);
    		
    		System.out.println("\n#=== Creating Ideal Ecal Clusters ===#\n");
    		
@@ -100,7 +101,8 @@ public class HpsReconParticleDriverTest extends TestCase {
    		clusters.add(topCluster);
    		clusters.add(bottomCluster);
    		
-   		particleDriver = new HpsReconParticleDriver(); 
+   		particleDriver = new HpsReconParticleDriver();
+   		particleDriver.setDebug(true);
    	}
    	
    	public void testMakeReconstructedParticles(){
@@ -139,19 +141,22 @@ public class HpsReconParticleDriverTest extends TestCase {
     	}
     	
     	//
-    	// Check that the momentum of the ReconstructedParticles was set properly
+    	// Check that the momentum of the ReconstructedParticles was set properly 
+    	// and rotated to the detector frame.
     	//
-    	Hep3Vector topMomentum = new BasicHep3Vector(tracks.get(0).getTrackStates().get(0).getMomentum());
+    	Hep3Vector electronMomentum = new BasicHep3Vector(tracks.get(0).getTrackStates().get(0).getMomentum());
+    	electronMomentum = CoordinateTransformations.transformVectorToDetector(electronMomentum);
     	assertTrue("The momentum of the track and ReconstructedParticle don't match! Top track p = " 
-    				+ topMomentum.toString() + " Recon particle p = " + particleTracks.get(0).getMomentum().toString(),
-    				particleTracks.get(0).getMomentum().equals(topMomentum));
+    				+ electronMomentum.toString() + " Recon particle p = " + particleTracks.get(0).getMomentum().toString(),
+    				particleTracks.get(0).getMomentum().equals(electronMomentum));
     	
     	System.out.println("The momentum of the first ReconstructedParticle: " + particleTracks.get(0).getMomentum().toString());
     	
-    	Hep3Vector bottomMomentum = new BasicHep3Vector(tracks.get(1).getTrackStates().get(0).getMomentum());
+    	Hep3Vector positronMomentum = new BasicHep3Vector(tracks.get(1).getTrackStates().get(0).getMomentum());
+    	positronMomentum = CoordinateTransformations.transformVectorToDetector(positronMomentum);
     	assertTrue("The momentum of track and ReconstructedParticle don't march! Bottom track p = "
-    			    + bottomMomentum.toString() + " Recon particle p = " + particleTracks.get(1).getMomentum().toString(),
-    			    particleTracks.get(1).getMomentum().equals(bottomMomentum));
+    			    + positronMomentum.toString() + " Recon particle p = " + particleTracks.get(1).getMomentum().toString(),
+    			    particleTracks.get(1).getMomentum().equals(positronMomentum));
     	
     	System.out.println("The momentum of the second ReconstructedParticle: " + particleTracks.get(1).getMomentum().toString());
     	
@@ -159,5 +164,14 @@ public class HpsReconParticleDriverTest extends TestCase {
    	
    	public void testVertexParticles(){
    	
+    	// Create two ReconstructedParticles with tracks only
+    	//List<HPSEcalCluster> emptyClusters = new ArrayList<HPSEcalCluster>(); 
+    	//particleTracks = particleDriver.makeReconstructedParticles(emptyClusters, tracks);
+
+    	//List<ReconstructedParticle> electrons = particleTracks.subList(0, 1);
+   		//List<ReconstructedParticle> positrons = particleTracks.subList(1, 2);
+   	
+   		//particleDriver.vertexParticles(electrons, positrons);
+   		
    	}
 }

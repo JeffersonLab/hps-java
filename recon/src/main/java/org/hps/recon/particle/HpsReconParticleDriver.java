@@ -9,14 +9,17 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.vertexing.BilliorTrack;
-import org.hps.recon.vertexing.BilliorVertex;
-import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
+
+import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.vertexing.BilliorTrack;
+import org.hps.recon.vertexing.BilliorVertex;
+import org.hps.recon.vertexing.BilliorVertexer;
+
 
 /**
  * 
@@ -79,7 +82,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
 				candidate.addParticle(electron);
 				candidate.addParticle(positron);
-				// TODO: This should probably be done within BilliorVertex
+				// TODO: The calculation of the total fitted momentum should be done within 
+				// 		 BilloirVertex
 				((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
 				Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"), 
 																vtxFit.getParameters().get("p1Y"), 
@@ -87,6 +91,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"), 
 																			   vtxFit.getParameters().get("p2Y"),
 																			   vtxFit.getParameters().get("p2Z")));
+				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
+				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
 				HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
 				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
@@ -103,6 +110,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitCon.getParameters().get("p2X"), 
 																			   vtxFitCon.getParameters().get("p2Y"),
 																			   vtxFitCon.getParameters().get("p2Z")));
+				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
+				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
 				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
 				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
@@ -119,6 +129,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitTarget.getParameters().get("p2X"), 
 																			   vtxFitTarget.getParameters().get("p2Y"),
 																			   vtxFitTarget.getParameters().get("p2Z")));
+				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
+				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
 				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
 				((BaseReconstructedParticle) candidate).set4Vector(fourVector);

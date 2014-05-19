@@ -16,6 +16,7 @@ import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 
 /**
@@ -186,7 +187,9 @@ public abstract class ReconParticleDriver extends Driver {
     		
     			// Check if the Ecal cluster and track are within the same 
     			// detector volume i.e. both top or bottom
-                    /* TODO:  mg-May 14, 2014 does getTrackStates().get(0).getZ0() really get the z-pos (y in detector frame) @ the ECAL or anywhere other than the POCA??? Where is this calculated*/
+                // TODO:  mg-May 14, 2014 does getTrackStates().get(0).getZ0() 
+    			// really get the z-pos (y in detector frame) @ the ECAL or anywhere
+    			// other than the POCA??? Where is this calculated
     			if(clusterPosition.y()*track.getTrackStates().get(0).getZ0() < 0){
     				this.printDebug("Track and Ecal cluster are in opposite volumes. Track Z0 = " + track.getTrackStates().get(0).getZ0());
     				continue; 
@@ -212,8 +215,7 @@ public abstract class ReconParticleDriver extends Driver {
                 }
     		}
     		
-    		// Create a reconstructed particle and add it to the 
-    		// collection of particles
+    		// Create a reconstructed particle and add it to the collection of particles
     		ReconstructedParticle particle = new BaseReconstructedParticle(); 
     		HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
     		particle.addCluster(cluster); 
@@ -221,6 +223,9 @@ public abstract class ReconParticleDriver extends Driver {
     		if(matchedTrack != null){
     			particle.addTrack(matchedTrack);
     			Hep3Vector momentum = new BasicHep3Vector(matchedTrack.getTrackStates().get(0).getMomentum());
+    			this.printDebug("Momentum in tracking frame: " + momentum.toString());
+    			momentum = CoordinateTransformations.transformVectorToDetector(momentum);
+    			this.printDebug("Momentum in detector frame: " + momentum.toString());
     			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
     			((BaseReconstructedParticle) particle).setCharge(matchedTrack.getCharge()*flipSign);
     			if(particle.getCharge() > 0){
@@ -247,6 +252,9 @@ public abstract class ReconParticleDriver extends Driver {
     			
     			particle.addTrack(unmatchedTrack);
     			Hep3Vector momentum = new BasicHep3Vector(unmatchedTrack.getTrackStates().get(0).getMomentum());
+    			this.printDebug("Momentum in tracking frame: " + momentum.toString());
+    			momentum = CoordinateTransformations.transformVectorToDetector(momentum);
+    			this.printDebug("Momentum in detector frame: " + momentum.toString());
     			((BasicHepLorentzVector) fourVector).setV3(momentum.magnitude(), momentum);
     			((BaseReconstructedParticle) particle).setCharge(unmatchedTrack.getCharge()*flipSign);
     			((BaseReconstructedParticle) particle).set4Vector(fourVector);
@@ -266,7 +274,7 @@ public abstract class ReconParticleDriver extends Driver {
      * 
      * @param debugMessage
      */
-    private void printDebug(String debugMessage){
+    protected void printDebug(String debugMessage){
     	if(debug)
     		System.out.println(this.getClass().getSimpleName() + ": " + debugMessage); 
     }
