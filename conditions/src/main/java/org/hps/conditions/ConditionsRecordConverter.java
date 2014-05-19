@@ -23,7 +23,7 @@ public final class ConditionsRecordConverter extends ConditionsObjectConverter<C
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
 
-        DatabaseConditionsManager databaseConditionsManager = getDatabaseConditionsManager(manager);
+        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.castFrom(manager);
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
 
         if (tableMetaData == null)
@@ -43,7 +43,7 @@ public final class ConditionsRecordConverter extends ConditionsObjectConverter<C
 
         try {
             while (resultSet.next()) {
-                ConditionsObject conditionsRecord = createConditionsObject(resultSet, tableMetaData);
+                ConditionsObject conditionsRecord = ConditionsObjectUtil.createConditionsObject(resultSet, tableMetaData);
                 try {
                     collection.add(conditionsRecord);
                 } catch (ConditionsObjectException e) {
