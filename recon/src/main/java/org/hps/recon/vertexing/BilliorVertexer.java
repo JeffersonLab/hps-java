@@ -3,6 +3,7 @@ package org.hps.recon.vertexing;
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
+import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.*;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.constants.Constants;
 
 /**
@@ -86,7 +88,9 @@ public class BilliorVertexer {
             pFitMap.put(i, pFit);            
         }
         Hep3Vector vert=new BasicHep3Vector(_vertexPosition.e(0, 0),_vertexPosition.e(1, 0),_vertexPosition.e(2, 0));
-        return new BilliorVertex(vert,_covVtx,_chiSq,getInvMass(),pFitMap,_constraintType);
+        Hep3Vector vertDet=CoordinateTransformations.transformVectorToDetector(vert);
+        SymmetricMatrix covVtxDet=CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix( _covVtx));
+        return new BilliorVertex(vertDet,covVtxDet,_chiSq,getInvMass(),pFitMap,_constraintType);
     }
 
     public BilliorVertex fitFastVertex(List<BilliorTrack> tracks) {
