@@ -2,7 +2,9 @@ package org.hps.analysis.dataquality;
 
 import hep.aida.IHistogramFactory;
 import hep.aida.IProfile1D;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -18,7 +20,9 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
 /**
  * DQM driver for the monte carlo SVT hit efficiency
- * April 29 -- first pass, makes the SimTrackerHits-->SiClusters efficiency vs position (with a settable t0 cut)
+ * April 29 -- first pass, makes the SimTrackerHits-->SiClusters efficiency vs
+ * position (with a settable t0 cut)
+ *
  * @author mgraham on April 29, 2014
  */
 // TODO: Add HelicalTrackHit efficiency...this should include the fitted hit cuts (t0 & chi^2) automatically since that where the cut is applied
@@ -31,27 +35,29 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
     private String trackerHitCollectionName = "TrackerHits";
     private String siClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-    private String svtTrueHitRelationName =  "SVTTrueHitRelations";
+    private String svtTrueHitRelationName = "SVTTrueHitRelations";
     private String trackerName = "Tracker";
     private Detector detector = null;
-    private double t0Cut=16.0;
+    private double t0Cut = 16.0;
     private static final String nameStrip = "Tracker_TestRunModule_";
     private List<SiSensor> sensors;
+    private String plotDir = "SvtHitMCEfficiency/";
+    private Map<String, Double> avgClusterEffMap;
+    private Map<String, String> avgClusterEffNames;
 
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
 
-    public void setT0Cut(double cut){
-        this.t0Cut=cut;
+    public void setT0Cut(double cut) {
+        this.t0Cut = cut;
     }
-    
+
     @Override
     protected void detectorChanged(Detector detector) {
         this.detector = detector;
         aida.tree().cd("/");
         IHistogramFactory hf = aida.histogramFactory();
-
 
         // Make a list of SiSensors in the SVT.
         sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
@@ -60,8 +66,9 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
         //currently, just the Si cluster efficiency
         aida.tree().cd("/");
         for (int kk = 1; kk < 13; kk++) {
-            IProfile1D clEffic = createLayerPlot("clusterEfficiency", kk, 50, 0, 25.);
+            IProfile1D clEffic = createLayerPlot(plotDir+"clusterEfficiency", kk, 50, 0, 25.);
         }
+        resetEfficiencyMap();
     }
 
     @Override
@@ -74,33 +81,30 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             return;
         if (!event.hasCollection(FittedRawTrackerHit.class, fittedTrackerHitCollectionName))
             return;
-       
+
         if (!event.hasCollection(SiTrackerHitStrip1D.class, siClusterCollectionName))
             return;
 
         if (!event.hasCollection(SimTrackerHit.class, trackerHitCollectionName))
             return;
-        
-           if (!event.hasCollection(LCRelation.class, svtTrueHitRelationName))
+
+        if (!event.hasCollection(LCRelation.class, svtTrueHitRelationName))
             return;
-       
+
         RelationalTable mcHittomcP = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         //  Get the collections of SimTrackerHits
         List<List<SimTrackerHit>> simcols = event.get(SimTrackerHit.class);
         //  Loop over the SimTrackerHits and fill in the relational table
-        for (List<SimTrackerHit> simlist : simcols) {
-            for (SimTrackerHit simhit : simlist) {
+        for (List<SimTrackerHit> simlist : simcols)
+            for (SimTrackerHit simhit : simlist)
                 if (simhit.getMCParticle() != null)
                     mcHittomcP.add(simhit, simhit.getMCParticle());
-            }
-        }
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        if (event.hasCollection(LCRelation.class,svtTrueHitRelationName)) {
-            List<LCRelation> trueHitRelations = event.get(LCRelation.class,svtTrueHitRelationName);
-            for (LCRelation relation : trueHitRelations) {
+        if (event.hasCollection(LCRelation.class, svtTrueHitRelationName)) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, svtTrueHitRelationName);
+            for (LCRelation relation : trueHitRelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     rawtomc.add(relation.getFrom(), relation.getTo());
-            }
         }
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, trackerHitCollectionName);
         // make relational table for strip clusters to mc particle
@@ -111,9 +115,8 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             for (RawTrackerHit rth : rawHits) {
                 Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(rth);
                 if (simTrackerHits != null)
-                    for (SimTrackerHit simhit : simTrackerHits) {
+                    for (SimTrackerHit simhit : simTrackerHits)
                         clustertosimhit.add(cluster, simhit);
-                    }
             }
         }
 //relational tables from mc particle to raw and fitted tracker hits
@@ -123,23 +126,20 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             RawTrackerHit rth = hit.getRawTrackerHit();
             Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(rth);
             if (simTrackerHits != null)
-                for (SimTrackerHit simhit : simTrackerHits) {
+                for (SimTrackerHit simhit : simTrackerHits)
                     if (simhit.getMCParticle() != null)
                         fittomc.add(hit, simhit.getMCParticle());
-                }
         }
 
         for (SimTrackerHit simhit : simHits) {
             double wgt = 0.0;
             Set<SiTrackerHitStrip1D> clusters = clustertosimhit.allTo(simhit);
-            if (clusters != null) {
-                for (SiTrackerHitStrip1D clust : clusters) {
+            if (clusters != null)
+                for (SiTrackerHitStrip1D clust : clusters)
                     if (Math.abs(clust.getTime()) < t0Cut)
                         wgt = 1.0;
-                }
-            }
-            getLayerPlot("clusterEfficiency", simhit.getLayer()).fill(Math.abs(simhit.getPoint()[1]), wgt);
-        } 
+            getLayerPlot(plotDir+"clusterEfficiency", simhit.getLayer()).fill(Math.abs(simhit.getPoint()[1]), wgt);
+        }
     }
 
     @Override
@@ -148,6 +148,22 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
 
     @Override
     public void dumpDQMData() {
+    }
+
+    private void resetEfficiencyMap() {
+        avgClusterEffMap = new HashMap<>();
+        avgClusterEffNames = new HashMap<>();
+        for (SiSensor sensor : sensors) {
+            String effName = "avgClusterEff_" + getNiceSensorName(sensor);
+            avgClusterEffNames.put(sensor.getName(), effName);
+        }
+    }
+
+    private String getNiceSensorName(SiSensor sensor) {
+        return sensor.getName().replaceAll(nameStrip, "")
+                .replace("module", "mod")
+                .replace("layer", "lyr")
+                .replace("sensor", "sens");
     }
 
     private IProfile1D getLayerPlot(String prefix, int layer) {
@@ -159,5 +175,16 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
         return hist;
     }
 
+    @Override
+    public void printDQMData() {
+        for (SiSensor sensor : sensors)
+            System.out.println(avgClusterEffNames.get(sensor.getName()) + ":  " + avgClusterEffMap.get(sensor.getName()));
+    }
+
+    @Override
+    public void printDQMStrings() {
+        for (SiSensor sensor : sensors)
+            System.out.println(avgClusterEffNames.get(sensor.getName()));
+    }
 
 }

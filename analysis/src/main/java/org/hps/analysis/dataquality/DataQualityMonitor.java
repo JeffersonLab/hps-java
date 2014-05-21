@@ -45,10 +45,10 @@ public class DataQualityMonitor extends Driver {
     }
 
     public void endOfData() {
-         calculateEndOfRunQuantities();
+        calculateEndOfRunQuantities();
         fillEndOfRunPlots();
         printDQMData();
-        if(printDQMStrings)
+        if (printDQMStrings)
             printDQMStrings();
         if (connectToDB) {
             manager = DQMDatabaseManager.getInstance();
@@ -71,7 +71,6 @@ public class DataQualityMonitor extends Driver {
             dumpDQMData();
         }
 
-       
     }
 
     private void makeNewRow() {

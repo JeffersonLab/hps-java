@@ -47,17 +47,11 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     private Detector detector = null;
     IDDecoder dec;
     private IProfile1D peffFindable;
-    private IProfile1D thetaeffFindable;
     private IProfile1D phieffFindable;
     private IProfile1D ctheffFindable;
-    private IProfile1D d0effFindable;
-    private IProfile1D z0effFindable;
     private IProfile1D peffElectrons;
-    private IProfile1D thetaeffElectrons;
     private IProfile1D phieffElectrons;
     private IProfile1D ctheffElectrons;
-    private IProfile1D d0effElectrons;
-    private IProfile1D z0effElectrons;
     double beamP = 2.2;
     int nlayers = 12;
     int totelectrons = 0;
@@ -68,7 +62,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     private static final String nameStrip = "Tracker_TestRunModule_";
     private List<SiSensor> sensors;
     private boolean debugTrackEfficiency = false;
-
+ private String plotDir = "TrackMCEfficiency/";
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
@@ -84,23 +78,18 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     @Override
     protected void detectorChanged(Detector detector) {
         this.detector = detector;
+        aida.tree().mkdir(plotDir);
         aida.tree().cd("/");
         IHistogramFactory hf = aida.histogramFactory();
 
-        peffFindable = hf.createProfile1D("Findable Efficiency vs p", "", 20, 0., beamP);
-        thetaeffFindable = hf.createProfile1D("Findable Efficiency vs theta", "", 20, 80, 100);
-        phieffFindable = hf.createProfile1D("Findable Efficiency vs phi", "", 25, -0.25, 0.25);
-        ctheffFindable = hf.createProfile1D("Findable Efficiency vs cos(theta)", "", 25, -0.25, 0.25);
-        d0effFindable = hf.createProfile1D("Findable Efficiency vs d0", "", 50, -2., 2.);
-        z0effFindable = hf.createProfile1D("Findable Efficiency vs z0", "", 50, -2., 2.);
+        peffFindable = hf.createProfile1D(plotDir+"Findable Efficiency vs p", "", 20, 0., beamP);        
+        phieffFindable = hf.createProfile1D(plotDir+"Findable Efficiency vs phi", "", 25, -0.25, 0.25);
+        ctheffFindable = hf.createProfile1D(plotDir+"Findable Efficiency vs cos(theta)", "", 25, -0.25, 0.25);
 
-        peffElectrons = hf.createProfile1D("Electrons Efficiency vs p", "", 20, 0., beamP);
-        thetaeffElectrons = hf.createProfile1D("Electrons Efficiency vs theta", "", 20, 80, 100);
-        phieffElectrons = hf.createProfile1D("Electrons Efficiency vs phi", "", 25, -0.25, 0.25);
-        ctheffElectrons = hf.createProfile1D("Electrons Efficiency vs cos(theta)", "", 25, -0.25, 0.25);
-        d0effElectrons = hf.createProfile1D("Electrons Efficiency vs d0", "", 20, -1., 1.);
-        z0effElectrons = hf.createProfile1D("Electrons Efficiency vs z0", "", 20, -1., 1.);
-
+        peffElectrons = hf.createProfile1D(plotDir+"Electrons Efficiency vs p", "", 20, 0., beamP);      
+        phieffElectrons = hf.createProfile1D(plotDir+"Electrons Efficiency vs phi", "", 25, -0.25, 0.25);
+        ctheffElectrons = hf.createProfile1D(plotDir+"Electrons Efficiency vs cos(theta)", "", 25, -0.25, 0.25);
+      
     }
 
     @Override
@@ -182,8 +171,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         //  Instantiate the class that determines if a track is "findable"
         FindableTrack findable = new FindableTrack(event);
 
-        List<Track> tracks = event.get(Track.class, trackCollectionName);
-        aida.histogram1D("Tracks per Event").fill(tracks.size());
+        List<Track> tracks = event.get(Track.class, trackCollectionName);       
         for (Track trk : tracks) {
             TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc);
             tkanalMap.put(trk, tkanal);
@@ -259,10 +247,8 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 foundTracks += wgt;
                 peffFindable.fill(p, wgt);
                 phieffFindable.fill(phi, wgt);
-                thetaeffFindable.fill(theta, wgt);
                 ctheffFindable.fill(cth, wgt);
-                d0effFindable.fill(d0, wgt);
-                z0effFindable.fill(z0, wgt);
+             
 
                 if (wgt == 0) {
                     Set<SimTrackerHit> mchitlist = mcHittomcP.allTo(mcp);
@@ -285,10 +271,8 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 foundelectrons += wgt;
                 peffElectrons.fill(p, wgt);
                 phieffElectrons.fill(phi, wgt);
-                thetaeffElectrons.fill(theta, wgt);
                 ctheffElectrons.fill(cth, wgt);
-                d0effElectrons.fill(d0, wgt);
-                z0effElectrons.fill(z0, wgt);
+               
 
                 //               }
             }

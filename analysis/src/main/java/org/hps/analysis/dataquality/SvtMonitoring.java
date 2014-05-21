@@ -35,6 +35,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     private int eventCountCluster = 0;
     private static final String nameStrip = "Tracker_TestRunModule_";
     private static final int maxChannels = 640;
+    private String plotDir="SvtMonitoring/";
 
     public void setRawTrackerHitCollectionName(String inputCollection) {
         this.rawTrackerHitCollectionName = inputCollection;
@@ -63,10 +64,10 @@ public class SvtMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         for (SiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D occupancyPlot = createSensorPlot("occupancy_",sensor, maxChannels, 0, maxChannels - 1);
-            IHistogram1D t0Plot = createSensorPlot("t0_",sensor,50,-50.,50.);
-            IHistogram1D amplitudePlot = createSensorPlot("amplitude_",sensor,50,0,2000);
-            IHistogram1D chi2Plot = createSensorPlot("chi2_",sensor,50,0,25);
+            IHistogram1D occupancyPlot = createSensorPlot(plotDir+"occupancy_",sensor, maxChannels, 0, maxChannels - 1);
+            IHistogram1D t0Plot = createSensorPlot(plotDir+"t0_",sensor,50,-50.,50.);
+            IHistogram1D amplitudePlot = createSensorPlot(plotDir+"amplitude_",sensor,50,0,2000);
+            IHistogram1D chi2Plot = createSensorPlot(plotDir+"chi2_",sensor,50,0,25);
             occupancyPlot.reset();
         }
 
@@ -94,9 +95,9 @@ public class SvtMonitoring extends DataQualityMonitor {
                  double t0=hit.getT0();
                  double amp=hit.getAmp();
                  double chi2=hit.getShapeFitParameters().getChiSq();
-                 getSensorPlot("t0_",sensorName).fill(t0);
-                 getSensorPlot("amplitude_",sensorName).fill(amp);  
-                  getSensorPlot("chi2_",sensorName).fill(chi2); 
+                 getSensorPlot(plotDir+"t0_",sensorName).fill(t0);
+                 getSensorPlot(plotDir+"amplitude_",sensorName).fill(amp);  
+                  getSensorPlot(plotDir+"chi2_",sensorName).fill(chi2); 
              }
              ++eventCountFit;
         } else
@@ -153,7 +154,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         for (SiSensor sensor : sensors) {
             Double avg = 0.0;
             //IHistogram1D sensorHist = aida.histogram1D(sensor.getName());
-            IHistogram1D sensorHist = getSensorPlot("occupancy_",sensor);
+            IHistogram1D sensorHist = getSensorPlot(plotDir+"occupancy_",sensor);
             sensorHist.reset();
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
