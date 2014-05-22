@@ -106,6 +106,11 @@
             <artifactId>hps-evio</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.jlab.coda</groupId>
+            <artifactId>et</artifactId>
+            <version>14.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
         </dependency>       

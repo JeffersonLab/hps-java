@@ -1,4 +1,4 @@
-package org.hps.evio;
+package org.hps.monitoring;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -20,11 +20,11 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * 
- * @author jeremym
+ * This is copied and modified from the EvioProducer class in the ET 12.0 CODA module.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
-// This is copied and modified from Carl Timmer's EvioProducer class in et 12 org.jlab.coda.et.apps package.
-// TODO Add option to set number of events in put array.
+// TODO: Add option to set number of events in put array.
 public class EvioFileProducer {
 
     private List<File> evioFiles = new ArrayList<File>();
