@@ -42,6 +42,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>org/hps/EcalReadoutSimTest.java</exclude>
+                                <exclude>org/hps/EtSystemTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
