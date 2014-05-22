@@ -175,7 +175,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Instantiate the list of unmatched  clusters.  Remove if we find track match
         List<HPSEcalCluster> unmatchedClusters = new ArrayList<HPSEcalCluster>(clusters);
-        HPSEcalCluster matchedCluster = null;
+       
 
         for (Track track : tracks) {
             //make the containers for the reconstructed particle
@@ -194,6 +194,7 @@ public abstract class ReconParticleDriver extends Driver {
             else if (particle.getCharge() < 0)
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
 
+            HPSEcalCluster matchedCluster = null;
             for (HPSEcalCluster cluster : unmatchedClusters) {
 
                 // Get the position of the Ecal cluster
