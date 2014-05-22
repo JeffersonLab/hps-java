@@ -164,10 +164,9 @@ public abstract class ReconParticleDriver extends Driver {
      */
     abstract void vertexParticles(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
 
-   
     /**
-     *  make the final state particles from clusters & tracks
-     * loop over the tracks first and try to match with clusters 
+     * make the final state particles from clusters & tracks
+     * loop over the tracks first and try to match with clusters
      */
     protected List<ReconstructedParticle> makeReconstructedParticles(List<HPSEcalCluster> clusters, List<Track> tracks) {
 
@@ -215,18 +214,19 @@ public abstract class ReconParticleDriver extends Driver {
                 this.printDebug("Track position at shower max: " + trackPosAtEcal.toString());
 
 //                double r = VecOp.sub(trackPosAtEcal, clusterPosition).magnitude();
-                 //don't trust extrapolation...just do y-difference for now
-                 double r = Math.abs(clusterPosition.y() - trackPosAtEcal.z());
+                //don't trust extrapolation...just do y-difference for now
+                double r = Math.abs(clusterPosition.y() - trackPosAtEcal.y());
                 this.printDebug("Distance between Ecal cluster and track position: " + r + " mm");
 
                 // Check if the Ecal cluster and track are within the same 
                 // detector volume i.e. both top or bottom
-                if (clusterPosition.y() * trackPosAtEcal.z() < 0) {
+                if (clusterPosition.y() * trackPosAtEcal.y() < 0) {
                     this.printDebug("Track and Ecal cluster are in opposite volumes. Track Y @ ECAL = " + trackPosAtEcal.z());
                     continue;
                 }
 
-                if (r < rMax && r <= maxTrackClusterDistance) {
+//                if (r < rMax && r <= maxTrackClusterDistance) {
+                 if (r < rMax && isMatch(cluster,track)) {
                     rMax = r;
                     matchedCluster = cluster;
                 }
@@ -237,7 +237,7 @@ public abstract class ReconParticleDriver extends Driver {
                 unmatchedClusters.remove(matchedCluster);
             }
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
-             particles.add(particle);
+            particles.add(particle);
         }
 
         if (!unmatchedClusters.isEmpty())
@@ -265,5 +265,27 @@ public abstract class ReconParticleDriver extends Driver {
     protected void printDebug(String debugMessage) {
         if (debug)
             System.out.println(this.getClass().getSimpleName() + ": " + debugMessage);
+    }
+
+    boolean isMatch(HPSEcalCluster cluster, Track track) {
+        Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+        // Extrapolate the track to the Ecal cluster position
+        Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
+        double trackMom = (new BasicHep3Vector(track.getMomentum())).magnitude();
+        double clustEne = cluster.getEnergy();
+
+        double dxCut = 20.0;
+        double dyCut = 20.0;
+        double dECut = 0.2;//20%
+        double samplingFrac = 0.8;
+
+        if (Math.abs(trackPosAtEcal.x() - clusterPosition.x()) > dxCut)
+            return false;
+        if (Math.abs(trackPosAtEcal.y() - clusterPosition.y()) > dyCut)
+            return false;
+//        if (Math.abs((samplingFrac*trackMom-clustEne)/(samplingFrac*trackMom)) > dECut)
+//            return false;
+
+        return true;
     }
 }
