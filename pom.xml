@@ -133,7 +133,6 @@
                 <module>parent</module>
                 <module>util</module>
                 <module>jevio</module>
-                <module>et</module>
                 <module>detector-data</module>
                 <module>conditions</module>
                 <module>ecal-readout-sim</module>
@@ -141,9 +140,6 @@
                 <module>evio</module>
                 <module>recon</module>
                 <module>tracking</module>
-<!--                
-                <module>hps-java</module>
--->             
                 <module>monitoring-drivers</module>
                 <module>monitoring-app</module>
                 <module>analysis</module>
@@ -151,6 +147,7 @@
                 <module>steering-files</module>
                 <module>distribution</module>
                 <module>plugin</module>
+                <module>integration-tests</module>
             </modules>
         </profile>
         <profile>
@@ -161,10 +158,6 @@
                 <module>ecal-readout-sim</module>
                 <module>ecal-recon</module>
                 <module>evio</module>
-                <module>et</module>
-<!--                
-                <module>hps-java</module>                
--->                
                 <module>jevio</module>
                 <module>monitoring-app</module>
                 <module>monitoring-drivers</module>
