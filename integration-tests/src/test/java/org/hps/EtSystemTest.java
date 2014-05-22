@@ -9,7 +9,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.evio.EvioFileProducer;
+import org.hps.monitoring.EvioFileProducer;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
@@ -120,7 +120,7 @@ public class EtSystemTest extends TestCase {
             e.printStackTrace();
         }
         
-        assertEquals("The station process returned a non-zero exist status.", 0, stationProcessReturnCode);
+        assertEquals("The station process returned a non-zero exit status.", 0, stationProcessReturnCode);
         
         // Clear the list of active processes.
         processes.clear();
