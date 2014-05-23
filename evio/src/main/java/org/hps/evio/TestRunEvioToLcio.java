@@ -282,7 +282,11 @@ public class TestRunEvioToLcio {
                 nEvents++;
             }
             System.out.println("Last physics event time: " + time / 1000 + " - " + new Date(time));
-            reader.close();
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         System.out.println("No more data");
 

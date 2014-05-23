@@ -92,13 +92,7 @@ public class TestRunTriggeredReconToEvio extends Driver {
     @Override
     protected void endOfData() {
         System.out.println(this.getClass().getSimpleName() + " - wrote " + eventsWritten + " EVIO events in job; " + builderQueue.size() + " incomplete events in queue.");
-        try {
-            writer.close();
-        } catch (EvioException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writer.close();        
     }
 
     @Override

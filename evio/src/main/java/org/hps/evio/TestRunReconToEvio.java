@@ -56,13 +56,7 @@ public class TestRunReconToEvio extends Driver {
 
 	protected void endOfData() {
 		System.out.println(this.getClass().getSimpleName() + " - wrote " + eventsWritten + " EVIO events in job.");
-		try {
-			writer.close();
-		} catch (EvioException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		writer.close();		
 	}
 
 	protected void process(EventHeader event) {
