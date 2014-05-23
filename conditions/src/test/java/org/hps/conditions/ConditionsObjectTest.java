@@ -15,17 +15,17 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 // TODO: Add test of collection operations similar to the one for individual objects.
 public class ConditionsObjectTest extends TestCase {
 
-    DatabaseConditionsManager _conditionsManager;
+    DatabaseConditionsManager conditionsManager;
 
     public void setUp() {
-        _conditionsManager = new DefaultTestSetup().configure().setup();
+        conditionsManager = new DefaultTestSetup().configure().setup();
     }
 
     public void testBasicOperations() throws ConditionsObjectException {
 
         // Create a new collection, setting its table meta data and collection ID.
-        TableMetaData tableMetaData = _conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
-        int collectionId = _conditionsManager.getNextCollectionId(tableMetaData.getTableName());
+        TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
+        int collectionId = conditionsManager.getNextCollectionId(tableMetaData.getTableName());
         SvtGainCollection collection = new SvtGainCollection();
         collection.setTableMetaData(tableMetaData);
         try {

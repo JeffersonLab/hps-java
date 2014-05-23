@@ -86,9 +86,11 @@ public final class ConditionsDriver extends Driver {
     /**
      * This method updates a new detector with SVT and ECal conditions data.
      */
+    // FIXME: Add here a check on the run number and if it is invalid then
+    // set a default before trying to load the conditions.
     public void detectorChanged(Detector detector) {
         // Load conditions onto the detector.
-        loadSvtConditions(detector);
+        loadSvtConditions(detector); 
         loadEcalConditions(detector);
     }
 

@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-// TODO: This class should have a reference to its ConditionsRecord.
-// TODO: Collections with a mix of different collection IDs on their objects should always be read only.
 public class ConditionsObjectCollection<ObjectType extends ConditionsObject> implements Iterable<ObjectType> {
 
     protected List<ObjectType> objects = new ArrayList<ObjectType>();

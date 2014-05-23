@@ -12,6 +12,8 @@ package org.hps.conditions;
  * but usually they are the same value.
  * </p>
  */
+// FIXME: This should really be called something like "ConditionsKeys" as the table names
+// are found in the XML configuration only.
 public final class TableConstants {
 
     private TableConstants() {
