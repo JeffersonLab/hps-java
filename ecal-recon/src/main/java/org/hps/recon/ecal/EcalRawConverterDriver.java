@@ -129,7 +129,7 @@ public class EcalRawConverterDriver extends Driver {
         if (useTimestamps) {
             double t0ECal = getTimestamp(SYSTEM_ECAL, event);
             double t0Trig = getTimestamp(SYSTEM_TRIGGER, event);
-            timeOffset += (t0ECal - t0Trig);
+            timeOffset += (t0ECal - t0Trig) + 200.0;
         }
         if (useTruthTime) {
             double t0ECal = getTimestamp(SYSTEM_ECAL, event);

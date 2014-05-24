@@ -114,7 +114,7 @@ public class RawTrackerHitFitterDriver extends Driver {
             if (useTimestamps) {
                 double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                 double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event);
-                double corMod = (t0Svt - t0Trig);
+                double corMod = (t0Svt - t0Trig) + 200.0;
                 fit.setT0(fit.getT0() + corMod);
             }
             if (useTruthTime) {

@@ -31,8 +31,9 @@
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>true</useTimestamps>
-            <correctT0Shift>true</correctT0Shift>
+            <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
