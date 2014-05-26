@@ -18,6 +18,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
+import org.hps.recon.ecal.HPSEcalCluster;
+
 
 /**
  * This Driver creates clusters from the CalorimeterHits of an
