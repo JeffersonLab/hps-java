@@ -285,7 +285,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         }
         while (outputQueue.peek() != null && outputQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0) {
             if (outputQueue.peek().getTimeStamp() / 64 < readoutCounter - delay0) {
-                System.out.println("Stale hit in output queue");
+                System.out.println(this.getName() + ": Stale hit in output queue");
                 outputQueue.poll();
             } else {
                 buffer.add(outputQueue.poll());
