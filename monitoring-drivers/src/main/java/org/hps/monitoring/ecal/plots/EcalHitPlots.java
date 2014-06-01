@@ -129,7 +129,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         else plotter.region(0).style().zAxisStyle().setParameter("scale", "lin");
         
         plotter.region(2).plot(occupancyPlot);
-        plotter.region(2).style.zAxisStyle().SetParameter("scale","lin");
+        plotter.region(2).style().zAxisStyle().setParameter("scale","lin");
         
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
