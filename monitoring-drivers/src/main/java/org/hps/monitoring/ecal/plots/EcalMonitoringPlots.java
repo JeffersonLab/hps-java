@@ -123,7 +123,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void process(EventHeader event) {
         int nhits=0;
         int chits[]=new int[11*47];
-        if (event.hasCollection(BaseRawCalorimeterHit.class, inputCollection)) {
+        /*if (event.hasCollection(BaseRawCalorimeterHit.class, inputCollection)) {
             List<BaseRawCalorimeterHit> hits = event.get(BaseRawCalorimeterHit.class, inputCollection);
             for (BaseRawCalorimeterHit hit : hits) {
                 int column=hit.getIdentifierFieldValue("ix");
@@ -144,7 +144,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
                 chits[id]++;
                 nhits++;
             }
-        }
+        }*/
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
             for (CalorimeterHit hit : hits) {

@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.math.stat.StatUtils;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -108,7 +109,9 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter3.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.createRegions(1, 2);
-        plotter3.style().yAxisStyle().setParameter("scale", "log");
+        if (logScale){
+            plotter3.style().yAxisStyle().setParameter("scale", "log");
+        }
         plotter3.region(0).plot(clusterTimes);
         plotter3.region(1).plot(clusterTimeSigma);
 
@@ -117,7 +120,9 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter4.style().setParameter("hist2DStyle", "colorMap");
         plotter4.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter4.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter4.style().zAxisStyle().setParameter("scale", "log");
+        if (logScale) {
+            plotter4.style().zAxisStyle().setParameter("scale", "log");
+        }
         plotter4.createRegion(); 
         plotter4.region(0).plot(edgePlot);
         
@@ -143,11 +148,11 @@ public class EcalClusterPlots extends Driver implements Resettable {
                 botTrig = triggerData.getBotTrig();
             }
         }
-        if (event.hasCollection(Cluster.class, inputCollection)) {
-            List<Cluster> clusters = event.get(Cluster.class, inputCollection);
+        if (event.hasCollection(HPSEcalCluster.class, inputCollection)) {
+            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, inputCollection);
             clusterCountPlot.fill(clusters.size());
             double maxEnergy = 0;
-            for (Cluster cluster : clusters) {
+            for (HPSEcalCluster cluster : clusters) {
 //                if ((botTrig == 0 && cluster.getEnergy() > 130 && cluster.getPosition()[1] < 0) || (topTrig == 0 && cluster.getEnergy() > 130 && cluster.getPosition()[1] > 0)) {
 //                if ((botTrig == 0 && cluster.getPosition()[1] < 0) || (topTrig == 0 && cluster.getPosition()[1] > 0)) {
                     clusterEnergyPlot.fill(cluster.getEnergy());
@@ -155,6 +160,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
                     maxEnergy = cluster.getEnergy();
                 }
                 int size = 0;
+                double eTOT = 0;
                 double[] times = new double[cluster.getCalorimeterHits().size()];
                 double[] energies = new double[cluster.getCalorimeterHits().size()];
                 
@@ -163,22 +169,25 @@ public class EcalClusterPlots extends Driver implements Resettable {
 //                    System.out.format("cluster:\n");
                 for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     if (hit.getRawEnergy() != 0) {
-                    energies[size] = hit.getRawEnergy();
+                        energies[size] = hit.getRawEnergy();
                         times[size] = hit.getTime();
                         X += energies[size] * hit.getIdentifierFieldValue("ix");
                         Y += energies[size] * hit.getIdentifierFieldValue("iy");
+                        eTOT+=energies[size];
                         size++;
 //                            System.out.format("x=%d, y=%d, time=%f, energy=%f\n", hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), hit.getTime(), hit.getRawEnergy());
                     }
                 }
-                X/=size;
-                Y/=size;
-                clusterTimes.fill(StatUtils.mean(times, 0, size));
-                clusterSizePlot.fill(size); //The number of "hits" in a "cluster"
-                clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(times, 0, size)));
-                edgePlot.fill(X,Y);
+                if (eTOT>0){
+                    X/=eTOT;
+                    Y/=eTOT;
+                    clusterTimes.fill(StatUtils.mean(times, 0, size));
+                    clusterSizePlot.fill(size); //The number of "hits" in a "cluster"
+                    clusterTimeSigma.fill(Math.sqrt(StatUtils.variance(times, 0, size)));
+                    edgePlot.fill(X,Y);
+                }
             }
-            clusterMaxEnergyPlot.fill(maxEnergy);
+            if (maxEnergy>0) clusterMaxEnergyPlot.fill(maxEnergy);
         } else {
             clusterCountPlot.fill(0);
         }

@@ -123,8 +123,13 @@ public class EcalHitPlots extends Driver implements Resettable{
         style.setParameter("hist2DStyle", "colorMap");
         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         style.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
-        style.zAxisStyle().setParameter("scale", "log");
+        if (logScale){
+        	plotter.region(0).style().zAxisStyle().setParameter("scale", "log");
+        }
+        else plotter.region(0).style().zAxisStyle().setParameter("scale", "lin");
+        
         plotter.region(2).plot(occupancyPlot);
+        plotter.region(2).style.zAxisStyle().SetParameter("scale","lin");
         
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
@@ -154,8 +159,11 @@ public class EcalHitPlots extends Driver implements Resettable{
         plotter3.region(5).plot(orTrigTimePlot);
         for (int i = 0; i < 6; i++) {
             if (plotter3.region(i).style() != null) {
-               // plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
-            }
+            	if (logScale){
+                  plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
+                }
+            	else plotter3.region(i).style().yAxisStyle().setParameter("scale", "lin");
+            } 	
         }
         plotter3.region(6).plot(topTimePlot2D);
         plotter3.region(7).plot(botTimePlot2D);
@@ -164,7 +172,10 @@ public class EcalHitPlots extends Driver implements Resettable{
             if (plotter3.region(i).style() != null) {
                 plotter3.region(i).style().setParameter("hist2DStyle", "colorMap");
                 plotter3.region(i).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-             //   plotter3.region(i).style().zAxisStyle().setParameter("scale", "log");
+                if (logScale){
+                    plotter3.region(i).style().zAxisStyle().setParameter("scale","log");
+                }
+                else plotter3.region(i).style().zAxisStyle().setParameter("scale","lin");
             }
         }
         
