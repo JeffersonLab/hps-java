@@ -1,4 +1,4 @@
-package main.java.org.hps.recon.ecal;
+package org.hps.recon.ecal;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.ecal.HPSEcalClusterIC;
 
 
 /**
@@ -175,21 +175,21 @@ public class EcalClusterIC extends Driver {
             List<CalorimeterHit> hitList = event.get(CalorimeterHit.class, ecalCollectionName);
             
             // Generate clusters from the calorimeter hits.
-            List<HPSEcalCluster> clusterList = null;
+            List<HPSEcalClusterIC> clusterList = null;
             try { clusterList = createClusters(hitList); }
             catch(IOException e) { }
             
             // If clusters were successfully created, put them in the event.
             if(clusterList != null) {
 	            int flag = 1 << LCIOConstants.CLBIT_HITS;
-	            event.put(clusterCollectionName, clusterList, HPSEcalCluster.class, flag);
+	            event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
             }
         }
     }
 
-    public List<HPSEcalCluster> createClusters(List<CalorimeterHit> hitList) throws IOException {
+    public List<HPSEcalClusterIC> createClusters(List<CalorimeterHit> hitList) throws IOException {
         // Create a list to store the newly created clusters in.
-        ArrayList<HPSEcalCluster> clusterList = new ArrayList<HPSEcalCluster>();
+        ArrayList<HPSEcalClusterIC> clusterList = new ArrayList<HPSEcalClusterIC>();
         
         // Sort the list of hits by energy.
         Collections.sort(hitList, ENERGY_COMP);
@@ -476,7 +476,7 @@ public class EcalClusterIC extends Driver {
                 	double energy = seedEnergyTot.get(entry2.getKey());
 //                	writeHits.append(String.format("Cluster\t%d\t%d\t%f%n", six, siy, energy));
                 	
-                    HPSEcalCluster cluster = new HPSEcalCluster(entry2.getKey());
+                    HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
                     cluster.addHit(entry2.getKey());
 
                     for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
@@ -494,7 +494,9 @@ public class EcalClusterIC extends Driver {
                         	int iy = entry4.getKey().getIdentifierFieldValue("iy");
 //                        	writeHits.append(String.format("SharHit\t%d\t%d%n", ix, iy));
                         	
-                            cluster.addHit(entry4.getKey());
+                        	// Added in shared hits for energy distribution between clusters, changed by HS 02JUN14
+//                            cluster.addHit(entry4.getKey());
+                            cluster.addSharedHit(entry4.getKey());
                         }
                     }
 
