@@ -16,7 +16,8 @@
         <driver name="TrackerReconDriver"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-        <driver name="ReconParticle" />        
+        <driver name="ReconParticle" /> 
+        <driver name="TrackDataDriver" />               
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -52,6 +53,7 @@
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.TestRunReconParticleDriver">          
         </driver>
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
