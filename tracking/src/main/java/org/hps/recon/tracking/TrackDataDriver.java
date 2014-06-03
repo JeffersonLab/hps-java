@@ -111,6 +111,8 @@ public class TrackDataDriver extends Driver {
 					
 					// Find the t0 residual and add it to the list of residuals
 					t0Residual = trackTime - cluster.time(); 
+					// Apply correction to t0 residual
+					t0Residual /= Math.sqrt((totalHits - 1)/totalHits);
 					t0Residuals.add(t0Residual);
 				}
 			}
