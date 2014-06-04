@@ -47,6 +47,8 @@ public class EcalClusterIC extends Driver {
     String ecalName = "Ecal";
     // LCIO cluster collection name to which to write.
     String clusterCollectionName = "EcalClusters";
+    // Collection name for rejected hits
+    String rejectedHitName = "RejectedHits";
     // File path to which to write event display output.
     String outfile = "cluster-hit-IC.txt";
     // Map of crystals to their neighbors.
@@ -56,10 +58,10 @@ public class EcalClusterIC extends Driver {
     double hitEnergyThreshold = 0.0075;
     // Minimum energy threshold for seed hits; if seed hit is below
     // cluster is excluded from output. Units in GeV.
-    double seedEnergyThreshold = 0.2;
+    double seedEnergyThreshold = 0.1;
     // Minimum energy threshold for cluster hits; if total cluster
     // energy is below, the cluster is excluded. Units in GeV.
-    double clusterEnergyThreshold = 0.4;  
+    double clusterEnergyThreshold = 0.3;  
     // A Comparator that sorts CalorimeterHit objects from highest to
     // lowest energy.
     private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
@@ -84,6 +86,10 @@ public class EcalClusterIC extends Driver {
     
     public void setEcalName(String ecalName) {
         this.ecalName = ecalName;
+    }
+    
+    public void setRejectedHitName(String rejectedHitName){
+    	this.rejectedHitName = rejectedHitName;
     }
     
     /**
@@ -172,24 +178,24 @@ public class EcalClusterIC extends Driver {
     	// Make sure the current event contains calorimeter hits.
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
             // Get the list of raw calorimeter hits.
-            List<CalorimeterHit> hitList = event.get(CalorimeterHit.class, ecalCollectionName);
             
             // Generate clusters from the calorimeter hits.
-            List<HPSEcalClusterIC> clusterList = null;
-            try { clusterList = createClusters(hitList); }
+            //List<HPSEcalClusterIC> clusterList = null;
+            try { createClusters(event); }
             catch(IOException e) { }
-            
-            // If clusters were successfully created, put them in the event.
-            if(clusterList != null) {
-	            int flag = 1 << LCIOConstants.CLBIT_HITS;
-	            event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
-            }
         }
     }
 
-    public List<HPSEcalClusterIC> createClusters(List<CalorimeterHit> hitList) throws IOException {
+    public void createClusters(EventHeader event) throws IOException {
+    	
+    	// Create a list to store the event hits in.
+        List<CalorimeterHit> hitList = event.get(CalorimeterHit.class, ecalCollectionName);
+        
         // Create a list to store the newly created clusters in.
         ArrayList<HPSEcalClusterIC> clusterList = new ArrayList<HPSEcalClusterIC>();
+        
+        // Create a list to store the rejected hits in.
+        ArrayList<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
         
         // Sort the list of hits by energy.
         Collections.sort(hitList, ENERGY_COMP);
@@ -201,6 +207,7 @@ public class EcalClusterIC extends Driver {
         	// If the hit is below threshold or outside of time window, kill it.
         	if((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold)||
         			(timeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > minTime + timeWindow))) {
+        		rejectedHitList.add(hitList.get(index));
         		hitList.remove(index);
         	}
         	
@@ -457,7 +464,7 @@ public class EcalClusterIC extends Driver {
         	eventNum++;
         	
         	// Write the event header.
-//        	writeHits.append(String.format("Event\t%d%n", eventNum));
+ //       	writeHits.append(String.format("Event\t%d%n", eventNum));
         	
         	// Write the calorimeter hits that passed the energy cut.
             for (CalorimeterHit n : hitList) {
@@ -469,26 +476,38 @@ public class EcalClusterIC extends Driver {
             
             
             for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
-                if ((entry2.getKey() == entry2.getValue())&&(entry2.getKey().getCorrectedEnergy()>=seedEnergyThreshold)
-                		&&(seedEnergyTot.get(entry2.getKey())>=clusterEnergyThreshold)) {//seed and passes all thresholds
-                	int six = entry2.getKey().getIdentifierFieldValue("ix");
-                	int siy = entry2.getKey().getIdentifierFieldValue("iy");
-                	double energy = seedEnergyTot.get(entry2.getKey());
-//                	writeHits.append(String.format("Cluster\t%d\t%d\t%f%n", six, siy, energy));
+                if (entry2.getKey() == entry2.getValue()){
+                	if((entry2.getKey().getCorrectedEnergy()<seedEnergyThreshold)
+                		||(seedEnergyTot.get(entry2.getKey())<clusterEnergyThreshold)) 
+                	{	
+                		rejectedHitList.add(entry2.getKey());
+                	}
                 	
-                    HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
-                    cluster.addHit(entry2.getKey());
-                    cluster.setEnergy(energy);
+                	else{
+                	
+                		int six = entry2.getKey().getIdentifierFieldValue("ix");
+                		int siy = entry2.getKey().getIdentifierFieldValue("iy");
+                		double energy = seedEnergyTot.get(entry2.getKey());
+//                		writeHits.append(String.format("Cluster\t%d\t%d\t%f%n", six, siy, energy));
+                	
+                		HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
+                		cluster.addHit(entry2.getKey());
 
-                    for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
-                        if (entry3.getValue() == entry2.getValue()) {
-                        	int ix = entry3.getKey().getIdentifierFieldValue("ix");
-                        	int iy = entry3.getKey().getIdentifierFieldValue("iy");
-//                       	writeHits.append(String.format("CompHit\t%d\t%d%n", ix, iy));
+                		for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
+                			if (entry3.getValue() == entry2.getValue()) {
+                				if(rejectedHitList.contains(entry2.getValue())){
+                					rejectedHitList.add(entry3.getKey());
+                				}
+                				else{
+                					int ix = entry3.getKey().getIdentifierFieldValue("ix");
+                					int iy = entry3.getKey().getIdentifierFieldValue("iy");
+//                       			writeHits.append(String.format("CompHit\t%d\t%d%n", ix, iy));
                         	
-                            cluster.addHit(entry3.getKey());
-                        }
-                    }
+                					cluster.addHit(entry3.getKey());
+                				}
+                			}
+                		}
+                		
                     for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
                         if (entry4.getValue().contains(entry2.getKey())) {
                         	int ix = entry4.getKey().getIdentifierFieldValue("ix");
@@ -500,21 +519,19 @@ public class EcalClusterIC extends Driver {
                             cluster.addSharedHit(entry4.getKey());
                         }
                     }
-
-                    clusterList.add(cluster);
+                    cluster.setEnergy(energy);
+                   	clusterList.add(cluster);
+                	}// End checking thresholds and write out.
                 }
-            }
             
-            // Write the event termination header.
+            } //End cluster loop
+         // Write the event termination header.
 //            writeHits.append("EndEvent\n");
-        } //End event display output loop.
-        
-        
-        
-        
-        
-        // Return the resulting cluster list.
-        return clusterList;
+            
+        } //End event display out loop.
+        int flag = 1 << LCIOConstants.CLBIT_HITS;
+        event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
+        event.put(rejectedHitName, rejectedHitList, CalorimeterHit.class, flag);
     }
     
     public void endOfData() {
