@@ -28,36 +28,33 @@ import org.hps.recon.vertexing.BilliorVertexer;
  */
 public class HpsReconParticleDriver extends ReconParticleDriver {
 	
-	public HpsReconParticleDriver(){}
+	private enum Constraint { 
+		UNCONSTRAINED, 
+		BS_CONSTRAINED, 
+		TARGET_CONSTRAINED
+	}
+	
+	public HpsReconParticleDriver(){}		
 
 	@Override
 	protected void startOfData(){
 		
 		unconstrainedV0CandidatesColName    = "UnconstrainedV0Candidates";
 		beamConV0CandidatesColName   		= "BeamspotConstrainedV0Candidates";
-		targetV0ConCandidatesColName 		= "TargetConstrainedV0Candidates";	
+		targetConV0CandidatesColName 		= "TargetConstrainedV0Candidates";	
+		unconstrainedV0VerticesColName 		= "UnconstrainedV0Vertices";
+		beamConV0VerticesColName 			= "BeamspotConstrainedV0Vertices";
+		targetConV0VerticesColName			= "TargetConstrainedV0Vertices";
 	}
 
 	/**
 	 * 
 	 */
 	@Override
-	void vertexParticles(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
-		
-		BilliorVertexer unconstrainedVtxFitter = new BilliorVertexer(bField);
-		unconstrainedVtxFitter.doBeamSpotConstraint(false); 
-		unconstrainedVtxFitter.setBeamSize(beamsize);
-		
-
-		BilliorVertexer beamConVtxFitter = new BilliorVertexer(bField);
-		beamConVtxFitter.doBeamSpotConstraint(true); 
-		beamConVtxFitter.setBeamSize(beamsize);
-		
-		BilliorVertexer targetConVtxFitter = new BilliorVertexer(bField);
-		targetConVtxFitter.doTargetConstraint(true);
-		targetConVtxFitter.setBeamSize(beamsize);
+	void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
 		
 		ReconstructedParticle candidate = null; 
+		BilliorVertex vtxFit = null;
 		// Loop through both electrons and positrons and try to find a common vertex
 		for(ReconstructedParticle positron : positrons){
 			for(ReconstructedParticle electron : electrons){
@@ -70,76 +67,90 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 				BilliorTrack electronBTrack = toBilliorTrack(electronTrack); 
 				BilliorTrack positronBTrack = toBilliorTrack(positronTrack);
 			
-				List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
-				billiorTracks.add(electronBTrack);
-				billiorTracks.add(positronBTrack);
+				for(Constraint constraint : Constraint.values()){
+					
+					vtxFit = fitVertex(constraint, electronBTrack, positronBTrack);
 				
-				BilliorVertex vtxFit = unconstrainedVtxFitter.fitVertex(billiorTracks);
-				BilliorVertex vtxFitCon = beamConVtxFitter.fitVertex(billiorTracks);
-				BilliorVertex vtxFitTarget = targetConVtxFitter.fitVertex(billiorTracks);
-				
-				candidate = new BaseReconstructedParticle(); 
-				((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
-				candidate.addParticle(electron);
-				candidate.addParticle(positron);
-				// TODO: The calculation of the total fitted momentum should be done within 
-				// 		 BilloirVertex
-				((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
-				Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"), 
-																vtxFit.getParameters().get("p1Y"), 
-																vtxFit.getParameters().get("p1Z"));
-				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"), 
-																			   vtxFit.getParameters().get("p2Y"),
-																			   vtxFit.getParameters().get("p2Z")));
-				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
-				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
-				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
-				HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
-    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
-				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
-				unconstrainedV0Candidates.add(candidate); 
-				
-				candidate = new BaseReconstructedParticle(); 
-				((BaseReconstructedParticle) candidate).setStartVertex(vtxFitCon);
-				candidate.addParticle(electron);
-				candidate.addParticle(positron);
-				((BaseReconstructedParticle) candidate).setMass(vtxFitCon.getParameters().get("invMass"));
-				fittedMomentum = new BasicHep3Vector(vtxFitCon.getParameters().get("p1X"), 
-																vtxFitCon.getParameters().get("p1Y"), 
-																vtxFitCon.getParameters().get("p1Z"));
-				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitCon.getParameters().get("p2X"), 
-																			   vtxFitCon.getParameters().get("p2Y"),
-																			   vtxFitCon.getParameters().get("p2Z")));
-				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
-				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
-				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
-				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
-    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
-				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
-				beamConV0Candidates.add(candidate);
-				
-				candidate = new BaseReconstructedParticle(); 
-				((BaseReconstructedParticle) candidate).setStartVertex(vtxFitTarget);
-				candidate.addParticle(electron);
-				candidate.addParticle(positron);  
-				((BaseReconstructedParticle) candidate).setMass(vtxFitTarget.getParameters().get("invMass"));
-				fittedMomentum = new BasicHep3Vector(vtxFitTarget.getParameters().get("p1X"), 
-																vtxFitTarget.getParameters().get("p1Y"), 
-																vtxFitTarget.getParameters().get("p1Z"));
-				fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFitTarget.getParameters().get("p2X"), 
-																			   vtxFitTarget.getParameters().get("p2Y"),
-																			   vtxFitTarget.getParameters().get("p2Z")));
-				this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
-				fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
-				this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
-				fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
-    			((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
-				((BaseReconstructedParticle) candidate).set4Vector(fourVector);
-				targetConV0Candidates.add(candidate);
-				
+					candidate = makeReconstructedParticle(electron, positron, vtxFit); 
+					
+					
+					switch(constraint){
+						case UNCONSTRAINED: 
+							unconstrainedV0Vertices.add(vtxFit);
+							unconstrainedV0Candidates.add(candidate); 
+							break;
+						case BS_CONSTRAINED:
+							beamConV0Vertices.add(vtxFit);
+							beamConV0Candidates.add(candidate);
+							break;
+						case TARGET_CONSTRAINED:
+							targetConV0Vertices.add(vtxFit);
+							targetConV0Candidates.add(candidate);
+							break;
+					}
+				}
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	BilliorVertex fitVertex(Constraint constraint, BilliorTrack electron, BilliorTrack positron){
+		
+		BilliorVertexer vtxFitter = new BilliorVertexer(bField);
+		// TODO: The beam size should come from the conditions database
+		vtxFitter.setBeamSize(beamsize);
+		
+		switch(constraint){
+			case UNCONSTRAINED: 
+				vtxFitter.doBeamSpotConstraint(false); 
+				break;
+			case BS_CONSTRAINED:
+				vtxFitter.doBeamSpotConstraint(true); 
+				break;
+			case TARGET_CONSTRAINED:
+				vtxFitter.doTargetConstraint(true);
+				break;
+		}
+				
+		List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
+		billiorTracks.add(electron);
+		billiorTracks.add(positron);
+		
+		return vtxFitter.fitVertex(billiorTracks);
+	}
+	
+	/**
+	 * 
+	 */
+	ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, BilliorVertex vtxFit){
+		
+		ReconstructedParticle candidate = new BaseReconstructedParticle();
+		((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
+		candidate.addParticle(electron);
+		candidate.addParticle(positron);
+					
+		// TODO: The calculation of the total fitted momentum should be done within 
+		// 		 BilloirVertex
+		((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
+		Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"), 
+		   											    vtxFit.getParameters().get("p1Y"), 
+														vtxFit.getParameters().get("p1Z"));
+		fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"), 
+																   	   vtxFit.getParameters().get("p2Y"),
+																       vtxFit.getParameters().get("p2Z")));
+		this.printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+		fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);
+		this.printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
+		HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0); 
+		((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+		((BaseReconstructedParticle) candidate).set4Vector(fourVector);
+		
+		return candidate;
+		
+	}
+	
 
 	/**
 	 * 

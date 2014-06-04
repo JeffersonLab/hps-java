@@ -12,6 +12,7 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -39,6 +40,9 @@ public abstract class ReconParticleDriver extends Driver {
     List<ReconstructedParticle> targetConV0Candidates;
     List<ReconstructedParticle> electrons;
     List<ReconstructedParticle> positrons;
+    List<Vertex> unconstrainedV0Vertices;
+    List<Vertex> beamConV0Vertices; 
+    List<Vertex> targetConV0Vertices;
 
     // Collections
     String ecalClustersCollectionName = "EcalClusters";
@@ -46,10 +50,13 @@ public abstract class ReconParticleDriver extends Driver {
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = null;
     String beamConV0CandidatesColName = null;
-    String targetV0ConCandidatesColName = null;
+    String targetConV0CandidatesColName = null;
     String vertexCandidatesColName = null;
     String vertexBeamConsCandidatesName = null;
-
+	String unconstrainedV0VerticesColName = null;
+	String beamConV0VerticesColName = null;
+	String targetConV0VerticesColName = null;
+	
     // The beamsize array is in the tracking frame
     /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
     double[] beamsize = {0.001, 0.2, 0.02};
@@ -105,8 +112,8 @@ public abstract class ReconParticleDriver extends Driver {
 
         // All events should have a collection of Ecal clusters.  If the event 
         // doesn't have one, skip the event.
-        if (!event.hasCollection(HPSEcalCluster.class, ecalClustersCollectionName))
-            return;
+        if (!event.hasCollection(HPSEcalCluster.class, ecalClustersCollectionName)) 
+        	return;
 
         // Get the collection of Ecal clusters from the event. A triggered 
         // event should have Ecal clusters.  If it doesn't, skip the event.
@@ -124,6 +131,9 @@ public abstract class ReconParticleDriver extends Driver {
         unconstrainedV0Candidates = new ArrayList<ReconstructedParticle>();
         beamConV0Candidates = new ArrayList<ReconstructedParticle>();
         targetConV0Candidates = new ArrayList<ReconstructedParticle>();
+        unconstrainedV0Vertices = new ArrayList<Vertex>();
+        beamConV0Vertices = new ArrayList<Vertex>();
+        targetConV0Vertices = new ArrayList<Vertex>();
 
         // 
         finalStateParticles = this.makeReconstructedParticles(clusters, tracks);
@@ -136,33 +146,46 @@ public abstract class ReconParticleDriver extends Driver {
         // charged particles to either electrons or positrons.  These lists
         // will be used for vertexing purposes.
         for (ReconstructedParticle finalStateParticle : finalStateParticles) {
-            this.printDebug("\t\tThis Charge =  " + finalStateParticle.getCharge());
-            if (finalStateParticle.getCharge() > 0)
-                positrons.add(finalStateParticle);
-            else if (finalStateParticle.getCharge() < 0)
-                electrons.add(finalStateParticle);
+            if (finalStateParticle.getCharge() > 0) positrons.add(finalStateParticle);
+            else if (finalStateParticle.getCharge() < 0) electrons.add(finalStateParticle);
         }
         this.printDebug("Number of Electrons: " + electrons.size());
         this.printDebug("Number of Positrons: " + positrons.size());
+        
         // Vertex electron and positron candidates 
-        vertexParticles(electrons, positrons);
+        findVertices(electrons, positrons);
 
-        // If the list exist, put the vertexed candidates into the event
-        if (unconstrainedV0CandidatesColName != null)
+        // If the list exist, put the vertexed candidates and vertices into the event
+        if (unconstrainedV0CandidatesColName != null){
             this.printDebug("Total number of unconstrained V0 candidates: " + unconstrainedV0Candidates.size());
-        event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
-        if (beamConV0CandidatesColName != null)
+            event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
+        }
+        if (beamConV0CandidatesColName != null){
             this.printDebug("Total number of beam constrained V0 candidates: " + unconstrainedV0Candidates.size());
-        event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
-        if (targetV0ConCandidatesColName != null)
+            event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
+        }
+        if (targetConV0CandidatesColName != null){
             this.printDebug("Total number of target constrained V0 candidates: " + unconstrainedV0Candidates.size());
-        event.put(targetV0ConCandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
+            event.put(targetConV0CandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
+        }
+        if(unconstrainedV0VerticesColName != null){
+        	this.printDebug("Total number of unconstrained V0 vertices: " + unconstrainedV0Vertices.size());
+        	event.put(unconstrainedV0VerticesColName, unconstrainedV0Vertices, Vertex.class, 0);
+        }
+        if(beamConV0VerticesColName != null){
+        	this.printDebug("Total number of beam constrained V0 vertices: " + beamConV0Vertices.size());
+        	event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
+        }
+        if(targetConV0VerticesColName != null){
+        	this.printDebug("Total number of target constrained V0 vertices: " + beamConV0Vertices.size());
+        	event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
+        }
     }
 
     /**
      *
      */
-    abstract void vertexParticles(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
+    abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
 
     /**
      * make the final state particles from clusters & tracks

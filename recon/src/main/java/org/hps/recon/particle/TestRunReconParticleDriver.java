@@ -1,15 +1,13 @@
 package org.hps.recon.particle;
 
-//--- java ---//
 import java.util.List;
 
-import org.hps.recon.vertexing.TwoTrackVertexer;
-//--- lcsim ---//
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
-//--- hps-java ---//
+
+import org.hps.recon.vertexing.TwoTrackVertexer;
 
 /**
  * 
@@ -26,7 +24,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
 	}
 	
 	@Override
-	void vertexParticles(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+	void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
 		
 		TwoTrackVertexer vtxFitter = new TwoTrackVertexer(); 
 	
