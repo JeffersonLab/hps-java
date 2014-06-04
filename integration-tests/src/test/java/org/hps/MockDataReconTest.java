@@ -35,8 +35,9 @@ public class MockDataReconTest extends TestCase {
     static final File reconFile = new File(outputFile.getPath() + ".slcio");
     static final File aidaFile = new File(outputFile.getPath() + ".aida");
 
-    static final String steeringResource = "/org/hps/mockdatarecon/MockDataReconTest.lcsim";
-
+    //static final String steeringResource = "/org/hps/mockdatarecon/MockDataReconTest.lcsim";
+    static final String steeringResource = "/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim";
+    
     // TODO: Get some values for these and add test assertions!
     /*
     static final int expectedReconstructedParticles = 0;
@@ -81,6 +82,10 @@ public class MockDataReconTest extends TestCase {
     }
 
     private void runRecon() {
+        
+        System.out.println("caching file ...");
+        System.out.println(mockDataUrl);
+        
         File mockDataFile = null;
         try {
             FileCache cache = new FileCache();
@@ -89,6 +94,7 @@ public class MockDataReconTest extends TestCase {
             throw new RuntimeException(e);
         }
 
+        System.out.println("running recon using steering resource " + steeringResource);
         JobControlManager jobManager = new JobControlManager();
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(mockDataFile);
