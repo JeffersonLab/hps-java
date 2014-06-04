@@ -478,6 +478,7 @@ public class EcalClusterIC extends Driver {
                 	
                     HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
                     cluster.addHit(entry2.getKey());
+                    cluster.setEnergy(energy);
 
                     for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
                         if (entry3.getValue() == entry2.getValue()) {
