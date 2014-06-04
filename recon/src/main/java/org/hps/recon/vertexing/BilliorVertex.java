@@ -1,42 +1,47 @@
 package org.hps.recon.vertexing;
 
-import hep.physics.matrix.BasicMatrix;
-import hep.physics.matrix.Matrix;
 import java.util.List;
-import hep.physics.matrix.MatrixOp;
-import hep.physics.matrix.SymmetricMatrix;
-import hep.physics.vec.Hep3Vector;
-import java.util.ArrayList;
-import org.lcsim.constants.Constants;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.tan;
 import java.util.HashMap;
 import java.util.Map;
+
+import hep.physics.matrix.BasicMatrix;
+import hep.physics.matrix.Matrix;
+import hep.physics.matrix.SymmetricMatrix;
+import hep.physics.vec.Hep3Vector;
+
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
 
 /**
- @version $Id: BilliorVertex.java,v 1.6 2013/04/09 22:02:39 mgraham Exp $
- @version Vertex tracks using least-squares method laid out by billior etal used
- in the HPS Java package.
+ * 
+ *	@author Mathew Thomas Graham <mgraham@slac.stanford.edu>
+ *	@version $Id:$
+ *
  */
 public class BilliorVertex implements Vertex {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis
 
-    private boolean _debug = false;
-    private int _ntracks;
-    private double[] _v0 = {0.0, 0.0, 0.0};
     private Hep3Vector _vertexPosition;
     private Matrix _covVtx = new BasicMatrix(3, 3);
 //    private List<Matrix> _pFit = new ArrayList<Matrix>();
 //    private List<Matrix> covVtxMomList = new ArrayList<Matrix>();
-    private double _chiSq;
-    private double _invMass;
     private List<BilliorTrack> _tracks;
     private Map<Integer, Hep3Vector> _fittedMomentum = new HashMap<Integer, Hep3Vector>();
+    private ReconstructedParticle particle = null;
+    
     private String _constraintType;
+    
+    private boolean _debug = false;
+    private boolean _isPrimary = true; 
+    
+    private int _ntracks;
+
+    private double[] _v0 = {0.0, 0.0, 0.0};
+    private double _chiSq;
+    private double _invMass;
+    private double _probability; 
+    
     // constructor
     public BilliorVertex() {
     }
@@ -65,7 +70,7 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public boolean isPrimary() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return _isPrimary; 
     }
 
     @Override
@@ -80,7 +85,7 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public double getProbability() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return _probability;
     }
 
     @Override
@@ -90,7 +95,6 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public SymmetricMatrix getCovMatrix() {
-        
         return new SymmetricMatrix(_covVtx);
     }
 
@@ -113,6 +117,6 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public ReconstructedParticle getAssociatedParticle() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return particle; 
     }
 }
