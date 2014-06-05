@@ -51,7 +51,6 @@ public class SvtQA extends Driver {
 
     private AIDA aida;
     private ShaperAnalyticFitAlgorithm shaperFitter = new ShaperAnalyticFitAlgorithm();
-    private List<AIDAFrame>    frames   = new ArrayList<AIDAFrame>();
     private List<IHistogram1D> histos1D = new ArrayList<IHistogram1D>();
     private List<IHistogram2D> histos2D = new ArrayList<IHistogram2D>();
     private List<IPlotter>     plotters = new ArrayList<IPlotter>();
@@ -239,13 +238,6 @@ public class SvtQA extends Driver {
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
 
-        // Create AIDA Frames
-        for(int index = 0; index < 2; index++) frames.add(new AIDAFrame());
-
-        // Set frame titles
-        frames.get(0).setTitle("Occupancy");
-        frames.get(1).setTitle("ADC Counts");
-
         //
         Set<SiSensor> sensors = SvtUtils.getInstance().getSensors();
         int plotterIndex = 0;
@@ -264,7 +256,6 @@ public class SvtQA extends Driver {
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, PlotUtils.getPlotterRegion(sensor), "Channel #", histo1D);
             }
-            frames.get(0).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
 
@@ -279,7 +270,6 @@ public class SvtQA extends Driver {
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, PlotUtils.getPlotterRegion(sensor), "Channel #", histo1D);
             }
-            frames.get(0).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
 
@@ -294,7 +284,6 @@ public class SvtQA extends Driver {
                     histos2D.add(histo2D);
                     PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, PlotUtils.getPlotterRegion(sensor), "Channel #", "ADC Counts", histo2D);
                 }
-                frames.get(1).addPlotter(plotters.get(plotterIndex));
                 plotterIndex++;
             } else if(sensorName != null){
                 title = sensorName + " - ADC Counts vs Channel #";
@@ -302,7 +291,6 @@ public class SvtQA extends Driver {
                 histo2D = aida.histogram2D(title, 640, 0, 639, 300, 0, 10000);
                 histos2D.add(histo2D);
                 PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 0, "Channel #", "ADC Counts", histo2D);
-                frames.get(1).addPlotter(plotters.get(plotterIndex));
                 plotterIndex++;
             } else {
                 throw new RuntimeException("Sensor of interest is not set!");
@@ -317,7 +305,6 @@ public class SvtQA extends Driver {
             histo2D = aida.histogram2D(title, 640, 0, 639, 300, 0, 100);
             histos2D.add(histo2D);
             PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 0, "Channel #", "Chi Squared", histo2D);
-            frames.get(1).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
 
@@ -340,7 +327,6 @@ public class SvtQA extends Driver {
             histo1D = aida.histogram1D(title, 100, -150, 100);
             histos1D.add(histo1D);
             PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 2, "t0 [ns]", histo1D);
-            frames.get(1).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
 
@@ -366,7 +352,6 @@ public class SvtQA extends Driver {
             histo2D = aida.histogram2D(title, 300, 0, 6000, 100, -100, 100);
             histos2D.add(histo2D);
             PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 3, "Amplitude [ADC Counts]", "t0 [ns]", histo2D);
-            frames.get(1).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;   
         }
 
@@ -384,7 +369,6 @@ public class SvtQA extends Driver {
             histo2D = aida.histogram2D(title, 6, 1, 7, 400, 0, 4000);
             histos2D.add(histo2D);
             PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 1, "Sample Number", "Amplitude [ADC Counts]", histo2D);
-            frames.get(1).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
 
@@ -400,7 +384,6 @@ public class SvtQA extends Driver {
                     histos2D.add(histo2D);
                     PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, PlotUtils.getPlotterRegion(sensor), "Channel #", "t0 Resolution [ns]", histo2D);
                 }
-                frames.get(1).addPlotter(plotters.get(plotterIndex));
                 plotterIndex++;
             }
             else if(sensorName != null){
@@ -410,7 +393,6 @@ public class SvtQA extends Driver {
                 histo1D = aida.histogram1D(title, 40, -20, 20);
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 0, "<Hit Time> - Hit Time [ns]", histo1D);
-                frames.get(1).addPlotter(plotters.get(plotterIndex));
                 plotterIndex++;
             }
             else throw new RuntimeException("Sensor of interest not set!");
@@ -424,14 +406,11 @@ public class SvtQA extends Driver {
         	histo1D = aida.histogram1D(title, 100, 0, 75);
         	histos1D.add(histo1D);
         	PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 0, "Number of RawTrackerHits", histo1D);
-        	frames.get(1).addPlotter(plotters.get(plotterIndex));
         	plotterIndex++;
         }
 
-        for(AIDAFrame frame : frames){
-            frame.pack();
-            frame.setVisible(true);
-        }
+        for(IPlotter plotter : plotters) plotter.show();
+        
     }
 
     /**

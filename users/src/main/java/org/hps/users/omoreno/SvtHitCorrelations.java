@@ -27,7 +27,6 @@ import org.lcsim.util.aida.AIDA;
 public class SvtHitCorrelations extends Driver {
 
 	private AIDA aida;
-	private List<AIDAFrame> frames = new ArrayList<AIDAFrame>();
 	private List<IPlotter> plotters = new ArrayList<IPlotter>();
 	
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -42,13 +41,6 @@ public class SvtHitCorrelations extends Driver {
 		aida = AIDA.defaultInstance();
 		aida.tree().cd("/");
 		
-		for(int index = 0; index < 4; index++) frames.add(new AIDAFrame());
-	
-		frames.get(0).setTitle("Top Correlation Plots: Axial vs Axial");
-		frames.get(1).setTitle("Top Correlation Plots: Axial vs Stereo");
-		frames.get(2).setTitle("Bottom Correlation Plots: Axial vs Axial");
-		frames.get(3).setTitle("Bottom Correlation Plots: Axial vs Stereo");
-
 		int nPlotters = 0;
 		String plotName;
 		
@@ -62,7 +54,6 @@ public class SvtHitCorrelations extends Driver {
 					plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 					plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 					plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-					frames.get(0).addPlotter(plotters.get(nPlotters));
 					nPlotters++;
 				}
 			}
@@ -77,7 +68,6 @@ public class SvtHitCorrelations extends Driver {
 					plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 					plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 					plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-					frames.get(1).addPlotter(plotters.get(nPlotters));
 					nPlotters++;
 				}
 			}
@@ -93,7 +83,6 @@ public class SvtHitCorrelations extends Driver {
 					plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 					plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 					plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-					frames.get(2).addPlotter(plotters.get(nPlotters));
 					nPlotters++;
 				}
 			}
@@ -108,16 +97,12 @@ public class SvtHitCorrelations extends Driver {
 					plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 					plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 					plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-					frames.get(3).addPlotter(plotters.get(nPlotters));
 					nPlotters++;
 				}
 			}
 		}
-		
-		for(AIDAFrame frame : frames){
-        	frame.pack();
-        	frame.setVisible(true);
-        }
+	
+		for(IPlotter plotter : plotters) plotter.show();
 	}
 	
 	/**

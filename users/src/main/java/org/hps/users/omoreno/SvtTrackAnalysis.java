@@ -37,7 +37,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
     private String trackCollectionName = "MatchedTracks";
     private String stripHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
 	private AIDA aida;
-	private List<AIDAFrame> frames = new ArrayList<AIDAFrame>();
 	private List<IPlotter> plotters = new ArrayList<IPlotter>();
     
 	
@@ -58,13 +57,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		aida = AIDA.defaultInstance();
 		aida.tree().cd("/");
 		
-		for(int index = 0; index < 4; index++) frames.add(new AIDAFrame());
-
-		frames.get(0).setTitle("Track Position");
-		frames.get(1).setTitle("Track Parameters");
-		frames.get(2).setTitle("Track Momentum");
-		frames.get(3).setTitle("Cluster Matching");
-		
 		int nPlotters = 0;
 		
 		//--- Track Extrapolation ---//
@@ -75,7 +67,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style();
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Harp"));
@@ -83,7 +74,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Ecal: Curvature < 0"));
@@ -91,7 +81,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Harp: Curvature < 0"));
@@ -99,7 +88,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Ecal: Curvature > 0"));
@@ -107,7 +95,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Harp: Curvature > 0"));
@@ -115,7 +102,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
 		plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Ecal: Two Tracks"));
@@ -124,7 +110,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style();
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Track Position at Harp: Two Tracks"));
@@ -132,7 +117,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(0).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         
@@ -142,42 +126,36 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("DOCA", 120, 0, 120));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Z0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Z0", 120, 0, 120));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("phi0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("phi0", 50, -Math.PI, Math.PI));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Curvature"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("R", 200, -10, 10));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Tan(Lambda)"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Tan(Lambda)", 100, 0, 1));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("ChiSquared"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("ChiSquared", 100, 0, 100));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(1).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         //--- Momentum ---//
@@ -186,77 +164,66 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Px", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Py"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Py", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Pz"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Pz", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Px: C > 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Px: C > 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Py: C > 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Py: C > 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Pz: C > 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Pz: C > 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Px: C < 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Px: C < 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Py: C < 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Py: C < 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Pz: C < 0"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Pz: C < 0", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
         plotters.add(aida.analysisFactory().createPlotterFactory().create("Px: Two Tracks"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("Px: Two Tracks", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
         
         plotters.add(aida.analysisFactory().createPlotterFactory().create("E over P"));
         plotters.get(nPlotters).region(0).plot(aida.histogram1D("E over P", 100, 0, 5));
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
         plotters.get(nPlotters).style().dataStyle().errorBarStyle().setVisible(false);
-        frames.get(2).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		   
 		plotters.add(aida.analysisFactory().createPlotterFactory().create("E versus P"));
@@ -264,7 +231,6 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 	    plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 	    plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
 	    plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-	    frames.get(2).addPlotter(plotters.get(nPlotters));
 	    nPlotters++;
         
         //--- Cluster Matching ---//
@@ -274,13 +240,9 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
 		plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
     	plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotters.get(nPlotters).style().statisticsBoxStyle().setVisible(false);
-        frames.get(3).addPlotter(plotters.get(nPlotters));
 		nPlotters++;
 		
-        for(AIDAFrame frame : frames){
-        	frame.pack();
-        	frame.setVisible(true);
-        }
+		for(IPlotter plotter : plotters) plotter.show();
 	}
 	
 	public void process(EventHeader event){

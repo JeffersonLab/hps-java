@@ -42,7 +42,6 @@ import org.lcsim.util.aida.AIDA;
 public class SvtHitEfficiency extends Driver {
 
 	private AIDA aida;
-    private List<AIDAFrame> frames = new ArrayList<AIDAFrame>();
     private List<IHistogram1D> histos1D = new ArrayList<IHistogram1D>();
     private List<IHistogram2D> histos2D = new ArrayList<IHistogram2D>();
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
@@ -107,13 +106,6 @@ public class SvtHitEfficiency extends Driver {
         // setup AIDA
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
-
-        // Create AIDA Frames
-        for (int index = 0; index < 2; index++)
-            frames.add(new AIDAFrame());
-        
-        frames.get(0).setTitle("Track Momentum");
-        frames.get(1).setTitle("Track Positions");
         
         String title = null;
         IHistogram2D histo2D = null;
@@ -155,7 +147,6 @@ public class SvtHitEfficiency extends Driver {
         	title = "Track Momentum - Tracks With All Layers Hit";
         	histo1D = aida.histogram1D(title, 50, 0, 5);
         	plotters.get(plotterIndex).region(0).plot(histo1D);
-        	frames.get(0).addPlotter(plotters.get(plotterIndex));
         	plotterIndex++;
         }
         
@@ -172,7 +163,6 @@ public class SvtHitEfficiency extends Driver {
         	title = "Chi Squared - Tracks With All Layers Hit";
         	histo1D = aida.histogram1D(title, 50, 0, 50);
         	plotters.get(plotterIndex).region(0).plot(histo1D);
-            frames.get(0).addPlotter(plotters.get(plotterIndex));
             plotterIndex++;
         }
                 
@@ -215,7 +205,6 @@ public class SvtHitEfficiency extends Driver {
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 5, "Channel #", histo1D);
                 layerNumber++;
-                //frames.get(1).addPlotter(plotters.get(plotterIndex));
                 plotterIndex++;
             }
         }
