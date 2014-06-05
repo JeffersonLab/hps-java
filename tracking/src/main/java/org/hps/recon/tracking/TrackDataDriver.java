@@ -7,16 +7,18 @@ import java.util.List;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-
 import org.hps.recon.tracking.TrackTimeData;
+import org.hps.recon.tracking.TrackResidualsData;
 
 /**
  * 
@@ -31,6 +33,7 @@ public class TrackDataDriver extends Driver {
 	// TODO: Change this to match whatever track name is decided on
 	String trackTimeDataCollectionName = "TrackTimeData";
 	String trackResidualsCollectionName = "TrackResiduals";
+	String rotatedHthRelationsCollectionName = "RotatedHelicalTrackHitRelations";
 
 	public TrackDataDriver() {}
 
@@ -48,6 +51,10 @@ public class TrackDataDriver extends Driver {
 
 		// Get the collection of tracks from the event
 		List<Track> tracks = event.get(Track.class, trackCollectionName);
+		
+		// Get the collection of LCRelations relating RotatedHelicalTrackHits to
+		// HelicalTrackHits
+		List<LCRelation> rotatedHthToHth = event.get(LCRelation.class, rotatedHthRelationsCollectionName);
 
 		// Create a collection to hold the track time and t0 residual data
 		List<TrackTimeData> timeDataCollection = new ArrayList<TrackTimeData>(); 
@@ -69,6 +76,7 @@ public class TrackDataDriver extends Driver {
 		HpsSiSensor sensor = null; 
 		Hep3Vector stereoHitPosition = null;
 		Hep3Vector trackPosition = null;
+		HelicalTrackHit helicalTrackHit = null;
 		
 		List<Double>  t0Residuals = new ArrayList<Double>(); 
 		List<Double>  trackResidualsX = new ArrayList<Double>();
@@ -89,28 +97,45 @@ public class TrackDataDriver extends Driver {
 			stereoLayers.clear();
 			
 			//
-			// Calculate the track time and track residuals
+			// Calculate the track time and track residuals. Also, change the 
+			// position of a HelicalTrackHit to be the corrected one.
 			//
 			
 			// Loop over all stereo hits comprising a track
-			for (TrackerHit stereoHit : track.getTrackerHits()) {
+			for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
 			
 				// Add the stereo layer number associated with the track residual
-				stereoLayers.add(((HelicalTrackHit) stereoHit).Layer());
+				stereoLayers.add(((HelicalTrackHit) rotatedStereoHit).Layer());
 				
 				// Extrapolate the track to the stereo hit position and calculate 
 				// track residuals
-				stereoHitPosition = ((HelicalTrackHit) stereoHit).getCorrectedPosition();
-				System.out.println("Stereo Hit Position: " + stereoHitPosition.toString());
+				stereoHitPosition = ((HelicalTrackHit) rotatedStereoHit).getCorrectedPosition();
 				trackPosition = TrackUtils.extrapolateTrack(track, stereoHitPosition.x());
-				System.out.println("Track Position: " + trackPosition.toString());
 				xResidual = trackPosition.x() - stereoHitPosition.y();
 				yResidual = trackPosition.y() - stereoHitPosition.z(); 
 				trackResidualsX.add(xResidual);
 				trackResidualsY.add((float) yResidual);
+
+				//
+				// Change the persisted position of both RotatedHelicalTrackHits 
+				// and HelicalTrackHits to the corrected position.
+				//
+				
+				// Get the HelicalTrackHit corresponding to the RotatedHelicalTrackHit
+				// associated with a track
+				for(LCRelation relation : rotatedHthToHth){
+					if(relation.getTo().equals(rotatedStereoHit)){
+						helicalTrackHit = (HelicalTrackHit) relation.getFrom(); 
+						break;
+					}
+				}
+				((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
+				stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
+				helicalTrackHit.setPosition(stereoHitPosition.v());
+				
 				
 				// Loop over the clusters comprising the stereo hit
-				for(HelicalTrackStrip cluster : ((HelicalTrackCross) stereoHit).getStrips()){
+				for(HelicalTrackStrip cluster : ((HelicalTrackCross) rotatedStereoHit).getStrips()){
 					
 					totalT0 += cluster.time();
 					totalHits++;
