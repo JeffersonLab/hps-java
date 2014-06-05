@@ -5,9 +5,11 @@ import java.util.ArrayList;
 
 import junit.framework.TestCase;
 
+import org.lcsim.event.Cluster;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track; 
 import org.lcsim.event.base.BaseCalorimeterHit;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseTrack; 
 
 import hep.physics.vec.BasicHep3Vector;
@@ -15,7 +17,6 @@ import hep.physics.vec.Hep3Vector;
 
 import org.hps.recon.particle.HpsReconParticleDriver; 
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.ecal.HPSEcalCluster;
 
 
 /**
@@ -28,7 +29,7 @@ public class HpsReconParticleDriverTest extends TestCase {
 	private static final double B_FIELD = 0.5; // Tesla
   	double[] trackParameters = new double[5];
  	List<Track> tracks = new ArrayList<Track>(); 
-	List<HPSEcalCluster> clusters = new ArrayList<HPSEcalCluster>();
+	List<Cluster> clusters = new ArrayList<Cluster>();
 	List<ReconstructedParticle> particleTracks; 
 	HpsReconParticleDriver particleDriver = null; 
 	
@@ -76,7 +77,9 @@ public class HpsReconParticleDriverTest extends TestCase {
    		
    		System.out.println("\n[ Calorimeter Hit ] Top: \n" + topHit.toString());
    		
-   		HPSEcalCluster topCluster = new HPSEcalCluster(topHit);
+   		Cluster topCluster = new BaseCluster();
+   		//((BaseCluster) topCluster).addHit(topHit);
+   		
    		
    		System.out.print("\n[ Cluster ] Top: " + topCluster.toString());
    		System.out.println(" and position= ["  + topCluster.getPosition()[0] + ", " 
@@ -89,7 +92,8 @@ public class HpsReconParticleDriverTest extends TestCase {
 
    		System.out.println("\n[ Calorimeter Hit ] Bottom:\n " + bottomHit.toString());
    		
-   		HPSEcalCluster bottomCluster = new HPSEcalCluster(bottomHit);
+   		Cluster bottomCluster = new BaseCluster();
+   		//((BaseCluster) bottomCluster).addHit(bottomHit);
    		
    		System.out.print("\n[ Cluster ] bottom: " + bottomCluster.toString());
    		System.out.println(" and position= [ " + topCluster.getPosition()[0] + ", " 
@@ -111,7 +115,7 @@ public class HpsReconParticleDriverTest extends TestCase {
     	
     	
     	// Create two ReconstructedParticles with tracks only
-    	List<HPSEcalCluster> emptyClusters = new ArrayList<HPSEcalCluster>(); 
+    	List<Cluster> emptyClusters = new ArrayList<Cluster>(); 
     	particleTracks = particleDriver.makeReconstructedParticles(emptyClusters, tracks);
     
     	//
@@ -138,6 +142,13 @@ public class HpsReconParticleDriverTest extends TestCase {
     					Math.abs(particleTracks.get(particleN).getCharge()) != 0);
     		System.out.println("The charge of ReconstructedParticle number " + particleN + ": " + particleTracks.get(particleN).getCharge());
     	
+    	
+    		//
+    		// Check that the particle ID was set correctly
+    		//
+    		assertTrue("The particle ID of the ReconstructedParticle is equal to zero.", 
+    				   particleTracks.get(particleN).getParticleIDUsed().getPDG() != 0);
+    		System.out.println("The particle ID of ReconstructedParticle number " + particleN + ": " + particleTracks.get(particleN).getParticleIDUsed().getPDG());
     	}
     	
     	//
@@ -165,7 +176,7 @@ public class HpsReconParticleDriverTest extends TestCase {
    	public void testVertexParticles(){
    	
     	// Create two ReconstructedParticles with tracks only
-    	//List<HPSEcalCluster> emptyClusters = new ArrayList<HPSEcalCluster>(); 
+    	//List<Cluster> emptyClusters = new ArrayList<Cluster>(); 
     	//particleTracks = particleDriver.makeReconstructedParticles(emptyClusters, tracks);
 
     	//List<ReconstructedParticle> electrons = particleTracks.subList(0, 1);

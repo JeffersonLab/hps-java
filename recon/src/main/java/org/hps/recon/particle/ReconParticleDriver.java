@@ -4,11 +4,11 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
-import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
@@ -16,7 +16,7 @@ import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-import org.hps.recon.ecal.HPSEcalCluster;
+
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 
@@ -112,12 +112,12 @@ public abstract class ReconParticleDriver extends Driver {
 
         // All events should have a collection of Ecal clusters.  If the event 
         // doesn't have one, skip the event.
-        if (!event.hasCollection(HPSEcalCluster.class, ecalClustersCollectionName)) 
+        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) 
         	return;
 
         // Get the collection of Ecal clusters from the event. A triggered 
         // event should have Ecal clusters.  If it doesn't, skip the event.
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalClustersCollectionName);
+        List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
         //if(clusters.isEmpty()) return;  
         this.printDebug("Number of Ecal clusters: " + clusters.size());
 
@@ -191,37 +191,46 @@ public abstract class ReconParticleDriver extends Driver {
      * make the final state particles from clusters & tracks
      * loop over the tracks first and try to match with clusters
      */
-    protected List<ReconstructedParticle> makeReconstructedParticles(List<HPSEcalCluster> clusters, List<Track> tracks) {
+    protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters, List<Track> tracks) {
 
         // Instantiate the list of reconstructed particles
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
 
         // Instantiate the list of unmatched  clusters.  Remove if we find track match
-        List<HPSEcalCluster> unmatchedClusters = new ArrayList<HPSEcalCluster>(clusters);
+        List<Cluster> unmatchedClusters = new ArrayList<Cluster>(clusters);
        
 
         for (Track track : tracks) {
-            //make the containers for the reconstructed particle
+            
             ReconstructedParticle particle = new BaseReconstructedParticle();
             HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0);
-            //add the track information
+            
+            //
+            // Add all track information to the ReconstructedParticle
+            //
+            
             particle.addTrack(track);
+            
+            // Set the momentum of the ReconstructedParticle
             Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
-            this.printDebug("Momentum in tracking frame: " + momentum.toString());
             momentum = CoordinateTransformations.transformVectorToDetector(momentum);
-            this.printDebug("Momentum in detector frame: " + momentum.toString());
             ((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), momentum);
+            // Set the charge of the ReconstructedParticle
             ((BaseReconstructedParticle) particle).setCharge(track.getCharge() * flipSign);
+            // Set the particle ID
             if (particle.getCharge() > 0)
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
             else if (particle.getCharge() < 0)
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
 
-            HPSEcalCluster matchedCluster = null;
-            for (HPSEcalCluster cluster : unmatchedClusters) {
+            Cluster matchedCluster = null;
+            // Loop through all of the clusters and find the one that best matches
+            // the track.
+            for (Cluster cluster : unmatchedClusters) {
 
                 // Get the position of the Ecal cluster
                 Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+                
                 // Extrapolate the track to the Ecal cluster position
                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
                 this.printDebug("Ecal cluster position: " + clusterPosition.toString());
@@ -238,7 +247,7 @@ public abstract class ReconParticleDriver extends Driver {
                 this.printDebug("Track position at shower max: " + trackPosAtEcal.toString());
 
 //                double r = VecOp.sub(trackPosAtEcal, clusterPosition).magnitude();
-                //don't trust extrapolation...just do y-difference for now
+                // Don't trust extrapolation...just do y-difference for now
                 double r = Math.abs(clusterPosition.y() - trackPosAtEcal.y());
                 this.printDebug("Distance between Ecal cluster and track position: " + r + " mm");
 
@@ -248,15 +257,17 @@ public abstract class ReconParticleDriver extends Driver {
                     this.printDebug("Track and Ecal cluster are in opposite volumes. Track Y @ ECAL = " + trackPosAtEcal.z());
                     continue;
                 }
-
-//                if (r < rMax && r <= maxTrackClusterDistance) {
-                 if (r < rMax && isMatch(cluster,track)) {
-                    rMax = r;
-                    matchedCluster = cluster;
+                
+                // TODO: Checking whether r < rMax should be occuring within isMatch.  isMatch 
+                // 		 is basically repeating a lot of the same code as above.
+                if (r < rMax && isMatch(cluster,track)) {
+                	rMax = r;
+                	matchedCluster = cluster;
                 }
             }
+            
             if (matchedCluster != null) {
-                particle.addCluster(matchedCluster);
+            	particle.addCluster(matchedCluster);
                 ((BasicHepLorentzVector) fourVector).setT(matchedCluster.getEnergy());
                 unmatchedClusters.remove(matchedCluster);
             }
@@ -265,7 +276,7 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         if (!unmatchedClusters.isEmpty())
-            for (HPSEcalCluster unmatchedCluster : unmatchedClusters) {
+            for (Cluster unmatchedCluster : unmatchedClusters) {
                 // Create a reconstructed particle and add it to the 
                 // collection of particles
                 ReconstructedParticle particle = new BaseReconstructedParticle();
@@ -291,25 +302,26 @@ public abstract class ReconParticleDriver extends Driver {
             System.out.println(this.getClass().getSimpleName() + ": " + debugMessage);
     }
 
-    boolean isMatch(HPSEcalCluster cluster, Track track) {
-        Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-        // Extrapolate the track to the Ecal cluster position
+    /**
+     * 
+     */
+    boolean isMatch(Cluster cluster, Track track) {
+     
+    	// Get the position of the Ecal cluster
+    	Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+        
+    	// Extrapolate the track to the Ecal cluster position
         Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
-        double trackMom = (new BasicHep3Vector(track.getMomentum())).magnitude();
-        double clustEne = cluster.getEnergy();
 
         double dxCut = 20.0;
         double dyCut = 20.0;
-        double dECut = 0.2;//20%
-        double samplingFrac = 0.8;
 
         if (Math.abs(trackPosAtEcal.x() - clusterPosition.x()) > dxCut)
             return false;
+        
         if (Math.abs(trackPosAtEcal.y() - clusterPosition.y()) > dyCut)
             return false;
-//        if (Math.abs((samplingFrac*trackMom-clustEne)/(samplingFrac*trackMom)) > dECut)
-//            return false;
-
+        
         return true;
     }
 }
