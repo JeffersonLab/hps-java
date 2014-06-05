@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.util.AIDAFrame;
+//import org.hps.util.AIDAFrame;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -61,8 +61,8 @@ public class TrigRateDriver extends Driver {
     private AIDA aida = AIDA.defaultInstance();
     private IAnalysisFactory af = aida.analysisFactory();
     IHistogramFactory hf = aida.histogramFactory();
-    private AIDAFrame plotterFrame;
-    private AIDAFrame plotterFrameTrig;
+    //private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrameTrig;
 
     private static int nThr = 3;
     private int eThr[] = {0,600,800};
@@ -94,8 +94,8 @@ public class TrigRateDriver extends Driver {
 	// Cache ref to decoder.
 	dec = ecal.getIDDecoder();
         
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("TrigRateFrame");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("TrigRateFrame");
         
         IPlotterStyle style;
         
@@ -103,32 +103,32 @@ public class TrigRateDriver extends Driver {
         plotter_hitmap_gr.createRegions(2,nThr+1,0);
         plotter_hitmap_gr.setTitle("Cluster hit map");
         plotter_hitmap_gr.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_hitmap_gr);
+        //plotterFrame.addPlotter(plotter_hitmap_gr);
 
         IPlotter plotter_hitmap_1 = af.createPlotterFactory().create();
         plotter_hitmap_1.createRegions(1);
         plotter_hitmap_1.setTitle("Cluster hit map");
         plotter_hitmap_1.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_hitmap_1);
+        //plotterFrame.addPlotter(plotter_hitmap_1);
 
         IPlotter plotter_hitY_gr = af.createPlotterFactory().create();
         plotter_hitY_gr.createRegions(2,nThr+1,0);
         plotter_hitY_gr.setTitle("Cluster hit Y");
         plotter_hitY_gr.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_hitY_gr);
+        //plotterFrame.addPlotter(plotter_hitY_gr);
 
         IPlotter plotter_hitTheta_gr = af.createPlotterFactory().create();
         plotter_hitTheta_gr.createRegions(2,nThr+1,0);
         plotter_hitTheta_gr.setTitle("Cluster hit theta");
         plotter_hitTheta_gr.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_hitTheta_gr);
+        //plotterFrame.addPlotter(plotter_hitTheta_gr);
 
         
         IPlotter plotter_ep_gr = af.createPlotterFactory().create();
         plotter_ep_gr.createRegions(2,nThr+1,0);
         plotter_ep_gr.setTitle("Cluster E over p");
         plotter_ep_gr.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_gr);
+        //plotterFrame.addPlotter(plotter_ep_gr);
 
         
         IHistogram hm = aida.histogram2D("Cluster hit map", 52, -25.5, 25.5, 6, -5.5, 5.5);
@@ -213,15 +213,14 @@ public class TrigRateDriver extends Driver {
         plotter_clE.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         plotter_clE.currentRegion().plot(meanClusterEnergy);
         
-        plotterFrame.addPlotter(plotter_clE);
+        //plotterFrame.addPlotter(plotter_clE);
         
         
             
-        if(!hideFrame) {
-
-            plotterFrame.pack();
-            plotterFrame.setVisible(true);
-        }
+        //if(!hideFrame) {            
+        //    plotterFrame.pack();
+        //    plotterFrame.setVisible(true);
+        //}
                
         
         

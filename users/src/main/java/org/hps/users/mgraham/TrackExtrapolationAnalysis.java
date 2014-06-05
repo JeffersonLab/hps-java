@@ -16,7 +16,6 @@ import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -32,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class TrackExtrapolationAnalysis extends Driver {
 
-    private AIDAFrame extrapFrame;
+    //private AIDAFrame extrapFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
@@ -63,12 +62,12 @@ public class TrackExtrapolationAnalysis extends Driver {
     protected void detectorChanged(Detector detector) {
         this.detector = detector;
         aida.tree().cd("/");
-        extrapFrame = new AIDAFrame();
-        extrapFrame.setTitle("Extrapolation Debugging Plots");
+        //extrapFrame = new AIDAFrame();
+        //extrapFrame.setTitle("Extrapolation Debugging Plots");
         makeExtrapolationPlots();
 
-        extrapFrame.pack();
-        extrapFrame.setVisible(true);
+        //extrapFrame.pack();
+        //extrapFrame.setVisible(true);
 
     }
 
@@ -227,7 +226,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap0 = fac.createPlotterFactory().create("HPS Tracking Plots");
         extrap0.setTitle("New Track extrapolation");
-        extrapFrame.addPlotter(extrap0);
+        //extrapFrame.addPlotter(extrap0);
         IPlotterStyle style0 = extrap0.style();
         style0.dataStyle().fillStyle().setColor("yellow");
         style0.dataStyle().errorBarStyle().setVisible(false);
@@ -252,7 +251,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap1 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap1.setTitle("HPSTrack Plots");
-        extrapFrame.addPlotter(extrap1);
+        //extrapFrame.addPlotter(extrap1);
         set2DStyle(extrap1.style());
         extrap1.createRegions(1, 2);
 
@@ -265,7 +264,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap2 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap2.setTitle("HPSTrack vs SLT Plots");
-        extrapFrame.addPlotter(extrap2);
+        //extrapFrame.addPlotter(extrap2);
         set2DStyle(extrap2.style());
         extrap2.createRegions(1, 2);
 
@@ -278,7 +277,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap3 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap3.setTitle("Extend vs SLT Plots");
-        extrapFrame.addPlotter(extrap3);
+        //extrapFrame.addPlotter(extrap3);
         set2DStyle(extrap3.style());
         extrap3.createRegions(1, 2);
 
@@ -290,7 +289,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap4 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap4.setTitle("Nominal Track Trajectory");
-        extrapFrame.addPlotter(extrap4);
+        //extrapFrame.addPlotter(extrap4);
         set2DStyle(extrap4.style());
         extrap4.createRegions(1, 2);
 
@@ -301,7 +300,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap5 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap5.setTitle("Nominal Direction");
-        extrapFrame.addPlotter(extrap5);
+        //extrapFrame.addPlotter(extrap5);
         set2DStyle(extrap5.style());
         extrap5.createRegions(1, 2);
 
@@ -314,7 +313,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap7 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap7.setTitle("Track @ 0");
-        extrapFrame.addPlotter(extrap7);
+        //extrapFrame.addPlotter(extrap7);
         set2DStyle(extrap7.style());
 
         extrap7.createRegions(1, 2);
@@ -327,7 +326,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap8 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap8.setTitle("Track X vs dX");
-        extrapFrame.addPlotter(extrap8);
+        //extrapFrame.addPlotter(extrap8);
         set2DStyle(extrap8.style());
 
         extrap8.createRegions(2, 2);
@@ -343,7 +342,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap9 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap9.setTitle("Track X vs P");
-        extrapFrame.addPlotter(extrap9);
+        //extrapFrame.addPlotter(extrap9);
         set2DStyle(extrap9.style());
 
         extrap9.createRegions(2, 2);
@@ -359,7 +358,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap10 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap10.setTitle("Track dX vs P");
-        extrapFrame.addPlotter(extrap10);
+        //extrapFrame.addPlotter(extrap10);
         set2DStyle(extrap10.style());
 
         extrap10.createRegions(2, 2);
@@ -377,7 +376,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap6 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap6.setTitle("@ ECal HPS vs Extend");
-        extrapFrame.addPlotter(extrap6);
+        //extrapFrame.addPlotter(extrap6);
         set2DStyle(extrap6.style());
 
         extrap6.createRegions(1, 2);
@@ -389,7 +388,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap11 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap11.setTitle("@ ECal HPS vs Cluster");
-        extrapFrame.addPlotter(extrap11);
+        //extrapFrame.addPlotter(extrap11);
         set2DStyle(extrap11.style());
 
         extrap11.createRegions(1, 2);
@@ -403,7 +402,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap12 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap12.setTitle("Cluster Resid X");
-        extrapFrame.addPlotter(extrap12);
+        //extrapFrame.addPlotter(extrap12);
         set1DStyle(extrap10.style());
 
         extrap12.createRegions(2, 2);
@@ -420,7 +419,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         extrap13 = fac.createPlotterFactory().create("Extrapolation Debug Plots");
         extrap13.setTitle("Cluster Resid Y");
-        extrapFrame.addPlotter(extrap13);
+        //extrapFrame.addPlotter(extrap13);
         set1DStyle(extrap10.style());
 
         extrap13.createRegions(2, 2);

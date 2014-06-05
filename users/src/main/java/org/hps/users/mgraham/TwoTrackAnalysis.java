@@ -21,7 +21,6 @@ import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Resettable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -46,7 +45,7 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
     public String outputTextName = "myevents.txt";
     FileWriter fw;
     PrintWriter pw;
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     IPlotter plotter;
     IPlotter plotter2;
@@ -65,19 +64,19 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
 
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
-        if (showPlots) {
-            plotterFrame = new AIDAFrame();
-            plotterFrame.setTitle("HPS Tracking Plots");
-        }
+        //if (showPlots) {
+        //    plotterFrame = new AIDAFrame();
+        //    plotterFrame.setTitle("HPS Tracking Plots");
+        //}
         plotter = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter.setTitle("Momentum");
         IPlotterStyle style = plotter.style();
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2, 2);
-        if (showPlots) {
-            plotterFrame.addPlotter(plotter);
-        }
+        //if (showPlots) {
+        //    plotterFrame.addPlotter(plotter);
+        //}
 
         IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 25, -0.25, 0.25);
         IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 25, -0.1, 0.1);
@@ -97,9 +96,9 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
         plotter2.style().dataStyle().fillStyle().setColor("yellow");
         plotter2.style().dataStyle().errorBarStyle().setVisible(false);
         plotter2.createRegions(2, 2);
-        if (showPlots) {
-            plotterFrame.addPlotter(plotter2);
-        }
+        //if (showPlots) {
+        //    plotterFrame.addPlotter(plotter2);
+        //}
 
         IHistogram1D xvert = aida.histogram1D("XVertex", 40, -30, 50);
         IHistogram1D yvert = aida.histogram1D("YVertex", 40, -35, 30);
@@ -116,9 +115,9 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
         plotter4.style().dataStyle().fillStyle().setColor("yellow");
         plotter4.style().dataStyle().errorBarStyle().setVisible(false);
         plotter4.createRegions(2, 2);
-        if (showPlots) {
-            plotterFrame.addPlotter(plotter4);
-        }
+        //if (showPlots) {
+        //    plotterFrame.addPlotter(plotter4);
+        //}
 
         IHistogram1D xvertns = aida.histogram1D("XVertex with y cut", 40, -30, 50);
         IHistogram1D yvertns = aida.histogram1D("YVertex with y cut", 40, -35, 30);
@@ -136,9 +135,9 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
         plotter3.style().dataStyle().fillStyle().setColor("yellow");
         plotter3.style().dataStyle().errorBarStyle().setVisible(false);
         plotter3.createRegions(2, 2);
-        if (showPlots) {
-            plotterFrame.addPlotter(plotter3);
-        }
+        //if (showPlots) {
+        //    plotterFrame.addPlotter(plotter3);
+        //}
         IHistogram1D xAtConvert = aida.histogram1D("X (mm) @ Converter using Map", 50, -50, 50);
         IHistogram1D yAtConvert = aida.histogram1D("Y (mm) @ Converter using Map", 50, -20, 20);
         IHistogram1D xAtConvertSLT = aida.histogram1D("X (mm) @ Converter using SLT", 50, -50, 50);
@@ -153,9 +152,9 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
         plotter5.style().dataStyle().fillStyle().setColor("yellow");
         plotter5.style().dataStyle().errorBarStyle().setVisible(false);
         //plotter5.createRegions(2, 2);
-        if (showPlots) {
-            plotterFrame.addPlotter(plotter5);
-        }
+        //if (showPlots) {
+        //    plotterFrame.addPlotter(plotter5);
+        //}
         IHistogram1D invMass = aida.histogram1D("Invariant Mass", 50, 0, .4);
 
         plotter5.region(0).plot(invMass);
@@ -239,10 +238,10 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
         plotter8.region(1).plot(xzemt);
         plotter8.region(2).plot(yzemt);
 
-        if (showPlots) {
-            plotterFrame.pack();
-            plotterFrame.setVisible(true);
-        }
+        //if (showPlots) {
+        //    plotterFrame.pack();
+        //    plotterFrame.setVisible(true);
+        //}
     }
 
     public void setIsMC(boolean setit) {

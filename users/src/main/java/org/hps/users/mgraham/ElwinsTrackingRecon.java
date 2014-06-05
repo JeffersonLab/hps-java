@@ -18,11 +18,10 @@ import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.DumbShaperFit;
-import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
+import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -48,11 +47,11 @@ import Jama.SingularValueDecomposition;
  */
 public class ElwinsTrackingRecon extends Driver implements Resettable {
 
-    private AIDAFrame plotterFrame;
-    private AIDAFrame topFrame;
-    private AIDAFrame bottomFrame;
-    private AIDAFrame chargeFrame;
-    private AIDAFrame twotrackFrame;
+    //private AIDAFrame plotterFrame;
+    //private AIDAFrame topFrame;
+    //private AIDAFrame bottomFrame;
+    //private AIDAFrame chargeFrame;
+    //private AIDAFrame twotrackFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
@@ -122,11 +121,11 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
     protected void detectorChanged(Detector detector) {
         this.detector = detector;
         aida.tree().cd("/");
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("HPS Tracking Plots");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("HPS Tracking Plots");
 
-        twotrackFrame = new AIDAFrame();
-        twotrackFrame.setTitle("Two Track Plots");
+        //twotrackFrame = new AIDAFrame();
+        //twotrackFrame.setTitle("Two Track Plots");
 
         sensors = detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
 
@@ -137,7 +136,7 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2, 2);
-        plotterFrame.addPlotter(plotter);
+        //plotterFrame.addPlotter(plotter);
 
         trkPx = aida.histogram1D("Track X Momentum", 25, -0.25, 0.25);
         IHistogram1D trkPy = aida.histogram1D("Track Y Momentum", 25, -0.1, 0.1);
@@ -152,7 +151,7 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
 
         plotter2 = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter2.setTitle("Track extrapolation");
-        plotterFrame.addPlotter(plotter2);
+        //plotterFrame.addPlotter(plotter2);
         IPlotterStyle style2 = plotter2.style();
         style2.dataStyle().fillStyle().setColor("yellow");
         style2.dataStyle().errorBarStyle().setVisible(false);
@@ -177,7 +176,7 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
 
         twotrkextra = fac.createPlotterFactory().create("Two Trk Extrapolation");
         twotrkextra.setTitle("Stuff");
-        plotterFrame.addPlotter(twotrkextra);
+        //plotterFrame.addPlotter(twotrkextra);
         IPlotterStyle styletwo = twotrkextra.style();
         styletwo.dataStyle().fillStyle().setColor("blue");
         styletwo.dataStyle().errorBarStyle().setVisible(false);
@@ -199,7 +198,7 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
 
         plotter222 = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter222.setTitle("Other");
-        plotterFrame.addPlotter(plotter222);
+        //plotterFrame.addPlotter(plotter222);
         IPlotterStyle style222 = plotter222.style();
         style222.dataStyle().fillStyle().setColor("yellow");
         style222.dataStyle().errorBarStyle().setVisible(false);
@@ -220,8 +219,8 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
         plotter222.region(5).plot(ampcl2);
 
 
-        plotterFrame.pack();
-        plotterFrame.setVisible(true);
+        //plotterFrame.pack();
+        //plotterFrame.setVisible(true);
 
 
         twotrkextra2 = fac.createPlotterFactory().create("Two Trk Uncertainties");
@@ -377,26 +376,26 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
         plotter9017.createRegions(2, 2);
         threetrack.createRegion();
 
-        twotrackFrame.addPlotter(plotter9000);
-        twotrackFrame.addPlotter(plotter9001);
-        twotrackFrame.addPlotter(plotter9002);
-        twotrackFrame.addPlotter(plotter9003);
-        twotrackFrame.addPlotter(plotter9004);
-        twotrackFrame.addPlotter(plotter9005);
-        twotrackFrame.addPlotter(plotter9006);
-        twotrackFrame.addPlotter(plotter9007);
-        twotrackFrame.addPlotter(plotter9008);
-        twotrackFrame.addPlotter(plotter9009);
-        twotrackFrame.addPlotter(plotter9010);
-        twotrackFrame.addPlotter(plotter9011);
-        twotrackFrame.addPlotter(plotter9012);
+//        twotrackFrame.addPlotter(plotter9000);
+//        twotrackFrame.addPlotter(plotter9001);
+//        twotrackFrame.addPlotter(plotter9002);
+//        twotrackFrame.addPlotter(plotter9003);
+//        twotrackFrame.addPlotter(plotter9004);
+//        twotrackFrame.addPlotter(plotter9005);
+//        twotrackFrame.addPlotter(plotter9006);
+//        twotrackFrame.addPlotter(plotter9007);
+//        twotrackFrame.addPlotter(plotter9008);
+//        twotrackFrame.addPlotter(plotter9009);
+//        twotrackFrame.addPlotter(plotter9010);
+//        twotrackFrame.addPlotter(plotter9011);
+//        twotrackFrame.addPlotter(plotter9012);
         //   twotrackFrame.addPlotter(plotter9013);
         //  twotrackFrame.addPlotter(plotter9014);
-        twotrackFrame.addPlotter(plotter9015);
-        twotrackFrame.addPlotter(plotter9016);
-        twotrackFrame.addPlotter(plotter9017);
-        twotrackFrame.addPlotter(twotrkextra2);
-        twotrackFrame.addPlotter(threetrack);
+//        twotrackFrame.addPlotter(plotter9015);
+//        twotrackFrame.addPlotter(plotter9016);
+//        twotrackFrame.addPlotter(plotter9017);
+//        twotrackFrame.addPlotter(twotrkextra2);
+//        twotrackFrame.addPlotter(threetrack);
 
         IHistogram1D trkbins = aida.histogram1D("Track Distributions", 5, -2, 3);
         IHistogram2D twtrkptot = aida.histogram2D("Total P+ vs. P-", 60, 0, 4, 60, 0, 4);
@@ -457,8 +456,8 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
         IHistogram2D yzept = aida.histogram2D("Y v Z - e+ Top", 50, -35, 30, 50, -800, -450);
         IHistogram1D three = aida.histogram1D("Three Track Invariant Mass", 50, 0, .4);
 
-        twotrackFrame.pack();
-        twotrackFrame.setVisible(true);
+        //twotrackFrame.pack();
+        //twotrackFrame.setVisible(true);
 
         plotter9000.region(0).plot(trkbins);
         plotter9001.region(0).plot(twtrkptot);
@@ -1489,9 +1488,9 @@ public class ElwinsTrackingRecon extends Driver implements Resettable {
                 Logger.getLogger(ElwinsTrackingRecon.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        plotterFrame.dispose();
-        topFrame.dispose();
-        bottomFrame.dispose();
+        //plotterFrame.dispose();
+        //topFrame.dispose();
+        //bottomFrame.dispose();
     }
 
     private HPSEcalCluster findClosestCluster(Hep3Vector posonhelix, List<HPSEcalCluster> clusters) {

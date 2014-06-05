@@ -11,7 +11,6 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -25,7 +24,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     private String subdetectorName;
     private String inputCollection;
     private IPlotter plotter;
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida;
     private Detector detector;
     private IDDecoder dec;
@@ -90,17 +89,17 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     }
 
     private void setupPlots() {
-        if (plotterFrame != null) {
-            plotterFrame.dispose();
-        }
+        //if (plotterFrame != null) {
+        //    plotterFrame.dispose();
+        //}
 
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
         plotter = aida.analysisFactory().createPlotterFactory().create("HPS ECAL Window Plots");
 
-        plotterFrame = new AIDAFrame();
-        plotterFrame.addPlotter(plotter);
-        plotterFrame.setVisible(true);
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.addPlotter(plotter);
+        //plotterFrame.setVisible(true);
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().errorBarStyle().setVisible(false);
         windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
@@ -110,21 +109,21 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
         xCombo.addActionListener(this);
         xLabel = new JLabel("x");
         xLabel.setLabelFor(xCombo);
-        plotterFrame.getControlsPanel().add(xLabel);
-        plotterFrame.getControlsPanel().add(xCombo);
+        //plotterFrame.getControlsPanel().add(xLabel);
+        //plotterFrame.getControlsPanel().add(xCombo);
         yCombo = new JComboBox(yList);
         yCombo.addActionListener(this);
         yLabel = new JLabel("y");
         yLabel.setLabelFor(yCombo);
-        plotterFrame.getControlsPanel().add(yLabel);
-        plotterFrame.getControlsPanel().add(yCombo);
-        plotterFrame.pack();
+        //plotterFrame.getControlsPanel().add(yLabel);
+        //plotterFrame.getControlsPanel().add(yCombo);
+        //plotterFrame.pack();
     }
 
     public void endOfData() {
-        if (plotterFrame != null) {
-            plotterFrame.dispose();
-        }
+        //if (plotterFrame != null) {
+        //    plotterFrame.dispose();
+        //}
     }
 
     public void process(EventHeader event) {

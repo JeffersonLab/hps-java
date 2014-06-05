@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -36,7 +35,7 @@ public class CmpGenToFittedTracksDriver extends Driver {
     private boolean hideFrame = false;
     private boolean _debug = false;
     
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     ICloud1D _h_chi2;
     ICloud1D _h_ntracksdiff;
     ICloud1D _h_d0_diff;
@@ -180,12 +179,12 @@ public class CmpGenToFittedTracksDriver extends Driver {
         
         
         
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("Compare Generated and Fitted Tracks");
-        plotterFrame.addPlotter(_plotter_trackparamdiff);
-        plotterFrame.addPlotter(_plotter_others);
-        plotterFrame.pack();
-        plotterFrame.setVisible(!hideFrame);
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("Compare Generated and Fitted Tracks");
+        //plotterFrame.addPlotter(_plotter_trackparamdiff);
+        //plotterFrame.addPlotter(_plotter_others);
+        //plotterFrame.pack();
+        //plotterFrame.setVisible(!hideFrame);
         
     }
     

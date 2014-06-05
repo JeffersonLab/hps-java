@@ -26,7 +26,6 @@ import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.apv25.SvtReadout;
-import org.hps.util.AIDAFrame;
 //--- lcsim ---//
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;

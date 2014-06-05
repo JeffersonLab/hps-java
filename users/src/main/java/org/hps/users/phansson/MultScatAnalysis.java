@@ -20,7 +20,6 @@ import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.AIDAFrame;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -72,8 +71,8 @@ public class MultScatAnalysis extends Driver {
     private AIDA aida = AIDA.defaultInstance();
     private IAnalysisFactory af = aida.analysisFactory();
     IHistogramFactory hf = aida.histogramFactory();
-    private AIDAFrame plotterFrame;
-    private AIDAFrame plotterFrameTrig;
+    //private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrameTrig;
     
     IPlotter plotter_trig_tag;
     IPlotter plotter_cltrkmatchE;
@@ -108,13 +107,13 @@ public class MultScatAnalysis extends Driver {
         
         if(doTriggerPart) {
 
-            plotterFrameTrig = new AIDAFrame();
-            plotterFrameTrig.setTitle("Trigger");
+            //plotterFrameTrig = new AIDAFrame();
+            //plotterFrameTrig.setTitle("Trigger");
 
             IPlotter plotter_trig_other = af.createPlotterFactory().create();
             plotter_trig_other.createRegions(3,1,0);
             plotter_trig_other.setTitle("Other");
-            plotterFrameTrig.addPlotter(plotter_trig_other);
+            //plotterFrameTrig.addPlotter(plotter_trig_other);
 
 
             IHistogram ht1 = aida.histogram1D("trigger_count" , 7, 0, 7); 
@@ -137,7 +136,7 @@ public class MultScatAnalysis extends Driver {
             plotter_trig_tag = af.createPlotterFactory().create();
             plotter_trig_tag.createRegions(3,3,0);
             plotter_trig_tag.setTitle("Tag&Probe Top");
-            plotterFrameTrig.addPlotter(plotter_trig_tag);
+            //plotterFrameTrig.addPlotter(plotter_trig_tag);
             IHistogram htag1 = aida.histogram1D("toptrig_cl_ecal_n_top" , 7, 0, 7); 
             IHistogram htag2 = aida.histogram1D("toptrig_cl_ecal_e_top" , 100, 0, 1500); 
             IHistogram htag3 = aida.histogram1D("toptrig_cl_ecal_emax_top" , 100, 0, 1500); 
@@ -169,19 +168,19 @@ public class MultScatAnalysis extends Driver {
 
             IPlotter plotter_trig_tag2 = af.createPlotterFactory().create();
             plotter_trig_tag2.setTitle("Tag&Probe Top Counts");
-            plotterFrameTrig.addPlotter(plotter_trig_tag2);
+            //plotterFrameTrig.addPlotter(plotter_trig_tag2);
             IHistogram htag10 = aida.histogram1D("toptrig_cl_ecal_n_bottom" , 7, 0, 7); 
             plotter_trig_tag2.createRegion().plot(htag10);
 
-            if(!hide) {
-                plotterFrameTrig.pack();
-                plotterFrameTrig.setVisible(true);
-            }
+            //if(!hide) {
+            //    plotterFrameTrig.pack();
+            //    plotterFrameTrig.setVisible(true);
+            //}
 
         }
 
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("General");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("General");
         
         
         
@@ -209,12 +208,12 @@ public class MultScatAnalysis extends Driver {
         plotter_ecal_cls.createRegions(2,3,0);
         plotter_ecal_cls.setTitle("Ecal Cluster size");
 
-        plotterFrame.addPlotter(plotter_ecal_e);
-        plotterFrame.addPlotter(plotter_ecal_crhitmap);
-        plotterFrame.addPlotter(plotter_ecal_cramp);
-        plotterFrame.addPlotter(plotter_ecal_hitmap);
-        plotterFrame.addPlotter(plotter_ecal_pos);
-        plotterFrame.addPlotter(plotter_ecal_cls);
+        //plotterFrame.addPlotter(plotter_ecal_e);
+        //plotterFrame.addPlotter(plotter_ecal_crhitmap);
+        //plotterFrame.addPlotter(plotter_ecal_cramp);
+        //plotterFrame.addPlotter(plotter_ecal_hitmap);
+        //plotterFrame.addPlotter(plotter_ecal_pos);
+        //plotterFrame.addPlotter(plotter_ecal_cls);
         
         
 
@@ -222,7 +221,7 @@ public class MultScatAnalysis extends Driver {
             plotter_track_mom_pos.createRegions(3,3,0);
             plotter_track_mom_pos.setTitle("Track Momentum vs Position");
             plotter_track_mom_pos.style().statisticsBoxStyle().setVisible(false);
-            plotterFrame.addPlotter(plotter_track_mom_pos);
+            //plotterFrame.addPlotter(plotter_track_mom_pos);
             IHistogram hPzVsX_t = aida.histogram2D("Top track Pz vs X" , 25, -500,500, 50, 0, 3500);
             IHistogram hPzVsX_b = aida.histogram2D("Bottom track Pz vs X" , 25, -500,500, 50, 0, 3500);
             IHistogram hPzVsX_a = aida.histogram2D("Track Pz vs X" , 25, -500,500, 50, 0, 3500);
@@ -253,7 +252,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_mom = af.createPlotterFactory().create();
             plotter_track_mom.createRegions(3,3,0);
             plotter_track_mom.setTitle("Track Momentum");
-            plotterFrame.addPlotter(plotter_track_mom);
+            //plotterFrame.addPlotter(plotter_track_mom);
             IHistogram hPz_t = aida.histogram1D("Top track Pz" , 50, 0, 3500);
             IHistogram hPz_b = aida.histogram1D("Bottom track Pz" , 50, 0, 3500);
             IHistogram hPz_a = aida.histogram1D("Track Pz" , 50, 0, 3500);
@@ -278,7 +277,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_mom2 = af.createPlotterFactory().create();
             plotter_track_mom2.createRegions(3,3,0);
             plotter_track_mom2.setTitle("Track Momentum Target Outliers X");
-            plotterFrame.addPlotter(plotter_track_mom2);
+            //plotterFrame.addPlotter(plotter_track_mom2);
             IHistogram hPzTX_t = aida.histogram1D("Top track !target in X Pz" , 50, 0, 3500);
             IHistogram hPzTX_b = aida.histogram1D("Bottom track !target in X Pz" , 50, 0, 3500);
             IHistogram hPzTX_a = aida.histogram1D("Track !target in X Pz" , 50, 0, 3500);
@@ -304,7 +303,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext = af.createPlotterFactory().create();
             plotter_track_ext.createRegions(2,3,0);
             plotter_track_ext.setTitle("Track @ Target");
-            plotterFrame.addPlotter(plotter_track_ext);
+            //plotterFrame.addPlotter(plotter_track_ext);
             IHistogram hTrkXAtConv_t = aida.histogram1D("Top track X @ -67cm" , 50, -100, 100);
             IHistogram hTrkYAtConv_t = aida.histogram1D("Top track Y @ -67cm" , 50, -20, 20);
             IHistogram hTrkXAtConv_b = aida.histogram1D("Bottom track X @ -67cm" , 50, -100, 100);
@@ -334,7 +333,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext_entr = af.createPlotterFactory().create();
             plotter_track_ext_entr.createRegions(2,3,0);
             plotter_track_ext_entr.setTitle("Track @ 0cm"); 
-            plotterFrame.addPlotter(plotter_track_ext_entr);
+            //plotterFrame.addPlotter(plotter_track_ext_entr);
             IHistogram hTrkXAtEntr_t = aida.histogram1D("Top track X @ 0cm" , 50, -100, 100);
             IHistogram hTrkYAtEntr_t = aida.histogram1D("Top track Y @ 0cm" , 50, -40, 40);
             IHistogram hTrkXAtEntr_b = aida.histogram1D("Bottom track X @ 0cm" , 50, -100, 100);
@@ -366,7 +365,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext_coll = af.createPlotterFactory().create();
             plotter_track_ext_coll.createRegions(2,3,0);
             plotter_track_ext_coll.setTitle("Track @ -150cm"); 
-            plotterFrame.addPlotter(plotter_track_ext_coll);
+            //plotterFrame.addPlotter(plotter_track_ext_coll);
             IHistogram hTrkXAtColl_t = aida.histogram1D("Top track X @ -150cm" , 50, -100, 100);
             IHistogram hTrkYAtColl_t = aida.histogram1D("Top track Y @ -150cm" , 50, -40, 40);
             IHistogram hTrkXAtColl_b = aida.histogram1D("Bottom track X @ -150cm" , 50, -100, 100);
@@ -401,7 +400,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext2 = af.createPlotterFactory().create();
             plotter_track_ext2.createRegions(2,3,0);
             plotter_track_ext2.setTitle("Matched track @ Target ");
-            plotterFrame.addPlotter(plotter_track_ext2);
+            //plotterFrame.addPlotter(plotter_track_ext2);
             IHistogram hmTrkXAtConv_t = aida.histogram1D("Top matched track X @ -67cm" , 50, -100, 100);
             IHistogram hmTrkYAtConv_t = aida.histogram1D("Top matched track Y @ -67cm" , 50, -20, 20);
             IHistogram hmTrkXAtConv_b = aida.histogram1D("Bottom matched track X @ -67cm" , 50, -100, 100);
@@ -423,7 +422,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext3 = af.createPlotterFactory().create();
             plotter_track_ext3.createRegions(2,3,0);
             plotter_track_ext3.setTitle("Matched sel track @ Target");
-            plotterFrame.addPlotter(plotter_track_ext3);
+            //plotterFrame.addPlotter(plotter_track_ext3);
             IHistogram hmsTrkXAtConv_t = aida.histogram1D("Top sel matched track X @ -67cm" , 50, -100, 100);
             IHistogram hmsTrkYAtConv_t = aida.histogram1D("Top sel matched track Y @ -67cm" , 50, -100, 100);
             IHistogram hmsTrkXAtConv_b = aida.histogram1D("Bottom sel matched track X @ -67cm" , 50, -100, 100);
@@ -443,7 +442,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext4 = af.createPlotterFactory().create();
             plotter_track_ext4.createRegions(2,3,0);
             plotter_track_ext4.setTitle("Track @ Target Pos. Charge");
-            plotterFrame.addPlotter(plotter_track_ext4);
+            //plotterFrame.addPlotter(plotter_track_ext4);
             IHistogram hTrkXAtConvqp_t = aida.histogram1D("Top track q>0 X @ -67cm" , 50, -100, 100);
             IHistogram hTrkYAtConvqp_t = aida.histogram1D("Top track q>0 Y @ -67cm" , 50, -20, 20);
             IHistogram hTrkXAtConvqp_b = aida.histogram1D("Bottom track q>0 X @ -67cm" , 50, -100, 100);
@@ -476,7 +475,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext4_entr = af.createPlotterFactory().create();
             plotter_track_ext4_entr.createRegions(2,3,0);
             plotter_track_ext4_entr.setTitle("Track @ 0cm Pos. Charge");
-            plotterFrame.addPlotter(plotter_track_ext4_entr);
+            //plotterFrame.addPlotter(plotter_track_ext4_entr);
             IHistogram hTrkXAtEntrqp_t = aida.histogram1D("Top track q>0 X @ 0cm" , 50, -100, 100);
             IHistogram hTrkYAtEntrqp_t = aida.histogram1D("Top track q>0 Y @ 0cm" , 50, -40, 40);
             IHistogram hTrkXAtEntrqp_b = aida.histogram1D("Bottom track q>0 X @ 0cm" , 50, -100, 100);
@@ -509,7 +508,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext5 = af.createPlotterFactory().create();
             plotter_track_ext5.createRegions(2,3,0);
             plotter_track_ext5.setTitle("Track @ Target Neg. Charge");
-            plotterFrame.addPlotter(plotter_track_ext5);
+            //plotterFrame.addPlotter(plotter_track_ext5);
             IHistogram hTrkXAtConvqm_t = aida.histogram1D("Top track q<0 X @ -67cm" , 50, -100, 100);
             IHistogram hTrkYAtConvqm_t = aida.histogram1D("Top track q<0 Y @ -67cm" , 50, -20, 20);
             IHistogram hTrkXAtConvqm_b = aida.histogram1D("Bottom track q<0 X @ -67cm" , 50, -100, 100);
@@ -540,7 +539,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext5_entr = af.createPlotterFactory().create();
             plotter_track_ext5_entr.createRegions(2,3,0);
             plotter_track_ext5_entr.setTitle("Track @ 0cm Neg. Charge");
-            plotterFrame.addPlotter(plotter_track_ext5_entr);
+            //plotterFrame.addPlotter(plotter_track_ext5_entr);
             IHistogram hTrkXAtEntrqm_t = aida.histogram1D("Top track q<0 X @ 0cm" , 50, -100, 100);
             IHistogram hTrkYAtEntrqm_t = aida.histogram1D("Top track q<0 Y @ 0cm" , 50, -40, 40);
             IHistogram hTrkXAtEntrqm_b = aida.histogram1D("Bottom track q<0 X @ 0cm" , 50, -100, 100);
@@ -578,7 +577,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext6 = af.createPlotterFactory().create();
             plotter_track_ext6.createRegions(2,3,0);
             plotter_track_ext6.setTitle("Matched Track @ Target Pos. Charge");
-            plotterFrame.addPlotter(plotter_track_ext6);
+            //plotterFrame.addPlotter(plotter_track_ext6);
             IHistogram hmTrkXAtConvqp_t = aida.histogram1D("Top matched track q>0 X @ -67cm" , 50, -100, 100);
             IHistogram hmTrkYAtConvqp_t = aida.histogram1D("Top matched track q>0 Y @ -67cm" , 50, -20, 20);
             IHistogram hmTrkXAtConvqp_b = aida.histogram1D("Bottom matched track q>0 X @ -67cm" , 50, -100, 100);
@@ -595,7 +594,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_ext7 = af.createPlotterFactory().create();
             plotter_track_ext7.createRegions(2,3,0);
             plotter_track_ext7.setTitle("Matched Track @ Target Neg. Charge");
-            plotterFrame.addPlotter(plotter_track_ext7);
+            //plotterFrame.addPlotter(plotter_track_ext7);
             IHistogram hmTrkXAtConvqm_t = aida.histogram1D("Top matched track q<0 X @ -67cm" , 50, -100, 100);
             IHistogram hmTrkYAtConvqm_t = aida.histogram1D("Top matched track q<0 Y @ -67cm" , 50, -20, 20);
             IHistogram hmTrkXAtConvqm_b = aida.histogram1D("Bottom matched track q<0 X @ -67cm" , 50, -100, 100);
@@ -616,7 +615,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_chi2 = af.createPlotterFactory().create();
             plotter_track_chi2.createRegions(3,3,0);
             plotter_track_chi2.setTitle("Track Chi2");
-            plotterFrame.addPlotter(plotter_track_chi2);
+            //plotterFrame.addPlotter(plotter_track_chi2);
             IHistogram hChi2_t = aida.histogram1D("Top track Chi2" , 50, 0, 15);
             IHistogram hChi2_b = aida.histogram1D("Bottom track Chi2" , 50, 0, 15);
             IHistogram hChi2_a = aida.histogram1D("Track Chi2" , 50, 0, 15);
@@ -642,7 +641,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_track_chi2_2 = af.createPlotterFactory().create();
             plotter_track_chi2_2.createRegions(3,3,0);
             plotter_track_chi2_2.setTitle("Track Chi2 Target Outliers X");
-            plotterFrame.addPlotter(plotter_track_chi2_2);
+            //plotterFrame.addPlotter(plotter_track_chi2_2);
             IHistogram hChi2TX_t = aida.histogram1D("Top track !target in X Chi2" , 50, 0, 15);
             IHistogram hChi2TX_b = aida.histogram1D("Bottom track !target in X Chi2" , 50, 0, 15);
             IHistogram hChi2TX_a = aida.histogram1D("Track !target in X Chi2" , 50, 0, 15);
@@ -682,7 +681,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_ecal_clsxm = af.createPlotterFactory().create();
             plotter_ecal_clsxm.createRegions(2,3,0);
             plotter_ecal_clsxm.setTitle("Ecal Cluster size matched");
-            plotterFrame.addPlotter(plotter_ecal_clsxm);
+            //plotterFrame.addPlotter(plotter_ecal_clsxm);
 
             plotter_ecal_clsxm.region(0).plot(hmcls_t);
             plotter_ecal_clsxm.region(1).plot(hmcls_b);
@@ -708,7 +707,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_ecal_clsxm2 = af.createPlotterFactory().create();
             plotter_ecal_clsxm2.createRegions(2,3,0);
             plotter_ecal_clsxm2.setTitle("Ecal Cluster size matched Trk Pz");
-            plotterFrame.addPlotter(plotter_ecal_clsxm2);
+            //plotterFrame.addPlotter(plotter_ecal_clsxm2);
 
             plotter_ecal_clsxm2.region(0).plot(hmHMcls_t);
             plotter_ecal_clsxm2.region(1).plot(hmHMcls_b);
@@ -733,7 +732,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_nclmatch = af.createPlotterFactory().create();
             plotter_nclmatch.createRegions(2,3,0);
             plotter_nclmatch.setTitle("Ecal track match # dR<20.0");
-            plotterFrame.addPlotter(plotter_nclmatch);
+            //plotterFrame.addPlotter(plotter_nclmatch);
             plotter_nclmatch.region(0).plot(hnclmatch_t);
             plotter_nclmatch.region(1).plot(hnclmatch_b);
             plotter_nclmatch.region(2).plot(hnclmatch_a);
@@ -753,7 +752,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_nclmatchY = af.createPlotterFactory().create();
             plotter_nclmatchY.createRegions(2,3,0);
             plotter_nclmatchY.setTitle("Ecal track match # dY<20.0");
-            plotterFrame.addPlotter(plotter_nclmatchY);
+            //plotterFrame.addPlotter(plotter_nclmatchY);
             plotter_nclmatchY.region(0).plot(hnclmatchY_t);
             plotter_nclmatchY.region(1).plot(hnclmatchY_b);
             plotter_nclmatchY.region(2).plot(hnclmatchY_a);
@@ -767,7 +766,7 @@ public class MultScatAnalysis extends Driver {
             plotter_clmatchpos.createRegions(2,3,0);
             plotter_clmatchpos.setTitle("Cluster track match pos");
             plotter_clmatchpos.style().statisticsBoxStyle().setVisible(false);
-            plotterFrame.addPlotter(plotter_clmatchpos);
+            //plotterFrame.addPlotter(plotter_clmatchpos);
 
             IHistogram hclmatchpos_a = aida.histogram2D("Track matched cluster pos",51,-25.5,25.5,11,-5.5,5.5);
             IHistogram hclmatchpos_t = aida.histogram2D("Track matched top cluster pos",51,-25.5,25.5,6,-0.5,5.5);
@@ -795,7 +794,7 @@ public class MultScatAnalysis extends Driver {
             IPlotter plotter_clunmatchpos = af.createPlotterFactory().create();
             plotter_clunmatchpos.createRegions(2,3,0);
             plotter_clunmatchpos.setTitle("Cluster track unmatched pos");
-            plotterFrame.addPlotter(plotter_clunmatchpos);
+            //plotterFrame.addPlotter(plotter_clunmatchpos);
 
             IHistogram hsclunmatchpos_a = aida.histogram2D("Track unmatched sel cluster pos",50,-500,500,50,-100,100);
             IHistogram hsclunmatchpos_t = aida.histogram2D("Track unmatched sel top cluster pos",50,-500,500,50,-100,100);
@@ -822,7 +821,7 @@ public class MultScatAnalysis extends Driver {
         IPlotter plotter_cln = af.createPlotterFactory().create();
         plotter_cln.createRegions(2,3,0);
         plotter_cln.setTitle("Cluster multiplicity");
-        plotterFrame.addPlotter(plotter_cln);
+        //plotterFrame.addPlotter(plotter_cln);
         
         IHistogram hsCln_a = aida.histogram1D("Cluster sel multiplicity",5,0,5);
         IHistogram hsCln_t = aida.histogram1D("Top cluster sel multiplicity",5,0,5);
@@ -851,7 +850,7 @@ public class MultScatAnalysis extends Driver {
         IPlotter plotter_ecal_clsx = af.createPlotterFactory().create();
         plotter_ecal_clsx.createRegions(2,3,0);
         plotter_ecal_clsx.setTitle("Ecal Cluster size");
-        plotterFrame.addPlotter(plotter_ecal_clsx);
+        //plotterFrame.addPlotter(plotter_ecal_clsx);
         
         
          
@@ -898,7 +897,7 @@ public class MultScatAnalysis extends Driver {
         IPlotter plotter_ecal_cltheta = af.createPlotterFactory().create();
         plotter_ecal_cltheta.createRegions(5,3,0);
         plotter_ecal_cltheta.setTitle("Ecal cl theta");
-        plotterFrame.addPlotter(plotter_ecal_cltheta);
+        //plotterFrame.addPlotter(plotter_ecal_cltheta);
         
         plotter_ecal_cltheta.region(0).plot(hth);
         plotter_ecal_cltheta.region(1).plot(hth_t);
@@ -932,7 +931,7 @@ public class MultScatAnalysis extends Driver {
         plotter_ep_x.createRegions(3,2,0);
         plotter_ep_x.setTitle("E over P vs X ");
         plotter_ep_x.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_x);
+        //plotterFrame.addPlotter(plotter_ep_x);
 
         plotter_ep_x.region(0).plot(hEoverPX_t);
         plotter_ep_x.region(1).plot(hEoverPX_b);
@@ -959,7 +958,7 @@ public class MultScatAnalysis extends Driver {
         plotter_ep_x2.createRegions(2,2,0);
         plotter_ep_x2.setTitle("E over P other");
         plotter_ep_x2.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_x2);
+        //plotterFrame.addPlotter(plotter_ep_x2);
 
         plotter_ep_x2.region(0).plot(hnEoverP_t);
         plotter_ep_x2.region(1).plot(hnEoverP_b);
@@ -983,7 +982,7 @@ public class MultScatAnalysis extends Driver {
         plotter_ep_xn.createRegions(2,2,0);
         plotter_ep_xn.setTitle("E over P other 2");
         plotter_ep_xn.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_xn);
+        //plotterFrame.addPlotter(plotter_ep_xn);
 
         plotter_ep_xn.region(0).plot(hnEoverP2_t);
         plotter_ep_xn.region(1).plot(hnEoverP2_b);
@@ -1009,7 +1008,7 @@ public class MultScatAnalysis extends Driver {
         plotter_ep_x3.createRegions(2,2,0);
         plotter_ep_x3.setTitle("E over P other Size>2");
         plotter_ep_x3.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_x3);
+        //plotterFrame.addPlotter(plotter_ep_x3);
 
         plotter_ep_x3.region(0).plot(hnlEoverPX_t);
         plotter_ep_x3.region(1).plot(hnlEoverPX_b);
@@ -1031,7 +1030,7 @@ public class MultScatAnalysis extends Driver {
         plotter_ep_x4.createRegions(1,2,0);
         plotter_ep_x4.setTitle("E over P other Pz>1GeV Size>2");
         plotter_ep_x4.style().statisticsBoxStyle().setVisible(false);
-        plotterFrame.addPlotter(plotter_ep_x4);
+        //plotterFrame.addPlotter(plotter_ep_x4);
 
         plotter_ep_x4.region(0).plot(hnlEoverPX2_t);
         plotter_ep_x4.region(1).plot(hnlEoverPX2_b);
@@ -1123,7 +1122,7 @@ public class MultScatAnalysis extends Driver {
             plotter_ecal_hitmap_corr.createRegions(2,3,0);
             plotter_ecal_hitmap_corr.setTitle("Cluster hit map Corr");
             plotter_ecal_hitmap_corr.style().statisticsBoxStyle().setVisible(false);
-            plotterFrame.addPlotter(plotter_ecal_hitmap_corr);
+            //plotterFrame.addPlotter(plotter_ecal_hitmap_corr);
             
                    
             IHistogram hchm_gr = aida.histogram2D("Cluster hit map good region", 26, -25.5, 0.5, 6, -0.5, 5.5);
@@ -1182,7 +1181,7 @@ public class MultScatAnalysis extends Driver {
             plotter_ecal_tmax.createRegions(4,2,0);
             plotter_ecal_tmax.setTitle("Cluster hit pos tmax");
             plotter_ecal_tmax.style().statisticsBoxStyle().setVisible(false);
-            plotterFrame.addPlotter(plotter_ecal_tmax);
+            //plotterFrame.addPlotter(plotter_ecal_tmax);
             
             IHistogram hposTMaxX_t = aida.histogram1D("Cluster hit X-Xcenter top", 50, -25, 25);
             IHistogram hposTMaxY_t = aida.histogram1D("Cluster hit Y-Ycenter top", 50, -10, 10);
@@ -1224,14 +1223,14 @@ public class MultScatAnalysis extends Driver {
         plotter_clEoverP.createRegions(3,3,0);
         plotter_clEoverP.setTitle("EoverP");
  
-        plotterFrame.addPlotter(plotter_clEoverP);
+        //plotterFrame.addPlotter(plotter_clEoverP);
         
         
         
         IPlotter plotter_cltrkmatch = af.createPlotterFactory().create();
         plotter_cltrkmatch.createRegions(2,3,0);
         plotter_cltrkmatch.setTitle("Ecal track match");
-        plotterFrame.addPlotter(plotter_cltrkmatch);
+        //plotterFrame.addPlotter(plotter_cltrkmatch);
         
         IHistogram hdx_t = aida.histogram1D("Cluster X - track X top" , 25, -1, 500);                        
         IHistogram hdy_t = aida.histogram1D("Cluster Y - track Y top" , 25, -1, 50);                        
@@ -1248,7 +1247,7 @@ public class MultScatAnalysis extends Driver {
         plotter_cltrkmatchE = af.createPlotterFactory().create();
         plotter_cltrkmatchE.createRegions(2,3,0);
         plotter_cltrkmatchE.setTitle("Ecal track match efficiency");
-        plotterFrame.addPlotter(plotter_cltrkmatchE);
+        //plotterFrame.addPlotter(plotter_cltrkmatchE);
         
         
         plotter_cltrkmatchE.region(0).plot(hPz_t);
@@ -1367,11 +1366,11 @@ public class MultScatAnalysis extends Driver {
           }
             
             
-        if(!hide) {
+        //if(!hide) {
 
-            plotterFrame.pack();
-            plotterFrame.setVisible(true);
-        }
+        //    plotterFrame.pack();
+        //    plotterFrame.setVisible(true);
+        //}
                
         
         

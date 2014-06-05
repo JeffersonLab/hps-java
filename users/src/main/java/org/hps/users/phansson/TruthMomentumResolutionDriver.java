@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
@@ -37,7 +36,7 @@ public class TruthMomentumResolutionDriver extends Driver {
     int totalTracks = 0;
     private boolean _debug = false;
     private AIDA aida = AIDA.defaultInstance();
-    private AIDAFrame pFrame;
+    //private AIDAFrame pFrame;
     IAnalysisFactory af = aida.analysisFactory();
     IPlotter pPlotter;
     IPlotter pPlotter2;
@@ -96,14 +95,14 @@ public class TruthMomentumResolutionDriver extends Driver {
         
      
       
-        pFrame = new AIDAFrame();
-        pFrame.setTitle("Truth p Plots");
+        //pFrame = new AIDAFrame();
+        //pFrame.setTitle("Truth p Plots");
         makePlots();
        
    
         
-        pFrame.pack();
-        pFrame.setVisible(!hideFrame);
+        //pFrame.pack();
+        //pFrame.setVisible(!hideFrame);
 
        
     }
@@ -286,7 +285,7 @@ public class TruthMomentumResolutionDriver extends Driver {
     
         pPlotter = af.createPlotterFactory().create("Truth p Plots");
         pPlotter.setTitle("Truth p Plots");
-        pFrame.addPlotter(pPlotter);
+        //pFrame.addPlotter(pPlotter);
         IPlotterStyle style0 = pPlotter.style();
         //style0.dataStyle().fillStyle().setColor("yellow");
         //style0.dataStyle().errorBarStyle().setVisible(false);
@@ -341,7 +340,7 @@ public class TruthMomentumResolutionDriver extends Driver {
         
         pPlotter2 = af.createPlotterFactory().create("Resolution");
         pPlotter2.setTitle("Resolution");
-        pFrame.addPlotter(pPlotter2);
+        //pFrame.addPlotter(pPlotter2);
         style0 = pPlotter2.style();
         //style0.dataStyle().fillStyle().setColor("yellow");
         //style0.dataStyle().errorBarStyle().setVisible(false);
@@ -355,7 +354,7 @@ public class TruthMomentumResolutionDriver extends Driver {
         
         pPlotter22 = af.createPlotterFactory().create("Resolutions");
         pPlotter22.setTitle("Resolutions");
-        pFrame.addPlotter(pPlotter22);
+        //pFrame.addPlotter(pPlotter22);
         style0 = pPlotter22.style();
         //style0.dataStyle().fillStyle().setColor("yellow");
         //style0.dataStyle().errorBarStyle().setVisible(false);
@@ -368,7 +367,7 @@ public class TruthMomentumResolutionDriver extends Driver {
        
         pPlotter3 = af.createPlotterFactory().create("Truth p Plots");
         pPlotter3.setTitle("Prev BS's");
-        pFrame.addPlotter(pPlotter3);
+        //pFrame.addPlotter(pPlotter3);
         pPlotter3.createRegions(2, 5);
         
         for(int i=0;i<5;++i) {

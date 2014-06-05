@@ -20,7 +20,6 @@ import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Redrawable;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
@@ -53,9 +52,9 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
     private IPlotter plotterBot3;
     private IPlotter plotterBot4;
     private AIDA aida = AIDA.defaultInstance();
-    private AIDAFrame plotterFrame;
+    /*private AIDAFrame plotterFrame;
     private AIDAFrame plotterFrameTop;
-    private AIDAFrame plotterFrameBot;
+    private AIDAFrame plotterFrameBot;*/
     private IHistogram1D aMeanPlot;
     private IHistogram1D aSigmaPlot;
     private IHistogram1D tMeanPlot;
@@ -230,29 +229,29 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
             }
         }
 
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("HPS ECal Crystal Filter Plots");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("HPS ECal Crystal Filter Plots");
 
         xCombo = new JComboBox(xList);
         xCombo.addActionListener(this);
         xLabel = new JLabel("x");
         xLabel.setLabelFor(xCombo);
-        plotterFrame.getControlsPanel().add(xLabel);
-        plotterFrame.getControlsPanel().add(xCombo);
+        //plotterFrame.getControlsPanel().add(xLabel);
+        //plotterFrame.getControlsPanel().add(xCombo);
         yCombo = new JComboBox(yList);
         yCombo.addActionListener(this);
         yLabel = new JLabel("y");
         yLabel.setLabelFor(yCombo);
-        plotterFrame.getControlsPanel().add(yLabel);
-        plotterFrame.getControlsPanel().add(yCombo);
+        //plotterFrame.getControlsPanel().add(yLabel);
+        //plotterFrame.getControlsPanel().add(yCombo);
         blankButton = new JButton("Hide histogram");
-        plotterFrame.getControlsPanel().add(blankButton);
+        //plotterFrame.getControlsPanel().add(blankButton);
         blankButton.addActionListener(this);
 
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory().create();
         plotter.setTitle("HPS ECal Amplitude");
-        plotterFrame.addPlotter(plotter);
+        //plotterFrame.addPlotter(plotter);
         plotter.createRegions(1, 3);
 
         plotter.style().statisticsBoxStyle().setVisible(false);
@@ -271,7 +270,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotter2 = aida.analysisFactory().createPlotterFactory().create();
         plotter2.setTitle("HPS ECal Hit Time ");
-        plotterFrame.addPlotter(plotter2);
+        //plotterFrame.addPlotter(plotter2);
         plotter2.createRegions(1, 3);
 
         plotter2.style().statisticsBoxStyle().setVisible(true);
@@ -291,7 +290,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotter3 = aida.analysisFactory().createPlotterFactory().create();
         plotter3.setTitle("HPS ECal for Time Outliers ");
-        plotterFrame.addPlotter(plotter3);
+        //plotterFrame.addPlotter(plotter3);
         plotter3.createRegions(1, 3);
 
         plotter3.style().statisticsBoxStyle().setVisible(false);
@@ -310,7 +309,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotter4 = aida.analysisFactory().createPlotterFactory().create();
         plotter4.setTitle("HPS ECal Amplitude for Time Outliers ");
-        plotterFrame.addPlotter(plotter4);
+        //plotterFrame.addPlotter(plotter4);
         plotter4.createRegions(1, 3);
 
         plotter4.style().statisticsBoxStyle().setVisible(false);
@@ -338,32 +337,32 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
 
 
 
-        plotterFrameTop = new AIDAFrame();
-        plotterFrameTop.setTitle("HPS Top Trig ECal Crystal Filter Plots");
+        //plotterFrameTop = new AIDAFrame();
+        //plotterFrameTop.setTitle("HPS Top Trig ECal Crystal Filter Plots");
 
         xComboTop = new JComboBox(xListTop);
         xComboTop.addActionListener(this);
         xLabelTop = new JLabel("xT");
         xLabelTop.setLabelFor(xComboTop);
-        plotterFrameTop.getControlsPanel().add(xLabelTop);
-        plotterFrameTop.getControlsPanel().add(xComboTop);
+        //plotterFrameTop.getControlsPanel().add(xLabelTop);
+        //plotterFrameTop.getControlsPanel().add(xComboTop);
         yComboTop = new JComboBox(yListTop);
         yComboTop.addActionListener(this);
         yLabelTop = new JLabel("yT");
         yLabelTop.setLabelFor(yComboTop);
 
 
-        plotterFrameTop.getControlsPanel().add(yLabelTop);
-        plotterFrameTop.getControlsPanel().add(yComboTop);
+        //plotterFrameTop.getControlsPanel().add(yLabelTop);
+        //plotterFrameTop.getControlsPanel().add(yComboTop);
         blankButtonTop = new JButton("Hide histogram (Top)");
-        plotterFrameTop.getControlsPanel().add(blankButtonTop);
+        //plotterFrameTop.getControlsPanel().add(blankButtonTop);
         blankButtonTop.addActionListener(this);
 
 
         // Setup the plotterTop.
         plotterTop = aida.analysisFactory().createPlotterFactory().create();
         plotterTop.setTitle("HPS ECal Amplitude");
-        plotterFrameTop.addPlotter(plotterTop);
+        //plotterFrameTop.addPlotter(plotterTop);
         plotterTop.createRegions(1, 3);
         plotterTop.setStyle(plotter.style());
         style = plotterTop.region(0).style();
@@ -379,7 +378,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotterTop.
         plotterTop2 = aida.analysisFactory().createPlotterFactory().create();
         plotterTop2.setTitle("HPS ECal Hit Time ");
-        plotterFrameTop.addPlotter(plotterTop2);
+        //plotterFrameTop.addPlotter(plotterTop2);
         plotterTop2.createRegions(1, 3);
 
         plotterTop2.setStyle(plotter2.style());
@@ -396,7 +395,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotterTop3 = aida.analysisFactory().createPlotterFactory().create();
         plotterTop3.setTitle("HPS ECal for Time Outliers ");
-        plotterFrameTop.addPlotter(plotterTop3);
+        //plotterFrameTop.addPlotter(plotterTop3);
         plotterTop3.createRegions(1, 3);
 
         plotterTop3.setStyle(plotter3.style());
@@ -412,7 +411,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotterTop4 = aida.analysisFactory().createPlotterFactory().create();
         plotterTop4.setTitle("HPS ECal Amplitude for Time Outliers ");
-        plotterFrameTop.addPlotter(plotterTop4);
+        //plotterFrameTop.addPlotter(plotterTop4);
         plotterTop4.createRegions(1, 3);
 
         plotterTop4.setStyle(plotter4.style());
@@ -437,29 +436,29 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
 
 
 
-        plotterFrameBot = new AIDAFrame();
-        plotterFrameBot.setTitle("HPS Bottom Trig ECal Crystal Filter Plots");
+        //plotterFrameBot = new AIDAFrame();
+        //plotterFrameBot.setTitle("HPS Bottom Trig ECal Crystal Filter Plots");
 
         xComboBot = new JComboBox(xListBot);
         xComboBot.addActionListener(this);
         xLabelBot = new JLabel("x");
         xLabelBot.setLabelFor(xComboBot);
-        plotterFrameBot.getControlsPanel().add(xLabelBot);
-        plotterFrameBot.getControlsPanel().add(xComboBot);
+        //plotterFrameBot.getControlsPanel().add(xLabelBot);
+        //plotterFrameBot.getControlsPanel().add(xComboBot);
         yComboBot = new JComboBox(yListBot);
         yComboBot.addActionListener(this);
         yLabelBot = new JLabel("y");
         yLabelBot.setLabelFor(yComboBot);
-        plotterFrameBot.getControlsPanel().add(yLabelBot);
-        plotterFrameBot.getControlsPanel().add(yComboBot);
+        //plotterFrameBot.getControlsPanel().add(yLabelBot);
+        //plotterFrameBot.getControlsPanel().add(yComboBot);
         blankButtonBot = new JButton("Hide histogram");
-        plotterFrameBot.getControlsPanel().add(blankButtonBot);
+        //plotterFrameBot.getControlsPanel().add(blankButtonBot);
         blankButtonBot.addActionListener(this);
 
         // Setup the plotterBot.
         plotterBot = aida.analysisFactory().createPlotterFactory().create();
         plotterBot.setTitle("HPS ECal Amplitude");
-        plotterFrameBot.addPlotter(plotterBot);
+        //plotterFrameBot.addPlotter(plotterBot);
         plotterBot.createRegions(1, 3);
         plotterBot.setStyle(plotter.style());
         style = plotterBot.region(0).style();
@@ -475,7 +474,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotterBot.
         plotterBot2 = aida.analysisFactory().createPlotterFactory().create();
         plotterBot2.setTitle("HPS ECal Hit Time ");
-        plotterFrameBot.addPlotter(plotterBot2);
+        //plotterFrameBot.addPlotter(plotterBot2);
         plotterBot2.createRegions(1, 3);
 
         plotterBot2.setStyle(plotter2.style());
@@ -492,7 +491,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotterBot3 = aida.analysisFactory().createPlotterFactory().create();
         plotterBot3.setTitle("HPS ECal for Time Outliers ");
-        plotterFrameBot.addPlotter(plotterBot3);
+        //plotterFrameBot.addPlotter(plotterBot3);
         plotterBot3.createRegions(1, 3);
 
         plotterBot3.setStyle(plotter3.style());
@@ -508,7 +507,7 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         // Setup the plotter.
         plotterBot4 = aida.analysisFactory().createPlotterFactory().create();
         plotterBot4.setTitle("HPS ECal Amplitude for Time Outliers ");
-        plotterFrameBot.addPlotter(plotterBot4);
+        //plotterFrameBot.addPlotter(plotterBot4);
         plotterBot4.createRegions(1, 3);
 
         plotterBot4.setStyle(plotter4.style());
@@ -532,25 +531,25 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
 
 
 
-        plotterFrame.pack();
-        if (!hide) {
-            plotterFrame.setVisible(true);
-        }
+        //plotterFrame.pack();
+        //if (!hide) {
+        //    plotterFrame.setVisible(true);
+        //}
 
 
 
-        plotterFrameTop.pack();
-        if (!hide) {
-            plotterFrameTop.setVisible(true);
-        }
+        //plotterFrameTop.pack();
+        //if (!hide) {
+        //    plotterFrameTop.setVisible(true);
+        //}
 
 
 
 
-        plotterFrameBot.pack();
-        if (!hide) {
-            plotterFrameBot.setVisible(true);
-        }
+        //plotterFrameBot.pack();
+        //if (!hide) {
+        //    plotterFrameBot.setVisible(true);
+        //}
 
 
 

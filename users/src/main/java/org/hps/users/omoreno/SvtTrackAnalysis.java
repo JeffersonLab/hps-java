@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Resettable;
 //--- org.lcsim ---//
 import org.lcsim.event.EventHeader;

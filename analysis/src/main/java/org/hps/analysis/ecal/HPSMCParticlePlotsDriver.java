@@ -14,7 +14,6 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.ParticleTypeClassifier;
-import org.hps.util.AIDAFrame;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -27,7 +26,7 @@ import org.lcsim.util.aida.AIDA;
 public class HPSMCParticlePlotsDriver extends Driver {
 
 	AIDA aida = AIDA.defaultInstance();
-        private AIDAFrame pFrame;
+        //private AIDAFrame pFrame;
         IAnalysisFactory af = aida.analysisFactory();
         public boolean _hideFrame = false;
         // MCParticle plots.
@@ -160,8 +159,8 @@ public class HPSMCParticlePlotsDriver extends Driver {
 		eventEPlot.annotation().addItem("xAxisLabel", "E [GeV]");
 
                 
-                pFrame = new AIDAFrame();
-                pFrame.setTitle("Truth MC Particle Plots");
+                //pFrame = new AIDAFrame();
+                //pFrame.setTitle("Truth MC Particle Plots");
                 IPlotter pPlotter = af.createPlotterFactory().create();
                 pPlotter.setTitle("Truth MC Types");
                 pPlotter.createRegions(2,2);
@@ -199,10 +198,10 @@ public class HPSMCParticlePlotsDriver extends Driver {
                 }
                 
                 
-                pFrame.addPlotter(pPlotter2);
-                pFrame.addPlotter(pPlotter);
-                pFrame.pack();
-                pFrame.setVisible(!_hideFrame);
+                //pFrame.addPlotter(pPlotter2);
+                //pFrame.addPlotter(pPlotter);
+                //pFrame.pack();
+                //pFrame.setVisible(!_hideFrame);
                 
                 
                 
@@ -369,7 +368,7 @@ public class HPSMCParticlePlotsDriver extends Driver {
         
         
         public void endOfData() {
-            if(this._hideFrame) pFrame.dispose();
+            //if(this._hideFrame) pFrame.dispose();
                 
         }
 }

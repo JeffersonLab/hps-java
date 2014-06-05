@@ -7,7 +7,6 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.util.AIDAFrame;
 import org.hps.util.Resettable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -21,7 +20,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class ExamplePlotter extends Driver implements Resettable {
 
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     IPlotter plotter;
     IAnalysisFactory fac = aida.analysisFactory();
@@ -29,8 +28,8 @@ public class ExamplePlotter extends Driver implements Resettable {
 
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("HPS Tracking Plots");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("HPS Tracking Plots");
 
         plotter = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter.setTitle("Momentum");
@@ -38,7 +37,7 @@ public class ExamplePlotter extends Driver implements Resettable {
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(2, 2);
-        plotterFrame.addPlotter(plotter);
+        //plotterFrame.addPlotter(plotter);
 
         IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 25, -0.25, 0.25);
         IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 25, -0.1, 0.1);
@@ -50,8 +49,8 @@ public class ExamplePlotter extends Driver implements Resettable {
         plotter.region(2).plot(trkPz);
         plotter.region(3).plot(trkChi2);
 
-        plotterFrame.pack();
-        plotterFrame.setVisible(true);
+        //plotterFrame.pack();
+        //plotterFrame.setVisible(true);
     }
 
     public void process(EventHeader event) {

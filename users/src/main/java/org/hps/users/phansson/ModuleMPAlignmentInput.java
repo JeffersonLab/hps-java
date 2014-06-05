@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
@@ -58,8 +57,8 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
     private double[] _error = new double[3];
     
     
-    private AIDAFrame plotterFrame;
-    private AIDAFrame plotterFrameSummary;
+    //private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrameSummary;
     private IDataPointSet dps_t;
     private IDataPointSet dps_b;
     private IDataPointSet dps_pull_t;
@@ -465,17 +464,17 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
         
         
         aida.tree().cd("/");
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("Residuals");
-        plotterFrameSummary = new AIDAFrame();
-        plotterFrameSummary.setTitle("Summary");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("Residuals");
+        //plotterFrameSummary = new AIDAFrame();
+        //plotterFrameSummary.setTitle("Summary");
               
         List<String> sides = new ArrayList<String>(Arrays.asList("top","bottom"));
 
         IPlotter plotter_chi2 = af.createPlotterFactory().create();
         plotter_chi2.createRegions(2,2);
         plotter_chi2.setTitle("Track Chi2");
-        plotterFrame.addPlotter(plotter_chi2);
+        //plotterFrame.addPlotter(plotter_chi2);
         ICloud1D hchi2_top = aida.cloud1D("Track Chi2 top");
         ICloud1D hchi2_bot = aida.cloud1D("Track Chi2 bottom");
         ICloud1D hchi2ndf_top = aida.cloud1D("Track Chi2ndf top");
@@ -587,10 +586,10 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
                 } 
 
                 //plotter_res.show();
-                plotterFrame.addPlotter(plotter_res);
-                plotterFrame.addPlotter(plotter_reserr);
-                plotterFrame.addPlotter(plotter_respull);
-                plotterFrame.addPlotter(plotter_respull_slope);
+                //plotterFrame.addPlotter(plotter_res);
+                //plotterFrame.addPlotter(plotter_reserr);
+                //plotterFrame.addPlotter(plotter_respull);
+                //plotterFrame.addPlotter(plotter_respull_slope);
             }
         
             
@@ -620,7 +619,7 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
             ((PlotterRegion) plotter_prf.region(region)).getPlot().setAllowPopupMenus(true);
         }
         
-        plotterFrameSummary.addPlotter(plotter_prf);
+        //plotterFrameSummary.addPlotter(plotter_prf);
         
         
         plotter_resuydiff_t = af.createPlotterFactory().create();
@@ -642,14 +641,14 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
             ((PlotterRegion) plotter_resuydiff_b.region(iLayer-1)).getPlot().setAllowPopupMenus(true);
         }
         
-        plotterFrameSummary.addPlotter(plotter_resuydiff_t);
-        plotterFrameSummary.addPlotter(plotter_resuydiff_b);
+        //plotterFrameSummary.addPlotter(plotter_resuydiff_t);
+        //plotterFrameSummary.addPlotter(plotter_resuydiff_b);
         
         
-        plotterFrame.pack();
-        plotterFrame.setVisible(!hideFrame);
-        plotterFrameSummary.pack();
-        plotterFrameSummary.setVisible(!hideFrame);
+        //plotterFrame.pack();
+        //plotterFrame.setVisible(!hideFrame);
+        //plotterFrameSummary.pack();
+        //plotterFrameSummary.setVisible(!hideFrame);
         
     
     }

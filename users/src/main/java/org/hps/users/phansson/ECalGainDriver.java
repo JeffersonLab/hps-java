@@ -23,7 +23,6 @@ import javax.swing.JLabel;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Redrawable;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
@@ -55,7 +54,7 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
     private int refreshRate = 100;
     private AIDA aida = AIDA.defaultInstance();
     private IAnalysisFactory af = aida.analysisFactory();
-    private AIDAFrame pePlotterFrame;
+    //private AIDAFrame pePlotterFrame;
     private IPlotter plotter;
     private JComboBox xCombo;
     private JLabel xLabel;
@@ -89,8 +88,8 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
             Logger.getLogger(ECalGainDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        pePlotterFrame = new AIDAFrame();
-        pePlotterFrame.setTitle("Gain Frame");
+        //pePlotterFrame = new AIDAFrame();
+        //pePlotterFrame.setTitle("Gain Frame");
 
         IPlotterStyle style;
 
@@ -98,7 +97,7 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
         plotter_hitmap_gr.createRegions(1, 3, 0);
         plotter_hitmap_gr.setTitle("Cluster hit map");
         plotter_hitmap_gr.style().statisticsBoxStyle().setVisible(false);
-        pePlotterFrame.addPlotter(plotter_hitmap_gr);
+        //pePlotterFrame.addPlotter(plotter_hitmap_gr);
 
         hitmap = aida.histogram2D("Cluster hit map", 46, -23, 23, 11, -5.5, 5.5);
         plotter_hitmap_gr.region(0).plot(hitmap);
@@ -123,7 +122,7 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
             plotter_PoverE[iE].createRegions(1, 2, 0);
             plotter_PoverE[iE].setTitle("E over P" + str);
             plotter_PoverE[iE].style().statisticsBoxStyle().setVisible(true);
-            pePlotterFrame.addPlotter(plotter_PoverE[iE]);
+            //pePlotterFrame.addPlotter(plotter_PoverE[iE]);
 
             plotter_PoverE[iE].region(0).plot(h_PE_t[iE]);
             plotter_PoverE[iE].region(1).plot(h_PE_b[iE]);
@@ -133,7 +132,7 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
         plotter.createRegions(1, 3, 0);
         plotter.setTitle("Gain Plots");
 
-        pePlotterFrame.addPlotter(plotter);
+        //pePlotterFrame.addPlotter(plotter);
 
         mpePlot = aida.histogram2D("<E over p>", 46, -23, 23, 11, -5.5, 5.5);
         plotter.region(0).plot(mpePlot);
@@ -182,27 +181,27 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
         xCombo.addActionListener(this);
         xLabel = new JLabel("x");
         xLabel.setLabelFor(xCombo);
-        pePlotterFrame.getControlsPanel().add(xLabel);
-        pePlotterFrame.getControlsPanel().add(xCombo);
+        //pePlotterFrame.getControlsPanel().add(xLabel);
+        //pePlotterFrame.getControlsPanel().add(xCombo);
         yCombo = new JComboBox(yList);
         yCombo.addActionListener(this);
         yLabel = new JLabel("y");
         yLabel.setLabelFor(xCombo);
-        pePlotterFrame.getControlsPanel().add(yLabel);
-        pePlotterFrame.getControlsPanel().add(yCombo);
+        //pePlotterFrame.getControlsPanel().add(yLabel);
+        //pePlotterFrame.getControlsPanel().add(yCombo);
 
         plotter.region(2).plot(pePlots[-5 + 23][2 + 5 - 1][0]);
         xCombo.setSelectedIndex(-5 + 23);
         yCombo.setSelectedIndex(2 + 5 - 1);
 
         blankButton = new JButton("Hide histogram");
-        pePlotterFrame.getControlsPanel().add(blankButton);
+        //pePlotterFrame.getControlsPanel().add(blankButton);
         blankButton.addActionListener(this);
 
-        if (!hideFrame) {
-            pePlotterFrame.pack();
-            pePlotterFrame.setVisible(true);
-        }
+        //if (!hideFrame) {
+        //    pePlotterFrame.pack();
+        //    pePlotterFrame.setVisible(true);
+        //}
     }
 
     public ECalGainDriver() {

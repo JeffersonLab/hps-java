@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;

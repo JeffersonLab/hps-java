@@ -12,7 +12,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
-import org.hps.util.AIDAFrame;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -23,7 +22,7 @@ public class EcalWindowPlots extends Driver implements ActionListener {
 
     private String inputCollection = "EcalReadoutHits";
     private IPlotter plotter;
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida;
     private Detector detector;
     private IHistogram1D windowPlot;
@@ -82,17 +81,17 @@ public class EcalWindowPlots extends Driver implements ActionListener {
     }
 
     private void setupPlots() {
-        if (plotterFrame != null) {
-            plotterFrame.dispose(); //this clears the plotterFrame
-        }
+        //if (plotterFrame != null) {
+        //    plotterFrame.dispose(); //this clears the plotterFrame
+        //}
 
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
         plotter = aida.analysisFactory().createPlotterFactory().create("HPS ECAL Window Plots");
 
-        plotterFrame = new AIDAFrame();
-        plotterFrame.addPlotter(plotter);
-        plotterFrame.setVisible(true);
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.addPlotter(plotter);
+        //plotterFrame.setVisible(true);
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().errorBarStyle().setVisible(false);
         windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
@@ -102,28 +101,28 @@ public class EcalWindowPlots extends Driver implements ActionListener {
         crateCombo.addActionListener(this);
         crateLabel = new JLabel("crate");
         crateLabel.setLabelFor(crateCombo);
-        plotterFrame.getControlsPanel().add(crateLabel);
-        plotterFrame.getControlsPanel().add(crateCombo);
+        //plotterFrame.getControlsPanel().add(crateLabel);
+        //plotterFrame.getControlsPanel().add(crateCombo);
         slotCombo = new JComboBox(slotList);
         slotCombo.addActionListener(this);
         slotLabel = new JLabel("slot");
         slotLabel.setLabelFor(slotCombo);
-        plotterFrame.getControlsPanel().add(slotLabel);
-        plotterFrame.getControlsPanel().add(slotCombo);
+        //plotterFrame.getControlsPanel().add(slotLabel);
+        //plotterFrame.getControlsPanel().add(slotCombo);
         channelCombo = new JComboBox(channelList);
         channelCombo.addActionListener(this);
         channelLabel = new JLabel("channel");
         channelLabel.setLabelFor(channelCombo);
-        plotterFrame.getControlsPanel().add(channelLabel);
-        plotterFrame.getControlsPanel().add(channelCombo);
-        plotterFrame.pack();
+        //plotterFrame.getControlsPanel().add(channelLabel);
+        //plotterFrame.getControlsPanel().add(channelCombo);
+        //plotterFrame.pack();
     }
 
     @Override
     public void endOfData() {
-        if (plotterFrame != null) {
-            plotterFrame.dispose();
-        }
+        //if (plotterFrame != null) {
+        //    plotterFrame.dispose();
+        //}
     }
 
     @Override

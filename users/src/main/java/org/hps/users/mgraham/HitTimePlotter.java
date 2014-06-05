@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.readout.ecal.ReadoutTimestamp;
-import org.hps.util.AIDAFrame;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -37,7 +36,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class HitTimePlotter extends Driver implements Resettable {
 
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     IPlotter plotter;
     IPlotter plotter2;
@@ -55,8 +54,8 @@ public class HitTimePlotter extends Driver implements Resettable {
 
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
-        plotterFrame = new AIDAFrame();
-        plotterFrame.setTitle("HPS Tracking Plots");
+        //plotterFrame = new AIDAFrame();
+        //plotterFrame.setTitle("HPS Tracking Plots");
         sensors = detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
         sensorRegionMap = new HashMap<String, Integer>();
         for (SiSensor sensor : sensors) {
@@ -70,7 +69,7 @@ public class HitTimePlotter extends Driver implements Resettable {
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter.createRegions(3, 2);
-        plotterFrame.addPlotter(plotter);
+        //plotterFrame.addPlotter(plotter);
 
         IHistogram1D ecalHT = aida.histogram1D("ECAL Hit Time", 100, 0, 400);
         IHistogram1D svtHT = aida.histogram1D("SVT Hit Time", 125, -50, 75);
@@ -109,13 +108,13 @@ public class HitTimePlotter extends Driver implements Resettable {
         style2.dataStyle().fillStyle().setColor("yellow");
         style2.dataStyle().errorBarStyle().setVisible(false);
         plotter2.createRegions(6, 2);
-        plotterFrame.addPlotter(plotter2);
+        //plotterFrame.addPlotter(plotter2);
 
         plotter3 = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter3.setTitle("Outer Tracker");
         plotter3.setStyle(style2);
         plotter3.createRegions(6, 4);
-        plotterFrame.addPlotter(plotter3);
+        //plotterFrame.addPlotter(plotter3);
 
         plotter4 = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter4.setTitle("Corrected Times:  Inner Tracker");
@@ -123,13 +122,13 @@ public class HitTimePlotter extends Driver implements Resettable {
         style4.dataStyle().fillStyle().setColor("yellow");
         style4.dataStyle().errorBarStyle().setVisible(false);
         plotter4.createRegions(6, 2);
-        plotterFrame.addPlotter(plotter4);
+        //plotterFrame.addPlotter(plotter4);
 
         plotter5 = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter5.setTitle("Outer Tracker");
         plotter5.setStyle(style2);
         plotter5.createRegions(6, 4);
-        plotterFrame.addPlotter(plotter5);
+        //plotterFrame.addPlotter(plotter5);
 
 
         int region = 0;
@@ -160,7 +159,7 @@ public class HitTimePlotter extends Driver implements Resettable {
         plotter6.setTitle("Tracks");
         plotter6.setStyle(style2);
         plotter6.createRegions(2, 2);
-        plotterFrame.addPlotter(plotter6);
+        //plotterFrame.addPlotter(plotter6);
         IHistogram1D px = aida.histogram1D("Track Momentum(Px)", 50, -0.2, 0.2);
         IHistogram1D py = aida.histogram1D("Track Momentum(Py)", 50, -0.2, 0.2);
         IHistogram1D pz = aida.histogram1D("Track Momentum(Pz)", 50, 0, 2.2);
@@ -175,7 +174,7 @@ public class HitTimePlotter extends Driver implements Resettable {
         plotter7.setTitle("Per Event");
         plotter7.setStyle(style2);
         plotter7.createRegions(2, 2);
-        plotterFrame.addPlotter(plotter7);
+        //plotterFrame.addPlotter(plotter7);
 
         IHistogram1D nclus = aida.histogram1D("Strip Clusters per Event", 100, 0, 99);
         IHistogram1D nhth = aida.histogram1D("Stereo Hits per Event", 100, 0, 99);
@@ -187,8 +186,8 @@ public class HitTimePlotter extends Driver implements Resettable {
 
 
 
-        plotterFrame.pack();
-        plotterFrame.setVisible(true);
+        //plotterFrame.pack();
+        //plotterFrame.setVisible(true);
     }
 
     public void process(EventHeader event) {

@@ -21,7 +21,6 @@ import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
-import org.hps.util.AIDAFrame;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;

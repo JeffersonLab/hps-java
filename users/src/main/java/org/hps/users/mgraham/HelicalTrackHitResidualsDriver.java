@@ -19,7 +19,6 @@ import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.users.phansson.TrigRateDriver;
-import org.hps.util.AIDAFrame;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -48,7 +47,7 @@ public class HelicalTrackHitResidualsDriver extends Driver {
     private boolean _debug = false;
     private boolean _includeMS = true;
     
-    private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
 //    ICloud1D[] _h_resz_track_top = new ICloud1D[5];
 //    ICloud1D[] _h_resz_track_bottom = new ICloud1D[5];
 //    ICloud1D[] _h_resy_track_top = new ICloud1D[5];
@@ -257,6 +256,7 @@ public class HelicalTrackHitResidualsDriver extends Driver {
         ((PlotterRegion) _plotter_mean_res.region(1)).getPlot().setAllowPopupMenus(true);
         
         
+        /*
         plotterFrame = new AIDAFrame();
         plotterFrame.setTitle("HTH Residuals");
         plotterFrame.addPlotter(_plotter_resz_top);
@@ -266,6 +266,7 @@ public class HelicalTrackHitResidualsDriver extends Driver {
         plotterFrame.addPlotter(_plotter_mean_res);
         plotterFrame.pack();
         plotterFrame.setVisible(!hideFrame);
+        */
         
     }
     
