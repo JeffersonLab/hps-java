@@ -11,7 +11,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.base.BaseTrackerHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
@@ -33,7 +33,9 @@ public class TrackDataDriver extends Driver {
 	// TODO: Change this to match whatever track name is decided on
 	String trackTimeDataCollectionName = "TrackTimeData";
 	String trackResidualsCollectionName = "TrackResiduals";
-	String rotatedHthRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+	String rotatedHthRelationsColName = "RotatedHelicalTrackHitRelations";
+	String trackTimeDataRelationsColName = "TrackTimeDataRelations";
+	String trackResidualsRelationsColName = "TrackResidualsRelations";
 
 	public TrackDataDriver() {}
 
@@ -54,13 +56,19 @@ public class TrackDataDriver extends Driver {
 		
 		// Get the collection of LCRelations relating RotatedHelicalTrackHits to
 		// HelicalTrackHits
-		List<LCRelation> rotatedHthToHth = event.get(LCRelation.class, rotatedHthRelationsCollectionName);
+		List<LCRelation> rotatedHthToHthRelations = event.get(LCRelation.class, rotatedHthRelationsColName);
 
 		// Create a collection to hold the track time and t0 residual data
 		List<TrackTimeData> timeDataCollection = new ArrayList<TrackTimeData>(); 
+
+		// Create a collection of LCRelations between a track and the t0 residual data
+		List<LCRelation> trackToTrackTimeDataRelations = new ArrayList<LCRelation>();
 		
 		// Create a collection to hold the track residuals
 		List<TrackResidualsData> trackResidualsCollection = new ArrayList<TrackResidualsData>();
+		
+		// Create a collection of LCRelations between a track and the track residuals
+		List<LCRelation> trackToTrackResidualsRelations = new ArrayList<LCRelation>();
 		
 		double totalT0 = 0;
 		double totalHits = 0;
@@ -123,7 +131,7 @@ public class TrackDataDriver extends Driver {
 				
 				// Get the HelicalTrackHit corresponding to the RotatedHelicalTrackHit
 				// associated with a track
-				for(LCRelation relation : rotatedHthToHth){
+				for(LCRelation relation : rotatedHthToHthRelations){
 					if(relation.getTo().equals(rotatedStereoHit)){
 						helicalTrackHit = (HelicalTrackHit) relation.getFrom(); 
 						break;
@@ -173,12 +181,20 @@ public class TrackDataDriver extends Driver {
 				}
 			}
 		
-			timeDataCollection.add(new TrackTimeData(trackerVolume, trackTime, sensorLayers, t0Residuals));
-			trackResidualsCollection.add(new TrackResidualsData((int) trackerVolume, stereoLayers, trackResidualsX, trackResidualsY));
+			TrackTimeData timeData = new TrackTimeData(trackerVolume, trackTime, sensorLayers, t0Residuals);
+			timeDataCollection.add(timeData);
+			trackToTrackTimeDataRelations.add(new BaseLCRelation(timeData, track));
+			
+			TrackResidualsData trackResiduals = new TrackResidualsData((int) trackerVolume, stereoLayers, trackResidualsX, trackResidualsY);
+			trackResidualsCollection.add(trackResiduals);
+			trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
 		
 		}
 		
 		event.put(trackTimeDataCollectionName, timeDataCollection, TrackTimeData.class, 0);
+		event.put(trackTimeDataRelationsColName, trackToTrackTimeDataRelations, LCRelation.class, 0);
 		event.put(trackResidualsCollectionName, trackResidualsCollection, TrackResidualsData.class, 0);
+		event.put(trackResidualsRelationsColName, trackToTrackResidualsRelations, LCRelation.class, 0);
+		
 	}
 }
