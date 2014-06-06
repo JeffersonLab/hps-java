@@ -59,7 +59,7 @@
             <useTimestamps>false</useTimestamps>
             <useTruthTime>true</useTruthTime>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <timeCut>true</timeCut>
