@@ -101,7 +101,7 @@ public class EcalClusterIC extends Driver {
     }
 
     /**
-     * Minimum energy for a seed hit. Default of 0.2 GeV
+     * Minimum energy for a seed hit. Default of 0.1 GeV
      *
      * @param seedEnergyThreshold
      */
@@ -110,7 +110,7 @@ public class EcalClusterIC extends Driver {
     }
     
     /**
-     * Minimum energy for a cluster. Default of 0.4 GeV
+     * Minimum energy for a cluster. Default of 0.3 GeV
      *
      * @param clusterEnergyThreshold
      */
@@ -250,7 +250,7 @@ public class EcalClusterIC extends Driver {
             for (Long neighbor : neighbors) {
             	// Get the neighboring hit.
             	CalorimeterHit neighborHit = hitMap.get(neighbor);
-            	
+                        	
             	// If it exists, add it to the list.
             	if(neighborHit != null) { neighborHits.add(neighborHit); }
             }
@@ -263,10 +263,11 @@ public class EcalClusterIC extends Driver {
             // neighboring hits.
             seedHitLoop:
             for(CalorimeterHit neighbor : neighborHits) {
-            	if(hit.getCorrectedEnergy() <= neighbor.getCorrectedEnergy()) {
+            	if(!equalEnergies(hit, neighbor)) {
             		isSeed = false;
-            		break seedHitLoop;
+               		break seedHitLoop;
             	}
+           
             }
             
             // If this hit is a seed hit, just map it to itself.
@@ -295,6 +296,7 @@ public class EcalClusterIC extends Driver {
                         	// common seeds.
                             commonHitList.add(neighborHit);
                             commonHitList.add(hitSeedMap.get(hit));
+
                             
                             // Put the common seed list back into the set.
                             commonHits.put(hit, commonHitList);
@@ -305,7 +307,7 @@ public class EcalClusterIC extends Driver {
                     	// associate it with the neighboring seed and note
                         // that it has been clustered.
                         else {
-                        	hitSeedMap.put(hit, neighborHit);
+                          	hitSeedMap.put(hit, neighborHit);
                         	surrSeedSet.add(hit);
                         }
                 	}
@@ -344,11 +346,26 @@ public class EcalClusterIC extends Driver {
             	// If the neighboring hit is of lower energy than the
             	// current secondary hit, then associate the neighboring
             	// hit with the current secondary hit's seed.
-                if (secondaryNeighborHit.getCorrectedEnergy() < secondaryHit.getCorrectedEnergy()) {
+            	
+            	//  if (secondaryNeighborHit.getCorrectedEnergy() < secondaryHit.getCorrectedEnergy()) {
+            	if(!equalEnergies(secondaryNeighborHit, secondaryHit)) {
                 	hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));
                 }
+            	else {continue;}
             }
         } // End component hits loop.
+
+        // This is a check to ensure ALL hits are either components or seeds. 
+        for (CalorimeterHit check : hitList){
+        	if(!hitSeedMap.containsKey(check)){
+        		System.out.println("Something is not clustered or component!");
+        		System.out.println("not clustered:"+"\t"+check.getIdentifierFieldValue("ix")+"\t"+
+        		check.getIdentifierFieldValue("iy")+"\t"+check.getCorrectedEnergy());
+        	}
+        }
+        
+        
+        
         
         // Performs second pass calculations for common hits.
         commonHitsLoop:
@@ -383,12 +400,11 @@ public class EcalClusterIC extends Driver {
             	// is not already associated with the current clustered
             	// hit's seed.
             	
-            	//changed following if statment to eliminate null pointer exception-HS-5JUN14
-                if ((hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed)
-                		&&hitSeedMap.containsKey(clusteredNeighborHit)) {
-            	            	
-                    if (clusteredHit.getCorrectedEnergy() < clusteredNeighborHit.getCorrectedEnergy()) {
-                    	// Check and see if a list of common seeds
+                if (hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed){
+
+                    //if (clusteredHit.getCorrectedEnergy() < clusteredNeighborHit.getCorrectedEnergy()) {
+                	if(!equalEnergies(clusteredHit, clusteredNeighborHit)){
+                	// Check and see if a list of common seeds
                     	// for this hit already exists or not.
                     	List<CalorimeterHit> commonHitList = commonHits.get(clusteredHit);
                     	
@@ -398,20 +414,22 @@ public class EcalClusterIC extends Driver {
                     	// Add the neighbors to the seeds to set of
                     	// common seeds.
                         commonHitList.add(clusteredHitSeed);
-                        commonHitList.add(hitSeedMap.get(clusteredNeighborHit));
+                       	commonHitList.add(hitSeedMap.get(clusteredNeighborHit));
                         
                         // Put the common seed list back into the set.
                         commonHits.put(clusteredHit, commonHitList);
                     }
                 }
+                
+                
             }
         } // End common hits loop.
+
         
         // Remove any common hits from the clustered hits collection.
         for(CalorimeterHit commonHit : commonHits.keySet()) {
         	hitSeedMap.remove(commonHit);
         }
-        
         
         
         /*
@@ -437,33 +455,32 @@ public class EcalClusterIC extends Driver {
             eEnergy += entry.getKey().getRawEnergy();
             seedEnergy.put(eSeed, eEnergy);
         }
-        
+
         //Distribute common hit energies with clusters
         Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
+        
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
-            CalorimeterHit commonCell = entry1.getKey();
-            List<CalorimeterHit> commSeedList = entry1.getValue();
-            CalorimeterHit seedA = commSeedList.get(0);
-            CalorimeterHit seedB = commSeedList.get(1);
-            double eFractionA = seedEnergy.get(seedA)/(seedEnergy.get(seedA)+seedEnergy.get(seedB));
+        	CalorimeterHit commonCell = entry1.getKey();
+        	CalorimeterHit seedA = entry1.getValue().get(0);
+        	CalorimeterHit seedB = entry1.getValue().get(1);    	
+        	double eFractionA = seedEnergy.get(seedA)/(seedEnergy.get(seedA)+seedEnergy.get(seedB));
         	double eFractionB = seedEnergy.get(seedB)/(seedEnergy.get(seedA)+seedEnergy.get(seedB));
-            double currEnergyA = seedEnergyTot.get(seedA);
-            double currEnergyB = seedEnergyTot.get(seedB);
-            currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
-            currEnergyB += eFractionB * commonCell.getCorrectedEnergy();
+        	double currEnergyA = seedEnergyTot.get(seedA);
+        	double currEnergyB = seedEnergyTot.get(seedB);
+        	currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
+        	currEnergyB += eFractionB * commonCell.getCorrectedEnergy();
 
-            seedEnergyTot.put(seedA, currEnergyA);
-            seedEnergyTot.put(seedB, currEnergyB);
+        	seedEnergyTot.put(seedA, currEnergyA);
+        	seedEnergyTot.put(seedB, currEnergyB);
         }
-        
-        
-        
+
+
         
         /*
          * Prints the results in event display format. Not analyzed
          * for efficiency, as this will ultimately not be a part of
          * the driver and should be handled by the event display output
-         * driver instead.
+         * driver instead. Contains output loops to collection.
          */
         // Only write to the output file is something actually exists.
         if (hitMap.size() != 0) {
@@ -541,8 +558,9 @@ public class EcalClusterIC extends Driver {
             } //End cluster loop
          // Write the event termination header.
 //            writeHits.append("EndEvent\n");
-//            System.out.println("Number of clusters: "+clusterList.size());    
+            System.out.println("Number of clusters: "+clusterList.size());    
 
+            
         } //End event display out loop.
         int flag = 1 << LCIOConstants.CLBIT_HITS;
         event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
@@ -557,7 +575,7 @@ public class EcalClusterIC extends Driver {
         catch (IOException e) { }
     }
     
-    private static class EnergyComparator implements Comparator<CalorimeterHit> {
+  /*  private static class EnergyComparator implements Comparator<CalorimeterHit> {
         public int compare(CalorimeterHit o1, CalorimeterHit o2) {
         	// If the energies are equivalent, the same, the two hits
         	// are considered equivalent.
@@ -569,5 +587,58 @@ public class EcalClusterIC extends Driver {
         	// Lower energy hits are ranked lower than higher energy hits.
         	else { return 1; }
         }
+    }*/
+    
+    // Also accounts for pathological case of cluster hits that are EXACTLY the same.
+    private static class EnergyComparator implements Comparator<CalorimeterHit> {
+        public int compare(CalorimeterHit o1, CalorimeterHit o2) {
+        	// If the energies are equivalent, the same, the two hits
+        	// are considered equivalent.
+        	if(o1.getCorrectedEnergy() == o2.getCorrectedEnergy()) { 
+        		if(Math.abs(o1.getIdentifierFieldValue("iy")) < Math.abs(o2.getIdentifierFieldValue("iy"))){
+        			return -1;
+        		}
+        		else if((Math.abs(o1.getIdentifierFieldValue("iy")) == Math.abs(o2.getIdentifierFieldValue("iy")))
+        			&& (o1.getIdentifierFieldValue("ix") < o2.getIdentifierFieldValue("ix"))){
+        			return -1; }
+        		else if (Math.abs(o1.getIdentifierFieldValue("iy")) > Math.abs(o2.getIdentifierFieldValue("iy"))){
+        			return 1;
+        		}
+        		else{return 1;}
+        	}
+        	// Higher energy hits are ranked higher than lower energy hits.
+        	else if(o1.getCorrectedEnergy() > o2.getCorrectedEnergy()) { return -1; }
+        	
+        	// Lower energy hits are ranked lower than higher energy hits.
+        	else { return 1; }
+        }
     }
-}
+     
+     
+    
+
+    // Handles pathological case where multiple neighboring crystals have EXACTLY the same energy.
+    private boolean equalEnergies(CalorimeterHit hit, CalorimeterHit neighbor){
+    	boolean isSeed = true;
+    	
+    	int hix = hit.getIdentifierFieldValue("ix");
+    	int hiy = Math.abs(hit.getIdentifierFieldValue("iy"));
+    	int nix = neighbor.getIdentifierFieldValue("ix");
+    	int niy = Math.abs(neighbor.getIdentifierFieldValue("iy"));
+    	double hE = hit.getCorrectedEnergy();
+    	double nE = neighbor.getCorrectedEnergy();
+    	if(hE < nE) {
+    		isSeed = false;
+    	}
+    	else if((hE == nE) && (hiy > niy)) {
+    		isSeed = false;
+    	}
+    	else if((hE == nE) && (hiy == niy) && (hix > nix)) {
+    		isSeed = false;
+    	}
+    	return isSeed;	
+    }
+    
+    
+    
+}    
