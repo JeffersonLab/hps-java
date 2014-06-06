@@ -76,4 +76,8 @@ public final class EventConstants {
     public static boolean isEndEvent(EvioEvent event) {
         return event.getHeader().getTag() == EventConstants.END_EVENT_TAG;
     }
+    
+    public static boolean isPhysicsEvent(EvioEvent event) {
+        return event.getHeader().getTag() == EventConstants.PHYSICS_EVENT_TAG;
+    }
 }
