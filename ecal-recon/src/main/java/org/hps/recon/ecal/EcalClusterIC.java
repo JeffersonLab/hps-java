@@ -382,7 +382,11 @@ public class EcalClusterIC extends Driver {
             	// Check to make sure that the clustered neighbor hit
             	// is not already associated with the current clustered
             	// hit's seed.
-                if (hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed) {
+            	
+            	//changed following if statment to eliminate null pointer exception-HS-5JUN14
+                if ((hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed)
+                		&&hitSeedMap.containsKey(clusteredNeighborHit)) {
+            	            	
                     if (clusteredHit.getCorrectedEnergy() < clusteredNeighborHit.getCorrectedEnergy()) {
                     	// Check and see if a list of common seeds
                     	// for this hit already exists or not.
@@ -537,7 +541,8 @@ public class EcalClusterIC extends Driver {
             } //End cluster loop
          // Write the event termination header.
 //            writeHits.append("EndEvent\n");
-            
+//            System.out.println("Number of clusters: "+clusterList.size());    
+
         } //End event display out loop.
         int flag = 1 << LCIOConstants.CLBIT_HITS;
         event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
