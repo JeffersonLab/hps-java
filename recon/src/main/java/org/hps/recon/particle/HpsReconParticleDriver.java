@@ -147,6 +147,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 		((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
 		((BaseReconstructedParticle) candidate).set4Vector(fourVector);
 		
+		// Add the ReconstructedParticle to the Vertex 
+		vtxFit.setAssociatedParticle(candidate);
+		
 		return candidate;
 		
 	}

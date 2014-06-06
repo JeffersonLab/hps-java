@@ -28,8 +28,7 @@ public class BilliorVertex implements Vertex {
 //    private List<Matrix> covVtxMomList = new ArrayList<Matrix>();
     private List<BilliorTrack> _tracks;
     private Map<Integer, Hep3Vector> _fittedMomentum = new HashMap<Integer, Hep3Vector>();
-    private ReconstructedParticle particle = null;
-    
+    private ReconstructedParticle _particle = null;
     private String _constraintType;
     
     private boolean _debug = false;
@@ -42,9 +41,10 @@ public class BilliorVertex implements Vertex {
     private double _invMass;
     private double _probability; 
     
-    // constructor
-    public BilliorVertex() {
-    }
+    /**
+     * Dflt Ctor
+     */
+    public BilliorVertex() {}
 
     BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass, Map<Integer, Hep3Vector> pFitMap,String constraintType) {
         _chiSq = chiSq;
@@ -66,6 +66,15 @@ public class BilliorVertex implements Vertex {
     public String toString() {
         StringBuffer sb = new StringBuffer("Vertex at : \nx= " + _vertexPosition.x() + " +/- " + Math.sqrt(_covVtx.e(0, 0)) + "\ny= " + _vertexPosition.y() + " +/- " + Math.sqrt(_covVtx.e(1, 1)) + "\nz= " + _vertexPosition.z() + " +/- " + Math.sqrt(_covVtx.e(2, 2)));
         return sb.toString();
+    }
+    
+    /**
+     * Set the ReconstructedParticle associated with this Vertex
+     * 
+     * @param particle : The ReconstructedParticle Associated with this Vertex
+     */
+    public void setAssociatedParticle(ReconstructedParticle particle){
+    	this._particle = particle;
     }
 
     @Override
@@ -98,6 +107,8 @@ public class BilliorVertex implements Vertex {
         return new SymmetricMatrix(_covVtx);
     }
 
+    // TODO: These should be pulled out and accessed by their own 
+    //		 getter methods.  
     @Override
     public Map<String, Double> getParameters() {
         Map<String, Double> pars = new HashMap<String, Double>();
@@ -117,6 +128,6 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public ReconstructedParticle getAssociatedParticle() {
-    	return particle; 
+    	return _particle; 
     }
 }
