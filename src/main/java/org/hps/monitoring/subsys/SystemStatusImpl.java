@@ -11,6 +11,7 @@ public class SystemStatusImpl implements SystemStatus {
 
     StatusCode code = SystemStatus.StatusCode.UNKNOWN;
     long lastChangedMillis;
+    String message;
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
     
     SystemStatusImpl() {
@@ -23,8 +24,9 @@ public class SystemStatusImpl implements SystemStatus {
     }
 
     @Override
-    public void setStatusCode(StatusCode code) {
+    public void setStatus(StatusCode code, String message) {
         this.code = code;
+        this.message = message;
         setCurrentTime();
         notifyListeners();
     }
@@ -37,6 +39,11 @@ public class SystemStatusImpl implements SystemStatus {
     @Override
     public long getLastChangedMillis() {
         return lastChangedMillis;
+    }
+    
+    @Override
+    public String getMessage() {
+        return message;
     }
     
     void notifyListeners() {

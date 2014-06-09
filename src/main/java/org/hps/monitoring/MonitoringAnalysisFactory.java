@@ -17,11 +17,8 @@ import hep.aida.ref.AnalysisFactory;
  * @version $Id: MonitoringAnalysisFactory.java,v 1.4 2013/12/10 07:36:40 jeremy Exp $
  */
 public class MonitoringAnalysisFactory extends AnalysisFactory {
-
-    //Map<String,IPlotterFactory> plotterFactories = new HashMap<String,IPlotterFactory>();
     
     public MonitoringAnalysisFactory() {
-        System.out.println("MonitoringAnalysisFactory - ctor");
     }
     
     /**
@@ -41,30 +38,13 @@ public class MonitoringAnalysisFactory extends AnalysisFactory {
      * Create a named plotter factory for the monitoring application.
      */
     public IPlotterFactory createPlotterFactory(String name) {
-        System.out.println("createPlotterFactory - " + name);
-        //if (!plotterFactories.containsKey(name)) {
-        //    plotterFactories.put(name, new MonitoringPlotFactory(name));
-        //}
         return new MonitoringPlotFactory(name);
-        //return plotterFactories.get(name);
     }
 
     /**
      * Create an unnamed plotter factory for the monitoring application.
      */
     public IPlotterFactory createPlotterFactory() {
-        //System.out.println("createPlotterFactory - w/o name");
         return new MonitoringPlotFactory(null);
     }
-    
-    /*
-    public void clearPlotterFactories() {
-        if (plotterFactories.size() > 0) {
-            System.out.println("clearPlotterFactories - clearing " + plotterFactories.size() + " plotterFactories");
-            plotterFactories.clear();
-        } else {
-            System.out.println("clearPlotterFactories - plotterFactories is empty");
-        }
-    }
-    */
 }

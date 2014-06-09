@@ -20,7 +20,7 @@ public class EtSystemMonitor extends EtEventProcessor implements HasSystemInfo {
     @Override
     public void start() {
         info.getStatistics().start();
-        info.getStatus().setStatusCode(StatusCode.OKAY);
+        info.getStatus().setStatus(StatusCode.OKAY, "EtSystemMonitor set okay.");
     }
     
     @Override
@@ -31,7 +31,7 @@ public class EtSystemMonitor extends EtEventProcessor implements HasSystemInfo {
     @Override
     public void stop() {
         info.getStatistics().stop();
-        info.getStatus().setStatusCode(StatusCode.OFFLINE);
+        info.getStatus().setStatus(StatusCode.OFFLINE, "EtSystemMonitor set offline.");
     }
 
     @Override

@@ -32,7 +32,7 @@ public class EventButtonsPanel extends JPanel {
         c.insets = new Insets(0, 0, 0, 10);
         connectButton = new JButton("Connect");
         connectButton.setEnabled(true);
-        connectButton.setActionCommand(MonitoringCommands.connectCmd);
+        connectButton.setActionCommand(MonitoringCommands.CONNECT);
         add(connectButton, c);
 
         c = new GridBagConstraints();
@@ -40,7 +40,7 @@ public class EventButtonsPanel extends JPanel {
         c.gridy = 0;
         c.insets = new Insets(0, 0, 0, 10);
         pauseButton = new JButton("Pause");
-        pauseButton.setActionCommand(MonitoringCommands.pauseCmd);
+        pauseButton.setActionCommand(MonitoringCommands.PAUSE);
         pauseButton.setEnabled(false);
         add(pauseButton, c);
 
@@ -49,7 +49,7 @@ public class EventButtonsPanel extends JPanel {
         c.gridy = 0;
         nextEventsButton = new JButton("Next Event");
         nextEventsButton.setEnabled(false);
-        nextEventsButton.setActionCommand(MonitoringCommands.nextCmd);
+        nextEventsButton.setActionCommand(MonitoringCommands.NEXT);
         add(nextEventsButton, c);
     }
 
@@ -60,10 +60,10 @@ public class EventButtonsPanel extends JPanel {
     void toggleConnectButton() {
         if (connectButton.getText().equals("Connect")) {
             connectButton.setText("Disconnect");
-            connectButton.setActionCommand(MonitoringCommands.disconnectCmd);
+            connectButton.setActionCommand(MonitoringCommands.DISCONNECT);
         } else {
             connectButton.setText("Connect");
-            connectButton.setActionCommand(MonitoringCommands.connectCmd);
+            connectButton.setActionCommand(MonitoringCommands.CONNECT);
         }
     }
 
@@ -101,10 +101,10 @@ public class EventButtonsPanel extends JPanel {
         this.nextEventsButton.setEnabled(enable);
         if (enable) {
             pauseButton.setText("Resume");
-            pauseButton.setActionCommand(MonitoringCommands.resumeCmd);
+            pauseButton.setActionCommand(MonitoringCommands.RESUME);
         } else {
             pauseButton.setText("Pause");
-            pauseButton.setActionCommand(MonitoringCommands.pauseCmd);
+            pauseButton.setActionCommand(MonitoringCommands.PAUSE);
         }
     }
 }

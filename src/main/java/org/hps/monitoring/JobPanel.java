@@ -25,13 +25,13 @@ class JobPanel extends FieldsPanel {
     private JCheckBox disconnectWarningCheckBox;    
     private JCheckBox disconnectOnErrorCheckBox;
     private JTextField eventBuilderField;
-    private JComboBox steeringTypeComboBox;
+    private JComboBox<?> steeringTypeComboBox;
     private JTextField steeringFileField;
-    private JComboBox steeringResourcesComboBox;
+    private JComboBox<?> steeringResourcesComboBox;
     private JCheckBox logCheckBox;
     private JTextField logFileField;
     private JCheckBox pauseModeCheckBox;
-    private JComboBox logLevelComboBox;
+    private JComboBox<?> logLevelComboBox;
     private JTextField aidaSaveField;
     private JCheckBox aidaSaveCheckBox;
     
@@ -69,16 +69,15 @@ class JobPanel extends FieldsPanel {
         disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
         disconnectWarningCheckBox = addCheckBox("Warn before disconnect", true, true);
         logLevelComboBox = addComboBox("Log Level", this.logLevels);
-        logLevelComboBox.setActionCommand(MonitoringCommands.logLevelCmd);
+        logLevelComboBox.setActionCommand(MonitoringCommands.SET_LOG_LEVEL);
         steeringTypeComboBox = addComboBox("Steering Type", steeringTypes);  
         steeringFileField = addField("Steering File", 35);  	      
         steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", 
                 SteeringFileUtil.getAvailableSteeringFileResources(steeringPackage));
-        //steeringResourcesComboBox = addComboBox("Steering File Resource", new String[]{});
-        steeringResourcesComboBox.setActionCommand(MonitoringCommands.steeringResourceCmd);
+        steeringResourcesComboBox.setActionCommand(MonitoringCommands.SET_STEERING_RESOURCE);
         detectorNameField = addField("Detector Name", 20);
         eventBuilderField = addField("Event Builder Class", 30);
-        eventBuilderField.setActionCommand(MonitoringCommands.eventBuilderCmd);
+        eventBuilderField.setActionCommand(MonitoringCommands.SET_EVENT_BUILDER);
         logCheckBox = addCheckBox("Log to File", false, false);
         logFileField = addField("Log File", "", "Full path to log file.", 30, false);
         aidaSaveCheckBox = addCheckBox("Save AIDA at End of Job", false, false);
@@ -171,7 +170,7 @@ class JobPanel extends FieldsPanel {
         boolean okay = true;
         try {
             // Test that the event builder can be created without throwing any exceptions.
-            Class eventBuilderClass = Class.forName(eventBuilderClassName);
+            Class<?> eventBuilderClass = Class.forName(eventBuilderClassName);
             eventBuilderClass.newInstance();
         } 
         catch (ClassNotFoundException e) {

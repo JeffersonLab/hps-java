@@ -8,6 +8,7 @@ import org.jlab.coda.jevio.EvioEvent;
  * <tt>EvioEvent</tt> objects should implement.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Add handling for all event types (see EtEventListener).
 public abstract class EvioEventProcessor implements EventProcessor<EvioEvent> {
         
     @Override

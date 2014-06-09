@@ -1,33 +1,33 @@
 package org.hps.monitoring;
 
-import static org.hps.monitoring.MonitoringCommands.aidaAutoSaveCmd;
-import static org.hps.monitoring.MonitoringCommands.clearLogTableCmd;
-import static org.hps.monitoring.MonitoringCommands.connectCmd;
-import static org.hps.monitoring.MonitoringCommands.disconnectCmd;
-import static org.hps.monitoring.MonitoringCommands.eventBuilderCmd;
-import static org.hps.monitoring.MonitoringCommands.eventRefreshCmd;
-import static org.hps.monitoring.MonitoringCommands.exitCmd;
-import static org.hps.monitoring.MonitoringCommands.loadConnectionCmd;
-import static org.hps.monitoring.MonitoringCommands.loadJobSettingsCmd;
-import static org.hps.monitoring.MonitoringCommands.logLevelCmd;
-import static org.hps.monitoring.MonitoringCommands.logToFileCmd;
-import static org.hps.monitoring.MonitoringCommands.logToTerminalCmd;
-import static org.hps.monitoring.MonitoringCommands.nextCmd;
-import static org.hps.monitoring.MonitoringCommands.pauseCmd;
-import static org.hps.monitoring.MonitoringCommands.resetConnectionSettingsCmd;
-import static org.hps.monitoring.MonitoringCommands.resetDriversCmd;
-import static org.hps.monitoring.MonitoringCommands.resetEventsCmd;
-import static org.hps.monitoring.MonitoringCommands.resetJobSettingsCmd;
-import static org.hps.monitoring.MonitoringCommands.resumeCmd;
-import static org.hps.monitoring.MonitoringCommands.saveConnectionCmd;
-import static org.hps.monitoring.MonitoringCommands.saveJobSettingsCmd;
-import static org.hps.monitoring.MonitoringCommands.saveLogTableCmd;
-import static org.hps.monitoring.MonitoringCommands.savePlotsCmd;
-import static org.hps.monitoring.MonitoringCommands.screenshotCmd;
-import static org.hps.monitoring.MonitoringCommands.setMaxEventsCmd;
-import static org.hps.monitoring.MonitoringCommands.steeringFileCmd;
-import static org.hps.monitoring.MonitoringCommands.steeringResourceCmd;
-import static org.hps.monitoring.MonitoringCommands.updateTimeCmd;
+import static org.hps.monitoring.MonitoringCommands.AIDA_AUTO_SAVE;
+import static org.hps.monitoring.MonitoringCommands.CLEAR_LOG_TABLE;
+import static org.hps.monitoring.MonitoringCommands.CONNECT;
+import static org.hps.monitoring.MonitoringCommands.DISCONNECT;
+import static org.hps.monitoring.MonitoringCommands.EDIT_EVENT_REFRESH;
+import static org.hps.monitoring.MonitoringCommands.EXIT;
+import static org.hps.monitoring.MonitoringCommands.LOAD_CONNECTION;
+import static org.hps.monitoring.MonitoringCommands.LOAD_JOB_SETTINGS;
+import static org.hps.monitoring.MonitoringCommands.LOG_TO_FILE;
+import static org.hps.monitoring.MonitoringCommands.LOG_TO_TERMINAL;
+import static org.hps.monitoring.MonitoringCommands.NEXT;
+import static org.hps.monitoring.MonitoringCommands.PAUSE;
+import static org.hps.monitoring.MonitoringCommands.RESET_CONNECTION_SETTINGS;
+import static org.hps.monitoring.MonitoringCommands.RESET_DRIVERS;
+import static org.hps.monitoring.MonitoringCommands.RESET_EVENTS;
+import static org.hps.monitoring.MonitoringCommands.RESET_JOB_SETTINGS;
+import static org.hps.monitoring.MonitoringCommands.RESUME;
+import static org.hps.monitoring.MonitoringCommands.SAVE_CONNECTION;
+import static org.hps.monitoring.MonitoringCommands.SAVE_JOB_SETTINGS;
+import static org.hps.monitoring.MonitoringCommands.SAVE_LOG_TABLE;
+import static org.hps.monitoring.MonitoringCommands.SAVE_PLOTS;
+import static org.hps.monitoring.MonitoringCommands.SCREENSHOT;
+import static org.hps.monitoring.MonitoringCommands.SET_EVENT_BUILDER;
+import static org.hps.monitoring.MonitoringCommands.SET_LOG_LEVEL;
+import static org.hps.monitoring.MonitoringCommands.SET_MAX_EVENTS;
+import static org.hps.monitoring.MonitoringCommands.SET_STEERING_FILE;
+import static org.hps.monitoring.MonitoringCommands.SET_STEERING_RESOURCE;
+import static org.hps.monitoring.MonitoringCommands.UPDATE_TIME;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -82,6 +82,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.record.etevent.EtConnection;
+import org.hps.monitoring.record.etevent.EtConnectionParameters;
+import org.hps.monitoring.record.etevent.EtEventListener;
 import org.hps.util.Resettable;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
@@ -103,6 +106,7 @@ import org.lcsim.util.aida.AIDA;
 //       standard Driver API used instead.  Resettable can maybe be replaced by startOfData().
 //       Not sure about Redrawable; maybe it isn't needed at all.
 // FIXME: Tracebacks from errors should be caught and written into the log table.
+// TODO: Replace DefaultEtEventProcessor with EventProcessingChain class.
 public class MonitoringApplication {
 
     // Top-level Swing components.
@@ -140,14 +144,14 @@ public class MonitoringApplication {
     private final PrintStream sysErr = System.err;
 
     // ET connection parameters and state.
-    private ConnectionParameters connectionParameters;
+    private EtConnectionParameters connectionParameters;
     private EtConnection connection;
     private int connectionStatus = ConnectionStatus.DISCONNECTED;
 
     // Event processing objects.
     private JobControlManager jobManager;
     private LCSimEventBuilder eventBuilder;
-    private EtEventProcessor eventProcessor;
+    private OldEtEventProcessor eventProcessor;
     private Thread eventProcessingThread;
 
     // Job timing.
@@ -350,18 +354,18 @@ public class MonitoringApplication {
         connectionMenu.setMnemonic(KeyEvent.VK_C);
         menuBar.add(connectionMenu);
 
-        connectItem = addMenuItem("Connect", KeyEvent.VK_C, connectCmd, true, "Connect to ET system using parameters from connection panel.", connectionMenu);
-        disconnectItem = addMenuItem("Disconnect", KeyEvent.VK_D, disconnectCmd, false, "Disconnect from the current ET session.", connectionMenu);
-        resetConnectionItem = addMenuItem("Reset Connection Settings", KeyEvent.VK_R, resetConnectionSettingsCmd, true, "Reset connection settings to defaults.", connectionMenu);
-        connectionLoadItem = addMenuItem("Load Connection...", KeyEvent.VK_L, loadConnectionCmd, true, "Load connection settings from a saved properties file.", connectionMenu);
-        addMenuItem("Save Connection...", KeyEvent.VK_S, saveConnectionCmd, true, "Save connection settings to a properties file.", connectionMenu);
-        addMenuItem("Exit", KeyEvent.VK_X, exitCmd, true, "Exit from the application.", connectionMenu);
+        connectItem = addMenuItem("Connect", KeyEvent.VK_C, CONNECT, true, "Connect to ET system using parameters from connection panel.", connectionMenu);
+        disconnectItem = addMenuItem("Disconnect", KeyEvent.VK_D, DISCONNECT, false, "Disconnect from the current ET session.", connectionMenu);
+        resetConnectionItem = addMenuItem("Reset Connection Settings", KeyEvent.VK_R, RESET_CONNECTION_SETTINGS, true, "Reset connection settings to defaults.", connectionMenu);
+        connectionLoadItem = addMenuItem("Load Connection...", KeyEvent.VK_L, LOAD_CONNECTION, true, "Load connection settings from a saved properties file.", connectionMenu);
+        addMenuItem("Save Connection...", KeyEvent.VK_S, SAVE_CONNECTION, true, "Save connection settings to a properties file.", connectionMenu);
+        addMenuItem("Exit", KeyEvent.VK_X, EXIT, true, "Exit from the application.", connectionMenu);
 
         JMenu eventMenu = new JMenu("Event");
         eventMenu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(eventMenu);
 
-        addMenuItem("Reset Event Monitor", KeyEvent.VK_E, resetEventsCmd, true, "Reset timer and counters in the event monitor tab.", eventMenu);
+        addMenuItem("Reset Event Monitor", KeyEvent.VK_E, RESET_EVENTS, true, "Reset timer and counters in the event monitor tab.", eventMenu);
 
         /**
          * FIXME: Rest of these should be converted to use the addMenuItem() helper
@@ -370,14 +374,14 @@ public class MonitoringApplication {
 
         JMenuItem eventRefreshItem = new JMenuItem("Set Event Refresh...");
         eventRefreshItem.setMnemonic(KeyEvent.VK_V);
-        eventRefreshItem.setActionCommand(eventRefreshCmd);
+        eventRefreshItem.setActionCommand(EDIT_EVENT_REFRESH);
         eventRefreshItem.addActionListener(actionListener);
         eventRefreshItem.setToolTipText("Set the number of events between GUI updates.");
         eventMenu.add(eventRefreshItem);
 
         JMenuItem maxEventsItem = new JMenuItem("Set Max Events...");
         maxEventsItem.setMnemonic(KeyEvent.VK_M);
-        maxEventsItem.setActionCommand(setMaxEventsCmd);
+        maxEventsItem.setActionCommand(SET_MAX_EVENTS);
         maxEventsItem.addActionListener(actionListener);
         maxEventsItem.setToolTipText("Set the maximum number of events to process in one session.");
         eventMenu.add(maxEventsItem);
@@ -388,42 +392,42 @@ public class MonitoringApplication {
 
         saveJobSettingsItem = new JMenuItem("Save Job Settings...");
         saveJobSettingsItem.setMnemonic(KeyEvent.VK_J);
-        saveJobSettingsItem.setActionCommand(saveJobSettingsCmd);
+        saveJobSettingsItem.setActionCommand(SAVE_JOB_SETTINGS);
         saveJobSettingsItem.addActionListener(actionListener);
         saveJobSettingsItem.setToolTipText("Save Job Settings configuration to a properties file.");
         jobMenu.add(saveJobSettingsItem);
 
         loadJobSettingsItem = new JMenuItem("Load Job Settings...");
         loadJobSettingsItem.setMnemonic(KeyEvent.VK_L);
-        loadJobSettingsItem.setActionCommand(loadJobSettingsCmd);
+        loadJobSettingsItem.setActionCommand(LOAD_JOB_SETTINGS);
         loadJobSettingsItem.addActionListener(actionListener);
         loadJobSettingsItem.setToolTipText("Load Job Settings from a properties file.");
         jobMenu.add(loadJobSettingsItem);
 
         resetJobSettingsItem = new JMenuItem("Reset Job Settings");
         resetJobSettingsItem.setMnemonic(KeyEvent.VK_R);
-        resetJobSettingsItem.setActionCommand(resetJobSettingsCmd);
+        resetJobSettingsItem.setActionCommand(RESET_JOB_SETTINGS);
         resetJobSettingsItem.addActionListener(actionListener);
         resetJobSettingsItem.setToolTipText("Reset Job Settings to the defaults.");
         jobMenu.add(resetJobSettingsItem);
 
         steeringItem = new JMenuItem("Set Steering File...");
         steeringItem.setMnemonic(KeyEvent.VK_S);
-        steeringItem.setActionCommand(steeringFileCmd);
+        steeringItem.setActionCommand(SET_STEERING_FILE);
         steeringItem.addActionListener(actionListener);
         steeringItem.setToolTipText("Set the job's LCSim steering file.");
         jobMenu.add(steeringItem);
 
         aidaAutoSaveItem = new JMenuItem("AIDA Auto Save File...");
         aidaAutoSaveItem.setMnemonic(KeyEvent.VK_A);
-        aidaAutoSaveItem.setActionCommand(aidaAutoSaveCmd);
+        aidaAutoSaveItem.setActionCommand(AIDA_AUTO_SAVE);
         aidaAutoSaveItem.addActionListener(actionListener);
         aidaAutoSaveItem.setToolTipText("Select name of file to auto save AIDA plots at end of job.");
         jobMenu.add(aidaAutoSaveItem);
 
         savePlotsItem = new JMenuItem("Save Plots to AIDA File...");
         savePlotsItem.setMnemonic(KeyEvent.VK_P);
-        savePlotsItem.setActionCommand(savePlotsCmd);
+        savePlotsItem.setActionCommand(SAVE_PLOTS);
         savePlotsItem.addActionListener(actionListener);
         savePlotsItem.setEnabled(false);
         savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
@@ -431,7 +435,7 @@ public class MonitoringApplication {
 
         resetDriversItem = new JMenuItem("Reset LCSim Drivers");
         resetDriversItem.setMnemonic(KeyEvent.VK_D);
-        resetDriversItem.setActionCommand(resetDriversCmd);
+        resetDriversItem.setActionCommand(RESET_DRIVERS);
         resetDriversItem.addActionListener(actionListener);
         resetDriversItem.setEnabled(false);
         resetDriversItem.setToolTipText("Reset Drivers that implement the Resettable interface.");
@@ -439,7 +443,7 @@ public class MonitoringApplication {
 
         logItem = new JMenuItem("Redirect to File...");
         logItem.setMnemonic(KeyEvent.VK_F);
-        logItem.setActionCommand(logToFileCmd);
+        logItem.setActionCommand(LOG_TO_FILE);
         logItem.addActionListener(actionListener);
         logItem.setEnabled(true);
         logItem.setToolTipText("Redirect job's standard out and err to a file.");
@@ -447,7 +451,7 @@ public class MonitoringApplication {
 
         terminalItem = new JMenuItem("Redirect to Terminal");
         terminalItem.setMnemonic(KeyEvent.VK_T);
-        terminalItem.setActionCommand(logToTerminalCmd);
+        terminalItem.setActionCommand(LOG_TO_TERMINAL);
         terminalItem.addActionListener(actionListener);
         terminalItem.setEnabled(false);
         terminalItem.setToolTipText("Redirect job's standard out and err back to the terminal.");
@@ -455,7 +459,7 @@ public class MonitoringApplication {
 
         JMenuItem screenshotItem = new JMenuItem("Take a screenshot...");
         screenshotItem.setMnemonic(KeyEvent.VK_N);
-        screenshotItem.setActionCommand(screenshotCmd);
+        screenshotItem.setActionCommand(SCREENSHOT);
         screenshotItem.addActionListener(actionListener);
         screenshotItem.setToolTipText("Save a full screenshot to a " + screenshotFormat + " file.");
         jobMenu.add(screenshotItem);
@@ -466,12 +470,12 @@ public class MonitoringApplication {
 
         JMenuItem saveLogItem = new JMenuItem("Save log to file...");
         saveLogItem.setMnemonic(KeyEvent.VK_S);
-        saveLogItem.setActionCommand(saveLogTableCmd);
+        saveLogItem.setActionCommand(SAVE_LOG_TABLE);
         saveLogItem.addActionListener(actionListener);
         saveLogItem.setToolTipText("Save the log records to a tab delimited text file.");
         logMenu.add(saveLogItem);
 
-        addMenuItem("Clear log", KeyEvent.VK_C, clearLogTableCmd, true, "Clear the log table of all messages.", logMenu);
+        addMenuItem("Clear log", KeyEvent.VK_C, CLEAR_LOG_TABLE, true, "Clear the log table of all messages.", logMenu);
     }
 
     /**
@@ -650,7 +654,7 @@ public class MonitoringApplication {
          */
         public void actionPerformed(ActionEvent e) {
             String cmd = e.getActionCommand();
-            if (cmd != MonitoringCommands.updateTimeCmd) {
+            if (cmd != MonitoringCommands.UPDATE_TIME) {
                 // Log actions performed. Catch errors in case logging is not initialized
                 // yet.
                 try {
@@ -659,61 +663,61 @@ public class MonitoringApplication {
                     xx.printStackTrace();
                 }
             }
-            if (connectCmd.equals(cmd)) {
+            if (CONNECT.equals(cmd)) {
                 startSessionThread();
-            } else if (disconnectCmd.equals(cmd)) {
+            } else if (DISCONNECT.equals(cmd)) {
                 startDisconnectThread();
-            } else if (eventRefreshCmd.equals(cmd)) {
+            } else if (EDIT_EVENT_REFRESH.equals(cmd)) {
                 setEventRefresh();
-            } else if (savePlotsCmd.equals(cmd)) {
+            } else if (SAVE_PLOTS.equals(cmd)) {
                 savePlots();
-            } else if (resetDriversCmd.equals(cmd)) {
+            } else if (RESET_DRIVERS.equals(cmd)) {
                 resetDrivers();
-            } else if (logToFileCmd.equals(cmd)) {
+            } else if (LOG_TO_FILE.equals(cmd)) {
                 logToFile();
-            } else if (logToTerminalCmd.equals(cmd)) {
+            } else if (LOG_TO_TERMINAL.equals(cmd)) {
                 logToTerminal();
-            } else if (screenshotCmd.equals(cmd)) {
+            } else if (SCREENSHOT.equals(cmd)) {
                 chooseScreenshot();
-            } else if (exitCmd.equals(cmd)) {
+            } else if (EXIT.equals(cmd)) {
                 exit();
-            } else if (updateTimeCmd.equals(cmd)) {
+            } else if (UPDATE_TIME.equals(cmd)) {
                 updateTime();
-            } else if (resetEventsCmd.equals(cmd)) {
+            } else if (RESET_EVENTS.equals(cmd)) {
                 resetJob();
-            } else if (saveConnectionCmd.equals(cmd)) {
+            } else if (SAVE_CONNECTION.equals(cmd)) {
                 connectionPanel.save();
-            } else if (loadConnectionCmd.equals(cmd)) {
+            } else if (LOAD_CONNECTION.equals(cmd)) {
                 connectionPanel.load();
-            } else if (resetConnectionSettingsCmd.equals(cmd)) {
+            } else if (RESET_CONNECTION_SETTINGS.equals(cmd)) {
                 connectionPanel.reset();
-            } else if (setMaxEventsCmd.equals(cmd)) {
+            } else if (SET_MAX_EVENTS.equals(cmd)) {
                 setMaxEvents();
-            } else if (saveLogTableCmd.equals(cmd)) {
+            } else if (SAVE_LOG_TABLE.equals(cmd)) {
                 saveLogToFile();
-            } else if (clearLogTableCmd.equals(cmd)) {
+            } else if (CLEAR_LOG_TABLE.equals(cmd)) {
                 clearLog();
-            } else if (eventBuilderCmd.equals(cmd)) {
+            } else if (SET_EVENT_BUILDER.equals(cmd)) {
                 jobPanel.editEventBuilder();
-            } else if (pauseCmd.equals(cmd)) {
+            } else if (PAUSE.equals(cmd)) {
                 pause();
-            } else if (nextCmd.equals(cmd)) {
+            } else if (NEXT.equals(cmd)) {
                 next();
-            } else if (resumeCmd.equals(cmd)) {
+            } else if (RESUME.equals(cmd)) {
                 resume();
-            } else if (logLevelCmd.equals(cmd)) {
+            } else if (SET_LOG_LEVEL.equals(cmd)) {
                 setLogLevel();
-            } else if (aidaAutoSaveCmd.equals(cmd)) {
+            } else if (AIDA_AUTO_SAVE.equals(cmd)) {
                 jobPanel.chooseAidaAutoSaveFile();
-            } else if (saveJobSettingsCmd.equals(cmd)) {
+            } else if (SAVE_JOB_SETTINGS.equals(cmd)) {
                 saveJobSettings();
-            } else if (loadJobSettingsCmd.equals(cmd)) {
+            } else if (LOAD_JOB_SETTINGS.equals(cmd)) {
                 loadJobSettings();
-            } else if (resetJobSettingsCmd.equals(cmd)) {
+            } else if (RESET_JOB_SETTINGS.equals(cmd)) {
                 resetJobSettings();
-            } else if (steeringResourceCmd.equals(cmd)) {
+            } else if (SET_STEERING_RESOURCE.equals(cmd)) {
                 steeringResourceSelected();
-            } else if (steeringFileCmd.equals(cmd)) {
+            } else if (SET_STEERING_FILE.equals(cmd)) {
                 selectSteeringFile();
             }
         }
@@ -1430,7 +1434,7 @@ public class MonitoringApplication {
      * Get the connection parameter settings from the connection panel.
      * @return The connection parameters.
      */
-    private ConnectionParameters getConnectionParameters() {
+    private EtConnectionParameters getConnectionParameters() {
         return connectionPanel.getConnectionParameters();
     }
 
@@ -1545,7 +1549,7 @@ public class MonitoringApplication {
             if (cleanupThread.succeeded()) {
                 log(Level.FINE, "EtCleanupThread succeeded in disconnecting from ET system.");
             } else {
-                log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.stat.getName() + "> is zombified.");
+                log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.getEtStation().getName() + "> is zombified.");
                 // Make the cleanup thread yield.
                 cleanupThread.stopCleanup();
                 // Stop the cleanup thread.
@@ -1668,11 +1672,11 @@ public class MonitoringApplication {
             // Set status to connected as there is now a live ET connection.
             setConnectionStatus(ConnectionStatus.CONNECTED);
 
-            log(Level.CONFIG, "Created ET connection to <" + connectionParameters.etName + ">.");
+            log(Level.CONFIG, "Created ET connection to <" + connectionParameters.getBufferName() + ">.");
         } else {
             // Some error occurred and the connection is not valid.
             setConnectionStatus(ConnectionStatus.ERROR);
-            log(Level.SEVERE, "Failed to create ET connection to <" + connectionParameters.etName + ">.");
+            log(Level.SEVERE, "Failed to create ET connection to <" + connectionParameters.getBufferName() + ">.");
             throw new RuntimeException("Failed to create ET connection.");
         }
     }
@@ -1682,7 +1686,7 @@ public class MonitoringApplication {
      */
     private void startTimer() {
         timer = new Timer(1000, actionListener);
-        timer.setActionCommand(updateTimeCmd);
+        timer.setActionCommand(UPDATE_TIME);
         jobStartTime = System.currentTimeMillis();
         timer.start();
         log(Level.FINE, "Job timer started.");

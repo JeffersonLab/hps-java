@@ -1,19 +1,30 @@
-package org.hps.monitoring;
+package org.hps.monitoring.record.etevent;
+
+import java.io.IOException;
 
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
+import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
+import org.jlab.coda.et.enums.Modify;
+import org.jlab.coda.et.exception.EtBusyException;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtDeadException;
+import org.jlab.coda.et.exception.EtEmptyException;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtTimeoutException;
+import org.jlab.coda.et.exception.EtWakeUpException;
 
 /**
  * Create an EtSystem and EtAttachment from ConnectionParameters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class EtConnection {
+public class EtConnection {
 
-    ConnectionParameters param;
+    EtConnectionParameters param;
     EtSystem sys;
     EtAttachment att;
     EtStation stat;
@@ -25,18 +36,18 @@ class EtConnection {
      * @param att The ET attachment.
      * @param stat The ET station.
      */
-    private EtConnection(ConnectionParameters param, EtSystem sys, EtAttachment att, EtStation stat) {
+    private EtConnection(EtConnectionParameters param, EtSystem sys, EtAttachment att, EtStation stat) {
         this.param = param;
         this.sys = sys;
         this.att = att;
         this.stat = stat;
     }
-
+  
     /**
      * Get the ET system.
      * @return The ET system.
      */
-    EtSystem getEtSystem() {
+    public EtSystem getEtSystem() {
         return sys;
     }
 
@@ -44,7 +55,7 @@ class EtConnection {
      * Get the ET attachment.
      * @return The ET attachment.
      */
-    EtAttachment getEtAttachment() {
+    public EtAttachment getEtAttachment() {
         return att;
     }
 
@@ -52,7 +63,7 @@ class EtConnection {
      * Get the ET station. 
      * @return The ET station.
      */
-    EtStation getEtStation() {
+    public EtStation getEtStation() {
         return stat;
     }
 
@@ -60,14 +71,14 @@ class EtConnection {
      * Get the connection parameters.
      * @return The connection parameters.
      */
-    ConnectionParameters getConnectionParameters() {
+    public EtConnectionParameters getConnectionParameters() {
         return param;
     }
 
     /**
      * Cleanup the ET connection.
      */
-    void cleanup() {
+    public void cleanup() {
         boolean debug = false;
         try {
             if (debug)
@@ -92,11 +103,11 @@ class EtConnection {
      * @param cn The connection parameters.
      * @return The ET connection.
      */
-    static EtConnection createEtConnection(ConnectionParameters cn) {
+    public static EtConnection createEtConnection(EtConnectionParameters cn) {
         try {
 
             // make a direct connection to ET system's tcp server
-            EtSystemOpenConfig config = new EtSystemOpenConfig(cn.etName, cn.host, cn.port);
+            EtSystemOpenConfig config = new EtSystemOpenConfig(cn.bufferName, cn.host, cn.port);
 
             // create ET system object with verbose debugging output
             EtSystem sys = new EtSystem(config, EtConstants.debugInfo);
@@ -131,4 +142,30 @@ class EtConnection {
             return null;
         }
     }       
+    
+    /**
+     * Read EtEvent objects from the ET ring.  
+     * Preserve all specific Exception types in throws clause so caller
+     * can implement their own specific error and state handling.
+     * @return
+     * @throws IOException
+     * @throws EtException
+     * @throws EtDeadException
+     * @throws EtEmptyException
+     * @throws EtBusyException
+     * @throws EtTimeoutException
+     * @throws EtWakeUpException
+     * @throws EtClosedException
+     */
+    public EtEvent[] readEtEvents() 
+            throws IOException, EtException, EtDeadException, 
+            EtEmptyException, EtBusyException, EtTimeoutException, 
+            EtWakeUpException, EtClosedException {
+        return getEtSystem().getEvents(
+            getEtAttachment(),
+            getConnectionParameters().getWaitMode(), 
+            Modify.NOTHING,
+            getConnectionParameters().getWaitTime(), 
+            getConnectionParameters().getChunkSize());
+    }
 }
