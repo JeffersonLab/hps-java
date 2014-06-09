@@ -86,6 +86,14 @@ public class EcalClusterIC extends Driver {
     public void setEcalName(String ecalName) {
         this.ecalName = ecalName;
     }
+
+    /**
+     * Output file name for event display output.
+     * @param outfile
+     */
+    public void setOutfile(String outfile) {
+        this.outfile = outfile;
+    }
     
     public void setRejectedHitName(String rejectedHitName){
     	this.rejectedHitName = rejectedHitName;
