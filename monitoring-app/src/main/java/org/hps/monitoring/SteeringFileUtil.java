@@ -19,7 +19,7 @@ public class SteeringFileUtil {
 
     /**
      * Get the files that end in .lcsim from all loaded jar files.
-     * @return
+     * @return A list of embedded steering file resources.
      */
     public static String[] getAvailableSteeringFileResources(String packageName) {
         List<String> resources = new ArrayList<String>();

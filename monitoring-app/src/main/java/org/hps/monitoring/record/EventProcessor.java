@@ -6,6 +6,15 @@ package org.hps.monitoring.record;
  *
  * @param <EventType> The concrete type of the event record.
  */
-public interface EventProcessor<EventType> {          
+public interface EventProcessor<EventType> {
+    
+    // void jobStart();
+    
+    // void runStart(EventType event);
+    
     void processEvent(EventType event);    
+    
+    // void runEnd(EventType event);
+    
+    // void jobEnd();
 }

@@ -45,13 +45,19 @@ public interface SystemStatus {
      * @return The current status code.
      */
     StatusCode getStatusCode();
+    
+    /**
+     * Get the current message.
+     * @return The current message
+     */
+    String getMessage();
 
     /**
      * Set the current status code, which will cause the last changed 
      * time to be set and the listeners to be notified.
      * @param code The new status code.
      */
-    void setStatusCode(StatusCode code);
+    void setStatus(StatusCode code, String message);
     
     /**
      * Get the time when the system status last changed.

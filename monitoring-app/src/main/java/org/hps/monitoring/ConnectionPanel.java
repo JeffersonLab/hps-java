@@ -15,11 +15,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
+import org.hps.monitoring.record.etevent.EtConnectionParameters;
 import org.jlab.coda.et.enums.Mode;
 
 /**
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConnectionPanel.java,v 1.24 2013/11/05 17:15:04 jeremy Exp $
  */
 class ConnectionPanel extends FieldsPanel {
 
@@ -33,10 +33,10 @@ class ConnectionPanel extends FieldsPanel {
     private JTextField qSizeField;
     private JTextField positionField;
     private JTextField ppositionField;
-    private JComboBox waitComboBox;
+    private JComboBox<?> waitComboBox;
     private JTextField waitTimeField;
     private JTextField prescaleField;
-    private ConnectionParameters connectionParameters;
+    private EtConnectionParameters connectionParameters;
     static final String[] waitModes = {
         Mode.SLEEP.toString(),
         Mode.TIMED.toString(),
@@ -69,28 +69,28 @@ class ConnectionPanel extends FieldsPanel {
         prescaleField = addField("Prescale", 8);
 
         // Set default connection parameters which are pushed to GUI.
-        setConnectionParameters(new ConnectionParameters());
+        setConnectionParameters(new EtConnectionParameters());
     }
 
     /**
      * Get the connection parameters.
      * @return The connection parameters.
      */
-    ConnectionParameters getConnectionParameters() {
-        connectionParameters = new ConnectionParameters();
-        connectionParameters.etName = etNameField.getText();
-        connectionParameters.host = hostField.getText();
-        connectionParameters.port = Integer.parseInt(portField.getText());
-        connectionParameters.blocking = blockingCheckBox.isSelected();
-        connectionParameters.verbose = verboseCheckBox.isSelected();
-        connectionParameters.statName = statNameField.getText();
-        connectionParameters.chunk = Integer.parseInt(chunkField.getText());
-        connectionParameters.qSize = Integer.parseInt(qSizeField.getText());
-        connectionParameters.position = Integer.parseInt(positionField.getText());
-        connectionParameters.pposition = Integer.parseInt(ppositionField.getText());
-        connectionParameters.waitMode = getWaitMode();
-        connectionParameters.waitTime = Integer.parseInt(waitTimeField.getText());
-        connectionParameters.prescale = Integer.parseInt(prescaleField.getText());
+    EtConnectionParameters getConnectionParameters() {
+        connectionParameters = new EtConnectionParameters();
+        connectionParameters.setBufferName(etNameField.getText());
+        connectionParameters.setHost(hostField.getText());
+        connectionParameters.setPort(Integer.parseInt(portField.getText()));
+        connectionParameters.setBlocking(blockingCheckBox.isSelected());
+        connectionParameters.setVerbose(verboseCheckBox.isSelected());
+        connectionParameters.setStationName(statNameField.getText());
+        connectionParameters.setChunkSize(Integer.parseInt(chunkField.getText()));
+        connectionParameters.setQueueSize(Integer.parseInt(qSizeField.getText()));
+        connectionParameters.setStationPosition(Integer.parseInt(positionField.getText()));
+        connectionParameters.setStationsParallelPosition(Integer.parseInt(ppositionField.getText()));
+        connectionParameters.setWaitMode(getWaitMode());
+        connectionParameters.setWaitTime(Integer.parseInt(waitTimeField.getText()));
+        connectionParameters.setPreScale(Integer.parseInt(prescaleField.getText()));
         return connectionParameters;
     }
 
@@ -129,21 +129,21 @@ class ConnectionPanel extends FieldsPanel {
      * Set the connection parameters and push into the GUI.
      * @param cn The connection parameters.
      */
-    private void setConnectionParameters(ConnectionParameters cn) {
-        etNameField.setText(cn.etName);
-        hostField.setText(cn.host);
-        portField.setText(Integer.toString(cn.port));
-        blockingCheckBox.setSelected(cn.blocking);
-        verboseCheckBox.setSelected(cn.verbose);
-        statNameField.setText(cn.statName);
-        chunkField.setText(Integer.toString(cn.chunk));
-        qSizeField.setText(Integer.toString(cn.qSize));
-        positionField.setText(Integer.toString(cn.position));
-        ppositionField.setText(Integer.toString(cn.pposition));
-        setWaitMode(cn.waitMode);
-        waitTimeField.setText(Integer.toString(cn.waitTime));
-        prescaleField.setText(Integer.toString(cn.prescale));
-        this.connectionParameters = cn;
+    private void setConnectionParameters(EtConnectionParameters connectionParameters) {
+        etNameField.setText(connectionParameters.getBufferName());
+        hostField.setText(connectionParameters.getHost());
+        portField.setText(Integer.toString(connectionParameters.getPort()));
+        blockingCheckBox.setSelected(connectionParameters.getBlocking());
+        verboseCheckBox.setSelected(connectionParameters.getVerbose());
+        statNameField.setText(connectionParameters.getStationName());
+        chunkField.setText(Integer.toString(connectionParameters.getChunkSize()));
+        qSizeField.setText(Integer.toString(connectionParameters.getQueueSize()));
+        positionField.setText(Integer.toString(connectionParameters.getStationPosition()));
+        ppositionField.setText(Integer.toString(connectionParameters.getStationParallelPosition()));
+        setWaitMode(connectionParameters.getWaitMode());
+        waitTimeField.setText(Integer.toString(connectionParameters.getWaitTime()));
+        prescaleField.setText(Integer.toString(connectionParameters.getPrescale()));
+        this.connectionParameters = connectionParameters;
     }
 
     /**
@@ -194,7 +194,7 @@ class ConnectionPanel extends FieldsPanel {
      * Reset the connection parameters.
      */
     void reset() {
-        setConnectionParameters(new ConnectionParameters());
+        setConnectionParameters(new EtConnectionParameters());
     }
 
     /**

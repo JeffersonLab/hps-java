@@ -39,12 +39,9 @@ class MonitoringPlotFactory extends PlotterFactory {
         
         /* Enable embedded mode. */
         setEmbedded(true);
-        
+
+        /* Setup the root pane by adding a tab for this factory. */
         setupRootPane("  ");
-        
-        /** Setup the root pane by adding a tab for this factory. */
-        //rootPane.addTab("  ", tabs);
-        //rootPane.setTabComponentAt(rootPane.getTabCount() - 1, new JLabel("  "));
     }
 
     /**

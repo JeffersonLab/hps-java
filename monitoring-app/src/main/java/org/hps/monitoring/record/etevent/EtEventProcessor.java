@@ -29,4 +29,14 @@ public abstract class EtEventProcessor implements EventProcessor<EtEvent> {
      */
     public void stop() {        
     }
+    
+    // from EtEventListener
+    //
+    // void begin();    
+    // void startOfEvent();
+    // void endOfEvent();
+    // void errorOnEvent();
+    // void finish();
+    // void prestart(int seconds, int runNumber);    
+    // void endRun(int seconds, int nevents);
 }

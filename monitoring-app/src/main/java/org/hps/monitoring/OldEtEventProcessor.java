@@ -2,6 +2,7 @@ package org.hps.monitoring;
 
 import java.util.logging.Level;
 
+import org.hps.monitoring.record.etevent.EtEventListener;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.exception.EtTimeoutException;
 
@@ -11,7 +12,7 @@ import org.jlab.coda.et.exception.EtTimeoutException;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: EtEventProcessor.java,v 1.4 2013/11/05 17:15:04 jeremy Exp $
  */
-interface EtEventProcessor
+interface OldEtEventProcessor
 {
     /** 
      * Process a single EtEvent.
@@ -137,7 +138,7 @@ interface EtEventProcessor
     }
     
     /**
-     * Exception that is throw when the {@link EtEventProcessor#getMaxEvents()} is exceeded.
+     * Exception that is throw when the {@link OldEtEventProcessor#getMaxEvents()} is exceeded.
      */
     static final class MaxEventsException extends Exception {
         

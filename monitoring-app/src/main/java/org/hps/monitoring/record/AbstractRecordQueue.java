@@ -108,6 +108,7 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
                 // null if queue is empty.
                 currentRecord = records.poll();
         } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         if (currentRecord == null) {
             throw new NoSuchRecordException("No records in queue.");
@@ -117,11 +118,4 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
     public long size() {
         return records.size();
     }
-
-    /*
-    void drain() {
-        do {
-        } while (records.peek() != null);
-    }
-    */
 }

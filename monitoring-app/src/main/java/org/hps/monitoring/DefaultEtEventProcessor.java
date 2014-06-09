@@ -11,8 +11,9 @@ import java.util.logging.Logger;
 
 import org.hps.evio.EventConstants;
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.record.etevent.EtConnection;
+import org.hps.monitoring.record.etevent.EtEventListener;
 import org.jlab.coda.et.EtEvent;
-import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.et.exception.EtTimeoutException;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
@@ -29,7 +30,7 @@ import org.lcsim.job.JobControlManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: DefaultEtEventProcessor.java,v 1.13 2013/10/25 23:13:53 jeremy Exp $
  */
-public class DefaultEtEventProcessor implements EtEventProcessor {
+public class DefaultEtEventProcessor implements OldEtEventProcessor {
 
     private int maxEvents;
     private int eventsProcessed;
@@ -217,7 +218,8 @@ public class DefaultEtEventProcessor implements EtEventProcessor {
          * WARNING: This can potentially block forever until it receives events. 
          */
         blocked = true;
-        EtEvent[] mevs = et.sys.getEvents(et.att, et.param.waitMode, Modify.NOTHING, et.param.waitTime, et.param.chunk);
+        //EtEvent[] mevs = et.sys.getEvents(et.att, et.param.waitMode, Modify.NOTHING, et.param.waitTime, et.param.chunk);
+        EtEvent[] mevs = et.readEtEvents();
         blocked = false;
 
         // Loop over retrieved EtEvents.

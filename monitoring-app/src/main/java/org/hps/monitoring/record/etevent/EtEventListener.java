@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.record.etevent;
 
 /**
  * Interface for notifying listeners of ET ring events.
@@ -6,7 +6,7 @@ package org.hps.monitoring;
  * @version $Id: EtEventListener.java,v 1.1 2012/05/03 16:59:28 jeremy Exp $
  */
 // FIXME: Should all the callback methods get an EtEvent or event number?
-interface EtEventListener {
+public interface EtEventListener {
 
     /**
      * Called at beginning of event processing session.

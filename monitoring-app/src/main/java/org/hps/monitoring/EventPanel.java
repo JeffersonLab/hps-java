@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: EventPanel.java,v 1.16 2013/11/05 17:15:04 jeremy Exp $
  */
+// FIXME: Clock seems to be running after disconnect!!!
 class EventPanel extends FieldsPanel { 
 
     private JTextField eventCounterField; // number of events in this job
