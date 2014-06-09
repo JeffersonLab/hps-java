@@ -39,7 +39,7 @@ import org.lcsim.util.Driver;
  */
 public class EcalClusterIC extends Driver {
 	// File writer to output cluster results.
-    FileWriter writeHits;
+    FileWriter writeHits = null;
     // LCIO collection name for calorimeter hits.
     String ecalCollectionName;
     // Name of the calorimeter detector object.
@@ -49,7 +49,7 @@ public class EcalClusterIC extends Driver {
     // Collection name for rejected hits
     String rejectedHitName = "RejectedHits";
     // File path to which to write event display output.
-    String outfile = "cluster-hit-IC.txt";
+    String outfile = null;
     // Map of crystals to their neighbors.
     NeighborMap neighborMap = null;
     // Minimum energy threshold for hits; lower energy hits will be
@@ -157,12 +157,14 @@ public class EcalClusterIC extends Driver {
             throw new RuntimeException("The parameter ecalName was not set!");
         }
         
-        // Create a file writer and clear the output file, if it exists.
-        try {
-            writeHits = new FileWriter(outfile);
-            writeHits.write("");
+        if (outfile!=null) {
+            // Create a file writer and clear the output file, if it exists.
+            try {
+                writeHits = new FileWriter(outfile);
+                writeHits.write("");
+            } catch (IOException e) {
+            }
         }
-        catch(IOException e) { }
     }
 
     public void detectorChanged(Detector detector) {
@@ -558,7 +560,7 @@ public class EcalClusterIC extends Driver {
             } //End cluster loop
          // Write the event termination header.
 //            writeHits.append("EndEvent\n");
-            System.out.println("Number of clusters: "+clusterList.size());    
+//            System.out.println("Number of clusters: "+clusterList.size());    
 
             
         } //End event display out loop.
@@ -570,9 +572,13 @@ public class EcalClusterIC extends Driver {
     }
     
     public void endOfData() {
-    	// Close the event display output writer.
-        try { writeHits.close(); }
-        catch (IOException e) { }
+        if (writeHits != null) {
+            // Close the event display output writer.
+            try {
+                writeHits.close();
+            } catch (IOException e) {
+            }
+        }
     }
     
   /*  private static class EnergyComparator implements Comparator<CalorimeterHit> {
