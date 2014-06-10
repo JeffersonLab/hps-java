@@ -38,7 +38,9 @@ public class EvioFileSource extends AbstractRecordSource {
 
     private void openReader() {
         try {
+            System.out.println("Opening reader for file " + files.get(fileIndex) + " ...");
             reader = new EvioReader(files.get(fileIndex), false);
+            System.out.println("Done opening file.");
         } catch (EvioException | IOException e) {
             throw new RuntimeException(e);
         }

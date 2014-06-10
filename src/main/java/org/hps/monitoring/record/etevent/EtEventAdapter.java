@@ -29,14 +29,14 @@ public class EtEventAdapter extends AbstractLoopListener implements RecordListen
     @Override
     public void start(LoopEvent event) {
         for (EtEventProcessor processor : processors) {
-            processor.start();
+            processor.startJob();
         }
     }
     
     @Override
     public void finish(LoopEvent event) {
         for (EtEventProcessor processor : processors) {
-            processor.stop();
+            processor.endJob();
         }            
     }    
     

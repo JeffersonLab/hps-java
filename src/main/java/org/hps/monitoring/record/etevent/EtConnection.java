@@ -167,5 +167,13 @@ public class EtConnection {
             Modify.NOTHING,
             getConnectionParameters().getWaitTime(), 
             getConnectionParameters().getChunkSize());
+        
+    }
+    
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(this.param.toString());  
+        buffer.append("attachment: " + this.att.getStation().getName());
+        return buffer.toString();
     }
 }

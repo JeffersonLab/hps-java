@@ -13,8 +13,6 @@ import static org.hps.monitoring.MonitoringCommands.LOG_TO_TERMINAL;
 import static org.hps.monitoring.MonitoringCommands.NEXT;
 import static org.hps.monitoring.MonitoringCommands.PAUSE;
 import static org.hps.monitoring.MonitoringCommands.RESET_CONNECTION_SETTINGS;
-import static org.hps.monitoring.MonitoringCommands.RESET_DRIVERS;
-import static org.hps.monitoring.MonitoringCommands.RESET_EVENTS;
 import static org.hps.monitoring.MonitoringCommands.RESET_JOB_SETTINGS;
 import static org.hps.monitoring.MonitoringCommands.RESUME;
 import static org.hps.monitoring.MonitoringCommands.SAVE_CONNECTION;
@@ -24,10 +22,8 @@ import static org.hps.monitoring.MonitoringCommands.SAVE_PLOTS;
 import static org.hps.monitoring.MonitoringCommands.SCREENSHOT;
 import static org.hps.monitoring.MonitoringCommands.SET_EVENT_BUILDER;
 import static org.hps.monitoring.MonitoringCommands.SET_LOG_LEVEL;
-import static org.hps.monitoring.MonitoringCommands.SET_MAX_EVENTS;
 import static org.hps.monitoring.MonitoringCommands.SET_STEERING_FILE;
 import static org.hps.monitoring.MonitoringCommands.SET_STEERING_RESOURCE;
-import static org.hps.monitoring.MonitoringCommands.UPDATE_TIME;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -53,6 +49,8 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -71,42 +69,30 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.record.EventProcessingChain;
+import org.hps.monitoring.record.EventProcessingThread;
 import org.hps.monitoring.record.etevent.EtConnection;
 import org.hps.monitoring.record.etevent.EtConnectionParameters;
-import org.hps.monitoring.record.etevent.EtEventListener;
-import org.hps.util.Resettable;
+import org.hps.monitoring.record.etevent.EtEventSource;
 import org.lcsim.job.JobControlManager;
-import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Monitoring application for HPS Test Run, which can run LCSim steering files on data
- * converted from the ET ring. This class is accessible to users by calling its main()
- * method.
+ * Monitoring application for HPS Test Run, which can run LCSim steering files on data converted
+ * from the ET ring. This class is accessible to users by calling its main() method.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringApplication.java,v 1.61 2013/12/10 07:36:40 jeremy Exp $
  */
-// FIXME: Review minimum size settings to see which are actually being respected. Remove
-// where they are not needed.
-// FIXME: Since this class is almost 2k lines, might want to refactor it into multiple
-// classes.
+// FIXME: The tabs panel isn't filling the full available space even when fill is set to both.
+// TODO: Remove minimum GUI component size settings where they are redundant.
+// TODO: Refactor this class into multiple classes.
+// TODO: Log the messages from all Exceptions.
 // TODO: Capture std err and out and redirect to a text panel within the application.
-// TODO: Review use of Resettable and Redrawable to see if they can be removed and the
-//       standard Driver API used instead.  Resettable can maybe be replaced by startOfData().
-//       Not sure about Redrawable; maybe it isn't needed at all.
-// FIXME: Tracebacks from errors should be caught and written into the log table.
-// TODO: Replace DefaultEtEventProcessor with EventProcessingChain class.
+// TODO: Report state of event processing at the end of the job in a new GUI component.
+// TODO: Check if the complex logic used to disconnect/cleanup the ET system is necessary anymore.
 public class MonitoringApplication {
 
     // Top-level Swing components.
@@ -123,14 +109,12 @@ public class MonitoringApplication {
     private EventButtonsPanel buttonsPanel;
     private JFrame frame;
 
-    // References to menu items that will be enabled/disabled depending on application
-    // state.
+    // References to menu items that will be enabled/disabled depending on application state.
     private JMenuItem connectItem;
     private JMenuItem disconnectItem;
     private JMenuItem resetConnectionItem;
     private JMenuItem connectionLoadItem;
     private JMenuItem savePlotsItem;
-    private JMenuItem resetDriversItem;
     private JMenuItem logItem;
     private JMenuItem terminalItem;
     private JMenuItem steeringItem;
@@ -151,11 +135,11 @@ public class MonitoringApplication {
     // Event processing objects.
     private JobControlManager jobManager;
     private LCSimEventBuilder eventBuilder;
-    private OldEtEventProcessor eventProcessor;
-    private Thread eventProcessingThread;
+    private EventProcessingThread eventProcessingThread;
 
     // Job timing.
     private Timer timer;
+    private TimerTask updateTimeTask;
     private long jobStartTime;
 
     // ActionListener for GUI event dispatching.
@@ -176,9 +160,6 @@ public class MonitoringApplication {
     // Format for screenshots. Hard-coded to PNG.
     private static final String screenshotFormat = "png";
 
-    // Listener for processing EtEvents.
-    private EtEventListener etListener = new MonitoringApplicationEtListener();
-
     // Maximum time in millis to wait for the ET system to disconnect.
     // TODO: Make this an option in the JobPanel.
     private int maxCleanupTime = 5000;
@@ -196,9 +177,10 @@ public class MonitoringApplication {
     private static final int connectionStatusPanelHeight = 50;
     private static final int connectionStatusPanelWidth = 400;
 
+    EventProcessingChain eventProcessing;
+
     /**
-     * Constructor for the monitoring application. Users cannot access this. Call the main
-     * method instead.
+     * Constructor for the monitoring application. 
      */
     private MonitoringApplication() {
 
@@ -259,7 +241,7 @@ public class MonitoringApplication {
         GridBagConstraints c = new GridBagConstraints();
 
         // Event processing buttons.
-        c = new GridBagConstraints();
+        //c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         c.anchor = GridBagConstraints.CENTER;
@@ -284,19 +266,9 @@ public class MonitoringApplication {
         eventPanel = new EventPanel();
         jobPanel = new JobPanel();
         jobPanel.addActionListener(actionListener);
-
-        // Tab panels.
-        c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weightx = c.weighty = 1.0;
+        
+        // Create the container for the tabbed pane.
         JPanel tabsPanel = new JPanel();
-        tabs = new JTabbedPane();
-        tabs.addTab("Connection Settings", connectionPanel);
-        tabs.addTab("Event Monitor", eventPanel);
-        tabs.addTab("Job Settings", jobPanel);
-        tabsPanel.add(tabs, c);
-
-        // Add tabs to main panel.
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 2;
@@ -304,8 +276,18 @@ public class MonitoringApplication {
         c.weightx = c.weighty = 1.0;
         c.insets = new Insets(0, 0, 0, 10);
         leftPanel.add(tabsPanel, c);
-
-        // Layout attributes for left panel.
+        
+        // Tab panels.
+        c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = c.weighty = 1.0;                       
+        tabs = new JTabbedPane();
+        tabs.addTab("Connection Settings", connectionPanel);
+        tabs.addTab("Event Monitor", eventPanel);
+        tabs.addTab("Job Settings", jobPanel);
+        tabsPanel.add(tabs, c);
+                
+        // Layout attributes for the entire left panel.
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
@@ -365,11 +347,10 @@ public class MonitoringApplication {
         eventMenu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(eventMenu);
 
-        addMenuItem("Reset Event Monitor", KeyEvent.VK_E, RESET_EVENTS, true, "Reset timer and counters in the event monitor tab.", eventMenu);
+        //addMenuItem("Reset Event Monitor", KeyEvent.VK_E, RESET_EVENTS, true, "Reset timer and counters in the event monitor tab.", eventMenu);
 
         /**
-         * FIXME: Rest of these should be converted to use the addMenuItem() helper
-         * method...
+         * FIXME: Rest of these should be converted to use the addMenuItem() helper method...
          */
 
         JMenuItem eventRefreshItem = new JMenuItem("Set Event Refresh...");
@@ -379,12 +360,14 @@ public class MonitoringApplication {
         eventRefreshItem.setToolTipText("Set the number of events between GUI updates.");
         eventMenu.add(eventRefreshItem);
 
+        /*
         JMenuItem maxEventsItem = new JMenuItem("Set Max Events...");
         maxEventsItem.setMnemonic(KeyEvent.VK_M);
         maxEventsItem.setActionCommand(SET_MAX_EVENTS);
         maxEventsItem.addActionListener(actionListener);
         maxEventsItem.setToolTipText("Set the maximum number of events to process in one session.");
         eventMenu.add(maxEventsItem);
+        */
 
         JMenu jobMenu = new JMenu("Job");
         jobMenu.setMnemonic(KeyEvent.VK_J);
@@ -432,14 +415,6 @@ public class MonitoringApplication {
         savePlotsItem.setEnabled(false);
         savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
         jobMenu.add(savePlotsItem);
-
-        resetDriversItem = new JMenuItem("Reset LCSim Drivers");
-        resetDriversItem.setMnemonic(KeyEvent.VK_D);
-        resetDriversItem.setActionCommand(RESET_DRIVERS);
-        resetDriversItem.addActionListener(actionListener);
-        resetDriversItem.setEnabled(false);
-        resetDriversItem.setToolTipText("Reset Drivers that implement the Resettable interface.");
-        jobMenu.add(resetDriversItem);
 
         logItem = new JMenuItem("Redirect to File...");
         logItem.setMnemonic(KeyEvent.VK_F);
@@ -529,8 +504,8 @@ public class MonitoringApplication {
     }
 
     /**
-     * Creates the application's log table GUI component, which is a JTable containing
-     * messages from the logger.
+     * Creates the application's log table GUI component, which is a JTable containing messages
+     * from the logger.
      */
     private void createLogTable() {
 
@@ -566,9 +541,10 @@ public class MonitoringApplication {
      * Create the monitoring application frame and run it on a separate thread.
      * @return Reference to the created application.
      */
-    private static final MonitoringApplication createMonitoringApplication() {
+    static final MonitoringApplication createMonitoringApplication() {
         final MonitoringApplication app = new MonitoringApplication();
         SwingUtilities.invokeLater(new Runnable() {
+
             public void run() {
                 app.createApplicationFrame();
             }
@@ -577,53 +553,10 @@ public class MonitoringApplication {
     }
 
     /**
-     * Run the monitoring application from the command line.
-     * @param args The command line arguments.
-     */
-    public static void main(String[] args) {
-
-        // Set up command line parsing.
-        Options options = new Options();
-        options.addOption(new Option("h", false, "Print help."));
-        options.addOption(new Option("c", true, "Load properties file with connection settings."));
-        options.addOption(new Option("j", true, "Load properties file with job settings."));
-        CommandLineParser parser = new PosixParser();
-
-        // Parse command line arguments.
-        CommandLine cl = null;
-        try {
-            cl = parser.parse(options, args);
-        } catch (ParseException e) {
-            throw new RuntimeException("Problem parsing command line options.", e);
-        }
-
-        // Print help and exit.
-        if (cl.hasOption("h")) {
-            System.out.println("MonitoringApplication [options]");
-            HelpFormatter help = new HelpFormatter();
-            help.printHelp(" ", options);
-            System.exit(1);
-        }
-
-        // Create the application class.
-        MonitoringApplication app = MonitoringApplication.createMonitoringApplication();
-
-        // Load the connection settings.
-        if (cl.hasOption("c")) {
-            app.loadConnectionSettings(new File(cl.getOptionValue("c")));
-        }
-
-        // Load the job settings.
-        if (cl.hasOption("j")) {
-            app.loadJobSettings(new File(cl.getOptionValue("j")));
-        }
-    }
-
-    /**
      * Load connection settings from a file.
      * @param file The properties file.
      */
-    private void loadConnectionSettings(File file) {
+    void loadConnectionSettings(File file) {
         connectionPanel.loadPropertiesFile(file);
     }
 
@@ -631,7 +564,7 @@ public class MonitoringApplication {
      * Load job settings from a file.
      * @param file The properties file.
      */
-    private void loadJobSettings(File file) {
+    void loadJobSettings(File file) {
         try {
             jobPanel.setJobSettings(new JobSettings(file));
             // Need to check here if System.out and err have been redirected.
@@ -653,26 +586,17 @@ public class MonitoringApplication {
          * @param e The event to handle.
          */
         public void actionPerformed(ActionEvent e) {
-            String cmd = e.getActionCommand();
-            if (cmd != MonitoringCommands.UPDATE_TIME) {
-                // Log actions performed. Catch errors in case logging is not initialized
-                // yet.
-                try {
-                    log(Level.FINEST, "Action performed <" + cmd + ">.");
-                } catch (Exception xx) {
-                    xx.printStackTrace();
-                }
-            }
+            String cmd = e.getActionCommand();            
             if (CONNECT.equals(cmd)) {
-                startSessionThread();
+                //startSessionThread();
+                startSession();
             } else if (DISCONNECT.equals(cmd)) {
-                startDisconnectThread();
+                //startDisconnectThread();
+                stopSession();
             } else if (EDIT_EVENT_REFRESH.equals(cmd)) {
                 setEventRefresh();
             } else if (SAVE_PLOTS.equals(cmd)) {
                 savePlots();
-            } else if (RESET_DRIVERS.equals(cmd)) {
-                resetDrivers();
             } else if (LOG_TO_FILE.equals(cmd)) {
                 logToFile();
             } else if (LOG_TO_TERMINAL.equals(cmd)) {
@@ -681,30 +605,26 @@ public class MonitoringApplication {
                 chooseScreenshot();
             } else if (EXIT.equals(cmd)) {
                 exit();
-            } else if (UPDATE_TIME.equals(cmd)) {
-                updateTime();
-            } else if (RESET_EVENTS.equals(cmd)) {
-                resetJob();
             } else if (SAVE_CONNECTION.equals(cmd)) {
                 connectionPanel.save();
             } else if (LOAD_CONNECTION.equals(cmd)) {
                 connectionPanel.load();
             } else if (RESET_CONNECTION_SETTINGS.equals(cmd)) {
                 connectionPanel.reset();
-            } else if (SET_MAX_EVENTS.equals(cmd)) {
+            } /*else if (SET_MAX_EVENTS.equals(cmd)) {
                 setMaxEvents();
-            } else if (SAVE_LOG_TABLE.equals(cmd)) {
+            }*/ else if (SAVE_LOG_TABLE.equals(cmd)) {
                 saveLogToFile();
             } else if (CLEAR_LOG_TABLE.equals(cmd)) {
                 clearLog();
             } else if (SET_EVENT_BUILDER.equals(cmd)) {
                 jobPanel.editEventBuilder();
             } else if (PAUSE.equals(cmd)) {
-                pause();
+                pauseEventProcessing();
             } else if (NEXT.equals(cmd)) {
-                next();
+                nextEvent();
             } else if (RESUME.equals(cmd)) {
-                resume();
+                resumeEventProcessing();
             } else if (SET_LOG_LEVEL.equals(cmd)) {
                 setLogLevel();
             } else if (AIDA_AUTO_SAVE.equals(cmd)) {
@@ -724,8 +644,8 @@ public class MonitoringApplication {
     }
 
     /**
-     * This fires when a steering resource file is selected from the combo box. The Job
-     * Settings are changed to use a resource type.
+     * This fires when a steering resource file is selected from the combo box. The Job Settings
+     * are changed to use a resource type.
      */
     private void steeringResourceSelected() {
         jobPanel.setSteeringType(JobPanel.RESOURCE);
@@ -780,149 +700,18 @@ public class MonitoringApplication {
         // Redirect System.out and err back to the terminal.
         logToTerminal();
     }
-
-    /**
-     * This is the primary entry point for starting a monitoring session. The session is
-     * started on a new thread so it doesn't block.
-     */
-    private void startSessionThread() {
-        if (getConnectionStatus() != ConnectionStatus.CONNECTED) {
-            Runnable r = new Runnable() {
-                public void run() {
-                    session();
-                }
-            };
-            Thread t = new Thread(r, "Session Thread");
-            t.start();
-        } else {
-            log(Level.SEVERE, "Ignoring connection request.  Already connected!");
-        }
-    }
-
+   
     /**
      * Set a new log level for the application and also forward to the event processor.
      */
     private void setLogLevel() {
         Level newLevel = jobPanel.getLogLevel();
         logger.setLevel(newLevel);
-        if (eventProcessor != null) {
-            eventProcessor.setLogLevel(newLevel);
-        }
+        //if (eventProcessor != null) {
+        //    eventProcessor.setLogLevel(newLevel);
+        //}
 
         log(Level.INFO, "Log Level was changed to <" + jobPanel.getLogLevel().toString() + ">.");
-    }
-
-    /**
-     * The listener for hooking into the event processor.
-     */
-    private class MonitoringApplicationEtListener implements EtEventListener {
-
-        /**
-         * Beginning of job.
-         */
-        public void begin() {
-
-            // Reset event GUI.
-            eventPanel.reset();
-
-            // This is only reset between different jobs.
-            eventPanel.resetSessionSupplied();
-
-            // Start the job timer.
-            startTimer();
-        }
-
-        /**
-         * Start of next event.
-         */
-        public void startOfEvent() {
-            eventPanel.updateEventCount();
-        }
-
-        /**
-         * End of single event.
-         */
-        public void endOfEvent() {
-            eventPanel.updateAverageEventRate(jobStartTime);
-        }
-
-        /**
-         * Error on this event.
-         */
-        public void errorOnEvent() {
-            eventPanel.updateBadEventCount();
-        }
-
-        /**
-         * End of job actions. This cleans up the Monitoring Application to put it into
-         * the proper state for subsequent disconnection from the ET ring.
-         */
-        public void finish() {
-
-            // Show a warning dialog box before disconnecting, if this option is selected.
-            // This needs to go here rather than in disconnect() so that the LCSim plots
-            // stay up.
-            if (warnOnDisconnect()) {
-                log(Level.FINEST, "Waiting for user to verify disconnect request.");
-                showDialog("You are about to be disconnected.");
-                // DisconnectDialog d = new DisconnectDialog();
-                // d.waitForConfirm();
-            }
-
-            try {
-
-                // Save final AIDA file if option is selected.
-                if (jobPanel.isAidaAutoSaveEnabled()) {
-                    log(Level.INFO, "Auto saving AIDA file <" + jobPanel.getAidaAutoSaveFileName() + ">.");
-                    AIDA.defaultInstance().saveAs(jobPanel.getAidaAutoSaveFileName());
-                }
-
-                // Call cleanup methods of Drivers.
-                try {
-                    log(Level.INFO, "Cleaning up LCSim.");
-                    if (jobManager != null) {
-                        jobManager.finish();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.log(Level.WARNING, "Error cleaning up LCSim job.");
-                }
-
-                // Stop the job timer.
-                log(Level.INFO, "Stopping the job timer.");
-                timer.stop();
-                timer = null;
-
-                // Push final event counts to GUI.
-                eventPanel.endJob();
-                
-            } catch (Exception e) {
-                e.printStackTrace();
-                log(Level.WARNING, "Error cleaning up job <" + e.getMessage() + ">.");
-            }
-        }
-
-        /**
-         * Prestart event received.
-         */
-        public void prestart(int seconds, int runNumber) {
-            final long millis = ((long) seconds) * 1000;
-            eventPanel.setRunNumber(runNumber);
-            eventPanel.setRunStartTime(millis);
-            log(Level.INFO, "Set run number <" + runNumber + "> from Pre Start.");
-            log(Level.INFO, "Run start time <" + EventPanel.dateFormat.format(new Date(millis)) + "> from Pre Start.");
-        }
-
-        /**
-         * End run event received.
-         */
-        public void endRun(int seconds, int events) {
-            final long millis = ((long) seconds) * 1000;
-            eventPanel.setRunEndTime(millis);
-            eventPanel.setRunEventCount(events);
-            log(Level.INFO, "Set number of events in run to <" + events + ">.");
-            log(Level.INFO, "End run time <" + EventPanel.dateFormat.format(new Date(millis)) + ">.");
-        }
     }
 
     /**
@@ -963,19 +752,7 @@ public class MonitoringApplication {
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         // frame.setMinimumSize(new Dimension(600, 850));
         frame.setResizable(true);
-        frame.pack();
-
-        // Maximize frame size.
-        // final GraphicsConfiguration config = frame.getGraphicsConfiguration();
-        // final int left = Toolkit.getDefaultToolkit().getScreenInsets(config).left;
-        // final int right = Toolkit.getDefaultToolkit().getScreenInsets(config).right;
-        // final int top = Toolkit.getDefaultToolkit().getScreenInsets(config).top;
-        // final int bottom = Toolkit.getDefaultToolkit().getScreenInsets(config).bottom;
-        // final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        // final int width = screenSize.width - left - right;
-        // final int height = screenSize.height - top - bottom;
-        // frame.setSize(width,height);
-
+        frame.pack();    
         frame.setVisible(true);
     }
 
@@ -997,7 +774,7 @@ public class MonitoringApplication {
     }
 
     /**
-     * Select an LCSim steering file from disk.
+     * Select an LCSim steering file.
      */
     private void selectSteeringFile() {
         JFileChooser fc = new JFileChooser();
@@ -1050,9 +827,10 @@ public class MonitoringApplication {
     }
 
     /**
-     * Call the reset() method on Drivers which implement {@link Resettable}. They must
-     * implement the {@link Resettable} interface for this to work.
+     * Call the reset() method on Drivers which implement {@link Resettable}. They must implement
+     * the {@link Resettable} interface for this to work.
      */
+    /*
     private synchronized void resetDrivers() {
         if (jobManager != null) {
             for (Driver driver : jobManager.getDriverExecList()) {
@@ -1067,11 +845,11 @@ public class MonitoringApplication {
         }
         log(Level.INFO, "LCSim drivers were reset.");
     }
+    */
 
     /**
-     * Redirect System.out and System.err to a file. This is primarily used to capture
-     * lengthy debug output from event processing. Messages sent to the Logger are
-     * unaffected.
+     * Redirect System.out and System.err to a file. This is primarily used to capture lengthy
+     * debug output from event processing. Messages sent to the Logger are unaffected.
      */
     private void logToFile() {
         JFileChooser fc = new JFileChooser();
@@ -1090,6 +868,7 @@ public class MonitoringApplication {
                     redirectStdOutAndErrToFile(logFile);
 
                     SwingUtilities.invokeLater(new Runnable() {
+
                         public void run() {
                             jobPanel.setLogToFile(true);
                             jobPanel.setLogFile(logFile.getPath());
@@ -1121,14 +900,15 @@ public class MonitoringApplication {
     }
 
     /**
-     * Redirect <code>System.out</code> and <code>System.err</code> back to the terminal, 
-     * e.g. if they were previously sent to a file. This is independent of messages that 
-     * are sent to the application's log table.
+     * Redirect <code>System.out</code> and <code>System.err</code> back to the terminal, e.g. if
+     * they were previously sent to a file. This is independent of messages that are sent to the
+     * application's log table.
      */
     private void logToTerminal() {
         System.setOut(sysOut);
         System.setErr(sysErr);
         SwingUtilities.invokeLater(new Runnable() {
+
             public void run() {
                 jobPanel.setLogFile("");
                 jobPanel.setLogToFile(false);
@@ -1159,9 +939,10 @@ public class MonitoringApplication {
     }
 
     /**
-     * Using a modal dialog, set the maximum number of events to process before an
-     * automatic disconnect.
+     * Using a modal dialog, set the maximum number of events to process before an automatic
+     * disconnect.
      */
+    /*
     private void setMaxEvents() {
         String inputValue = JOptionPane.showInputDialog("Max Events:", eventPanel.getMaxEvents());
         try {
@@ -1173,9 +954,9 @@ public class MonitoringApplication {
             // Set max events in panel.
             eventPanel.setMaxEvents(newMaxEvents);
             // Set max events in event processor.
-            if (eventProcessor != null) {
-                eventProcessor.setMaxEvents(newMaxEvents);
-            }
+            //if (eventProcessor != null) {
+            //    eventProcessor.setMaxEvents(newMaxEvents);
+            //}
             log("Max events set to <" + newMaxEvents + ">.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -1183,10 +964,11 @@ public class MonitoringApplication {
             showDialog("The value " + inputValue + " is not valid for Max Events.");
         }
     }
+    */
 
     /**
-     * Set the GUI state to disconnected, which will enable/disable applicable GUI
-     * components and menu items.
+     * Set the GUI state to disconnected, which will enable/disable applicable GUI components and
+     * menu items.
      */
     private void setDisconnectedGuiState() {
 
@@ -1196,7 +978,7 @@ public class MonitoringApplication {
         resetConnectionItem.setEnabled(true);
         connectionLoadItem.setEnabled(true);
         savePlotsItem.setEnabled(false);
-        resetDriversItem.setEnabled(false);
+        //resetDriversItem.setEnabled(false);
         logItem.setEnabled(true);
         terminalItem.setEnabled(true);
         steeringItem.setEnabled(true);
@@ -1216,8 +998,8 @@ public class MonitoringApplication {
     }
 
     /**
-     * Set the GUI to connected state, which will enable/disable appropriate components
-     * and menu items.
+     * Set the GUI to connected state, which will enable/disable appropriate components and menu
+     * items.
      */
     private void setConnectedGuiState() {
 
@@ -1233,7 +1015,7 @@ public class MonitoringApplication {
         resetConnectionItem.setEnabled(false);
         connectionLoadItem.setEnabled(false);
         savePlotsItem.setEnabled(true);
-        resetDriversItem.setEnabled(true);
+        //resetDriversItem.setEnabled(true);
         logItem.setEnabled(false);
         terminalItem.setEnabled(false);
         steeringItem.setEnabled(false);
@@ -1251,7 +1033,7 @@ public class MonitoringApplication {
      */
     private void exit() {
         if (connection != null) {
-            cleanupConnection();
+            cleanupEtConnection();
         }
         System.exit(0);
     }
@@ -1295,8 +1077,8 @@ public class MonitoringApplication {
     }
 
     /**
-     * Get the fully qualified class name of the current event builder for converting from
-     * EVIO to LCIO. 
+     * Get the fully qualified class name of the current event builder for converting from EVIO to
+     * LCIO.
      * @return The class name of the event builder.
      */
     private String getEventBuilderClassName() {
@@ -1315,91 +1097,53 @@ public class MonitoringApplication {
      * Get the current max events setting.
      * @return The maximum number of events to process before disconnect.
      */
+    /*
     private int getMaxEvents() {
         return eventPanel.getMaxEvents();
     }
+    */
 
     /**
-     * Execute a monitoring session. This is executed in a separate thread so as not to
-     * block the GUI or other threads during a monitoring session.
+     * Execute a monitoring session. This should be executed in a separate thread so as not to block the
+     * GUI or other threads during a monitoring session.
      */
-    private void session() {
+    private void startSession() {
 
         log(Level.INFO, "Starting a new monitoring session.");
 
-        int endStatus = ConnectionStatus.DISCONNECTING;
-
         try {
 
-            // Setup LCSim.
+            // Reset the plot panel and global AIDA state.
+            resetPlots();
+
+            // Setup the LCSim JobControlManager and event builder.
             setupLCSim();
 
-            // Connect to the ET system.
+            // Connect to the ET system, which will setup a valid EtConnection object.
             connect();
+            
+            // Setup the EventProcessingChain object using the EtConnection.
+            setupEventProcessingChain();
 
-            // TODO: Add EtEventCounter thread here for counting all ET events.
-
-            // Create the event processing thread.
-            createEventProcessingThread();
-
-            // Wait for the event processing thread to finish.
-            try {
-                eventProcessingThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            log("Event processor finished with status <" + ConnectionStatus.toString(eventProcessor.getStatus()) + ">.");
-            endStatus = eventProcessor.getStatus();
+            // Start the event processing thread.
+            eventProcessingThread.start();
+            
+            // Start the session timer.
+            startSessionTimer();
+           
+            log(Level.INFO, "Successfully started the monitoring session.");
+                                                      
         } catch (Exception e) {
             e.printStackTrace();
-            log(Level.SEVERE, "Fatal error in monitoring session.");
-            endStatus = ConnectionStatus.ERROR;
-        } finally {
-            logHandler.flush();
-            // Disconnect if needed.
-            if (getConnectionStatus() != ConnectionStatus.DISCONNECTED) {
-                disconnect(endStatus);
-            }
-        }
-
-        log("Finished monitoring session.");
-    }
-
-    /**
-     * Create the thread that will execute the EtEvent processing chain.
-     * @return The thread on which event processing will occur.
-     */
-    private void createEventProcessingThread() {
-
-        // Create a new event processor.
-        eventProcessor = new DefaultEtEventProcessor(this.connection, this.eventBuilder, this.jobManager, getMaxEvents(), disconnectOnError(), this.logHandler);
-
-        // Add the application's listener for callbacks to the GUI components.
-        eventProcessor.addListener(this.etListener);
-
-        // Set pause mode from JobPanel, after which it can be toggled using the event
-        // buttons.
-        eventProcessor.pauseMode(this.jobPanel.pauseMode());
-
-        // Create a new thread for event processing.
-        Runnable run = new Runnable() {
-            public void run() {
-                eventProcessor.process();
-            }
-        };
-        eventProcessingThread = new Thread(run, "Event Processing Thread");
-
-        // Start the event processing thread.
-        eventProcessingThread.start();
-
-        log(Level.FINEST, "Started event processing thread.");
-        logHandler.flush();
+            log(Level.SEVERE, e.getMessage());
+            disconnect(ConnectionStatus.ERROR);
+        }         
     }
 
     /**
      * Connect to the ET system specified in the GUI's connection panel settings.
      */
-    private void connect() {
+    private void connect() throws IOException {
 
         log("Connecting to ET system.");
 
@@ -1409,9 +1153,13 @@ public class MonitoringApplication {
         setConnectedGuiState();
 
         // Create a connection to the ET server.
-        createEtConnection();
-
-        log("Successfully connected to ET system.");
+        try {
+            createEtConnection();          
+            log("Successfully connected to ET system.");
+        } catch (Exception e) {
+            log(e.getMessage());
+            throw new IOException(e);
+        }       
     }
 
     /**
@@ -1464,45 +1212,28 @@ public class MonitoringApplication {
      */
     synchronized private void disconnect(int status) {
 
-        log("Disconnecting from ET system with status <" + ConnectionStatus.toString(status) + ">.");
-
-        // Check if disconnected already.
-        if (getConnectionStatus() == ConnectionStatus.DISCONNECTED) {
-            log(Level.WARNING, "ET system is already disconnected.");
-            return;
-        }
-
-        // Check if in the process of disconnecting.
-        if (getConnectionStatus() == ConnectionStatus.DISCONNECTING) {
-            log(Level.WARNING, "ET system is already disconnecting.");
-            return;
-        }
-
-        // Stop event processing if currently connected.
-        if (eventProcessor != null) {
-            log(Level.FINE, "Stopping the event processor.");
-            eventProcessor.stop();
-        }
-
-        // Set the application status from the caller.
-        setConnectionStatus(status);
-
-        // Cleanup the ET session.
-        cleanupConnection();
+        log("Disconnecting from the ET system.");
+     
+        // Cleanup the ET connection.
+        cleanupEtConnection();
 
         // Update state of GUI to disconnected.
         setDisconnectedGuiState();
 
         // Finally, change application state to fully disconnected.
         setConnectionStatus(ConnectionStatus.DISCONNECTED);
+        
+        // Set the application status from the caller if an error had occurred.
+        if (status == ConnectionStatus.ERROR)
+            setConnectionStatus(status);
 
-        log("Disconnected from ET system.");
+        log("Successfully disconnected from ET system.");
     }
 
     /**
-     * This is a thread for cleaning up the ET connection. This is executed under a
-     * separate thread, because it could potentially block forever. So we need to be able
-     * to kill it after waiting for X amount of time.
+     * This is a thread for cleaning up the ET connection. 
+     * It is executed under a separate thread, because it could potentially block forever. 
+     * So we need to be able to kill it after waiting for X amount of time.
      */
     private class EtCleanupThread extends Thread {
 
@@ -1530,10 +1261,10 @@ public class MonitoringApplication {
     /**
      * Cleanup the ET connection.
      */
-    private void cleanupConnection() {
+    private void cleanupEtConnection() {
 
         if (connection != null) {
-
+           
             // Execute the connection cleanup thread.
             EtCleanupThread cleanupThread = new EtCleanupThread();
             log(Level.FINE, "Starting EtCleanupThread to disconnect from ET system.");
@@ -1549,18 +1280,17 @@ public class MonitoringApplication {
             if (cleanupThread.succeeded()) {
                 log(Level.FINE, "EtCleanupThread succeeded in disconnecting from ET system.");
             } else {
-                log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.getEtStation().getName() + "> is zombified.");
+                log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.getEtStation().getName() + "> is zombified!");
                 // Make the cleanup thread yield.
                 cleanupThread.stopCleanup();
                 // Stop the cleanup thread.
                 // FIXME: Should call yield() instead?
                 cleanupThread.stop();
-                // Join to cleanup thread until it dies.
-                log(Level.FINEST, "Waiting for EtCleanupThread to die");
+                // Join to cleanup thread until it dies.                
                 log(Level.FINEST, "EtCleanupThread was killed.");
                 // The ET connection is now unusable so set it to null.
                 this.connection = null;
-            }
+            }            
         }
     }
 
@@ -1570,13 +1300,6 @@ public class MonitoringApplication {
     private void setupLCSim() {
 
         log(Level.INFO, "Setting up LCSim.");
-
-        // Clear the static AIDA tree in case plots are hanging around from previous sessions.
-        resetAidaTree();
-
-        // Reset the top plots panel so that it is empty.
-        plotPane.removeAll();
-        //((MonitoringAnalysisFactory)MonitoringAnalysisFactory.create()).clearPlotterFactories();
 
         // Get steering resource or file as a String parameter.
         String steering = getSteering();
@@ -1590,8 +1313,7 @@ public class MonitoringApplication {
         }
 
         try {
-            // Create job manager and configure based on steering type of resource or
-            // file.
+            // Create job manager and configure.
             jobManager = new JobControlManager();
             jobManager.setPerformDryRun(true);
             if (steeringType == JobPanel.RESOURCE) {
@@ -1604,12 +1326,10 @@ public class MonitoringApplication {
                 jobManager.setup(new File(steering));
             }
 
-            // Call configure to trigger conditions setup and other initialization.
-            jobManager.configure();
-
             // Setup the event builder to translate from EVIO to LCIO.
             createEventBuilder();
-        // Catch all other setup exceptions and re-throw them as RuntimeExceptions.
+
+            // Catch all other setup exceptions and re-throw them as RuntimeExceptions.
         } catch (Exception e) {
             e.printStackTrace();
             log(Level.SEVERE, e.getMessage());
@@ -1641,23 +1361,10 @@ public class MonitoringApplication {
 
         log(Level.INFO, "Successfully initialized event builder <" + eventBuilderClassName + ">.");
     }
-
+   
     /**
-     * Disconnect from the ET system using a separate thread of execution.
-     */
-    private void startDisconnectThread() {
-        Runnable r = new Runnable() {
-            public void run() {
-                disconnect();
-            }
-        };
-        Thread t = new Thread(r, "Disconnect Thread");
-        t.start();
-    }
-
-    /**
-     * Create a connection to an ET system using current parameters from the GUI. If
-     * successful, the application's ConnectionStatus is changed to CONNECTED.
+     * Create a connection to an ET system using current parameters from the GUI. If successful,
+     * the application's ConnectionStatus is changed to CONNECTED.
      */
     private void createEtConnection() {
 
@@ -1684,12 +1391,23 @@ public class MonitoringApplication {
     /**
      * Start the job timer.
      */
-    private void startTimer() {
-        timer = new Timer(1000, actionListener);
-        timer.setActionCommand(UPDATE_TIME);
+    private void startSessionTimer() {
+        timer = new Timer("UpdateTime");
         jobStartTime = System.currentTimeMillis();
-        timer.start();
+        
+        updateTimeTask = new TimerTask() {                       
+            public void run() {
+                final long elapsedTime = (System.currentTimeMillis() - jobStartTime) / 1000;
+                eventPanel.setElapsedTime(elapsedTime);
+            }            
+        };        
+        timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);
         log(Level.FINE, "Job timer started.");
+    }
+    
+    private void stopSessionTimer() {
+        updateTimeTask.cancel();
+        timer.purge();
     }
 
     /**
@@ -1701,23 +1419,8 @@ public class MonitoringApplication {
     }
 
     /**
-     * Reset the event panel.
-     */
-    private void resetJob() {
-        // Reset GUI.
-        jobStartTime = System.currentTimeMillis();
-        eventPanel.reset();
-        if (getConnectionStatus() == ConnectionStatus.DISCONNECTED) {
-            eventPanel.resetSessionSupplied();
-        }
-        // Reset event processor.
-        eventProcessor.resetNumberOfEventsProcessed();
-        log(Level.FINE, "Job was reset.");
-    }
-
-    /**
-     * Save the accumulated log messages to a tab-delimited text file selected using a
-     * file chooser.
+     * Save the accumulated log messages to a tab-delimited text file selected using a file
+     * chooser.
      */
     private void saveLogToFile() {
         JFileChooser fc = new JFileChooser();
@@ -1766,24 +1469,24 @@ public class MonitoringApplication {
     /**
      * Notify event processor to get next set of events, if in pause mode.
      */
-    private void next() {
-        if (connectionStatus == ConnectionStatus.CONNECTED) {
+    private void nextEvent() {
+        if (connected()) {
             log(Level.FINER, "Notifying event processor to get next events.");
-            eventProcessor.nextEvents();
+            eventProcessing.next();
         } else {
             log(Level.WARNING, "Ignored next events command because app is disconnected.");
         }
     }
 
     /**
-     * Notify the event processor to resume processing events in real-time mode, if
-     * paused.
+     * Notify the event processor to resume processing events in real-time mode, if paused.
      */
-    private void resume() {
+    private void resumeEventProcessing() {
+        
         if (connected()) {
+            
             // Notify event processor to continue.
-            eventProcessor.pauseMode(false);
-            eventProcessor.nextEvents();
+            eventProcessing.resume();
 
             // Set state of event buttons.
             buttonsPanel.setPauseModeState(false);
@@ -1798,11 +1501,15 @@ public class MonitoringApplication {
     /**
      * Notify the event processor to start pause mode, which will pause between events.
      */
-    private void pause() {
+    private void pauseEventProcessing() {
         if (connected()) {
-            eventProcessor.pauseMode(true);
+            // Pause event processing.
+            eventProcessing.pause();
+            
+            // Set GUI state.
             buttonsPanel.setPauseModeState(true);
             jobPanel.enablePauseMode(false);
+            
             log(Level.FINER, "Enabled pause mode.");
         }
     }
@@ -1831,5 +1538,85 @@ public class MonitoringApplication {
      */
     private void log(String m) {
         log(defaultLogMessageLevel, m);
+    }
+
+    /**
+     * Setup the <tt>EventProcessingChain</tt> object and create a <tt>Thread</tt> for running it.
+     * The processing is not started by this method.
+     */
+    private void setupEventProcessingChain() {
+        eventProcessing = new EventProcessingChain();
+        eventProcessing.setRecordSource(new EtEventSource(this.connection));
+        eventProcessing.setEventBuilder(this.eventBuilder);
+        eventProcessing.setDetectorName(this.getDetectorName());
+        eventProcessing.add(this.jobManager.getDriverExecList());
+        eventProcessing.add(new EventPanelUpdater(eventPanel));
+        eventProcessing.setStopOnEndRun();
+        if (!this.disconnectOnError())
+            eventProcessing.setContinueOnErrors();
+        eventProcessing.configure();
+        eventProcessingThread = new EventProcessingThread(eventProcessing);
+    }
+
+    /**
+     * Clear state of plot panel and AIDA for a new session.
+     */
+    private void resetPlots() {
+
+        // Clear the static AIDA tree in case plots are hanging around from previous sessions.
+        resetAidaTree();
+
+        // Reset the plots panel so that it is empty.
+        plotPane.removeAll();
+
+    }
+    
+    /**
+     * End the current job.
+     */
+    private void endJob() {
+        
+        // Save final AIDA file if option is selected.
+        if (jobPanel.isAidaAutoSaveEnabled()) {
+            log(Level.INFO, "Auto saving AIDA file <" + jobPanel.getAidaAutoSaveFileName() + ">.");
+            try {
+                AIDA.defaultInstance().saveAs(jobPanel.getAidaAutoSaveFileName());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error saving AIDA file.");
+                e.printStackTrace();
+            }
+        }        
+    }
+    
+    /**
+     * Stop the session by stopping the event processing thread, ending the job,
+     * and disconnecting from the ET system.
+     */
+    private void stopSession() {
+        
+        // Request event processing to stop.
+        eventProcessing.finish();
+        
+        // Wait for the event processing thread to finish.
+        try {            
+            logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
+            eventProcessingThread.join();
+            logger.log(Level.FINER, "Event processing finished.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        // Reset event processing objects.
+        eventProcessing = null;
+        eventProcessingThread = null;
+        
+        // Perform various end of job cleanup.
+        endJob();
+
+        // Disconnect from the ET server.
+        disconnect();
+
+        // Stop the session timer.
+        stopSessionTimer();                  
     }
 }

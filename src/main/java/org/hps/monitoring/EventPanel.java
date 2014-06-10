@@ -12,19 +12,16 @@ import javax.swing.SwingUtilities;
 /**
  * This is the GUI component for displaying event information in real time.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: EventPanel.java,v 1.16 2013/11/05 17:15:04 jeremy Exp $
  */
-// FIXME: Clock seems to be running after disconnect!!!
 class EventPanel extends FieldsPanel { 
 
     private JTextField eventCounterField; // number of events in this job
     private JTextField elapsedTimeField; // elapsed time between job start
     private JTextField avgEventRateField; // average event rate in this job
     private JTextField refreshField; // number of events to wait before updating GUI
-    private JTextField badEventsField; // number of bad events where event event processing failed
     private JTextField sessionSuppliedField; // number of events supplied in this session; ignored by reset command
     private JTextField totalSuppliedField; // number of events supplied since the application started
-    private JTextField maxEventsField; // maximum number of events to process before disconenct
+    /*private JTextField maxEventsField;*/ // maximum number of events to process before disconenct
     private JTextField runNumberField; // Run number from CODA Pre Start event.
     private JTextField runStartField; // Start of run date from CODA Pre Start event.
     private JTextField runEventsField; // Number of events in run.
@@ -33,10 +30,10 @@ class EventPanel extends FieldsPanel {
     private static final int defaultEventRefresh = 1;
     private int eventRefresh = defaultEventRefresh;
     private int eventCount;
-    private int badEventCount;
     private int sessionSupplied;
     private int totalSupplied;
     private boolean updateEvent = true;
+    private long jobStartTime;
     
     private final static DecimalFormat rateFormat = new DecimalFormat("#.##");
     
@@ -54,7 +51,6 @@ class EventPanel extends FieldsPanel {
         elapsedTimeField = addField("Elapsed Time [seconds]", "0", 10);
         eventCounterField = addField("Events Processed", "0", 10);
         avgEventRateField = addField("Average Events Per Second", "0", 6);
-        badEventsField = addField("Event Errors", "0", 8); 
         runNumberField = addField("Run Number", "", 8);
         runStartField = addField("Run Started", "", 22);
         runStopField = addField("Run Stopped", "", 22);
@@ -62,7 +58,7 @@ class EventPanel extends FieldsPanel {
         sessionSuppliedField = addField("Session Supplied Events", "0", 8);
         totalSuppliedField = addField("Total Supplied Events", "0", 8);
         refreshField = addField("Event Refresh", Integer.toString(eventRefresh), 8);
-        maxEventsField = addField("Max Events", "-1", 8);
+        //maxEventsField = addField("Max Events", "-1", 8);
     }
             
     /**
@@ -77,14 +73,17 @@ class EventPanel extends FieldsPanel {
      * Get the max events setting from its GUI component.
      * @return The max events.
      */
+    /*
     int getMaxEvents() {
         return Integer.parseInt(maxEventsField.getText());
     }
+    */
     
     /**
      * Set the max events.
      * @param maxEvents The max events.
      */
+    /*
     void setMaxEvents(final int maxEvents) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -92,6 +91,7 @@ class EventPanel extends FieldsPanel {
             }
         });
     }
+    */
     
     /**
      * Set the run number.
@@ -103,6 +103,10 @@ class EventPanel extends FieldsPanel {
                 runNumberField.setText(Integer.toString(runNumber));
             }
         });
+    }
+    
+    void setJobStartTime(long jobStartTime) {
+        this.jobStartTime = jobStartTime;
     }
     
     /**
@@ -184,34 +188,24 @@ class EventPanel extends FieldsPanel {
         };
         SwingUtilities.invokeLater(r);
     }
-
-    /**
-     * Increment the number of bad events.
-     */
-    void updateBadEventCount() {
-    	++badEventCount;
-    	SwingUtilities.invokeLater(new Runnable() {
-    	    public void run() {
-    	        badEventsField.setText(Integer.toString(badEventCount));
-    	    }
-    	});
-    }
-    
+   
     /**
      * Update the average event rate.
      * @param jobStartTime The start time of the job in milliseconds.
      */
-    void updateAverageEventRate(long jobStartTime) {
+    void updateAverageEventRate() {
         if (updateEvent) {
-            final double jobTime = System.currentTimeMillis() - jobStartTime;
-            if (jobTime > 0) {
-                final double jobSeconds = jobTime / 1000;
-                final double eventsPerSecond = eventCount / jobSeconds;
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        avgEventRateField.setText(rateFormat.format(eventsPerSecond));
-                    }
-                });
+            if (eventCount > 0) {
+                final double elapsedTime = System.currentTimeMillis() - jobStartTime;
+                if (elapsedTime > 0) {
+                    final double jobSeconds = elapsedTime / 1000;
+                    final double eventsPerSecond = eventCount / jobSeconds;
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            avgEventRateField.setText(rateFormat.format(eventsPerSecond));
+                        }
+                    });
+                }
             }
         }
     }
@@ -246,7 +240,6 @@ class EventPanel extends FieldsPanel {
      */
     synchronized void reset() {
         resetEventCount();
-        resetBadEventCount();
         resetAverageEventRate();
         resetElapsedTime();
     }
@@ -283,18 +276,6 @@ class EventPanel extends FieldsPanel {
                 avgEventRateField.setText("0");
             }
         });	
-    }
-
-    /**
-     * Reset the bad event count.
-     */
-    private void resetBadEventCount() {
-        this.badEventCount = 0;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                badEventsField.setText("0");
-            }
-        });
     }
 
     /**
