@@ -10,14 +10,24 @@ import org.jlab.coda.jevio.EvioEvent;
  */
 // TODO: Add handling for all event types (see EtEventListener).
 public abstract class EvioEventProcessor implements EventProcessor<EvioEvent> {
-        
+    
     @Override
-    public void processEvent(EvioEvent event) {
+    public void startJob() {        
     }
     
+    @Override
     public void startRun(EvioEvent event) { 
     }
     
+    @Override
+    public void processEvent(EvioEvent event) {
+    }
+            
+    @Override
     public void endRun(EvioEvent event) {
+    }
+    
+    @Override
+    public void endJob() {        
     }
 }

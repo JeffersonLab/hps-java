@@ -14,7 +14,13 @@ public abstract class EtEventProcessor implements EventProcessor<EtEvent> {
     /**
      * Start of ET session.
      */
-    public void start() {
+    @Override
+    public void startJob() {
+    }
+    
+    @Override
+    public void startRun(EtEvent event) {
+        
     }
     
     /**
@@ -24,19 +30,15 @@ public abstract class EtEventProcessor implements EventProcessor<EtEvent> {
     public void processEvent(EtEvent event) {
     }    
     
+    @Override
+    public void endRun(EtEvent event) {
+        
+    }
+    
     /**
      * End of ET session.
      */
-    public void stop() {        
-    }
-    
-    // from EtEventListener
-    //
-    // void begin();    
-    // void startOfEvent();
-    // void endOfEvent();
-    // void errorOnEvent();
-    // void finish();
-    // void prestart(int seconds, int runNumber);    
-    // void endRun(int seconds, int nevents);
+    @Override
+    public void endJob() {
+    }    
 }

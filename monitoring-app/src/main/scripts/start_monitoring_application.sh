@@ -3,10 +3,10 @@
 # Set the load library path.
 . ${project.build.directory}/scripts/ldpath.sh
 
-# Setup the classpath variable.
-classpath=${project.build.directory}/${project.artifactId}-${project.version}-bin.jar
+# The bin jar to run.
+jarfile=${project.build.directory}/${project.artifactId}-${project.version}-bin.jar
 
-# Start the monitoring application, sending any script arguments to the end of the command.
-prod="java -Xmx1024m -classpath $classpath org.hps.monitoring.MonitoringApplication $@"
+# Start the monitoring application with supplied arguments.
+prod="java -Xmx1024m -jar $jarfile $@"
 echo $prod
 exec $prod

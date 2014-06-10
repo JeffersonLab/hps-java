@@ -17,6 +17,7 @@ import org.jlab.coda.et.EtEventImpl;
  */
 public class EtSystemMonitorTest extends TestCase {
 
+    /*
     public void testEtEventMonitoring() {
         
         EtEventLoop loop = new EtEventLoop();
@@ -72,5 +73,5 @@ public class EtSystemMonitorTest extends TestCase {
             info.getStatistics().printSession(System.out);
         }
     }
-    
+    */
 }

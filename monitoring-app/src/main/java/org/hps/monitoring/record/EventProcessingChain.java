@@ -1,5 +1,8 @@
 package org.hps.monitoring.record;
 
+import static org.freehep.record.loop.RecordLoop.Command.NEXT;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.BufferUnderflowException;
@@ -7,9 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.freehep.record.loop.RecordLoop.Command;
+import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.EventConstants;
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.record.composite.CompositeRecord;
+import org.hps.monitoring.record.composite.CompositeRecordLoop;
 import org.hps.monitoring.record.etevent.EtEventLoop;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.record.etevent.EtEventSource;
@@ -29,20 +36,19 @@ import org.lcsim.util.loop.LCIOEventSource;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class provides a serial implementation of the 
- * ET to EVIO to LCIO event processing chain.
+ * This class provides a serial implementation of the monitoring event
+ * processing chain.  This is accomplished by chaining together implementations 
+ * of FreeHep's <tt>RecordLoop</tt>.
  * 
- * This is a flexible class for handling the event processing with
- * a number of different configurations and scenarios.  The processing
- * chain can be configured to execute the ET, EVIO event building, or
- * LCIO eventing building stages.  The source can be set to an ET ring,
+ * The processing chain can be configured to execute the ET, EVIO event building, 
+ * or LCIO eventing building stages.  The source can be set to an ET ring,
  * EVIO file source, or LCIO file source.  Any number of event processors
  * can be registered for processing the different record types, in order
- * to plot or otherwise visualize or analyze the events in that format.
+ * to plot, update a GUI component, or analyze the events.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class EventProcessingChain {
+public class EventProcessingChain {
       
     /**
      * Type of source for events.
@@ -63,24 +69,27 @@ class EventProcessingChain {
     }
     
     SourceType sourceType;    
-    ProcessingStage processingStage = ProcessingStage.BUILD_LCIO_EVENT;
-    PrintStream logStream = System.out;
-    List<EventProcessingStep> processingSteps = new ArrayList<EventProcessingStep>();
-    RecordSource recordSource;
+    ProcessingStage processingStage = ProcessingStage.BUILD_LCIO_EVENT;    
+    PrintStream logStream = System.out;    
+    List<EventProcessingStep> processingSteps = new ArrayList<EventProcessingStep>();    
+    RecordSource recordSource;    
     EtEventLoop etLoop = new EtEventLoop();
     EvioEventLoop evioLoop = new EvioEventLoop();
     LCSimLoop lcsimLoop = new LCSimLoop();
+    CompositeRecordLoop compositeLoop = new CompositeRecordLoop();            
     EvioEventQueue evioQueue = new EvioEventQueue();
     LcioEventQueue lcioQueue = new LcioEventQueue();
-    LCSimEventBuilder eventBuilder;
-    EtEvent currentEtEvent;
-    EvioEvent currentEvioEvent;
+    LCSimEventBuilder eventBuilder;        
     int totalEventsProcessed;
     String detectorName;
-    boolean stopRequested;
-    boolean paused;
     boolean stopOnEndRun;
-    
+    boolean continueOnErrors;
+    String steeringResource;
+    File steeringFile;
+    Exception lastException;
+    volatile boolean isDone;
+    volatile boolean paused;
+        
     /**
      * No argument constructor.  
      * The setter methods should be used to setup this class.
@@ -112,10 +121,24 @@ class EventProcessingChain {
                 this.lcsimLoop.setRecordSource(lcioQueue);
             }
         }
+        
+        // Setup the composite loop.
+        compositeLoop.addProcessingSteps(processingSteps);
+        compositeLoop.registerRecordLoop(etLoop);
+        compositeLoop.registerRecordLoop(evioLoop);
+        compositeLoop.registerRecordLoop(lcsimLoop);
     }
     
     void setSourceType(SourceType sourceType) {
         this.sourceType = sourceType;
+    }
+        
+    public void setSteeringFile(File steeringFile) {
+        this.steeringFile = steeringFile;
+    }
+    
+    public void setSteeringResource(String steeringResource) {
+        this.steeringResource = steeringResource;
     }
     
     public void setProcessingStage(ProcessingStage processingStage) {
@@ -153,7 +176,7 @@ class EventProcessingChain {
     }
     
     public void add(Collection<Driver> drivers) {
-        for (Driver driver : drivers) {
+        for (Driver driver : drivers) { 
             this.lcsimLoop.add(driver);
         }
     }
@@ -177,52 +200,34 @@ class EventProcessingChain {
     public void setStopOnEndRun() {
         this.stopOnEndRun = true;
     }
+    
+    public void setContinueOnErrors() {
+        this.continueOnErrors = true;
+    }
+    
+    public CompositeRecord getCompositeRecord() {
+        try {
+            return (CompositeRecord) compositeLoop.getRecordSource().getCurrentRecord();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
       
     /**
      * Process one event by executing the processing steps.
      * @throws IOException If some error occurs while processing events.
      */
-    void processEvent() throws IOException {
+    void processEvent() throws IOException, NoSuchRecordException {
         for (EventProcessingStep step : this.processingSteps) {
             step.execute();
         }
         ++this.totalEventsProcessed;
     }
-    
-    /**
-     * Stop event processing.
-     */
-    public void stop() {
-        this.stopRequested = true;
-    }
-    
-    /**
-     * Pause event processing.
-     */
-    public void pause() {
-        this.paused = true;
-    }
-    
-    /**
-     * Resume event processing after pausing.
-     */
-    public void resume() {
-        this.paused = false;
-    }
-    
-    /**
-     * This exception occurs when the call to the event loop
-     * results in a null current record.
-     */
-    class EventsExhaustedException extends IOException {
-        EventsExhaustedException(String message) {
-            super(message);
-        }
-    }
-    
+        
     /**
      * This exception occurs when an EVIO end record is encountered
-     * in the event stream.
+     * in the event stream and the processing chain is configured
+     * to stop when this occurs.
      */
     class EndRunException extends IOException {
         EndRunException(String message) {
@@ -230,49 +235,32 @@ class EventProcessingChain {
         }
     }
     
-    /**
-     * Primary method for event processing.  This will run events
-     * until a stop or pause is requested, the event source is exhausted,
-     * or (if this behavior is enabled) the end of run record is reached.
-     */
-    public synchronized void run() {
-        this.stopRequested = false;
-        for (;;) {
-            try {
-                processEvent();
-            } catch (EventsExhaustedException e) {
-                this.logStream.println(e.getMessage());
-                break;
-            } catch (EndRunException e) {
-                this.logStream.println(e.getMessage());
-                break;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            
-            if (stopRequested) {
-                this.logStream.println("Stop was requested.  Processing will end!");
-                break;
-            }
-            
-            if (this.paused) {
-                synchronized (Thread.currentThread()) {
-                    for (;;) {
-                        try {
-                            // Sleep for 1 second.
-                            Thread.currentThread().wait(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        // Check if unpaused.
-                        if (!this.paused)
-                            break;
-                    }
-                }
+    public void resume() {
+        this.paused = false;
+    }
+    
+    public void loop() {
+        while (!isDone) {
+            if (!paused) {
+                compositeLoop.execute(Command.GO, false);
             }
         }
     }
     
+    public void pause() {
+        compositeLoop.execute(Command.PAUSE);
+        paused = true;
+    }
+        
+    public void finish() {
+        compositeLoop.execute(Command.STOP);
+        isDone = true;
+    }    
+        
+    public void next() {
+        compositeLoop.execute(Command.GO_N, 1L, true);
+    }
+            
     /** 
      * Get the total number of events processed.
      * @return The number of events processed.
@@ -281,13 +269,10 @@ class EventProcessingChain {
         return this.totalEventsProcessed;
     }
     
-    /**
-     * Interface for a single processing step which handles one type of record.
-     */
-    interface EventProcessingStep {
-       void execute() throws IOException;
+    public boolean isDone() {
+        return isDone;
     }
-
+        
     /**
      * ET processing step to load an <tt>EtEvent</tt> from the ET ring.
      */
@@ -296,12 +281,18 @@ class EventProcessingChain {
         /**
          * Load the next <tt>EtEvent</tt>.
          */
-        public void execute() throws IOException {
+        public void execute() throws IOException, NoSuchRecordException {
             // Load the next EtEvent.
-            etLoop.loop(1);
+            etLoop.execute(NEXT);
             
             // Get an EtEvent from the loop.
-            currentEtEvent = (EtEvent) etLoop.getRecordSource().getCurrentRecord();
+            EtEvent nextEtEvent = (EtEvent) etLoop.getRecordSource().getCurrentRecord();
+            
+            // Failed to read an EtEvent from the ET server.
+            if (nextEtEvent == null)
+                throw new NoSuchRecordException("No current EtEvent is available.");
+            
+            getCompositeRecord().setEtEvent(nextEtEvent);
         }
     }
     
@@ -315,12 +306,14 @@ class EventProcessingChain {
          * Load the next <tt>EvioEvent</tt>, either from a record source
          * or from the <tt>EtEvent</tt> data.
          */
-        public void execute() throws IOException {
+        public void execute() throws IOException, NoSuchRecordException {
             
             if (sourceType == SourceType.ET_EVENT) {
                 EvioEvent evioEvent = null;
                 try {
-                    evioEvent = createEvioEvent(currentEtEvent);
+                    evioEvent = createEvioEvent(getCompositeRecord().getEtEvent());                    
+                    if (evioEvent == null)
+                        throw new IOException("Failed to create EvioEvent from current EtEvent.");
                     setEventNumber(evioEvent);
                 } catch (EvioException e) {
                     throw new IOException(e);
@@ -331,16 +324,18 @@ class EventProcessingChain {
             }
 
             // Process one EvioEvent.
-            evioLoop.loop(1);
-            currentEvioEvent = (EvioEvent) evioLoop.getRecordSource().getCurrentRecord();
+            evioLoop.execute(NEXT);         
+            EvioEvent nextEvioEvent = (EvioEvent) evioLoop.getRecordSource().getCurrentRecord();
             
             // The call to loop did not create a current record.
-            if (currentEvioEvent == null)
-                throw new EventsExhaustedException("No current EVIO event.");
+            if (nextEvioEvent == null)
+                throw new NoSuchRecordException("No current EVIO event.");
+            
+            getCompositeRecord().setEvioEvent(nextEvioEvent);
             
             // Encountered an end of run record.
-            if (EventConstants.isEndEvent(currentEvioEvent))
-                // If stop on end run is enabled then trigger an exception to end processing.
+            if (EventConstants.isEndEvent(nextEvioEvent))
+                // If stop on end run is enabled, then trigger an exception to end processing.
                 if (stopOnEndRun)
                     throw new EndRunException("EVIO end event received, and stop on end run is enabled.");
         }
@@ -361,18 +356,20 @@ class EventProcessingChain {
         /**
          * When reading from ET data, the EVIO event number needs to be set manually
          * from the event ID bank.
-         * @param event The <tt>EvioEvent</tt> on which to set the event number.
+         * @param evioEvent The <tt>EvioEvent</tt> on which to set the event number.
          */
-        private void setEventNumber(EvioEvent event) {
+        private void setEventNumber(EvioEvent evioEvent) {
             int eventNumber = -1;
-            for (BaseStructure bank : event.getChildren()) {
-                if (bank.getHeader().getTag() == EventConstants.EVENTID_BANK_TAG) {
-                    eventNumber = bank.getIntData()[0];
-                    break;
+            if (evioEvent.getChildren() != null) {
+                for (BaseStructure bank : evioEvent.getChildren()) {
+                    if (bank.getHeader().getTag() == EventConstants.EVENTID_BANK_TAG) {
+                        eventNumber = bank.getIntData()[0];
+                        break;
+                    }
                 }
             }
             if (eventNumber != -1)
-                event.setEventNumber(eventNumber);
+                evioEvent.setEventNumber(eventNumber);
         }
     }
     
@@ -386,12 +383,14 @@ class EventProcessingChain {
          * Create the next LCIO event either from the EVIO record
          * or from a direct LCIO file source.
          */
-        public void execute() throws IOException {
+        public void execute() throws IOException, NoSuchRecordException {
 
-            // When the loop does not have a direct event source, the events
-            // need to be built from EVIO.
+            // When the loop does not have a direct LCIO file source, 
+            // the events need to be built from the EVIO input.
             if (sourceType.ordinal() < SourceType.LCIO_FILE.ordinal()) {
             
+                EvioEvent currentEvioEvent = getCompositeRecord().getEvioEvent();
+                
                 // Set state on LCIO event builder.
                 eventBuilder.readEvioEvent(currentEvioEvent);
                 
@@ -409,19 +408,22 @@ class EventProcessingChain {
                 }
             }
         
-            // Process the next LCIO event.
-            lcsimLoop.loop(1, null);
-            
-            // In this case, there are no more records in the file.
+            // If using an LCIO file source, check for EOF.
             if (sourceType == SourceType.LCIO_FILE) {
                 if (!lcsimLoop.getRecordSource().hasNext())
-                    throw new EventsExhaustedException("No next LCIO event.");
+                    throw new NoSuchRecordException("No next LCIO event.");
             }
             
-            // The last call to loop did not create a current record.
+            // Process the next LCIO event.
+            lcsimLoop.execute(NEXT);
+                                   
+            // The last call to the loop did not create a current record for some reason.
             if (lcsimLoop.getRecordSource().getCurrentRecord() == null) {
-                throw new EventsExhaustedException("No current LCIO event.");
+                throw new NoSuchRecordException("No current LCIO event.");
             }
+            
+            EventHeader lcioEvent = (EventHeader) lcsimLoop.getRecordSource().getCurrentRecord();
+            getCompositeRecord().setLcioEvent(lcioEvent);
         }
     }
 }

@@ -28,6 +28,8 @@ public class EtEventSource extends AbstractRecordSource {
     
     public EtEventSource(EtConnection connection) {
         this.connection = connection;
+        System.out.println("EtEventSource using ET system parameters ...");
+        System.out.println(this.connection.toString());
     }
           
     @Override
@@ -77,8 +79,6 @@ public class EtEventSource extends AbstractRecordSource {
     
     @Override
     public void next() throws IOException, NoSuchRecordException {
-
-        System.out.println("EtEventSource.next");
         
         // Fill the queue if there are no events cached.
         if (eventQueue.size() == 0) {
