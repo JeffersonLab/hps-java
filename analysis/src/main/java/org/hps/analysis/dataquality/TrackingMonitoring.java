@@ -43,7 +43,6 @@ public class TrackingMonitoring extends DataQualityMonitor {
     double sumslope = 0;
     double sumchisq = 0;
      private String plotDir = "Tracks/";
-    private Map<String, Double> monitoredQuantityMap = new HashMap<>();
     String[] trackingQuantNames = {"avg_N_tracks", "avg_N_hitsPerTrack", "avg_d0", "avg_z0", "avg_absslope", "avg_chi2"};
 
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
@@ -134,9 +133,6 @@ public class TrackingMonitoring extends DataQualityMonitor {
         monitoredQuantityMap.put(trackingQuantNames[5], sumchisq / nTotTracks);
     }
 
-    @Override
-    public void dumpDQMData() {
-    }
 
     @Override
     public void printDQMData() {
@@ -149,7 +145,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
          for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet())
-            System.out.println(entry.getKey());
+            System.out.println("ALTER TABLE dqm ADD "+entry.getKey()+" double;");
 
     }
 

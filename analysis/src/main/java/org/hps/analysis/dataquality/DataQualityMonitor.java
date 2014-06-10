@@ -2,6 +2,8 @@ package org.hps.analysis.dataquality;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lcsim.util.Driver;
@@ -23,9 +25,13 @@ public class DataQualityMonitor extends Driver {
     public boolean overwriteDB = false;
     public boolean connectToDB = false;
     public boolean printDQMStrings = false;
-
+    public Map<String, Double> monitoredQuantityMap = new HashMap<>();
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
+    }
+
+    public void setRunNumber(int run) {
+        this.runNumber = run;
     }
 
     public void setOverwriteDB(boolean overwrite) {
@@ -33,7 +39,7 @@ public class DataQualityMonitor extends Driver {
     }
 
     public void setConnectToDB(boolean connect) {
-        this.overwriteDB = connect;
+        this.connectToDB = connect;
     }
 
     public void setPrintDQMStrings(boolean print) {
@@ -50,24 +56,22 @@ public class DataQualityMonitor extends Driver {
         printDQMData();
         if (printDQMStrings)
             printDQMStrings();
+        System.out.println("Should I write to the database?  " + connectToDB);
         if (connectToDB) {
+            System.out.println("Connecting To Database...getting DQMDBManager");
             manager = DQMDatabaseManager.getInstance();
-        //fill any plots that only get filled at end of data...e.g. SVT occupancy plots
-
             //check to see if I need to make a new db entry
             boolean entryExists = false;
             try {
                 entryExists = checkRowExists();
                 if (entryExists)
-                    System.out.println("Found an existing run/reco entry in the dqm database");
+                    System.out.println("Found an existing run/reco entry in the dqm database; overwrite = " + overwriteDB);
             } catch (SQLException ex) {
                 Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             if (!entryExists)
                 makeNewRow();
-            else if (!overwriteDB)
-                return; //entry exists and I don't want to overwrite
             dumpDQMData();
         }
 
@@ -76,13 +80,13 @@ public class DataQualityMonitor extends Driver {
     private void makeNewRow() {
         System.out.println("is the data base connected?  " + manager.isConnected);
         if (manager.isConnected) {
-            String ins = "insert into dqm SET run=" + runNumber;
+            String ins = "insert into dqm SET runNumber=" + runNumber;
 //            System.out.println(ins);
             manager.updateQuery(ins);
-            ins = "update  dqm SET recoversion='" + recoVersion + "' where run=" + runNumber;
+            ins = "update  dqm SET recoVersion='" + recoVersion + "' where runNumber=" + runNumber;
             manager.updateQuery(ins);
         }
-        System.out.println("Made a new row for run=" + runNumber + "; recon version=" + recoVersion);
+        System.out.println("Made a new row for runNumber=" + runNumber + "; recoVersion=" + recoVersion);
     }
 
     private boolean checkRowExists() throws SQLException {
@@ -93,8 +97,19 @@ public class DataQualityMonitor extends Driver {
         return false;
     }
 
+    public boolean checkSelectionIsNULL(String var) throws SQLException {
+        String ins = "select "+var+" from dqm where " + getRunRecoString();
+        ResultSet res = manager.selectQuery(ins);
+        res.next();
+        double result=res.getDouble(var);
+        if(res.wasNull())
+            return true;
+        System.out.println("checkSelectionIsNULL::"+var+" = "+result);
+        return false;
+    }
+
     public String getRunRecoString() {
-        return "run=" + runNumber + " and recoversion='" + recoVersion + "'";
+        return "runNumber=" + runNumber + " and recoVersion='" + recoVersion + "'";
     }
 
     //override this method to do something interesting   
@@ -107,9 +122,26 @@ public class DataQualityMonitor extends Driver {
     public void calculateEndOfRunQuantities() {
     }
 
-//override this method to do something interesting   
-    //like write the DQM data to the database
+  
     public void dumpDQMData() {
+        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+            String name = entry.getKey();
+            double val = entry.getValue();
+             boolean isnull=false;
+               try {
+                 isnull=checkSelectionIsNULL(name);
+            } catch (SQLException ex) {
+                Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (!overwriteDB&&!isnull){                
+                System.out.println("Not writing because "+name+" is already filled for this entry");
+                continue; //entry exists and I don't want to overwrite                
+            }
+            String put = "update dqm SET "+name+" = " + val + " WHERE " + getRunRecoString();
+            System.out.println(put);
+            manager.updateQuery(put); 
+           
+        }
     }
 
     //override this method to do something interesting   

@@ -184,7 +184,7 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (SiSensor sensor : sensors)
-            System.out.println(avgClusterEffNames.get(sensor.getName()));
+            System.out.println("ALTER TABLE dqm ADD "+avgClusterEffNames.get(sensor.getName())+" double;");
     }
 
 }
