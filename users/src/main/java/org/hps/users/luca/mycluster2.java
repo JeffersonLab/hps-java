@@ -234,7 +234,7 @@ return check;
  
  public int getCrystal (HPSEcalCluster cluster){
  int x,y,id=0;
- x= -1*cluster.getSeedHit().getIdentifierFieldValue("ix");
+ x= (-1)*cluster.getSeedHit().getIdentifierFieldValue("ix");
  y= cluster.getSeedHit().getIdentifierFieldValue("iy");
  
  if(y==5){
@@ -259,14 +259,18 @@ return check;
  else id=x+161;}
  
  else if(y==1)
- {if(x<0){
-  id=x+208;}
- else id=x+198;}
+ {x=-x;
+     if(x>0){
+  id=-x+208;}
+ else if(x==-1){id=208;}
+ else if(x<-1) id=-x+198;}
  
   else if(y==-1)
- {if(x<0){
-  id=x+245;}
- else id=x+235;}
+ {x=-x;
+     if(x>0){
+  id=-x+245;}
+ else if(x==-1 )id=245;
+ else if(x<-1){id=-x+257;}}
  
  else if(y==-2)
  {if(x<0){

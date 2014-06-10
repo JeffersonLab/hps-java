@@ -31,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Reads clusters and makes trigger decision using opposite quadrant criterion.
  * Prints triggers to file if file path specified.
- *
+ * @author Luca Colaneri <colaneri@roma2.infn.it> making modification to study effects on coulomb electrons
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: FADCTriggerDriver.java,v 1.4 2013/09/02 21:56:56 phansson Exp $
@@ -554,7 +554,7 @@ public class myTriggerDriver extends TriggerDriver {
         // To apply pair coincidence time, use only bottom clusters from the 
         // readout cycle pairCoincidence readout cycles ago, and top clusters 
         // from all 2*pairCoincidence+1 previous readout cycles
-        for (HPSEcalCluster botCluster : botClusterQueue.element()) {
+        for (HPSEcalCluster botCluster : botClusterQueue.element()) {   /////da come capisco sembra un for su tutti i cluster solo della testa della queue..e gli altri?
             for (List<HPSEcalCluster> topClusters : topClusterQueue) {
                 for (HPSEcalCluster topCluster : topClusters) {
 //                    System.out.format("%f\t%f\n", topCluster.getSeedHit().getTime(), botCluster.getSeedHit().getTime());

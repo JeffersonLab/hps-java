@@ -9,10 +9,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import java.io.IOException;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
+
 import java.util.List;
 import java.util.Queue;
 import org.hps.readout.ecal.ClockSingleton;
@@ -36,31 +33,36 @@ import org.lcsim.event.CalorimeterHit;
  */
 public class mycluster extends Driver {
   
-    private FileWriter writer;
-    String outputFileName = "HitEnePos.txt";
-    
+   /* private FileWriter writer;
+    private FileWriter writer2;
+    String outputFileName = "ClusterEnePos1.txt";
+    String outputFileName2 = "ClusterEnePos2.txt";
+    int cx, cy;*/
     
     int counter=0;
   AIDA aida = AIDA.defaultInstance();
-  IHistogram1D enePlot = aida.histogram1D("energia cluster", 100, 0.0,3.0);
-  IHistogram2D positionPlot = aida.histogram2D("Posizione cluster", 60,-350,350,10,-100,100);
-  IHistogram1D dimPlot = aida.histogram1D("dimensione cluster", 12, 0.0,12);
-  IHistogram1D dimPlot2 = aida.histogram1D("dimensione cluster con taglio", 12, 0.0,12);
-  IHistogram1D eneSeedHitPlot = aida.histogram1D("energia seedHit", 100, 0.0,3.0);
-   IHistogram1D eneHitPlot = aida.histogram1D("energia dHit", 100, 0.2,3.0);
-  IHistogram3D enePosPlot = aida.histogram3D("energia cluster vs posizione",350,-350,350,100,-100,100, 100, 0.0,3.0);
-   double[] position;
+  IHistogram1D eneTuttiPlot = aida.histogram1D("All Hits Energy", 300, 0.0,3.0);
+  IHistogram1D eneTuttiPlotCut = aida.histogram1D("All Hits Energy E> 1GeV", 300, 0.0,3.0);
+  IHistogram1D eneClusterPlot = aida.histogram1D("All Clusters Energy", 300, 0.0,3.0);
+  IHistogram1D eneClusterPlotcut = aida.histogram1D("Clusters Energy E>1.4", 300, 0.0,3.0);
+   IHistogram1D eneSeedPlot = aida.histogram1D("All Seed Energy ", 300, 0.0,3.0);
+   IHistogram1D eneSeedPlotcut = aida.histogram1D(" Seed Energy (Cluster E>1.4)", 300, 0.0,3.0);
+  
+   
+   
  
-   public void setOutputFileName(String outputFileName){
+  /* public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }
   @Override   
 public void startOfData(){
 try{
-    //initialize the writer
+    //initialize the writers
     writer=new FileWriter(outputFileName);
-    //Clear the file
+    writer2=new FileWriter(outputFileName2);
+    //Clear the files
     writer.write("");
+    writer2.write("");
 }
 catch(IOException e ){
 System.err.println("Error initializing output file for event display.");
@@ -72,11 +74,12 @@ public void endOfData(){
 try{
 //close the file writer.
     writer.close();
+    writer2.close();
     }
 catch(IOException e){
     System.err.println("Error closing utput file for event display.");
 }
-} 
+} */
    
  @Override  
  public void process (EventHeader event){
@@ -87,40 +90,29 @@ catch(IOException e){
      {
          List<CalorimeterHit> hits = event.get(CalorimeterHit.class,"EcalCorrectedHits");
          for(CalorimeterHit hit : hits){
-            if(hit.getRawEnergy()>0.6 &&hit.getRawEnergy()<2.3){
-             eneHitPlot.fill(hit.getRawEnergy());
-            
-            }
+         eneTuttiPlot.fill(hit.getRawEnergy());
+         if(hit.getRawEnergy()>=1){
+         eneTuttiPlotCut.fill(hit.getRawEnergy());
          }
-     
+         }
+         
+          
+  
      }
      
      if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
             List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters");
           
             if(clusters.size() > 0) {
-                counter++;
-                for(HPSEcalCluster cluster : clusters){
-                
-                    
-                    positionPlot.fill(cluster.getPosition()[0], cluster.getPosition()[1]);
-                    enePlot.fill(cluster.getEnergy());
-                    dimPlot.fill(cluster.getSize());
-                    eneSeedHitPlot.fill(cluster.getSeedHit().getRawEnergy());
-                    position=cluster.getPosition();
+               for(HPSEcalCluster cluster : clusters){
+                   eneClusterPlot.fill(cluster.getEnergy());
+                   eneSeedPlot.fill(cluster.getSeedHit().getRawEnergy());
+                   if(cluster.getEnergy()>=1.4){
+                   eneClusterPlotcut.fill(cluster.getEnergy());
+                   eneSeedPlotcut.fill(cluster.getSeedHit().getRawEnergy());
+                   }
                   
-                    if(cluster.getSeedHit().getRawEnergy()>1)
-                    {dimPlot2.fill(cluster.getSize());}
-                    /* try{
-                    //writer.append(position[0] + " " + position[1] + " " +cluster.getSeedHit().getRawEnergy()+ "\n");
-                    }
-                    
-                    catch(IOException e ){System.err.println("Error writing to output for event display.");}*/
-
-
-                }
-                
-               
+                }  
             }
            }
         
