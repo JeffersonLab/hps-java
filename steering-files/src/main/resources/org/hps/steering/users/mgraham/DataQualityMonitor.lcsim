@@ -6,7 +6,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-<!--        <driver name="DQMDatabaseDriver"/>  -->
+        <driver name="DQMDatabaseDriver"/>  
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" /> 
@@ -14,12 +14,14 @@
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
+         <driver name="TrackDataDriver"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />      
         <driver name="SVTMonitoring"/>  
         <driver name="SVTHitMCEfficiency"/>  
         <driver name="TrackingMonitoring"/>  
+        <driver name="TrackingResiduals"/>  
         <driver name="TrackMCEfficiency"/> 
         <driver name="FinalStateMonitoring"/>  
         <driver name="V0Monitoring"/>          
@@ -27,9 +29,9 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-<!--    <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> -->
+     <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> 
      <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>   -->
+            <runNumber>${runNumber}</runNumber>
         </driver> 
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
@@ -43,7 +45,9 @@
             <useTruthTime>true</useTruthTime>
             <subtractTOF>true</subtractTOF>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <debug>false</debug>
+        </driver>     
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <clusterTimeCut>16.0</clusterTimeCut>
@@ -53,8 +57,9 @@
 
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-		    <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
-<!--    <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource> -->
+		    <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource> 
+        </driver>  
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">          
         </driver>        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -64,7 +69,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <debug>true</debug>
+            <debug>false</debug>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -73,12 +78,19 @@
                  <outputFileName>./conditions_test_plots.root</outputFileName>
         </driver>
         <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
+             <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
         </driver>
        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
+             <runNumber>${runNumber}</runNumber>
+            <overwriteDB>false</overwriteDB>
+       </driver>
+  <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
+             <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
        </driver>
        <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+             <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
        </driver>
       <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
@@ -86,8 +98,10 @@
        </driver> 
         <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
             <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
        </driver> 
        <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
+             <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
