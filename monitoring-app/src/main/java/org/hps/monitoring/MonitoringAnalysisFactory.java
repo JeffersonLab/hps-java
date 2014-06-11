@@ -16,6 +16,7 @@ import hep.aida.ref.AnalysisFactory;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringAnalysisFactory.java,v 1.4 2013/12/10 07:36:40 jeremy Exp $
  */
+// FIXME: Move to plotting package.
 public class MonitoringAnalysisFactory extends AnalysisFactory {
     
     public MonitoringAnalysisFactory() {

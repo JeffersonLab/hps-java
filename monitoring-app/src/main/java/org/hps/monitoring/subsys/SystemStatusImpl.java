@@ -13,9 +13,28 @@ public class SystemStatusImpl implements SystemStatus {
     long lastChangedMillis;
     String message;
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
+    String systemName = "";
+    String description = "";
     
-    SystemStatusImpl() {
+    SystemStatusImpl(String systemName, String description) {
+        this.systemName = systemName;
+        this.description = description;
         setCurrentTime();
+    }
+    
+    @Override
+    public String getSystemName() {
+        return systemName;
+    }
+    
+    @Override
+    public String getDescription() {
+        return description;
+    }
+    
+    @Override
+    public String getMessage() {
+        return message;
     }
 
     @Override
@@ -24,7 +43,7 @@ public class SystemStatusImpl implements SystemStatus {
     }
 
     @Override
-    public void setStatus(StatusCode code, String message) {
+    public void setStatusCode(StatusCode code, String message) {
         this.code = code;
         this.message = message;
         setCurrentTime();
@@ -40,12 +59,7 @@ public class SystemStatusImpl implements SystemStatus {
     public long getLastChangedMillis() {
         return lastChangedMillis;
     }
-    
-    @Override
-    public String getMessage() {
-        return message;
-    }
-    
+        
     void notifyListeners() {
         for (SystemStatusListener listener : listeners) {
             listener.statusChanged(this);

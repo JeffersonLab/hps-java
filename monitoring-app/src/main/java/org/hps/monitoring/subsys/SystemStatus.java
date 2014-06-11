@@ -1,17 +1,20 @@
 package org.hps.monitoring.subsys;
 
 /**
- * The system status describes the state of a system, e.g. whether
- * it is okay or some level of error has occurred.  Listeners can 
- * be registered which will be notified whenever the status changes,
- * in order to update a GUI, trip an alarm, etc.
+ * The <tt>SystemStatus</tt> describes the state of a system, e.g. whether it is okay 
+ * or some level of error has occurred.  Listeners can be registered, which will 
+ * be notified whenever the status changes, in order to update a GUI, trip an alarm, etc.
+ * 
+ * There is one <tt>SystemStatus</tt> object for each quantity to be monitored
+ * on a sub-system.  New objects are not created when the status changes.  Instead,
+ * the <tt>StatusCode</tt> is changed with a custom message describing the new state.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface SystemStatus {
 
     /**
-     * Code that represents the system's overall status.        
+     * Code that represents the status of the monitoring quantity.    
      */
     enum StatusCode {
         
@@ -25,10 +28,12 @@ public interface SystemStatus {
         
         int code;
         String name;
+        String description;
         
         StatusCode(int code, String name, String description) {
             this.code = code;
             this.name = name;
+            this.description = description;
         }
         
         int getRawCode() {
@@ -37,8 +42,17 @@ public interface SystemStatus {
         
         String getName() {
             return name;
-        }                       
+        }                  
+        
+        String getDescription() {
+            return description;
+        }
     }
+    
+    /**
+     * Get the name of the sub-system e.g. "SVT".
+     */
+    String getSystemName();
     
     /**
      * Get the current status code.
@@ -51,13 +65,21 @@ public interface SystemStatus {
      * @return The current message
      */
     String getMessage();
+    
+    /**
+     * Get the description of the system status.
+     * This is used to differentiate multiple monitoring points
+     * on the same sub-system so it could be something like "SVT occupancy rates".
+     * @return The description of the system status.
+     */
+    String getDescription();
 
     /**
      * Set the current status code, which will cause the last changed 
      * time to be set and the listeners to be notified.
      * @param code The new status code.
      */
-    void setStatus(StatusCode code, String message);
+    void setStatusCode(StatusCode code, String message);
     
     /**
      * Get the time when the system status last changed.
