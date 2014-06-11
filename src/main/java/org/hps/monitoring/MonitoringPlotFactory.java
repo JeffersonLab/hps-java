@@ -10,6 +10,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import org.hps.monitoring.plotting.StripChartBuilder;
+import org.hps.monitoring.plotting.StripChartUpdater;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+
 /**
  * This class implements an AIDA IPlotterFactory for the monitoring application. 
  * It extends the JFree plotter by putting plots into tabs. Each plotter factory 
@@ -20,7 +25,8 @@ import javax.swing.JTabbedPane;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringPlotFactory.java,v 1.6 2013/12/10 07:36:40 jeremy Exp $
  */
-class MonitoringPlotFactory extends PlotterFactory {
+// FIXME: Move to plotting package.
+public class MonitoringPlotFactory extends PlotterFactory {
 
     /* The name of the factory which will be used in naming tabs in the monitoring app. */
     String name = null;
@@ -98,5 +104,31 @@ class MonitoringPlotFactory extends PlotterFactory {
         plotterPanel.add(PlotterUtilities.componentForPlotter(plotter), BorderLayout.CENTER);
         tabs.addTab(plotterName, plotterPanel);
         tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(plotterName));
+    }    
+    
+    private void addChart(JFreeChart chart) {
+        ChartPanel panel = new ChartPanel(chart);
+        tabs.addTab(chart.getTitle().getText(), panel);
+        tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(chart.getTitle().getText()));
     }
+    
+    /**
+     * Create a strip chart with a pure JFreeChart implementation.     
+     * It will be automatically updated from a {@link StripChartUpdater}.    
+     * Similar to AIDA plots, the chart will be given a sub-tab in the tab 
+     * of this factory.
+     * 
+     * @param title The title of the chart.
+     * @param yAxisLabel The y axis label.
+     * @param size The buffer size of the series which determines how much data displays.
+     * @param updater The updater which will update the chart in real time.
+     * @return The modified <tt>StripChartUpdater</tt> which points to the new chart.
+     */
+    public StripChartUpdater createStripChart(String title, String yAxisLabel, int size, StripChartUpdater updater) {
+        JFreeChart stripChart = StripChartBuilder.createDynamicTimeSeriesChart(title, yAxisLabel, size);
+        stripChart.getLegend().setVisible(false); /* Legend turned off for now. */
+        addChart(stripChart);
+        updater.setChart(stripChart);
+        return updater;
+    }      
 }

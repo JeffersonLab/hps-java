@@ -2,8 +2,12 @@ package org.hps.monitoring.subsys;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.hps.monitoring.plotting.StripChartUpdater;
 
 /**
  * Implementation of {@link SystemStatistics}.
@@ -27,6 +31,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     static final double milliToSecond = 0.001;    
     static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
     Timer timer;
+    List<TimerTask> subtasks = new ArrayList<TimerTask>();
                      
     @Override
     public void update(int size) {
@@ -75,12 +80,12 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public double getCumulativeMegaBytes() {
+    public double getCumulativeMb() {
         return bytesToMb(totalBytes);
     }
 
     @Override
-    public double getAverageMegaBytesPerSecond() {
+    public double getAverageMbPerSecond() {
         try { 
             return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getTimeElapsedMillis())));
         } catch (NumberFormatException e) {
@@ -89,18 +94,34 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public long getEventsSinceTick() {
+    public long getEventsInTick() {
         return eventsSinceTick;
     }
 
     @Override
-    public long getBytesSinceTick() {
+    public long getBytesInTick() {
         return bytesSinceTick;
     }
             
     @Override
     public long getTickElapsedMillis() {
         return tickElapsedMillis;
+    }
+    
+    @Override
+    public double getEventRate() {
+        if (eventsSinceTick > 0 && tickElapsedMillis > 0)
+            return (double)eventsSinceTick / millisToSeconds(tickElapsedMillis);
+        else
+            return 0.;
+    }
+    
+    @Override
+    public double getDataRateBytes() {
+        if (bytesSinceTick > 0 && tickElapsedMillis > 0)
+            return (double)bytesSinceTick / millisToSeconds(tickElapsedMillis);
+        else
+            return 0.;
     }
         
     @Override
@@ -114,6 +135,12 @@ public class SystemStatisticsImpl implements SystemStatistics {
         // Start Timer task which executes at tick length.
         TimerTask task = new TimerTask() {            
             public void run() {
+                
+                // Run sub-tasks.
+                for (TimerTask subtask : subtasks) {
+                    subtask.run();
+                }
+                
                 nextTick();
             }
         };        
@@ -137,7 +164,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
         ps.println("  getTimeElapsedMillis = " + this.getTimeElapsedMillis());
         ps.println("  getCumulativeEvents = " + this.getCumulativeEvents());
         ps.println("  getAverageEventsPerSecond = " + this.getAverageEventsPerSecond());
-        ps.println("  getAverageMegaBytesPerSecond = " + this.getAverageMegaBytesPerSecond());
+        ps.println("  getAverageMegaBytesPerSecond = " + this.getAverageMbPerSecond());
         
     }
     
@@ -145,8 +172,13 @@ public class SystemStatisticsImpl implements SystemStatistics {
     public void printTick(PrintStream ps) {
         ps.println("tick statistics ...");
         ps.println("  getTickElapsedMillis = " + this.getTickElapsedMillis());
-        ps.println("  getEventsSinceTick = " + this.getEventsSinceTick());
-        ps.println("  getBytesSinceTick = " + this.getBytesSinceTick());
+        ps.println("  getEventsSinceTick = " + this.getEventsInTick());
+        ps.println("  getBytesSinceTick = " + this.getBytesInTick());
+    }
+    
+    @Override
+    public void addSubTask(TimerTask subtask) {
+        this.subtasks.add(subtask);
     }
     
     void addEvent() {
@@ -179,4 +211,70 @@ public class SystemStatisticsImpl implements SystemStatistics {
         tickElapsedMillis = 0;
         tickStartMillis = System.currentTimeMillis();
     }       
+    
+    public abstract class SystemStatisticsUpdater extends StripChartUpdater {
+        SystemStatisticsUpdater() {
+            addSubTask(this);
+        }
+    }
+    
+    public class AverageEventRateUpdater extends SystemStatisticsUpdater {
+
+        @Override
+        public float nextValue() {
+            return (float)getAverageEventsPerSecond();
+        }        
+    }
+    
+    public class EventsInTickUpdater extends SystemStatisticsUpdater {
+       
+        @Override
+       public float nextValue() {
+           return getEventsInTick();
+       }
+    }
+    
+    public class CumulativeEventsUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return getCumulativeEvents();
+        }
+    }
+    
+    public class BytesInTickUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return getBytesInTick();
+        }
+    }
+    
+    public class AverageMbUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return (float)getAverageMbPerSecond();
+        }
+    }
+    
+    public class CumulativeMbUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return (float)getCumulativeMb();
+        }
+    }        
+    
+    public class EventRateUpdater extends SystemStatisticsUpdater {
+        
+        @Override
+       public float nextValue() {
+           return (float)getEventRate();
+       }
+    }
+    
+    public class DataRateUpdater extends SystemStatisticsUpdater {
+        
+        @Override
+       public float nextValue() {
+           return (float)getDataRateBytes();
+       }
+    }
 }

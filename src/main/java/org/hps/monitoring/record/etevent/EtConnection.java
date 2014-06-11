@@ -47,7 +47,7 @@ public class EtConnection {
      * Get the ET system.
      * @return The ET system.
      */
-    public EtSystem getEtSystem() {
+    EtSystem getEtSystem() {
         return sys;
     }
 
@@ -55,7 +55,7 @@ public class EtConnection {
      * Get the ET attachment.
      * @return The ET attachment.
      */
-    public EtAttachment getEtAttachment() {
+    EtAttachment getEtAttachment() {
         return att;
     }
 
@@ -157,7 +157,7 @@ public class EtConnection {
      * @throws EtWakeUpException
      * @throws EtClosedException
      */
-    public EtEvent[] readEtEvents() 
+    EtEvent[] readEtEvents() 
             throws IOException, EtException, EtDeadException, 
             EtEmptyException, EtBusyException, EtTimeoutException, 
             EtWakeUpException, EtClosedException {

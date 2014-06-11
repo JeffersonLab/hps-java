@@ -77,6 +77,7 @@ import org.hps.monitoring.record.EventProcessingThread;
 import org.hps.monitoring.record.etevent.EtConnection;
 import org.hps.monitoring.record.etevent.EtConnectionParameters;
 import org.hps.monitoring.record.etevent.EtEventSource;
+import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.aida.AIDA;
 
@@ -149,7 +150,8 @@ public class MonitoringApplication {
     private static Logger logger;
     private Handler logHandler;
     private DefaultTableModel logTableModel;
-    static final String[] logTableColumns = { "Source", "Message", "Date", "Level" };
+    //static final String[] logTableColumns = { "Source", "Message", "Date", "Level" };
+    static final String[] logTableColumns = { "Message", "Date", "Level" };
     private JTable logTable;
     private Level defaultLogMessageLevel = Level.INFO;
 
@@ -268,24 +270,27 @@ public class MonitoringApplication {
         jobPanel.addActionListener(actionListener);
         
         // Create the container for the tabbed pane.
-        JPanel tabsPanel = new JPanel();
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 2;
-        c.fill = GridBagConstraints.BOTH;
-        c.weightx = c.weighty = 1.0;
-        c.insets = new Insets(0, 0, 0, 10);
-        leftPanel.add(tabsPanel, c);
+        //JPanel tabsPanel = new JPanel();
+        //c = new GridBagConstraints();
+        //c.gridx = 0;
+        //c.gridy = 2;
+        //c.fill = GridBagConstraints.BOTH;
+        //c.weightx = c.weighty = 1.0;
+        //c.insets = new Insets(0, 0, 0, 10);
+        //leftPanel.add(tabsPanel, c);
         
         // Tab panels.
         c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
-        c.weightx = c.weighty = 1.0;                       
+        c.weightx = c.weighty = 1.0;
+        c.gridx = 0;
+        c.gridy = 2;
         tabs = new JTabbedPane();
         tabs.addTab("Connection Settings", connectionPanel);
         tabs.addTab("Event Monitor", eventPanel);
         tabs.addTab("Job Settings", jobPanel);
-        tabsPanel.add(tabs, c);
+        //tabsPanel.add(tabs, c);
+        leftPanel.add(tabs, c);
                 
         // Layout attributes for the entire left panel.
         c = new GridBagConstraints();
@@ -483,22 +488,16 @@ public class MonitoringApplication {
          * Puts log messages into the application's log table GUI component.
          */
         public void publish(LogRecord record) {
-            Object[] row = new Object[] { record.getLoggerName(), // source
+            Object[] row = new Object[] { /*record.getLoggerName(),*/ // source
                     record.getMessage(), // message
                     dateFormat.format(new Date(record.getMillis())), // date
                     record.getLevel() }; // level
             logTableModel.insertRow(logTable.getRowCount(), row);
         }
 
-        /**
-         * Close the handler (no-op).
-         */
         public void close() throws SecurityException {
         }
 
-        /**
-         * Flush the handler (no-op).
-         */
         public void flush() {
         }
     }
@@ -657,6 +656,7 @@ public class MonitoringApplication {
     private void saveJobSettings() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Save Job Settings");
+        fc.setCurrentDirectory(new File("."));
         int r = fc.showSaveDialog(leftPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
@@ -678,6 +678,7 @@ public class MonitoringApplication {
     private void loadJobSettings() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Load Job Settings");
+        fc.setCurrentDirectory(new File("."));
         int r = fc.showOpenDialog(leftPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
@@ -854,6 +855,7 @@ public class MonitoringApplication {
     private void logToFile() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Log File");
+        fc.setCurrentDirectory(new File("."));
         int fcs = fc.showSaveDialog(mainPanel);
         if (fcs == JFileChooser.APPROVE_OPTION) {
             final File logFile = fc.getSelectedFile();
@@ -868,7 +870,6 @@ public class MonitoringApplication {
                     redirectStdOutAndErrToFile(logFile);
 
                     SwingUtilities.invokeLater(new Runnable() {
-
                         public void run() {
                             jobPanel.setLogToFile(true);
                             jobPanel.setLogFile(logFile.getPath());
@@ -1044,6 +1045,7 @@ public class MonitoringApplication {
     private void chooseScreenshot() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Save Screenshot");
+        fc.setCurrentDirectory(new File("."));
         int r = fc.showSaveDialog(mainPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             String fileName = fc.getSelectedFile().getPath();
@@ -1425,6 +1427,7 @@ public class MonitoringApplication {
     private void saveLogToFile() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Save Log File");
+        fc.setCurrentDirectory(new File("."));
         int fcs = fc.showSaveDialog(mainPanel);
         if (fcs == JFileChooser.APPROVE_OPTION) {
             final File logFile = fc.getSelectedFile();
@@ -1551,6 +1554,10 @@ public class MonitoringApplication {
         eventProcessing.setDetectorName(this.getDetectorName());
         eventProcessing.add(this.jobManager.getDriverExecList());
         eventProcessing.add(new EventPanelUpdater(eventPanel));
+        
+        // TEST
+        eventProcessing.add(new EtSystemStripCharts());
+        
         eventProcessing.setStopOnEndRun();
         if (!this.disconnectOnError())
             eventProcessing.setContinueOnErrors();
@@ -1594,29 +1601,42 @@ public class MonitoringApplication {
      */
     private void stopSession() {
         
-        // Request event processing to stop.
-        eventProcessing.finish();
-        
-        // Wait for the event processing thread to finish.
-        try {            
-            logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
-            eventProcessingThread.join();
-            logger.log(Level.FINER, "Event processing finished.");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        
-        // Reset event processing objects.
-        eventProcessing = null;
-        eventProcessingThread = null;
-        
-        // Perform various end of job cleanup.
-        endJob();
+        Runnable runnable = new Runnable() {
 
-        // Disconnect from the ET server.
-        disconnect();
+            public void run() {
 
-        // Stop the session timer.
-        stopSessionTimer();                  
+                logger.log(Level.INFO, "Stopping session.");
+
+                // Request event processing to stop.
+                eventProcessing.finish();
+
+                // Wait for the event processing thread to finish.
+                try {
+                    logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
+                    eventProcessingThread.join();
+                    logger.log(Level.FINER, "Event processing finished.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // Reset event processing objects.
+                eventProcessing = null;
+                eventProcessingThread = null;
+
+                // Perform various end of job cleanup.
+                endJob();
+
+                // Disconnect from the ET server.
+                disconnect();
+
+                // Stop the session timer.
+                stopSessionTimer();
+
+                logger.log(Level.INFO, "Session done.");
+            }
+        };
+        
+        Thread thread = new Thread(runnable);
+        thread.start();
     }
 }
