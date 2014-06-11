@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
 import org.hps.monitoring.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;

@@ -1,29 +1,29 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.MonitoringCommands.AIDA_AUTO_SAVE;
-import static org.hps.monitoring.MonitoringCommands.CLEAR_LOG_TABLE;
-import static org.hps.monitoring.MonitoringCommands.CONNECT;
-import static org.hps.monitoring.MonitoringCommands.DISCONNECT;
-import static org.hps.monitoring.MonitoringCommands.EDIT_EVENT_REFRESH;
-import static org.hps.monitoring.MonitoringCommands.EXIT;
-import static org.hps.monitoring.MonitoringCommands.LOAD_CONNECTION;
-import static org.hps.monitoring.MonitoringCommands.LOAD_JOB_SETTINGS;
-import static org.hps.monitoring.MonitoringCommands.LOG_TO_FILE;
-import static org.hps.monitoring.MonitoringCommands.LOG_TO_TERMINAL;
-import static org.hps.monitoring.MonitoringCommands.NEXT;
-import static org.hps.monitoring.MonitoringCommands.PAUSE;
-import static org.hps.monitoring.MonitoringCommands.RESET_CONNECTION_SETTINGS;
-import static org.hps.monitoring.MonitoringCommands.RESET_JOB_SETTINGS;
-import static org.hps.monitoring.MonitoringCommands.RESUME;
-import static org.hps.monitoring.MonitoringCommands.SAVE_CONNECTION;
-import static org.hps.monitoring.MonitoringCommands.SAVE_JOB_SETTINGS;
-import static org.hps.monitoring.MonitoringCommands.SAVE_LOG_TABLE;
-import static org.hps.monitoring.MonitoringCommands.SAVE_PLOTS;
-import static org.hps.monitoring.MonitoringCommands.SCREENSHOT;
-import static org.hps.monitoring.MonitoringCommands.SET_EVENT_BUILDER;
-import static org.hps.monitoring.MonitoringCommands.SET_LOG_LEVEL;
-import static org.hps.monitoring.MonitoringCommands.SET_STEERING_FILE;
-import static org.hps.monitoring.MonitoringCommands.SET_STEERING_RESOURCE;
+import static org.hps.monitoring.gui.MonitoringCommands.AIDA_AUTO_SAVE;
+import static org.hps.monitoring.gui.MonitoringCommands.CLEAR_LOG_TABLE;
+import static org.hps.monitoring.gui.MonitoringCommands.CONNECT;
+import static org.hps.monitoring.gui.MonitoringCommands.DISCONNECT;
+import static org.hps.monitoring.gui.MonitoringCommands.EDIT_EVENT_REFRESH;
+import static org.hps.monitoring.gui.MonitoringCommands.EXIT;
+import static org.hps.monitoring.gui.MonitoringCommands.LOAD_CONNECTION;
+import static org.hps.monitoring.gui.MonitoringCommands.LOAD_JOB_SETTINGS;
+import static org.hps.monitoring.gui.MonitoringCommands.LOG_TO_FILE;
+import static org.hps.monitoring.gui.MonitoringCommands.LOG_TO_TERMINAL;
+import static org.hps.monitoring.gui.MonitoringCommands.NEXT;
+import static org.hps.monitoring.gui.MonitoringCommands.PAUSE;
+import static org.hps.monitoring.gui.MonitoringCommands.RESET_CONNECTION_SETTINGS;
+import static org.hps.monitoring.gui.MonitoringCommands.RESET_JOB_SETTINGS;
+import static org.hps.monitoring.gui.MonitoringCommands.RESUME;
+import static org.hps.monitoring.gui.MonitoringCommands.SAVE_CONNECTION;
+import static org.hps.monitoring.gui.MonitoringCommands.SAVE_JOB_SETTINGS;
+import static org.hps.monitoring.gui.MonitoringCommands.SAVE_LOG_TABLE;
+import static org.hps.monitoring.gui.MonitoringCommands.SAVE_PLOTS;
+import static org.hps.monitoring.gui.MonitoringCommands.SCREENSHOT;
+import static org.hps.monitoring.gui.MonitoringCommands.SET_EVENT_BUILDER;
+import static org.hps.monitoring.gui.MonitoringCommands.SET_LOG_LEVEL;
+import static org.hps.monitoring.gui.MonitoringCommands.SET_STEERING_FILE;
+import static org.hps.monitoring.gui.MonitoringCommands.SET_STEERING_RESOURCE;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -47,11 +47,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -72,6 +79,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
+import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.record.EventProcessingChain;
 import org.hps.monitoring.record.EventProcessingThread;
 import org.hps.monitoring.record.etevent.EtConnection;
@@ -540,7 +549,7 @@ public class MonitoringApplication {
      * Create the monitoring application frame and run it on a separate thread.
      * @return Reference to the created application.
      */
-    static final MonitoringApplication createMonitoringApplication() {
+    public static final MonitoringApplication createMonitoringApplication() {
         final MonitoringApplication app = new MonitoringApplication();
         SwingUtilities.invokeLater(new Runnable() {
 
@@ -555,7 +564,7 @@ public class MonitoringApplication {
      * Load connection settings from a file.
      * @param file The properties file.
      */
-    void loadConnectionSettings(File file) {
+    public void loadConnectionSettings(File file) {
         connectionPanel.loadPropertiesFile(file);
     }
 
@@ -563,7 +572,7 @@ public class MonitoringApplication {
      * Load job settings from a file.
      * @param file The properties file.
      */
-    void loadJobSettings(File file) {
+    public void loadJobSettings(File file) {
         try {
             jobPanel.setJobSettings(new JobSettings(file));
             // Need to check here if System.out and err have been redirected.
@@ -1638,5 +1647,5 @@ public class MonitoringApplication {
         
         Thread thread = new Thread(runnable);
         thread.start();
-    }
+    }       
 }

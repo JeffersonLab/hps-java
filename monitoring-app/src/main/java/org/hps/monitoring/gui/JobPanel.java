@@ -1,10 +1,18 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
@@ -73,7 +81,7 @@ class JobPanel extends FieldsPanel {
         steeringTypeComboBox = addComboBox("Steering Type", steeringTypes);  
         steeringFileField = addField("Steering File", 35);  	      
         steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", 
-                SteeringFileUtil.getAvailableSteeringFileResources(steeringPackage));
+                getAvailableSteeringFileResources(steeringPackage));
         steeringResourcesComboBox.setActionCommand(MonitoringCommands.SET_STEERING_RESOURCE);
         detectorNameField = addField("Detector Name", 20);
         eventBuilderField = addField("Event Builder Class", 30);
@@ -538,4 +546,39 @@ class JobPanel extends FieldsPanel {
     void resetJobSettings() {
         setJobSettings(new JobSettings());
     }    
+    
+    /**
+     * Get the files that end in .lcsim from all loaded jar files.
+     * @return A list of embedded steering file resources.
+     */
+    public static String[] getAvailableSteeringFileResources(String packageName) {
+        List<String> resources = new ArrayList<String>();
+        URL url = JobPanel.class.getResource("MonitoringApplication.class");
+        String scheme = url.getProtocol();
+        if (!"jar".equals(scheme)) {
+            throw new IllegalArgumentException("Unsupported scheme: " + scheme);
+        }
+        try {
+            JarURLConnection con = (JarURLConnection) url.openConnection();
+            JarFile archive = con.getJarFile();
+            Enumeration<JarEntry> entries = archive.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
+                    resources.add(entry.getName());
+                }
+            }
+            archive.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }        
+        java.util.Collections.sort(resources);
+        String[] arr = new String[resources.size()];
+        for (int i=0; i<arr.length; i++) {
+            arr[i] = resources.get(i);
+        }
+        return arr;
+    }
+    
 }

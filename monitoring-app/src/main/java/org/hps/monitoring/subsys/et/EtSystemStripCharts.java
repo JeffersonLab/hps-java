@@ -1,6 +1,6 @@
 package org.hps.monitoring.subsys.et;
 
-import org.hps.monitoring.MonitoringPlotFactory;
+import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.subsys.SystemStatisticsImpl;
 import org.jlab.coda.et.EtEvent;

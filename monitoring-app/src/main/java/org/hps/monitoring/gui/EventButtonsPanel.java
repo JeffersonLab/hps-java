@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

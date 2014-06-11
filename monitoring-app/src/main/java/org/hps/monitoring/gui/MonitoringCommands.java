@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
 /**
  * These strings are used to identify ActionEvents in the MonitoringApplication.

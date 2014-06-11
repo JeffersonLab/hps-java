@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.plotting;
 
 import hep.aida.IPlotter;
 import hep.aida.jfree.plotter.PlotterFactory;
@@ -10,8 +10,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import org.hps.monitoring.plotting.StripChartBuilder;
-import org.hps.monitoring.plotting.StripChartUpdater;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 
@@ -95,7 +93,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
      * Set the reference to the root tab pane where this factory's GUI tabs will be inserted.
      * @param rootPane The root tabbed pane.
      */
-    static void setRootPane(JTabbedPane rootPane) {
+    public static void setRootPane(JTabbedPane rootPane) {
         MonitoringPlotFactory.rootPane = rootPane;
     }
     
@@ -130,5 +128,12 @@ public class MonitoringPlotFactory extends PlotterFactory {
         addChart(stripChart);
         updater.setChart(stripChart);
         return updater;
+    }
+    
+    public JFreeChart createStripChart(String title, String yAxisLabel, int maxAge, int maxCount, int rangeSize) {
+        JFreeChart stripChart = StripChartBuilder.createTimeSeriesChart(title, yAxisLabel, maxAge, maxCount, rangeSize);
+        stripChart.getLegend().setVisible(false); /* Legend turned off for now. */
+        addChart(stripChart);
+        return stripChart;
     }      
 }
