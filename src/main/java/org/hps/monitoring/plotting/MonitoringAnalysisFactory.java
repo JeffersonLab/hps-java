@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.plotting;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
@@ -26,7 +26,7 @@ public class MonitoringAnalysisFactory extends AnalysisFactory {
      * Register this class as the default AnalysisFactory for AIDA by setting
      * the magic property string.
      */
-    final static void register() {
+    public final static void register() {
         System.setProperty("hep.aida.IAnalysisFactory", MonitoringAnalysisFactory.class.getName());
     }
     

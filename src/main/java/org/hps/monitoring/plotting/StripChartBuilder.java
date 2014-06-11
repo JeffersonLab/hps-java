@@ -5,7 +5,6 @@ import java.util.Date;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.DynamicTimeSeriesCollection;
 import org.jfree.data.time.Second;
@@ -32,15 +31,14 @@ public final class StripChartBuilder {
         final JFreeChart result = ChartFactory.createTimeSeriesChart(title, "hh:mm:ss", yAxisLabel, dataset, true, true, false);
         final XYPlot plot = result.getXYPlot();        
         plot.getDomainAxis().setAutoRange(true);     
-        NumberAxis rangeAxis = (NumberAxis)plot.getRangeAxis();
-        rangeAxis.setRange(0., 1.);
+        NumberAxis rangeAxis = (NumberAxis)plot.getRangeAxis();        
         rangeAxis.setAutoRange(true);
         rangeAxis.setAutoRangeIncludesZero(true);
         return result;
     }
     
     /**
-     * This should be used when the time period for updating is variable.  (I think???)
+     * This should be used when the time period for updating is variable. 
      * @param title
      * @param yAxisLabel
      * @param maxAge
@@ -52,19 +50,21 @@ public final class StripChartBuilder {
     sensorSeries.add(new Minute(new Date()), newData);
     */
     // TODO: test case
-    public static JFreeChart createTimeSeriesChart(String title, String yAxisLabel, int maxAge, int maxCount) {
+    public static JFreeChart createTimeSeriesChart(String title, String yAxisLabel, int maxAge, int maxCount, int rangeSize) {
         
         TimeSeriesCollection dataset = new TimeSeriesCollection();
         TimeSeries timeSeries = new TimeSeries("Default Dataset");
         timeSeries.setMaximumItemAge(maxAge);
         timeSeries.setMaximumItemCount(maxCount);
+        dataset.addSeries(timeSeries);
         
         final JFreeChart result = ChartFactory.createTimeSeriesChart(title, "hh:mm:ss", yAxisLabel, dataset, true, true, false);
         final XYPlot plot = result.getXYPlot();
-        plot.getDomainAxis().setAutoRange(true);                
-        ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setAutoRange(true);
-        rangeAxis.setAutoRangeMinimumSize(1.0);
+        plot.getDomainAxis().setAutoRange(true); 
+        plot.getDomainAxis().setAutoRangeMinimumSize(rangeSize);
+        NumberAxis rangeAxis = (NumberAxis)plot.getRangeAxis();
+        rangeAxis.setAutoRange(true);        
+        rangeAxis.setAutoRangeIncludesZero(true);
         return result;
     }
     
