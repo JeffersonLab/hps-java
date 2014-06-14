@@ -59,12 +59,10 @@
             <useTimestamps>true</useTimestamps>
             <useTruthTime>false</useTruthTime>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <timeCut>true</timeCut>
-            <clusterEnergyThreshold>0.1</clusterEnergyThreshold>
-            <seedEnergyThreshold>0.01</seedEnergyThreshold>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>
