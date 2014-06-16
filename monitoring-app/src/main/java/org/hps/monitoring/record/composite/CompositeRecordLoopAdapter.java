@@ -14,11 +14,13 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
 
     List<RecordLoop> registeredLoops = new ArrayList<RecordLoop>();
     
-    public void finish(LoopEvent event) {
+    public void finish(LoopEvent loopEvent) {
         System.out.println("CompositeRecordLoopAdapter.finish");
         for (RecordLoop loop : registeredLoops) {
             loop.execute(Command.STOP);
         }
+        if (loopEvent.getException() != null)
+            loopEvent.getException().printStackTrace();
     }
         
     void registerRecordLoop(RecordLoop loop) {
@@ -32,6 +34,13 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
         }
     }
     */
+    
+    // NOTE: IOExceptions from loop processing show up here!!!
+    public void suspend(LoopEvent loopEvent) {        
+        System.out.println("CompositeRecordLoopAdapter.suspend");
+        if (loopEvent.getException() != null)
+            loopEvent.getException().printStackTrace();
+    }
 
     @Override
     public void recordSupplied(RecordEvent record) {
