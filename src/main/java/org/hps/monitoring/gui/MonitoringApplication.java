@@ -146,6 +146,8 @@ public class MonitoringApplication {
     private JobControlManager jobManager;
     private LCSimEventBuilder eventBuilder;
     private EventProcessingThread eventProcessingThread;
+    
+    private Thread sessionThread;
 
     // Job timing.
     private Timer timer;
@@ -1139,6 +1141,10 @@ public class MonitoringApplication {
             // Start the event processing thread.
             eventProcessingThread.start();
             
+            // Start thread which will trigger disconnect if event processing thread finishes.
+            sessionThread = new SessionThread();
+            sessionThread.start();
+            
             // Start the session timer.
             startSessionTimer();
            
@@ -1608,44 +1614,79 @@ public class MonitoringApplication {
      * Stop the session by stopping the event processing thread, ending the job,
      * and disconnecting from the ET system.
      */
-    private void stopSession() {
+    // FIXME: Needs to be synchronized?
+    private synchronized void stopSession() {
         
-        Runnable runnable = new Runnable() {
+        //Runnable runnable = new Runnable() {
+            //public void run() {
 
-            public void run() {
+        logger.log(Level.INFO, "Stopping session.");
 
-                logger.log(Level.INFO, "Stopping session.");
+        // Request event processing to stop.
+        // TODO: I think this check should be replaced with ... 
+        // eventProcessingThread.isAlive()
+        if (!eventProcessing.isDone()) {
+            
+            //System.out.println("interrupting session thread");
+            
+            // Interrupt the session thread because if processing is still happening,
+            // then we didn't get here through that thread.
+            sessionThread.interrupt();
+            
+            //System.out.println("finishing event processing");            
 
-                // Request event processing to stop.
-                eventProcessing.finish();
+            // Request processing to stop.
+            eventProcessing.finish();
+        }
 
-                // Wait for the event processing thread to finish.
-                try {
-                    logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
-                    eventProcessingThread.join();
-                    logger.log(Level.FINER, "Event processing finished.");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        // Wait for the event processing thread to finish.
+        try {
+            //logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
+            //System.out.println("Waiting for event processing to finish before disconnecting.");
+            eventProcessingThread.join();
+            //System.out.println("Event processing finished.");
+            //logger.log(Level.FINER, "Event processing finished.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-                // Reset event processing objects.
-                eventProcessing = null;
-                eventProcessingThread = null;
+        // Reset event processing objects.
+        eventProcessing = null;
+        eventProcessingThread = null;
 
-                // Perform various end of job cleanup.
-                endJob();
+        // Perform various end of job cleanup.
+        endJob();
 
-                // Disconnect from the ET server.
-                disconnect();
+        // Disconnect from the ET server.
+        //System.out.println("disconnecting from ET ...");
+        disconnect();
+        //System.out.println("done disconnecting");
 
-                // Stop the session timer.
-                stopSessionTimer();
-
-                logger.log(Level.INFO, "Session done.");
-            }
-        };
+        // Stop the session timer.
+        stopSessionTimer();
         
-        Thread thread = new Thread(runnable);
-        thread.start();
+        sessionThread = null;
+             
+        logger.log(Level.INFO, "Session done.");
+            //}
+        //};
+        
+        //Thread thread = new Thread(runnable);
+        //thread.start();
+            
     }       
+    
+    /**
+     * Thread to automatically trigger a disconnect when the event processing chain finishes.
+     */
+    class SessionThread extends Thread {
+        public void run() {
+            try {
+                eventProcessingThread.join();
+                actionListener.actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }        
+    }
 }

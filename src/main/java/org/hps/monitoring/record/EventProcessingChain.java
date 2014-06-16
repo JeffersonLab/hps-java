@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.freehep.record.loop.AbstractLoopListener;
+import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
@@ -48,7 +50,7 @@ import org.lcsim.util.loop.LCSimLoop;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EventProcessingChain {
+public class EventProcessingChain extends AbstractLoopListener {
       
     /**
      * Type of source for events.
@@ -99,6 +101,8 @@ public class EventProcessingChain {
         
     public void configure() {
         
+        compositeLoop.addLoopListener(this);
+        
         if (recordSource == null)
             throw new RuntimeException("No record source was set.");
         
@@ -126,7 +130,7 @@ public class EventProcessingChain {
         compositeLoop.addProcessingSteps(processingSteps);
         compositeLoop.registerRecordLoop(etLoop);
         compositeLoop.registerRecordLoop(evioLoop);
-        compositeLoop.registerRecordLoop(lcsimLoop);
+        compositeLoop.registerRecordLoop(lcsimLoop);        
     }
     
     void setSourceType(SourceType sourceType) {
@@ -239,10 +243,29 @@ public class EventProcessingChain {
         this.paused = false;
     }
     
+    public void suspend(LoopEvent loopEvent) {
+        System.out.println(this.getClass().getSimpleName() + ".suspend");
+        System.out.println("Error occurred ...");
+        if (loopEvent.getException() != null)
+            loopEvent.getException().printStackTrace();
+        this.isDone = true;
+    }
+    
+    // TODO: EventProcessingChain should be registered as an AbstractLoopListener on the composite loop.
+    // This way it can catch processing errors and set the done state.
     public void loop() {
         while (!isDone) {
+            System.out.println("not done...");
             if (!paused) {
+                //System.out.println("doing compositeLoop.execute ...");
                 compositeLoop.execute(Command.GO, false);
+                //System.out.println("done with compositeLoop.execute");
+                //System.out.println("Errors ...");
+                //if (compositeLoop.getProgress().getException() != null) {
+                //    System.out.println(compositeLoop.getProgress().getException().getMessage());                    
+                //} else {
+                //    System.out.println("none");
+                //}
             }
         }
     }
@@ -258,6 +281,7 @@ public class EventProcessingChain {
     }    
         
     public void next() {
+        // TODO: Add check here for correct loop state.
         compositeLoop.execute(Command.GO_N, 1L, true);
     }
             
@@ -282,6 +306,7 @@ public class EventProcessingChain {
          * Load the next <tt>EtEvent</tt>.
          */
         public void execute() throws IOException, NoSuchRecordException {
+            
             // Load the next EtEvent.
             etLoop.execute(NEXT);
             
@@ -290,7 +315,8 @@ public class EventProcessingChain {
             
             // Failed to read an EtEvent from the ET server.
             if (nextEtEvent == null)
-                throw new NoSuchRecordException("No current EtEvent is available.");
+                //throw new NoSuchRecordException("No current EtEvent is available.");
+                throw new IOException("No current EtEvent is available.");
             
             getCompositeRecord().setEtEvent(nextEtEvent);
         }
