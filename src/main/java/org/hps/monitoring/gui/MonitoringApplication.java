@@ -98,7 +98,7 @@ import org.lcsim.util.aida.AIDA;
 // TODO: Capture std err and out and redirect to a text panel within the application.
 // TODO: Report state of event processing at the end of the job in a new GUI component.
 // TODO: Move ET cleanup code to the record.etevent package.
-public class MonitoringApplication {
+public class MonitoringApplication extends JFrame {
 
     // Top-level Swing components.
     private JPanel mainPanel;
@@ -112,7 +112,6 @@ public class MonitoringApplication {
     private JobPanel jobPanel;
     private JMenuBar menuBar;
     private EventButtonsPanel buttonsPanel;
-    private JFrame frame;
 
     // References to menu items that will be enabled/disabled depending on application state.
     private JMenuItem connectItem;
@@ -187,7 +186,7 @@ public class MonitoringApplication {
     /**
      * Constructor for the monitoring application. 
      */
-    private MonitoringApplication() {
+    public MonitoringApplication() {
 
         // Create and configure the logger.
         setupLogger();
@@ -206,6 +205,8 @@ public class MonitoringApplication {
 
         // Setup AIDA.
         setupAida();
+        
+        configFrame();
 
         // Log that the application started successfully.
         log("Application initialized successfully.");
@@ -243,10 +244,10 @@ public class MonitoringApplication {
         leftPanel.setMinimumSize(new Dimension(leftPanelWidth, screenHeight - 30));
         leftPanel.setLayout(new GridBagLayout());
 
-        GridBagConstraints c = new GridBagConstraints();
-
+        GridBagConstraints c;
+        
         // Event processing buttons.
-        //c = new GridBagConstraints();
+        c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         c.anchor = GridBagConstraints.CENTER;
@@ -532,16 +533,16 @@ public class MonitoringApplication {
      * Create the monitoring application frame and run it on a separate thread.
      * @return Reference to the created application.
      */
-    public static final MonitoringApplication createMonitoringApplication() {
-        final MonitoringApplication app = new MonitoringApplication();
-        SwingUtilities.invokeLater(new Runnable() {
-
-            public void run() {
-                app.createApplicationFrame();
-            }
-        });
-        return app;
-    }
+    //public static final MonitoringApplication createMonitoringApplication() {
+    //    return new MonitoringApplication(); 
+        //final MonitoringApplication app = new 
+        //SwingUtilities.invokeLater(new Runnable() {
+        //    public void run() {
+        //        app.setVisible(true);
+        //    }
+        //});
+        //return app;
+    //}
 
     /**
      * Load connection settings from a file.
@@ -735,16 +736,16 @@ public class MonitoringApplication {
     /**
      * Setup the frame to run the application.
      */
-    private void createApplicationFrame() {
+    private void configFrame() {
         mainPanel.setOpaque(true);
-        frame = new JFrame(getApplicationTitle());
-        frame.setContentPane(mainPanel);
-        frame.setJMenuBar(menuBar);
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        // frame.setMinimumSize(new Dimension(600, 850));
-        frame.setResizable(true);
-        frame.pack();    
-        frame.setVisible(true);
+        setTitle(getApplicationTitle());
+        setContentPane(mainPanel);
+        setJMenuBar(menuBar);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        //setMinimumSize();
+        setPreferredSize(new Dimension(screenWidth, screenHeight));
+        setResizable(true);
+        pack();    
     }
 
     /**

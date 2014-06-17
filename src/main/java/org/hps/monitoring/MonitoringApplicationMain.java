@@ -43,7 +43,7 @@ public class MonitoringApplicationMain {
         }
 
         // Create the application class.
-        MonitoringApplication app = MonitoringApplication.createMonitoringApplication();
+        MonitoringApplication app = new MonitoringApplication();
 
         // Load the connection settings.
         if (cl.hasOption("c")) {
@@ -54,6 +54,8 @@ public class MonitoringApplicationMain {
         if (cl.hasOption("j")) {
             app.loadJobSettings(new File(cl.getOptionValue("j")));
         }
+        
+        app.setVisible(true);
     }
     
 }
