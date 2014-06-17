@@ -73,10 +73,11 @@ class ConnectionPanel extends FieldsPanel {
     }
 
     /**
-     * Get the connection parameters.
+     * Cache the connection parameters from the GUI into a new
+     * <tt>EtConnectionParameters</tt> object.
      * @return The connection parameters.
      */
-    EtConnectionParameters getConnectionParameters() {
+    void cache() {
         connectionParameters = new EtConnectionParameters();
         connectionParameters.setBufferName(etNameField.getText());
         connectionParameters.setHost(hostField.getText());
@@ -91,9 +92,20 @@ class ConnectionPanel extends FieldsPanel {
         connectionParameters.setWaitMode(getWaitMode());
         connectionParameters.setWaitTime(Integer.parseInt(waitTimeField.getText()));
         connectionParameters.setPreScale(Integer.parseInt(prescaleField.getText()));
+    }
+    
+    void revert() {
+        setConnectionParameters(connectionParameters);
+    }
+    
+    /**
+     * Get the current connection parameters.
+     * @return The current connection parameters.
+     */
+    EtConnectionParameters getConnectionParameters() {
         return connectionParameters;
     }
-
+     
     /**
      * Get the current wait mode from the GUI selection.
      * @return The wait mode.
@@ -130,6 +142,7 @@ class ConnectionPanel extends FieldsPanel {
      * @param cn The connection parameters.
      */
     private void setConnectionParameters(EtConnectionParameters connectionParameters) {
+        this.connectionParameters = connectionParameters;
         etNameField.setText(connectionParameters.getBufferName());
         hostField.setText(connectionParameters.getHost());
         portField.setText(Integer.toString(connectionParameters.getPort()));
@@ -143,7 +156,6 @@ class ConnectionPanel extends FieldsPanel {
         setWaitMode(connectionParameters.getWaitMode());
         waitTimeField.setText(Integer.toString(connectionParameters.getWaitTime()));
         prescaleField.setText(Integer.toString(connectionParameters.getPrescale()));
-        this.connectionParameters = connectionParameters;
     }
 
     /**
@@ -271,6 +283,6 @@ class ConnectionPanel extends FieldsPanel {
         } catch (IOException e) {
             showErrorDialog(e.getLocalizedMessage());
         }
-        this.connectionParameters = getConnectionParameters();
+        cache();
     }
 }
