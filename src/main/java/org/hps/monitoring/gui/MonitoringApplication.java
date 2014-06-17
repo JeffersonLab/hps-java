@@ -28,6 +28,8 @@ import static org.hps.monitoring.gui.MonitoringCommands.SET_STEERING_RESOURCE;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -47,18 +49,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.net.JarURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -102,7 +97,7 @@ import org.lcsim.util.aida.AIDA;
 // TODO: Log the messages from all Exceptions.
 // TODO: Capture std err and out and redirect to a text panel within the application.
 // TODO: Report state of event processing at the end of the job in a new GUI component.
-// TODO: Check if the complex logic used to disconnect/cleanup the ET system is necessary anymore.
+// TODO: Move ET cleanup code to the record.etevent package.
 public class MonitoringApplication {
 
     // Top-level Swing components.
@@ -173,17 +168,14 @@ public class MonitoringApplication {
     // Format for screenshots. Hard-coded to PNG.
     private static final String screenshotFormat = "png";
 
-    // Maximum time in millis to wait for the ET system to disconnect.
-    // TODO: Make this an option in the JobPanel.
-    private int maxCleanupTime = 5000;
-
     // Format of date field for log.
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
     private static final String LCSIM_FAIL_MESSAGE = "Failed to setup LCSim.";
 
-    private static final int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
-    private static final int screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
-
+    static GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    private static final int screenWidth = graphicsDevice.getDisplayMode().getWidth();
+    private static final int screenHeight = graphicsDevice.getDisplayMode().getHeight();
+    
     private static final int leftPanelWidth = (int) (screenWidth * 0.33);
     private static final int rightPanelWidth = (int) (screenWidth * 0.40);
 
@@ -363,8 +355,6 @@ public class MonitoringApplication {
         eventMenu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(eventMenu);
 
-        //addMenuItem("Reset Event Monitor", KeyEvent.VK_E, RESET_EVENTS, true, "Reset timer and counters in the event monitor tab.", eventMenu);
-
         /**
          * FIXME: Rest of these should be converted to use the addMenuItem() helper method...
          */
@@ -375,15 +365,6 @@ public class MonitoringApplication {
         eventRefreshItem.addActionListener(actionListener);
         eventRefreshItem.setToolTipText("Set the number of events between GUI updates.");
         eventMenu.add(eventRefreshItem);
-
-        /*
-        JMenuItem maxEventsItem = new JMenuItem("Set Max Events...");
-        maxEventsItem.setMnemonic(KeyEvent.VK_M);
-        maxEventsItem.setActionCommand(SET_MAX_EVENTS);
-        maxEventsItem.addActionListener(actionListener);
-        maxEventsItem.setToolTipText("Set the maximum number of events to process in one session.");
-        eventMenu.add(maxEventsItem);
-        */
 
         JMenu jobMenu = new JMenu("Job");
         jobMenu.setMnemonic(KeyEvent.VK_J);
@@ -598,10 +579,8 @@ public class MonitoringApplication {
         public void actionPerformed(ActionEvent e) {
             String cmd = e.getActionCommand();            
             if (CONNECT.equals(cmd)) {
-                //startSessionThread();
                 startSession();
             } else if (DISCONNECT.equals(cmd)) {
-                //startDisconnectThread();
                 stopSession();
             } else if (EDIT_EVENT_REFRESH.equals(cmd)) {
                 setEventRefresh();
@@ -839,27 +818,6 @@ public class MonitoringApplication {
     }
 
     /**
-     * Call the reset() method on Drivers which implement {@link Resettable}. They must implement
-     * the {@link Resettable} interface for this to work.
-     */
-    /*
-    private synchronized void resetDrivers() {
-        if (jobManager != null) {
-            for (Driver driver : jobManager.getDriverExecList()) {
-                if (driver instanceof Resettable) {
-                    try {
-                        ((Resettable) driver).reset();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        log(Level.INFO, "LCSim drivers were reset.");
-    }
-    */
-
-    /**
      * Redirect System.out and System.err to a file. This is primarily used to capture lengthy
      * debug output from event processing. Messages sent to the Logger are unaffected.
      */
@@ -951,34 +909,6 @@ public class MonitoringApplication {
     }
 
     /**
-     * Using a modal dialog, set the maximum number of events to process before an automatic
-     * disconnect.
-     */
-    /*
-    private void setMaxEvents() {
-        String inputValue = JOptionPane.showInputDialog("Max Events:", eventPanel.getMaxEvents());
-        try {
-            int newMaxEvents = Integer.parseInt(inputValue);
-            if (newMaxEvents < 0) {
-                showDialog("Max Events is set to unlimited.");
-                newMaxEvents = -1;
-            }
-            // Set max events in panel.
-            eventPanel.setMaxEvents(newMaxEvents);
-            // Set max events in event processor.
-            //if (eventProcessor != null) {
-            //    eventProcessor.setMaxEvents(newMaxEvents);
-            //}
-            log("Max events set to <" + newMaxEvents + ">.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            log(Level.WARNING, "Ignored invalid max events setting <" + inputValue + ">.");
-            showDialog("The value " + inputValue + " is not valid for Max Events.");
-        }
-    }
-    */
-
-    /**
      * Set the GUI state to disconnected, which will enable/disable applicable GUI components and
      * menu items.
      */
@@ -990,7 +920,6 @@ public class MonitoringApplication {
         resetConnectionItem.setEnabled(true);
         connectionLoadItem.setEnabled(true);
         savePlotsItem.setEnabled(false);
-        //resetDriversItem.setEnabled(false);
         logItem.setEnabled(true);
         terminalItem.setEnabled(true);
         steeringItem.setEnabled(true);
@@ -1107,20 +1036,10 @@ public class MonitoringApplication {
     }
 
     /**
-     * Get the current max events setting.
-     * @return The maximum number of events to process before disconnect.
-     */
-    /*
-    private int getMaxEvents() {
-        return eventPanel.getMaxEvents();
-    }
-    */
-
-    /**
      * Execute a monitoring session. This should be executed in a separate thread so as not to block the
      * GUI or other threads during a monitoring session.
      */
-    private void startSession() {
+    synchronized private void startSession() {
 
         log(Level.INFO, "Starting a new monitoring session.");
 
@@ -1149,7 +1068,7 @@ public class MonitoringApplication {
             startSessionTimer();
            
             log(Level.INFO, "Successfully started the monitoring session.");
-                                                      
+            
         } catch (Exception e) {
             e.printStackTrace();
             log(Level.SEVERE, e.getMessage());
@@ -1227,7 +1146,7 @@ public class MonitoringApplication {
      * Disconnect from the current ET session with a particular status.
      * @param status The connection status.
      */
-    synchronized private void disconnect(int status) {
+    private void disconnect(int status) {
 
         log("Disconnecting from the ET system.");
      
@@ -1252,6 +1171,7 @@ public class MonitoringApplication {
      * It is executed under a separate thread, because it could potentially block forever. 
      * So we need to be able to kill it after waiting for X amount of time.
      */
+    /*
     private class EtCleanupThread extends Thread {
 
         boolean succeeded;
@@ -1274,12 +1194,19 @@ public class MonitoringApplication {
             Thread.yield();
         }
     }
+    */
 
     /**
      * Cleanup the ET connection.
      */
     private void cleanupEtConnection() {
 
+        if (connection != null) {
+            connection.cleanup();
+            connection = null;
+        }
+        
+        /*
         if (connection != null) {
            
             // Execute the connection cleanup thread.
@@ -1297,7 +1224,7 @@ public class MonitoringApplication {
             if (cleanupThread.succeeded()) {
                 log(Level.FINE, "EtCleanupThread succeeded in disconnecting from ET system.");
             } else {
-                log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.getEtStation().getName() + "> is zombified!");
+                //log(Level.SEVERE, "EtCleanupThread failed to disconnect.  Your station <" + this.connection.getEtStation().getName() + "> is zombified!");
                 // Make the cleanup thread yield.
                 cleanupThread.stopCleanup();
                 // Stop the cleanup thread.
@@ -1309,6 +1236,7 @@ public class MonitoringApplication {
                 this.connection = null;
             }            
         }
+        */
     }
 
     /**
@@ -1490,6 +1418,7 @@ public class MonitoringApplication {
     private void nextEvent() {
         if (connected()) {
             log(Level.FINER, "Notifying event processor to get next events.");
+
             eventProcessing.next();
         } else {
             log(Level.WARNING, "Ignored next events command because app is disconnected.");
@@ -1614,75 +1543,82 @@ public class MonitoringApplication {
      * Stop the session by stopping the event processing thread, ending the job,
      * and disconnecting from the ET system.
      */
-    // FIXME: Needs to be synchronized?
     private synchronized void stopSession() {
         
-        //Runnable runnable = new Runnable() {
-            //public void run() {
+        logger.log(Level.FINE, "Stopping the session.");
 
-        logger.log(Level.INFO, "Stopping session.");
-
-        // Request event processing to stop.
-        // TODO: I think this check should be replaced with ... 
-        // eventProcessingThread.isAlive()
-        if (!eventProcessing.isDone()) {
-            
-            //System.out.println("interrupting session thread");
-            
-            // Interrupt the session thread because if processing is still happening,
-            // then we didn't get here through that thread.
-            sessionThread.interrupt();
-            
-            //System.out.println("finishing event processing");            
-
-            // Request processing to stop.
-            eventProcessing.finish();
-        }
-
-        // Wait for the event processing thread to finish.
-        try {
-            //logger.log(Level.FINER, "Waiting for event processing to finish before disconnecting.");
-            //System.out.println("Waiting for event processing to finish before disconnecting.");
-            eventProcessingThread.join();
-            //System.out.println("Event processing finished.");
-            //logger.log(Level.FINER, "Event processing finished.");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Reset event processing objects.
-        eventProcessing = null;
-        eventProcessingThread = null;
+        // This will kill the event processing thread and, if necessary,
+        // the session thread.
+        killEventProcessing();
 
         // Perform various end of job cleanup.
         endJob();
 
         // Disconnect from the ET server.
-        //System.out.println("disconnecting from ET ...");
         disconnect();
-        //System.out.println("done disconnecting");
 
         // Stop the session timer.
         stopSessionTimer();
-        
+                     
+        logger.log(Level.INFO, "Session was stopped.");
+    }
+
+    /**
+     * Stop the event processing thread and, if necessary, the session thread.
+     */
+    private void killEventProcessing() {
+
+        // If event processing is still alive, we got here via a disconnect request
+        // from the GUI button and not an automatic disconnect.
+        if (eventProcessingThread.isAlive()) {
+           
+            // Kill the session thread if it is active, because it is waiting for the 
+            // event processing to finish.
+            killSessionThread();
+
+            // Request the event processing to stop.
+            eventProcessing.finish();
+        }
+
+        // Wait for the event processing thread to finish.
+        try {
+            eventProcessingThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Unexpected interrupt while joining the EventProcessingThread.");
+        }
+
+        // Reset event processing objects.
+        eventProcessing = null;
+        eventProcessingThread = null;
+    }
+
+    /**
+     * Kill the current session watchdog thread.
+     */
+    private void killSessionThread() {
+        if (sessionThread.isAlive()) {
+            sessionThread.interrupt();
+            try {
+                sessionThread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Unexpected interrupt while joining SessionThread.");
+            }
+        }
         sessionThread = null;
-             
-        logger.log(Level.INFO, "Session done.");
-            //}
-        //};
-        
-        //Thread thread = new Thread(runnable);
-        //thread.start();
-            
     }       
     
     /**
-     * Thread to automatically trigger a disconnect when the event processing chain finishes.
+     * Thread to automatically trigger a disconnect when the event processing chain finishes
+     * or throws a fatal error.
      */
-    class SessionThread extends Thread {
+    private class SessionThread extends Thread {
         public void run() {
             try {
+                // When the event processing thread finishes, the session should be stopped and disconnect
+                // should occur.
                 eventProcessingThread.join();
+                
+                // Activate a disconnect using the ActionEvent which is used by the disconnect button.
                 actionListener.actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
             } catch (InterruptedException e) {
                 e.printStackTrace();
