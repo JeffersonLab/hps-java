@@ -31,4 +31,5 @@ final class MonitoringCommands {
     static final String SET_LOG_LEVEL = "setLogLevel";
     static final String SET_STEERING_FILE = "setSteeringFile";
     static final String SET_STEERING_RESOURCE = "setSteeringResource";
+    static final String SHOW_SETTINGS = "showSettings";
 }

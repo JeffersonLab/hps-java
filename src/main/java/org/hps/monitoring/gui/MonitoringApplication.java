@@ -20,6 +20,7 @@ import static org.hps.monitoring.gui.MonitoringCommands.SAVE_JOB_SETTINGS;
 import static org.hps.monitoring.gui.MonitoringCommands.SAVE_LOG_TABLE;
 import static org.hps.monitoring.gui.MonitoringCommands.SAVE_PLOTS;
 import static org.hps.monitoring.gui.MonitoringCommands.SCREENSHOT;
+import static org.hps.monitoring.gui.MonitoringCommands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.MonitoringCommands.SET_EVENT_BUILDER;
 import static org.hps.monitoring.gui.MonitoringCommands.SET_LOG_LEVEL;
 import static org.hps.monitoring.gui.MonitoringCommands.SET_STEERING_FILE;
@@ -98,7 +99,7 @@ import org.lcsim.util.aida.AIDA;
 // TODO: Capture std err and out and redirect to a text panel within the application.
 // TODO: Report state of event processing at the end of the job in a new GUI component.
 // TODO: Move ET cleanup code to the record.etevent package.
-public class MonitoringApplication extends JFrame {
+public class MonitoringApplication extends JFrame implements ActionListener {
 
     // Top-level Swing components.
     private JPanel mainPanel;
@@ -106,12 +107,13 @@ public class MonitoringApplication extends JFrame {
     private JPanel rightPanel;
     private JTabbedPane plotPane;
     private JTabbedPane tabs;
-    private ConnectionPanel connectionPanel;
     private ConnectionStatusPanel connectionStatusPanel;
     private EventPanel eventPanel;
-    private JobPanel jobPanel;
     private JMenuBar menuBar;
     private EventButtonsPanel buttonsPanel;
+    
+    // Modal dialog for editing job and connection settings.
+    private SettingsFrame settingsFrame;
 
     // References to menu items that will be enabled/disabled depending on application state.
     private JMenuItem connectItem;
@@ -148,14 +150,10 @@ public class MonitoringApplication extends JFrame {
     private TimerTask updateTimeTask;
     private long jobStartTime;
 
-    // ActionListener for GUI event dispatching.
-    private ActionListener actionListener;
-
     // Logging objects.
     private static Logger logger;
     private Handler logHandler;
     private DefaultTableModel logTableModel;
-    //static final String[] logTableColumns = { "Source", "Message", "Date", "Level" };
     static final String[] logTableColumns = { "Message", "Date", "Level" };
     private JTable logTable;
     private Level defaultLogMessageLevel = Level.INFO;
@@ -171,13 +169,14 @@ public class MonitoringApplication extends JFrame {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
     private static final String LCSIM_FAIL_MESSAGE = "Failed to setup LCSim.";
 
+    // Screen resolution.
     static GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     private static final int screenWidth = graphicsDevice.getDisplayMode().getWidth();
     private static final int screenHeight = graphicsDevice.getDisplayMode().getHeight();
     
+    // GUI size settings.
     private static final int leftPanelWidth = (int) (screenWidth * 0.33);
     private static final int rightPanelWidth = (int) (screenWidth * 0.40);
-
     private static final int connectionStatusPanelHeight = 50;
     private static final int connectionStatusPanelWidth = 400;
 
@@ -190,10 +189,7 @@ public class MonitoringApplication extends JFrame {
 
         // Create and configure the logger.
         setupLogger();
-
-        // Create the ActionEventListener for event dispatching.
-        actionListener = new MonitoringApplicationActionListener();
-
+        
         // Setup the application menus.
         createMenu();
 
@@ -205,9 +201,14 @@ public class MonitoringApplication extends JFrame {
 
         // Setup AIDA.
         setupAida();
-        
-        configFrame();
 
+        // Configure the application's frame.
+        configFrame();
+        
+        // Configuration of settings window.
+        settingsFrame = new SettingsFrame();
+        getJobPanel().addActionListener(this);
+        
         // Log that the application started successfully.
         log("Application initialized successfully.");
     }
@@ -253,7 +254,7 @@ public class MonitoringApplication extends JFrame {
         c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(10, 0, 0, 10);
         buttonsPanel = new EventButtonsPanel();
-        buttonsPanel.addActionListener(actionListener);
+        buttonsPanel.addActionListener(this);
         leftPanel.add(buttonsPanel, c);
 
         // Connection status panel.
@@ -268,21 +269,8 @@ public class MonitoringApplication extends JFrame {
         leftPanel.add(connectionStatusPanel, c);
 
         // Contents of the tabs panel.
-        connectionPanel = new ConnectionPanel();
         eventPanel = new EventPanel();
-        jobPanel = new JobPanel();
-        jobPanel.addActionListener(actionListener);
-        
-        // Create the container for the tabbed pane.
-        //JPanel tabsPanel = new JPanel();
-        //c = new GridBagConstraints();
-        //c.gridx = 0;
-        //c.gridy = 2;
-        //c.fill = GridBagConstraints.BOTH;
-        //c.weightx = c.weighty = 1.0;
-        //c.insets = new Insets(0, 0, 0, 10);
-        //leftPanel.add(tabsPanel, c);
-        
+                
         // Tab panels.
         c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
@@ -290,10 +278,7 @@ public class MonitoringApplication extends JFrame {
         c.gridx = 0;
         c.gridy = 2;
         tabs = new JTabbedPane();
-        tabs.addTab("Connection Settings", connectionPanel);
         tabs.addTab("Event Monitor", eventPanel);
-        tabs.addTab("Job Settings", jobPanel);
-        //tabsPanel.add(tabs, c);
         leftPanel.add(tabs, c);
                 
         // Layout attributes for the entire left panel.
@@ -341,6 +326,12 @@ public class MonitoringApplication extends JFrame {
 
         menuBar = new JMenuBar();
 
+        JMenu applicationMenu = new JMenu("Application");
+        applicationMenu.setMnemonic(KeyEvent.VK_A);
+        menuBar.add(applicationMenu);        
+        addMenuItem("Settings...", KeyEvent.VK_S, SHOW_SETTINGS, true, "Monitoring Application settings", applicationMenu);
+        addMenuItem("Exit", KeyEvent.VK_X, EXIT, true, "Exit from the application.", applicationMenu);
+        
         JMenu connectionMenu = new JMenu("Connection");
         connectionMenu.setMnemonic(KeyEvent.VK_C);
         menuBar.add(connectionMenu);
@@ -363,7 +354,7 @@ public class MonitoringApplication extends JFrame {
         JMenuItem eventRefreshItem = new JMenuItem("Set Event Refresh...");
         eventRefreshItem.setMnemonic(KeyEvent.VK_V);
         eventRefreshItem.setActionCommand(EDIT_EVENT_REFRESH);
-        eventRefreshItem.addActionListener(actionListener);
+        eventRefreshItem.addActionListener(this);
         eventRefreshItem.setToolTipText("Set the number of events between GUI updates.");
         eventMenu.add(eventRefreshItem);
 
@@ -374,42 +365,42 @@ public class MonitoringApplication extends JFrame {
         saveJobSettingsItem = new JMenuItem("Save Job Settings...");
         saveJobSettingsItem.setMnemonic(KeyEvent.VK_J);
         saveJobSettingsItem.setActionCommand(SAVE_JOB_SETTINGS);
-        saveJobSettingsItem.addActionListener(actionListener);
+        saveJobSettingsItem.addActionListener(this);
         saveJobSettingsItem.setToolTipText("Save Job Settings configuration to a properties file.");
         jobMenu.add(saveJobSettingsItem);
 
         loadJobSettingsItem = new JMenuItem("Load Job Settings...");
         loadJobSettingsItem.setMnemonic(KeyEvent.VK_L);
         loadJobSettingsItem.setActionCommand(LOAD_JOB_SETTINGS);
-        loadJobSettingsItem.addActionListener(actionListener);
+        loadJobSettingsItem.addActionListener(this);
         loadJobSettingsItem.setToolTipText("Load Job Settings from a properties file.");
         jobMenu.add(loadJobSettingsItem);
 
         resetJobSettingsItem = new JMenuItem("Reset Job Settings");
         resetJobSettingsItem.setMnemonic(KeyEvent.VK_R);
         resetJobSettingsItem.setActionCommand(RESET_JOB_SETTINGS);
-        resetJobSettingsItem.addActionListener(actionListener);
+        resetJobSettingsItem.addActionListener(this);
         resetJobSettingsItem.setToolTipText("Reset Job Settings to the defaults.");
         jobMenu.add(resetJobSettingsItem);
 
         steeringItem = new JMenuItem("Set Steering File...");
         steeringItem.setMnemonic(KeyEvent.VK_S);
         steeringItem.setActionCommand(SET_STEERING_FILE);
-        steeringItem.addActionListener(actionListener);
+        steeringItem.addActionListener(this);
         steeringItem.setToolTipText("Set the job's LCSim steering file.");
         jobMenu.add(steeringItem);
 
         aidaAutoSaveItem = new JMenuItem("AIDA Auto Save File...");
         aidaAutoSaveItem.setMnemonic(KeyEvent.VK_A);
         aidaAutoSaveItem.setActionCommand(AIDA_AUTO_SAVE);
-        aidaAutoSaveItem.addActionListener(actionListener);
+        aidaAutoSaveItem.addActionListener(this);
         aidaAutoSaveItem.setToolTipText("Select name of file to auto save AIDA plots at end of job.");
         jobMenu.add(aidaAutoSaveItem);
 
         savePlotsItem = new JMenuItem("Save Plots to AIDA File...");
         savePlotsItem.setMnemonic(KeyEvent.VK_P);
         savePlotsItem.setActionCommand(SAVE_PLOTS);
-        savePlotsItem.addActionListener(actionListener);
+        savePlotsItem.addActionListener(this);
         savePlotsItem.setEnabled(false);
         savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
         jobMenu.add(savePlotsItem);
@@ -417,7 +408,7 @@ public class MonitoringApplication extends JFrame {
         logItem = new JMenuItem("Redirect to File...");
         logItem.setMnemonic(KeyEvent.VK_F);
         logItem.setActionCommand(LOG_TO_FILE);
-        logItem.addActionListener(actionListener);
+        logItem.addActionListener(this);
         logItem.setEnabled(true);
         logItem.setToolTipText("Redirect job's standard out and err to a file.");
         jobMenu.add(logItem);
@@ -425,7 +416,7 @@ public class MonitoringApplication extends JFrame {
         terminalItem = new JMenuItem("Redirect to Terminal");
         terminalItem.setMnemonic(KeyEvent.VK_T);
         terminalItem.setActionCommand(LOG_TO_TERMINAL);
-        terminalItem.addActionListener(actionListener);
+        terminalItem.addActionListener(this);
         terminalItem.setEnabled(false);
         terminalItem.setToolTipText("Redirect job's standard out and err back to the terminal.");
         jobMenu.add(terminalItem);
@@ -433,7 +424,7 @@ public class MonitoringApplication extends JFrame {
         JMenuItem screenshotItem = new JMenuItem("Take a screenshot...");
         screenshotItem.setMnemonic(KeyEvent.VK_N);
         screenshotItem.setActionCommand(SCREENSHOT);
-        screenshotItem.addActionListener(actionListener);
+        screenshotItem.addActionListener(this);
         screenshotItem.setToolTipText("Save a full screenshot to a " + screenshotFormat + " file.");
         jobMenu.add(screenshotItem);
 
@@ -444,7 +435,7 @@ public class MonitoringApplication extends JFrame {
         JMenuItem saveLogItem = new JMenuItem("Save log to file...");
         saveLogItem.setMnemonic(KeyEvent.VK_S);
         saveLogItem.setActionCommand(SAVE_LOG_TABLE);
-        saveLogItem.addActionListener(actionListener);
+        saveLogItem.addActionListener(this);
         saveLogItem.setToolTipText("Save the log records to a tab delimited text file.");
         logMenu.add(saveLogItem);
 
@@ -467,7 +458,7 @@ public class MonitoringApplication extends JFrame {
         item.setActionCommand(cmd);
         item.setEnabled(enabled);
         item.setToolTipText(tooltip);
-        item.addActionListener(actionListener);
+        item.addActionListener(this);
         menu.add(item);
         return item;
     }
@@ -530,26 +521,11 @@ public class MonitoringApplication extends JFrame {
     }
 
     /**
-     * Create the monitoring application frame and run it on a separate thread.
-     * @return Reference to the created application.
-     */
-    //public static final MonitoringApplication createMonitoringApplication() {
-    //    return new MonitoringApplication(); 
-        //final MonitoringApplication app = new 
-        //SwingUtilities.invokeLater(new Runnable() {
-        //    public void run() {
-        //        app.setVisible(true);
-        //    }
-        //});
-        //return app;
-    //}
-
-    /**
      * Load connection settings from a file.
      * @param file The properties file.
      */
     public void loadConnectionSettings(File file) {
-        connectionPanel.loadPropertiesFile(file);
+        getConnectionPanel().loadPropertiesFile(file);
     }
 
     /**
@@ -558,10 +534,10 @@ public class MonitoringApplication extends JFrame {
      */
     public void loadJobSettings(File file) {
         try {
-            jobPanel.setJobSettings(new JobSettings(file));
+            getJobPanel().setJobSettings(new JobSettings(file));
             // Need to check here if System.out and err have been redirected.
-            if (jobPanel.logToFile()) {
-                redirectStdOutAndErrToFile(new File(jobPanel.getLogFileName()));
+            if (getJobPanel().logToFile()) {
+                redirectStdOutAndErrToFile(new File(getJobPanel().getLogFileName()));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -569,68 +545,71 @@ public class MonitoringApplication extends JFrame {
     }
 
     /**
-     * The ActionListener implementation for handling all GUI events.
+     * Action handler method for the app.
+     * 
+     * @param e
+     *            The event to handle.
      */
-    private class MonitoringApplicationActionListener implements ActionListener {
-
-        /**
-         * Action handler method for the app.
-         * @param e The event to handle.
-         */
-        public void actionPerformed(ActionEvent e) {
-            String cmd = e.getActionCommand();            
-            if (CONNECT.equals(cmd)) {
-                startSession();
-            } else if (DISCONNECT.equals(cmd)) {
-                stopSession();
-            } else if (EDIT_EVENT_REFRESH.equals(cmd)) {
-                setEventRefresh();
-            } else if (SAVE_PLOTS.equals(cmd)) {
-                savePlots();
-            } else if (LOG_TO_FILE.equals(cmd)) {
-                logToFile();
-            } else if (LOG_TO_TERMINAL.equals(cmd)) {
-                logToTerminal();
-            } else if (SCREENSHOT.equals(cmd)) {
-                chooseScreenshot();
-            } else if (EXIT.equals(cmd)) {
-                exit();
-            } else if (SAVE_CONNECTION.equals(cmd)) {
-                connectionPanel.save();
-            } else if (LOAD_CONNECTION.equals(cmd)) {
-                connectionPanel.load();
-            } else if (RESET_CONNECTION_SETTINGS.equals(cmd)) {
-                connectionPanel.reset();
-            } /*else if (SET_MAX_EVENTS.equals(cmd)) {
-                setMaxEvents();
-            }*/ else if (SAVE_LOG_TABLE.equals(cmd)) {
-                saveLogToFile();
-            } else if (CLEAR_LOG_TABLE.equals(cmd)) {
-                clearLog();
-            } else if (SET_EVENT_BUILDER.equals(cmd)) {
-                jobPanel.editEventBuilder();
-            } else if (PAUSE.equals(cmd)) {
-                pauseEventProcessing();
-            } else if (NEXT.equals(cmd)) {
-                nextEvent();
-            } else if (RESUME.equals(cmd)) {
-                resumeEventProcessing();
-            } else if (SET_LOG_LEVEL.equals(cmd)) {
-                setLogLevel();
-            } else if (AIDA_AUTO_SAVE.equals(cmd)) {
-                jobPanel.chooseAidaAutoSaveFile();
-            } else if (SAVE_JOB_SETTINGS.equals(cmd)) {
-                saveJobSettings();
-            } else if (LOAD_JOB_SETTINGS.equals(cmd)) {
-                loadJobSettings();
-            } else if (RESET_JOB_SETTINGS.equals(cmd)) {
-                resetJobSettings();
-            } else if (SET_STEERING_RESOURCE.equals(cmd)) {
-                steeringResourceSelected();
-            } else if (SET_STEERING_FILE.equals(cmd)) {
-                selectSteeringFile();
-            }
+    public void actionPerformed(ActionEvent e) {
+        String cmd = e.getActionCommand();
+        if (CONNECT.equals(cmd)) {
+            startSession();
+        } else if (DISCONNECT.equals(cmd)) {
+            stopSession();
+        } else if (EDIT_EVENT_REFRESH.equals(cmd)) {
+            setEventRefresh();
+        } else if (SAVE_PLOTS.equals(cmd)) {
+            savePlots();
+        } else if (LOG_TO_FILE.equals(cmd)) {
+            logToFile();
+        } else if (LOG_TO_TERMINAL.equals(cmd)) {
+            logToTerminal();
+        } else if (SCREENSHOT.equals(cmd)) {
+            chooseScreenshot();
+        } else if (EXIT.equals(cmd)) {
+            exit();
+        } else if (SAVE_CONNECTION.equals(cmd)) {
+            getConnectionPanel().save();
+        } else if (LOAD_CONNECTION.equals(cmd)) {
+            getConnectionPanel().load();
+        } else if (RESET_CONNECTION_SETTINGS.equals(cmd)) {
+            getConnectionPanel().reset();
+        } else if (SAVE_LOG_TABLE.equals(cmd)) {
+            saveLogToFile();
+        } else if (CLEAR_LOG_TABLE.equals(cmd)) {
+            clearLog();
+        } else if (SET_EVENT_BUILDER.equals(cmd)) {
+            getJobPanel().editEventBuilder();
+        } else if (PAUSE.equals(cmd)) {
+            pauseEventProcessing();
+        } else if (NEXT.equals(cmd)) {
+            nextEvent();
+        } else if (RESUME.equals(cmd)) {
+            resumeEventProcessing();
+        } else if (SET_LOG_LEVEL.equals(cmd)) {
+            setLogLevel();
+        } else if (AIDA_AUTO_SAVE.equals(cmd)) {
+            getJobPanel().chooseAidaAutoSaveFile();
+        } else if (SAVE_JOB_SETTINGS.equals(cmd)) {
+            saveJobSettings();
+        } else if (LOAD_JOB_SETTINGS.equals(cmd)) {
+            loadJobSettings();
+        } else if (RESET_JOB_SETTINGS.equals(cmd)) {
+            resetJobSettings();
+        } else if (SET_STEERING_RESOURCE.equals(cmd)) {
+            steeringResourceSelected();
+        } else if (SET_STEERING_FILE.equals(cmd)) {
+            selectSteeringFile();
+        } else if (SHOW_SETTINGS.equals(cmd)) {
+            showSettingsWindow();
         }
+    }
+    
+    /**
+     * Show the settings window.
+     */
+    private void showSettingsWindow() {
+        settingsFrame.setVisible(true);
     }
 
     /**
@@ -638,7 +617,7 @@ public class MonitoringApplication extends JFrame {
      * are changed to use a resource type.
      */
     private void steeringResourceSelected() {
-        jobPanel.setSteeringType(JobPanel.RESOURCE);
+        getJobPanel().setSteeringType(getJobPanel().RESOURCE);
     }
 
     /**
@@ -651,7 +630,7 @@ public class MonitoringApplication extends JFrame {
         int r = fc.showSaveDialog(leftPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            JobSettings settings = jobPanel.getJobSettings();
+            JobSettings settings = getJobPanel().getJobSettings();
             try {
                 settings.save(f);
                 log(Level.INFO, "Saved Job Settings to properties file <" + f.getPath() + ">.");
@@ -674,7 +653,7 @@ public class MonitoringApplication extends JFrame {
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
             try {
-                jobPanel.setJobSettings(new JobSettings(f));
+                getJobPanel().setJobSettings(new JobSettings(f));
                 log(Level.INFO, "Loaded Job Settings from properties file <" + f.getPath() + ">.");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -688,7 +667,7 @@ public class MonitoringApplication extends JFrame {
      * Reset the job settings to the defaults.
      */
     private void resetJobSettings() {
-        jobPanel.resetJobSettings();
+        getJobPanel().resetJobSettings();
         // Redirect System.out and err back to the terminal.
         logToTerminal();
     }
@@ -697,13 +676,13 @@ public class MonitoringApplication extends JFrame {
      * Set a new log level for the application and also forward to the event processor.
      */
     private void setLogLevel() {
-        Level newLevel = jobPanel.getLogLevel();
+        Level newLevel = getJobPanel().getLogLevel();
         logger.setLevel(newLevel);
         //if (eventProcessor != null) {
         //    eventProcessor.setLogLevel(newLevel);
         //}
 
-        log(Level.INFO, "Log Level was changed to <" + jobPanel.getLogLevel().toString() + ">.");
+        log(Level.INFO, "Log Level was changed to <" + getJobPanel().getLogLevel().toString() + ">.");
     }
 
     /**
@@ -737,12 +716,12 @@ public class MonitoringApplication extends JFrame {
      * Setup the frame to run the application.
      */
     private void configFrame() {
+        
         mainPanel.setOpaque(true);
         setTitle(getApplicationTitle());
         setContentPane(mainPanel);
         setJMenuBar(menuBar);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        //setMinimumSize();
         setPreferredSize(new Dimension(screenWidth, screenHeight));
         setResizable(true);
         pack();    
@@ -775,8 +754,8 @@ public class MonitoringApplication extends JFrame {
             File fileName = fc.getSelectedFile();
             try {
                 (new JobControlManager()).setup(fileName);
-                jobPanel.setSteeringFile(fileName.getPath());
-                jobPanel.setSteeringType(JobPanel.FILE);
+                getJobPanel().setSteeringFile(fileName.getPath());
+                getJobPanel().setSteeringType(getJobPanel().FILE);
                 log("Steering file set to <" + fileName.getPath() + ">.");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -841,8 +820,8 @@ public class MonitoringApplication extends JFrame {
 
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
-                            jobPanel.setLogToFile(true);
-                            jobPanel.setLogFile(logFile.getPath());
+                            getJobPanel().setLogToFile(true);
+                            getJobPanel().setLogFile(logFile.getPath());
 
                             terminalItem.setEnabled(true);
                             logItem.setEnabled(false);
@@ -881,8 +860,8 @@ public class MonitoringApplication extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
 
             public void run() {
-                jobPanel.setLogFile("");
-                jobPanel.setLogToFile(false);
+                getJobPanel().setLogFile("");
+                getJobPanel().setLogToFile(false);
                 terminalItem.setEnabled(false);
                 logItem.setEnabled(true);
             }
@@ -925,11 +904,11 @@ public class MonitoringApplication extends JFrame {
         terminalItem.setEnabled(true);
         steeringItem.setEnabled(true);
 
-        // Re-enable the ConnectionPanel.
-        connectionPanel.enableConnectionPanel(true);
+        // Re-enable the ConnectionPanel.   
+        getConnectionPanel().enableConnectionPanel(true);
 
-        // Re-enable the JobPanel.
-        jobPanel.enableJobPanel(true);
+        // Re-enable the getJobPanel().
+        getJobPanel().enableJobPanel(true);
 
         // Set relevant event panel buttons to disabled.
         buttonsPanel.enablePauseButton(false);
@@ -946,10 +925,10 @@ public class MonitoringApplication extends JFrame {
     private void setConnectedGuiState() {
 
         // Disable connection panel.
-        connectionPanel.enableConnectionPanel(false);
+        getConnectionPanel().enableConnectionPanel(false);
 
-        // Disable JobPanel.
-        jobPanel.enableJobPanel(false);
+        // Disable getJobPanel().
+        getJobPanel().enableJobPanel(false);
 
         // Enable or disable appropriate menu items.
         connectItem.setEnabled(false);
@@ -964,7 +943,7 @@ public class MonitoringApplication extends JFrame {
 
         // Enable relevant event panel buttons.
         buttonsPanel.enablePauseButton(true);
-        buttonsPanel.setPauseModeState(jobPanel.pauseMode());
+        buttonsPanel.setPauseModeState(getJobPanel().pauseMode());
 
         // Toggle connection button to proper settings.
         buttonsPanel.toggleConnectButton();
@@ -1025,7 +1004,7 @@ public class MonitoringApplication extends JFrame {
      * @return The class name of the event builder.
      */
     private String getEventBuilderClassName() {
-        return jobPanel.getEventBuilderClassName();
+        return getJobPanel().getEventBuilderClassName();
     }
 
     /**
@@ -1033,7 +1012,7 @@ public class MonitoringApplication extends JFrame {
      * @return The type of the steering file.
      */
     private int getSteeringType() {
-        return jobPanel.getSteeringType();
+        return getJobPanel().getSteeringType();
     }
 
     /**
@@ -1104,7 +1083,7 @@ public class MonitoringApplication extends JFrame {
      * @return The steering parameter.
      */
     private String getSteering() {
-        return jobPanel.getSteering();
+        return getJobPanel().getSteering();
     }
 
     /**
@@ -1112,7 +1091,7 @@ public class MonitoringApplication extends JFrame {
      * @return The name of the detector.
      */
     private String getDetectorName() {
-        return jobPanel.getDetectorName();
+        return getJobPanel().getDetectorName();
     }
 
     /**
@@ -1120,7 +1099,15 @@ public class MonitoringApplication extends JFrame {
      * @return The connection parameters.
      */
     private EtConnectionParameters getConnectionParameters() {
-        return connectionPanel.getConnectionParameters();
+        return getConnectionPanel().getConnectionParameters();
+    }
+    
+    private ConnectionPanel getConnectionPanel() {
+        return settingsFrame.getSettingsPanel().getConnectionPanel();
+    }
+    
+    private JobPanel getJobPanel() {
+        return settingsFrame.getSettingsPanel().getJobPanel();
     }
 
     /**
@@ -1128,7 +1115,7 @@ public class MonitoringApplication extends JFrame {
      * @return True if warning will occur before disconnect; false if no.
      */
     private boolean warnOnDisconnect() {
-        return jobPanel.warnOnDisconnect();
+        return getJobPanel().warnOnDisconnect();
     }
 
     /**
@@ -1136,7 +1123,7 @@ public class MonitoringApplication extends JFrame {
      * @return True if disconnect on event processing error; false to continue.
      */
     private boolean disconnectOnError() {
-        return jobPanel.disconnectOnError();
+        return getJobPanel().disconnectOnError();
     }
 
     private void disconnect() {
@@ -1249,11 +1236,11 @@ public class MonitoringApplication extends JFrame {
 
         // Get steering resource or file as a String parameter.
         String steering = getSteering();
-        int steeringType = jobPanel.getSteeringType();
-        log(Level.CONFIG, "LCSim steering <" + steering + "> of type <" + (steeringType == JobPanel.RESOURCE ? "RESOURCE" : "FILE") + ">.");
+        int steeringType = getJobPanel().getSteeringType();
+        log(Level.CONFIG, "LCSim steering <" + steering + "> of type <" + (steeringType == getJobPanel().RESOURCE ? "RESOURCE" : "FILE") + ">.");
 
         // Check if the LCSim steering file looks valid.
-        if (jobPanel.checkSteering() == false) {
+        if (getJobPanel().checkSteering() == false) {
             log(Level.SEVERE, "Steering file <" + steering + "> is not valid.");
             throw new RuntimeException("Invalid LCSim steering file < " + steering + ">.");
         }
@@ -1262,12 +1249,12 @@ public class MonitoringApplication extends JFrame {
             // Create job manager and configure.
             jobManager = new JobControlManager();
             jobManager.setPerformDryRun(true);
-            if (steeringType == JobPanel.RESOURCE) {
+            if (steeringType == getJobPanel().RESOURCE) {
                 log(Level.CONFIG, "Setting up steering resource <" + steering + ">.");
                 InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
                 jobManager.setup(is);
                 is.close();
-            } else if (getSteeringType() == JobPanel.FILE) {
+            } else if (getSteeringType() == getJobPanel().FILE) {
                 log(Level.CONFIG, "Setting up steering file <" + steering + ">.");
                 jobManager.setup(new File(steering));
             }
@@ -1440,7 +1427,7 @@ public class MonitoringApplication extends JFrame {
             buttonsPanel.setPauseModeState(false);
 
             // Toggle job panel setting.
-            jobPanel.enablePauseMode(false);
+            getJobPanel().enablePauseMode(false);
 
             log(Level.FINEST, "Disabled pause mode and will now process in real-time.");
         }
@@ -1456,7 +1443,7 @@ public class MonitoringApplication extends JFrame {
             
             // Set GUI state.
             buttonsPanel.setPauseModeState(true);
-            jobPanel.enablePauseMode(false);
+            getJobPanel().enablePauseMode(false);
             
             log(Level.FINER, "Enabled pause mode.");
         }
@@ -1529,10 +1516,10 @@ public class MonitoringApplication extends JFrame {
     private void endJob() {
         
         // Save final AIDA file if option is selected.
-        if (jobPanel.isAidaAutoSaveEnabled()) {
-            log(Level.INFO, "Auto saving AIDA file <" + jobPanel.getAidaAutoSaveFileName() + ">.");
+        if (getJobPanel().isAidaAutoSaveEnabled()) {
+            log(Level.INFO, "Auto saving AIDA file <" + getJobPanel().getAidaAutoSaveFileName() + ">.");
             try {
-                AIDA.defaultInstance().saveAs(jobPanel.getAidaAutoSaveFileName());
+                AIDA.defaultInstance().saveAs(getJobPanel().getAidaAutoSaveFileName());
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error saving AIDA file.");
                 e.printStackTrace();
@@ -1620,7 +1607,8 @@ public class MonitoringApplication extends JFrame {
                 eventProcessingThread.join();
                 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
-                actionListener.actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
+                actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
+         
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -51,6 +51,8 @@ class JobPanel extends FieldsPanel {
     final static int RESOURCE = 0;
     final static int FILE = 1;
     
+    JobSettings settings;
+    
     /**
      * The available LogLevel settings.
      */
@@ -503,7 +505,14 @@ class JobPanel extends FieldsPanel {
      * @return The JobSettings from the JobPanel.
      */
     JobSettings getJobSettings() {
-        JobSettings settings = new JobSettings();
+        return settings;
+    }
+    
+    /**
+     * Cache the settings from the GUI into the <tt>JobSettings</tt> object.
+     */
+    void cache() {
+        settings = new JobSettings();
         settings.pauseMode = pauseMode();
         settings.disconnectOnError = disconnectOnError();
         settings.warnBeforeDisconnect = warnOnDisconnect();
@@ -517,7 +526,13 @@ class JobPanel extends FieldsPanel {
         settings.logFileName = getLogFileName();
         settings.autoSaveAida = isAidaAutoSaveEnabled();
         settings.autoSaveAidaFileName = getAidaAutoSaveFileName();
-        return settings;
+    }
+    
+    /**
+     * Revert job settings in GUI based on current <tt>JobSettings</tt> object.
+     */
+    void revert() {
+        setJobSettings(settings);
     }
                
     /**
@@ -525,6 +540,7 @@ class JobPanel extends FieldsPanel {
      * @param settings The JobSettings to load.
      */
     void setJobSettings(JobSettings settings) {
+        this.settings = settings;
         enablePauseMode(settings.pauseMode);
         setDisconnectOnError(settings.disconnectOnError);
         setWarnBeforeDisconnect(settings.warnBeforeDisconnect);
