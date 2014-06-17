@@ -20,6 +20,7 @@ public class EventProcessingThread extends Thread {
     @Override
     public void run() {
         processing.loop();
+
         /*
         while (!processing.isDone()) {
             try {

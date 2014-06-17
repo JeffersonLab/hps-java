@@ -79,19 +79,34 @@ public class EtConnection {
      * Cleanup the ET connection.
      */
     public void cleanup() {
-        boolean debug = false;
+        boolean debug = true;
         try {
-            if (debug)
-                System.out.println("ET cleanup - sys.detach ...");
+            if (!sys.alive()) {
+                throw new RuntimeException("EtSystem is not alive!");
+            }               
+            if (debug) {
+                System.out.println("EtConnection cleanup ...");
+                System.out.println("sys.detach ...");
+            }
+            //if (!att.isUsable()) {
+            //    throw new RuntimeException("EtAttachment is not usable!");
+            //}
+            // FIXME: This can hang forever when in getEvents() call!!!
             sys.detach(att);
-            if (debug)
-                System.out.println("ET cleanup - sys.removeStation ...");
+            if (debug) {
+                System.out.println("sys.detach okay");
+                System.out.println("sys.removeStation ...");
+            }
             sys.removeStation(stat);
-            if (debug)
-                System.out.println("ET cleanup - sys.close ...");
+            if (debug) {
+                System.out.println("sys.removeStation okay");
+                System.out.println("sys.close ...");
+            }
             sys.close();
-            if (debug)
-                System.out.println("ET cleanup - successful");
+            if (debug) {
+                System.out.println("sys.close okay");
+                System.out.println("EtConnection cleanup successful!");
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -146,7 +161,7 @@ public class EtConnection {
     /**
      * Read EtEvent objects from the ET ring.  
      * Preserve all specific Exception types in throws clause so caller
-     * can implement their own specific error and state handling.
+     * can implement their own error and state handling.
      * @return
      * @throws IOException
      * @throws EtException

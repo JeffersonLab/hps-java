@@ -45,11 +45,12 @@ import org.lcsim.util.loop.LCSimLoop;
  * The processing chain can be configured to execute the ET, EVIO event building, 
  * or LCIO eventing building stages.  The source can be set to an ET ring,
  * EVIO file source, or LCIO file source.  Any number of event processors
- * can be registered for processing the different record types, in order
- * to plot, update a GUI component, or analyze the events.
+ * can be registered with the different loops for processing the different 
+ * record types, in order to plot, update a GUI component, or analyze the events.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// FIXME: Make sure that end run EVIO events cause the processing to end.
 public class EventProcessingChain extends AbstractLoopListener {
       
     /**
@@ -244,39 +245,43 @@ public class EventProcessingChain extends AbstractLoopListener {
     }
     
     public void suspend(LoopEvent loopEvent) {
-        System.out.println(this.getClass().getSimpleName() + ".suspend");
-        System.out.println("Error occurred ...");
-        if (loopEvent.getException() != null)
+        if (loopEvent.getException() != null) {
             loopEvent.getException().printStackTrace();
-        this.isDone = true;
+            lastException = (Exception) loopEvent.getException();
+        }
     }
     
-    // TODO: EventProcessingChain should be registered as an AbstractLoopListener on the composite loop.
-    // This way it can catch processing errors and set the done state.
     public void loop() {
         while (!isDone) {
-            System.out.println("not done...");
             if (!paused) {
-                //System.out.println("doing compositeLoop.execute ...");
-                compositeLoop.execute(Command.GO, false);
-                //System.out.println("done with compositeLoop.execute");
-                //System.out.println("Errors ...");
-                //if (compositeLoop.getProgress().getException() != null) {
-                //    System.out.println(compositeLoop.getProgress().getException().getMessage());                    
-                //} else {
-                //    System.out.println("none");
-                //}
+                // TODO: Add check here for correct loop state.
+                compositeLoop.execute(Command.GO, true);
+                
+                // When an exception occurs, which can sometimes just be control flow,
+                // the event processing should stop.
+                if (lastException != null) {
+                    lastException.printStackTrace();
+                    if (!isDone)
+                        // Call finish manually here as the loop was suspended.
+                        finish(); 
+                } 
             }
         }
     }
     
     public void pause() {
+        // TODO: Add check here for correct loop state.
         compositeLoop.execute(Command.PAUSE);
         paused = true;
     }
         
     public void finish() {
-        compositeLoop.execute(Command.STOP);
+        // TODO: Add check here for correct loop state.
+        try {
+            compositeLoop.execute(Command.STOP);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         isDone = true;
     }    
         
@@ -307,10 +312,11 @@ public class EventProcessingChain extends AbstractLoopListener {
          */
         public void execute() throws IOException, NoSuchRecordException {
             
-            // Load the next EtEvent.
+            // Load the next EtEvent, which calls getEvents() on the ET connection
+            // and feeds records to any loop listeners like status monitors.
             etLoop.execute(NEXT);
             
-            // Get an EtEvent from the loop.
+            // Get the current EtEvent from the loop, which should have been cached.
             EtEvent nextEtEvent = (EtEvent) etLoop.getRecordSource().getCurrentRecord();
             
             // Failed to read an EtEvent from the ET server.
@@ -318,6 +324,7 @@ public class EventProcessingChain extends AbstractLoopListener {
                 //throw new NoSuchRecordException("No current EtEvent is available.");
                 throw new IOException("No current EtEvent is available.");
             
+            // Update the CompositeRecord with reference to the current EtEvent.
             getCompositeRecord().setEtEvent(nextEtEvent);
         }
     }
@@ -334,6 +341,7 @@ public class EventProcessingChain extends AbstractLoopListener {
          */
         public void execute() throws IOException, NoSuchRecordException {
             
+            // Handle case of reading from ET system.
             if (sourceType == SourceType.ET_EVENT) {
                 EvioEvent evioEvent = null;
                 try {
@@ -362,6 +370,7 @@ public class EventProcessingChain extends AbstractLoopListener {
             // Encountered an end of run record.
             if (EventConstants.isEndEvent(nextEvioEvent))
                 // If stop on end run is enabled, then trigger an exception to end processing.
+                // FIXME: Does this suspend/stop the event loop properly???
                 if (stopOnEndRun)
                     throw new EndRunException("EVIO end event received, and stop on end run is enabled.");
         }
@@ -429,7 +438,7 @@ public class EventProcessingChain extends AbstractLoopListener {
                     // Add LCIO event to the queue.
                     lcioQueue.addRecord(lcioEvent);
                 } else {
-                    // The LCIO processing ignores non-physics events.
+                    // The LCIO processing ignores non-physics events coming from EVIO.
                     return;
                 }
             }
@@ -440,15 +449,18 @@ public class EventProcessingChain extends AbstractLoopListener {
                     throw new NoSuchRecordException("No next LCIO event.");
             }
             
-            // Process the next LCIO event.
+            // Load the next LCIO event.
             lcsimLoop.execute(NEXT);
                                    
-            // The last call to the loop did not create a current record for some reason.
+            // The last call to the loop did not create a current record.
             if (lcsimLoop.getRecordSource().getCurrentRecord() == null) {
                 throw new NoSuchRecordException("No current LCIO event.");
             }
             
+            // Get the current LCIO event.
             EventHeader lcioEvent = (EventHeader) lcsimLoop.getRecordSource().getCurrentRecord();
+            
+            // Update the CompositeRecord with referece to the LCIO event.
             getCompositeRecord().setLcioEvent(lcioEvent);
         }
     }

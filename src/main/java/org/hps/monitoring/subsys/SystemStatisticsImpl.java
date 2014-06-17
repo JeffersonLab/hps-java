@@ -149,7 +149,8 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public void stop() {        
+    public void stop() { 
+        System.out.println("SystemStatistics.stop");
         // Kill the Timer.
         if (timer != null)
             timer.cancel();
