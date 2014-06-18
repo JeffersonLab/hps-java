@@ -16,7 +16,6 @@ final class JobSettings {
     // Default job settings.
     boolean pauseMode = false;
     boolean disconnectOnError = false;
-    boolean warnBeforeDisconnect = true;
     Level logLevel = Level.ALL;
     int steeringType = 0; // resource = 0; file = 1
     String steeringResource = "org/hps/steering/monitoring/TestRunMonitoring.lcsim";
@@ -41,7 +40,6 @@ final class JobSettings {
         Properties prop = new Properties();
         prop.setProperty("pauseMode", Boolean.toString(pauseMode));
         prop.setProperty("disconnectOnError", Boolean.toString(disconnectOnError));
-        prop.setProperty("warnBeforeDisconnect", Boolean.toString(warnBeforeDisconnect));
         prop.setProperty("logLevel", logLevel.toString());
         prop.setProperty("steeringType", Integer.toString(steeringType));
         prop.setProperty("steeringFile", steeringFile);
@@ -62,7 +60,6 @@ final class JobSettings {
         prop.load(new FileInputStream(file));
         pauseMode = Boolean.parseBoolean(prop.getProperty("pauseMode"));
         disconnectOnError = Boolean.parseBoolean(prop.getProperty("disconnectOnError"));
-        warnBeforeDisconnect = Boolean.parseBoolean(prop.getProperty("warnBeforeDisconnect"));
         logLevel = Level.parse(prop.getProperty("logLevel"));
         steeringType = Integer.parseInt(prop.getProperty("steeringType"));
         steeringFile = prop.getProperty("steeringFile");

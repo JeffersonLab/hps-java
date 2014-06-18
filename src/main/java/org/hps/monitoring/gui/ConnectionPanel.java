@@ -179,18 +179,6 @@ class ConnectionPanel extends FieldsPanel {
     }
 
     /**
-     * Save connection parameters to selected output file.
-     */
-    void save() {
-        JFileChooser fc = new JFileChooser();
-        int r = fc.showSaveDialog(ConnectionPanel.this);
-        if (r == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            writePropertiesFile(file);
-        }
-    }
-
-    /**
      * Load connection parameters from a selected file.
      */
     void load() {
@@ -213,7 +201,7 @@ class ConnectionPanel extends FieldsPanel {
      * Write connection parameters to a file.
      * @param file The output properties file.
      */
-    private void writePropertiesFile(File file) {
+    void writePropertiesFile(File file) {
         Properties prop = new Properties();
         prop.setProperty("etName", etNameField.getText());
         prop.setProperty("host", hostField.getText());

@@ -30,7 +30,6 @@ import javax.swing.SwingUtilities;
 class JobPanel extends FieldsPanel {
 
     private JTextField detectorNameField;
-    private JCheckBox disconnectWarningCheckBox;    
     private JCheckBox disconnectOnErrorCheckBox;
     private JTextField eventBuilderField;
     private JComboBox<?> steeringTypeComboBox;
@@ -77,7 +76,6 @@ class JobPanel extends FieldsPanel {
 
         pauseModeCheckBox = addCheckBox("Pause mode", false, true);
         disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
-        disconnectWarningCheckBox = addCheckBox("Warn before disconnect", true, true);
         logLevelComboBox = addComboBox("Log Level", this.logLevels);
         logLevelComboBox.setActionCommand(MonitoringCommands.SET_LOG_LEVEL);
         steeringTypeComboBox = addComboBox("Steering Type", steeringTypes);  
@@ -335,15 +333,7 @@ class JobPanel extends FieldsPanel {
     boolean disconnectOnError() {
         return disconnectOnErrorCheckBox.isSelected();
     }
-    
-    /**
-     * Get the warn on disconnect setting.
-     * @return The warn on disconnect setting.
-     */
-    boolean warnOnDisconnect() {
-        return disconnectWarningCheckBox.isSelected();
-    }
-    
+        
     /**
      * Get the log to file setting.
      * @return The log to file setting.
@@ -387,19 +377,7 @@ class JobPanel extends FieldsPanel {
             }
         });        
     }
-    
-    /**
-     * Set whether to warn before a disconnect occurs.
-     * @param b The warn before disconnect setting.
-     */
-    private void setWarnBeforeDisconnect(final boolean b) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                disconnectWarningCheckBox.setSelected(b);
-            }
-        });            
-    }
-    
+        
     /**
      * Set the steering type.
      * @param t The steering type.
@@ -515,7 +493,6 @@ class JobPanel extends FieldsPanel {
         settings = new JobSettings();
         settings.pauseMode = pauseMode();
         settings.disconnectOnError = disconnectOnError();
-        settings.warnBeforeDisconnect = warnOnDisconnect();
         settings.logLevel = getLogLevel();
         settings.steeringType = getSteeringType();
         settings.steeringFile = getSteeringFile();
@@ -543,7 +520,6 @@ class JobPanel extends FieldsPanel {
         this.settings = settings;
         enablePauseMode(settings.pauseMode);
         setDisconnectOnError(settings.disconnectOnError);
-        setWarnBeforeDisconnect(settings.warnBeforeDisconnect);
         setLogLevel(settings.logLevel);
         setSteeringType(settings.steeringType);
         setSteeringFile(settings.steeringFile);
