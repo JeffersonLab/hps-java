@@ -19,14 +19,7 @@ public class CompositeRecordSource extends AbstractRecordSource {
         
         // Execute sub-processing that will alter the CompositeRecord.
         for (EventProcessingStep step : this.processingSteps) {
-            //try {
             step.execute();
-            //} catch (Exception e) {
-            //    System.out.println("Exception " + e.getClass().getCanonicalName() + " caught from " + step.getClass().getCanonicalName() + ".");                
-            //    System.out.println(e.getMessage());
-            //    currentRecord = null;
-            //    throw e;
-            //}
         }
     }
         
