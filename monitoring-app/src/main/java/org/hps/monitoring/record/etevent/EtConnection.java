@@ -139,7 +139,7 @@ public class EtConnection {
             }
             // Set prescale.
             if (cn.prescale > 0) {
-                System.out.println("setting prescale to " + cn.prescale);
+                //System.out.println("setting prescale to " + cn.prescale);
                 statConfig.setPrescale(cn.prescale);
             }
 
