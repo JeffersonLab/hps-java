@@ -9,11 +9,11 @@ import javax.swing.JDialog;
  * The modal dialog for entering settings.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SettingsFrame extends JDialog {
+public class SettingsDialog extends JDialog {
     
     final SettingsPanel settingsPanel = new SettingsPanel(this);
 
-    SettingsFrame() {
+    SettingsDialog() {
 
         setTitle("Settings");
         setContentPane(settingsPanel);
