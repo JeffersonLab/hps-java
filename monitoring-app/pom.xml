@@ -113,7 +113,7 @@
         <dependency>
             <groupId>org.jlab.coda</groupId>
             <artifactId>et</artifactId>
-            <version>14.0</version>
+            <version>14.1</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
