@@ -16,7 +16,7 @@ import javax.swing.JTextField;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: FieldsPanel.java,v 1.3 2013/11/05 17:15:04 jeremy Exp $
  */
-public class FieldsPanel extends JPanel {
+class FieldsPanel extends JPanel {
 
     private int currY = 0;    
     private Insets insets;

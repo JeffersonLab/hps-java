@@ -19,7 +19,10 @@ public class EventProcessingThread extends Thread {
     
     @Override
     public void run() {
-        // FIXME: Need to catch event processing errors here!
-        processing.loop();
+        try {
+            processing.loop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -59,7 +59,10 @@ public class SystemStatusImpl implements SystemStatus {
     public long getLastChangedMillis() {
         return lastChangedMillis;
     }
-        
+
+    /**
+     * Notify listeners of changes to the system status.
+     */
     void notifyListeners() {
         for (SystemStatusListener listener : listeners) {
             listener.statusChanged(this);

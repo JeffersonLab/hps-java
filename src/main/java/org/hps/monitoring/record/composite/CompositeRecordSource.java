@@ -1,32 +1,22 @@
 package org.hps.monitoring.record.composite;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.freehep.record.source.AbstractRecordSource;
 import org.freehep.record.source.NoSuchRecordException;
-import org.hps.monitoring.record.EventProcessingStep;
 
-
+/**
+ * A record source providing <code>CompositeRecord</code> objects.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class CompositeRecordSource extends AbstractRecordSource {
 
     CompositeRecord currentRecord;
-    List<EventProcessingStep> processingSteps = new ArrayList<EventProcessingStep>();
             
     public void next() throws IOException, NoSuchRecordException {
         currentRecord = new CompositeRecord();
-        
-        // Execute sub-processing that will alter the CompositeRecord.
-        for (EventProcessingStep step : this.processingSteps) {
-            step.execute();
-        }
     }
-        
-    void addProcessingSteps(List<EventProcessingStep> processingSteps) {
-        this.processingSteps = processingSteps;
-    }    
-    
+            
     @Override
     public Object getCurrentRecord() throws IOException {
         return currentRecord;

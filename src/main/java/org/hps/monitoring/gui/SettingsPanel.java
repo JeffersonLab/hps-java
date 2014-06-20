@@ -16,7 +16,7 @@ import javax.swing.JTabbedPane;
  * The container for the job and connection settings.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SettingsPanel extends JPanel implements ActionListener {
+class SettingsPanel extends JPanel implements ActionListener {
 
     JTabbedPane tabs;
     JobPanel jobPanel = new JobPanel();

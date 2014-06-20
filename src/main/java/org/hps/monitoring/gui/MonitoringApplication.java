@@ -4,7 +4,6 @@ import static org.hps.monitoring.gui.MonitoringCommands.AIDA_AUTO_SAVE;
 import static org.hps.monitoring.gui.MonitoringCommands.CLEAR_LOG_TABLE;
 import static org.hps.monitoring.gui.MonitoringCommands.CONNECT;
 import static org.hps.monitoring.gui.MonitoringCommands.DISCONNECT;
-import static org.hps.monitoring.gui.MonitoringCommands.EDIT_EVENT_REFRESH;
 import static org.hps.monitoring.gui.MonitoringCommands.EXIT;
 import static org.hps.monitoring.gui.MonitoringCommands.LOAD_CONNECTION;
 import static org.hps.monitoring.gui.MonitoringCommands.LOAD_JOB_SETTINGS;
@@ -52,8 +51,6 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -92,13 +89,6 @@ import org.lcsim.util.aida.AIDA;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringApplication.java,v 1.61 2013/12/10 07:36:40 jeremy Exp $
  */
-// FIXME: The tabs panel isn't filling the full available space even when fill is set to both.
-// TODO: Remove minimum GUI component size settings where they are redundant.
-// TODO: Refactor this class into multiple classes.
-// TODO: Log the messages from all Exceptions.
-// TODO: Capture std err and out and redirect to a text panel within the application.
-// TODO: Report state of event processing at the end of the job in a new GUI component.
-// TODO: Move ET cleanup code to the record.etevent package.
 public class MonitoringApplication extends JFrame implements ActionListener {
 
     // Top-level Swing components.
@@ -122,7 +112,6 @@ public class MonitoringApplication extends JFrame implements ActionListener {
     private JMenuItem terminalItem;
     private JMenuItem steeringItem;
     private JMenuItem aidaAutoSaveItem;
-    private JMenuItem saveJobSettingsItem;
     private JMenuItem loadJobSettingsItem;
     private JMenuItem resetJobSettingsItem;
 
@@ -1330,13 +1319,9 @@ public class MonitoringApplication extends JFrame implements ActionListener {
         eventProcessing.setEventBuilder(this.eventBuilder);
         eventProcessing.setDetectorName(this.getDetectorName());
         eventProcessing.add(this.jobManager.getDriverExecList());
-        //eventProcessing.add(new EventPanelUpdater(eventPanel));
         eventProcessing.add(runPanel.new RunPanelUpdater());
         eventProcessing.add(new EtSystemStripCharts());
-        eventProcessing.setStopOnEndRun();
-        if (!this.disconnectOnError())
-            eventProcessing.setContinueOnErrors();
-        eventProcessing.configure();
+        eventProcessing.setup();
         eventProcessingThread = new EventProcessingThread(eventProcessing);
     }
 
@@ -1350,7 +1335,6 @@ public class MonitoringApplication extends JFrame implements ActionListener {
 
         // Reset the plots panel so that it is empty.
         plotPane.removeAll();
-
     }
     
     /**

@@ -18,6 +18,7 @@ public interface SystemStatus {
      */
     enum StatusCode {
         
+        // Status encodings with a string name and descriptor.
         OKAY   (0, "okay",    "The system appears to be working."),
         UNKNOWN(1, "unknown", "The status is not known."),
         OFFLINE(2, "offline", "The system is currently offline."),               
@@ -36,14 +37,26 @@ public interface SystemStatus {
             this.description = description;
         }
         
+        /**
+         * Get the raw int code for the status.
+         * @return The raw code.
+         */
         int getRawCode() {
             return code;
         }
         
+        /**
+         * Get the name of the status.
+         * @return The name of the status.
+         */
         String getName() {
             return name;
         }                  
         
+        /**
+         * Get the description of the status.
+         * @return The description of the status.
+         */
         String getDescription() {
             return description;
         }

@@ -12,7 +12,7 @@ import javax.swing.JPanel;
  * This is the panel for controlling the application when it is in pause mode,
  * e.g. to step to the next event, etc.
  */
-public class EventButtonsPanel extends JPanel {
+class EventButtonsPanel extends JPanel {
 
     JButton nextEventsButton;
     JButton pauseButton;

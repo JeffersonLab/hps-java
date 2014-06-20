@@ -23,7 +23,7 @@ public interface EventProcessor<EventType> {
      * Process a single event.
      * @param event
      */
-    void processEvent(EventType event);
+    void processEvent(EventType event) throws Exception;
 
     /**
      * End of run action.

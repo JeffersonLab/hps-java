@@ -43,8 +43,7 @@ public class EventProcessingChainTest {
         processing.setDetectorName(detectorName);
         processing.add(new DummyEvioProcessor());
         processing.add(new DummyDriver());
-        processing.setStopOnEndRun();
-        processing.configure();
+        processing.setup();
         processing.loop();
     }
     
