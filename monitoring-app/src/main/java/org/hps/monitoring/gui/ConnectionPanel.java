@@ -19,6 +19,7 @@ import org.hps.monitoring.record.etevent.EtConnectionParameters;
 import org.jlab.coda.et.enums.Mode;
 
 /**
+ * Connection settings panel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class ConnectionPanel extends FieldsPanel {

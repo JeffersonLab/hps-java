@@ -11,7 +11,7 @@ import javax.swing.border.TitledBorder;
  * A panel with a label and a text field.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class FieldPanel extends JPanel {
+class FieldPanel extends JPanel {
     
     String fieldName;
     String defaultValue;

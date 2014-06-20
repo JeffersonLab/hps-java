@@ -19,28 +19,23 @@ public class EtEventLoop extends DefaultRecordLoop {
         addLoopListener(adapter);
         addRecordListener(adapter);
     }
-    
+ 
+    /**
+     * Add an <code>EtEventProcessor</code> to the loop.
+     * @param processor The <code>EtEventProcessor</code> to add.
+     */
     public void addEtEventProcessor(EtEventProcessor processor) {
         adapter.addEtEventProcessor(processor);
     }
     
+    /**
+     * Set the <code>RecordSource</code> for the loop.
+     * @param source The <code>RecordSource</code> for the loop.
+     */
     public void setRecordSource(RecordSource source) {
         if (!source.getRecordClass().isAssignableFrom(EtEvent.class)) {
             throw new IllegalArgumentException("The RecordSource has the wrong class.");
         }        
         super.setRecordSource(source);
-    }           
-    
-    public long loop(long number) throws IOException {
-        if (number < 0L) {
-            execute(Command.GO, true);
-        } else {
-            execute(Command.GO_N, number, true);
-            execute(Command.STOP);
-        }
-        Throwable t = getProgress().getException();
-        if (t != null && t instanceof IOException)
-            throw (IOException) t;
-        return getSupplied();
     }
 }

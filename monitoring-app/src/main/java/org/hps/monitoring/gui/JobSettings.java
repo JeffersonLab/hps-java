@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 /**
+ * The job settings panel.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: JobSettings.java,v 1.6 2013/10/30 17:05:17 jeremy Exp $
  */

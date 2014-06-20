@@ -1,7 +1,7 @@
 package org.hps.monitoring.gui;
 
 /**
- * Connection status setting.
+ * Status of the connection to the ET server from the monitoring client.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConnectionStatus.java,v 1.3 2013/11/05 17:15:04 jeremy Exp $
  */

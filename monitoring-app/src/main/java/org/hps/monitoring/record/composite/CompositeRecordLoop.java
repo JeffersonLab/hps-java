@@ -1,12 +1,13 @@
 package org.hps.monitoring.record.composite;
 
-import java.util.List;
-
 import org.freehep.record.loop.DefaultRecordLoop;
-import org.freehep.record.loop.RecordLoop;
 import org.freehep.record.source.RecordSource;
-import org.hps.monitoring.record.EventProcessingStep;
 
+/**
+ * Implementation of a composite record loop for processing
+ * ET, EVIO and LCIO events using a single record source.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class CompositeRecordLoop extends DefaultRecordLoop {
 
     CompositeRecordSource recordSource = new CompositeRecordSource();
@@ -18,24 +19,22 @@ public class CompositeRecordLoop extends DefaultRecordLoop {
         addRecordListener(adapter);
     }
     
+    /**
+     * Set the <code>RecordSource</code> which provides <code>CompositeRecord</code> objects.
+     */
     public void setRecordSource(RecordSource source) {
         if (!source.getRecordClass().isAssignableFrom(CompositeRecord.class)) {
             throw new IllegalArgumentException("The RecordSource has the wrong class.");
         }        
         super.setRecordSource(source);
     }
-        
-    public void addProcessingSteps(List<EventProcessingStep> processingSteps) {
-        recordSource.addProcessingSteps(processingSteps);
-    }
     
-    public void registerRecordLoop(RecordLoop loop) {
-        adapter.registerRecordLoop(loop);
-    }
-    
-    public void loop(long n) {
-        //super.loop();
-        //execute(Command.GO, true);
-        execute(Command.GO, true);
+    /**
+     * Add a <code>CompositeRecordProcessor</code> which will receive <code>CompositeRecord</code>
+     * objects.
+     * @param processor The <code>CompositeRecordProcessor</code> to add.
+     */
+    public void addProcessor(CompositeRecordProcessor processor) {
+        adapter.addProcessor(processor);
     }
 }

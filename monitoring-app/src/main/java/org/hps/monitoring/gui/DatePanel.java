@@ -4,7 +4,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DatePanel extends FieldPanel {
+/**
+ * A small JPanel with a date field and a label on its border.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
+class DatePanel extends FieldPanel {
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss");
     

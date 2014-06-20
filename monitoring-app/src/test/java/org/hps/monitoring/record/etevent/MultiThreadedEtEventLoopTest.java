@@ -1,7 +1,6 @@
 package org.hps.monitoring.record.etevent;
 
-import java.io.IOException;
-
+import org.freehep.record.loop.RecordLoop.Command;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.EtEventImpl;
 
@@ -63,11 +62,7 @@ public class MultiThreadedEtEventLoopTest {
         }
 
         public void run() {
-            try {
-                loop.loop(-1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            loop.execute(Command.GO, false);
         }
     }
 

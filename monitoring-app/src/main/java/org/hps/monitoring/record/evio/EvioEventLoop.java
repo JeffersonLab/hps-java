@@ -3,7 +3,6 @@ package org.hps.monitoring.record.evio;
 import java.io.IOException;
 
 import org.freehep.record.loop.DefaultRecordLoop;
-import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.RecordSource;
 import org.jlab.coda.jevio.EvioEvent;
 

@@ -4,12 +4,16 @@ import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
+/**
+ * This class is used to group together corresponding ET, EVIO and LCIO events
+ * for use by the {@link CompositeRecordLoop}.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class CompositeRecord {
     
     EtEvent etEvent;
     EvioEvent evioEvent;
     EventHeader lcioEvent;
-    //boolean isValid = true;
     
     public void setEtEvent(EtEvent etEvent) {
         this.etEvent = etEvent;
@@ -34,8 +38,4 @@ public class CompositeRecord {
     public EventHeader getLcioEvent() {
         return lcioEvent;
     }
-    
-    //public void setInvalid() {
-    //    isValid = false;
-    //}
 }

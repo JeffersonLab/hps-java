@@ -24,8 +24,7 @@ public class EvioEventProcessingTest {
         processing.setDetectorName(detectorName);
         processing.add(new DummyEvioProcessor());
         processing.add(new DummyDriver());
-        processing.setStopOnEndRun();
-        processing.configure();
+        processing.setup();
         processing.loop();
         processing.finish();
     }

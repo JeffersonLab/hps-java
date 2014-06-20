@@ -2,6 +2,7 @@ package org.hps.monitoring.record.etevent;
 
 import java.io.IOException;
 
+import org.freehep.record.loop.RecordLoop.Command;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.EtEventImpl;
 
@@ -24,11 +25,7 @@ public class EtEventLoopTest {
             queue.addRecord(event);
         }
         
-        try {
-            loop.loop(-1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        loop.execute(Command.GO, true);
         
         System.out.println("loop processed " + loop.getTotalSupplied() + " records");
     }

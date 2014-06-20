@@ -12,7 +12,7 @@ import org.jlab.coda.jevio.EvioEvent;
 public abstract class EvioEventProcessor implements EventProcessor<EvioEvent> {
     
     @Override
-    public void startJob() {        
+    public void startJob() {
     }
     
     @Override
