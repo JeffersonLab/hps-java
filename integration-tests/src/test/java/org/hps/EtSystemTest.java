@@ -48,7 +48,7 @@ public class EtSystemTest extends TestCase {
     static final String javaPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";        
     static final String etBuffer = "ETBuffer";
     static final int port = 11111;
-    static final int waitTime = 1000;
+    static final int waitTime = 50000000; /* Wait time in microseconds. */
     static final int chunkSize = 1;
     static List<Process> processes = new ArrayList<Process>();
     static final int minimumEventsExpected = 503000; 
@@ -255,9 +255,10 @@ public class EtSystemTest extends TestCase {
                     eventsReceived += events.length;
                 }
             } catch (EtTimeoutException e) {
-                System.out.println("Caught timeout but will try again.");
-                e.printStackTrace();
-                continue;                
+                //System.out.println("Caught timeout but will try again.");
+                //e.printStackTrace();
+                //continue;
+                throw new RuntimeException("Timed out.", e);
             } catch (EOFException e) {
                 System.out.println("Caught end of file exception.  Probably ET ring went down!");
                 e.printStackTrace();
