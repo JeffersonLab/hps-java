@@ -27,7 +27,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
+                        <exclude>org/hps/conditions/**/**.java</exclude>
+                        <!--  
                         <exclude>org/hps/conditions/ConditionsObjectTest.java</exclude>
+                        <exclude>org/hps/conditions/**.java</exclude>
+                        <exclude>org/hps/conditions/beam/**.java</exclude>
+                        <exclude>org/hps/conditions/ecal/**.java</exclude>
+                        <exclude>org/hps/conditions/svt/**.java</exclude>
+                        -->
                     </excludes>
                 </configuration>
             </plugin>
