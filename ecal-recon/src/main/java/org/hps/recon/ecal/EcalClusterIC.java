@@ -603,7 +603,7 @@ public class EcalClusterIC extends Driver {
         }
     }*/
     
-    // Also accounts for pathological case of cluster hits that are EXACTLY the same.
+/*    // Also accounts for pathological case of cluster hits that are EXACTLY the same.
     private static class EnergyComparator implements Comparator<CalorimeterHit> {
         public int compare(CalorimeterHit o1, CalorimeterHit o2) {
         	// If the energies are equivalent, the same, the two hits
@@ -627,7 +627,68 @@ public class EcalClusterIC extends Driver {
         	else { return 1; }
         }
     }
-     
+*/
+    private static class EnergyComparator implements Comparator<CalorimeterHit> {
+    	/**
+    	 * Compares the first hit with respect to the second. This
+    	 * method will compare hits first by energy, and the spatially.
+    	 * In the case of equal energy hits, the hit closest to the
+    	 * beam gap and closest to the positron side of the detector
+    	 * will be selected. If all of these conditions are true, the
+    	 * hit with the positive y-index will be selected. Hits with
+    	 * all four conditions matching are the same hit.
+    	 * @param hit1 The hit to compare.
+    	 * @param hit2 The hit with respect to which the first should
+    	 * be compared.
+    	 */
+    public int compare(CalorimeterHit hit1, CalorimeterHit hit2) {
+    	// Hits are sorted on a hierarchy by three conditions. First,
+    	// the hits with the highest energy come first. Next, they
+    	// are ranked by vertical proximity to the beam gap, and
+    	// lastly, they are sorted by horizontal proximity to the
+    	// positron side of the detector.
+    	
+    	// Get the hit energies.
+    	double[] e = { hit1.getCorrectedEnergy(), hit2.getCorrectedEnergy() };
+    	
+    	// Perform the energy comparison. The higher energy hit
+    	// will be ordered first.
+    	if(e[0] < e[1]) { return 1; }
+    	else if(e[0] > e[1]) { return -1; }
+    	
+    	// If the hits are the same energy, we must perform the
+    	// spatial comparisons.
+    	else {
+    		// Get the position with respect to the beam gap.
+    		int[] iy = { Math.abs(hit1.getIdentifierFieldValue("iy")), Math.abs(hit2.getIdentifierFieldValue("iy")) };
+    		
+    		// The closest hit is first.
+    		if(iy[0] > iy[1]) { return -1; }
+    		else if(iy[0] < iy[1]) { return 1; }
+    		
+    		// Hits that are identical in vertical distance from
+    		// beam gap and energy are differentiated with distance
+    		// horizontally from the positron side of the detector.
+    		else {
+        		// Get the position from the positron side.
+        		int[] ix = { hit1.getIdentifierFieldValue("ix"), hit2.getIdentifierFieldValue("ix") };
+        		
+        		// The closest hit is first.
+        		if(ix[0] > ix[1]) { return 1; }
+        		else if(ix[0] < ix[1]) { return -1; }
+    			
+        		// If all of these checks are the same, compare
+        		// the raw value for iy. If these are identical,
+        		// then the two hits are the same. Otherwise, sort
+        		// the numerical value of iy. (This removes the
+        		// issue where hits (x, y) and (x, -y) can have
+        		// the same energy and be otherwise seen as the
+        		// same hit from the above checks.
+        		else { return Integer.compare(hit1.getIdentifierFieldValue("iy"), hit2.getIdentifierFieldValue("iy")); }
+    		}
+    	}
+    }
+}
      
     
 
