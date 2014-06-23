@@ -5,6 +5,7 @@ import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 
 /**
@@ -44,6 +45,12 @@ public final class EcalConverterRegistry {
     public static final class EcalTimeShiftConverter extends ConditionsObjectConverter<EcalTimeShift> {
         public Class getType() {
             return EcalTimeShiftCollection.class;
+        }
+    }
+    
+    public static final class EcalLedConverter extends ConditionsObjectConverter<EcalLed> {
+        public Class getType() {
+            return EcalLedCollection.class;
         }
     }
 }

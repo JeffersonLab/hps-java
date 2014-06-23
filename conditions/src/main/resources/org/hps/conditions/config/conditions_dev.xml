@@ -22,6 +22,7 @@
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalGainConverter"/>
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalCalibrationConverter"/>
         <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalTimeShiftConverter"/>
+        <converter class="org.hps.conditions.ecal.EcalConverterRegistry$EcalLedConverter"/>
 
         <!-- Beam conditions converter -->
         <converter class="org.hps.conditions.beam.BeamConverterRegistry$BeamCurrentConverter"/>
@@ -193,6 +194,21 @@
                 <field name="ecal_channel_id" />
                 <field name="time_shift" />
             </fields>  
+        </table>
+        
+        <table key="ecal_leds" name="ecal_leds">
+            <classes>
+                <object class="org.hps.conditions.ecal.EcalLed"/>
+                <collection class="org.hps.conditions.ecal.EcalLed$EcalLedCollection"/>
+            </classes>                
+            <fields>
+                <field name="ecal_channel_id"/>
+                <field name="crate"/>                    
+                <field name="number"/>
+                <field name="time_delay"/>
+                <field name="amplitude_high"/>
+                <field name="amplitude_low"/>
+            </fields>
         </table>
         
         <table key="beam_current" name="beam_current">

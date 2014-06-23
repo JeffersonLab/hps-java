@@ -61,10 +61,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
 
     /**
-     * Class constructor, which is only package accessible. Users should call
-     * {@link #getInstance()} to access the manager.
+     * Class constructor.
      */
-    DatabaseConditionsManager() {
+    public DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
         baseReader = new BaseClasspathConditionsReader();
     }
@@ -98,7 +97,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Register this conditions manager as the global default.
      */
-    void register() {
+    public void register() {
         ConditionsManager.setDefaultConditionsManager(this);
     }
 
