@@ -85,31 +85,31 @@ public class ShapeFitParameters implements GenericObject {
     }
 
     public static double getT0(GenericObject object) {
-        return object.getIntVal(0);
+        return object.getDoubleVal(0);
     }
 
     public static double getT0Err(GenericObject object) {
-        return object.getIntVal(1);
+        return object.getDoubleVal(1);
     }
 
     public static double getAmp(GenericObject object) {
-        return object.getIntVal(2);
+        return object.getDoubleVal(2);
     }
 
     public static double getAmpErr(GenericObject object) {
-        return object.getIntVal(3);
+        return object.getDoubleVal(3);
     }
 
     public static double getTp(GenericObject object) {
-        return object.getIntVal(4);
+        return object.getDoubleVal(4);
     }
 
     public static double getTpErr(GenericObject object) {
-        return object.getIntVal(5);
+        return object.getDoubleVal(5);
     }
 
     public static double getChisq(GenericObject object) {
-        return object.getIntVal(6);
+        return object.getDoubleVal(6);
     }
 
     @Override
