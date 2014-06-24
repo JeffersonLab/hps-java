@@ -7,7 +7,7 @@ package org.hps.recon.tracking;
 import org.lcsim.event.GenericObject;
 
 /**
- * 
+ *
  * @author Matt Graham
  */
 public class ShapeFitParameters implements GenericObject {
@@ -82,6 +82,34 @@ public class ShapeFitParameters implements GenericObject {
 
     public double getChiSq() {
         return _chiSq;
+    }
+
+    public static double getT0(GenericObject object) {
+        return object.getIntVal(0);
+    }
+
+    public static double getT0Err(GenericObject object) {
+        return object.getIntVal(1);
+    }
+
+    public static double getAmp(GenericObject object) {
+        return object.getIntVal(2);
+    }
+
+    public static double getAmpErr(GenericObject object) {
+        return object.getIntVal(3);
+    }
+
+    public static double getTp(GenericObject object) {
+        return object.getIntVal(4);
+    }
+
+    public static double getTpErr(GenericObject object) {
+        return object.getIntVal(5);
+    }
+
+    public static double getChisq(GenericObject object) {
+        return object.getIntVal(6);
     }
 
     @Override
