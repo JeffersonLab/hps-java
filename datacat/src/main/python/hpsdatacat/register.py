@@ -20,7 +20,7 @@ parser.add_argument('-s', '--site', help='site of the physical file', default=ge
 args = vars(parser.parse_args())
 
 # process command line arguments
-connection, dry_run, mode = handle_standard_arguments(args)            
+connection, dry_run, mode, verbose = handle_standard_arguments(args)
 logical_folder = args['path']
 file_path = args['file']
 file_extension = os.path.splitext(file_path)[1][1:]
@@ -42,7 +42,7 @@ if metadata != None:
 command_line += ' %s %s %s' % (file_extension, logical_folder, file_path)
 
 # run the command
-lines, errors, return_value = run_process(command_line)
+lines, errors, return_value = run_process(command_line, verbose, verbose)
 
 # print file_path information for new dataset
 if return_value == 0:
@@ -54,4 +54,4 @@ if return_value == 0:
     print '  metadata: %s' % str(raw_metadata)
 
 # print command result
-print_result(__command, return_value, errors)
+print_result(__command, return_value, errors, verbose)

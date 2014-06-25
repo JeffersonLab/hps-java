@@ -22,7 +22,7 @@ parser.add_argument('-q', '--query', help='data query for filtering results')
 args = vars(parser.parse_args())
 
 # get standard arguments
-connection, dry_run, mode = handle_standard_arguments(args)    
+connection, dry_run, mode, verbose = handle_standard_arguments(args)    
 logical_folder = args['path']
 site = args['site']
 check_valid_site(site)
@@ -50,8 +50,11 @@ if args['output'] != None:
         raise Exception('The output file already exists!')
     output_file = open(output, 'w')
 
+# print to screen if no output file
+printOutput = (output == None)
+
 # run the command
-lines, errors, return_value = run_process(command_line)
+lines, errors, return_value = run_process(command_line, verbose, printOutput)
 
 # print or save the output if command was successful
 if (return_value == 0 and len(errors) == 0):

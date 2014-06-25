@@ -19,7 +19,7 @@ parser.add_argument('-v', '--version', help='dataset version')
 args = vars(parser.parse_args())
 
 # process command line arguments
-connection, dry_run, mode = handle_standard_arguments(args)
+connection, dry_run, mode, verbose = handle_standard_arguments(args)
 if connection == None:    
     connection = get_ssh_connection_string()    
     if connection == None:
@@ -45,7 +45,7 @@ if version != None:
 command_line += ' %s %s %s' % (dataset_name, logical_folder, file_path)
 
 # run the command
-lines, errors, return_value = run_process(command_line)
+lines, errors, return_value = run_process(command_line, verbose)
 
 # print results
-print_result(__command, return_value, errors)
+print_result(__command, return_value, errors, True)

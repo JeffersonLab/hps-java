@@ -14,7 +14,7 @@ parser.add_argument('-p', '--path', help='path to delete from the data catalog (
 args = vars(parser.parse_args())
 
 # process command line arguments
-connection, dry_run, mode = handle_standard_arguments(args)
+connection, dry_run, mode, verbose = handle_standard_arguments(args)
 logical_folder = args['path']
     
 # build command line
@@ -22,7 +22,7 @@ command_line = create_base_command_line(__command, connection, dry_run, mode)
 command_line += ' --force %s' % logical_folder
 
 # run command line
-lines, errors, return_value = run_process(command_line)
+lines, errors, return_value = run_process(command_line, verbose)
 
 # print the result
-print_result(__command, return_value, errors) 
+print_result(__command, return_value, errors, True)

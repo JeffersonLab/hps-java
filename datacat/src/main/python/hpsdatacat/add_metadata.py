@@ -19,7 +19,7 @@ parser.add_argument('-v', '--version', help='version ID of the dataset (defaults
 args = vars(parser.parse_args())
 
 # handle standard arguments
-connection, dry_run, mode = handle_standard_arguments(args)
+connection, dry_run, mode, verbose = handle_standard_arguments(args)
   
 # file_path
 file_path = args['name']
@@ -48,7 +48,7 @@ command_line += ' %s' % metadata
 command_line += ' %s' % logical_folder
 
 # run the command
-lines, errors, return_value = run_process(command_line)
+lines, errors, return_value = run_process(command_line, verbose)
 
 # print end message
-print_result(__command, return_value, errors)
+print_result(__command, return_value, errors, True)

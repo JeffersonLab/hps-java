@@ -81,9 +81,9 @@ def get_ssh_connection_string():
 """
 Run a process in a shell and return the output lines, errors, and return value (in that order). 
 """
-def run_process(command, printToScreen=True):
+def run_process(command, verbose=True, printOutput=True):
     
-    if printToScreen:
+    if verbose:
         print "Executing command ..."
         print command
     
@@ -91,8 +91,8 @@ def run_process(command, printToScreen=True):
     errors = []
     lines = []
     for line in process.stdout.readlines():
-        if printToScreen:
-            print line,            
+        if printOutput:
+            print line,
         if 'Exception' in line:
             errors.append(line)
         lines.append(line)
@@ -126,7 +126,7 @@ def format_metadata_definition(raw_metadata):
 
 """
 Create the basic argparser for data catalog commands which includes handling
-of dry run, mode and connection settings.  These are all optional.
+of dry run, mode, verbosity and connection settings.  These are all optional.
 """
 def create_base_argparser(command):
     if command not in __valid_commands:
@@ -135,6 +135,7 @@ def create_base_argparser(command):
     parser.add_argument('-D', '--dry-run', help='perform dry run only with no database commits', action='store_true')
     parser.add_argument('-M', '--mode', help='set data source as PROD, DEV, or TEST')
     parser.add_argument('-c', '--connection', help='SSH connection string in form user@host', default=get_ssh_connection_string())
+    parser.add_argument('-v', '--verbose', help='run in verbose mode', action='store_true')
     return parser
 
 """
@@ -144,10 +145,11 @@ def handle_standard_arguments(args):
     if args['connection'] != None:
         connection = args['connection']
     else:
-        raise Exception("Could not figure out SSH connection!")
+        raise Exception("Could not figure out an SSH connection!")
     dry_run = args['dry_run']        
     mode = args['mode']
-    return connection, dry_run, mode
+    verbose = args['verbose']
+    return connection, dry_run, mode, verbose
 
 """
 Print the results of running a command.
@@ -195,3 +197,11 @@ Restore stdout and stderr after supressing them.
 def restore_print():    
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
+    
+"""
+Raise a fatal error.
+"""
+def fatal_error(message, return_value=1):
+    print "Fatal error: %s" % message
+    sys.exit(return_value)
+    

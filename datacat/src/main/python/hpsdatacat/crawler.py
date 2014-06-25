@@ -39,7 +39,7 @@ parser.add_argument('-s', '--site', help='dataset site e.g. SLAC or JLAB')
 parser.add_argument('-p', '--path', help='path in the data catalog')
 args = vars(parser.parse_args())
 
-connection_string, dry_run, mode = handle_standard_arguments(args)
+connection, dry_run, mode, verbose = handle_standard_arguments(args)
 
 # Try to figure out a default connection string if none was supplied.    
 if connection_string == None:    
@@ -84,6 +84,8 @@ handle_extensions = __default_extensions
 if args['extension'] != None:
     # only look at files with extension matching argument
     handle_extensions = (args['extension'])
+
+print "crawling from root dir %s" % base_directory
 
 # walk the directory tree
 for dirname, dirnames, filenames in os.walk(base_directory):
@@ -142,15 +144,19 @@ for dirname, dirnames, filenames in os.walk(base_directory):
                 command_line += '%s' % metadata
                  
                 # run the register command and print results
-                print "Registering new file with command ..."
-                print command_line                                                                        
-                lines, errors, return_value = run_process(command_line, False)                
-                if len(errors) > 0 or return_value != 0:
-                    print "Command returned with an error!"                    
-                    # just print the first error
-                    print errors[0]
-                else:
-                    print "File successfully registered!"
+                if verbose:
+                    print "Registering new file with command ..."
+                    print command_line
+
+                # only run sub-command if dry-run is off                    
+                if not dry_run:                    
+                    lines, errors, return_value = run_process(command_line, False)
+                    if len(errors) > 0 or return_value != 0:
+                        print "Command returned with an error!" 
+                        # just print the first error
+                        print errors[0]
+                    else:
+                        print "File successfully registered!"
 
 # touch the timestamp file to update its modification time
 os.utime(timestamp_file_path, None)

@@ -25,9 +25,13 @@ The correct 'java' binary must also be present in the shell environment of the P
 import sys, os, ast
 from util import *
 
-suppress_print()
-from pyLCIO import IOIMPL
-restore_print()
+#suppress_print()
+try:
+    from pyLCIO import IOIMPL
+except ImportError:
+    fatal_error("Failed to import pyLCIO.")        
+    
+#restore_print()
 
 import ROOT
 
