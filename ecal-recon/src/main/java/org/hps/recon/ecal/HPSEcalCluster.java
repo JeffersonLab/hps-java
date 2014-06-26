@@ -7,6 +7,7 @@ import java.util.List;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 
 /**
@@ -44,6 +45,22 @@ public class HPSEcalCluster extends BaseCluster {
             }
             seedHit = new HPSCalorimeterHit(0.0, 0.0, cellID, hit.getType());
             seedHit.setMetaData(hit.getMetaData());
+        }
+        return seedHit;
+    }
+    
+    /**
+     * Find highest-energy hit in a cluster. For clusters made by GTPEcalClusterer, HPSEcalCluster.getSeedHit(cluster) should be equivalent to cluster.getSeedHit().
+     * Since this method doesn't require that the cluster be an HPSEcalCluster, it will work on clusters read from LCIO.
+     * @param cluster
+     * @return
+     */
+    public static CalorimeterHit getSeedHit(Cluster cluster) {
+        CalorimeterHit seedHit = null;
+        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            if (seedHit == null || hit.getRawEnergy() > seedHit.getRawEnergy()) {
+                seedHit = hit;
+            }
         }
         return seedHit;
     }
