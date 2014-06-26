@@ -44,7 +44,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the time delay of this channel.
      * @return The time delay.
      */
-    float getTimeDelay() {
+    double getTimeDelay() {
         return getFieldValue("time_delay");
     }
     
@@ -52,7 +52,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the amplitude high setting.
      * @return The amplitude high setting.
      */
-    float getAmplitudeHigh() {
+    double getAmplitudeHigh() {
         return getFieldValue("amplitude_high");
     }
     
@@ -60,7 +60,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the amplitude low setting.
      * @return The amplitude low setting.
      */
-    float getAmplitudeLow() {
+    double getAmplitudeLow() {
         return getFieldValue("amplitude_low");
     }    
 }
