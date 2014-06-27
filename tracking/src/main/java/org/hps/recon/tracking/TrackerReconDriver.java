@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
@@ -173,12 +174,26 @@ public final class TrackerReconDriver extends Driver {
                 System.out.println(this.getClass().getSimpleName() + ": chi2 = " + track.getChi2());
             }
         }
+        
+        // Set the type of track to indicate B-field in Y e.g. for swimming in Wired.
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        setTrackType(tracks);
 
         // Increment number of events.
         ++nevents;
 
         // Add to tracks found.
         ntracks += event.get(Track.class, trackCollectionName).size();
+    }
+    
+    /**
+     * Set the track type to Y_FIELD so swimming is done correctly in Wired.
+     * @param tracks The list of <code>Track</code> objects.
+     */
+    private void setTrackType(List<Track> tracks) {
+        for (Track track : tracks) {
+            ((BaseTrack)track).setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        }
     }
 
     @Override
