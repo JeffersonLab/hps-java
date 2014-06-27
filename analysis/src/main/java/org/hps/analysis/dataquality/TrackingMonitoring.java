@@ -11,6 +11,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
@@ -58,9 +59,6 @@ public class TrackingMonitoring extends DataQualityMonitor {
         this.detector = detector;
         aida.tree().cd("/");
 
-        IProfile avgLayersTopPlot = aida.profile1D(plotDir+"Number of Stereo Hits per layer in Top Half", 6, 1, 13);
-        IProfile avgLayersBottomPlot = aida.profile1D(plotDir+"Number of Stereo Hits per layer in Bottom Half", 6, 1, 13);
-
         IHistogram1D trkChi2 = aida.histogram1D(plotDir+"Track Chi2", 25, 0, 25.0);
         IHistogram1D nTracks = aida.histogram1D(plotDir+"Tracks per Event", 6, 0, 6);
         IHistogram1D trkd0 = aida.histogram1D(plotDir+"d0 ", 25, -5.0, 5.0);
@@ -76,29 +74,9 @@ public class TrackingMonitoring extends DataQualityMonitor {
     public void process(EventHeader event) {
 
         aida.tree().cd("/");
-        if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName))
-            return;
-        nEvents++;
-        List<HelicalTrackHit> hthList = event.get(HelicalTrackHit.class, helicalTrackHitCollectionName);
-        int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        for (HelicalTrackHit hth : hthList) {
-            HelicalTrackCross htc = (HelicalTrackCross) hth;
-            double x = htc.getPosition()[0];
-            double y = htc.getPosition()[1];
-            SiSensor sensor = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
-            if (SvtUtils.getInstance().isTopLayer(sensor))
-                layersTop[htc.Layer() - 1]++;
-            else
-                layersBot[htc.Layer() - 1]++;
-        }
-        for (int i = 0; i < 12; i++) {
-            aida.profile1D(plotDir+"Number of Stereo Hits per layer in Top Half").fill(i + 1, layersTop[i]);
-            aida.profile1D(plotDir+"Number of Stereo Hits per layer in Bottom Half").fill(i + 1, layersBot[i]);
-        }
-
+                   
         if (!event.hasCollection(Track.class, trackCollectionName)) {
-//            System.out.println(trackCollectionName + " does not exist; skipping event");
+            System.out.println(trackCollectionName + " does not exist; skipping event");
             aida.histogram1D(plotDir+"Tracks per Event").fill(0);
             return;
         }

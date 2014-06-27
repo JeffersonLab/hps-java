@@ -5,6 +5,7 @@ import java.util.List;
 import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.TrackTimeData;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -34,7 +35,6 @@ public class TrackingResiduals extends DataQualityMonitor {
         for (int i = 0; i < nmodules; i++) {
             IHistogram1D xresid = aida.histogram1D(plotDir + "Layer " + i + " x Residual", 50, -2.5, 2.5);
             IHistogram1D yresid = aida.histogram1D(plotDir + "Layer " + i + " y Residual", 50, -1, 1);
-
         }
 
         for (int i = 0; i < nmodules * 2; i++) {
@@ -44,16 +44,14 @@ public class TrackingResiduals extends DataQualityMonitor {
 
     @Override
     public void process(EventHeader event) {
-
         aida.tree().cd("/");
-        if (!event.hasCollection(TrackTimeData.class, trackTimeDataCollectionName))
+        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
             return;
-        if (!event.hasCollection(TrackResidualsData.class, trackResidualsCollectionName))
+        if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
             return;
         nEvents++;
-
-        List<TrackResidualsData> trdList = event.get(TrackResidualsData.class, trackResidualsCollectionName);
-        for (TrackResidualsData trd : trdList) {
+        List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
+        for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
             for (int i = 0; i < nResid; i++) {
                 aida.histogram1D(plotDir + "Layer " + i + " x Residual").fill(trd.getDoubleVal(i));//x is the double value in the generic object
@@ -61,13 +59,12 @@ public class TrackingResiduals extends DataQualityMonitor {
             }
         }
 
-        List<TrackTimeData> ttdList = event.get(TrackTimeData.class, trackTimeDataCollectionName);
-        for (TrackTimeData ttd : ttdList) {
+        List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
+        for (GenericObject ttd : ttdList) {
             int nResid = ttd.getNDouble();
             for (int i = 0; i < nResid; i++)
                 aida.histogram1D(plotDir + "Half-Layer " + i + " t Residual").fill(ttd.getDoubleVal(i));//x is the double value in the generic object               
         }
-
     }
 
     @Override
@@ -87,7 +84,6 @@ public class TrackingResiduals extends DataQualityMonitor {
     public void printDQMStrings() {
 //        for (Map.Entry<String, Double> entry : monitoredQuantityMap.entrySet())
 //            System.out.println("ALTER TABLE dqm ADD " + entry.getKey() + " double;");
-
     }
 
 }
