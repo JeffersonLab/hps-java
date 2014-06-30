@@ -238,21 +238,13 @@ public class SvtMonitoring extends DataQualityMonitor {
         int irBot = 0;
         for (SiSensor sensor : sensors) {
             IHistogram1D sensPlot = getSensorPlot(plotDir + "t0Hit_", sensor);
-            IFitResult result = fitGaussian(sensPlot, fitter, "range=\"(-10.0,10.0)\"");
-            for (int i = 0; i < 5; i++) {
-                double par = result.fittedParameters()[i];
-                System.out.println("t0Hit_" + sensor.getName() + ":  " + result.fittedParameterNames()[i] + " = " + par);
-            }
-
+            IFitResult result = fitGaussian(sensPlot, fitter, "range=\"(-8.0,8.0)\"");
             boolean isTop = SvtUtils.getInstance().isTopLayer(sensor);
-
             if (isTop) {
-                System.out.println("Plotting into Top region " + irTop);
                 plotterTop.region(irTop).plot(sensPlot);
                 plotterTop.region(irTop).plot(result.fittedFunction());
                 irTop++;
             } else {
-                System.out.println("Plotting into Bottom region " + irBot);
                 plotterBottom.region(irBot).plot(sensPlot);
                 plotterBottom.region(irBot).plot(result.fittedFunction());
                 irBot++;

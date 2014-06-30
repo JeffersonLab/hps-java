@@ -18,14 +18,18 @@ import org.lcsim.util.aida.AIDA;
  */
 public class DataQualityMonitor extends Driver {
 
-    public AIDA aida = AIDA.defaultInstance();
-    public DQMDatabaseManager manager;
-    public String recoVersion = "v0.0";
-    public static int runNumber = 1350;
-    public boolean overwriteDB = false;
-    public boolean connectToDB = false;
-    public boolean printDQMStrings = false;
-    public Map<String, Double> monitoredQuantityMap = new HashMap<>();
+    protected AIDA aida = AIDA.defaultInstance();
+    protected DQMDatabaseManager manager;
+    protected String recoVersion = "v0.0";
+    protected static int runNumber = 1350;
+    protected boolean overwriteDB = false;
+    protected boolean connectToDB = false;
+    protected boolean printDQMStrings = false;
+    protected Map<String, Double> monitoredQuantityMap = new HashMap<>();
+
+    protected boolean outputPlots = true;
+    protected String outputPlotDir = "DQMOutputPlots/";
+    
     public void setRecoVersion(String recoVersion) {
         this.recoVersion = recoVersion;
     }
@@ -46,6 +50,14 @@ public class DataQualityMonitor extends Driver {
         this.printDQMStrings = print;
     }
 
+    public void setOutputPlots(boolean out){
+        this.outputPlots=out;
+    }
+    public void setOutputPlotDir(String dir){
+        this.outputPlotDir=dir;
+    }
+
+    
     public void DataQualityMonitor() {
 
     }

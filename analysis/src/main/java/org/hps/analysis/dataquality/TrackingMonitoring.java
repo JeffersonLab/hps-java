@@ -1,19 +1,11 @@
 package org.hps.analysis.dataquality;
 
 import hep.aida.IHistogram1D;
-import hep.aida.IProfile;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.hps.conditions.deprecated.SvtUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 
@@ -76,11 +68,10 @@ public class TrackingMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
                    
         if (!event.hasCollection(Track.class, trackCollectionName)) {
-            System.out.println(trackCollectionName + " does not exist; skipping event");
             aida.histogram1D(plotDir+"Tracks per Event").fill(0);
             return;
         }
-
+        nEvents++;
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         nTotTracks += tracks.size();
         aida.histogram1D(plotDir+"Tracks per Event").fill(tracks.size());

@@ -23,8 +23,8 @@ import org.lcsim.geometry.Detector;
  * DQM driver V0 particles (i.e. e+e- pars) plots
  * things like number of vertex position an mass
  *
- * @author mgraham  on May 14, 2014
-
+ * @author mgraham on May 14, 2014
+ *
  */
 public class V0Monitoring extends DataQualityMonitor {
 
@@ -32,7 +32,7 @@ public class V0Monitoring extends DataQualityMonitor {
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "avg_BSCon_Chi2"};
+    String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
     //some counters
     int nRecoEvents = 0;
     int nTotV0 = 0;
@@ -100,16 +100,13 @@ public class V0Monitoring extends DataQualityMonitor {
         }
 
         List<ReconstructedParticle> targetConstrainedV0List = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName);
-//        System.out.println("Number of V0s = " + targetConstrainedV0List.size());
         for (ReconstructedParticle tarV0 : targetConstrainedV0List) {
             Vertex tarVert = tarV0.getStartVertex();
-//            System.out.println(tarVert.toString());
             aida.histogram1D(plotDir + "Target Constrained Vx (mm)").fill(tarVert.getPosition().x());
             aida.histogram1D(plotDir + "Target Constrained Vy (mm)").fill(tarVert.getPosition().y());
             aida.histogram1D(plotDir + "Target Constrained Vz (mm)").fill(tarVert.getPosition().z());
             aida.histogram1D(plotDir + "Target Constrained Mass (GeV)").fill(tarV0.getMass());
             aida.histogram1D(plotDir + "Target Constrained Chi2").fill(tarVert.getChi2());
-            //           System.out.println("Target Constrained chi^2 = " + tarVert.getChi2());
         }
     }
 
@@ -126,12 +123,6 @@ public class V0Monitoring extends DataQualityMonitor {
      */
     @Override
     public void calculateEndOfRunQuantities() {
-        monitoredQuantityMap.put(fpQuantNames[0], (double) nTotV0 / nRecoEvents);
-        monitoredQuantityMap.put(fpQuantNames[1], sumMass / nTotV0);
-        monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
-        monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
-        monitoredQuantityMap.put(fpQuantNames[4], sumVz / nTotV0);
-        monitoredQuantityMap.put(fpQuantNames[5], sumChi2 / nTotV0);
 
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         IFitFactory fitFactory = analysisFactory.createFitFactory();
@@ -146,12 +137,12 @@ public class V0Monitoring extends DataQualityMonitor {
         double[] init3 = {50.0, 0.0, 3.0, 1.0, 0.0};
         IFitResult resVz = fitVertexPosition(bsconVz, fitter, init3, "range=\"(-6,6)\"");
 
-        for (int i = 0; i < 5; i++) {
-            double parVx = resVx.fittedParameters()[i];
-            double parVy = resVy.fittedParameters()[i];
-            double parVz = resVz.fittedParameters()[i];
-            System.out.println("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parVx + "; " + parVy + "; " + parVz);
-        }
+        double[] parsVx = resVx.fittedParameters();
+        double[] parsVy = resVy.fittedParameters();
+        double[] parsVz = resVz.fittedParameters();
+
+        for (int i = 0; i < 5; i++)
+            System.out.println("Vertex Fit Parameters:  " + resVx.fittedParameterNames()[i] + " = " + parsVx[i] + "; " + parsVy[i] + "; " + parsVz[i]);
 
         IPlotter plotter = analysisFactory.createPlotterFactory().create("Vertex Position");
         plotter.createRegions(1, 3);
@@ -171,11 +162,25 @@ public class V0Monitoring extends DataQualityMonitor {
             Logger.getLogger(V0Monitoring.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        monitoredQuantityMap.put(fpQuantNames[0], (double) nTotV0 / nRecoEvents);
+        monitoredQuantityMap.put(fpQuantNames[1], sumMass / nTotV0);
+//        monitoredQuantityMap.put(fpQuantNames[2], sumVx / nTotV0);
+//        monitoredQuantityMap.put(fpQuantNames[3], sumVy / nTotV0);
+//        monitoredQuantityMap.put(fpQuantNames[4], sumVz / nTotV0);
+        monitoredQuantityMap.put(fpQuantNames[2], parsVx[1]);
+        monitoredQuantityMap.put(fpQuantNames[3], parsVy[1]);
+        monitoredQuantityMap.put(fpQuantNames[4], parsVz[1]);
+        monitoredQuantityMap.put(fpQuantNames[5], parsVx[2]);
+        monitoredQuantityMap.put(fpQuantNames[6], parsVy[2]);
+        monitoredQuantityMap.put(fpQuantNames[7], parsVz[2]);
+
+        monitoredQuantityMap.put(fpQuantNames[8], sumChi2 / nTotV0);
+
     }
 
     @Override
     public void printDQMStrings() {
-        for (int i = 0; i < 7; i++)//TODO:  do this in a smarter way...loop over the map
+        for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
     }
 

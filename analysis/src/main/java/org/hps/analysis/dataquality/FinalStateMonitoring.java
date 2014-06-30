@@ -40,7 +40,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     String finalStateParticlesColName = "FinalStateParticles";
 
-    String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P"};
+    String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P","avg_mom_beam_elec","sig_mom_beam_elec"};
     //some counters
     int nRecoEvents = 0;
     int nTotEle = 0;
@@ -163,8 +163,6 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(fsTrack, clusterPosition.z());
                 double dx = trackPosAtEcal.x() - clusterPosition.x();//remember track vs detector coords
                 double dy = trackPosAtEcal.y() - clusterPosition.y();//remember track vs detector coords
-                System.out.println(trackPosAtEcal.x() + ";" + trackPosAtEcal.y() + ";" + trackPosAtEcal.z());
-                System.out.println(clusterPosition.x() + ";" + clusterPosition.y() + ";" + clusterPosition.z());
 
                 sumdelX += dx;
                 sumdelY += dy;
@@ -208,10 +206,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IFitter fitter = fitFactory.createFitter("chi2");
         IHistogram1D beamE = aida.histogram1D(plotDir + "Beam Electrons Pz (GeV)");
         IFitResult result = fitBeamEnergyPeak(beamE, fitter, "range=\"(-10.0,10.0)\"");
-
-        for (int i = 0; i < 5; i++) {
-            double par = result.fittedParameters()[i];
-            System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + par);
+        double[] pars=result.fittedParameters();
+        for (int i = 0; i < 5; i++) {           
+            System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
         }
 
         monitoredQuantityMap.put(fpQuantNames[0], (double) nTotEle / nRecoEvents);
@@ -221,7 +218,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         monitoredQuantityMap.put(fpQuantNames[4], (double) sumdelX / nTotAss);
         monitoredQuantityMap.put(fpQuantNames[5], (double) sumdelY / nTotAss);
         monitoredQuantityMap.put(fpQuantNames[6], (double) sumEoverP / nTotAss);
-
+        monitoredQuantityMap.put(fpQuantNames[7], (double) pars[1]);
+        monitoredQuantityMap.put(fpQuantNames[8], (double) pars[2]);
         IPlotter plotter = analysisFactory.createPlotterFactory().create("Beam Energy Electrons");
 
         IPlotterStyle pstyle = plotter.style();
@@ -239,7 +237,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMStrings() {
-        for (int i = 0; i < 7; i++)//TODO:  do this in a smarter way...loop over the map
+        for (int i = 0; i < 9; i++)//TODO:  do this in a smarter way...loop over the map
             System.out.println("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
     }
 
