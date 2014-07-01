@@ -16,6 +16,7 @@ public class ConditionsDevTest extends TestCase {
             TableConstants.ECAL_GAINS,
             TableConstants.ECAL_LEDS,
             TableConstants.ECAL_TIME_SHIFTS,
+            TableConstants.SVT_ALIGNMENTS,
             TableConstants.SVT_CALIBRATIONS,
             TableConstants.SVT_CHANNELS,
             TableConstants.SVT_DAQ_MAP,
@@ -38,9 +39,17 @@ public class ConditionsDevTest extends TestCase {
         
         for (String conditionsKey : conditionsKeys) {
             TableMetaData metaData = manager.findTableMetaData(conditionsKey);
-            @SuppressWarnings("rawtypes")
-            ConditionsObjectCollection collection = (ConditionsObjectCollection)manager.getConditionsData(metaData.collectionClass, metaData.getKey());
+            @SuppressWarnings("unchecked")
+            ConditionsObjectCollection<AbstractConditionsObject> collection = 
+                (ConditionsObjectCollection<AbstractConditionsObject>)manager.getConditionsData(metaData.collectionClass, metaData.getKey());
             System.out.println(metaData.getKey() + " has " + collection.getObjects().size() + " objects");
+            System.out.println();
+            System.out.println("Printing objects in " + metaData.getKey() + " collection ...");
+            System.out.println();
+            for (ConditionsObject object : collection.getObjects()) {
+                System.out.println(object.toString());
+                //System.out.println();
+            }
         }
     }
 

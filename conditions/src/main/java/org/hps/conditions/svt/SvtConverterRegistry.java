@@ -1,6 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.ConditionsObjectConverter;
+import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentCollection;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
@@ -9,9 +10,19 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtPulseParameters.SvtPulseParametersCollection;
 import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
 
+/**
+ * Definitions of converters from the database to SVT specific conditions classes.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public final class SvtConverterRegistry {
 
+    public static class SvtAlignmentConverter extends ConditionsObjectConverter<SvtAlignmentCollection> {        
+        public Class getType() {
+            return SvtAlignmentCollection.class;
+        }               
+    }
+    
     public static class SvtBadChannelConverter extends ConditionsObjectConverter<SvtBadChannelCollection> {
         public Class getType() {
             return SvtBadChannelCollection.class;

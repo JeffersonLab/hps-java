@@ -41,10 +41,13 @@ public final class TableConstants {
     public static final String ECAL_TIME_SHIFTS = "ecal_time_shifts";
     
     /** ECAL LED setup. */
-    public static final String ECAL_LEDS = "ecal_leds";
+    public static final String ECAL_LEDS = "ecal_leds";    
 
-    /** Conditions key for combined ECal conditions. */
+    /** Conditions key for combined SVT conditions. */
     public static final String SVT_CONDITIONS = "svt_conditions";
+    
+    /** Conditions key for SVT alignment data. */
+    public static final String SVT_ALIGNMENTS = "svt_alignments";
 
     /** Table with SVT channel data. */
     public static final String SVT_CHANNELS = "svt_channels";

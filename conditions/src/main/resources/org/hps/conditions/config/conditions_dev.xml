@@ -7,6 +7,7 @@
 
         <!-- SVT converters -->
         <converter class="org.hps.conditions.svt.SvtConditionsConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtAlignmentConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtCalibrationConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtChannelConverter"/>
@@ -49,6 +50,17 @@
                 <field name="table_name" />
                 <field name="collection_id" />
             </fields>
+        </table>
+        
+        <table key="svt_alignments" name="svt_alignments">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtAlignmentConstant"/>
+                <collection class="org.hps.conditions.svt.SvtAlignmentConstant$SvtAlignmentCollection"/>                
+            </classes>
+            <fields>
+                <field name="parameter"/>
+                <field name="value"/>
+            </fields>        
         </table>
     
         <table key="svt_channels" name="svt_channels">

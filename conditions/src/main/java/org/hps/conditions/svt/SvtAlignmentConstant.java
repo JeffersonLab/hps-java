@@ -1,6 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
 
 /**
  * <p>
@@ -17,6 +18,9 @@ import org.hps.conditions.AbstractConditionsObject;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtAlignmentConstant extends AbstractConditionsObject {
+    
+    public static class SvtAlignmentCollection extends ConditionsObjectCollection<SvtAlignmentConstant> {       
+    }
     
     /** Top or bottom half. */
     public enum Half {                
@@ -65,8 +69,8 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * Get the alignment constant's full key with the encoded information.
      * @return the alignment constant's key
      */
-    public String getKey() {
-        return getFieldValue("key");
+    public String getParameter() {
+        return getFieldValue("parameter");
     }
     
     /**
@@ -82,13 +86,13 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * @return the Half value from the key
      */
     public Half getHalf() {
-        int half = Integer.parseInt(getKey().substring(0,0));
+        int half = Integer.parseInt(getParameter().substring(0, 1));
         if (half == Half.TOP.getValue()) {
             return Half.TOP;
-        } else if (half == Half.TOP.getValue()) {
+        } else if (half == Half.BOTTOM.getValue()) {
             return Half.BOTTOM;
         } else {
-            throw new IllegalArgumentException("Could not parse valid Half from " + getKey());
+            throw new IllegalArgumentException("Could not parse valid Half from " + getParameter());
         }                              
     }
     
@@ -97,13 +101,13 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * @return the AlignmentType value from the key
      */
     public AlignmentType getAlignmentType() {
-        int alignmentType = Integer.parseInt(getKey().substring(1, 1));
+        int alignmentType = Integer.parseInt(getParameter().substring(1, 2));
         if (alignmentType == AlignmentType.TRANSLATION.getValue()) {
             return AlignmentType.TRANSLATION;
         } else if (alignmentType == AlignmentType.ROTATION.getValue()) {
             return AlignmentType.ROTATION;
         } else {
-            throw new IllegalArgumentException("Could not parse valid AlignmentType from " + getKey());
+            throw new IllegalArgumentException("Could not parse valid AlignmentType from " + getParameter());
         }
     }
     
@@ -112,7 +116,7 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * @return the UnitAxis v
      */
     public UnitAxis getUnitAxis() {
-        int unitAxis = Integer.parseInt(getKey().substring(3,3));
+        int unitAxis = Integer.parseInt(getParameter().substring(2, 3));
         if (unitAxis == UnitAxis.U.getValue()) {
             return UnitAxis.U;
         } else if (unitAxis == UnitAxis.V.getValue()) {
@@ -120,7 +124,7 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
         } else if (unitAxis == UnitAxis.W.getValue()) {
             return UnitAxis.W;
         } else {
-            throw new IllegalArgumentException("Could not parse valid UnitAxis from " + getKey());
+            throw new IllegalArgumentException("Could not parse valid UnitAxis from " + getParameter());
         }
     }
     
@@ -129,10 +133,20 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * @return the module number from the key 
      */
     public int getModuleNumber() {
-        int moduleNumber = Integer.parseInt(getKey().substring(3, 4));
+        int moduleNumber = Integer.parseInt(getParameter().substring(3, 5));
         if (moduleNumber > MAX_MODULE_NUMBER || moduleNumber == 0) {
             throw new IllegalArgumentException("The decoded module number " + moduleNumber + " is invalid.");
         }
         return moduleNumber;
+    }
+    
+    public String toString() {
+        StringBuffer buff = new StringBuffer();
+        buff.append(super.toString());
+        buff.append("half: ").append(getHalf().getValue()).append('\n');
+        buff.append("alignment_type: ").append(getAlignmentType().getValue()).append('\n');
+        buff.append("unit_axis: ").append(getUnitAxis().getValue()).append('\n');
+        buff.append("module_number: " ).append(getModuleNumber()).append('\n');
+        return buff.toString();
     }
 }
