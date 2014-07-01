@@ -38,18 +38,16 @@ public class ConditionsDevTest extends TestCase {
         }
         
         for (String conditionsKey : conditionsKeys) {
-            TableMetaData metaData = manager.findTableMetaData(conditionsKey);
-            @SuppressWarnings("unchecked")
-            ConditionsObjectCollection<AbstractConditionsObject> collection = 
-                (ConditionsObjectCollection<AbstractConditionsObject>)manager.getConditionsData(metaData.collectionClass, metaData.getKey());
-            System.out.println(metaData.getKey() + " has " + collection.getObjects().size() + " objects");
-            System.out.println();
-            System.out.println("Printing objects in " + metaData.getKey() + " collection ...");
-            System.out.println();
-            for (ConditionsObject object : collection.getObjects()) {
-                System.out.println(object.toString());
-                //System.out.println();
-            }
+            TableMetaData metaData = manager.findTableMetaData(conditionsKey);            
+            ConditionsSeries series = manager.getConditionsSeries(metaData.getKey());            
+            for (int i = 0; i < series.getNumberOfCollections(); i++) {
+                ConditionsObjectCollection<AbstractConditionsObject> collection = series.getCollection(i);
+                System.out.println("Printing " + collection.getObjects().size() 
+                        + " objects in collection " + metaData.getKey() + " ...");
+                for (ConditionsObject object : collection.getObjects()) {
+                    System.out.println(object.toString());
+                }
+            }            
         }
     }
 
