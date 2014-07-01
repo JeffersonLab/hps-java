@@ -166,7 +166,14 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         return collectionId != -1;
     }
 
-    // protected void finalize() {
-    // System.out.println("finalizing ConditionsObject " + System.identityHashCode(this));
-    // }
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("id: ").append(getRowId()).append('\n');
+        sb.append("collection_id: ").append(getCollectionId()).append('\n');
+        sb.append("read_only: ").append(isReadOnly()).append('\n');
+        for (String fieldName : getTableMetaData().getFieldNames()) {
+            sb.append(fieldName).append(": ").append(getFieldValue(fieldName).toString()).append('\n');
+        }
+        return sb.toString();
+    }
 }
