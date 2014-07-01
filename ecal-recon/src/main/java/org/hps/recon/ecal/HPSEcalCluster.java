@@ -58,7 +58,7 @@ public class HPSEcalCluster extends BaseCluster {
     public static CalorimeterHit getSeedHit(Cluster cluster) {
         CalorimeterHit seedHit = null;
         for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            if (seedHit == null || hit.getRawEnergy() > seedHit.getRawEnergy()) {
+            if (seedHit == null || hit.getCorrectedEnergy() > seedHit.getCorrectedEnergy()) {
                 seedHit = hit;
             }
         }
