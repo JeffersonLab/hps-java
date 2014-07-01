@@ -47,18 +47,19 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
-    int runNumber = -1;
-    String detectorName;
-    List<TableMetaData> tableMetaData;
-    List<ConditionsConverter> converters;
-    File connectionPropertiesFile;
-    ConditionsReader baseReader;
-    static Logger logger = null;
-    ConnectionParameters connectionParameters;
-    Connection connection;
-    boolean wasConfigured = false;
-    boolean isConnected = false;
-    ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
+    static String connectionProperty = "org.hps.conditions.connection.file";
+    protected int runNumber = -1;
+    protected String detectorName;
+    protected List<TableMetaData> tableMetaData;
+    protected List<ConditionsConverter> converters;
+    protected File connectionPropertiesFile;
+    protected ConditionsReader baseReader;
+    protected static Logger logger = null;
+    protected ConnectionParameters connectionParameters;
+    protected Connection connection;
+    protected boolean wasConfigured = false;
+    protected boolean isConnected = false;
+    protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
 
     /**
      * Class constructor.
@@ -66,6 +67,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
         baseReader = new BaseClasspathConditionsReader();
+        setupConnectionFromSystemProperty();
     }
 
     /**
@@ -507,6 +509,21 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         // Load table meta data from the "tables" section of the config document.
         (this.new TableMetaDataLoader()).load(config.getRootElement().getChild("tables"));
     }
+    
+    /**
+     * Setup the database connection from a file specified by Java system property setting.
+     * This is possible overridden by subsequent API calls to {@link #setConnectionProperties(File)} or
+     * {@link #setConnectionResource(String)}, as it is setup in this class's constructor.
+     */
+    private void setupConnectionFromSystemProperty() {
+        String systemPropertiesConnectionPath = (String)System.getProperties().get(connectionProperty);
+        if (systemPropertiesConnectionPath != null) {
+            File f = new File(systemPropertiesConnectionPath);
+            if (!f.exists())
+                throw new RuntimeException("Connection properties specified from system property does not exist!");
+            this.setConnectionProperties(f);
+        }
+    }
 
     /**
      * Open the database connection.
@@ -546,10 +563,20 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             closeConnection();
     }
     
+    /**
+     * Get multiple <code>ConditionsObjectCollection</code> objects that may have overlapping time validity information.
+     * @param conditionsKey The conditions key.
+     * @return The <code>ConditionsSeries</code> containing the matching <code>ConditionsObjectCollection</code>. 
+     */
     public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
         return conditionsSeriesConverter.createSeries(conditionsKey);
     }
        
+    /**
+     * Simple utility method to cast the generic <code>ConditionsManager</code> to this class.
+     * @param conditionsManager The <code>ConditionsManager</code>.
+     * @return The <code>DatabaseConditionsManager</code> object.
+     */
     public static DatabaseConditionsManager castFrom(ConditionsManager conditionsManager) {
         if (conditionsManager instanceof DatabaseConditionsManager) {
             return (DatabaseConditionsManager) conditionsManager;
