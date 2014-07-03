@@ -45,4 +45,18 @@ public class EvioEventLoop extends DefaultRecordLoop {
             throw (IOException) t;
         return getSupplied();
     }
+    
+    protected void handleClientError(Throwable x) {
+        if (x != null) {
+            x.printStackTrace();
+            throw new RuntimeException(x);
+        }
+    }
+
+    protected void handleSourceError(Throwable x) {
+        if (x != null) {
+            x.printStackTrace();
+            throw new RuntimeException(x);
+        }
+    }
 }

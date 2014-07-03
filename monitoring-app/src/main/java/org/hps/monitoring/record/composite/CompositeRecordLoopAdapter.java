@@ -20,13 +20,16 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
      * Callback for loop finish event.
      * @param loopEvent 
      */
+    // FIXME: Should this check if an error occurred?
     public void finish(LoopEvent loopEvent) {
-        if (loopEvent.getException() != null)
-            loopEvent.getException().printStackTrace();
-      
+        
+        //System.out.println("CompositeRecordLoopAdapter.finish");        
+        //if (loopEvent.getException() != null)
+        //    loopEvent.getException().printStackTrace();      
         // Call end job hook on all registered processors, which are 
         // responsible for sending the stop command to their loops, if applicable.
         for (CompositeRecordProcessor processor : processors) {
+            //System.out.println("calling endJob() on " + processor.getClass().getCanonicalName() + "...");
             processor.endJob();
         }
     }
@@ -54,10 +57,10 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
      * Suspend the loop.
      * @param loopEvent
      */
-    // NOTE: IOExceptions from loop processing show up here!!!
-    public void suspend(LoopEvent loopEvent) {        
-        if (loopEvent.getException() != null)
-            loopEvent.getException().printStackTrace();
+    public void suspend(LoopEvent loopEvent) { 
+        if (loopEvent.getException() != null) {
+            throw new RuntimeException("Error in event processing.", loopEvent.getException());
+        }
     }
 
     /**
@@ -69,7 +72,7 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
         for (CompositeRecordProcessor processor : processors) {
             try {
                 processor.processEvent((CompositeRecord) record.getRecord());
-            } catch (Exception e) {
+            } catch (Exception e) {                
                 throw new RuntimeException("Error processing CompositeRecord.", e);
             }
         }

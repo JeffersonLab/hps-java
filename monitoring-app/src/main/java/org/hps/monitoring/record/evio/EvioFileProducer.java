@@ -25,7 +25,6 @@ import org.jlab.coda.jevio.EvioReader;
  *
  */
 // TODO: Add option to set number of events in the put array.
-// TODO: Move to a sub-package.
 public class EvioFileProducer {
 
     private List<File> evioFiles = new ArrayList<File>();

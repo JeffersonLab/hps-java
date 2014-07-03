@@ -104,7 +104,7 @@ class ConnectionStatusPanel extends JPanel {
         add(new JSeparator(SwingConstants.HORIZONTAL), c);
         
         // Set default status.
-        setStatus(ConnectionStatus.DISCONNECTED);
+        //setStatus(ConnectionStatus.DISCONNECTED);
     }
 
     /**

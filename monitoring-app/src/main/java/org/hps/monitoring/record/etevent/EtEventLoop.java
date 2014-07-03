@@ -1,7 +1,5 @@
 package org.hps.monitoring.record.etevent;
 
-import java.io.IOException;
-
 import org.freehep.record.loop.DefaultRecordLoop;
 import org.freehep.record.source.RecordSource;
 import org.jlab.coda.et.EtEvent;
@@ -38,4 +36,18 @@ public class EtEventLoop extends DefaultRecordLoop {
         }        
         super.setRecordSource(source);
     }
+    
+    protected void handleClientError(Throwable x) {
+        if (x != null) {
+            //x.printStackTrace();
+            throw new RuntimeException(x);
+        }
+    }
+
+    protected void handleSourceError(Throwable x) {
+        if (x != null) {
+            //x.printStackTrace();
+            throw new RuntimeException(x);
+        }
+    }     
 }

@@ -2,12 +2,15 @@ package org.hps.monitoring.subsys;
 
 /**
  * The <tt>SystemStatus</tt> describes the state of a system, e.g. whether it is okay 
- * or some level of error has occurred.  Listeners can be registered, which will 
- * be notified whenever the status changes, in order to update a GUI, trip an alarm, etc.
+ * or some level of error has occurred.  Listeners can be registered on these objects, 
+ * which will be notified whenever the status changes, in order to update a GUI component, 
+ * trip an alarm, etc.
  * 
  * There is one <tt>SystemStatus</tt> object for each quantity to be monitored
  * on a sub-system.  New objects are not created when the status changes.  Instead,
  * the <tt>StatusCode</tt> is changed with a custom message describing the new state.
+ * Listeners are updated whenever the status is changed.  It is up to the notified
+ * object to determine what to do when the state changes.  
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -18,7 +21,7 @@ public interface SystemStatus {
      */
     enum StatusCode {
         
-        // Status encodings with a string name and descriptor.
+        /** Status encodings with a string name and descriptor. */
         OKAY   (0, "okay",    "The system appears to be working."),
         UNKNOWN(1, "unknown", "The status is not known."),
         OFFLINE(2, "offline", "The system is currently offline."),               
@@ -106,4 +109,17 @@ public interface SystemStatus {
      * @param listener The listener object.
      */
     void addListener(SystemStatusListener listener);
+    
+    /**
+     * Set whether this status is masked on or off.  
+     * Listeners will not be notified of state changes when masked
+     * is set to <code>True</code>.     
+     */
+    void setMasked(boolean masked);
+    
+    /**
+     * True if the status has been masked off.
+     * @return True if status is masked off.
+     */
+    boolean isMasked();
 }
