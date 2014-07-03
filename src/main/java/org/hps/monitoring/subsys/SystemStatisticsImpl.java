@@ -150,7 +150,6 @@ public class SystemStatisticsImpl implements SystemStatistics {
 
     @Override
     public void stop() { 
-        System.out.println("SystemStatistics.stop");
         // Kill the Timer.
         if (timer != null)
             timer.cancel();
@@ -162,19 +161,19 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public void printSession(PrintStream ps) {
         ps.println("session statistics ...");
-        ps.println("  getTimeElapsedMillis = " + this.getTimeElapsedMillis());
-        ps.println("  getCumulativeEvents = " + this.getCumulativeEvents());
-        ps.println("  getAverageEventsPerSecond = " + this.getAverageEventsPerSecond());
-        ps.println("  getAverageMegaBytesPerSecond = " + this.getAverageMbPerSecond());
+        ps.println("  timeElapsedMillis = " + this.getTimeElapsedMillis());
+        ps.println("  cumulativeEvents = " + this.getCumulativeEvents());
+        ps.println("  averageEventsPerSecond = " + this.getAverageEventsPerSecond());
+        ps.println("  averageMegaBytesPerSecond = " + this.getAverageMbPerSecond());
         
     }
     
     @Override
     public void printTick(PrintStream ps) {
         ps.println("tick statistics ...");
-        ps.println("  getTickElapsedMillis = " + this.getTickElapsedMillis());
-        ps.println("  getEventsSinceTick = " + this.getEventsInTick());
-        ps.println("  getBytesSinceTick = " + this.getBytesInTick());
+        ps.println("  tickElapsedMillis = " + this.getTickElapsedMillis());
+        ps.println("  eventsSinceTick = " + this.getEventsInTick());
+        ps.println("  bytesSinceTick = " + this.getBytesInTick());
     }
     
     @Override

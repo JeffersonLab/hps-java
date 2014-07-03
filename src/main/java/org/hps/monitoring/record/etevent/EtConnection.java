@@ -79,7 +79,7 @@ public class EtConnection {
      * Cleanup the ET connection.
      */
     public void cleanup() {
-        boolean debug = true;
+        boolean debug = false;
         try {
             if (!sys.alive()) {
                 throw new RuntimeException("EtSystem is not alive!");
@@ -160,8 +160,8 @@ public class EtConnection {
     
     /**
      * Read EtEvent objects from the ET ring.  
-     * Preserve all specific Exception types in throws clause so caller
-     * can implement their own error and state handling.
+     * Preserve all specific Exception types in the throws clause so caller
+     * may implement their own error and state handling.
      * @return
      * @throws IOException
      * @throws EtException

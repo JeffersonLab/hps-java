@@ -34,7 +34,6 @@ import org.lcsim.util.loop.LCIOEventSource;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Make sure that end run EVIO events cause the processing to end.
 public class EventProcessingChain extends AbstractLoopListener {
       
     /**
@@ -61,7 +60,7 @@ public class EventProcessingChain extends AbstractLoopListener {
     private LCSimEventBuilder eventBuilder;
     private int totalEventsProcessed;
     private String detectorName;
-    private Exception lastException;
+    private Throwable lastError;
     private boolean done;
     private boolean paused;
     private boolean wasSetup;
@@ -246,7 +245,7 @@ public class EventProcessingChain extends AbstractLoopListener {
     public void suspend(LoopEvent loopEvent) {
         if (loopEvent.getException() != null) {
             loopEvent.getException().printStackTrace();
-            lastException = (Exception) loopEvent.getException();
+            lastError = (Exception) loopEvent.getException();
         }
     }
     
@@ -261,24 +260,29 @@ public class EventProcessingChain extends AbstractLoopListener {
                 try {
                     if (compositeLoop.getState() != State.IDLE)
                         throw new IllegalLoopStateException(compositeLoop.getState());
-                    // Execute GO on the composite loop.
                     compositeLoop.execute(Command.GO, true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    // Set the exception.
-                    this.lastException = e;
-                }
+                } catch (RuntimeException exception) {
+                    setLastError(exception);
+                } 
                 
                 // When an exception occurs, which can sometimes just be control flow,
                 // the event processing should stop.
-                if (lastException != null) {
-                    lastException.printStackTrace();
-                    if (!done)
-                        // Call finish manually here as the loop was suspended.
-                        finish(); 
+                if (lastError != null) {
+                    if (!done) {
+                        // Call finish manually here as the loop was suspended.                        
+                        finish();
+                    }
                 } 
             }
         }
+    }
+        
+    void setLastError(Throwable error) {
+        this.lastError = error;
+    }
+    
+    public Throwable getLastError() {
+        return lastError;
     }
 
     /**
@@ -295,12 +299,8 @@ public class EventProcessingChain extends AbstractLoopListener {
      * Finish the event processing.
      */
     public void finish() {
-        // TODO: Add check here for correct loop state.
-        try {
-            compositeLoop.execute(Command.STOP);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // TODO: Add check here for correct loop state.        
+        compositeLoop.execute(Command.STOP);    
         done = true;
     }    
         

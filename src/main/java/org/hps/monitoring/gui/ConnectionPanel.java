@@ -49,7 +49,6 @@ class ConnectionPanel extends FieldsPanel {
      */
     ConnectionPanel() {
 
-        //super(new Insets(1, 1, 1, 1), true);
         super(new Insets(5, 5, 5, 5), true);
 
         setLayout(new GridBagLayout());
@@ -79,6 +78,7 @@ class ConnectionPanel extends FieldsPanel {
      * @return The connection parameters.
      */
     void cache() {
+        //System.out.println("cache ...");
         connectionParameters = new EtConnectionParameters();
         connectionParameters.setBufferName(etNameField.getText());
         connectionParameters.setHost(hostField.getText());
@@ -93,6 +93,7 @@ class ConnectionPanel extends FieldsPanel {
         connectionParameters.setWaitMode(getWaitMode());
         connectionParameters.setWaitTime(Integer.parseInt(waitTimeField.getText()));
         connectionParameters.setPreScale(Integer.parseInt(prescaleField.getText()));
+        //System.out.println("cache done");
     }
     
     void revert() {
@@ -251,6 +252,7 @@ class ConnectionPanel extends FieldsPanel {
      * @param file The properties file.
      */
     void loadPropertiesFile(File file) {
+        //System.out.println("loadPropertiesFile ...");
         Properties prop = new Properties();
         try {
             prop.load(new FileInputStream(file));
@@ -268,10 +270,13 @@ class ConnectionPanel extends FieldsPanel {
             waitTimeField.setText(prop.getProperty("waitTime"));
             prescaleField.setText(prop.getProperty("prescale"));
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
             showErrorDialog(e.getLocalizedMessage());
         } catch (IOException e) {
+            e.printStackTrace();
             showErrorDialog(e.getLocalizedMessage());
         }
         cache();
+        //System.out.println("done with loadPropertiesFile");
     }
 }

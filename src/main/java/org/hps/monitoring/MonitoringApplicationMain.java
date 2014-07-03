@@ -2,6 +2,8 @@ package org.hps.monitoring;
 
 import java.io.File;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -11,6 +13,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.monitoring.gui.MonitoringApplication;
 
+/**
+ * Front-end for running the monitoring app via a {@link #main(String[])} method.
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class MonitoringApplicationMain {
 
     /**
@@ -27,7 +33,7 @@ public class MonitoringApplicationMain {
         CommandLineParser parser = new PosixParser();
 
         // Parse command line arguments.
-        CommandLine cl = null;
+        final CommandLine cl;
         try {
             cl = parser.parse(options, args);
         } catch (ParseException e) {
@@ -36,26 +42,29 @@ public class MonitoringApplicationMain {
 
         // Print help and exit.
         if (cl.hasOption("h")) {
-            System.out.println("MonitoringApplication [options]");
             HelpFormatter help = new HelpFormatter();
             help.printHelp(" ", options);
             System.exit(1);
         }
 
-        // Create the application class.
-        MonitoringApplication app = new MonitoringApplication();
-
-        // Load the connection settings.
-        if (cl.hasOption("c")) {
-            app.loadConnectionSettings(new File(cl.getOptionValue("c")));
-        }
-
-        // Load the job settings.
-        if (cl.hasOption("j")) {
-            app.loadJobSettings(new File(cl.getOptionValue("j")));
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
         
-        app.setVisible(true);
-    }
-    
+                // Create the application class.
+                MonitoringApplication app = new MonitoringApplication();
+
+                // Load the connection settings.
+                if (cl.hasOption("c")) {
+                    app.loadConnectionSettings(new File(cl.getOptionValue("c")));
+                }
+
+                // Load the job settings.
+                if (cl.hasOption("j")) {
+                    app.loadJobSettings(new File(cl.getOptionValue("j")));
+                }
+        
+                app.setVisible(true);
+            }
+        });
+    }    
 }

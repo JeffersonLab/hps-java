@@ -15,6 +15,7 @@ public class SystemStatusImpl implements SystemStatus {
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
     String systemName = "";
     String description = "";
+    boolean masked;
     
     SystemStatusImpl(String systemName, String description) {
         this.systemName = systemName;
@@ -47,7 +48,8 @@ public class SystemStatusImpl implements SystemStatus {
         this.code = code;
         this.message = message;
         setCurrentTime();
-        notifyListeners();
+        if (!isMasked())
+            notifyListeners();
     }
 
     @Override
@@ -71,5 +73,15 @@ public class SystemStatusImpl implements SystemStatus {
     
     private void setCurrentTime() {
         this.lastChangedMillis = System.currentTimeMillis();
+    }
+ 
+    @Override
+    public void setMasked(boolean masked) {
+        this.masked = masked;
+    }
+    
+    @Override
+    public boolean isMasked() {
+        return masked;
     }
 }

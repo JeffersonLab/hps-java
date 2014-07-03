@@ -7,7 +7,7 @@ package org.hps.monitoring.record;
 public class EventProcessingThread extends Thread {
     
     EventProcessingChain processing;
-    
+           
     public EventProcessingThread(EventProcessingChain processing) {
         super("EventProcessingThread");
         this.processing = processing;
@@ -22,7 +22,9 @@ public class EventProcessingThread extends Thread {
         try {
             processing.loop();
         } catch (Exception e) {
+            System.out.println("EventProcessingThread caught exception...");
             e.printStackTrace();
+            return; // DEBUG
         }
     }
 }

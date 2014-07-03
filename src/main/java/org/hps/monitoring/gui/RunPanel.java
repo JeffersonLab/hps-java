@@ -114,7 +114,7 @@ public class RunPanel extends JPanel {
         }
         
         public void endJob() {
-            System.out.println("RunPanelUpdater.endJob");
+            //System.out.println("RunPanelUpdater.endJob");
             timer.cancel();
             timer.purge();
         }

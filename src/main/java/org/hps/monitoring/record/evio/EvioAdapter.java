@@ -45,12 +45,24 @@ public class EvioAdapter extends AbstractLoopListener implements RecordListener 
     
     @Override
     public void finish(LoopEvent event) {
-        System.out.println("EvioAdapter.finish");
+        //System.out.println("EvioAdapter.finish");
         for (EvioEventProcessor processor : processors) {
-            System.out.println(processor.getClass().getCanonicalName() + ".endJob");
+            //System.out.println(processor.getClass().getCanonicalName() + ".endJob");
             processor.endJob();
         }
     }    
+    
+    // NOTE: This is called between every execution of the GO_N command!!!
+    public void suspend(LoopEvent event) {
+        //System.out.println("EvioAdapter.suspend");        
+        if (event.getException() != null) {
+            //System.out.println("current error: " + event.getException().getMessage());
+            //System.out.println("ending job from suspend");
+            for (EvioEventProcessor processor : processors) {
+                processor.endJob();
+            }
+        }
+    }
     
     void addEvioEventProcessor(EvioEventProcessor processor) {
         processors.add(processor);

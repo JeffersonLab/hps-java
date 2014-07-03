@@ -114,7 +114,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
             if (stopOnEndRun)
                 throw new EndRunException("EVIO end event received, and stop on end run is enabled.");
         
-        System.out.println("done with EvioProcessingStep.processEvent");
+        //System.out.println("done with EvioProcessingStep.processEvent");
     }
     
     /**
