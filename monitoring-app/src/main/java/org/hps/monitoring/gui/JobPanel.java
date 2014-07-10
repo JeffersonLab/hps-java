@@ -145,28 +145,25 @@ class JobPanel extends FieldsPanel {
      * Check that the steering file or resource is valid.
      * @return True if steering is valid; false if not.
      */
-    boolean checkSteering() {
+    void checkSteering() throws IOException {
         String steering = steeringFileField.getText();
         int steeringType = steeringTypeComboBox.getSelectedIndex();		
         if (RESOURCE == steeringType) {
             // Check that steering resource exists.
             InputStream is = getClass().getResourceAsStream(steering);
             if (is == null) {
-                return false;
-            } else {
-                return true;
+                throw new IOException("Steering resource does not exist or is not accessible.");
             }
         } else if (FILE == steeringType) {
             // Check that steering file exists.
             File f = new File(steering);
             if (!f.exists()) {
-                return false;
-            } else {
-                return true;
-            }
+                throw new IOException("Steering file does not exist or is not readable.");
+            } 
         } else {
-            throw new IllegalArgumentException("The steeringType is invalid: " + steeringType);
-        }               
+            // Can this actually ever happen???
+            throw new IOException("The steering type is invalid.");
+        }
     }
      
     /**
