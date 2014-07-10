@@ -10,6 +10,7 @@ import org.freehep.record.loop.RecordLoop.State;
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.LCSimEventBuilder;
 import org.hps.monitoring.record.composite.CompositeRecordLoop;
+import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.record.etevent.EtEventSource;
 import org.hps.monitoring.record.evio.EvioEventProcessor;
@@ -20,16 +21,16 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCIOEventSource;
 
 /**
- * This class provides a serial implementation of the monitoring event
- * processing chain.  This is accomplished by chaining together implementations 
- * of FreeHep's <tt>RecordLoop</tt> via a <tt>CompositeRecordLoop</tt>.  The
- * processing for each record type is done from a record listener on the 
- * composite loop.
+ * This class provides a serial implementation of the event processing chain
+ * for the monitoring app.  Implementations of FreeHep's <tt>RecordLoop</tt> 
+ * are chained together via a <tt>CompositeRecordLoop</tt>.  The processing for 
+ * each record type is done by activating registered processors on their
+ * individual loop implementations.
  * 
  * The processing chain can be configured to execute the ET, EVIO event building,
- * or LCIO eventing building stages.  The source can be set to an ET ring,
+ * or LCIO event building stages.  The source can be set to an ET ring,
  * EVIO file source, or LCIO file source.  Any number of event processors
- * can be registered with the different loops for processing the different 
+ * can be registered with the three different loops for processing the different 
  * record types, in order to plot, update a GUI component, or analyze the events.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -69,14 +70,14 @@ public class EventProcessingChain extends AbstractLoopListener {
     private EvioProcessingStep evioStep = new EvioProcessingStep();
     private LcioProcessingStep lcioStep = new LcioProcessingStep();
     private CompositeRecordLoop compositeLoop = new CompositeRecordLoop();
-        
+            
     /**
      * No argument constructor.  
      * The setter methods should be used to configure this class.
      */
     public EventProcessingChain() {  
     }
-        
+            
     /**
      * Setup the event processing chain based on the current configuration.
      */
@@ -221,6 +222,14 @@ public class EventProcessingChain extends AbstractLoopListener {
      */
     public void add(EvioEventProcessor processor) {
         evioStep.getLoop().addEvioEventProcessor(processor);
+    }
+    
+    /**
+     * Add a processor of composite events.
+     * @param processor The processor of composite events.
+     */
+    public void add(CompositeRecordProcessor processor) {
+        compositeLoop.addProcessor(processor);
     }
     
     /**

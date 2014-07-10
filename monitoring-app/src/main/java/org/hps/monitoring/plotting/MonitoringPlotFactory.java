@@ -14,25 +14,25 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 
 /**
- * This class implements an AIDA IPlotterFactory for the monitoring application. 
+ * This class implements an AIDA <code>IPlotterFactory</code> for the monitoring application. 
  * It extends the JFree plotter by putting plots into tabs. Each plotter factory 
  * is given its own top-level tab in a root tabbed pane, under which are separate tabs 
  * for each plotter. The root pane is static and shared across all plotter factories. 
- * It is set externally by the MonitoringApplication before any calls to AIDA are made 
- * from Drivers.
+ * The top level component is set externally by the MonitoringApplication before any calls 
+ * to AIDA are made from Drivers.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringPlotFactory.java,v 1.6 2013/12/10 07:36:40 jeremy Exp $
  */
 // FIXME: Move to plotting package.
 public class MonitoringPlotFactory extends PlotterFactory {
 
-    /* The name of the factory which will be used in naming tabs in the monitoring app. */
+    // The name of the factory which will be used in naming tabs in the monitoring app.
     String name = null;
 
-    /* The GUI tabs for this factory's plots. */
+    // The GUI tabs for this factory's plots.
     private JTabbedPane tabs = new JTabbedPane();
 
-    /* Root pane where this factory's top-level tab will be inserted. */
+    // Root pane where this factory's top-level tab will be inserted.
     private static JTabbedPane rootPane = null;
 
     /**
@@ -41,10 +41,10 @@ public class MonitoringPlotFactory extends PlotterFactory {
     MonitoringPlotFactory() {
         super();
         
-        /* Enable embedded mode. */
+        // Enable embedded mode.
         setEmbedded(true);
 
-        /* Setup the root pane by adding a tab for this factory. */
+        // Setup the root pane by adding an (unlabeled!) tab for this factory.
         setupRootPane("  ");
     }
 
@@ -62,7 +62,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
     }
 
     private void setupRootPane(String name) {
-        // FIXME: hack
+        // FIXME: Hack to disregard call from an AIDA related class.
         if (!(new RuntimeException()).getStackTrace()[2].getClassName()
                 .equals("hep.aida.ref.plotter.style.registry.StyleStoreXMLReader")) {
             rootPane.addTab(name, tabs);
@@ -111,7 +111,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
     }
     
     /**
-     * Create a strip chart with a pure JFreeChart implementation.     
+     * Create a strip chart using a JFreeChart implementation.     
      * It will be automatically updated from a {@link StripChartUpdater}.    
      * Similar to AIDA plots, the chart will be given a sub-tab in the tab 
      * of this factory.
@@ -130,6 +130,15 @@ public class MonitoringPlotFactory extends PlotterFactory {
         return updater;
     }
     
+    /**
+     * Create a strip chart which must be updated manually.
+     * @param title The title of the chart.
+     * @param yAxisLabel The y axis label.
+     * @param maxAge The maximum age of items to keep.
+     * @param maxCount The maximum count of items.
+     * @param rangeSize The size of the data range.
+     * @return The strip chart as a <code>JFreeChart</code>.
+     */
     public JFreeChart createStripChart(String title, String yAxisLabel, int maxAge, int maxCount, int rangeSize) {
         JFreeChart stripChart = StripChartBuilder.createTimeSeriesChart(title, yAxisLabel, maxAge, maxCount, rangeSize);
         stripChart.getLegend().setVisible(false); /* Legend turned off for now. */

@@ -39,14 +39,12 @@ public class EtEventLoop extends DefaultRecordLoop {
     
     protected void handleClientError(Throwable x) {
         if (x != null) {
-            //x.printStackTrace();
             throw new RuntimeException(x);
         }
     }
 
     protected void handleSourceError(Throwable x) {
         if (x != null) {
-            //x.printStackTrace();
             throw new RuntimeException(x);
         }
     }     

@@ -11,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
+import org.hps.monitoring.record.composite.CompositeRecord;
+import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 
@@ -28,6 +30,9 @@ public class RunPanel extends JPanel {
     FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);;
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
     FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
+    
+    Timer timer;
+    long jobStartMillis;
           
     RunPanel() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -45,11 +50,40 @@ public class RunPanel extends JPanel {
         this.setMinimumSize(new Dimension(0, 190));
     }
     
+    void clear() {
+        runNumberField.setValue("");
+        startDateField.setValue("");
+        endDateField.setValue("");
+        lengthField.setValue("");
+        totalEventsField.setValue("0");
+        elapsedTimeField.setValue("");
+        eventsReceivedField.setValue("0");
+        dataReceivedField.setValue("0");
+    }
+    
+    void startRunTimer() {
+        timer = new Timer("UpdateTime");
+        jobStartMillis = System.currentTimeMillis();   
+        TimerTask updateTimeTask = new TimerTask() {                       
+            public void run() {
+                final long elapsedTime = (System.currentTimeMillis() - jobStartMillis) / 1000;
+                elapsedTimeField.setValue(elapsedTime);
+            }            
+        };
+        timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);
+    }
+    
+    void stopRunTimer() {
+        timer.cancel();
+        timer.purge();
+    }
+    
     /**
      * An <tt>EvioEventProcessor</tt> for updating the <tt>RunPanel</tt>
-     * by processing EVIO events.
+     * by processing EVIO events and extracting information from them
+     * such as run parameters.
      */
-    class RunPanelUpdater extends EvioEventProcessor {
+    class EvioUpdater extends EvioEventProcessor {
     
         long startMillis;
         long endMillis;
@@ -59,27 +93,16 @@ public class RunPanel extends JPanel {
         long jobStartMillis;
         
         public void startJob() {
-            eventsReceived = 0;
-            runNumberField.setValue("");
-            startDateField.setValue("");
-            endDateField.setValue("");
-            lengthField.setValue("");
-            totalEventsField.setValue("0");
-            
-            timer = new Timer("UpdateTime");
-            jobStartMillis = System.currentTimeMillis();   
-            TimerTask updateTimeTask = new TimerTask() {                       
-                public void run() {
-                    final long elapsedTime = (System.currentTimeMillis() - jobStartMillis) / 1000;
-                    elapsedTimeField.setValue(elapsedTime);
-                }            
-            };        
-            timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);            
+            eventsReceived = 0;            
+            clear();
+            RunPanel.this.startRunTimer();
         }
         
         public void processEvent(EvioEvent event) {
             ++eventsReceived;
             totalBytes += (long)event.getTotalBytes();
+            
+            // FIXME: This should only happen every X seconds.
             eventsReceivedField.setValue(eventsReceived);
             dataReceivedField.setValue(totalBytes);
         }
@@ -114,9 +137,39 @@ public class RunPanel extends JPanel {
         }
         
         public void endJob() {
-            //System.out.println("RunPanelUpdater.endJob");
-            timer.cancel();
-            timer.purge();
+            RunPanel.this.stopRunTimer();
         }
     }
+    
+    /**
+     * A processor for updating the GUI using only the generic
+     * composite record information.  This is used when there is no
+     * source EVIO file e.g. when an LCIO data source is being used.
+     * Several fields such as the data received are not updated by 
+     * this class.
+     * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+     */
+    class CompositeRecordUpdater extends CompositeRecordProcessor {
+        
+        long startMillis;
+        long endMillis;
+        int eventsReceived;
+        long jobStartMillis;
+        
+        public void startJob() {
+            eventsReceived = 0;            
+            clear();                        
+            RunPanel.this.startRunTimer();
+        }
+        
+        public void processEvent(CompositeRecord event) {
+            ++eventsReceived;
+            // FIXME: This should only happen every X seconds.
+            eventsReceivedField.setValue(eventsReceived);
+        }
+                
+        public void endJob() {
+            RunPanel.this.stopRunTimer();
+        }
+    }    
 }

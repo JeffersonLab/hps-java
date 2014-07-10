@@ -4,16 +4,19 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 
 /**
- * The container for the job and connection settings.
+ * The container component with the tabs which have job and connection settings.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class SettingsPanel extends JPanel implements ActionListener {
@@ -21,9 +24,11 @@ class SettingsPanel extends JPanel implements ActionListener {
     JTabbedPane tabs;
     JobPanel jobPanel = new JobPanel();
     ConnectionPanel connectionPanel = new ConnectionPanel();
-    static final String okayCommand = "SETTINGS_OKAY";
-    static final String cancelCommand = "SETTINGS_CANCEL";
+    DataSourcePanel dataSourcePanel = new DataSourcePanel();
+    static final String okayCommand = "settingsOkay";
+    static final String cancelCommand = "settingsCancel";
     JDialog parent;
+    ErrorHandler errorHandler;
     
     SettingsPanel(JDialog parent) {
         
@@ -34,6 +39,7 @@ class SettingsPanel extends JPanel implements ActionListener {
         tabs = new JTabbedPane();
         tabs.addTab("Connection Settings", connectionPanel);
         tabs.addTab("Job Settings", jobPanel);
+        tabs.addTab("Data Source", dataSourcePanel);
         add(tabs);
                 
         JButton okayButton = new JButton("Okay");
@@ -61,6 +67,10 @@ class SettingsPanel extends JPanel implements ActionListener {
         return jobPanel;
     }
     
+    DataSourcePanel getDataSourcePanel() {
+        return dataSourcePanel;
+    }
+    
     /**
      * Caches the object for the settings based on current GUI values.
      */
@@ -76,12 +86,34 @@ class SettingsPanel extends JPanel implements ActionListener {
         connectionPanel.revert();
         jobPanel.revert();
     }
-
+    
+    String getError() {
+        try {
+            this.dataSourcePanel.checkFile();            
+            return null;
+        } catch (IOException e) {
+            return e.getMessage();
+        }
+    }
+        
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals(okayCommand)) {
-            cache();
-            parent.setVisible(false);
+            final String errorMessage = getError();
+            if (errorMessage != null) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        JOptionPane.showMessageDialog(
+                                SettingsPanel.this, 
+                                errorMessage, 
+                                "Settings Error", 
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+            } else {
+                cache();
+                parent.setVisible(false);
+            }                
         } else if (e.getActionCommand().equals(cancelCommand)) {
             revert();
             parent.setVisible(false);

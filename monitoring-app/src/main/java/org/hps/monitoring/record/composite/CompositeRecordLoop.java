@@ -1,7 +1,5 @@
 package org.hps.monitoring.record.composite;
 
-import java.io.IOException;
-
 import org.freehep.record.loop.DefaultRecordLoop;
 import org.freehep.record.source.RecordSource;
 
@@ -41,14 +39,10 @@ public class CompositeRecordLoop extends DefaultRecordLoop {
     }
     
     protected void handleClientError(Throwable x) {
-        //System.out.println("CompositeRecordLoop.handleClientError - handling error " + x.getClass().getCanonicalName());
-        //x.printStackTrace();
         throw new RuntimeException("Error during event processing.", x);
     }
 
     protected void handleSourceError(Throwable x) {
-        //System.out.println("CompositeRecordLoop.handleSourceError - handling error " + x.getClass().getCanonicalName());        
-        //x.printStackTrace();
         throw new RuntimeException("Error during event processing.", x);
     }        
 }

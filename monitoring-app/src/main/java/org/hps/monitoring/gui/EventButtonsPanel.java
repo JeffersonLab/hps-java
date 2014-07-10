@@ -9,8 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 /**
- * This is the panel for controlling the application when it is in pause mode,
- * e.g. to step to the next event, etc.
+ * This is the panel with buttons for connecting or disconnecting 
+ * and controlling the app from pause mode.
  */
 class EventButtonsPanel extends JPanel {
 

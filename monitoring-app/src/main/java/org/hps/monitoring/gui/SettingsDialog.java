@@ -6,7 +6,8 @@ import java.awt.event.WindowEvent;
 import javax.swing.JDialog;
 
 /**
- * The modal dialog for entering settings.
+ * The modal dialog for entering settings.  It contains a <code>JPanel</code>
+ * with the different settings sub-tabs.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SettingsDialog extends JDialog {

@@ -2,6 +2,7 @@ package org.hps.monitoring.gui;
 
 /**
  * These strings are used to identify ActionEvents in the MonitoringApplication.
+ * A few commands handled only by sub-components are not listed here.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
