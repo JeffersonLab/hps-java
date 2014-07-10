@@ -12,7 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 /**
- * This class is used to provide utility methods for the data panels in the application tabs.
+ * A <code>JPanel</code> which has a number of fields with the labels
+ * in the first column and the components for showing/editing the fields
+ * in the second.  It uses <code>GridBagConstraints</code> for layout.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: FieldsPanel.java,v 1.3 2013/11/05 17:15:04 jeremy Exp $
  */

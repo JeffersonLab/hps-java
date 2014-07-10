@@ -20,16 +20,10 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
      * Callback for loop finish event.
      * @param loopEvent 
      */
-    // FIXME: Should this check if an error occurred?
     public void finish(LoopEvent loopEvent) {
-        
-        //System.out.println("CompositeRecordLoopAdapter.finish");        
-        //if (loopEvent.getException() != null)
-        //    loopEvent.getException().printStackTrace();      
-        // Call end job hook on all registered processors, which are 
-        // responsible for sending the stop command to their loops, if applicable.
         for (CompositeRecordProcessor processor : processors) {
-            //System.out.println("calling endJob() on " + processor.getClass().getCanonicalName() + "...");
+            // Call end job hook on all registered processors, which are 
+            // responsible for sending the stop command to their loops.
             processor.endJob();
         }
     }
@@ -39,7 +33,7 @@ public class CompositeRecordLoopAdapter extends AbstractLoopListener implements 
      * @param processor The composite record processor to add.
      */
     void addProcessor(CompositeRecordProcessor processor) {
-        this.processors.add(processor);
+        processors.add(processor);
     }
         
     /**

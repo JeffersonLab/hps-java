@@ -1,7 +1,7 @@
 package org.hps.monitoring.record;
 
 /**
- * Thread for handling the event processing chain.
+ * Thread for running the event processing chain.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EventProcessingThread extends Thread {
@@ -22,9 +22,7 @@ public class EventProcessingThread extends Thread {
         try {
             processing.loop();
         } catch (Exception e) {
-            System.out.println("EventProcessingThread caught exception...");
-            e.printStackTrace();
-            return; // DEBUG
+            throw new RuntimeException("Error in event processing.", e);
         }
     }
 }

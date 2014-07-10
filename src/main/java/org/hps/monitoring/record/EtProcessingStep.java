@@ -10,7 +10,8 @@ import org.hps.monitoring.record.etevent.EtEventLoop;
 import org.jlab.coda.et.EtEvent;
 
  /**
-  * ET processing step to load an <tt>EtEvent</tt> from the ET ring.
+  * ET processing step to load an <tt>EtEvent</tt> from the ET ring
+  * using a {@link org.hps.monitoring.record.etevent.EtEventLoop}.
   */
 class EtProcessingStep extends CompositeRecordProcessor {
  

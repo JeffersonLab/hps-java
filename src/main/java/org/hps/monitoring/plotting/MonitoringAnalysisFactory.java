@@ -9,14 +9,14 @@ import hep.aida.ref.AnalysisFactory;
 
 /**
  * This class implements the AIDA <code>IAnalysisFactory</code> for the monitoring application,
- * so that plots are automatically rendered into its tabs.  Its primary function is overriding
- * {@link #createPlotterFactory()} and {@link #createPlotterFactory(String)} to return a custom
- * <code>IPlotterFactory</code> object.
+ * which puts plots into a series of tabs.  Each <code>IPlotter</code> has its own tab where
+ * its regions are shown.  This class overrides {@link #createPlotterFactory()} and 
+ * {@link #createPlotterFactory(String)} to return a custom <code>IPlotterFactory</code> object
+ * that implements this behavior.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringAnalysisFactory.java,v 1.4 2013/12/10 07:36:40 jeremy Exp $
  */
-// FIXME: Move to plotting package.
 public class MonitoringAnalysisFactory extends AnalysisFactory {
     
     public MonitoringAnalysisFactory() {
@@ -30,6 +30,9 @@ public class MonitoringAnalysisFactory extends AnalysisFactory {
         System.setProperty("hep.aida.IAnalysisFactory", MonitoringAnalysisFactory.class.getName());
     }
     
+    /**
+     * Do some JFreeChart related configuration.
+     */
     public static void configure() {
         ChartFactory.setChartTheme(new DefaultChartTheme());
         XYBarRenderer.setDefaultShadowsVisible(false);

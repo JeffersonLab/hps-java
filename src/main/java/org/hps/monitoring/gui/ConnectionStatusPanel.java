@@ -28,11 +28,16 @@ class ConnectionStatusPanel extends JPanel {
     
     // Format for date field.
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss");
+    
+    private static final int PANEL_HEIGHT = 50;
+    private static final int PANEL_WIDTH = 400;
 
     /**
      * Class constructor.
      */
     ConnectionStatusPanel() {
+        
+        setMinimumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         
         setLayout(new GridBagLayout());
         //setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));        
@@ -101,10 +106,7 @@ class ConnectionStatusPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.insets = new Insets(10, 0, 0, 0);
-        add(new JSeparator(SwingConstants.HORIZONTAL), c);
-        
-        // Set default status.
-        //setStatus(ConnectionStatus.DISCONNECTED);
+        add(new JSeparator(SwingConstants.HORIZONTAL), c);        
     }
 
     /**

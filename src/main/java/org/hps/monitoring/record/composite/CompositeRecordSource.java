@@ -59,6 +59,7 @@ public class CompositeRecordSource extends AbstractRecordSource {
 
     @Override
     public boolean hasNext() {
+        // FIXME: Not sure about this.
         return true;
     }
 }

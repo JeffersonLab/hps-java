@@ -17,7 +17,7 @@ public final class StripChartBuilder {
     }
     
     /**
-     * This is appropriate for a strip chart that will be updated at fixed intervals on a timer.
+     * This creates a strip chart that will be updated at fixed intervals from a timer.
      * @param title
      * @param yAxisLabel
      * @param size
@@ -40,7 +40,8 @@ public final class StripChartBuilder {
     /**
      * This should be used when the time period for updating is variable. 
      * 
-     * To update a chart of this type:     
+     * To update a chart of this type:  
+     *    
      * <code>sensorSeries.add(new Minute(new Date()), newData);</code>
      * 
      * @param title
@@ -48,11 +49,7 @@ public final class StripChartBuilder {
      * @param maxAge
      * @param maxCount
      * @return
-     */
-    /* 
-
-    */
-    // TODO: test case
+     */    
     public static JFreeChart createTimeSeriesChart(String title, String yAxisLabel, int maxAge, int maxCount, int rangeSize) {
         
         TimeSeriesCollection dataset = new TimeSeriesCollection();

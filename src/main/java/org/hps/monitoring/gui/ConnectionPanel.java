@@ -78,7 +78,6 @@ class ConnectionPanel extends FieldsPanel {
      * @return The connection parameters.
      */
     void cache() {
-        //System.out.println("cache ...");
         connectionParameters = new EtConnectionParameters();
         connectionParameters.setBufferName(etNameField.getText());
         connectionParameters.setHost(hostField.getText());
@@ -93,9 +92,12 @@ class ConnectionPanel extends FieldsPanel {
         connectionParameters.setWaitMode(getWaitMode());
         connectionParameters.setWaitTime(Integer.parseInt(waitTimeField.getText()));
         connectionParameters.setPreScale(Integer.parseInt(prescaleField.getText()));
-        //System.out.println("cache done");
     }
     
+    /**
+     * This will reset the GUI parameters from the current connection parameters,
+     * discarding any possible changes the user made recently.
+     */
     void revert() {
         setConnectionParameters(connectionParameters);
     }
@@ -140,7 +142,7 @@ class ConnectionPanel extends FieldsPanel {
     }
 
     /**
-     * Set the connection parameters and push into the GUI.
+     * Set the connection parameters and push them into the GUI.
      * @param cn The connection parameters.
      */
     private void setConnectionParameters(EtConnectionParameters connectionParameters) {
@@ -181,7 +183,7 @@ class ConnectionPanel extends FieldsPanel {
     }
 
     /**
-     * Load connection parameters from a selected file.
+     * Load connection parameters from a properties file using a file chooser.
      */
     void load() {
         JFileChooser fc = new JFileChooser();
@@ -193,14 +195,14 @@ class ConnectionPanel extends FieldsPanel {
     }
 
     /**
-     * Reset the connection parameters.
+     * Reset the connection parameters to their defaults.
      */
     void reset() {
         setConnectionParameters(new EtConnectionParameters());
     }
 
     /**
-     * Write connection parameters to a file.
+     * Write the connection parameters to a properties file.
      * @param file The output properties file.
      */
     void writePropertiesFile(File file) {
@@ -252,7 +254,6 @@ class ConnectionPanel extends FieldsPanel {
      * @param file The properties file.
      */
     void loadPropertiesFile(File file) {
-        //System.out.println("loadPropertiesFile ...");
         Properties prop = new Properties();
         try {
             prop.load(new FileInputStream(file));
@@ -269,14 +270,10 @@ class ConnectionPanel extends FieldsPanel {
             setWaitMode(prop.getProperty("waitMode"));
             waitTimeField.setText(prop.getProperty("waitTime"));
             prescaleField.setText(prop.getProperty("prescale"));
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            showErrorDialog(e.getLocalizedMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            showErrorDialog(e.getLocalizedMessage());
-        }
+            JOptionPane.showMessageDialog(this, e.getLocalizedMessage());
+        } 
         cache();
-        //System.out.println("done with loadPropertiesFile");
     }
 }

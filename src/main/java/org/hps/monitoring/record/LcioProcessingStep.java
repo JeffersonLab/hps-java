@@ -8,24 +8,25 @@ import org.hps.evio.LCSimEventBuilder;
 import org.hps.monitoring.record.composite.CompositeRecord;
 import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.lcio.LcioEventQueue;
+import org.hps.monitoring.record.lcio.LcioLoop;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
  * Processing step for building LCIO events from EVIO
- * or reading them from an input event file.
+ * or reading them directly from an input event file.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class LcioProcessingStep extends CompositeRecordProcessor {
 
-    LCSimLoop loop = new LCSimLoop();
+    LcioLoop loop = new LcioLoop();
     LCSimEventBuilder builder;
     LcioEventQueue lcioEventQueue;
     
     /**
-     * Get the <code>LCSimLoop</code> associated with this processing step.
-     * @return The <code>LCSimLoop</code> associated with this processing step.
+     * Get the <code>LcioLoop</code> associated with this processing step.
+     * @return The <code>LcioLoop</code> associated with this processing step.
      */
     LCSimLoop getLoop() {
         return this.loop;
@@ -62,7 +63,7 @@ class LcioProcessingStep extends CompositeRecordProcessor {
      * and adding it to the record.
      */
     public void processEvent(CompositeRecord record) throws Exception {
-
+        
         // When the loop does not have a direct LCIO file source, 
         // the events need to be built from the EVIO input.
         if (lcioEventQueue != null) {
@@ -88,10 +89,14 @@ class LcioProcessingStep extends CompositeRecordProcessor {
             if (!loop.getRecordSource().hasNext())
                 throw new NoSuchRecordException("No next LCIO event.");
         }
-            
+                
+        if (!loop.getRecordSource().hasNext())
+            throw new NoSuchRecordException("No next LCIO event.");
+        
         // Load the next LCIO event.
+        // FIXME: Why does this work even if the event source says it doesn't have a next record?!
         loop.execute(NEXT);
-
+                      
         // The last call to the loop did not create a current record.
         if (loop.getRecordSource().getCurrentRecord() == null) {
             throw new NoSuchRecordException("No current LCIO event.");
@@ -99,7 +104,7 @@ class LcioProcessingStep extends CompositeRecordProcessor {
         
         // Get the current LCIO event.
         EventHeader lcioEvent = (EventHeader) loop.getRecordSource().getCurrentRecord();
-        
+                
         // Update the CompositeRecord with reference to the LCIO event.
         record.setLcioEvent(lcioEvent);
     }

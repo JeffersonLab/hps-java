@@ -53,12 +53,12 @@ class ScreenUtil {
     static Rectangle getScreenBounds(int index) {
         return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds();
     }
-
-    // TODO: Add multi-monitor config ...
-    // http://stackoverflow.com/questions/4627553/java-show-jframe-in-a-specific-screen-in-dual-monitor-configuration
-    // Should put main panel on half of screen #1 and system status panel in right half of same screen.
-    // The plot panel should fill screen #2.
     
-    // TODO: Add single monitor config.
-    // Should have main panel in upper left, system status panel in lower left, and plots on right.
+    static double getBoundsX(int index) {
+        return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds().getX();
+    }
+    
+    static double getBoundsY(int index) {
+        return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds().getY();
+    }
 }

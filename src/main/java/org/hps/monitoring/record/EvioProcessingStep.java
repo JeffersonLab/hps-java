@@ -21,7 +21,7 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * EVIO processing step to build an <tt>EvioEvent</tt> from the <tt>EtEvent</tt>
- * or load the next <tt>EvioEvent</tt> from a file if using an EVIO file source.
+ * or load the next <tt>EvioEvent</tt> from a file, if using an EVIO file source.
  */
 class EvioProcessingStep extends CompositeRecordProcessor {
    
@@ -30,7 +30,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
     EvioEventQueue evioEventQueue;
     boolean stopOnEndRun;
 
-    // FIXME: Should this be extending IOException?
+    // FIXME: Should this really be extending IOException?
     class EndRunException extends IOException {
         EndRunException(String message) {
             super(message);
@@ -120,7 +120,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
     /**
      * Create an <tt>EvioEvent</tt> from the current <tt>EtEvent</tt>.
      * @param etEvent
-     * @return
+     * @return The created EVIO event.
      * @throws IOException
      * @throws EvioException
      * @throws BufferUnderflowException
@@ -131,8 +131,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
     }
     
     /**
-     * When reading from ET data, the EVIO event number needs to be set manually
-     * from the event ID bank.
+     * Set the EVIO event number manually from the event ID bank.
      * @param evioEvent The <tt>EvioEvent</tt> on which to set the event number.
      */
     private void setEventNumber(EvioEvent evioEvent) {
@@ -150,7 +149,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
     }
     
     /**
-     * Call stop on the EVIO processing loop.
+     * End the job by calling stop on the EVIO processing loop.
      */
     public void endJob() {
         this.loop.execute(Command.STOP);

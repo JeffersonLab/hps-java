@@ -28,10 +28,7 @@ public class EtEventAdapter extends AbstractLoopListener implements RecordListen
     
     // NOTE: This is called between every execution of the GO_N command!!!
     public void suspend(LoopEvent event) {
-        //System.out.println("EtEventAdapter.suspend");        
-        if (event.getException() != null) {
-            //System.out.println("current error: " + event.getException().getMessage());
-            //System.out.println("ending job from suspend");
+        if (event.getException() != null) { 
             for (EtEventProcessor processor : processors) {
                 processor.endJob();
             }
