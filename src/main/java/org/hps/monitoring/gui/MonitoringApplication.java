@@ -26,8 +26,6 @@ import static org.hps.monitoring.gui.MonitoringCommands.SET_STEERING_RESOURCE;
 import static org.hps.monitoring.gui.MonitoringCommands.SHOW_SETTINGS;
 
 import java.awt.Dimension;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -92,6 +90,7 @@ import org.lcsim.util.loop.LCIOEventSource;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: MonitoringApplication.java,v 1.61 2013/12/10 07:36:40 jeremy Exp $
  */
+// TODO: Test all application error handling!
 // TODO: Review GUI size settings.
 // TODO: Add handler for uncaught exceptions.
 // TODO: Add back option to continue if event processing errors occur.  
@@ -588,7 +587,10 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 settings.save(f);
                 log(Level.INFO, "Saved Job Settings to properties file < " + f.getPath() + " >");
             } catch (IOException e) {                
-                errorHandler.setError(e).log().showErrorDialog();
+                errorHandler.setError(e)
+                    .printStackTrace()
+                    .log()
+                    .showErrorDialog();
             }
         }
     }
@@ -607,7 +609,10 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 getJobPanel().setJobSettings(new JobSettings(f));
                 log(Level.INFO, "Loaded Job Settings from file < " + f.getPath() + " >");
             } catch (IOException e) {
-                errorHandler.setError(e).log().showErrorDialog();
+                errorHandler.setError(e)
+                    .printStackTrace()
+                    .log()
+                    .showErrorDialog();
             }
         }
     }
@@ -683,7 +688,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 AIDA.defaultInstance().saveAs(fileName);
                 logger.log(Level.INFO, "Plots saved to file < " + fileName + " >");
             } catch (IOException e) {
-                errorHandler.setError(e).log().showErrorDialog();
+                errorHandler.setError(e)
+                    .setMessage("Error saving plots to file.")
+                    .printStackTrace()
+                    .log()
+                    .showErrorDialog();
             } 
         }
     }
@@ -702,7 +711,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 getJobPanel().setSteeringType(JobPanel.FILE);
                 log("Steering file set to < " + fileName.getPath() + " >");
             } catch (Exception e) {
-                errorHandler.setError(e).setMessage("Failed to read steering file.").showErrorDialog();
+                errorHandler.setError(e)
+                    .setMessage("Error reading steering file.")
+                    .printStackTrace()
+                    .log()
+                    .showErrorDialog();
             }
         }
     }
@@ -770,7 +783,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
 
                     log("Redirected System output to file < " + logFile.getPath() + " >");
                 } catch (IOException e) {
-                    errorHandler.setError(e).setMessage("Error redirecting System.out to file.").log().showErrorDialog();
+                    errorHandler.setError(e)
+                        .setMessage("Error redirecting System.out to file.")
+                        .log()
+                        .printStackTrace()
+                        .showErrorDialog();
                 }
             }
         }
@@ -917,7 +934,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
             BufferedImage image = robot.createScreenCapture(screenRectangle);
             ImageIO.write(image, screenshotFormat, new File(fileName));
         } catch (Exception e) {
-            errorHandler.setError(e).setMessage("Screenshot failed.").log().showErrorDialog();
+            errorHandler.setError(e)
+                .setMessage("Failed to take screenshot.")
+                .printStackTrace()
+                .log()
+                .showErrorDialog();
         }
     }
 
@@ -947,7 +968,7 @@ public class MonitoringApplication extends JFrame implements ActionListener {
         log(Level.FINE, "Starting a new monitoring session.");
         
         // Show a modal window that will block the GUI until connected or an error occurs.
-        JDialog dialog = createModalDialog("Info", "Starting new session ...", true);
+        JDialog dialog = showStatusDialog("Info", "Starting new session ...", true);
         
         try {
                         
@@ -983,7 +1004,9 @@ public class MonitoringApplication extends JFrame implements ActionListener {
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             
             // Handle the error that occurred.
-            errorHandler.setError(e).printStackTrace().log();
+            errorHandler.setError(e)
+                .printStackTrace()
+                .log();
             
             // Disconnect from the session.
             // FIXME: Is this okay when ET is not being used e.g. for direct file streaming?
@@ -1117,8 +1140,13 @@ public class MonitoringApplication extends JFrame implements ActionListener {
         log(Level.CONFIG, "Set LCSim steering to < " + steering + " > with type < " + (steeringType == JobPanel.RESOURCE ? "RESOURCE" : "FILE") + " >");
 
         // Check if the LCSim steering file looks valid.
-        if (getJobPanel().checkSteering() == false) {
-            errorHandler.setError(new RuntimeException("Steering file is invalid.")).log().printStackTrace().raiseException();
+        try {
+            getJobPanel().checkSteering();
+        } catch (IOException e) {
+            errorHandler.setError(e)
+                .log()
+                .printStackTrace()
+                .raiseException();
         }
 
         try {
@@ -1140,7 +1168,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
 
         } catch (Exception e) {
             // Catch all other setup exceptions and re-throw them as RuntimeExceptions.
-            errorHandler.setError(e).setMessage("Failed to setup LCSim.").log().printStackTrace().raiseException();
+            errorHandler.setError(e)
+                .setMessage("Failed to setup LCSim.")
+                .log()
+                .printStackTrace()
+                .raiseException();
         }
 
         log(Level.INFO, "LCSim setup was successful.");
@@ -1189,7 +1221,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
         } else {
             // Some error occurred and the connection is not valid.
             setConnectionStatus(ConnectionStatus.ERROR);
-            errorHandler.setError(new RuntimeException("Failed to create ET connection")).log().printStackTrace().raiseException();
+            
+            errorHandler.setError(new RuntimeException("Failed to create ET connection"))
+                .log()
+                .printStackTrace()
+                .raiseException();
         }
     }
 
@@ -1217,7 +1253,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                     out.close();
                     log("Saved log to file < " + logFile.getPath() + " >");
                 } catch (IOException e) {                    
-                    errorHandler.setError(e).setMessage("Error saving log to file.").log().printStackTrace().showErrorDialog();
+                    errorHandler.setError(e)
+                        .setMessage("Error saving log to file.")
+                        .log()
+                        .printStackTrace()
+                        .showErrorDialog();
                 }
             }
         }
@@ -1371,7 +1411,10 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 eventProcessing.setRecordSource(new LCIOEventSource(new File(filePath)));
                 log(Level.FINE, "LCIO file < " + filePath + " >");
             } catch (IOException e) {
-                errorHandler.setError(e).log().printStackTrace().raiseException();
+                errorHandler.setError(e)
+                    .log()
+                    .printStackTrace()
+                    .raiseException();
             }
         }
     }
@@ -1404,7 +1447,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
             try {
                 AIDA.defaultInstance().saveAs(getJobPanel().getAidaAutoSaveFileName());
             } catch (IOException e) {
-                errorHandler.setError(e).setMessage("Error saving AIDA file.").log().printStackTrace().showErrorDialog();
+                errorHandler.setError(e)
+                    .setMessage("Error saving AIDA file.")
+                    .log()
+                    .printStackTrace()
+                    .showErrorDialog();
             }
         }
     }
@@ -1415,7 +1462,7 @@ public class MonitoringApplication extends JFrame implements ActionListener {
      */
     private void stopSession() {
         // Show a modal message window.
-        JDialog dialog = createModalDialog("Info", "Disconnecting from session ...", true);
+        JDialog dialog = showStatusDialog("Info", "Disconnecting from session ...", true);
         
         // Log message.
         logger.log(Level.FINER, "Stopping the ET session.");
@@ -1441,13 +1488,13 @@ public class MonitoringApplication extends JFrame implements ActionListener {
     /**
      * Show a dialog which is modal-like but will not block the current thread
      * from executing after <code>isVisible(true)</code> is called.  It does not 
-     * have any buttons for closing it so must be closed using an action event.
+     * have any buttons so must be closed using an action event.
      * @param title The title of the dialog box.
      * @param message The message to display.
      * @param visible Whether it should be immediately visible.
      * @return The JDialog that was created.
      */
-    JDialog createModalDialog(String title, String message, boolean visible) {
+    JDialog showStatusDialog(String title, String message, boolean visible) {
         final JOptionPane optionPane = new JOptionPane(
                 message, 
                 JOptionPane.INFORMATION_MESSAGE,
@@ -1545,6 +1592,7 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 eventProcessingThread.join();
 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
+                // FIXME: When this happens the event processing object and its thread don't get set to null!
                 actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
 
             } catch (InterruptedException e) {
