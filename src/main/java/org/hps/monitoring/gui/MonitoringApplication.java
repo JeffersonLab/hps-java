@@ -79,6 +79,9 @@ import org.hps.monitoring.record.etevent.EtConnection;
 import org.hps.monitoring.record.etevent.EtConnectionParameters;
 import org.hps.monitoring.record.etevent.EtEventSource;
 import org.hps.monitoring.record.evio.EvioFileSource;
+import org.hps.monitoring.subsys.SystemStatus;
+import org.hps.monitoring.subsys.SystemStatusRegistry;
+import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.aida.AIDA;
@@ -106,6 +109,7 @@ public class MonitoringApplication extends JFrame implements ActionListener {
     private JMenuBar menuBar;
     private SettingsDialog settingsDialog;
     private PlotFrame plotFrame;
+    private SystemStatusFrame systemStatusFrame;
 
     // References to menu items that will be toggled depending on application state.
     private JMenuItem connectItem;
@@ -159,7 +163,7 @@ public class MonitoringApplication extends JFrame implements ActionListener {
     private static final int SCREEN_HEIGHT = ScreenUtil.getScreenHeight();
     private final static int LOG_TABLE_WIDTH = 700; // FIXME: Should be set from main panel width.
     private final static int LOG_TABLE_HEIGHT = 270;
-    private static final int MAIN_FRAME_HEIGHT = 450;
+    private static final int MAIN_FRAME_HEIGHT = ScreenUtil.getScreenHeight() / 2;
     private static final int MAIN_FRAME_WIDTH = 650;
                
     /**
@@ -187,6 +191,8 @@ public class MonitoringApplication extends JFrame implements ActionListener {
 
         // Configuration of window for showing plots.
         createPlotFrame();
+        
+        createSystemStatusFrame();
 
         // Setup AIDA.
         setupAida();
@@ -226,8 +232,17 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                 plotFrame.getY());
     }
     
+    private void createSystemStatusFrame() {
+        systemStatusFrame = new SystemStatusFrame();
+        systemStatusFrame.setLocation(
+                (int)ScreenUtil.getBoundsX(0),
+                MAIN_FRAME_HEIGHT);
+    }
+    
     public void setVisible(boolean visible) {
         super.setVisible(true);
+        
+        this.systemStatusFrame.setVisible(true);
         
         // FIXME: If this is done earlier before app is visible, the GUI will fail to show!
         this.connectionStatusPanel.setStatus(ConnectionStatus.DISCONNECTED);
@@ -975,6 +990,11 @@ public class MonitoringApplication extends JFrame implements ActionListener {
             // Reset the plot panel and global AIDA state.
             resetPlots();
 
+            // The system status registry should be cleared here before any processors
+            // which might have a SystemStatus are added to the event processing chain
+            // e.g. an LCSim Driver, etc.
+            SystemStatusRegistry.getSystemStatusRegistery().clear();
+
             // Setup the LCSim JobControlManager and event builder.
             setupLCSim();
             
@@ -988,6 +1008,9 @@ public class MonitoringApplication extends JFrame implements ActionListener {
 
             // Setup the EventProcessingChain object using the EtConnection.
             setupEventProcessingChain();
+            
+            // Setup the system status monitor table.
+            setupSystemStatusMonitor();
 
             // Start thread which will trigger a disconnect if the event processing thread
             // finishes.
@@ -1366,12 +1389,17 @@ public class MonitoringApplication extends JFrame implements ActionListener {
         eventProcessing.add(jobManager.getDriverExecList());
         
         // Using an ET server or an EVIO file?
-        if (usingEtServer() || usingEvioFile())
+        if (usingEtServer() || usingEvioFile()) {
             // ET or EVIO source can be used for updating the RunPanel.
             eventProcessing.add(runPanel.new EvioUpdater());
-        else
+        
+            // DEBUG: Just testing system status stuff.
+            eventProcessing.add(new EtSystemMonitor());
+            
+        } else {
             // Direct LCIO source so must use a more generic updater for the RunPanel.
             eventProcessing.add(runPanel.new CompositeRecordUpdater());
+        }
         
         // Using an ET server?
         if (usingEtServer())
@@ -1416,6 +1444,14 @@ public class MonitoringApplication extends JFrame implements ActionListener {
                     .printStackTrace()
                     .raiseException();
             }
+        }
+    }
+    
+    private void setupSystemStatusMonitor() {
+        systemStatusFrame.clear();
+        SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
+        for (SystemStatus systemStatus : registry.getSystemStatuses()) {
+            systemStatusFrame.addSystemStatus(systemStatus);
         }
     }
 
@@ -1553,9 +1589,9 @@ public class MonitoringApplication extends JFrame implements ActionListener {
             // Don't know when this would ever happen.
         }
        
-        // Log last error that occurred in event processing.
+        // Handle last error that occurred in event processing.
         if (eventProcessing.getLastError() != null) {
-            logger.log(Level.SEVERE, eventProcessing.getLastError().getMessage());
+            errorHandler.setError(eventProcessing.getLastError()).log().printStackTrace();
         }
        
         // Reset event processing objects.
