@@ -7,17 +7,17 @@ import java.util.List;
  * The implementation of {@link SystemStatus}.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SystemStatusImpl implements SystemStatus {
+public final class SystemStatusImpl implements SystemStatus {
 
     StatusCode code = SystemStatus.StatusCode.UNKNOWN;
     long lastChangedMillis;
     String message;
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
-    String systemName = "";
-    String description = "";
+    final SystemName systemName;
+    final String description;
     boolean active = true;
     
-    public SystemStatusImpl(String systemName, String description) {
+    public SystemStatusImpl(SystemName systemName, String description) {
         this.systemName = systemName;
         this.description = description;
         setLastChangedTime();
@@ -25,7 +25,7 @@ public class SystemStatusImpl implements SystemStatus {
     }
     
     @Override
-    public String getSystemName() {
+    public SystemName getSystemName() {
         return systemName;
     }
     
