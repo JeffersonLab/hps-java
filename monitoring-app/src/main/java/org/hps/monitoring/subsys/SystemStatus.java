@@ -20,31 +20,16 @@ public interface SystemStatus {
      * Code that represents the status of the monitoring quantity.    
      */
     enum StatusCode {
-        
-        /** Status encodings with a string name and descriptor. */
-        OKAY   ("System appears to be working."),
-        UNKNOWN("Status is not known."),
-        OFFLINE("System is currently offline."),               
-        WARNING("There is a non-fatal warning."),
-        ERROR  ("A serious error has occurred."),
-        ALARM  ("A fatal error has tripped an alarm."),
-        HALT   ("The system should be immediately halted.");
-        
-        String description;
-        
-        StatusCode(String description) {
-            this.description = description;
-        }
-                                
-        /**
-         * Get the description of the status.
-         * @return The description of the status.
-         */
-        public String description() {
-            return description;
-        }
+        OKAY, 
+        UNKNOWN,
+        OFFLINE,               
+        WARNING,
+        ERROR,
+        ALARM,
+        HALT;        
     }
     
+    /** Names of valid subsystems that can be monitored. */
     enum SystemName {        
         ET,
         ECAL,
@@ -55,7 +40,7 @@ public interface SystemStatus {
     /**
      * Get the name of the sub-system e.g. "SVT".
      */
-    String getSystemName();
+    SystemName getSystemName();
     
     /**
      * Get the current status code.
@@ -64,19 +49,19 @@ public interface SystemStatus {
     StatusCode getStatusCode();
     
     /**
-     * Get the current message.
-     * @return The current message
-     */
-    String getMessage();
-    
-    /**
      * Get the description of the system status.
      * This is used to differentiate multiple monitoring points
      * on the same sub-system so it could be something like "SVT occupancy rates".
      * @return The description of the system status.
      */
     String getDescription();
-
+    
+    /**
+     * Get the current message.
+     * @return The current message
+     */
+    String getMessage();
+    
     /**
      * Set the current status code, which will cause the last changed 
      * time to be set and the listeners to be notified.
@@ -98,7 +83,8 @@ public interface SystemStatus {
     void addListener(SystemStatusListener listener);
     
     /**
-     * Set whether this status is active.  
+     * Set whether this status is active.  Inactive statuses will not be
+     * updated in the GUI.  This can be changed "on the fly" in the system status panel.
      * Listeners will not be notified of state changes when active is <code>False</code>.     
      */
     void setActive(boolean active);

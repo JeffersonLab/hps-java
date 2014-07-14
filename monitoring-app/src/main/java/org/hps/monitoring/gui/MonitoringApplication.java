@@ -95,7 +95,6 @@ import org.lcsim.util.loop.LCIOEventSource;
  */
 // TODO: Test all application error handling!
 // TODO: Review GUI size settings.
-// TODO: Add handler for uncaught exceptions.
 // TODO: Add back option to continue if event processing errors occur.  
 //       Fatal errors like the ET system being down should still cause an automatic disconnect.
 // FIXME: Review use of the watchdog thread for automatic disconnect.  It may be overcomplicated.
@@ -1448,10 +1447,10 @@ public class MonitoringApplication extends JFrame implements ActionListener {
     }
     
     private void setupSystemStatusMonitor() {
-        systemStatusFrame.clear();
+        systemStatusFrame.getTableModel().clear();
         SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
         for (SystemStatus systemStatus : registry.getSystemStatuses()) {
-            systemStatusFrame.addSystemStatus(systemStatus);
+            systemStatusFrame.getTableModel().addSystemStatus(systemStatus);
         }
     }
 
