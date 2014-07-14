@@ -15,12 +15,13 @@ public class SystemStatusImpl implements SystemStatus {
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
     String systemName = "";
     String description = "";
-    boolean masked;
+    boolean active = true;
     
-    SystemStatusImpl(String systemName, String description) {
+    public SystemStatusImpl(String systemName, String description) {
         this.systemName = systemName;
         this.description = description;
-        setCurrentTime();
+        setLastChangedTime();
+        SystemStatusRegistry.getSystemStatusRegistery().register(this);
     }
     
     @Override
@@ -47,8 +48,8 @@ public class SystemStatusImpl implements SystemStatus {
     public void setStatusCode(StatusCode code, String message) {
         this.code = code;
         this.message = message;
-        setCurrentTime();
-        if (!isMasked())
+        setLastChangedTime();
+        if (isActive())
             notifyListeners();
     }
 
@@ -71,17 +72,17 @@ public class SystemStatusImpl implements SystemStatus {
         }
     }
     
-    private void setCurrentTime() {
+    private void setLastChangedTime() {
         this.lastChangedMillis = System.currentTimeMillis();
     }
  
     @Override
-    public void setMasked(boolean masked) {
-        this.masked = masked;
+    public void setActive(boolean masked) {
+        this.active = masked;
     }
     
     @Override
-    public boolean isMasked() {
-        return masked;
+    public boolean isActive() {
+        return active;
     }
 }

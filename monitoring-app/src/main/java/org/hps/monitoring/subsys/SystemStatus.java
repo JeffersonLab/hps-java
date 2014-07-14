@@ -22,47 +22,34 @@ public interface SystemStatus {
     enum StatusCode {
         
         /** Status encodings with a string name and descriptor. */
-        OKAY   (0, "okay",    "The system appears to be working."),
-        UNKNOWN(1, "unknown", "The status is not known."),
-        OFFLINE(2, "offline", "The system is currently offline."),               
-        WARNING(3, "warning", "There is a non-fatal warning."),
-        ERROR  (4, "error",   "A non-fatal but serious error has occurred."),
-        ALARM  (5, "alarm",   "An error has occurred and an alarm should trip."),
-        HALT   (6, "halt",    "The system should be immediately halted.");
+        OKAY   ("System appears to be working."),
+        UNKNOWN("Status is not known."),
+        OFFLINE("System is currently offline."),               
+        WARNING("There is a non-fatal warning."),
+        ERROR  ("A serious error has occurred."),
+        ALARM  ("A fatal error has tripped an alarm."),
+        HALT   ("The system should be immediately halted.");
         
-        int code;
-        String name;
         String description;
         
-        StatusCode(int code, String name, String description) {
-            this.code = code;
-            this.name = name;
+        StatusCode(String description) {
             this.description = description;
         }
-        
-        /**
-         * Get the raw int code for the status.
-         * @return The raw code.
-         */
-        int getRawCode() {
-            return code;
-        }
-        
-        /**
-         * Get the name of the status.
-         * @return The name of the status.
-         */
-        String getName() {
-            return name;
-        }                  
-        
+                                
         /**
          * Get the description of the status.
          * @return The description of the status.
          */
-        String getDescription() {
+        public String description() {
             return description;
         }
+    }
+    
+    enum SystemName {        
+        ET,
+        ECAL,
+        SVT,
+        TRIGGER;        
     }
     
     /**
@@ -111,15 +98,14 @@ public interface SystemStatus {
     void addListener(SystemStatusListener listener);
     
     /**
-     * Set whether this status is masked on or off.  
-     * Listeners will not be notified of state changes when masked
-     * is set to <code>True</code>.     
+     * Set whether this status is active.  
+     * Listeners will not be notified of state changes when active is <code>False</code>.     
      */
-    void setMasked(boolean masked);
+    void setActive(boolean active);
     
     /**
-     * True if the status has been masked off.
-     * @return True if status is masked off.
+     * True if the status is active.
+     * @return True if status is active.
      */
-    boolean isMasked();
+    boolean isActive();
 }
