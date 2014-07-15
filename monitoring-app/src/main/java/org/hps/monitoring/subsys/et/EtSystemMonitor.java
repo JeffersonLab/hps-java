@@ -17,7 +17,7 @@ import org.jlab.coda.et.EtEvent;
  * It should actually do something useful eventually!
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EtSystemMonitor extends EtEventProcessor implements HasSystemStatus {
+public class EtSystemMonitor extends EtEventProcessor {
 
     SystemStatus systemStatus;
     int events = 0;    
@@ -64,10 +64,5 @@ public class EtSystemMonitor extends EtEventProcessor implements HasSystemStatus
         timer.cancel();
         timer.purge();
         systemStatus.setStatusCode(StatusCode.OFFLINE, "ET job ended.");
-    }
-        
-    @Override
-    public SystemStatus getSystemStatus() {
-        return systemStatus;
-    }
+    }        
 }
