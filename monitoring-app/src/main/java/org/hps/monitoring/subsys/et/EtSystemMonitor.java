@@ -6,7 +6,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.hps.monitoring.record.etevent.EtEventProcessor;
-import org.hps.monitoring.subsys.HasSystemStatus;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatus.StatusCode;
 import org.hps.monitoring.subsys.SystemStatusImpl;
