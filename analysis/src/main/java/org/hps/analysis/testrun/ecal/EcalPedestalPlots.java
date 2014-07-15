@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.ecal;
+package org.hps.analysis.testrun.ecal;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
