@@ -85,7 +85,7 @@ public class BasicMonitoringPlotsDriver extends Driver {
             }
         }
 		
-        if (event.hasCollection(CalorimeterHit.class, clustersCollectionName)) {
+        if (event.hasCollection(Cluster.class, clustersCollectionName)) {
             for (Cluster cluster : event.get(Cluster.class, clustersCollectionName)) {
                 clusterEnergyH1D.fill(cluster.getEnergy());
             }
