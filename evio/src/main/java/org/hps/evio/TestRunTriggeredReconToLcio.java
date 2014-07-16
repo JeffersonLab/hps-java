@@ -49,14 +49,18 @@ public class TestRunTriggeredReconToLcio extends Driver {
     List<MCParticle> mcParticles = null;
     List<SimTrackerHit> trackerHits = null;
     List<SimCalorimeterHit> ecalHits = null;
+    List<SimTrackerHit> ecalScoringPlaneHits = null;
     //MC collections from the last 500n'th event (trident or preselected trigger event)
     List<MCParticle> triggerMCParticles = null;
     List<SimTrackerHit> triggerTrackerHits = null;
     List<SimCalorimeterHit> triggerECalHits = null;
+    List<SimTrackerHit> triggerECalScoringPlaneHits = null;
     static final String ecalCollectionName = "EcalHits";
     static final String trackerCollectionName = "TrackerHits";
     private String relationCollectionName = "SVTTrueHitRelations";
-
+    String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
+    
+    
     public TestRunTriggeredReconToLcio() {
     }
 
@@ -128,16 +132,25 @@ public class TestRunTriggeredReconToLcio extends Driver {
             mcParticles = event.getMCParticles();
             ecalHits = event.getSimCalorimeterHits(ecalCollectionName);
             trackerHits = event.getSimTrackerHits(trackerCollectionName);
+           	if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
+           		ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
+           		System.out.println("Number of Ecal scoring plane hits: " + ecalScoringPlaneHits.size());
+           	}
         }
         if (ClockSingleton.getClock() % triggerSpacing == 0) {
             if (event.hasCollection(MCParticle.class)) {
                 triggerMCParticles = event.getMCParticles();
                 triggerECalHits = event.getSimCalorimeterHits(ecalCollectionName);
                 triggerTrackerHits = event.getSimTrackerHits(trackerCollectionName);
+                if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
+                	triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
+                	System.out.println("Number of triggered Ecal scoring plane hits: " + ecalScoringPlaneHits.size());
+                }
             } else {
                 triggerMCParticles = null;
                 triggerECalHits = null;
                 triggerTrackerHits = null;
+                triggerECalScoringPlaneHits = null; 
             }
         }
 
@@ -150,12 +163,20 @@ public class TestRunTriggeredReconToLcio extends Driver {
                 lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles);
                 lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
                 lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
-                System.out.println("Adding " + mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
+                System.out.println("Adding " +  mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
+                if(ecalScoringPlaneHits != null){
+                	lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0);
+                	System.out.println("Adding " + ecalScoringPlaneHits.size() + " ECalTrackerHits");
+                }
             } else {
                 lcsimEvent.put(MCEvent.MC_PARTICLES, triggerMCParticles);
                 lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
                 lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
-                System.out.println("Adding " + triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
+                System.out.println("Adding " +  triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
+                if(triggerECalScoringPlaneHits != null){
+                	lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0);
+                	System.out.println("Adding " + triggerECalScoringPlaneHits.size() + " ECalTrackerHits");
+                }
             }
             lcsimEvent.put(ReadoutTimestamp.collectionName, event.get(ReadoutTimestamp.class, ReadoutTimestamp.collectionName));
             ++eventNum;
