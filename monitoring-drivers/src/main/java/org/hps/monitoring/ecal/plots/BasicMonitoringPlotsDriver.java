@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.ecal;
+package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -6,8 +6,6 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-
-import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -17,7 +15,7 @@ import org.lcsim.util.Driver;
 
 /**
  * Basic ECal monitoring plots that work on Test Run data.
- * @author jeremym
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class BasicMonitoringPlotsDriver extends Driver {
 	
@@ -80,24 +78,21 @@ public class BasicMonitoringPlotsDriver extends Driver {
 	
 	public void process(EventHeader event) {
 		
-		List<CalorimeterHit> calHits = event.get(CalorimeterHit.class, calHitsCollectionName);
-		for (CalorimeterHit hit : calHits) {
-			calHitEnergyH1D.fill(hit.getCorrectedEnergy());
-			calHitEnergyMapH2D.fill(
-					hit.getIdentifierFieldValue("ix"), 
-					hit.getIdentifierFieldValue("iy"), 
-					hit.getCorrectedEnergy());
-		}
+        if (event.hasCollection(CalorimeterHit.class, calHitsCollectionName)) {
+            for (CalorimeterHit hit : event.get(CalorimeterHit.class, calHitsCollectionName)) {
+                calHitEnergyH1D.fill(hit.getCorrectedEnergy());
+                calHitEnergyMapH2D.fill(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy());
+            }
+        }
 		
-		List<Cluster> clusters = event.get(Cluster.class, clustersCollectionName);
-		for (Cluster cluster : clusters) {
-			clusterEnergyH1D.fill(cluster.getEnergy());
-		}
+        if (event.hasCollection(CalorimeterHit.class, clustersCollectionName)) {
+            for (Cluster cluster : event.get(Cluster.class, clustersCollectionName)) {
+                clusterEnergyH1D.fill(cluster.getEnergy());
+            }
+        }
 		
-		List<RawCalorimeterHit> rawHits = null; 
 		if (event.hasCollection(RawCalorimeterHit.class, rawHitsCollectionName)) {
-			rawHits = event.get(RawCalorimeterHit.class, rawHitsCollectionName); 
-			for (RawCalorimeterHit hit : rawHits) {
+			for (RawCalorimeterHit hit : event.get(RawCalorimeterHit.class, rawHitsCollectionName)) {
 				rawHitAmplitudeH1D.fill(hit.getAmplitude());
 			}
 		}
