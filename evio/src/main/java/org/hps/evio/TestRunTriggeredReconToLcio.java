@@ -14,6 +14,7 @@ import org.hps.conditions.deprecated.QuietBaseLCSimEvent;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerDriver;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
@@ -28,6 +29,7 @@ import org.lcsim.util.Driver;
  * the test run.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @version $Id:$
  */
 public class TestRunTriggeredReconToLcio extends Driver {
 
@@ -134,7 +136,6 @@ public class TestRunTriggeredReconToLcio extends Driver {
             trackerHits = event.getSimTrackerHits(trackerCollectionName);
            	if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
            		ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
-           		System.out.println("Number of Ecal scoring plane hits: " + ecalScoringPlaneHits.size());
            	}
         }
         if (ClockSingleton.getClock() % triggerSpacing == 0) {
@@ -144,7 +145,6 @@ public class TestRunTriggeredReconToLcio extends Driver {
                 triggerTrackerHits = event.getSimTrackerHits(trackerCollectionName);
                 if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
                 	triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
-                	System.out.println("Number of triggered Ecal scoring plane hits: " + ecalScoringPlaneHits.size());
                 }
             } else {
                 triggerMCParticles = null;
