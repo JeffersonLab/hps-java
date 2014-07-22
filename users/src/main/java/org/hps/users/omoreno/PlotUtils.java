@@ -1,6 +1,8 @@
 package org.hps.users.omoreno;
 
 import hep.aida.ICloud2D;
+import hep.aida.IFitResult;
+import hep.aida.IFitter;
 //--- hep ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -99,5 +101,37 @@ public class PlotUtils {
         int region = ix * 4 + iy;
         return region;
     }
+   
+    public static IHistogram1D getYProjection(int binX, IHistogram2D histogram){
+    	int binsY = histogram.yAxis().bins();
+    	double yMin = histogram.yAxis().lowerEdge();
+    	double yMax = histogram.yAxis().upperEdge(); 
+    	
+    	IHistogram1D projection 
+    		= AIDA.defaultInstance().histogram1D(histogram.title() + "_" + binX, binsY, yMin, yMax);
+    	projection.reset();
+    	
+    	double dataY = 0; 
+    	for(int binY = 0; binY < binsY; binY++){
+    		dataY = histogram.binEntries(binX, binY);
+    		projection.fill(yMin, dataY);
+    		yMin++;
+    	}
+    	
+    	return projection; 
+    }
     
+    public static double[] fitToGuassian(IHistogram1D histogram){
+    	
+    	double[] fitParameters = {0, 0};
+    	IFitter fitter = AIDA.defaultInstance().analysisFactory().createFitFactory().createFitter();
+    	IFitResult fitResult = fitter.fit(histogram, "g");
+    	int meanIndex  = fitResult.fittedFunction().indexOfParameter("mean");
+    	fitParameters[0] = fitResult.fittedParameters()[meanIndex];
+
+    	int sigmaIndex  = fitResult.fittedFunction().indexOfParameter("sigma");
+    	fitParameters[1] = fitResult.fittedParameters()[sigmaIndex];
+    	
+		return fitParameters;
+    }
 }
