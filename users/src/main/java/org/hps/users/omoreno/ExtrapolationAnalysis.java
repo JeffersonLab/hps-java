@@ -1,5 +1,7 @@
 package org.hps.users.omoreno;
 
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -81,7 +83,7 @@ public class ExtrapolationAnalysis  extends Driver {
 
 		//--- Plots of residuals at scoring plane ---//
 		//-------------------------------------------//
-		plotter = PlotUtils.setupPlotter("Residuals at scoring plane", 3, 2);
+		plotter = PlotUtils.setupPlotter("Residuals at scoring plane", 3, 3);
 		PlotUtils.setup1DRegion(plotter, "Top tracks - Bend plane residuals at scoring plane", 0, "x_{ep} - x_{sp} (mm)",
 				aida.histogram1D("Top electron tracks - Bend plane residual at scoring plane", 60, -30, 30));
 		PlotUtils.setup1DRegion(plotter, "Top tracks - Bend plane residuals at scoring plane", 0, "x_{ep} - x_{sp} (mm)",
@@ -90,27 +92,35 @@ public class ExtrapolationAnalysis  extends Driver {
 				aida.histogram1D("Bottom electron tracks - Bend plane residuals at scoring plane", 60, -30, 30));
 		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Bend plane residuals at scoring plane", 1, "x_{ep} - x_{sp} (mm)",
 				aida.histogram1D("Bottom positron tracks - Bend plane residuals at scoring plane", 60, -30, 30));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at scoring plane", 2,"y_{ep} - y_{sp} (mm)", 
+		PlotUtils.setup1DRegion(plotter, "Bend plane residuals at scoring plane", 2, "x_{ep} - x_{sp} (mm)",
+				aida.histogram1D("Bend plane residuals at scoring plane", 60, -30, 30));
+		PlotUtils.setup1DRegion(plotter, "Bend plane residuals at scoring plane", 2, "x_{ep} - x_{sp} (mm)",
+				aida.histogram1D("Bend plane residuals at scoring plane", 60, -30, 30));
+		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at scoring plane", 3,"y_{ep} - y_{sp} (mm)", 
 				aida.histogram1D("Top electron tracks - Non-bend plane residuals at scoring plane", 30, -15, 15));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at scoring plane", 2,"y_{ep} - y_{sp} (mm)", 
+		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at scoring plane", 3,"y_{ep} - y_{sp} (mm)", 
 				aida.histogram1D("Top positron tracks - Non-bend plane residuals at scoring plane", 30, -15, 15));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at scoring plane", 3,"y_{ep} - y_{sp} (mm)", 
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at scoring plane", 4,"y_{ep} - y_{sp} (mm)", 
 				aida.histogram1D("Bottom electron tracks - Non-bend plane residuals at scoring plane", 30, -15, 15));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at scoring plane", 3,"y_{ep} - y_{sp} (mm)", 
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at scoring plane", 4,"y_{ep} - y_{sp} (mm)", 
 				aida.histogram1D("Bottom positron tracks - Non-bend plane residuals at scoring plane", 30, -15, 15));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at scoring plane", 4, "z_{ep} - z_{sp} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Non-bend plane residuals at scoring plane", 5,"y_{ep} - y_{sp} (mm)", 
+				aida.histogram1D("Non-bend plane residuals at scoring plane", 30, -15, 15));
+		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at scoring plane", 6, "z_{ep} - z_{sp} (mm)",
 				aida.histogram1D("Top electron tracks - z residuals at scoring plane", 10, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at scoring plane", 4, "z_{ep} - z_{sp} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at scoring plane", 6, "z_{ep} - z_{sp} (mm)",
 				aida.histogram1D("Top positron tracks - z residuals at scoring plane", 10, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at scoring plane", 5, "z_{ep} - z_{sp} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at scoring plane", 7, "z_{ep} - z_{sp} (mm)",
 				aida.histogram1D("Bottom electron tracks - z residuals at scoring plane", 10, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at scoring plane", 5, "z_{ep} - z_{sp} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at scoring plane", 7, "z_{ep} - z_{sp} (mm)",
 				aida.histogram1D("Bottom positron tracks - z residuals at scoring plane", 10, -5, 5));
+		PlotUtils.setup1DRegion(plotter, "z residuals at scoring plane", 7, "z_{ep} - z_{sp} (mm)",
+				aida.histogram1D("z residuals at scoring plane", 10, -5, 5));
 		plotters.add(plotter);	
 		
 		//--- Plots of residuals at target ---//
 		//------------------------------------//
-		plotter = PlotUtils.setupPlotter("Residuals at target", 3, 2);
+		plotter = PlotUtils.setupPlotter("Residuals at target", 3, 3);
 		PlotUtils.setup1DRegion(plotter, "Top tracks - Bend plane residuals at target", 0, "x_{ep} - x_{t} (mm)",
 				aida.histogram1D("Top electron tracks - Bend plane residual at target", 40, -4, 4));
 		PlotUtils.setup1DRegion(plotter, "Top tracks - Bend plane residuals at target", 0, "x_{ep} - x_{t} (mm)",
@@ -119,22 +129,28 @@ public class ExtrapolationAnalysis  extends Driver {
 				aida.histogram1D("Bottom electron tracks - Bend plane residuals at target", 40, -4, 4));
 		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Bend plane residuals at target", 1, "x_{ep} - x_{t} (mm)",
 				aida.histogram1D("Bottom positron tracks - Bend plane residuals at target", 40, -4, 4));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at target", 2, "y_{ep} - y_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bend plane residuals at target", 2, "x_{ep} - x_{t} (mm)",
+				aida.histogram1D("Bend plane residuals at target", 40, -4, 4));
+		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at target", 3, "y_{ep} - y_{t} (mm)",
 				aida.histogram1D("Top electron tracks - Non-bend plane residuals at target", 20, -2, 2));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at target", 2, "y_{ep} - y_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Top tracks - Non-bend plane residuals at target", 3, "y_{ep} - y_{t} (mm)",
 				aida.histogram1D("Top positron tracks - Non-bend plane residuals at target", 20, -2, 2));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at target", 3, "y_{ep} - y_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at target", 4, "y_{ep} - y_{t} (mm)",
 				aida.histogram1D("Bottom electron tracks - Non-bend plane residuals at target", 20, -2, 2));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at target", 3, "y_{ep} - y_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - Non-bend plane residuals at target", 4, "y_{ep} - y_{t} (mm)",
 				aida.histogram1D("Bottom positron tracks - Non-bend plane residuals at target", 20, -2, 2));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at target", 4, "z_{ep} - z_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Non-bend plane residuals at target", 5, "y_{ep} - y_{t} (mm)",
+				aida.histogram1D("Non-bend plane residuals at target", 20, -2, 2));
+		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at target", 6, "z_{ep} - z_{t} (mm)",
 				aida.histogram1D("Top electron tracks - z residuals at target", 50, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at target", 4, "z_{ep} - z_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Top tracks - z residuals at target", 6, "z_{ep} - z_{t} (mm)",
 				aida.histogram1D("Top positron tracks - z residuals at target", 50, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at target", 5, "z_{ep} - z_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at target", 7, "z_{ep} - z_{t} (mm)",
 				aida.histogram1D("Bottom electron tracks - z residuals at target", 50, -5, 5));
-		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at target", 5, "z_{ep} - z_{t} (mm)",
+		PlotUtils.setup1DRegion(plotter, "Bottom tracks - z residuals at target", 7, "z_{ep} - z_{t} (mm)",
 				aida.histogram1D("Bottom positron tracks - z residuals at target", 50, -5, 5));
+		PlotUtils.setup1DRegion(plotter, "z residuals at target", 8, "z_{ep} - z_{t} (mm)",
+				aida.histogram1D("z residuals at target", 50, -5, 5));
 		plotters.add(plotter);	
 		
 		//--- Plot of residuals at scoring plane vs momentum ---//
@@ -157,6 +173,7 @@ public class ExtrapolationAnalysis  extends Driver {
 		for(IPlotter iPlotter : plotters){
 			iPlotter.show(); 
 		}
+		
 	}
 	
 	public void process(EventHeader event){
@@ -220,6 +237,9 @@ public class ExtrapolationAnalysis  extends Driver {
 				}
 			}
 
+			aida.histogram1D("Bend plane residuals at scoring plane").fill(deltaX);
+			aida.histogram1D("Non-bend plane residuals at scoring plane").fill(deltaY);
+			aida.histogram1D("z residuals at target").fill(deltaZ);
 			aida.histogram2D("Bend plane residuals vs momentum at scoring plane").fill(p, deltaX);
 			aida.histogram2D("Non-bend plane residuals vs momentum at scoring plane").fill(p, deltaY);
 		}
@@ -272,8 +292,39 @@ public class ExtrapolationAnalysis  extends Driver {
 				}
 			}
 			
+			aida.histogram1D("Bend plane residuals at target").fill(deltaX);
+			aida.histogram1D("Non-bend plane residuals at target").fill(deltaY);
+			aida.histogram1D("z residuals at target").fill(deltaZ);
 			aida.histogram2D("Bend plane residuals vs momentum at target").fill(p, deltaX);
 			aida.histogram2D("Non-bend plane residuals vs momentum at target").fill(p, deltaY);
+		}
+	}
+	
+	@Override
+	protected void endOfData(){
+		
+		IHistogram2D histogram = aida.histogram2D("Bend plane residuals vs momentum at scoring plane");
+		int binsX = histogram.xAxis().bins();
+		for(int binX = 0; binX < binsX; binX++){
+			PlotUtils.getYProjection(binX, histogram);
+		}
+		
+		histogram = aida.histogram2D("Non-bend plane residuals vs momentum at scoring plane");
+		binsX = histogram.xAxis().bins();
+		for(int binX = 0; binX < binsX; binX++){
+			PlotUtils.getYProjection(binX, histogram);
+		}
+	
+		histogram = aida.histogram2D("Bend plane residuals vs momentum at target");
+		binsX = histogram.xAxis().bins();
+		for(int binX = 0; binX < binsX; binX++){
+			PlotUtils.getYProjection(binX, histogram);
+		}
+		
+		histogram = aida.histogram2D("Non-bend plane residuals vs momentum at target");
+		binsX = histogram.xAxis().bins();
+		for(int binX = 0; binX < binsX; binX++){
+			PlotUtils.getYProjection(binX, histogram);
 		}
 	}
 	
