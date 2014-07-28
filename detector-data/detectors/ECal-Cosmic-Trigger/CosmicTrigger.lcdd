@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="ECal-Cosmic-Trigger" />
-    <generator name="GeomConverter" version="1.0" file="/Users/air/Documents/workspace/detector-data/detectors/ECal-Cosmic-Trigger/compact.xml" checksum="1272619872" />
+    <generator name="GeomConverter" version="1.0" file="detectors/ECal-Cosmic-Trigger/compact.xml" checksum="2227438001" />
     <author name="NONE" />
     <comment>Geometry for ECal Cosmic Trigger run</comment>
   </header>
@@ -386,10 +386,10 @@
       <rotation name="TOFBottomPaddleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TOFBottomPaddleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="TOFBottomPaddleVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TOFScoring_TOFTopPaddle_layer1_module0_position" x="3.75" y="1250.0" z="1473.0" unit="mm" />
-      <rotation name="TOFScoring_TOFTopPaddle_layer1_module0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TOFScoring_TOFBottomPaddle_layer2_module0_position" x="3.75" y="-1250.0" z="1473.0" unit="mm" />
-      <rotation name="TOFScoring_TOFBottomPaddle_layer2_module0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TOFScoring_TOFTopPaddle_layer1_module0_position" x="37.5" y="1250.0" z="1473.0" unit="mm" />
+      <rotation name="TOFScoring_TOFTopPaddle_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="TOFScoring_TOFBottomPaddle_layer2_module0_position" x="37.5" y="-1250.0" z="1473.0" unit="mm" />
+      <rotation name="TOFScoring_TOFBottomPaddle_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="crystal1-1_pos_pos_bot" x="50.052304484827026" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0084372997827221" z="0.0" unit="radian" />
       <position name="crystal1-1_pos_neg_bot" x="35.00282593403595" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
@@ -1396,12 +1396,12 @@
       <box name="BeamRightBox" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
-      <box name="TOFTopPaddleBox" x="0.001" y="5.0" z="30.75" />
-      <box name="TOFTopPaddleVolume_component0Box" x="0.001" y="5.0" z="30.75" />
-      <box name="TOFTopPaddleVolume_component0Sensor0Box" x="0.001" y="5.0" z="30.75" />
-      <box name="TOFBottomPaddleBox" x="0.001" y="5.0" z="30.75" />
-      <box name="TOFBottomPaddleVolume_component0Box" x="0.001" y="5.0" z="30.75" />
-      <box name="TOFBottomPaddleVolume_component0Sensor0Box" x="0.001" y="5.0" z="30.75" />
+      <box name="TOFTopPaddleBox" x="5.0" y="615.0" z="100.0" />
+      <box name="TOFTopPaddleVolume_component0Box" x="5.0" y="615.0" z="100.0" />
+      <box name="TOFTopPaddleVolume_component0Sensor0Box" x="5.0" y="615.0" z="100.0" />
+      <box name="TOFBottomPaddleBox" x="5.0" y="615.0" z="100.0" />
+      <box name="TOFBottomPaddleVolume_component0Box" x="5.0" y="615.0" z="100.0" />
+      <box name="TOFBottomPaddleVolume_component0Sensor0Box" x="5.0" y="615.0" z="100.0" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
       <eltube name="flange_egap_inside_tube" lunit="mm" dx="26.33" dy="26.33" dz="30" />
       <eltube name="flange_photontube_inside" lunit="mm" dx="11" dy="11" dz="30" />

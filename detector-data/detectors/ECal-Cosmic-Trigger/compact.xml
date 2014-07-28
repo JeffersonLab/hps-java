@@ -376,18 +376,18 @@
         <detector id="28" name="TOFScoring" type="HPSTracker2" readout="TrackerHitsTOF" insideTrackingVolume="false" >
             <comment>Scoring plane above and below ECal in scintillator locations for cosmics</comment>
             <module name="TOFTopPaddle">
-                <box x="10.0/2" y="scoringThickness" />
-                <module_component thickness="61.5/2" material = "Vacuum" sensitive="true"/>
+                <box x="615" y="5" />
+                <module_component thickness="100" material = "Vacuum" sensitive="true"/>
             </module>
             <module name="TOFBottomPaddle">
-                <box x="10.0/2" y="scoringThickness" />
-                <module_component thickness="61.5/2" material = "Vacuum" sensitive="true"/>
+                <box x="615" y="5" />
+                <module_component thickness="100" material = "Vacuum" sensitive="true"/>
             </module>     
             <layer id="1"><!-- top TOF -->
-                <module_placement name="TOFTopPaddle" id="0" x="3.75" y="1250.0" z="1473.0" rx="0" ry="0" rz="0"/>
+                <module_placement name="TOFTopPaddle" id="0" x="37.5" y="1250.0" z="1473.0" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2"><!-- bottom TOF -->
-                <module_placement name="TOFBottomPaddle" id="0" x="3.75" y="-1250.0" z="1473.0" rx="0" ry="0" rz="0"/>
+                <module_placement name="TOFBottomPaddle" id="0" x="37.5" y="-1250.0" z="1473.0" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>                  
         </detector> 
        
