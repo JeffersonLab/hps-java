@@ -15,7 +15,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Proof of principle Driver for plotting a sub-system's data using a strip chart.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalStripChartTestDriver extends Driver {
            
