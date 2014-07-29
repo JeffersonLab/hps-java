@@ -16,10 +16,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.hps.monitoring.enums.ConnectionStatus;
+
 /**
  * This is the panel for showing the current connection status (connected, disconnected, etc.).
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConnectionStatusPanel.java,v 1.11 2013/11/05 17:15:04 jeremy Exp $
  */
 class ConnectionStatusPanel extends JPanel {
 
@@ -107,19 +107,30 @@ class ConnectionStatusPanel extends JPanel {
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.insets = new Insets(10, 0, 0, 0);
         add(new JSeparator(SwingConstants.HORIZONTAL), c);        
-    }
-
+    }       
+    
     /**
      * Set the connection status.
      * @param status The status code.
      */
+    /*
     void setStatus(final int status) {
-        if (status < 0 || status > (ConnectionStatus.NUMBER_STATUSES - 1)) {
+        if (status < 0 || status > (ConnectionStatus.values().length - 1)) {
             throw new IllegalArgumentException("Invalid status argument: " + status);
         }
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                statusField.setText(ConnectionStatus.toString(status));
+                statusField.setText(ConnectionStatus.values()[status].name());
+                dateField.setText(dateFormat.format(new Date()));
+            }
+        });
+    }
+    */
+    
+    void setConnectionStatus(final ConnectionStatus status) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                statusField.setText(status.name());
                 dateField.setText(dateFormat.format(new Date()));
             }
         });

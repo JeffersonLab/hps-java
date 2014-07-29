@@ -2,7 +2,6 @@ package org.hps.monitoring.record;
 
 /**
  * Thread for running the event processing chain.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EventProcessingThread extends Thread {
     

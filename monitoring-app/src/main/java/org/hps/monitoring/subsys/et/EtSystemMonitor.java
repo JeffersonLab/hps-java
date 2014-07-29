@@ -1,20 +1,17 @@
 package org.hps.monitoring.subsys.et;
 
-import static org.hps.monitoring.subsys.SystemStatus.SystemName.ET;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.hps.monitoring.enums.StatusCode;
+import org.hps.monitoring.enums.Subsystem;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.subsys.SystemStatus;
-import org.hps.monitoring.subsys.SystemStatus.StatusCode;
 import org.hps.monitoring.subsys.SystemStatusImpl;
 import org.jlab.coda.et.EtEvent;
 
 /**
- * This is just a test class for a monitor of the ET system.
- * It should actually do something useful eventually!
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is a test class for monitoring the ET system.
  */
 public class EtSystemMonitor extends EtEventProcessor {
 
@@ -25,8 +22,8 @@ public class EtSystemMonitor extends EtEventProcessor {
     Timer timer = new Timer("ET Event Monitor");
     
     public EtSystemMonitor() {
-        systemStatus = new SystemStatusImpl(ET, "Example ET Monitor");
-        systemStatus.setStatusCode(StatusCode.UNKNOWN, "System is not active yet.");
+        systemStatus = new SystemStatusImpl(Subsystem.ET, "Example ET Monitor");
+        systemStatus.setStatus(StatusCode.UNKNOWN, "System is not active yet.");
     }
     
     public void setWarningIntervalMillis(long warningIntervalMillis) {
@@ -34,7 +31,7 @@ public class EtSystemMonitor extends EtEventProcessor {
     }
     
     public void startJob() {
-        systemStatus.setStatusCode(StatusCode.OKAY, "ET job started.");
+        systemStatus.setStatus(StatusCode.OKAY, "ET job started.");
         TimerTask task = new TimerTask() {                    
             long startedMillis = 0;
             public void run() {
@@ -46,9 +43,9 @@ public class EtSystemMonitor extends EtEventProcessor {
                 else
                     elapsedMillis = System.currentTimeMillis() - eventReceivedMillis;                
                 if (elapsedMillis > warningIntervalMillis) 
-                    systemStatus.setStatusCode(StatusCode.WARNING, "No ET events received for " + elapsedMillis + " millis.");
+                    systemStatus.setStatus(StatusCode.WARNING, "No ET events received for " + elapsedMillis + " millis.");
                 else
-                    systemStatus.setStatusCode(StatusCode.OKAY, "ET events received.");
+                    systemStatus.setStatus(StatusCode.OKAY, "ET events received.");
             }            
         };
         
@@ -62,6 +59,6 @@ public class EtSystemMonitor extends EtEventProcessor {
     public void endJob() {
         timer.cancel();
         timer.purge();
-        systemStatus.setStatusCode(StatusCode.OFFLINE, "ET job ended.");
+        systemStatus.setStatus(StatusCode.OFFLINE, "ET job ended.");
     }        
 }

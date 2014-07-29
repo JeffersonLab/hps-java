@@ -20,8 +20,6 @@ import org.jfree.chart.JFreeChart;
  * for each plotter. The root pane is static and shared across all plotter factories. 
  * The top level component is set externally by the MonitoringApplication before any calls 
  * to AIDA are made from Drivers.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: MonitoringPlotFactory.java,v 1.6 2013/12/10 07:36:40 jeremy Exp $
  */
 // FIXME: Move to plotting package.
 public class MonitoringPlotFactory extends PlotterFactory {

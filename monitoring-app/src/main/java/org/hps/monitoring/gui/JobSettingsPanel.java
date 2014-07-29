@@ -2,6 +2,7 @@ package org.hps.monitoring.gui;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -22,12 +24,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.hps.monitoring.config.Configurable;
+import org.hps.monitoring.config.Configuration;
+import org.hps.monitoring.enums.SteeringType;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
+
 /**
  * The panel for setting job parameters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: JobPanel.java,v 1.17 2013/11/05 17:15:04 jeremy Exp $
  */
-class JobPanel extends FieldsPanel {
+class JobSettingsPanel extends AbstractFieldsPanel implements Configurable, ActionListener {
 
     private JTextField detectorNameField;
     //private JCheckBox disconnectOnErrorCheckBox;
@@ -44,16 +52,15 @@ class JobPanel extends FieldsPanel {
     
     private String steeringPackage = "org/hps/steering/monitoring/";
 
-    private String defaultEventBuilderClassName = (new JobSettings()).eventBuilderClassName;
+    // FIXME: This should probably be in some kind of global config file.
+    private String DEFAULT_EVENT_BUILDER_CLASS_NAME = "org.hps.evio.LCSimTestRunEventBuilder";
 
-    private final static String[] steeringTypes = {"RESOURCE", "FILE"};
-    final static int RESOURCE = 0;
-    final static int FILE = 1;
+    private final static String[] steeringTypes = { SteeringType.RESOURCE.name(), SteeringType.FILE.name()};
     
-    JobSettings settings;
+    Configuration config;
     
     /**
-     * The available LogLevel settings.
+     * The available LogLevel settings as an array of strings.
      */
     String[] logLevels = new String[] {
         Level.ALL.toString(),
@@ -64,35 +71,46 @@ class JobPanel extends FieldsPanel {
         Level.INFO.toString(),
         Level.WARNING.toString(),
         Level.SEVERE.toString(),
-        Level.OFF.toString()};
+        Level.OFF.toString()
+    };
 
     /**
      * Class constructor.
      */
-    JobPanel() {
+    JobSettingsPanel() {
 
         super(new Insets(4, 2, 2, 4), true);
         setLayout(new GridBagLayout());
 
         pauseModeCheckBox = addCheckBox("Pause mode", false, true);
         //disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
+        
         logLevelComboBox = addComboBox("Log Level", this.logLevels);
         logLevelComboBox.setActionCommand(MonitoringCommands.SET_LOG_LEVEL);
+        
         steeringTypeComboBox = addComboBox("Steering Type", steeringTypes);  
-        steeringFileField = addField("Steering File", 35);  	      
+        steeringFileField = addField("Steering File", 35);
+                     
+        JButton steeringFileButton = addButton("Select Steering File");
+        steeringFileButton.setActionCommand(MonitoringCommands.CHOOSE_STEERING_FILE);
+        steeringFileButton.addActionListener(this);
+        
         steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", 
                 getAvailableSteeringFileResources(steeringPackage));
         steeringResourcesComboBox.setActionCommand(MonitoringCommands.SET_STEERING_RESOURCE);
+        
         detectorNameField = addField("Detector Name", 20);
+        
         eventBuilderField = addField("Event Builder Class", 30);
         eventBuilderField.setActionCommand(MonitoringCommands.SET_EVENT_BUILDER);
-        logCheckBox = addCheckBox("Log to File", false, false);
-        logFileField = addField("Log File", "", "Full path to log file.", 30, false);
-        aidaSaveCheckBox = addCheckBox("Save AIDA at End of Job", false, false);
-        aidaSaveField = addField("AIDA Auto Save File Name", "", 30, false);
         
-        // Set default job settings.
-        setJobSettings(new JobSettings());
+        logCheckBox = addCheckBox("Log to File", false, false);
+        logCheckBox.setEnabled(false);
+        
+        logFileField = addField("Log File", "", "Full path to log file.", 30, false);
+        
+        aidaSaveCheckBox = addCheckBox("Save AIDA at End of Job", false, false);
+        aidaSaveField = addField("AIDA Auto Save File Name", "", 30, false);        
     }
     
     /**
@@ -113,7 +131,8 @@ class JobPanel extends FieldsPanel {
      */
     void addActionListener(ActionListener listener) {
         steeringResourcesComboBox.addActionListener(listener);
-        logLevelComboBox.addActionListener(listener);
+        //logLevelComboBox.addActionListener(listener);
+        logFileField.addActionListener(listener);
         eventBuilderField.addActionListener(listener);
     }
         
@@ -142,34 +161,71 @@ class JobPanel extends FieldsPanel {
     }
 
     /**
+     * Choose an lcsim steering file.
+     */
+    void chooseSteeringFile() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Choose an LCSim Steering File");
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showDialog(this, "Select ...");
+        if (r == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            try {
+                checkSteeringFile(file);
+                setSteeringFile(file);
+            } catch (Exception e) {
+                
+            }
+        }        
+    }
+    
+    void checkSteeringFile(File file) throws IOException, JDOMException {
+        SAXBuilder builder = new SAXBuilder();
+        Document document = builder.build(file);
+        Element rootNode = document.getRootElement();
+        if (!rootNode.getName().equals("lcsim")) {
+            throw new IOException("Not an LCSim XML file.");
+        }
+    }
+
+    /**
      * Check that the steering file or resource is valid.
      * @return True if steering is valid; false if not.
      */
-    void checkSteering() throws IOException {
-        String steering = steeringFileField.getText();
-        int steeringType = steeringTypeComboBox.getSelectedIndex();		
-        if (RESOURCE == steeringType) {
+    /*
+    void checkSteering() throws IOException {        
+        SteeringType steeringType = SteeringType.values()[steeringTypeComboBox.getSelectedIndex()];
+        System.out.println("checkSteering - " + steeringType.name());        
+        if (steeringType.equals(SteeringType.RESOURCE)) {
+            
+            String steeringResource = getSteeringResource();
+            System.out.println("steeringResource = " + steeringResource);
+            
             // Check that steering resource exists.
-            InputStream is = getClass().getResourceAsStream(steering);
+            InputStream is = getClass().getResourceAsStream(steeringResource);
             if (is == null) {
                 throw new IOException("Steering resource does not exist or is not accessible.");
             }
-        } else if (FILE == steeringType) {
+        } else if (steeringType.equals(SteeringType.FILE)) {
+            
+            // Get steering file.
+            String steeringFilePath = steeringFileField.getText();
+            System.out.println("steeringFilePath = " + steeringFilePath);
+            
             // Check that steering file exists.
-            File f = new File(steering);
+            File f = new File(steeringFilePath);
             if (!f.exists()) {
                 throw new IOException("Steering file does not exist or is not readable.");
             } 
-        } else {
-            // Can this actually ever happen???
-            throw new IOException("The steering type is invalid.");
-        }
+        } 
     }
+    */
      
     /**
      * Setup the event builder from the field setting.
      * @return True if builder is setup successfully; false if not.
      */
+    // FIXME: This method should throw an exception if an error occurs.
     void editEventBuilder() {
         String eventBuilderClassName = eventBuilderField.getText();
         boolean okay = true;
@@ -201,7 +257,7 @@ class JobPanel extends FieldsPanel {
     private void resetEventBuilder() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                eventBuilderField.setText(defaultEventBuilderClassName);
+                eventBuilderField.setText(DEFAULT_EVENT_BUILDER_CLASS_NAME);
             }
         });
     }
@@ -218,12 +274,13 @@ class JobPanel extends FieldsPanel {
      * Set the steering file field.
      * @param steeringFile The path to the file.
      */
-    void setSteeringFile(final String steeringFile) {
+    void setSteeringFile(final File steeringFile) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                steeringFileField.setText(steeringFile);
+                steeringFileField.setText(steeringFile.getAbsolutePath());
             }
         });
+        setSteeringType(SteeringType.FILE);
     }
     
     /**
@@ -231,11 +288,13 @@ class JobPanel extends FieldsPanel {
      * @param s The resource path.
      */
     void setSteeringResource(final String s) {
+        System.out.println("setSteeringResource - " + s);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 steeringResourcesComboBox.setSelectedItem(s);
             }
         });
+        setSteeringType(SteeringType.RESOURCE);
     }
 
     /**
@@ -249,16 +308,20 @@ class JobPanel extends FieldsPanel {
             }
         });
     }
+    
+    String getSteeringResource() {
+        return (String) steeringResourcesComboBox.getSelectedItem();
+    }
 
     /**
      * Get the steering file or resource path from the field setting.
      * @return The steering file or resource path.
      */
     String getSteering() {
-        if (getSteeringType() == FILE) {
+        if (getSteeringType().equals(SteeringType.FILE)) {
             return steeringFileField.getText();
         }
-        else if (getSteeringType() == RESOURCE) {
+        else if (getSteeringType().equals(SteeringType.RESOURCE)) {
             return (String) steeringResourcesComboBox.getSelectedItem();
         }
         else {
@@ -270,8 +333,8 @@ class JobPanel extends FieldsPanel {
      * Get the type of steering, file or resource.
      * @return The type of steering.
      */
-    int getSteeringType() {
-        return steeringTypeComboBox.getSelectedIndex();
+    SteeringType getSteeringType() {
+        return SteeringType.values()[steeringTypeComboBox.getSelectedIndex()];
     }
 
     /**
@@ -281,20 +344,7 @@ class JobPanel extends FieldsPanel {
     String getDetectorName() {
         return detectorNameField.getText();
     }
-
-    /**
-     * 
-     * @param defaultEventBuilderClassName
-     */
-    void setDefaultEventBuilder(final String defaultEventBuilderClassName) {
-        this.defaultEventBuilderClassName = defaultEventBuilderClassName;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                eventBuilderField.setText(defaultEventBuilderClassName);
-            }
-        });
-    }
-
+  
     /**
      * Check if pause mode is selected.
      * @return True if pause mode is enabled; false if not.
@@ -335,7 +385,7 @@ class JobPanel extends FieldsPanel {
      * Get the log to file setting.
      * @return The log to file setting.
      */
-    boolean logToFile() {
+    boolean isLogToFileEnabled() {
         return logCheckBox.isSelected();
     }
     
@@ -379,10 +429,10 @@ class JobPanel extends FieldsPanel {
      * Set the steering type.
      * @param t The steering type.
      */
-    void setSteeringType(final int t) {
+    void setSteeringType(final SteeringType steeringType) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                steeringTypeComboBox.setSelectedIndex(t);
+                steeringTypeComboBox.setSelectedIndex(steeringType.ordinal());
             }
         });        
     }
@@ -420,19 +470,20 @@ class JobPanel extends FieldsPanel {
             public void run() {
                 logCheckBox.setSelected(b);
             }
-        });        
+        });
     }
     
     /**
      * Set the log file name.
      * @param s The log file name.
      */
-    void setLogFile(final String s) {
+    void setLogFile(final File file) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                logFileField.setText(s);
+                logFileField.setText(file.getAbsolutePath());
+                setLogToFile(true);
             }
-        });
+        });        
     }
     
     /**
@@ -458,15 +509,7 @@ class JobPanel extends FieldsPanel {
             }
         });
     }
-        
-    /**
-     * Get the resource path for the steering file.
-     * @return The resource path for the steering file.
-     */
-    private String getSelectedSteeringResource() {
-        return (String) steeringResourcesComboBox.getSelectedItem();
-    }
-    
+             
     /**
      * Get the path to the steering file path.
      * @return The steering file path.
@@ -474,78 +517,68 @@ class JobPanel extends FieldsPanel {
     private String getSteeringFile() {
         return steeringFileField.getText();
     }
-            
-    /**
-     * Gather {@link JobSettings} parameters from GUI and return a JobSettings object.
-     * @return The JobSettings from the JobPanel.
-     */
-    JobSettings getJobSettings() {
-        return settings;
+                 
+    @Override
+    public void load(Configuration config) {
+        enablePauseMode(config.getBoolean("pauseMode"));
+        setLogLevel(Level.parse(config.get("logLevel")));  
+        setSteeringType(SteeringType.valueOf(config.get("steeringType")));
+        if (config.hasKey("steeringFile"))
+            setSteeringFile(new File(config.get("steeringFile")));
+        if (config.hasKey("steeringResource")) 
+            setSteeringResource(config.get("steeringResource"));
+        setDetectorName(config.get("detectorName"));
+        setEventBuilder(config.get("eventBuilderClassName"));
+        setLogToFile(config.getBoolean("logToFile"));
+        setLogFile(new File(config.get("logFileName")));
+        enableAidaAutoSave(config.getBoolean("autoSaveAida"));
+        setAidaAutoSaveFileName(config.get("autoSaveAidaFileName"));
     }
     
-    /**
-     * Cache the settings from the GUI into the <tt>JobSettings</tt> object.
-     */
-    void cache() {
-        settings = new JobSettings();
-        settings.pauseMode = pauseMode();
-        //settings.disconnectOnError = disconnectOnError();
-        settings.logLevel = getLogLevel();
-        settings.steeringType = getSteeringType();
-        settings.steeringFile = getSteeringFile();
-        settings.steeringResource = getSelectedSteeringResource();
-        settings.detectorName = getDetectorName();
-        settings.eventBuilderClassName = getEventBuilderClassName();
-        settings.logToFile = logToFile();
-        settings.logFileName = getLogFileName();
-        settings.autoSaveAida = isAidaAutoSaveEnabled();
-        settings.autoSaveAidaFileName = getAidaAutoSaveFileName();
+    @Override
+    public void save(Configuration config) {
+        config.set("pauseMode", pauseMode());
+        config.set("logLevel", getLogLevel().getName());
+        config.set("steeringType", getSteeringType().name());
+        config.set("steeringFile", getSteeringFile());
+        config.set("steeringResource", getSteeringResource());
+        config.set("detectorName", getDetectorName());
+        config.set("eventBuilderClassName", getEventBuilderClassName());
+        config.set("logToFile", isLogToFileEnabled());
+        config.set("logFileName", getLogFileName());
+        config.set("autoSaveAida", isAidaAutoSaveEnabled());
+        config.set("autoSaveAidaFileName", getAidaAutoSaveFileName());
     }
     
-    /**
-     * Revert job settings in GUI based on current <tt>JobSettings</tt> object.
-     */
-    void revert() {
-        setJobSettings(settings);
-    }
-               
-    /**
-     * Set the JobPanel parameters from a JobSettings object.
-     * @param settings The JobSettings to load.
-     */
-    void setJobSettings(JobSettings settings) {
-        this.settings = settings;
-        enablePauseMode(settings.pauseMode);
-        //setDisconnectOnError(settings.disconnectOnError);
-        setLogLevel(settings.logLevel);
-        setSteeringType(settings.steeringType);
-        setSteeringFile(settings.steeringFile);
-        setSteeringResource(settings.steeringResource);
-        setDetectorName(settings.detectorName);
-        setEventBuilder(settings.eventBuilderClassName);
-        setLogToFile(settings.logToFile);        
-        setLogFile(settings.logFileName);
-        enableAidaAutoSave(settings.autoSaveAida);
-        setAidaAutoSaveFileName(settings.autoSaveAidaFileName);
+    public void save() {
+        save(config);
     }
     
-    /**
-     * Reset the JobPanel to its defaults.
-     */
-    void resetJobSettings() {
-        setJobSettings(new JobSettings());
-    }    
+    @Override
+    public void set(Configuration config) {
+        load(config);
+        this.config = config;
+    }
+
+    @Override
+    public void reset() {
+        load(config);        
+    }
     
+    public Configuration getConfiguration() {
+        return config;
+    }
+      
     /**
      * Get the files that end in .lcsim from all loaded jar files.
      * @return A list of embedded steering file resources.
      */
     public static String[] getAvailableSteeringFileResources(String packageName) {
         List<String> resources = new ArrayList<String>();
-        URL url = JobPanel.class.getResource("MonitoringApplication.class");
+        URL url = JobSettingsPanel.class.getResource("MonitoringApplication.class");
         String scheme = url.getProtocol();
         if (!"jar".equals(scheme)) {
-            throw new IllegalArgumentException("Unsupported scheme: " + scheme);
+            throw new IllegalArgumentException("Unsupported scheme.  Only jar is allowed.");
         }
         try {
             JarURLConnection con = (JarURLConnection) url.openConnection();
@@ -568,6 +601,13 @@ class JobPanel extends FieldsPanel {
             arr[i] = resources.get(i);
         }
         return arr;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getActionCommand().equals(MonitoringCommands.CHOOSE_STEERING_FILE)) {
+            this.chooseSteeringFile();
+        }
     }
     
 }

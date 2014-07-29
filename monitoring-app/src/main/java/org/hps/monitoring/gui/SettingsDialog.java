@@ -8,7 +8,6 @@ import javax.swing.JDialog;
 /**
  * The modal dialog for entering settings.  It contains a <code>JPanel</code>
  * with the different settings sub-tabs.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SettingsDialog extends JDialog {
     
@@ -25,7 +24,7 @@ public class SettingsDialog extends JDialog {
         
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                settingsPanel.revert();
+                settingsPanel.reset();
                 setVisible(false);
             }
         });

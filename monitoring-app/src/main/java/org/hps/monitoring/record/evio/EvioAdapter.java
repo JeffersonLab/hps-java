@@ -12,7 +12,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Adapter to process <tt>EvioEvent</tt> objects using a record loop.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EvioAdapter extends AbstractLoopListener implements RecordListener {
 

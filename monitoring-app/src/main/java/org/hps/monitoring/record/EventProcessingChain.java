@@ -32,8 +32,6 @@ import org.lcsim.util.loop.LCIOEventSource;
  * EVIO file source, or LCIO file source.  Any number of event processors
  * can be registered with the three different loops for processing the different 
  * record types, in order to plot, update a GUI component, or analyze the events.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EventProcessingChain extends AbstractLoopListener {
       

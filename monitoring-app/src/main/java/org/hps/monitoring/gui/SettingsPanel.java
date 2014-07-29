@@ -17,21 +17,23 @@ import javax.swing.SwingUtilities;
 
 /**
  * The container component with the tabs which have job and connection settings.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class SettingsPanel extends JPanel implements ActionListener {
 
     JTabbedPane tabs;
-    JobPanel jobPanel = new JobPanel();
-    ConnectionPanel connectionPanel = new ConnectionPanel();
+    JobSettingsPanel jobPanel = new JobSettingsPanel();
+    ConnectionSettingsPanel connectionPanel = new ConnectionSettingsPanel();
     DataSourcePanel dataSourcePanel = new DataSourcePanel();
-    static final String okayCommand = "settingsOkay";
-    static final String cancelCommand = "settingsCancel";
+    static final String OKAY_COMMAND = "settingsOkay";
+    static final String CANCEL_COMMAND = "settingsCancel";
+    
+    JButton defaultsButton;
+    
     JDialog parent;
     ErrorHandler errorHandler;
-    
-    SettingsPanel(JDialog parent) {
         
+    SettingsPanel(JDialog parent) {
+
         this.parent = parent;
 
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -43,27 +45,32 @@ class SettingsPanel extends JPanel implements ActionListener {
         add(tabs);
                 
         JButton okayButton = new JButton("Okay");
-        okayButton.setActionCommand(okayCommand);
+        okayButton.setActionCommand(OKAY_COMMAND);
         okayButton.addActionListener(this);
 
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.setActionCommand(cancelCommand);
+        cancelButton.setActionCommand(CANCEL_COMMAND);
         cancelButton.addActionListener(this);
+        
+        defaultsButton = new JButton("Defaults");
+        defaultsButton.setActionCommand(MonitoringCommands.LOAD_DEFAULT_CONFIG_FILE);
+        defaultsButton.addActionListener(this);
                 
         add(Box.createRigidArea(new Dimension(1,5)));
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
         buttonsPanel.add(cancelButton);
+        buttonsPanel.add(defaultsButton);
         buttonsPanel.setLayout(new FlowLayout());        
         add(buttonsPanel);
         add(Box.createRigidArea(new Dimension(1,5)));
     }
-        
-    ConnectionPanel getConnectionPanel() {
+            
+    ConnectionSettingsPanel getConnectionPanel() {
         return connectionPanel;
     }
     
-    JobPanel getJobPanel() {
+    JobSettingsPanel getJobSettingsPanel() {
         return jobPanel;
     }
     
@@ -72,24 +79,27 @@ class SettingsPanel extends JPanel implements ActionListener {
     }
     
     /**
-     * Caches the object for the settings based on current GUI values.
+     * Pushes the GUI settings into the current configuration object.
      */
-    void cache() {
-        connectionPanel.cache();
-        jobPanel.cache();
+    void save() {
+        connectionPanel.save();
+        jobPanel.save();
+        dataSourcePanel.save();
     }
     
     /**
-     * Revert the settings to their unedited values.
+     * Resets the settings to the last saved configuration.
      */
-    void revert() {
-        connectionPanel.revert();
-        jobPanel.revert();
+    void reset() {
+        connectionPanel.reset();
+        jobPanel.reset();
+        dataSourcePanel.reset();
     }
     
+    // FIXME: This isn't the right way to do this!
     String getError() {
         try {
-            this.dataSourcePanel.checkFile();            
+            this.dataSourcePanel.checkFile();
             return null;
         } catch (IOException e) {
             return e.getMessage();
@@ -98,7 +108,7 @@ class SettingsPanel extends JPanel implements ActionListener {
         
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals(okayCommand)) {
+        if (e.getActionCommand().equals(OKAY_COMMAND)) {
             final String errorMessage = getError();
             if (errorMessage != null) {
                 SwingUtilities.invokeLater(new Runnable() {
@@ -111,12 +121,22 @@ class SettingsPanel extends JPanel implements ActionListener {
                     }
                 });
             } else {
-                cache();
+                save();
                 parent.setVisible(false);
             }                
-        } else if (e.getActionCommand().equals(cancelCommand)) {
-            revert();
+        } else if (e.getActionCommand().equals(CANCEL_COMMAND)) {
+            reset();
             parent.setVisible(false);
         }
+    }    
+    
+    /**
+     * This method is used to register a listener so that the Monitoring Application 
+     * can reset to the default configuration when the "Defaults" button is pushed from
+     * the settings panel. 
+     * @param listener
+     */
+    void addActionListener(ActionListener listener) {
+        defaultsButton.addActionListener(listener);
     }
 }

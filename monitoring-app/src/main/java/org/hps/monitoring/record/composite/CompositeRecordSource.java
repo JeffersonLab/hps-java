@@ -7,7 +7,6 @@ import org.freehep.record.source.NoSuchRecordException;
 
 /**
  * A record source providing <code>CompositeRecord</code> objects.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CompositeRecordSource extends AbstractRecordSource {
 

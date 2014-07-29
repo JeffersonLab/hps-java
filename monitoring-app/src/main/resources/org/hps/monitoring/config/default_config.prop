@@ -1,0 +1,38 @@
+# Wed Jul 16 13:48:13 PDT 2014
+# Monitoring Application configuration
+
+# job settings
+autoSaveAida=true
+autoSaveAidaFileName=monitoringPlots.aida
+detectorName=HPS-TestRun-v5
+disconnectOnError=true
+eventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
+logFileName=
+logLevel=ALL
+logToFile=false
+#steeringFile=
+steeringResource=/org/hps/steering/monitoring/TestRunMonitoring.lcsim
+steeringType=RESOURCE
+
+# event source
+dataSourceType=ET_SERVER
+dataSourcePath=
+
+# ET connection settings
+blocking=false
+bufferName=ETBuffer
+chunk=1
+host=localhost
+port=11111
+position=1
+# prescale was 1
+prescale=0
+qSize=0
+statName=MY_STATION
+verbose=false
+# flow mode needs GUI binding!
+#flowMode=0
+waitMode=TIMED
+waitTime=10000000
+
+

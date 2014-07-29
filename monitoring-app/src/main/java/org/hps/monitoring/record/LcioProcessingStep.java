@@ -16,7 +16,6 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * Processing step for building LCIO events from EVIO
  * or reading them directly from an input event file.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class LcioProcessingStep extends CompositeRecordProcessor {
 

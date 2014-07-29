@@ -3,21 +3,23 @@ package org.hps.monitoring.subsys;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.monitoring.enums.StatusCode;
+import org.hps.monitoring.enums.Subsystem;
+
 /**
  * The implementation of {@link SystemStatus}.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class SystemStatusImpl implements SystemStatus {
 
-    StatusCode code = SystemStatus.StatusCode.UNKNOWN;
+    StatusCode code = StatusCode.UNKNOWN;
     long lastChangedMillis;
     String message;
     List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
-    final SystemName systemName;
+    final Subsystem systemName;
     final String description;
     boolean active = true;
     
-    public SystemStatusImpl(SystemName systemName, String description) {
+    public SystemStatusImpl(Subsystem systemName, String description) {
         this.systemName = systemName;
         this.description = description;
         setLastChangedTime();
@@ -25,7 +27,7 @@ public final class SystemStatusImpl implements SystemStatus {
     }
     
     @Override
-    public SystemName getSystemName() {
+    public Subsystem getSubsystem() {
         return systemName;
     }
     
@@ -45,7 +47,7 @@ public final class SystemStatusImpl implements SystemStatus {
     }
 
     @Override
-    public void setStatusCode(StatusCode code, String message) {
+    public void setStatus(StatusCode code, String message) {
         this.code = code;
         this.message = message;
         setLastChangedTime();

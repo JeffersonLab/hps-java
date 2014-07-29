@@ -5,7 +5,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * A dynamic queue providing <tt>EvioEvent</tt> objects to a loop.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EvioEventQueue extends AbstractRecordQueue<EvioEvent> {
 

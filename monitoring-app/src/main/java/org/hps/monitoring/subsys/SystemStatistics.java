@@ -6,8 +6,6 @@ import java.util.TimerTask;
 /**
  * This is an interface for a set of basic statistics 
  * about an online event processing system.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface SystemStatistics {
 

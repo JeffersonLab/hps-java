@@ -9,7 +9,6 @@ import javax.swing.border.TitledBorder;
 
 /**
  * A panel with a label and a text field.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class FieldPanel extends JPanel {
     

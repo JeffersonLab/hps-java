@@ -11,8 +11,6 @@ import org.hps.monitoring.plotting.StripChartUpdater;
 
 /**
  * Implementation of {@link SystemStatistics}.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SystemStatisticsImpl implements SystemStatistics {
     

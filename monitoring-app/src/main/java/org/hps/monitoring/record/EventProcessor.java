@@ -2,7 +2,6 @@ package org.hps.monitoring.record;
 
 /**
  * This is a generic interface for event processing.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  * @param <EventType> The concrete type of the event record.
  */
