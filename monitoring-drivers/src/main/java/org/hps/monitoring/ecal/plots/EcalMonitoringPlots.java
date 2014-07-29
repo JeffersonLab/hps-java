@@ -28,6 +28,8 @@ import org.lcsim.util.aida.AIDA;
  * @author Andrea Celentano
  * 
  */
+// FIXME: Resettable and Redrawable are no longer handled by the monitoring application
+//        so those hooks should be removed or the functionality achieved some other way.
 public class EcalMonitoringPlots extends Driver implements Resettable, Redrawable {
 
     String inputCollection = "EcalReadoutHits";
