@@ -18,7 +18,7 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
-import org.hps.conditions.DatabaseConditionsManager;
+//import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.DefaultTestSetup;
 import org.hps.conditions.TableConstants;
 
@@ -52,10 +52,10 @@ public class EcalDaqPlots extends Driver implements Resettable {
     
     private EcalConditions conditions;
     private EcalChannel.EcalChannelCollection channels;
-    private DatabaseConditionsManager manager;
+    //private DatabaseConditionsManager manager;
     //private ConditionsManager manager;
     public EcalDaqPlots() {
-    	manager = DatabaseConditionsManager.getInstance();
+    	//manager = DatabaseConditionsManager.getInstance();
     	//manager = ConditionsManager.defaultInstance();
     }
 
@@ -84,8 +84,8 @@ public class EcalDaqPlots extends Driver implements Resettable {
         
         
     	/*Setup the conditions system*/
-        conditions=manager.getConditionsData(EcalConditions.class,TableConstants.ECAL_CONDITIONS);
-        channels = conditions.getChannelCollection(); 
+        //conditions=manager.getConditionsData(EcalConditions.class,TableConstants.ECAL_CONDITIONS);
+        //channels = conditions.getChannelCollection(); 
 
     	 // Get the channel information from the database.                
         //channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
