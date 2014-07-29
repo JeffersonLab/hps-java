@@ -1,10 +1,12 @@
 package org.hps.monitoring.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -15,10 +17,8 @@ import javax.swing.JTextField;
  * A <code>JPanel</code> which has a number of fields with the labels
  * in the first column and the components for showing/editing the fields
  * in the second.  It uses <code>GridBagConstraints</code> for layout.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: FieldsPanel.java,v 1.3 2013/11/05 17:15:04 jeremy Exp $
  */
-class FieldsPanel extends JPanel {
+abstract class AbstractFieldsPanel extends JPanel {
 
     private int currY = 0;    
     private Insets insets;
@@ -29,7 +29,7 @@ class FieldsPanel extends JPanel {
      * @param insets The insets for the panel.
      * @param editable Editable setting.
      */
-    FieldsPanel(Insets insets, boolean editable) {
+    AbstractFieldsPanel(Insets insets, boolean editable) {
         this.insets = insets;
         this.editable = editable;
     }
@@ -37,7 +37,7 @@ class FieldsPanel extends JPanel {
     /**
      * Class constructor.
      */
-    FieldsPanel() {
+    AbstractFieldsPanel() {
         this.insets = new Insets(1, 1, 1, 1);
     }
     
@@ -225,6 +225,20 @@ class FieldsPanel extends JPanel {
         ++currY;
         
         return checkbox;
+    }
+    
+    protected final JButton addButton(String text) {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = currY;
+        c.insets = insets;
+        c.anchor = GridBagConstraints.WEST;
+        c.gridwidth = 2;
+        JButton button = new JButton(text);
+        button.setSize(new Dimension(100, 50));
+        add(button, c);
+        ++currY;
+        return button;
     }
     
     /**

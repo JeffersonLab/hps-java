@@ -11,6 +11,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.hps.monitoring.config.Configurable;
+import org.hps.monitoring.config.Configuration;
+import org.hps.monitoring.enums.DataSourceType;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.lcio.LCIOReader;
@@ -18,62 +21,21 @@ import org.lcsim.lcio.LCIOReader;
 /**
  * A sub-panel of the settings window for selecting a data source, 
  * e.g. an ET server, an LCIO file, or an EVIO file.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class DataSourcePanel extends FieldsPanel implements ActionListener {
-    
-    enum DataSourceType {
-        ET_SERVER("ET Server"),
-        EVIO_FILE("EVIO File"),
-        LCIO_FILE("LCIO File");
-        
-        String name;
-        DataSourceType(String name) {
-            this.name = name;
-        }
-        
-        public String toString() {
-            return name;
-        }
-        
-        static DataSourceType fromString(String dataSourceString) {
-            if (dataSourceString == ET_SERVER.toString()) {
-                return ET_SERVER;
-            } else if (dataSourceString == EVIO_FILE.toString()) {
-                return EVIO_FILE;
-            } else if (dataSourceString == LCIO_FILE.toString()) {
-                return LCIO_FILE;
-            } else {
-                throw new IllegalArgumentException("Unknown data source type: " + dataSourceString);
-            }
-        }
-        
-        static DataSourceType fromIndex(int index) {
-            if (index == ET_SERVER.ordinal()) {
-                return ET_SERVER;
-            } else if (index == EVIO_FILE.ordinal()) {
-                return EVIO_FILE;
-            } else if (index == LCIO_FILE.ordinal()) {
-                return LCIO_FILE;
-            } else {
-                throw new IllegalArgumentException("Invalid data source index: " + index);
-            }
-        }
-        
-        boolean isFile() {
-            return this.ordinal() > ET_SERVER.ordinal();
-        }
-    }
-    
+public class DataSourcePanel extends AbstractFieldsPanel implements ActionListener, Configurable {
+           
     static String[] dataSourceTypes = { 
-        DataSourceType.ET_SERVER.toString(), 
-        DataSourceType.EVIO_FILE.toString(),
-        DataSourceType.LCIO_FILE.toString()};
+        DataSourceType.ET_SERVER.description(), 
+        DataSourceType.EVIO_FILE.description(),
+        DataSourceType.LCIO_FILE.description()
+    };
     
     JComboBox dataSourceCombo;
-    JTextField fileField;    
+    JTextField fileField;
     String DATA_SOURCE_COMMAND = "dataSourceChanged";
     ErrorHandler errorHandler;
+    
+    Configuration config;
     
     DataSourcePanel() {
         setLayout(new GridBagLayout());        
@@ -82,26 +44,25 @@ public class DataSourcePanel extends FieldsPanel implements ActionListener {
         dataSourceCombo.setActionCommand(DATA_SOURCE_COMMAND);
         dataSourceCombo.addActionListener(this);
         fileField = addField("File Path", 40);
-        fileField.setEnabled(false);
+        fileField.setEditable(false);
     }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals(DATA_SOURCE_COMMAND)) {
             int selectedIndex = dataSourceCombo.getSelectedIndex();
-            DataSourceType dataSourceType = DataSourceType.fromIndex(selectedIndex);
-            if (dataSourceType.isFile()) {
-                fileField.setEnabled(true); 
-                chooseFile();                 
+            DataSourceType dataSourceType = DataSourceType.values()[selectedIndex];
+            if (dataSourceType.isFile()) { 
+                chooseFile();
             } else {
-                fileField.setEnabled(false);
+                setFilePath("");
             }
         }
     }
     
     private void chooseFile() {
         JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
-        fc.setDialogTitle("Choose Data Source");        
-        int r = fc.showDialog(this, "SELECT ...");
+        fc.setDialogTitle("Select Data Source");        
+        int r = fc.showDialog(this, "Select ...");
         File file = null;
         if (r == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
@@ -115,7 +76,7 @@ public class DataSourcePanel extends FieldsPanel implements ActionListener {
     }
     
     void checkFile() throws IOException {
-        DataSourceType dataSourceType = DataSourceType.fromIndex(this.dataSourceCombo.getSelectedIndex());
+        DataSourceType dataSourceType = DataSourceType.values()[this.dataSourceCombo.getSelectedIndex()];
         if (!dataSourceType.isFile())
             return;
         File file = new File(fileField.getText());
@@ -143,6 +104,49 @@ public class DataSourcePanel extends FieldsPanel implements ActionListener {
     }
     
     DataSourceType getDataSourceType() {
-        return DataSourceType.fromIndex(this.dataSourceCombo.getSelectedIndex());
+        return DataSourceType.values()[this.dataSourceCombo.getSelectedIndex()];
+    }
+    
+    void setDataSourceType(DataSourceType dataSourceType) {
+        this.dataSourceCombo.setSelectedIndex(dataSourceType.ordinal());        
+    }
+    
+    void setFilePath(String filePath) {
+        this.fileField.setText(filePath);
+    }
+
+    @Override
+    public void load(Configuration config) {
+        this.dataSourceCombo.removeActionListener(this);
+        this.setDataSourceType(DataSourceType.valueOf(config.get("dataSourceType")));
+        this.dataSourceCombo.addActionListener(this);
+        this.setFilePath(config.get("dataSourcePath"));
+    }
+
+    @Override
+    public void save(Configuration config) {
+        config.set("dataSourceType", getDataSourceType().name());
+        config.set("dataSourcePath", getFilePath());
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return config;
+    }
+
+    @Override
+    public void save() {
+        save(config);        
+    }
+
+    @Override
+    public void set(Configuration config) {
+        load(config);
+        this.config = config;
+    }
+
+    @Override
+    public void reset() {
+        set(config);
     } 
 }

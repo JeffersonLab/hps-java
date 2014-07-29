@@ -4,10 +4,6 @@ import static org.hps.monitoring.gui.SystemStatusTableModel.ACTIVE_COL;
 import static org.hps.monitoring.gui.SystemStatusTableModel.LAST_CHANGED_COL;
 import static org.hps.monitoring.gui.SystemStatusTableModel.STATUS_COL;
 import static org.hps.monitoring.gui.SystemStatusTableModel.SYSTEM_COL;
-import static org.hps.monitoring.subsys.SystemStatus.StatusCode.OFFLINE;
-import static org.hps.monitoring.subsys.SystemStatus.StatusCode.OKAY;
-import static org.hps.monitoring.subsys.SystemStatus.StatusCode.UNKNOWN;
-import static org.hps.monitoring.subsys.SystemStatus.StatusCode.WARNING;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -21,12 +17,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import org.hps.monitoring.subsys.SystemStatus;
-import org.hps.monitoring.subsys.SystemStatus.StatusCode;
+import org.hps.monitoring.enums.StatusCode;
 
 /**
  * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SystemStatusFrame extends JFrame implements HasErrorHandler {
 
@@ -47,20 +41,20 @@ public class SystemStatusFrame extends JFrame implements HasErrorHandler {
                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 
                 // Color code the cell by its status.
-                SystemStatus.StatusCode statusCode = SystemStatus.StatusCode.valueOf((String) value);
+                StatusCode statusCode = StatusCode.valueOf((String) value);
                 if (statusCode.ordinal() >= StatusCode.ERROR.ordinal()) {
                     // Any type of error is red.
                     label.setBackground(Color.RED);
-                } else if (statusCode.ordinal() == WARNING.ordinal()) {
+                } else if (statusCode.ordinal() == StatusCode.WARNING.ordinal()) {
                     // Warnings are yellow.
                     label.setBackground(Color.YELLOW);
-                } else if (statusCode.ordinal() == OKAY.ordinal()) {
+                } else if (statusCode.ordinal() == StatusCode.OKAY.ordinal()) {
                     // Okay is green.
                     label.setBackground(Color.GREEN);
-                } else if (statusCode.ordinal() == OFFLINE.ordinal()) {
+                } else if (statusCode.ordinal() == StatusCode.OFFLINE.ordinal()) {
                     // Offline is orange.
                     label.setBackground(Color.ORANGE);
-                } else if (statusCode.ordinal() == UNKNOWN.ordinal()) {
+                } else if (statusCode.ordinal() == StatusCode.UNKNOWN.ordinal()) {
                     // Unknown is gray.
                     label.setBackground(Color.GRAY);
                 } else {

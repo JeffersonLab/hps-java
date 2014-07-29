@@ -57,8 +57,20 @@ class EventButtonsPanel extends JPanel {
      * Toggle the connect button from its current state.  If it is in "Connect" state
      * then it will be toggled to "Disconnect" and vice versa.
      */
+    /*
     void toggleConnectButton() {
         if (connectButton.getText().equals("Connect")) {
+            connectButton.setText("Disconnect");
+            connectButton.setActionCommand(MonitoringCommands.DISCONNECT);
+        } else {
+            connectButton.setText("Connect");
+            connectButton.setActionCommand(MonitoringCommands.CONNECT);
+        }
+    }
+    */
+    
+    void setConnected(boolean connected) {
+        if (connected) {
             connectButton.setText("Disconnect");
             connectButton.setActionCommand(MonitoringCommands.DISCONNECT);
         } else {

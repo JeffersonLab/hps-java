@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Global registry of all {@link SystemStatus} objects.
+ */
 public class SystemStatusRegistry {
     
     static SystemStatusRegistry instance = new SystemStatusRegistry();

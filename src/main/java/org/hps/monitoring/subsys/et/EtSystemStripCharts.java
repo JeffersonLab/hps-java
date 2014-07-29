@@ -8,7 +8,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * A basic set of strip charts for monitoring the ET system.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtSystemStripCharts extends EtEventProcessor { 
         

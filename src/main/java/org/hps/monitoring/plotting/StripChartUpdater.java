@@ -8,7 +8,6 @@ import org.jfree.data.time.DynamicTimeSeriesCollection;
 
 /**
  * An abstract <tt>TimerTask</tt> to update a strip chart at a regular interval.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class StripChartUpdater extends TimerTask {
 

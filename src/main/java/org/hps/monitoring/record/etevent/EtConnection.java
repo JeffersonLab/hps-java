@@ -2,6 +2,7 @@ package org.hps.monitoring.record.etevent;
 
 import java.io.IOException;
 
+import org.hps.monitoring.config.Configuration;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
@@ -9,6 +10,7 @@ import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
+import org.jlab.coda.et.enums.Mode;
 import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.et.exception.EtBusyException;
 import org.jlab.coda.et.exception.EtClosedException;
@@ -20,14 +22,16 @@ import org.jlab.coda.et.exception.EtWakeUpException;
 
 /**
  * Create an EtSystem and EtAttachment from ConnectionParameters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtConnection {
 
-    EtConnectionParameters param;
     EtSystem sys;
     EtAttachment att;
     EtStation stat;
+    
+    Mode waitMode;
+    int waitTime;
+    int chunkSize;
 
     /**
      * Class constructor.
@@ -36,18 +40,21 @@ public class EtConnection {
      * @param att The ET attachment.
      * @param stat The ET station.
      */
-    private EtConnection(EtConnectionParameters param, EtSystem sys, EtAttachment att, EtStation stat) {
-        this.param = param;
+    private EtConnection(EtSystem sys, EtAttachment att, EtStation stat, 
+            Mode waitMode, int waitTime, int chunkSize) {
         this.sys = sys;
         this.att = att;
         this.stat = stat;
+        this.waitMode = waitMode;
+        this.waitTime = waitTime;
+        this.chunkSize = chunkSize;
     }
   
     /**
      * Get the ET system.
      * @return The ET system.
      */
-    EtSystem getEtSystem() {
+    public EtSystem getEtSystem() {
         return sys;
     }
 
@@ -55,7 +62,7 @@ public class EtConnection {
      * Get the ET attachment.
      * @return The ET attachment.
      */
-    EtAttachment getEtAttachment() {
+    public EtAttachment getEtAttachment() {
         return att;
     }
 
@@ -66,15 +73,7 @@ public class EtConnection {
     public EtStation getEtStation() {
         return stat;
     }
-
-    /**
-     * Get the connection parameters.
-     * @return The connection parameters.
-     */
-    public EtConnectionParameters getConnectionParameters() {
-        return param;
-    }
-
+    
     /**
      * Cleanup the ET connection.
      */
@@ -112,51 +111,67 @@ public class EtConnection {
             e.printStackTrace();
         }		
     }
-
-    /**
-     * Create an ET connection from connection parameters.
-     * @param cn The connection parameters.
-     * @return The ET connection.
-     */
-    public static EtConnection createEtConnection(EtConnectionParameters cn) {
+    
+    public static EtConnection fromConfiguration(Configuration config) {
         try {
-
-            // make a direct connection to ET system's tcp server
-            EtSystemOpenConfig config = new EtSystemOpenConfig(cn.bufferName, cn.host, cn.port);
+            
+            // make a direct connection to ET system's tcp server            
+            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(
+                    config.get("bufferName"), 
+                    config.get("host"), 
+                    config.getInteger("port"));
 
             // create ET system object with verbose debugging output
-            EtSystem sys = new EtSystem(config, EtConstants.debugInfo);
+            EtSystem sys = new EtSystem(etConfig, EtConstants.debugInfo);
             sys.open();
 
             // configuration of a new station
             EtStationConfig statConfig = new EtStationConfig();
-            statConfig.setFlowMode(cn.flowMode);
-            if (!cn.blocking) {
+            //statConfig.setFlowMode(cn.flowMode);
+            // FIXME: Flow mode hard-coded.
+            statConfig.setFlowMode(EtConstants.stationSerial);
+            boolean blocking = config.getBoolean("blocking");
+            if (!blocking) {
                 statConfig.setBlockMode(EtConstants.stationNonBlocking);
-                if (cn.qSize > 0) {
-                    statConfig.setCue(cn.qSize);
+                int qSize = config.getInteger("qSize");
+                if (qSize > 0) {
+                    statConfig.setCue(qSize);
                 }
             }
             // Set prescale.
-            if (cn.prescale > 0) {
+            int prescale = config.getInteger("prescale");
+            if (prescale > 0) {
                 //System.out.println("setting prescale to " + cn.prescale);
-                statConfig.setPrescale(cn.prescale);
+                statConfig.setPrescale(prescale);
             }
 
             // Create the station.
-            EtStation stat = sys.createStation(statConfig, cn.statName, cn.position, cn.pposition);
+            System.out.println("position="+config.getInteger("position"));
+            EtStation stat = sys.createStation(
+                    statConfig, 
+                    config.get("statName"),
+                    config.getInteger("position"));
 
             // attach to new station
             EtAttachment att = sys.attach(stat);
 
             // Return new connection.
-            return new EtConnection(cn, sys, att, stat);
+            EtConnection connection = new EtConnection(
+                    sys, 
+                    att, 
+                    stat,
+                    Mode.valueOf(config.get("waitMode")),
+                    config.getInteger("waitTime"),
+                    config.getInteger("chunk")
+                    );
+            
+            return connection;
 
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-    }       
+    }
     
     /**
      * Read EtEvent objects from the ET ring.  
@@ -178,17 +193,10 @@ public class EtConnection {
             EtWakeUpException, EtClosedException {
         return getEtSystem().getEvents(
             getEtAttachment(),
-            getConnectionParameters().getWaitMode(), 
+            waitMode,
             Modify.NOTHING,
-            getConnectionParameters().getWaitTime(), 
-            getConnectionParameters().getChunkSize());
+            waitTime,
+            chunkSize);
         
-    }
-    
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append(this.param.toString());  
-        buffer.append("attachment: " + this.att.getStation().getName());
-        return buffer.toString();
-    }
+    }     
 }

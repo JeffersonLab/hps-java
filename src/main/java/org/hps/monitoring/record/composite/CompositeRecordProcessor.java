@@ -5,7 +5,6 @@ import org.hps.monitoring.record.EventProcessor;
 /**
  * An <code>EventProcessor</code> implementation for processing <code>CompositeRecord</code>
  * records.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CompositeRecordProcessor implements EventProcessor<CompositeRecord> {
 

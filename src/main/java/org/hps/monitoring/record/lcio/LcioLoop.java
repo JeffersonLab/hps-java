@@ -5,8 +5,6 @@ import org.lcsim.util.loop.LCSimLoop;
 /**
  * This class overrides the error handling of <code>LCSimLoop</code>
  * so it does not exit the application when errors occur.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LcioLoop extends LCSimLoop {
 

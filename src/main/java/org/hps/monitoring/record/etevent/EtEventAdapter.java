@@ -11,7 +11,6 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * Adapter for processing <tt>EtEvent</tt> objects using a loop.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtEventAdapter extends AbstractLoopListener implements RecordListener {
 

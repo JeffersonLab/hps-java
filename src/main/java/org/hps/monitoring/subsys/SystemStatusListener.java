@@ -2,9 +2,7 @@ package org.hps.monitoring.subsys;
 
 /**
  * Interface for receiving changes to {@link SystemStatus} objects,
- * e.g. when a new code is set.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * e.g. when a new status is set.
  */
 public interface SystemStatusListener {
     

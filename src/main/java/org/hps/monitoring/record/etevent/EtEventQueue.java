@@ -7,8 +7,6 @@ import org.jlab.coda.et.EtEvent;
  * A dynamic queue for supplying <tt>EtEvent</tt> objects to a loop.
  * This would most likely be run on a separate thread than the 
  * loop to avoid undesired blocking behavior.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtEventQueue extends AbstractRecordQueue<EtEvent> {
 

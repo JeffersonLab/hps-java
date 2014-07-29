@@ -8,8 +8,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Implementation of record loop for processing <tt>EvioEvent</tt> objects.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EvioEventLoop extends DefaultRecordLoop {
 

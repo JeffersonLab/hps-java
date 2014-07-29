@@ -6,8 +6,6 @@ import org.jlab.coda.et.EtEvent;
 /**
  * This is the basic abstract class that processors of 
  * <tt>EtEvent</tt> objects should implement.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class EtEventProcessor implements EventProcessor<EtEvent> {
     

@@ -11,10 +11,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.monitoring.config.Configuration;
 import org.hps.monitoring.gui.MonitoringApplication;
 
 /**
- * Front-end for running the monitoring app via a {@link #main(String[])} method.
+ * This is the front-end for running the monitoring app via a 
+ * {@link #main(String[])} method.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class MonitoringApplicationMain {
@@ -28,8 +30,7 @@ public class MonitoringApplicationMain {
         // Set up command line parsing.
         Options options = new Options();
         options.addOption(new Option("h", false, "Print help."));
-        options.addOption(new Option("c", true, "Load properties file with connection settings."));
-        options.addOption(new Option("j", true, "Load properties file with job settings."));
+        options.addOption(new Option("c", true, "Load a properties file with configuration parameters."));
         CommandLineParser parser = new PosixParser();
 
         // Parse command line arguments.
@@ -47,6 +48,7 @@ public class MonitoringApplicationMain {
             System.exit(1);
         }
 
+        // Run the application on the Swing EDT.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
         
@@ -55,14 +57,10 @@ public class MonitoringApplicationMain {
 
                 // Load the connection settings.
                 if (cl.hasOption("c")) {
-                    app.loadConnectionSettings(new File(cl.getOptionValue("c")));
-                }
-
-                // Load the job settings.
-                if (cl.hasOption("j")) {
-                    app.loadJobSettings(new File(cl.getOptionValue("j")));
+                    app.load(new Configuration(new File(cl.getOptionValue("c"))));
                 }
         
+                // Set the app to be visible.
                 app.setVisible(true);
             }
         });

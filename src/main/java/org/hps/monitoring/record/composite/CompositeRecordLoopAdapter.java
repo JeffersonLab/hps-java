@@ -10,7 +10,6 @@ import org.freehep.record.loop.RecordListener;
 
 /**
  * Adapter for listening on the {@link CompositeRecordLoop} for records and loop events.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CompositeRecordLoopAdapter extends AbstractLoopListener implements RecordListener {
 

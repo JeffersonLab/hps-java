@@ -13,7 +13,6 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 /**
  * A <code>JTableModel</code> that has a backing list of 
  * {@link org.hps.monitoring.subsys.SystemStatus} objects.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
 
@@ -41,13 +40,7 @@ public class SystemStatusTableModel extends AbstractTableModel implements System
         status.addListener(this);
         fireTableDataChanged();
     }
-    
-    /*
-    public SystemStatus getSystemStatus(int row) {
-        return statuses.get(row);
-    }
-    */
-    
+        
     @Override
     public int getRowCount() {
         return statuses.size();
@@ -72,7 +65,7 @@ public class SystemStatusTableModel extends AbstractTableModel implements System
             case STATUS_COL:
                 return status.getStatusCode().name();
             case SYSTEM_COL:
-                return status.getSystemName().name();
+                return status.getSubsystem().name();
             case DESCRIPTION_COL:
                 return status.getDescription();
             case MESSAGE_COL:

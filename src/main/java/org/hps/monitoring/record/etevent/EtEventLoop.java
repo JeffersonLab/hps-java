@@ -6,8 +6,6 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * Record loop implementation for processing <tt>EtEvent</tt> objects.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtEventLoop extends DefaultRecordLoop {
 

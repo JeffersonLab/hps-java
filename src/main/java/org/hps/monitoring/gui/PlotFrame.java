@@ -4,8 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
 /**
- * A <code>JFrame</code> where monitoring plots will show.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * A <code>JFrame</code> where monitoring plots will show in tabs.
  */
 public class PlotFrame extends JFrame {
     

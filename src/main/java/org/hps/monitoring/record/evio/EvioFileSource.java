@@ -15,8 +15,6 @@ import org.jlab.coda.jevio.EvioReader;
  * A very basic implementation of <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt>
  * objects to a loop from EVIO files.  Unlike the LCIO record source, it has no rewind or
  * indexing capabilities (for now at least).
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EvioFileSource extends AbstractRecordSource {
 

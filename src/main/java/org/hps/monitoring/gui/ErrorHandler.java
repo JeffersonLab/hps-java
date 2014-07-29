@@ -8,8 +8,18 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
- * An error handling class.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * An error handling class which is able to do any of the following,
+ * depending on what the caller wants to do with the error.
+ * <ul>
+ * <li>Print a message</li>
+ * <li>Print the stack trace</li>
+ * <li>Log to a Logger</li>
+ * <li>Show an error dialog</li>
+ * <li>Raise an exception</li>
+ * <li>Exit the application</li>
+ * </ul>
+ * It mostly uses the "builder" pattern so that the various handling methods
+ * can be easily chained, where appropriate.
  */
 public class ErrorHandler {
 
@@ -70,9 +80,5 @@ public class ErrorHandler {
     void exit() {
         System.err.println("Fatal error.  Application will exit.");
         System.exit(1);
-    }        
-               
-    /*
-    void handleError(final String message, boolean showDialog, boolean throwException) 
-    */     
+    }                       
 }
