@@ -146,7 +146,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
 
     @Override
     public void endOfData() {
-        
+        viewer.setVisible(false);
+        viewer.dispose();
     }
 
     @Override
