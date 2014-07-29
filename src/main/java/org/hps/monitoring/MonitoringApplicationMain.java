@@ -57,8 +57,10 @@ public class MonitoringApplicationMain {
 
                 // Load the connection settings.
                 if (cl.hasOption("c")) {
-                    app.load(new Configuration(new File(cl.getOptionValue("c"))));
+                    app.set(new Configuration(new File(cl.getOptionValue("c"))));
                 }
+                
+                app.initialize();
         
                 // Set the app to be visible.
                 app.setVisible(true);

@@ -8,8 +8,9 @@ public enum StatusCode {
     UNKNOWN,                
     CLEARED,
     OFFLINE,
+    INFO,
     WARNING,
     ERROR,
     ALARM,
-    HALT;        
+    HALT;
 }

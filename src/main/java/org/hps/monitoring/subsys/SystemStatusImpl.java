@@ -18,10 +18,18 @@ public final class SystemStatusImpl implements SystemStatus {
     final Subsystem systemName;
     final String description;
     boolean active = true;
+    final boolean clearable;
     
-    public SystemStatusImpl(Subsystem systemName, String description) {
+    /**
+     * Fully qualified constructor.
+     * @param systemName The enum specifiying the system being monitored.
+     * @param description A description of this specific status monitor.
+     * @param clearable True if this status can be cleared.
+     */
+    public SystemStatusImpl(Subsystem systemName, String description, boolean clearable) {
         this.systemName = systemName;
         this.description = description;
+        this.clearable = clearable;
         setLastChangedTime();
         SystemStatusRegistry.getSystemStatusRegistery().register(this);
     }
@@ -48,11 +56,12 @@ public final class SystemStatusImpl implements SystemStatus {
 
     @Override
     public void setStatus(StatusCode code, String message) {
-        this.code = code;
-        this.message = message;
-        setLastChangedTime();
-        if (isActive())
+        if (isActive()) {
+            this.code = code;
+            this.message = message;
+            setLastChangedTime();
             notifyListeners();
+        }
     }
 
     @Override
@@ -86,5 +95,10 @@ public final class SystemStatusImpl implements SystemStatus {
     @Override
     public boolean isActive() {
         return active;
+    }
+    
+    @Override 
+    public boolean isClearable() {
+        return clearable;
     }
 }

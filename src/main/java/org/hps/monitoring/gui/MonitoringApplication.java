@@ -144,13 +144,13 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
      * Constructor for the monitoring application.
      */
     public MonitoringApplication() {        
-        initialize();
+        //initialize();
     }
         
     /**
      * Perform all intialization on start up.
      */
-    private void initialize() {
+    public void initialize() {
         
         // Create and configure the logger.
         setupLogger();
@@ -533,7 +533,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         Level newLevel = getJobSettingsPanel().getLogLevel();
         if (logger.getLevel() != newLevel) {
             logger.setLevel(newLevel);
-            log(Level.INFO, "Log Level was changed to < " + getJobSettingsPanel().getLogLevel().toString() + " >");
+            log(Level.INFO, "Log Level was changed to <" + getJobSettingsPanel().getLogLevel().toString() + ">");
         }
     }
 
@@ -544,7 +544,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private void setConnectionStatus(ConnectionStatus status) {
         connectionStatus = status;
         connectionStatusPanel.setConnectionStatus(status);
-        log(Level.FINE, "Connection status changed to < " + status.name() + " >");
+        log(Level.FINE, "Connection status changed to <" + status.name() + ">");
         logHandler.flush();
     }
 
@@ -574,7 +574,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             File fileName = fc.getSelectedFile();
             try {
                 AIDA.defaultInstance().saveAs(fileName);
-                logger.log(Level.INFO, "Plots saved to file < " + fileName + " >");
+                logger.log(Level.INFO, "Plots saved to file <" + fileName + ">");
             } catch (IOException e) {
                 errorHandler.setError(e)
                     .setMessage("Error saving plots to file.")
@@ -661,7 +661,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
                 logItem.setEnabled(false);
             }
         });
-        log("Redirected std out and err to file < " + file.getPath() + " >");
+        log("Redirected std out and err to file <" + file.getPath() + ">");
     }
 
     /**
@@ -751,7 +751,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
                 fileName = fileName + "." + screenshotFormat;
             }
             takeScreenshot(fileName);
-            log(Level.INFO, "Screenshot saved to file < " + fileName + " >");
+            log(Level.INFO, "Screenshot saved to file <" + fileName + ">");
         }
     }
 
@@ -969,7 +969,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Get steering resource or file as a String parameter.
         String steering = getSteering();
         SteeringType steeringType = getJobSettingsPanel().getSteeringType();
-        log(Level.CONFIG, "Set LCSim steering to < " + steering + " > with type < " + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + " >");
+        log(Level.CONFIG, "Set LCSim steering to <" + steering + "> with type <" + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + ">");
 
         try {
             // Create job manager and configure.
@@ -996,13 +996,15 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
 
     private void setupSteeringFile(String steering) {
-        log(Level.CONFIG, "Setting up steering file < " + steering + " >");
+        log(Level.CONFIG, "Setting up steering file <" + steering + ">");
         jobManager.setup(new File(steering));
     }
 
     private void setupSteeringResource(String steering) throws IOException {
-        log(Level.CONFIG, "Setting up steering resource < " + steering + " >");
+        log(Level.CONFIG, "Setting up steering resource <" + steering + ">");
         InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
+        if (is == null)
+            throw new IOException("Steering resource is not accessible or does not exist.");
         jobManager.setup(is);
         is.close();
     }
@@ -1015,7 +1017,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Setup the EventBuilder class.
         String eventBuilderClassName = getEventBuilderClassName();
 
-        log(Level.FINE, "Initializing event builder < " + eventBuilderClassName + " >");
+        log(Level.FINE, "Initializing event builder <" + eventBuilderClassName + ">");
 
         try {
             eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName).newInstance();
@@ -1026,7 +1028,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Set the detector name on the event builder so it can find conditions data.
         eventBuilder.setDetectorName(getDetectorName());
 
-        log(Level.INFO, "Successfully initialized event builder < " + eventBuilderClassName + " >");
+        log(Level.INFO, "Successfully initialized event builder <" + eventBuilderClassName + ">");
     }
 
     /**
@@ -1078,7 +1080,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
                     BufferedWriter out = new BufferedWriter(new FileWriter(logFile.getPath()));
                     out.write(buf.toString());
                     out.close();
-                    log("Saved log to file < " + logFile.getPath() + " >");
+                    log("Saved log to file <" + logFile.getPath() + ">");
                 } catch (IOException e) {                    
                     errorHandler.setError(e)
                         .setMessage("Error saving log to file.")
@@ -1235,7 +1237,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private void configDataSource() {
         DataSourceType dataSourceType = getDataSourcePanel().getDataSourceType();
         String filePath = getDataSourcePanel().getFilePath();
-        log(Level.INFO, "Data source type < " + dataSourceType + " >");
+        log(Level.INFO, "Data source type <" + dataSourceType + ">");
         if (dataSourceType.equals(DataSourceType.ET_SERVER)) {
             eventProcessing.setRecordSource(new EtEventSource(connection));
             log(Level.FINE, "ET event source");
@@ -1245,7 +1247,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         } else if (dataSourceType.equals(DataSourceType.LCIO_FILE)) {
             try {
                 eventProcessing.setRecordSource(new LCIOEventSource(new File(filePath)));
-                log(Level.FINE, "LCIO file < " + filePath + " >");
+                log(Level.FINE, "LCIO file <" + filePath + ">");
             } catch (IOException e) {
                 errorHandler.setError(e)
                     .log()
@@ -1289,7 +1291,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
 
         // Save final AIDA file if option is selected.
         if (getJobSettingsPanel().isAidaAutoSaveEnabled()) {
-            log(Level.INFO, "Saving AIDA file < " + getJobSettingsPanel().getAidaAutoSaveFileName() + " >");
+            log(Level.INFO, "Saving AIDA file <" + getJobSettingsPanel().getAidaAutoSaveFileName() + ">");
             try {
                 AIDA.defaultInstance().saveAs(getJobSettingsPanel().getAidaAutoSaveFileName());
             } catch (IOException e) {
@@ -1483,7 +1485,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         int r = fc.showDialog(mainPanel, "Load ...");
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            log(Level.CONFIG, "Loading settings from file < " + f.getPath() + " >");
+            log(Level.CONFIG, "Loading settings from file <" + f.getPath() + ">");
             Configuration newConfig = new Configuration(f);
             this.set(newConfig);
             this.load(config);
@@ -1497,7 +1499,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         int r = fc.showSaveDialog(mainPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            log(Level.CONFIG, "Saving configuration to file < " + f.getPath() + " >");
+            log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");
             config.writeToFile(f);            
         }
     }
@@ -1518,9 +1520,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         }
         
         if (config.getFile() != null)
-            log(Level.CONFIG, "Loaded config from file < " + config.getFile().getPath() + " >");
+            log(Level.CONFIG, "Loaded config from file <" + config.getFile().getPath() + ">");
         else 
-            log(Level.CONFIG, "Loaded config resource < " + config.getResourcePath() + " >");
+            log(Level.CONFIG, "Loaded config resource <" + config.getResourcePath() + ">");
     }
 
     private void addConfigurables() {
@@ -1557,8 +1559,8 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
     
     public void loadDefaultConfigFile() {
-        log(Level.CONFIG, "Loading default config file from resource < " + DEFAULT_CONFIG_RESOURCE + " >");
+        log(Level.CONFIG, "Loading default config file from resource <" + DEFAULT_CONFIG_RESOURCE + ">");
         set(new Configuration(DEFAULT_CONFIG_RESOURCE));
-        load(config);        
+        load(config);
     }
 }
