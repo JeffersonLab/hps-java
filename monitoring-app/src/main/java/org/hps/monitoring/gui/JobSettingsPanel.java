@@ -187,40 +187,7 @@ class JobSettingsPanel extends AbstractFieldsPanel implements Configurable, Acti
             throw new IOException("Not an LCSim XML file.");
         }
     }
-
-    /**
-     * Check that the steering file or resource is valid.
-     * @return True if steering is valid; false if not.
-     */
-    /*
-    void checkSteering() throws IOException {        
-        SteeringType steeringType = SteeringType.values()[steeringTypeComboBox.getSelectedIndex()];
-        System.out.println("checkSteering - " + steeringType.name());        
-        if (steeringType.equals(SteeringType.RESOURCE)) {
-            
-            String steeringResource = getSteeringResource();
-            System.out.println("steeringResource = " + steeringResource);
-            
-            // Check that steering resource exists.
-            InputStream is = getClass().getResourceAsStream(steeringResource);
-            if (is == null) {
-                throw new IOException("Steering resource does not exist or is not accessible.");
-            }
-        } else if (steeringType.equals(SteeringType.FILE)) {
-            
-            // Get steering file.
-            String steeringFilePath = steeringFileField.getText();
-            System.out.println("steeringFilePath = " + steeringFilePath);
-            
-            // Check that steering file exists.
-            File f = new File(steeringFilePath);
-            if (!f.exists()) {
-                throw new IOException("Steering file does not exist or is not readable.");
-            } 
-        } 
-    }
-    */
-     
+         
     /**
      * Setup the event builder from the field setting.
      * @return True if builder is setup successfully; false if not.
@@ -288,7 +255,6 @@ class JobSettingsPanel extends AbstractFieldsPanel implements Configurable, Acti
      * @param s The resource path.
      */
     void setSteeringResource(final String s) {
-        System.out.println("setSteeringResource - " + s);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 steeringResourcesComboBox.setSelectedItem(s);
@@ -525,8 +491,9 @@ class JobSettingsPanel extends AbstractFieldsPanel implements Configurable, Acti
         setSteeringType(SteeringType.valueOf(config.get("steeringType")));
         if (config.hasKey("steeringFile"))
             setSteeringFile(new File(config.get("steeringFile")));
-        if (config.hasKey("steeringResource")) 
+        if (config.hasKey("steeringResource")) {
             setSteeringResource(config.get("steeringResource"));
+        }
         setDetectorName(config.get("detectorName"));
         setEventBuilder(config.get("eventBuilderClassName"));
         setLogToFile(config.getBoolean("logToFile"));

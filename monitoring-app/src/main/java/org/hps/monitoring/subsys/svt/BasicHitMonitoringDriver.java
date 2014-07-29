@@ -25,7 +25,7 @@ public class BasicHitMonitoringDriver extends Driver {
     static final String hitsCollectionName = "SVTRawTrackerHits";
                 
     public BasicHitMonitoringDriver() {
-        status = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT hits are received.");
+        status = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT hits are received.", true);
         status.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
     }
     

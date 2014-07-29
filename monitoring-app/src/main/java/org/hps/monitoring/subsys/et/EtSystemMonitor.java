@@ -22,7 +22,7 @@ public class EtSystemMonitor extends EtEventProcessor {
     Timer timer = new Timer("ET Event Monitor");
     
     public EtSystemMonitor() {
-        systemStatus = new SystemStatusImpl(Subsystem.ET, "Example ET Monitor");
+        systemStatus = new SystemStatusImpl(Subsystem.ET, "Example ET Monitor", false);
         systemStatus.setStatus(StatusCode.UNKNOWN, "System is not active yet.");
     }
     

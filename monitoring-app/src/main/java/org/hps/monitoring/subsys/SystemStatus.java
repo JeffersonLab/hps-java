@@ -74,4 +74,10 @@ public interface SystemStatus {
      * @return True if status is active.
      */
     boolean isActive();
+    
+    /**
+     * True if the status can be cleared.
+     * @return True if status can be cleared.
+     */
+    boolean isClearable();
 }
