@@ -2,17 +2,17 @@
 # Monitoring Application configuration
 
 # job settings
-autoSaveAida=true
-autoSaveAidaFileName=monitoringPlots.aida
-detectorName=HPS-TestRun-v5
-disconnectOnError=true
-eventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
-logFileName=
-logLevel=ALL
-logToFile=false
-#steeringFile=
-steeringResource=/org/hps/steering/monitoring/TestRunMonitoring.lcsim
-steeringType=RESOURCE
+AutoSaveAida=true
+AidaFileName=monitoringPlots.aida
+DetectorName=HPS-TestRun-v5
+DisconnectOnError=true
+EventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
+#logFileName=
+LogLevel=ALL
+LogToFile=false
+#SteeringFile=
+SteeringResource=/org/hps/steering/monitoring/TestRunMonitoring.lcsim
+SteeringType=RESOURCE
 
 # event source
 dataSourceType=ET_SERVER

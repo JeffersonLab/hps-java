@@ -93,7 +93,6 @@ class LcioProcessingStep extends CompositeRecordProcessor {
             throw new NoSuchRecordException("No next LCIO event.");
         
         // Load the next LCIO event.
-        // FIXME: Why does this work even if the event source says it doesn't have a next record?!
         loop.execute(NEXT);
                       
         // The last call to the loop did not create a current record.
@@ -106,6 +105,9 @@ class LcioProcessingStep extends CompositeRecordProcessor {
                 
         // Update the CompositeRecord with reference to the LCIO event.
         record.setLcioEvent(lcioEvent);
+        if (record.getEvioEvent() == null) {
+            record.setEventNumber(lcioEvent.getEventNumber());
+        }
     }
     
     /**

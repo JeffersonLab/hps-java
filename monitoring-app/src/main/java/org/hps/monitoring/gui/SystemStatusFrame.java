@@ -1,11 +1,11 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.SystemStatusTableModel.ACTIVE_COL;
-import static org.hps.monitoring.gui.SystemStatusTableModel.CLEARABLE_COL;
-import static org.hps.monitoring.gui.SystemStatusTableModel.LAST_CHANGED_COL;
-import static org.hps.monitoring.gui.SystemStatusTableModel.RESET_COL;
-import static org.hps.monitoring.gui.SystemStatusTableModel.STATUS_COL;
-import static org.hps.monitoring.gui.SystemStatusTableModel.SYSTEM_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.ACTIVE_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.CLEARABLE_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.LAST_CHANGED_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.RESET_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.STATUS_COL;
+import static org.hps.monitoring.gui.model.SystemStatusTableModel.SYSTEM_COL;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -24,6 +24,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import org.hps.monitoring.enums.StatusCode;
+import org.hps.monitoring.gui.model.SystemStatusTableModel;
 
 /**
  * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects.

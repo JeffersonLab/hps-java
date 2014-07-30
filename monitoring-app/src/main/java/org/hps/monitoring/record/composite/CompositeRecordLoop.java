@@ -1,6 +1,7 @@
 package org.hps.monitoring.record.composite;
 
 import org.freehep.record.loop.DefaultRecordLoop;
+import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 
 /**
@@ -11,11 +12,16 @@ public class CompositeRecordLoop extends DefaultRecordLoop {
 
     CompositeRecordSource recordSource = new CompositeRecordSource();
     CompositeRecordLoopAdapter adapter = new CompositeRecordLoopAdapter();
+    boolean stopOnErrors = true;
     
     public CompositeRecordLoop() {
         setRecordSource(recordSource);
         addLoopListener(adapter);
         addRecordListener(adapter);
+    }
+    
+    public void setStopOnErrors(boolean stopOnErrors) {
+        this.stopOnErrors = stopOnErrors;
     }
     
     /**
@@ -38,7 +44,11 @@ public class CompositeRecordLoop extends DefaultRecordLoop {
     }
     
     protected void handleClientError(Throwable x) {
-        throw new RuntimeException("Error during event processing.", x);
+        if (stopOnErrors || x instanceof NoSuchRecordException) {
+            throw new RuntimeException("Error during event processing.", x);
+        } else {
+            x.printStackTrace();
+        }        
     }
 
     protected void handleSourceError(Throwable x) {

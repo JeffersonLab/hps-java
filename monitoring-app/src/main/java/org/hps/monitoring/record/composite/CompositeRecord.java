@@ -14,12 +14,23 @@ public class CompositeRecord {
     EvioEvent evioEvent;
     EventHeader lcioEvent;
     
+    int sequenceNumber = -1;
+    int eventNumber = -1;
+    
+    public void setSequenceNumber(int sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
+    
+    public void setEventNumber(int eventNumber) {
+        this.eventNumber = eventNumber;
+    }
+    
     public void setEtEvent(EtEvent etEvent) {
         this.etEvent = etEvent;
     }
     
     public void setEvioEvent(EvioEvent evioEvent) {
-        this.evioEvent = evioEvent;
+        this.evioEvent = evioEvent;        
     }
     
     public void setLcioEvent(EventHeader lcioEvent) {
@@ -36,5 +47,13 @@ public class CompositeRecord {
     
     public EventHeader getLcioEvent() {
         return lcioEvent;
+    }
+    
+    public int getSequenceNumber() {
+        return sequenceNumber;
+    }
+    
+    public int getEventNumber() {
+        return eventNumber;
     }
 }

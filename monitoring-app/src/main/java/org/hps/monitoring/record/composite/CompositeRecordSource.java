@@ -11,9 +11,12 @@ import org.freehep.record.source.NoSuchRecordException;
 public class CompositeRecordSource extends AbstractRecordSource {
 
     CompositeRecord currentRecord;
+    int sequenceNumber = 0;
             
     public void next() throws IOException, NoSuchRecordException {
         currentRecord = new CompositeRecord();
+        currentRecord.setSequenceNumber(sequenceNumber);
+        ++sequenceNumber;
     }
             
     @Override
@@ -58,7 +61,7 @@ public class CompositeRecordSource extends AbstractRecordSource {
 
     @Override
     public boolean hasNext() {
-        // FIXME: Not sure about this.
+        // FIXME: Not sure about this one.
         return true;
     }
 }

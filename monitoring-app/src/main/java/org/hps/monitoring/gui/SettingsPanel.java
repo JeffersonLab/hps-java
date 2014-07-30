@@ -83,7 +83,7 @@ class SettingsPanel extends JPanel implements ActionListener {
      */
     void save() {
         connectionPanel.save();
-        jobPanel.save();
+        //jobPanel.save();
         dataSourcePanel.save();
     }
     
@@ -92,7 +92,7 @@ class SettingsPanel extends JPanel implements ActionListener {
      */
     void reset() {
         connectionPanel.reset();
-        jobPanel.reset();
+        //jobPanel.reset();
         dataSourcePanel.reset();
     }
     
