@@ -9,7 +9,6 @@ import java.util.Properties;
 
 /**
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object.
- * It can be used to configure objects such as GUI panels.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class Configuration {

@@ -107,6 +107,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
             throw new NoSuchRecordException("No current EVIO event.");
         
         record.setEvioEvent(nextEvioEvent);
+        record.setEventNumber(nextEvioEvent.getEventNumber());
         
         // Encountered an end of run record.
         if (EventConstants.isEndEvent(nextEvioEvent))

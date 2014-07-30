@@ -6,6 +6,7 @@ package org.hps.monitoring.config;
  * these operations may vary by type of object.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// FIXME: This should probably be removed once ConfigurationModel is being used instead.
 public interface Configurable {
     
     /**

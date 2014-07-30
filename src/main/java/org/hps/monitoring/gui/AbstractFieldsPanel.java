@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -71,8 +72,8 @@ abstract class AbstractFieldsPanel extends JPanel {
      * @param editable The editable setting.
      * @return The JTextField component.
      */
-    protected final JTextField addField(String name, String value, String tooltip, int size, boolean editable) {
-        JTextField f = addField(name, value, size, editable);
+    protected final JFormattedTextField addField(String name, String value, String tooltip, int size, boolean editable) {
+        JFormattedTextField f = addField(name, value, size, editable);
         f.setToolTipText(tooltip);
         return f;
     }
@@ -85,7 +86,7 @@ abstract class AbstractFieldsPanel extends JPanel {
      * @param editable The editable setting.
      * @return The JTextField component.
      */
-    protected final JTextField addField(String name, String value, int size, boolean editable) {
+    protected final JFormattedTextField addField(String name, String value, int size, boolean editable) {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = currY;
@@ -99,7 +100,9 @@ abstract class AbstractFieldsPanel extends JPanel {
         c.gridy = currY;
         c.insets = insets;
         c.anchor = GridBagConstraints.EAST;
-        JTextField field = new JTextField(value, size);
+        //JFormattedTextField field = new JFormattedTextField(value, size);
+        JFormattedTextField field = new JFormattedTextField(value);
+        field.setColumns(size);
         field.setHorizontalAlignment(JTextField.RIGHT);
         field.setEditable(editable);
         field.setBackground(Color.WHITE);

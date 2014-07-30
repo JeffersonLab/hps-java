@@ -5,6 +5,14 @@ package org.hps.monitoring.gui;
  * A few commands handled only by sub-components are not listed here.
  */
 final class MonitoringCommands {
+    
+    static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
+    static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
+    static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";
+    static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
+    static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
+    static final String LOG_LEVEL_CHANGED = "logLevelChanged";    
+       
     static final String AIDA_AUTO_SAVE = "aidaAutoSave";
     static final String CLEAR_LOG_TABLE = "clearLogTable";
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
@@ -22,8 +30,8 @@ final class MonitoringCommands {
     static final String SAVE_PLOTS = "savePlots";
     static final String SCREENSHOT = "screenshot";
     static final String SAVE_CONFIG_FILE = "saveConfigFile";
-    static final String SET_EVENT_BUILDER = "setEventBuilder";
-    static final String SET_LOG_LEVEL = "setLogLevel";
+    static final String SET_EVENT_BUILDER = "setEventBuilder";    
+
     static final String SET_STEERING_RESOURCE = "setSteeringResource";            
     static final String SELECT_CONFIG_FILE = "selectConfigFile";
     static final String SELECT_LOG_FILE = "logToFile";

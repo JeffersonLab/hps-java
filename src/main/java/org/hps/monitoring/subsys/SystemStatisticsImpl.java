@@ -149,8 +149,10 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public void stop() { 
         // Kill the Timer.
-        if (timer != null)
+        if (timer != null) {
             timer.cancel();
+            timer.purge();
+        }
         
         // Set stop time.
         stopTimeMillis = System.currentTimeMillis();

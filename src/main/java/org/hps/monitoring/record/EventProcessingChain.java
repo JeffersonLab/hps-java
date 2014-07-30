@@ -63,6 +63,7 @@ public class EventProcessingChain extends AbstractLoopListener {
     private boolean done;
     private boolean paused;
     private boolean wasSetup;
+    private boolean stopOnErrors = true;
     
     private EtProcessingStep etStep = new EtProcessingStep();
     private EvioProcessingStep evioStep = new EvioProcessingStep();
@@ -126,6 +127,8 @@ public class EventProcessingChain extends AbstractLoopListener {
             // Add LCIO processing step.
             compositeLoop.addProcessor(lcioStep);
         }
+        
+        compositeLoop.setStopOnErrors(stopOnErrors);
         
         wasSetup = true;
     }
@@ -326,6 +329,17 @@ public class EventProcessingChain extends AbstractLoopListener {
      */
     public int getTotalEventsProcessed() {
         return this.totalEventsProcessed;
+    }
+    
+    /**
+     * Set whether processing will stop when errors occur.
+     * Only specific types of non-fatal errors are affected by this.
+     * For instance, <code>NoSuchRecordException</code> is never 
+     * ignored and always causes processing to stop.
+     * @param stopOnErrors True if processing should stop on errors. 
+     */
+    public void setStopOnErrors(boolean stopOnErrors) {
+        this.stopOnErrors = stopOnErrors;
     }
     
     /**
