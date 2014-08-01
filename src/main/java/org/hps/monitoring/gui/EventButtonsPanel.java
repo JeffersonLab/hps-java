@@ -32,7 +32,7 @@ class EventButtonsPanel extends JPanel {
         c.insets = new Insets(0, 0, 0, 10);
         connectButton = new JButton("Connect");
         connectButton.setEnabled(true);
-        connectButton.setActionCommand(MonitoringCommands.CONNECT);
+        connectButton.setActionCommand(Commands.CONNECT);
         add(connectButton, c);
 
         c = new GridBagConstraints();
@@ -40,7 +40,7 @@ class EventButtonsPanel extends JPanel {
         c.gridy = 0;
         c.insets = new Insets(0, 0, 0, 10);
         pauseButton = new JButton("Pause");
-        pauseButton.setActionCommand(MonitoringCommands.PAUSE);
+        pauseButton.setActionCommand(Commands.PAUSE);
         pauseButton.setEnabled(false);
         add(pauseButton, c);
 
@@ -49,33 +49,21 @@ class EventButtonsPanel extends JPanel {
         c.gridy = 0;
         nextEventsButton = new JButton("Next Event");
         nextEventsButton.setEnabled(false);
-        nextEventsButton.setActionCommand(MonitoringCommands.NEXT);
+        nextEventsButton.setActionCommand(Commands.NEXT);
         add(nextEventsButton, c);
     }
 
     /**
-     * Toggle the connect button from its current state.  If it is in "Connect" state
-     * then it will be toggled to "Disconnect" and vice versa.
+     * Set the application connection state.
+     * @param connected True if application is connected or false if disconnected.
      */
-    /*
-    void toggleConnectButton() {
-        if (connectButton.getText().equals("Connect")) {
-            connectButton.setText("Disconnect");
-            connectButton.setActionCommand(MonitoringCommands.DISCONNECT);
-        } else {
-            connectButton.setText("Connect");
-            connectButton.setActionCommand(MonitoringCommands.CONNECT);
-        }
-    }
-    */
-    
     void setConnected(boolean connected) {
         if (connected) {
             connectButton.setText("Disconnect");
-            connectButton.setActionCommand(MonitoringCommands.DISCONNECT);
+            connectButton.setActionCommand(Commands.DISCONNECT);
         } else {
             connectButton.setText("Connect");
-            connectButton.setActionCommand(MonitoringCommands.CONNECT);
+            connectButton.setActionCommand(Commands.CONNECT);
         }
     }
 
@@ -113,10 +101,10 @@ class EventButtonsPanel extends JPanel {
         this.nextEventsButton.setEnabled(enable);
         if (enable) {
             pauseButton.setText("Resume");
-            pauseButton.setActionCommand(MonitoringCommands.RESUME);
+            pauseButton.setActionCommand(Commands.RESUME);
         } else {
             pauseButton.setText("Pause");
-            pauseButton.setActionCommand(MonitoringCommands.PAUSE);
+            pauseButton.setActionCommand(Commands.PAUSE);
         }
     }
 }

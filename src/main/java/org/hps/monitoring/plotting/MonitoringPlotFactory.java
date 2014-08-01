@@ -21,7 +21,6 @@ import org.jfree.chart.JFreeChart;
  * The top level component is set externally by the MonitoringApplication before any calls 
  * to AIDA are made from Drivers.
  */
-// FIXME: Move to plotting package.
 public class MonitoringPlotFactory extends PlotterFactory {
 
     // The name of the factory which will be used in naming tabs in the monitoring app.

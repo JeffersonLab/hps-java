@@ -9,7 +9,7 @@ import org.lcsim.util.aida.AIDA;
 /**
  * A basic set of strip charts for monitoring the ET system.
  */
-public class EtSystemStripCharts extends EtEventProcessor { 
+public final class EtSystemStripCharts extends EtEventProcessor { 
         
     SystemStatisticsImpl stats = new SystemStatisticsImpl();               
     MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) 

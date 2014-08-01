@@ -10,24 +10,23 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 
-import org.hps.monitoring.enums.StatusCode;
+import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusListener;
 
 /**
- * A <code>JTableModel</code> that has a backing list of 
- * {@link org.hps.monitoring.subsys.SystemStatus} objects.
+ * A <code>JTableModel</code> that has a list of {@link org.hps.monitoring.subsys.SystemStatus} objects.
  */
-public class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
+public final class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
 
-    static final int RESET_COL = 0;
-    static final int ACTIVE_COL = 1;
-    static final int STATUS_COL = 2;
-    static final int SYSTEM_COL = 3;
-    static final int DESCRIPTION_COL = 4;
-    static final int MESSAGE_COL = 5;
-    static final int LAST_CHANGED_COL = 6;
-    static final int CLEARABLE_COL = 7;
+    public static final int RESET_COL = 0;
+    public static final int ACTIVE_COL = 1;
+    public static final int STATUS_COL = 2;
+    public static final int SYSTEM_COL = 3;
+    public static final int DESCRIPTION_COL = 4;
+    public static final int MESSAGE_COL = 5;
+    public static final int LAST_CHANGED_COL = 6;
+    public static final int CLEARABLE_COL = 7;
             
     static final String[] columnNames = {
             "Reset",

@@ -8,7 +8,7 @@ import org.lcsim.event.EventHeader;
  * This class is used to group together corresponding ET, EVIO and LCIO events
  * for use by the {@link CompositeRecordLoop}.
  */
-public class CompositeRecord {
+public final class CompositeRecord {
     
     EtEvent etEvent;
     EvioEvent evioEvent;

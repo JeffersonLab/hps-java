@@ -1,4 +1,4 @@
-package org.hps.monitoring.enums;
+package org.hps.monitoring.subsys;
 
 /**
  * Code that represents a sub-system status.   
@@ -12,5 +12,5 @@ public enum StatusCode {
     WARNING,
     ERROR,
     ALARM,
-    HALT;
+    HALT;    
 }

@@ -7,10 +7,13 @@ import java.util.List;
 /**
  * Global registry of all {@link SystemStatus} objects.
  */
-public class SystemStatusRegistry {
+public final class SystemStatusRegistry {
     
     static SystemStatusRegistry instance = new SystemStatusRegistry();
     List<SystemStatus> systemStatuses = new ArrayList<SystemStatus>();
+    
+    private SystemStatusRegistry() {
+    }
     
     public static SystemStatusRegistry getSystemStatusRegistery() {
         return instance;

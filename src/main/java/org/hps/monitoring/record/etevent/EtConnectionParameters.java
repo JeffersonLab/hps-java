@@ -9,7 +9,7 @@ import org.jlab.coda.et.enums.Mode;
 /**
  * Connection parameters for ET system consumer.
  */
-public class EtConnectionParameters {
+public final class EtConnectionParameters {
     
     /**
      * Parameters that are externally settable from within the package.

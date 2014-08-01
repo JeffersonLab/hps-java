@@ -3,8 +3,8 @@ package org.hps.monitoring.subsys.svt;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.hps.monitoring.enums.StatusCode;
-import org.hps.monitoring.enums.Subsystem;
+import org.hps.monitoring.subsys.StatusCode;
+import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusImpl;
 import org.lcsim.event.EventHeader;

@@ -5,9 +5,9 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
 
-public class StripChartUtil {
+public final class StripChartUtil {
 
-    private StripChartUtil() {        
+    private StripChartUtil() {
     }
     
     public static TimeSeries getTimeSeries(JFreeChart chart) {

@@ -1,28 +1,27 @@
 package org.hps.monitoring.gui;
 
+import static org.hps.monitoring.gui.Commands.*;
+import static org.hps.monitoring.gui.model.ConfigurationModel.*;
+
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import org.hps.monitoring.config.Configurable;
-import org.hps.monitoring.config.Configuration;
 import org.hps.monitoring.enums.DataSourceType;
-import org.jlab.coda.jevio.EvioException;
-import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.lcio.LCIOReader;
+import org.hps.monitoring.gui.model.ConfigurationModel;
 
 /**
  * A sub-panel of the settings window for selecting a data source, 
  * e.g. an ET server, an LCIO file, or an EVIO file.
  */
-public class DataSourcePanel extends AbstractFieldsPanel implements ActionListener, Configurable {
+class DataSourcePanel extends AbstractFieldsPanel {
            
     static String[] dataSourceTypes = { 
         DataSourceType.ET_SERVER.description(), 
@@ -30,23 +29,24 @@ public class DataSourcePanel extends AbstractFieldsPanel implements ActionListen
         DataSourceType.LCIO_FILE.description()
     };
     
-    JComboBox dataSourceCombo;
-    JTextField fileField;
-    String DATA_SOURCE_COMMAND = "dataSourceChanged";
-    ErrorHandler errorHandler;
+    JComboBox<?> dataSourceTypeComboBox;
+    JTextField dataSourcePathField;    
     
-    Configuration config;
+    ConfigurationModel configurationModel;
     
     DataSourcePanel() {
         setLayout(new GridBagLayout());        
-        dataSourceCombo = addComboBox("Data Source", dataSourceTypes);
-        dataSourceCombo.setSelectedIndex(0);
-        dataSourceCombo.setActionCommand(DATA_SOURCE_COMMAND);
-        dataSourceCombo.addActionListener(this);
-        fileField = addField("File Path", 40);
-        fileField.setEditable(false);
+        dataSourceTypeComboBox = addComboBox("Data Source", dataSourceTypes);
+        dataSourceTypeComboBox.setSelectedIndex(0);
+        dataSourceTypeComboBox.setActionCommand(DATA_SOURCE_TYPE_CHANGED);
+        dataSourceTypeComboBox.addActionListener(this);
+        
+        dataSourcePathField = addField("Data Source Path", 40);
+        dataSourcePathField.setEditable(false);
+        dataSourcePathField.addPropertyChangeListener("value", this);
     }
 
+    /*
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals(DATA_SOURCE_COMMAND)) {
             int selectedIndex = dataSourceCombo.getSelectedIndex();
@@ -58,6 +58,7 @@ public class DataSourcePanel extends AbstractFieldsPanel implements ActionListen
             }
         }
     }
+    */
     
     private void chooseFile() {
         JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
@@ -69,17 +70,18 @@ public class DataSourcePanel extends AbstractFieldsPanel implements ActionListen
             final String filePath = file.getPath();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    fileField.setText(filePath);
+                    dataSourcePathField.setText(filePath);
                 }
             });
         }
     }
     
+    /*
     void checkFile() throws IOException {
-        DataSourceType dataSourceType = DataSourceType.values()[this.dataSourceCombo.getSelectedIndex()];
+        DataSourceType dataSourceType = DataSourceType.values()[this.dataSourceTypeComboBox.getSelectedIndex()];
         if (!dataSourceType.isFile())
             return;
-        File file = new File(fileField.getText());
+        File file = new File(dataSourcePathField.getText());
         if (!file.exists()) {
             throw new IOException("File " + file + " does not exist!");
         }
@@ -93,60 +95,54 @@ public class DataSourcePanel extends AbstractFieldsPanel implements ActionListen
             new LCIOReader(file);
         }
     }
-    
-    
-    String getFilePath() {
-        if (getDataSourceType().isFile()) {
-            return this.fileField.getText();
-        } else {
-            return null;
+    */
+
+    @Override
+    public void setConfigurationModel(ConfigurationModel configurationModel) {
+        this.configurationModel = configurationModel;
+    }
+
+    @Override
+    public ConfigurationModel getConfigurationModel() {
+        return configurationModel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
+            DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
+            configurationModel.setDataSourceType(dataSourceType);
+            if (dataSourceType.isFile()) { 
+                chooseFile();
+            }
         }
     }
     
-    DataSourceType getDataSourceType() {
-        return DataSourceType.values()[this.dataSourceCombo.getSelectedIndex()];
+    /**
+     * Updates the configuration with changes from the GUI component values.
+     * The changes from the GUI are distinguishable by their component object.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (dataSourcePathField.equals(evt.getSource())) {
+            configurationModel.setDataSourcePath(dataSourcePathField.getText());
+        }
     }
     
-    void setDataSourceType(DataSourceType dataSourceType) {
-        this.dataSourceCombo.setSelectedIndex(dataSourceType.ordinal());        
-    }
-    
-    void setFilePath(String filePath) {
-        this.fileField.setText(filePath);
-    }
-
-    @Override
-    public void load(Configuration config) {
-        this.dataSourceCombo.removeActionListener(this);
-        this.setDataSourceType(DataSourceType.valueOf(config.get("dataSourceType")));
-        this.dataSourceCombo.addActionListener(this);
-        this.setFilePath(config.get("dataSourcePath"));
-    }
-
-    @Override
-    public void save(Configuration config) {
-        config.set("dataSourceType", getDataSourceType().name());
-        config.set("dataSourcePath", getFilePath());
-    }
-
-    @Override
-    public Configuration getConfiguration() {
-        return config;
-    }
-
-    @Override
-    public void save() {
-        save(config);        
-    }
-
-    @Override
-    public void set(Configuration config) {
-        load(config);
-        this.config = config;
-    }
-
-    @Override
-    public void reset() {
-        set(config);
-    } 
+    /**
+     * Update the GUI from changes in the underlying configuration.
+     * The changes from the configuration are distinguishable by their 
+     * property name.
+     */
+    public class DataSourceChangeListener implements PropertyChangeListener {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            Object value = evt.getNewValue();            
+            if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
+                dataSourceTypeComboBox.setSelectedItem(value.toString());
+            } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
+                dataSourcePathField.setText((String) value); 
+            }
+        }
+    }              
 }

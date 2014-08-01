@@ -108,25 +108,7 @@ class ConnectionStatusPanel extends JPanel {
         c.insets = new Insets(10, 0, 0, 0);
         add(new JSeparator(SwingConstants.HORIZONTAL), c);        
     }       
-    
-    /**
-     * Set the connection status.
-     * @param status The status code.
-     */
-    /*
-    void setStatus(final int status) {
-        if (status < 0 || status > (ConnectionStatus.values().length - 1)) {
-            throw new IllegalArgumentException("Invalid status argument: " + status);
-        }
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                statusField.setText(ConnectionStatus.values()[status].name());
-                dateField.setText(dateFormat.format(new Date()));
-            }
-        });
-    }
-    */
-    
+         
     void setConnectionStatus(final ConnectionStatus status) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

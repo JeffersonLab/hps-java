@@ -14,7 +14,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Proof of principle Driver for plotting a sub-system's data using a strip chart.
+ * Example Driver for plotting a sub-system's data using a strip chart.
  */
 public class EcalStripChartTestDriver extends Driver {
            
@@ -49,10 +49,6 @@ public class EcalStripChartTestDriver extends Driver {
             series.add(new Millisecond(new Date()), averageHits);
             hits = 0;
             events = 0;
-        } 
-                
-        //long millis = (long) ((double) event.getTimeStamp() / 1e6);
-        //series.addOrUpdate(new Second(new Date(timestamp)), size);
-        //series.addOrUpdate(new Millisecond(new Date(millis)), size);
+        }                 
     }
 }

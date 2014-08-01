@@ -23,16 +23,18 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-import org.hps.monitoring.enums.StatusCode;
 import org.hps.monitoring.gui.model.SystemStatusTableModel;
+import org.hps.monitoring.subsys.StatusCode;
 
 /**
- * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects.
+ * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects
+ * using a <code>JTable</code>.
  */
-public class SystemStatusFrame extends JFrame implements HasErrorHandler {
+// TODO: It might be a good idea if there was a second table which logged all status changes as separate
+//       rows so they could be seen in order.
+class SystemStatusFrame extends JFrame {
 
     JTable table;
-    ErrorHandler errorHandler;
 
     int WIDTH = 650;
     int HEIGHT = ScreenUtil.getScreenHeight() / 2;
@@ -103,6 +105,8 @@ public class SystemStatusFrame extends JFrame implements HasErrorHandler {
         table.getColumnModel().getColumn(STATUS_COL).setPreferredWidth(10);
         table.getColumnModel().getColumn(SYSTEM_COL).setPreferredWidth(10);
         // TODO: Add widths for every column.
+        
+        table.setAutoCreateRowSorter(true);
                 
         // Scroll pane.
         JScrollPane scrollPane = new JScrollPane(table);
@@ -115,16 +119,6 @@ public class SystemStatusFrame extends JFrame implements HasErrorHandler {
         setResizable(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         pack();
-    }
-
-    @Override
-    public void setErrorHandler(ErrorHandler errorHandler) {
-        this.errorHandler = errorHandler;
-    }
-
-    @Override
-    public ErrorHandler getErrorHandler() {
-        return errorHandler;
     }
 
     public SystemStatusTableModel getTableModel() {

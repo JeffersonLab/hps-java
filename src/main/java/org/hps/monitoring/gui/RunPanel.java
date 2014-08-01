@@ -20,6 +20,7 @@ import org.jlab.coda.jevio.EvioEvent;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// FIXME: This component should be updated via a Model rather than direct calls to this class.
 public class RunPanel extends JPanel {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
@@ -55,7 +56,7 @@ public class RunPanel extends JPanel {
         startDateField.setValue("");
         endDateField.setValue("");
         lengthField.setValue("");
-        totalEventsField.setValue("0");
+        totalEventsField.setValue("");
         elapsedTimeField.setValue("");
         eventsReceivedField.setValue("0");
         dataReceivedField.setValue("0");

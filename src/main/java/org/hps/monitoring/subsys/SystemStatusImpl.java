@@ -3,9 +3,6 @@ package org.hps.monitoring.subsys;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.monitoring.enums.StatusCode;
-import org.hps.monitoring.enums.Subsystem;
-
 /**
  * The implementation of {@link SystemStatus}.
  */

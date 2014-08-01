@@ -1,7 +1,5 @@
 package org.hps.monitoring.subsys;
 
-import org.hps.monitoring.enums.StatusCode;
-import org.hps.monitoring.enums.Subsystem;
 
 /**
  * The <tt>SystemStatus</tt> describes the state of a system, e.g. whether it is okay 

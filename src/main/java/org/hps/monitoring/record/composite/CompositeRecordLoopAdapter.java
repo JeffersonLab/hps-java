@@ -11,7 +11,7 @@ import org.freehep.record.loop.RecordListener;
 /**
  * Adapter for listening on the {@link CompositeRecordLoop} for records and loop events.
  */
-public class CompositeRecordLoopAdapter extends AbstractLoopListener implements RecordListener {
+public final class CompositeRecordLoopAdapter extends AbstractLoopListener implements RecordListener {
 
     List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
 

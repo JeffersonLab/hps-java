@@ -6,7 +6,7 @@ import javax.swing.JTabbedPane;
 /**
  * A <code>JFrame</code> where monitoring plots will show in tabs.
  */
-public class PlotFrame extends JFrame {
+class PlotFrame extends JFrame {
     
     private JTabbedPane plotPane;
     

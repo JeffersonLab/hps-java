@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -14,12 +15,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.hps.monitoring.gui.model.HasConfigurationModel;
+
 /**
  * A <code>JPanel</code> which has a number of fields with the labels
  * in the first column and the components for showing/editing the fields
  * in the second.  It uses <code>GridBagConstraints</code> for layout.
  */
-abstract class AbstractFieldsPanel extends JPanel {
+// TODO: This should use features of JFormattedTextField instead of plain JTextField.
+abstract class AbstractFieldsPanel extends JPanel 
+    implements PropertyChangeListener, HasConfigurationModel, ActionListener {
 
     private int currY = 0;    
     private Insets insets;

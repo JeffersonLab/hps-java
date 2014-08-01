@@ -9,7 +9,6 @@ import javax.swing.JFrame;
 
 /**
  * Miscellaneous utility methods for getting information about the graphics environment.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class ScreenUtil {
 

@@ -13,7 +13,7 @@ import org.jlab.coda.jevio.EvioEvent;
 /**
  * Adapter to process <tt>EvioEvent</tt> objects using a record loop.
  */
-public class EvioAdapter extends AbstractLoopListener implements RecordListener {
+public final class EvioAdapter extends AbstractLoopListener implements RecordListener {
 
     List<EvioEventProcessor> processors = new ArrayList<EvioEventProcessor>();
     

@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.gui;
 
 import java.io.File;
 
@@ -11,15 +11,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.monitoring.config.Configuration;
-import org.hps.monitoring.gui.MonitoringApplication;
+import org.hps.monitoring.gui.model.Configuration;
 
 /**
  * This is the front-end for running the monitoring app via a 
  * {@link #main(String[])} method.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class MonitoringApplicationMain {
+public class Main {
 
     /**
      * Run the monitoring application from the command line.
@@ -57,7 +56,7 @@ public class MonitoringApplicationMain {
 
                 // Load the connection settings.
                 if (cl.hasOption("c")) {
-                    app.set(new Configuration(new File(cl.getOptionValue("c"))));
+                    app.setConfiguration(new Configuration(new File(cl.getOptionValue("c"))));
                 }
                 
                 app.initialize();

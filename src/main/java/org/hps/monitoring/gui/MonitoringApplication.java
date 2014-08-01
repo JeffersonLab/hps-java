@@ -1,6 +1,23 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.MonitoringCommands.*;
+import static org.hps.monitoring.gui.Commands.AIDA_AUTO_SAVE;
+import static org.hps.monitoring.gui.Commands.CHOOSE_LOG_FILE;
+import static org.hps.monitoring.gui.Commands.CLEAR_LOG_TABLE;
+import static org.hps.monitoring.gui.Commands.CONNECT;
+import static org.hps.monitoring.gui.Commands.DISCONNECT;
+import static org.hps.monitoring.gui.Commands.EXIT;
+import static org.hps.monitoring.gui.Commands.LOAD_DEFAULT_CONFIG_FILE;
+import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
+import static org.hps.monitoring.gui.Commands.LOG_TO_TERMINAL;
+import static org.hps.monitoring.gui.Commands.NEXT;
+import static org.hps.monitoring.gui.Commands.PAUSE;
+import static org.hps.monitoring.gui.Commands.RESUME;
+import static org.hps.monitoring.gui.Commands.SAVE_CONFIG_FILE;
+import static org.hps.monitoring.gui.Commands.SAVE_LOG_TABLE;
+import static org.hps.monitoring.gui.Commands.SAVE_PLOTS;
+import static org.hps.monitoring.gui.Commands.SCREENSHOT;
+import static org.hps.monitoring.gui.Commands.SELECT_CONFIG_FILE;
+import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -49,12 +66,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import org.hps.evio.LCSimEventBuilder;
-import org.hps.monitoring.config.Configurable;
-import org.hps.monitoring.config.Configuration;
 import org.hps.monitoring.enums.ConnectionStatus;
 import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.enums.SteeringType;
+import org.hps.monitoring.gui.model.Configuration;
 import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.monitoring.gui.model.HasConfigurationModel;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.record.EventProcessingChain;
@@ -62,7 +79,9 @@ import org.hps.monitoring.record.EventProcessingThread;
 import org.hps.monitoring.record.etevent.EtConnection;
 import org.hps.monitoring.record.etevent.EtEventSource;
 import org.hps.monitoring.record.evio.EvioFileSource;
+import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
+import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
@@ -73,8 +92,7 @@ import org.lcsim.util.loop.LCIOEventSource;
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
  */
-// FIXME: The log to file or terminal is probably broken with changes to JobSettingsPanel.
-public class MonitoringApplication extends JFrame implements ActionListener, Configurable {
+public final class MonitoringApplication extends JFrame implements ActionListener, SystemStatusListener {
 
     // Top-level Swing components.
     private JPanel mainPanel;
@@ -96,7 +114,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private final PrintStream sysErr = System.err;
     
     // Error handling class for the application.
-    ErrorHandler errorHandler;
+    private ErrorHandler errorHandler;
 
     // ET connection parameters and state.
     private EtConnection connection;
@@ -113,7 +131,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private static Logger logger;
     private Handler logHandler;
     private DefaultTableModel logTableModel;
-    static final String[] logTableColumns = { "Message", "Date", "Level" };
+    static final String[] logTableColumns = { "Date", "Message", "Level" };
     private JTable logTable;
     private static Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -133,14 +151,14 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private static final int MAIN_FRAME_WIDTH = 650;
     
     // Default config which can be overridden by command line argument.
-    static final String DEFAULT_CONFIG_RESOURCE = "/org/hps/monitoring/config/default_config.prop";
+    private static final String DEFAULT_CONFIG_RESOURCE = "/org/hps/monitoring/config/default_config.prop";
     
-    Configuration config = new Configuration(DEFAULT_CONFIG_RESOURCE);
-    ConfigurationModel configModel;
+    // The application global Configuration object which is the default configuration unless overridden.
+    private Configuration configuration = new Configuration(DEFAULT_CONFIG_RESOURCE);
     
-    // List of GUI objects to which configuration should be pushed.
-    List<Configurable> configurables = new ArrayList<Configurable>();
-               
+    // The ConfigurationModel for updating GUI components from the global configuration.
+    private ConfigurationModel configurationModel = new ConfigurationModel();
+                   
     /**
      * Constructor for the monitoring application.
      */
@@ -159,7 +177,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         setupErrorHandler();
         
         // Setup an uncaught exception handler.
-        setupExceptionHandler();
+        setupUncaughtExceptionHandler();
 
         // Setup the application menus.
         createApplicationMenu();
@@ -185,12 +203,11 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Create settings dialog window.
         createSettingsDialog();
         
-        // Add configurable objects to list.
-        addConfigurables();
-        
-        // Load configuration from a properties file.
-        set(config);
-        load(config);
+        // Register the ConfigurationModel with sub-components.
+        setupConfigurationModel();
+                
+        // Load the current configuration, either the default or from command line arg.
+        loadConfiguration();
 
         // Log that the application started successfully.
         log(Level.CONFIG, "Application initialized successfully.");
@@ -200,7 +217,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         errorHandler = new ErrorHandler(this, logger);
     }
     
-    private void setupExceptionHandler() {
+    private void setupUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {            
             public void uncaughtException(Thread thread, Throwable exception) {
                MonitoringApplication.this.errorHandler.setError(exception)
@@ -233,6 +250,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
     
     public void setVisible(boolean visible) {
+        
         super.setVisible(true);
         
         this.systemStatusFrame.setVisible(true);
@@ -326,7 +344,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
                 
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
-        exitItem.setActionCommand(MonitoringCommands.EXIT);
+        exitItem.setActionCommand(EXIT);
         exitItem.addActionListener(this);
         exitItem.setToolTipText("Exit from the application.");
         applicationMenu.add(exitItem);
@@ -404,12 +422,16 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         /**
          * Puts log messages into the log table.
          */
-        public void publish(LogRecord record) {
-            Object[] row = new Object[] { /* record.getLoggerName(), */ // source
-                    record.getMessage(), // message
-                    dateFormat.format(new Date(record.getMillis())), // date
-                    record.getLevel() }; // level
+        public void publish(LogRecord record) {                       
+            // Add the row to the log table.
+            Object[] row = new Object[] { 
+                    dateFormat.format(new Date(record.getMillis())), 
+                    record.getLevel(),
+                    record.getMessage() };
             logTableModel.insertRow(logTable.getRowCount(), row);
+            
+            // Print all messages to System.out so they show up in the terminal or log file output.
+            System.out.println(row[0] + " :: " + row[1] + " :: " + row[2]);
         }
 
         public void close() throws SecurityException {
@@ -429,6 +451,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         logTableModel = new DefaultTableModel(data, logTableColumns);
         logTable = new JTable(logTableModel);
         logTable.setEnabled(false);
+        logTable.setAutoCreateRowSorter(true);
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -457,8 +480,6 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
      * The action handler method for the entire application.
      * @param e The event to handle.
      */
-    // FIXME: Review all these commands to see which need to have menu items added back,
-    //        which should be removed, those that are duplicated, etc.
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         if (CONNECT.equals(cmd)) {
@@ -479,9 +500,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             savePlots();
         } else if (CHOOSE_LOG_FILE.equals(cmd)) {
             chooseLogFile();
-        } /*else if (LOG_TO_TERMINAL.equals(cmd)) {
+        } else if (LOG_TO_TERMINAL.equals(cmd)) {
             logToTerminal();
-        }*/ else if (SCREENSHOT.equals(cmd)) {
+        } else if (SCREENSHOT.equals(cmd)) {
             chooseScreenshot();
         } else if (EXIT.equals(cmd)) {
             exit();
@@ -489,9 +510,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             saveLogTableToFile();
         } else if (CLEAR_LOG_TABLE.equals(cmd)) {
             clearLogTable();
-        } /*else if (SET_EVENT_BUILDER.equals(cmd)) {
-            getJobSettingsPanel().editEventBuilder();
-        }*/ else if (PAUSE.equals(cmd)) {
+        } else if (PAUSE.equals(cmd)) {
             pauseEventProcessing();
         } else if (NEXT.equals(cmd)) {
             nextEvent();
@@ -501,20 +520,15 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             setLogLevel();
         } else if (AIDA_AUTO_SAVE.equals(cmd)) {
             getJobSettingsPanel().chooseAidaAutoSaveFile();
-        } /*else if (SET_STEERING_RESOURCE.equals(cmd)) {
-            steeringResourceSelected();
-        }*/ else if (SHOW_SETTINGS.equals(cmd)) {
+        } else if (SHOW_SETTINGS.equals(cmd)) {
             showSettingsWindow();
         } else if (SELECT_CONFIG_FILE.equals(cmd)) {
-            chooseConfigFile();
+            chooseConfigurationFile();
         } else if (SAVE_CONFIG_FILE.equals(cmd)) {
-            saveConfigFile();
+            saveConfigurationFile();
         } else if (LOAD_DEFAULT_CONFIG_FILE.equals(cmd)) {
             loadDefaultConfigFile();
-        } else if (LOG_TO_FILE_CHANGED.equals(cmd)) {
-            if (!configModel.getLogToFile())
-                logToTerminal();
-        }
+        } 
     }
 
     /**
@@ -529,10 +543,10 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
      * a new log level will NOT be set.
      */
     private void setLogLevel() {
-        Level newLevel = configModel.getLogLevel();
+        Level newLevel = configurationModel.getLogLevel();
         if (logger.getLevel() != newLevel) {
             logger.setLevel(newLevel);
-            log(Level.INFO, "Log Level was changed to <" + configModel.getLogLevel().toString() + ">");
+            log(Level.INFO, "Log Level was changed to <" + configurationModel.getLogLevel().toString() + ">");
         }
     }
 
@@ -564,7 +578,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
         
     /**
-     * Immediately save all plots to a selected output file using a file chooser.
+     * Save all the plots to a file using a <code>JFileChooser</code>.
      */
     private void savePlots() {
         JFileChooser fc = new JFileChooser();
@@ -633,17 +647,16 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
 
     /**
      * Redirect <code>System.out</code> and <code>System.err</code> back to the terminal, e.g. if
-     * they were previously sent to a file. This is independent of messages that are sent to the
-     * application's log table.
+     * they were previously sent to a file.
      */
     private void logToTerminal() {
         System.setOut(sysOut);
         System.setErr(sysErr);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                configModel.setLogToFile(false);
+                configurationModel.setLogToFile(false);
                 
-                // These should be toggled via a PropertyChangeListener or ActionEvent.
+                // FIXME: These should be toggled via a PropertyChangeListener or ActionEvent.
                 terminalItem.setEnabled(false);
                 logItem.setEnabled(true);
             }
@@ -652,17 +665,18 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
         
     /**
-     * Redirect std out and err to a file.
+     * Redirect <code>System.out</code> and <code>System.err</code> to a file.
      */
     private void logToFile(File file) {
         redirectStdOutAndErrToFile(file);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                // FIXME: These should be toggled via PropertyChangeListener on the ConfigurationModel.
                 terminalItem.setEnabled(true);
                 logItem.setEnabled(false);
             }
         });
-        log("Redirected std out and err to file <" + file.getPath() + ">");
+        log("Redirected System.out and err to file <" + file.getPath() + ">");
     }
 
     /**
@@ -679,7 +693,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
                 terminalItem.setEnabled(true);
 
                 // Re-enable the ConnectionPanel.
-                getConnectionPanel().enableConnectionPanel(true);
+                getConnectionSettingsPanel().enableConnectionPanel(true);
 
                 // Re-enable the getJobPanel().
                 getJobSettingsPanel().enableJobPanel(true);
@@ -702,7 +716,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             public void run() {
 
                 // Disable connection panel.
-                getConnectionPanel().enableConnectionPanel(false);
+                getConnectionSettingsPanel().enableConnectionPanel(false);
 
                 // Disable getJobPanel().
                 getJobSettingsPanel().enableJobPanel(false);
@@ -714,7 +728,6 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
 
                 // Enable relevant event panel buttons.
                 buttonsPanel.enablePauseButton(true);
-                buttonsPanel.setPauseModeState(getJobSettingsPanel().pauseMode());
 
                 // Toggle connection button to proper settings.
                 buttonsPanel.setConnected(true);
@@ -867,7 +880,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         }
     }
        
-    private ConnectionSettingsPanel getConnectionPanel() {
+    private ConnectionSettingsPanel getConnectionSettingsPanel() {
         return settingsDialog.getSettingsPanel().getConnectionPanel();
     }
 
@@ -875,10 +888,6 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         return settingsDialog.getSettingsPanel().getJobSettingsPanel();
     }
     
-    private DataSourcePanel getDataSourcePanel() {
-        return settingsDialog.getSettingsPanel().getDataSourcePanel();
-    }
-
     private void disconnect() {
         disconnect(ConnectionStatus.DISCONNECTING);
     }
@@ -928,17 +937,17 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
 
         // Get steering resource or file as a String parameter.
         String steering = null;
-        SteeringType steeringType = configModel.getSteeringType(); 
+        SteeringType steeringType = configurationModel.getSteeringType(); 
         if (steeringType.equals(SteeringType.FILE))
             try {
-                steering = configModel.getSteeringFile().getCanonicalPath();
+                steering = configurationModel.getSteeringFile().getCanonicalPath();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         else 
-            steering = configModel.getSteeringResource();
+            steering = configurationModel.getSteeringResource();
 
-        log(Level.CONFIG, "Set LCSim steering to <" + steering + "> with type <" + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + ">");
+        log(Level.CONFIG, "Set steering to <" + steering + "> with type <" + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + ">");
 
         try {
             // Create job manager and configure.
@@ -958,7 +967,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         } catch (Throwable t) {
             // Catch all errors and rethrow them as RuntimeExceptions.
             errorHandler.setError(t)
-                .setMessage("Failed to setup LCSim.")
+                .setMessage("Error setting up LCSim.")
                 .printStackTrace()
                 .raiseException();
         }
@@ -984,7 +993,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private void createEventBuilder() {
 
         // Get the class for the event builder.
-        String eventBuilderClassName = configModel.getEventBuilderClassName();
+        String eventBuilderClassName = configurationModel.getEventBuilderClassName();
 
         log(Level.FINE, "Initializing event builder <" + eventBuilderClassName + ">");
 
@@ -996,7 +1005,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         }
 
         // Set the detector name on the event builder so it can find conditions data.
-        eventBuilder.setDetectorName(configModel.getDetectorName());
+        eventBuilder.setDetectorName(configurationModel.getDetectorName());
 
         log(Level.CONFIG, "Successfully initialized event builder <" + eventBuilderClassName + ">");
     }
@@ -1008,7 +1017,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private void createEtConnection() {
         
         // Setup connection to ET system.
-        connection = EtConnection.fromConfiguration(config);
+        connection = EtConnection.fromConfigurationModel(configurationModel);
 
         if (connection != null) {
 
@@ -1018,7 +1027,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             log(Level.INFO, "Successfully connected to ET system.");
 
         } else {
-            // Some error occurred and the connection is not valid.
+            // Some error occurred and the connection was not created.
             setConnectionStatus(ConnectionStatus.ERROR);
             
             errorHandler.setError(new RuntimeException("Failed to create ET connection."))
@@ -1029,7 +1038,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
 
     /**
-     * Save the log table to a tab-delimited text file selected by a file chooser.
+     * Save the log table to a tab-delimited text file selected by a <code>JFileChooser</code>.
      */
     private void saveLogTableToFile() {
         JFileChooser fc = new JFileChooser();
@@ -1069,21 +1078,15 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         logTableModel.setRowCount(0);
         log(Level.INFO, "Log table was cleared.");
     }
-
-    /**
-     * True if connected to ET system.
-     * @return True if connected to ET system.
-     */
-    private boolean connected() {
-        return connectionStatus == ConnectionStatus.CONNECTED;
-    }
-
+    
     /**
      * Notify event processor to get next set of events, if in pause mode.
      */
     private void nextEvent() {
+        this.setConnectionStatus(ConnectionStatus.CONNECTED);
         eventProcessing.next();
         log(Level.FINEST, "Getting next event.");
+        this.setConnectionStatus(ConnectionStatus.PAUSED);
     }
 
     /**
@@ -1096,10 +1099,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Set state of event buttons.
         buttonsPanel.setPauseModeState(false);
 
-        // Toggle job panel setting.
-        getJobSettingsPanel().enablePauseMode(false);
-
         log(Level.FINEST, "Resuming event processing after pause.");
+        
+        this.setConnectionStatus(ConnectionStatus.CONNECTED);
     }
 
     /**
@@ -1112,10 +1114,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         // Set GUI state.
         buttonsPanel.setPauseModeState(true);
         
-        // FIXME: Remove this.
-        getJobSettingsPanel().enablePauseMode(false);
-
         log(Level.FINEST, "Event processing was paused.");
+        
+        this.setConnectionStatus(ConnectionStatus.PAUSED);
     }
     
     /**
@@ -1160,7 +1161,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         eventProcessing.setEventBuilder(eventBuilder);
         
         // Set the detector name for LCSim conditions system.
-        eventProcessing.setDetectorName(configModel.getDetectorName());
+        eventProcessing.setDetectorName(configurationModel.getDetectorName());
         
         // Get a list of Drivers to execute from the JobManager which was
         // already configured.
@@ -1171,7 +1172,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             // ET or EVIO source can be used for updating the RunPanel.
             eventProcessing.add(runPanel.new EvioUpdater());
         
-            // Basic ET system monitor.
+            // Basic ET system monitor.  
             if (usingEtServer())
                 eventProcessing.add(new EtSystemMonitor());
             
@@ -1196,29 +1197,27 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
     
     private boolean usingEtServer() {
-        // FIXME: Should check the configuration instead.
-        return this.getDataSourcePanel().getDataSourceType().equals(DataSourceType.ET_SERVER);
+        return configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
     }
     
     private boolean usingEvioFile() {
-        // FIXME: Should check the configuration instead.
-        return this.getDataSourcePanel().getDataSourceType().equals(DataSourceType.EVIO_FILE);
+        return configurationModel.getDataSourceType().equals(DataSourceType.EVIO_FILE);
     }
     
     private void configDataSource() {
-        DataSourceType dataSourceType = getDataSourcePanel().getDataSourceType();
-        String filePath = getDataSourcePanel().getFilePath();
-        log(Level.INFO, "Data source type <" + dataSourceType + ">");
+        DataSourceType dataSourceType = configurationModel.getDataSourceType();
+        String filePath = configurationModel.getDataSourcePath();
+        log(Level.CONFIG, "Data source type <" + dataSourceType + ">");
         if (dataSourceType.equals(DataSourceType.ET_SERVER)) {
             eventProcessing.setRecordSource(new EtEventSource(connection));
-            log(Level.FINE, "ET event source");
+            log(Level.CONFIG, "ET event source");
         } else if (dataSourceType.equals(DataSourceType.EVIO_FILE)){
             eventProcessing.setRecordSource(new EvioFileSource(new File(filePath)));
-            log(Level.FINE, "EVIO file <" + filePath + " >");
+            log(Level.CONFIG, "EVIO file <" + filePath + " >");
         } else if (dataSourceType.equals(DataSourceType.LCIO_FILE)) {
             try {
                 eventProcessing.setRecordSource(new LCIOEventSource(new File(filePath)));
-                log(Level.FINE, "LCIO file <" + filePath + ">");
+                log(Level.CONFIG, "LCIO file <" + filePath + ">");
             } catch (IOException e) {
                 errorHandler.setError(e)
                     .log()
@@ -1229,11 +1228,19 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
     
     private void setupSystemStatusMonitor() {
+        // Clear the system status monitor table.        
         systemStatusFrame.getTableModel().clear();
+        
+        // Get the global registry of SystemStatus objects.
         SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
+        
+        // Process the SystemStatus objects.
         for (SystemStatus systemStatus : registry.getSystemStatuses()) {
-            // Add a row to the table for every registered SystemStatus object.
+            // Add a row to the table for every SystemStatus.
             systemStatusFrame.getTableModel().addSystemStatus(systemStatus);
+            
+            // Add this class as a listener so all status changes can be logged.
+            systemStatus.addListener(this);
         }
     }
 
@@ -1249,22 +1256,20 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         if (!plotFrame.isVisible())
             // Turn on plot frame if it is off.
             plotFrame.setVisible(true);
-        //else
             
         // Reset plots.
-        plotFrame.reset(); // I think this should always happen here???
+        plotFrame.reset(); 
     }
 
     /**
      * Save the plots to an AIDA output file at the end of the job.
      */
     private void saveAidaFile() {
-
         // Save final AIDA file if option is selected.
-        if (configModel.getAidaAutoSave()) {
-            log(Level.INFO, "Saving AIDA file <" + configModel.getAidaFileName() + ">");
+        if (configurationModel.getAidaAutoSave()) {
+            log(Level.INFO, "Saving AIDA file <" + configurationModel.getAidaFileName() + ">");
             try {
-                AIDA.defaultInstance().saveAs(configModel.getAidaFileName());
+                AIDA.defaultInstance().saveAs(configurationModel.getAidaFileName());
             } catch (IOException e) {
                 errorHandler.setError(e)
                     .setMessage("Error saving AIDA file.")
@@ -1276,11 +1281,11 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     }
 
     /**
-     * Stop the session by stopping the event processing thread, ending the job, and disconnecting
+     * Stop the session by killing the event processing thread, ending the job, and disconnecting
      * from the ET system.
      */
     private void stopSession() {
-        // Show a modal message window.
+        // Show a modal message window while this method executes.
         JDialog dialog = showStatusDialog("Info", "Disconnecting from session ...", true);
         
         try {
@@ -1352,13 +1357,12 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
      * In this case, event processing will exit later when the ET system goes down.
      */
     private void stopEventProcessing() {
-               
-        // Is the event processing thread actually alive?
+                       
         if (eventProcessingThread != null) {
+            // Is the event processing thread actually still alive?
             if (eventProcessingThread.isAlive()) {
 
-                // Interrupt and kill the session thread if necessary.
-                // FIXME: Not sure this should happen here!
+                // Interrupt and kill the event processing watchdog thread if necessary.
                 killSessionWatchdogThread();
 
                 // Request the event processing to stop.
@@ -1393,9 +1397,10 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     private void killSessionWatchdogThread() {
         if (sessionWatchdogThread != null) {
             if (sessionWatchdogThread.isAlive()) {
+                // Interrupt the thread which should cause it to stop.
                 sessionWatchdogThread.interrupt();
                 try {
-                    // This should always work.
+                    // This should always work once the thread is interupted.
                     sessionWatchdogThread.join();
                 } catch (InterruptedException e) {
                 }
@@ -1407,7 +1412,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
     /**
      * Thread to automatically trigger a disconnect when the event processing chain finishes or
      * throws a fatal error.  This thread joins to the event processing thread and automatically 
-     * requests a disconnect using an action event after it finishes.
+     * requests a disconnect using an ActionEvent when the event processing thread stops.
      */
     private class SessionWatchdogThread extends Thread {
 
@@ -1419,7 +1424,7 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
                 // FIXME: When this happens the event processing object and its thread don't get set to null!
-                actionPerformed(new ActionEvent(Thread.currentThread(), 0, MonitoringCommands.DISCONNECT));
+                actionPerformed(new ActionEvent(Thread.currentThread(), 0, DISCONNECT));
 
             } catch (InterruptedException e) {
                 // This probably just means that the disconnect button was pushed, and this thread should
@@ -1428,6 +1433,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         }
     }
     
+    /**
+     * Choose an output log file using a <code>JFileChooser</code>.
+     */
     private void chooseLogFile() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Create Log File");
@@ -1438,14 +1446,9 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             if (file.exists()) {
                 throw new RuntimeException("Log file already exists.");
             } else {                    
-                // This should trigger an action event that performs the actual config
-                // of the log file.
-                //System.out.println("setting log file to " + file.getAbsolutePath());
-                //getJobSettingsPanel().setLogToFile(true);
-                //getJobSettingsPanel().setLogFile(file);
-                configModel.setLogToFile(true);
+                configurationModel.setLogToFile(true);
                 try {
-                    configModel.setLogFileName(file.getCanonicalPath());
+                    configurationModel.setLogFileName(file.getCanonicalPath());
                 } catch (IOException e) {
                     errorHandler.setError(e).log().printStackTrace().showErrorDialog();
                 }
@@ -1455,7 +1458,10 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         
     }
     
-    private void chooseConfigFile() {    
+    /**
+     * Choose an input configuration file using a <code>JFileChooser</code>.
+     */
+    private void chooseConfigurationFile() {    
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Load Settings");
         fc.setCurrentDirectory(new File("."));
@@ -1464,12 +1470,14 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
             File f = fc.getSelectedFile();
             log(Level.CONFIG, "Loading settings from file <" + f.getPath() + ">");
             Configuration newConfig = new Configuration(f);
-            this.set(newConfig);
-            this.load(config);
+            setConfiguration(newConfig);            
         }        
     }
     
-    private void saveConfigFile() {
+    /**
+     * Save a configuration file using a <code>JFileChooser</code>.
+     */
+    private void saveConfigurationFile() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Save Configuration");
         fc.setCurrentDirectory(new File("."));
@@ -1477,66 +1485,70 @@ public class MonitoringApplication extends JFrame implements ActionListener, Con
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
             log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");
-            config.writeToFile(f);            
+            configuration.writeToFile(f);            
         }
     }
+       
+    /**
+     * Setup the <code>ConfigurationModel</code> by registering it with sub-components.
+     */
+    private void setupConfigurationModel() {        
+        getJobSettingsPanel().setConfigurationModel(configurationModel);
+        getConnectionSettingsPanel().setConfigurationModel(configurationModel);
+        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);
+    }
 
-    @Override
-    public void load(Configuration config) {
-                
-        for (Configurable configurable : configurables) {
-            configurable.set(config);
-        }
-                             
-        configModel.fireAllChanged();
+    /**
+     * Set the Configuration but don't update the ConfigurationModel.
+     * @param configuration
+     */
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }    
+    
+    /**
+     * Load the current Configuration by updating the ConfigurationModel.
+     */
+    private void loadConfiguration() {
         
-        if (config.getFile() != null)
-            log(Level.CONFIG, "Loaded config from file <" + config.getFile().getPath() + ">");
+        // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
+        configurationModel.setConfiguration(configuration);
+        
+        // Log that a new configuration was loaded.       
+        if (configuration.getFile() != null)
+            log(Level.CONFIG, "Loaded configuration from file <" + configuration.getFile().getPath() + ">");
         else 
-            log(Level.CONFIG, "Loaded config resource <" + config.getResourcePath() + ">");
-    }
-
-    private void addConfigurables() {
-        configurables.add(this.getConnectionPanel());
-        configurables.add(this.getDataSourcePanel());
-    }
-
-    @Override
-    public void save(Configuration config) {
-        for (Configurable configurable : configurables) {
-            configurable.save(config);
-        }        
-    }
-
-    @Override
-    public Configuration getConfiguration() {
-        return config;
-    }
-
-    @Override
-    public void save() {
-        save(config);        
-    }
-
-    @Override
-    public void set(Configuration config) {
-        this.config = config;
-        if (configModel == null) {
-            configModel = new ConfigurationModel(config);
-            getJobSettingsPanel().setConfigurationModel(configModel);
-        } else {
-            configModel.setConfiguration(config);
-        }
-    }
-
-    @Override
-    public void reset() {
-        load(config);        
+            log(Level.CONFIG, "Loaded configuration from resource <" + configuration.getResourcePath() + ">");
+        
     }
     
-    public void loadDefaultConfigFile() {
-        log(Level.CONFIG, "Loading default config file from resource <" + DEFAULT_CONFIG_RESOURCE + ">");
-        set(new Configuration(DEFAULT_CONFIG_RESOURCE));
-        load(config);
+    /**
+     * Load the default configuration file.
+     */
+    private void loadDefaultConfigFile() {
+        setConfiguration(new Configuration(DEFAULT_CONFIG_RESOURCE));
+        loadConfiguration();
+    }
+
+    /**
+     * Log all status changes.
+     */
+    @Override
+    public void statusChanged(SystemStatus status) {
+        
+        // Choose the appropriate log level.
+        Level level = Level.INFO;
+        if (status.getStatusCode().equals(Level.WARNING)) {
+            level = Level.WARNING;
+        } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
+            level = Level.SEVERE;
+        }
+       
+        // Log all status changes.
+        log(level, "STATUS CHANGED, "
+                + "subsystem: " + status.getSubsystem() + ", "
+                + "code: " + status.getStatusCode().name() + ", "                 
+                + "description: " + status.getDescription() + ", "                 
+                + "message: " + status.getMessage());
     }
 }

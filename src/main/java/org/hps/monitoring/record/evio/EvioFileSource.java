@@ -16,7 +16,7 @@ import org.jlab.coda.jevio.EvioReader;
  * objects to a loop from EVIO files.  Unlike the LCIO record source, it has no rewind or
  * indexing capabilities (for now at least).
  */
-public class EvioFileSource extends AbstractRecordSource {
+public final class EvioFileSource extends AbstractRecordSource {
 
     EvioEvent currentEvent;
     EvioReader reader;

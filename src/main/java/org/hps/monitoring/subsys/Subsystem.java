@@ -1,4 +1,4 @@
-package org.hps.monitoring.enums;
+package org.hps.monitoring.subsys;
 
 /** 
  * Names of valid subsystems that can be monitored. 
