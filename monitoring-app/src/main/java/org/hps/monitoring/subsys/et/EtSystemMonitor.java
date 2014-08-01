@@ -3,17 +3,17 @@ package org.hps.monitoring.subsys.et;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.hps.monitoring.enums.StatusCode;
-import org.hps.monitoring.enums.Subsystem;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
+import org.hps.monitoring.subsys.StatusCode;
+import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusImpl;
 import org.jlab.coda.et.EtEvent;
 
 /**
- * This is a test class for monitoring the ET system.
+ * This is a class for monitoring the ET system.
  */
-public class EtSystemMonitor extends EtEventProcessor {
+public final class EtSystemMonitor extends EtEventProcessor {
 
     SystemStatus systemStatus;
     int events = 0;    

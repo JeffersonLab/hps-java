@@ -12,6 +12,8 @@ import org.hps.monitoring.plotting.StripChartUpdater;
 /**
  * Implementation of {@link SystemStatistics}.
  */
+// FIXME: Rolling averages need to happen over a greater time period like 30 seconds
+// instead of 1 second, because otherwise the statistics don't look right.
 public class SystemStatisticsImpl implements SystemStatistics {
     
     long tickLengthMillis = 1000; // default is one second tick

@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Abstract class that updates listeners of property changes in backing model.
+ * Abstract class that updates listeners from property changes in a backing model object.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class AbstractModel {
@@ -36,13 +36,8 @@ public abstract class AbstractModel {
     
     abstract public String[] getProperties();
     
+    // FIXME: This method is kind of a hack.  Any other good way to do this?
     public void fireAllChanged() {
-        //System.out.println("AbstractModel.fireAllChanged");
-        //System.out.println("  listeners: ");
-        //for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
-        //    System.out.print(listener.getClass().getCanonicalName() + " ");
-        //}
-        System.out.println();
         for (String property : getProperties()) {
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
@@ -52,20 +47,13 @@ public abstract class AbstractModel {
                 }
             }
             try {
-                //System.out.println("firePropertyChange");
-                //System.out.println("  property: " + property);
-                //System.out.println("  getMethod: " + getMethod.getName());
                 Object value = getMethod.invoke(this, null);
-                //System.out.println("  value: " + value);
                 if (value != null) {
                     firePropertyChange(property, value, value);                    
                     for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
-                        //System.out.println("  propertyChange: " + listener.getClass().getCanonicalName());
+                        // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!!!                        
                         listener.propertyChange(new PropertyChangeEvent(this, property, value, value));
                     }
-                    //firePropertyChange(new PropertyChangeEvent(this, property, value, value));
-                } else {
-                    System.err.println("WARNING: AbstractModel.fireAllChanged - missing property " + property);
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new RuntimeException(e);

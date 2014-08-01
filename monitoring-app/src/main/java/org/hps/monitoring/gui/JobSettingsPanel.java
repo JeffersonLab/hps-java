@@ -1,22 +1,7 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.MonitoringCommands.AIDA_AUTO_SAVE_CHANGED;
-import static org.hps.monitoring.gui.MonitoringCommands.DISCONNECT_ON_ERROR_CHANGED;
-import static org.hps.monitoring.gui.MonitoringCommands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.gui.MonitoringCommands.LOG_TO_FILE_CHANGED;
-import static org.hps.monitoring.gui.MonitoringCommands.STEERING_RESOURCE_CHANGED;
-import static org.hps.monitoring.gui.MonitoringCommands.STEERING_TYPE_CHANGED;
-import static org.hps.monitoring.gui.model.ConfigurationModel.AIDA_AUTO_SAVE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.AIDA_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DETECTOR_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DISCONNECT_ON_ERROR_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.EVENT_BUILDER_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_LEVEL_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_FILE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_RESOURCE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_TYPE_PROPERTY;
+import static org.hps.monitoring.gui.Commands.*;
+import static org.hps.monitoring.gui.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -44,7 +29,6 @@ import javax.swing.SwingUtilities;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
-import org.hps.monitoring.gui.model.HasConfigurationModel;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -56,10 +40,10 @@ import org.jdom.input.SAXBuilder;
  */
 // TODO: Add validity checks for event builder, lcsim steering files, etc. when edited and revert to old
 //       values if invalid.
+//       http://docs.oracle.com/javase/7/docs/api/javax/swing/JFormattedTextField.html
 // TODO: Remove default values in components.  These should all come from the default configuration.
 // TODO: Double check that all settings to and from the configuration are working properly.
-// TODO: Add HasErrorHandler implementation and use it for error handling of exceptions.
-class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, PropertyChangeListener, HasConfigurationModel {
+class JobSettingsPanel extends AbstractFieldsPanel {
 
     private JTextField aidaSaveFileNameField;
     private JCheckBox aidaAutoSaveCheckbox;
@@ -69,7 +53,6 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
     private JTextField logFileNameField;
     private JComboBox<?> logLevelComboBox;
     private JCheckBox logToFileCheckbox;    
-    private JCheckBox pauseModeCheckBox;
     private JTextField steeringFileField;
     private JComboBox<?> steeringResourcesComboBox;
     private JComboBox<?> steeringTypeComboBox;
@@ -103,23 +86,17 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
         
         super(new Insets(4, 2, 2, 4), true);
         setLayout(new GridBagLayout());
-
-        // FIXME: This shouldn't really be part of this GUI.
-        pauseModeCheckBox = addCheckBox("Pause mode", false, true);
-        pauseModeCheckBox.addPropertyChangeListener(this);
         
         disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
-        disconnectOnErrorCheckBox.addPropertyChangeListener(this);
         disconnectOnErrorCheckBox.setActionCommand(DISCONNECT_ON_ERROR_CHANGED);
         disconnectOnErrorCheckBox.addActionListener(this);
         
         logLevelComboBox = addComboBox("Log Level", LOG_LEVELS);               
-        logLevelComboBox.setActionCommand(MonitoringCommands.LOG_LEVEL_CHANGED);
+        logLevelComboBox.setActionCommand(Commands.LOG_LEVEL_CHANGED);
         logLevelComboBox.addActionListener(this);
         
         steeringTypeComboBox = addComboBox("Steering Type", 
-                new String[] {SteeringType.RESOURCE.name(), SteeringType.FILE.name()});
-        steeringTypeComboBox.addPropertyChangeListener(this);        
+                new String[] {SteeringType.RESOURCE.name(), SteeringType.FILE.name()});        
         steeringTypeComboBox.setActionCommand(STEERING_TYPE_CHANGED);
         steeringTypeComboBox.addActionListener(this);
         
@@ -127,9 +104,8 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
         steeringFileField.addPropertyChangeListener("value", this);        
                      
         JButton steeringFileButton = addButton("Select Steering File");
-        steeringFileButton.setActionCommand(MonitoringCommands.CHOOSE_STEERING_FILE);
+        steeringFileButton.setActionCommand(Commands.CHOOSE_STEERING_FILE);
         steeringFileButton.addActionListener(this);
-        steeringFileButton.addPropertyChangeListener("value", this);
         
         steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", 
                 getAvailableSteeringFileResources(STEERING_PACKAGE));
@@ -140,7 +116,7 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
         detectorNameField.addPropertyChangeListener("value", this);
         
         eventBuilderField = addField("Event Builder Class", 30);
-        eventBuilderField.setActionCommand(MonitoringCommands.SET_EVENT_BUILDER);
+        eventBuilderField.setActionCommand(Commands.SET_EVENT_BUILDER);
         eventBuilderField.addPropertyChangeListener("value", this);
         
         logToFileCheckbox = addCheckBox("Log to File", false, false);
@@ -184,7 +160,6 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
     void enableJobPanel(boolean enable) {
         detectorNameField.setEnabled(enable);
         eventBuilderField.setEnabled(enable);
-        pauseModeCheckBox.setEnabled(enable);
         steeringTypeComboBox.setEnabled(enable);
         steeringFileField.setEnabled(enable);   
         steeringResourcesComboBox.setEnabled(enable);
@@ -234,11 +209,17 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
                 checkSteeringFile(file);
                 configurationModel.setSteeringFile(file.getCanonicalPath());
             } catch (IOException | JDOMException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error parsing the selected steering file.", e);
             }
         }        
     }
     
+    /**
+     * Parse the lcsim steering file to see if it appears to be valid.
+     * @param file The input steering file.
+     * @throws IOException if there is a basic IO problem.
+     * @throws JDOMException if the XML is not valid.
+     */
     private void checkSteeringFile(File file) throws IOException, JDOMException {
         SAXBuilder builder = new SAXBuilder();
         Document document = builder.build(file);
@@ -295,30 +276,7 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
         });
     }
     */
-   
-    /**
-     * Check if pause mode is selected.
-     * @return True if pause mode is enabled; false if not.
-     */
-    // FIXME: Should not be here.
-    boolean pauseMode() {
-        return this.pauseModeCheckBox.isSelected();
-    }
-    
-    /**
-     * Set the pause mode.
-     * @param p The pause mode; true for on; false for off.
-     */
-    // FIXME: Should not be here.  This has nothing to do with the GUI.
-    void enablePauseMode(final boolean p) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                pauseModeCheckBox.setSelected(p);
-            }
-        });
-    }
-                        
-          
+                                     
     /**
      * Get the files with extension "lcsim" from all loaded jar files.
      * @return A list of embedded steering file resources.
@@ -355,7 +313,7 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals(MonitoringCommands.CHOOSE_STEERING_FILE)) {
+        if (e.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
             this.chooseSteeringFile();
         } else if (DISCONNECT_ON_ERROR_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setDisconnectOnError(disconnectOnErrorCheckBox.isSelected());
@@ -378,15 +336,10 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        
+
+        // FIXME: Anyway to make sure this is not needed?
         if (evt.getPropertyName().equals("ancestor"))
             return;
-        
-        //System.out.println("JobSettingsPanel.propertyChange");
-        //System.out.println("  source: " + evt.getSource().getClass().getCanonicalName());
-        //System.out.println("  propertyName: " + evt.getPropertyName());
-        //System.out.println("  newValue: " + evt.getNewValue());
-        //System.out.println("  oldValue: " + evt.getOldValue());
 
         Object source = evt.getSource();
 
@@ -416,13 +369,7 @@ class JobSettingsPanel extends AbstractFieldsPanel implements ActionListener, Pr
             
             if (evt.getPropertyName().equals("ancestor"))
                 return;
-            
-            //System.out.println("JobSettingsChangeListener.propertyChange");
-            //System.out.println("  source: " + evt.getSource().getClass().getCanonicalName());
-            //System.out.println("  propertyName: " + evt.getPropertyName());
-            //System.out.println("  newValue: " + evt.getNewValue());
-            //System.out.println("  oldValue: " + evt.getOldValue());
-            
+                        
             Object value = evt.getNewValue();
             
             if (evt.getPropertyName().equals(DETECTOR_NAME_PROPERTY)) {

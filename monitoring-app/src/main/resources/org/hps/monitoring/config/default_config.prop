@@ -11,28 +11,28 @@ EventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
 LogLevel=ALL
 LogToFile=false
 #SteeringFile=
-SteeringResource=/org/hps/steering/monitoring/TestRunMonitoring.lcsim
+SteeringResource=org/hps/steering/monitoring/DummyMonitoring.lcsim
 SteeringType=RESOURCE
 
 # event source
-dataSourceType=ET_SERVER
-dataSourcePath=
+DataSourceType=ET_SERVER
+DataSourcePath=
 
 # ET connection settings
-blocking=false
-bufferName=ETBuffer
-chunk=1
-host=localhost
-port=11111
-position=1
-# prescale was 1
-prescale=0
-qSize=0
-statName=MY_STATION
-verbose=false
-# flow mode needs GUI binding!
-#flowMode=0
-waitMode=TIMED
-waitTime=10000000
+Blocking=false
+EtName=ETBuffer
+ChunkSize=1
+Host=localhost
+Port=11111
+StationPosition=1
+# Prescale was 1
+Prescale=0
+QueueSize=0
+StationName=MY_STATION
+Verbose=false
+# Does flow mode need GUI binding?!
+#FlowMode=0
+WaitMode=TIMED
+WaitTime=10000000
 
 

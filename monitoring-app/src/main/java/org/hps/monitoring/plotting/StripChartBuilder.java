@@ -11,6 +11,9 @@ import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+/**
+ * Utility methods for building strip charts using JFreeChart backend.
+ */
 public final class StripChartBuilder {
 
     private StripChartBuilder() {        

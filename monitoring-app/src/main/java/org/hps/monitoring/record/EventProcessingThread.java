@@ -3,7 +3,7 @@ package org.hps.monitoring.record;
 /**
  * Thread for running the event processing chain.
  */
-public class EventProcessingThread extends Thread {
+public final class EventProcessingThread extends Thread {
     
     EventProcessingChain processing;
            

@@ -1,4 +1,4 @@
-package org.hps.monitoring.config;
+package org.hps.monitoring.gui.model;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,8 @@ import java.util.Properties;
 
 /**
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * The accessor methods to get these values are not public, because the {@link ConfigurationModel}
+ * should be used instead.
  */
 public class Configuration {
     
@@ -17,7 +18,7 @@ public class Configuration {
     File file;
     String resourcePath;
     
-    public Configuration() {    
+    Configuration() {    
         properties = new Properties();
     }
     
@@ -73,7 +74,7 @@ public class Configuration {
      * @param key The key.
      * @return True if configuration has value for the key.
      */
-    public boolean hasKey(String key) {
+    boolean hasKey(String key) {
         return properties.getProperty(key) != null;
     }
     
@@ -82,7 +83,7 @@ public class Configuration {
      * @param key The key to lookup.
      * @return The value or null if does not exist.
      */
-    public String get(String key) {
+    String get(String key) {
         return properties.getProperty(key);
     }
        
@@ -91,7 +92,7 @@ public class Configuration {
      * @param key The key to lookup.
      * @return The value or null if does not exist.
      */
-    public Boolean getBoolean(String key) {
+    Boolean getBoolean(String key) {
         return Boolean.parseBoolean(properties.getProperty(key));
     }
     
@@ -100,7 +101,7 @@ public class Configuration {
      * @param key The key to lookup.
      * @return The value or null if does not exist.
      */
-    public Double getDouble(String key) {
+    Double getDouble(String key) {
         return Double.parseDouble(properties.getProperty(key));
     }
     
@@ -109,7 +110,7 @@ public class Configuration {
      * @param key The key to lookup.
      * @return The value or null if does not exist.
      */
-    public Integer getInteger(String key) {
+    Integer getInteger(String key) {
         return Integer.parseInt(properties.getProperty(key));
     }
         
@@ -132,7 +133,7 @@ public class Configuration {
      * @param key The key for lookup.
      * @param value The value to assign to that key.
      */
-    public void set(String key, Object value) {
+    void set(String key, Object value) {
         properties.put(key, String.valueOf(value));
     }
     

@@ -8,7 +8,7 @@ import org.freehep.record.source.RecordSource;
  * Implementation of a composite record loop for processing
  * ET, EVIO and LCIO events using a single record source.
  */
-public class CompositeRecordLoop extends DefaultRecordLoop {
+public final class CompositeRecordLoop extends DefaultRecordLoop {
 
     CompositeRecordSource recordSource = new CompositeRecordSource();
     CompositeRecordLoopAdapter adapter = new CompositeRecordLoopAdapter();

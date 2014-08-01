@@ -6,7 +6,7 @@ import org.hps.monitoring.record.EventProcessor;
  * An <code>EventProcessor</code> implementation for processing <code>CompositeRecord</code>
  * records.
  */
-public class CompositeRecordProcessor implements EventProcessor<CompositeRecord> {
+public abstract class CompositeRecordProcessor implements EventProcessor<CompositeRecord> {
 
     @Override
     public void startJob() {

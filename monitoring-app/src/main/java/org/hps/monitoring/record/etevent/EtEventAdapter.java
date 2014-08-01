@@ -12,7 +12,7 @@ import org.jlab.coda.et.EtEvent;
 /**
  * Adapter for processing <tt>EtEvent</tt> objects using a loop.
  */
-public class EtEventAdapter extends AbstractLoopListener implements RecordListener {
+public final class EtEventAdapter extends AbstractLoopListener implements RecordListener {
 
     List<EtEventProcessor> processors = new ArrayList<EtEventProcessor>();
     
