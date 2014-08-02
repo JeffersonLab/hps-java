@@ -1,7 +1,11 @@
 package org.hps.monitoring.gui;
 
+import static org.hps.monitoring.gui.model.RunModel.*;
+
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,35 +15,43 @@ import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
+import org.hps.evio.EventConstants;
+import org.hps.monitoring.gui.model.RunModel;
 import org.hps.monitoring.record.composite.CompositeRecord;
 import org.hps.monitoring.record.composite.CompositeRecordProcessor;
-import org.hps.monitoring.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: This component should be updated via a Model rather than direct calls to this class.
-public class RunPanel extends JPanel {
+// FIXME: Add current EVIO event number, current event sequence number, job start date, and job end date fields.
+public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
     DatePanel startDateField = new DatePanel("Run Start", "", 16, false); 
     DatePanel endDateField = new DatePanel("Run End", "", 16, false);
     FieldPanel lengthField = new FieldPanel("Run Length [sec]", "", 12, false);
     FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
-    FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);;
+    FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
     FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
     
     Timer timer;
     long jobStartMillis;
+    
+    RunModel model;
           
-    RunPanel() {
+    RunPanel(RunModel model) {
+        this.model = model;
+        this.model.addPropertyChangeListener(this);
+        
         setLayout(new FlowLayout(FlowLayout.LEFT));
-        TitledBorder titledBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");
-        setBorder(titledBorder);
+        
+        TitledBorder titledBorder = BorderFactory.createTitledBorder(                
+                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");        
+        setBorder(titledBorder);               
+        
         add(runNumberField);
         add(startDateField);
         add(endDateField);
@@ -48,27 +60,17 @@ public class RunPanel extends JPanel {
         add(elapsedTimeField);
         add(eventsReceivedField);
         add(dataReceivedField);
+        
         this.setMinimumSize(new Dimension(0, 190));
     }
-    
-    void clear() {
-        runNumberField.setValue("");
-        startDateField.setValue("");
-        endDateField.setValue("");
-        lengthField.setValue("");
-        totalEventsField.setValue("");
-        elapsedTimeField.setValue("");
-        eventsReceivedField.setValue("0");
-        dataReceivedField.setValue("0");
-    }
-    
-    void startRunTimer() {
-        timer = new Timer("UpdateTime");
-        jobStartMillis = System.currentTimeMillis();   
+           
+    void startJobTimer() {
+        timer = new Timer("JobTimer");
+        jobStartMillis = System.currentTimeMillis();
         TimerTask updateTimeTask = new TimerTask() {                       
             public void run() {
-                final long elapsedTime = (System.currentTimeMillis() - jobStartMillis) / 1000;
-                elapsedTimeField.setValue(elapsedTime);
+                final int elapsedTime = (int)((System.currentTimeMillis() - jobStartMillis) / 1000);
+                model.setElapsedTime(elapsedTime);
             }            
         };
         timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);
@@ -78,99 +80,88 @@ public class RunPanel extends JPanel {
         timer.cancel();
         timer.purge();
     }
-    
-    /**
-     * An <tt>EvioEventProcessor</tt> for updating the <tt>RunPanel</tt>
-     * by processing EVIO events and extracting information from them
-     * such as run parameters.
-     */
-    class EvioUpdater extends EvioEventProcessor {
-    
-        long startMillis;
-        long endMillis;
-        int eventsReceived;
-        long totalBytes;
-        Timer timer;        
-        long jobStartMillis;
-        
+             
+    class RunModelUpdater extends CompositeRecordProcessor {
+       
+        @Override
         public void startJob() {
-            eventsReceived = 0;            
-            clear();
-            RunPanel.this.startRunTimer();
+            model.reset();
+            RunPanel.this.startJobTimer();
         }
         
-        public void processEvent(EvioEvent event) {
-            ++eventsReceived;
-            totalBytes += (long)event.getTotalBytes();
-            
-            // FIXME: This should only happen every X seconds.
-            eventsReceivedField.setValue(eventsReceived);
-            dataReceivedField.setValue(totalBytes);
-        }
-        
-        public void startRun(EvioEvent event) {
-   
-            // Get start of run data.
-            int[] data = event.getIntData();
-            int seconds = data[0];
-            int runNumber = data[1];        
-            startMillis = ((long) seconds) * 1000;
-            
-            // Update the GUI.
-            runNumberField.setValue(runNumber);
-            startDateField.setValue(new Date(startMillis));
+        @Override
+        public void processEvent(CompositeRecord event) {
+            model.incrementEventsReceived();
+            EvioEvent evioEvent = event.getEvioEvent();
+            if (evioEvent != null) {                
+                model.addDataReceived((long)evioEvent.getTotalBytes());
+                if (EventConstants.isPreStartEvent(evioEvent)) {                    
+                    startRun(evioEvent);
+                } else if (EventConstants.isEndEvent(evioEvent)) {                    
+                    endRun(evioEvent);
+                }        
+            } 
         }
 
-        public void endRun(EvioEvent event) {
-
+        private void endRun(EvioEvent evioEvent) {            
             // Get end run data.
-            int[] data = event.getIntData();
+            int[] data = evioEvent.getIntData();
             int seconds = data[0];
             int eventCount = data[2];
-            endMillis = ((long) seconds) * 1000;
-            long elapsedMillis = endMillis - startMillis;
-            long elapsedSeconds = (long)((double)elapsedMillis / 1000.);
+            long endMillis = ((long) seconds) * 1000;
             
             // Update the GUI.
-            endDateField.setValue(new Date(endMillis));
-            totalEventsField.setValue(eventCount);
-            lengthField.setValue(elapsedSeconds);
+            model.setEndDate(new Date(endMillis));
+            model.computeRunLength();              
+            model.setTotalEvents(eventCount);
         }
-        
-        public void endJob() {
-            RunPanel.this.stopRunTimer();
-        }
-    }
-    
-    /**
-     * A processor for updating the GUI using only the generic
-     * composite record information.  This is used when there is no
-     * source EVIO file e.g. when an LCIO data source is being used.
-     * Several fields such as the data received are not updated by 
-     * this class.
-     * @author Jeremy McCormick <jeremym@slac.stanford.edu>
-     */
-    class CompositeRecordUpdater extends CompositeRecordProcessor {
-        
-        long startMillis;
-        long endMillis;
-        int eventsReceived;
-        long jobStartMillis;
-        
-        public void startJob() {
-            eventsReceived = 0;            
-            clear();                        
-            RunPanel.this.startRunTimer();
-        }
-        
-        public void processEvent(CompositeRecord event) {
-            ++eventsReceived;
-            // FIXME: This should only happen every X seconds.
-            eventsReceivedField.setValue(eventsReceived);
+
+        private void startRun(EvioEvent evioEvent) {            
+            // Get start of run data.
+            int[] data = evioEvent.getIntData();
+            int seconds = data[0];
+            int runNumber = data[1];        
+            long startMillis = ((long) seconds) * 1000;
+            
+            // Update the GUI.
+            model.setRunNumber(runNumber);
+            model.setStartDate(new Date(startMillis));
         }
                 
+        @Override
         public void endJob() {
             RunPanel.this.stopRunTimer();
-        }
-    }    
+        }        
+    }
+
+    /**
+     * Update the GUI from changes in the underlying RunModel object.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {        
+        Object value = evt.getNewValue();
+        if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {            
+            this.runNumberField.setValue((Integer) value);            
+        } else if (START_DATE_PROPERTY.equals(evt.getPropertyName())) {
+            if (value != null)
+                this.startDateField.setValue((Date) value);
+            else
+                this.startDateField.setValue("");
+        } else if (END_DATE_PROPERTY.equals(evt.getPropertyName())) {
+            if (value != null)
+                this.endDateField.setValue((Date) value);
+            else
+                this.endDateField.setValue("");
+        } else if (RUN_LENGTH_PROPERTY.equals(evt.getPropertyName())) {
+            this.lengthField.setValue((Integer) value);
+        } else if (TOTAL_EVENTS_PROPERTY.equals(evt.getPropertyName())) {
+            this.totalEventsField.setValue((Integer) value);
+        } else if (EVENTS_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
+            this.eventsReceivedField.setValue((Integer) value);
+        } else if (ELAPSED_TIME_PROPERTY.equals(evt.getPropertyName())) {
+            this.elapsedTimeField.setValue((Integer) value);
+        } else if (DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
+            this.dataReceivedField.setValue((Long) value);
+        }                              
+    }
 }

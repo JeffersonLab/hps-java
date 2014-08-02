@@ -353,7 +353,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
             
     @Override
-    public String[] getProperties() {
+    public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
     }
 }

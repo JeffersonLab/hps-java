@@ -9,6 +9,7 @@ import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.loop.RecordLoop.State;
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.LCSimEventBuilder;
+import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.record.composite.CompositeRecordLoop;
 import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
@@ -33,28 +34,23 @@ import org.lcsim.util.loop.LCIOEventSource;
  * can be registered with the three different loops for processing the different 
  * record types, in order to plot, update a GUI component, or analyze the events.
  */
+// FIXME: Adding of CompositeRecordProcessors has to happen after setup is called because
+// otherwise the CompositeRecord doesn't have the references to EVIO, etc.  Instead the 
+// additional CompositeRecordProcessors should be stored in a separate list and added
+// automatically after the standard event processing chain is setup.
 public class EventProcessingChain extends AbstractLoopListener {
-      
-    /**
-     * Type of source for events.
-     */
-    public enum SourceType {
-        ET_EVENT,
-        EVIO_FILE,
-        LCIO_FILE
-    }
-    
+             
     /**
      * Processing stages to execute.
      */
     public enum ProcessingStage {
-        READ_ET_EVENT,
-        BUILD_EVIO_EVENT,
-        BUILD_LCIO_EVENT
+        ET,
+        EVIO,
+        LCIO
     }
     
-    private SourceType sourceType = SourceType.ET_EVENT;
-    private ProcessingStage processingStage = ProcessingStage.BUILD_LCIO_EVENT;    
+    private DataSourceType sourceType = DataSourceType.ET_SERVER;
+    private ProcessingStage processingStage = ProcessingStage.LCIO;    
     private RecordSource recordSource;
     private LCSimEventBuilder eventBuilder;
     private int totalEventsProcessed;
@@ -94,17 +90,17 @@ public class EventProcessingChain extends AbstractLoopListener {
             throw new RuntimeException("No record source was set.");
         
         // Using the ET server for events.
-        if (sourceType == SourceType.ET_EVENT) {
+        if (sourceType == DataSourceType.ET_SERVER) {
             // Add the ET event processing step.
             compositeLoop.addProcessor(etStep);
         }
    
         // Building EVIO events.
-        if (processingStage.ordinal() >= ProcessingStage.BUILD_EVIO_EVENT.ordinal()) {
+        if (processingStage.ordinal() >= ProcessingStage.EVIO.ordinal()) {
             // Using EVIO event source.
-            if (sourceType.ordinal() <= SourceType.EVIO_FILE.ordinal()) {
+            if (sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
                 // Using ET event source.
-                if (sourceType == SourceType.ET_EVENT) {
+                if (sourceType == DataSourceType.ET_SERVER) {
                     // Use dynamic event queue.
                     evioStep.setEvioEventQueue(new EvioEventQueue());
                 }
@@ -114,11 +110,11 @@ public class EventProcessingChain extends AbstractLoopListener {
         }
         
         // Building LCIO events.
-        if (processingStage.ordinal() >= ProcessingStage.BUILD_LCIO_EVENT.ordinal()) {
+        if (processingStage.ordinal() >= ProcessingStage.LCIO.ordinal()) {
             // Set detector on event builder.
             if (eventBuilder != null) 
                 eventBuilder.setDetectorName(detectorName);
-            if (sourceType.ordinal() != SourceType.LCIO_FILE.ordinal()) {
+            if (sourceType.ordinal() != DataSourceType.LCIO_FILE.ordinal()) {
                 // Use dynamic event queue.
                 lcioStep.setLcioEventQueue(new LcioEventQueue());
             }
@@ -137,7 +133,7 @@ public class EventProcessingChain extends AbstractLoopListener {
      * Set the type of source being used.
      * @param sourceType The type of source.
      */
-    void setSourceType(SourceType sourceType) {
+    void setSourceType(DataSourceType sourceType) {
         this.sourceType = sourceType;
     }
         
@@ -164,7 +160,7 @@ public class EventProcessingChain extends AbstractLoopListener {
     public void setRecordSource(EtEventSource recordSource) {
         this.recordSource = recordSource;
         this.etStep.getLoop().setRecordSource(recordSource);
-        this.sourceType = SourceType.ET_EVENT;
+        this.sourceType = DataSourceType.ET_SERVER;
     }
     
     /**
@@ -174,7 +170,7 @@ public class EventProcessingChain extends AbstractLoopListener {
     public void setRecordSource(EvioFileSource recordSource) {
         this.recordSource = recordSource;
         evioStep.getLoop().setRecordSource(recordSource);
-        setSourceType(SourceType.EVIO_FILE);
+        setSourceType(DataSourceType.EVIO_FILE);
     }
     
     /**
@@ -188,7 +184,7 @@ public class EventProcessingChain extends AbstractLoopListener {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        setSourceType(SourceType.LCIO_FILE);
+        setSourceType(DataSourceType.LCIO_FILE);
     }
     
     /**

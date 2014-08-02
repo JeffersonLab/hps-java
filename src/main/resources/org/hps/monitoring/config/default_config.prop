@@ -7,7 +7,7 @@ AidaFileName=monitoringPlots.aida
 DetectorName=HPS-TestRun-v5
 DisconnectOnError=true
 EventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
-#logFileName=
+#LogFileName=
 LogLevel=ALL
 LogToFile=false
 #SteeringFile=
@@ -30,9 +30,7 @@ Prescale=0
 QueueSize=0
 StationName=MY_STATION
 Verbose=false
-# Does flow mode need GUI binding?!
-#FlowMode=0
 WaitMode=TIMED
-WaitTime=10000000
+WaitTime=1000000000
 
 

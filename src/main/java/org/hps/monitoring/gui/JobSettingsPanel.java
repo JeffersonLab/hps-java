@@ -25,7 +25,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
@@ -260,14 +259,13 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         
         if (!okay)
             resetEventBuilder();
-    }
-    */
+    }    
 
     /**
      * Reset the event builder to the default.
      */
-    // FIXME: Handle this with property change listener and use old value if new one is invalid.
     /*
+    // FIXME: Handle this with property change listener and use old value if new one is invalid.    
     private void resetEventBuilder() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

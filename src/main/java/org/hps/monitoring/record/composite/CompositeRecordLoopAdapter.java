@@ -20,6 +20,7 @@ public final class CompositeRecordLoopAdapter extends AbstractLoopListener imple
      * @param loopEvent 
      */
     public void finish(LoopEvent loopEvent) {
+        System.out.println("CompositeRecordLoopAdapter.finish");
         for (CompositeRecordProcessor processor : processors) {
             // Call end job hook on all registered processors, which are 
             // responsible for sending the stop command to their loops.
