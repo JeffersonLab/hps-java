@@ -8,7 +8,7 @@ import java.nio.BufferUnderflowException;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.EventConstants;
-import org.hps.monitoring.record.EventProcessingChain.SourceType;
+import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.record.composite.CompositeRecord;
 import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.evio.EvioEventLoop;
@@ -26,7 +26,7 @@ import org.jlab.coda.jevio.EvioReader;
 class EvioProcessingStep extends CompositeRecordProcessor {
    
     EvioEventLoop loop = new EvioEventLoop();
-    SourceType sourceType;
+    DataSourceType sourceType;
     EvioEventQueue evioEventQueue;
     boolean stopOnEndRun;
 
@@ -73,7 +73,7 @@ class EvioProcessingStep extends CompositeRecordProcessor {
      * Set the type of event source.
      * @param sourceType The type of event source.
      */
-    void setSourceType(SourceType sourceType) {
+    void setSourceType(DataSourceType sourceType) {
         this.sourceType = sourceType;
     }
     

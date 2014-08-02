@@ -16,7 +16,6 @@ import org.hps.monitoring.gui.model.Configuration;
 /**
  * This is the front-end for running the monitoring app via a 
  * {@link #main(String[])} method.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class Main {
 

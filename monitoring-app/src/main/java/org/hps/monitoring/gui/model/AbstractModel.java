@@ -34,11 +34,11 @@ public abstract class AbstractModel {
         propertyChangeSupport.firePropertyChange(evt);
     }
     
-    abstract public String[] getProperties();
+    abstract public String[] getPropertyNames();
     
     // FIXME: This method is kind of a hack.  Any other good way to do this?
     public void fireAllChanged() {
-        for (String property : getProperties()) {
+        for (String property : getPropertyNames()) {
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {

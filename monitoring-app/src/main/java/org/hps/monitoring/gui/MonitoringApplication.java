@@ -42,9 +42,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Vector;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -71,7 +69,7 @@ import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.Configuration;
 import org.hps.monitoring.gui.model.ConfigurationModel;
-import org.hps.monitoring.gui.model.HasConfigurationModel;
+import org.hps.monitoring.gui.model.RunModel;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.record.EventProcessingChain;
@@ -158,6 +156,9 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     
     // The ConfigurationModel for updating GUI components from the global configuration.
     private ConfigurationModel configurationModel = new ConfigurationModel();
+    
+    // The RunModel for updating the RunPanel.
+    private RunModel runModel = new RunModel();
                    
     /**
      * Constructor for the monitoring application.
@@ -301,7 +302,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         mainPanel.add(connectionStatusPanel, c);
 
         // Run status panel.
-        runPanel = new RunPanel();
+        runPanel = new RunPanel(runModel);
         c = new GridBagConstraints();
         c.insets = new Insets(5, 0, 5, 0);
         c.fill = GridBagConstraints.BOTH;
@@ -1166,28 +1167,22 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         // Get a list of Drivers to execute from the JobManager which was
         // already configured.
         eventProcessing.add(jobManager.getDriverExecList());
-        
-        // Using an ET server or an EVIO file?
-        if (usingEtServer() || usingEvioFile()) {
-            // ET or EVIO source can be used for updating the RunPanel.
-            eventProcessing.add(runPanel.new EvioUpdater());
-        
-            // Basic ET system monitor.  
-            if (usingEtServer())
-                eventProcessing.add(new EtSystemMonitor());
-            
-        } else {
-            // Using an LCIO file source so must use a different updater for the RunPanel.
-            eventProcessing.add(runPanel.new CompositeRecordUpdater());
-        }
-                        
+                                                         
         // Using an ET server?
-        if (usingEtServer())
-            // Add ET system strip charts.
+        if (usingEtServer()) {
+            
+            // ET system monitor.
+            eventProcessing.add(new EtSystemMonitor());
+            
+            // ET system strip charts.
             eventProcessing.add(new EtSystemStripCharts());
-        
+        }
+                
         // Setup the event processing based on the above configuration.
         eventProcessing.setup();
+        
+        // Add processor for updating the RunPanel.
+        eventProcessing.add(runPanel.new RunModelUpdater());
         
         // Create the event processing thread.
         eventProcessingThread = new EventProcessingThread(eventProcessing);
@@ -1545,10 +1540,10 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         }
        
         // Log all status changes.
-        log(level, "STATUS CHANGED, "
-                + "subsystem: " + status.getSubsystem() + ", "
+        log(level, "STATUS, "
+                + "subsys: " + status.getSubsystem() + ", "
                 + "code: " + status.getStatusCode().name() + ", "                 
-                + "description: " + status.getDescription() + ", "                 
-                + "message: " + status.getMessage());
+                + "descr: " + status.getDescription() + ", "                 
+                + "mesg: " + status.getMessage());
     }
 }
