@@ -203,7 +203,7 @@ public class HitTimePlotter extends Driver implements Resettable {
 //                + ", Trigger timestamp " + ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event));
         double t0Ecal = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_ECAL, event);
         double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
-        double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGER, event);
+        double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
         for (CalorimeterHit hit : ecalHits) {
             double cor = hit.getTime() + (t0Ecal - t0Trig);
             aida.histogram1D("ECAL Hit Time").fill(hit.getTime());
