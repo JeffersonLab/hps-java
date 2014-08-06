@@ -83,7 +83,7 @@ public class RunModel extends AbstractModel {
         if (startDate != null && endDate != null) {
             long elapsedMillis = endDate.getTime() - startDate.getTime();
             int elapsedSeconds = (int)((double)elapsedMillis / 1000.);
-            setElapsedTime(elapsedSeconds);
+            this.setRunLength(elapsedSeconds);
         }
     }
     
