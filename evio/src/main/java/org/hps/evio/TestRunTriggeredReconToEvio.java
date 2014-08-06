@@ -5,10 +5,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerDriver;
+import org.hps.readout.ecal.TriggerableDriver;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
@@ -24,7 +25,7 @@ import org.lcsim.util.Driver;
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class TestRunTriggeredReconToEvio extends Driver {
+public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 
     EventWriter writer;
     String rawCalorimeterHitCollectionName = "EcalReadoutHits";
@@ -40,6 +41,7 @@ public class TestRunTriggeredReconToEvio extends Driver {
     private int ecalMode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
 
     public TestRunTriggeredReconToEvio() {
+        setTriggerDelay(0);
     }
 
     public void setEcalMode(int ecalMode) {
@@ -65,6 +67,7 @@ public class TestRunTriggeredReconToEvio extends Driver {
 
     @Override
     protected void startOfData() {
+        super.startOfData();
         try {
             writer = new EventWriter(evioOutputFile);
         } catch (EvioException e) {
@@ -92,29 +95,12 @@ public class TestRunTriggeredReconToEvio extends Driver {
     @Override
     protected void endOfData() {
         System.out.println(this.getClass().getSimpleName() + " - wrote " + eventsWritten + " EVIO events in job; " + builderQueue.size() + " incomplete events in queue.");
-        writer.close();        
+        writer.close();
     }
 
     @Override
     protected void process(EventHeader event) {
-        if (TriggerDriver.triggerBit()) {
-            // Make a new EVIO event.
-            EventBuilder builder = new EventBuilder(EventConstants.PHYSICS_EVENT_TAG, DataType.BANK, EventConstants.EVENT_BANK_NUM);
-            builderQueue.add(new QueuedEtEvent(builder, writers.size(), eventNum));
-            EvioBank eventIDBank = new EvioBank(EventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
-            int[] eventID = new int[3];
-            eventID[0] = event.getEventNumber();
-            eventID[1] = 1; //trigger type
-            eventID[2] = 0; //status
-
-            eventNum++;
-            try {
-                eventIDBank.appendIntData(eventID);
-                builder.addChild(builder.getEvent(), eventIDBank);
-            } catch (EvioException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        checkTrigger(event);
 
         for (int i = 0; i < writers.size(); i++) {
             HitWriter evioWriter = writers.get(i);
@@ -179,6 +165,31 @@ public class TestRunTriggeredReconToEvio extends Driver {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected void processTrigger(EventHeader event) {
+        // Make a new EVIO event.
+        EventBuilder builder = new EventBuilder(EventConstants.PHYSICS_EVENT_TAG, DataType.BANK, EventConstants.EVENT_BANK_NUM);
+        builderQueue.add(new QueuedEtEvent(builder, writers.size(), eventNum));
+        EvioBank eventIDBank = new EvioBank(EventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
+        int[] eventID = new int[3];
+        eventID[0] = event.getEventNumber();
+        eventID[1] = 1; //trigger type
+        eventID[2] = 0; //status
+
+        eventNum++;
+        try {
+            eventIDBank.appendIntData(eventID);
+            builder.addChild(builder.getEvent(), eventIDBank);
+        } catch (EvioException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public int getTimestampType() {
+        return ReadoutTimestamp.SYSTEM_TRIGGERTIME;
     }
 
     private class QueuedEtEvent {

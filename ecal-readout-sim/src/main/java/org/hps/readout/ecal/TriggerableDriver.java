@@ -31,14 +31,14 @@ public abstract class TriggerableDriver extends Driver {
     }
 
     @Override
-    public void startOfData() {
+    protected void startOfData() {
         TriggerDriver.addTriggerable(this);
     }
 
     protected abstract void processTrigger(EventHeader event);
 
     protected void checkTrigger(EventHeader event) {
-        if (triggerTimestamps.peek() != null && ClockSingleton.getTime() >= triggerTimestamps.peek()) {
+        while (triggerTimestamps.peek() != null && ClockSingleton.getTime() >= triggerTimestamps.peek()) {
             processTrigger(event);
             triggerTimestamps.remove();
         }

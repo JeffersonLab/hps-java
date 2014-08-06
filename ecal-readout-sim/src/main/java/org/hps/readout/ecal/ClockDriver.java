@@ -16,6 +16,7 @@ public class ClockDriver extends Driver {
 
     public void process(EventHeader event) {
         ClockSingleton.step();
+        TriggerDriver.resetTrigger();
     }
 
     public void startOfData() {

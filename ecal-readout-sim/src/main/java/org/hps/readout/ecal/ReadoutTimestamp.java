@@ -14,9 +14,10 @@ import org.lcsim.event.GenericObject;
 public class ReadoutTimestamp implements GenericObject {
 
     public static final String collectionName = "ReadoutTimestamps";
-    public static final int SYSTEM_TRIGGER = 0;
+    public static final int SYSTEM_TRIGGERBITS = 0;
     public static final int SYSTEM_TRACKER = 1;
     public static final int SYSTEM_ECAL = 2;
+    public static final int SYSTEM_TRIGGERTIME = 3;
     private int system;
     private double time;
 

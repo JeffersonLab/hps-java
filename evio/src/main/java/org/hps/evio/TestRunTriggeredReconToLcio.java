@@ -1,20 +1,18 @@
 package org.hps.evio;
 
 import hep.physics.event.generator.MCEvent;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.deprecated.QuietBaseLCSimEvent;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerDriver;
-
+import org.hps.readout.ecal.TriggerableDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
@@ -29,9 +27,10 @@ import org.lcsim.util.Driver;
  * the test run.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id:$
+ * @version $Id: TestRunTriggeredReconToLcio.java 779 2014-07-16 16:24:34Z
+ * omoreno $
  */
-public class TestRunTriggeredReconToLcio extends Driver {
+public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     String rawCalorimeterHitCollectionName = "EcalReadoutHits";
     String outputFile = "TestRunData.slcio";
@@ -61,9 +60,9 @@ public class TestRunTriggeredReconToLcio extends Driver {
     static final String trackerCollectionName = "TrackerHits";
     private String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
-    
-    
+
     public TestRunTriggeredReconToLcio() {
+        setTriggerDelay(0);
     }
 
     public void setEcalMode(int ecalMode) {
@@ -97,6 +96,7 @@ public class TestRunTriggeredReconToLcio extends Driver {
 
     @Override
     protected void startOfData() {
+        super.startOfData();
         writers = new ArrayList<HitWriter>();
 
         ecalWriter = new ECalHitWriter();
@@ -134,53 +134,27 @@ public class TestRunTriggeredReconToLcio extends Driver {
             mcParticles = event.getMCParticles();
             ecalHits = event.getSimCalorimeterHits(ecalCollectionName);
             trackerHits = event.getSimTrackerHits(trackerCollectionName);
-           	if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
-           		ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
-           	}
+            if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
+                ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
+            }
         }
         if (ClockSingleton.getClock() % triggerSpacing == 0) {
             if (event.hasCollection(MCParticle.class)) {
                 triggerMCParticles = event.getMCParticles();
                 triggerECalHits = event.getSimCalorimeterHits(ecalCollectionName);
                 triggerTrackerHits = event.getSimTrackerHits(trackerCollectionName);
-                if(event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)){
-                	triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
+                if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
+                    triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
                 }
             } else {
                 triggerMCParticles = null;
                 triggerECalHits = null;
                 triggerTrackerHits = null;
-                triggerECalScoringPlaneHits = null; 
+                triggerECalScoringPlaneHits = null;
             }
         }
 
-
-        if (TriggerDriver.triggerBit()) {
-            EventHeader lcsimEvent = new QuietBaseLCSimEvent(CalibrationDriver.runNumber(), event.getEventNumber(), event.getDetectorName());
-            events.add(lcsimEvent);
-            System.out.println("Creating LCIO event " + eventNum);
-            if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
-                lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles);
-                lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
-                lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
-                System.out.println("Adding " +  mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
-                if(ecalScoringPlaneHits != null){
-                	lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0);
-                	System.out.println("Adding " + ecalScoringPlaneHits.size() + " ECalTrackerHits");
-                }
-            } else {
-                lcsimEvent.put(MCEvent.MC_PARTICLES, triggerMCParticles);
-                lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
-                lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
-                System.out.println("Adding " +  triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
-                if(triggerECalScoringPlaneHits != null){
-                	lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0);
-                	System.out.println("Adding " + triggerECalScoringPlaneHits.size() + " ECalTrackerHits");
-                }
-            }
-            lcsimEvent.put(ReadoutTimestamp.collectionName, event.get(ReadoutTimestamp.class, ReadoutTimestamp.collectionName));
-            ++eventNum;
-        }
+        checkTrigger(event);
 
         writerLoop:
         for (HitWriter hitWriter : writers) {
@@ -235,5 +209,38 @@ public class TestRunTriggeredReconToLcio extends Driver {
                 System.out.println("rejecting filled LCIO event, event " + queuedEvent.getEventNumber() + " contains no SVT hits from truth particles");
             }
         }
+    }
+
+    @Override
+    protected void processTrigger(EventHeader event) {
+        EventHeader lcsimEvent = new QuietBaseLCSimEvent(CalibrationDriver.runNumber(), event.getEventNumber(), event.getDetectorName());
+        events.add(lcsimEvent);
+        System.out.println("Creating LCIO event " + eventNum);
+        if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
+            lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles);
+            lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
+            lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
+            System.out.println("Adding " + mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
+            if (ecalScoringPlaneHits != null) {
+                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0);
+                System.out.println("Adding " + ecalScoringPlaneHits.size() + " ECalTrackerHits");
+            }
+        } else {
+            lcsimEvent.put(MCEvent.MC_PARTICLES, triggerMCParticles);
+            lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
+            lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
+            System.out.println("Adding " + triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
+            if (triggerECalScoringPlaneHits != null) {
+                lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0);
+                System.out.println("Adding " + triggerECalScoringPlaneHits.size() + " ECalTrackerHits");
+            }
+        }
+        lcsimEvent.put(ReadoutTimestamp.collectionName, event.get(ReadoutTimestamp.class, ReadoutTimestamp.collectionName));
+        ++eventNum;
+    }
+
+    @Override
+    public int getTimestampType() {
+        return ReadoutTimestamp.SYSTEM_TRIGGERTIME;
     }
 }

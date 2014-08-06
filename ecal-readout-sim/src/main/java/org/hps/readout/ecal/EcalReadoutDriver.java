@@ -94,12 +94,14 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     public void process(EventHeader event) {
         //System.out.println(this.getClass().getCanonicalName() + " - process");
         // Get the list of ECal hits.        
+        List<CalorimeterHit> hits;
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
-            List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
-
-            //write hits into buffers
-            putHits(hits);
+            hits = event.get(CalorimeterHit.class, ecalCollectionName);
+        } else {
+            hits = new ArrayList<CalorimeterHit>();
         }
+        //write hits into buffers
+        putHits(hits);
 
         ArrayList<T> newHits = null;
 
@@ -146,7 +148,7 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
 
     //initialize buffers
     protected abstract void initReadout();
-    
+
     public int getTimestampType() {
         return ReadoutTimestamp.SYSTEM_ECAL;
     }

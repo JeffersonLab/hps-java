@@ -13,10 +13,10 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
 
 /**
- * Makes trigger decision and sends trigger to readout drivers.
- * Prints triggers to file if file path specified.
- * Writes trigger events to LCIO if file path specified.
- * To implement: extend this class and write your own triggerDecision().
+ * Makes trigger decision and sends trigger to readout drivers. Prints triggers
+ * to file if file path specified. Writes trigger events to LCIO if file path
+ * specified. To implement: extend this class and write your own
+ * triggerDecision().
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: TriggerDriver.java,v 1.7 2013/09/02 21:56:56 phansson Exp $
@@ -27,7 +27,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
     protected String outputFileName = null;
     protected PrintWriter outputStream = null;
     protected int numTriggers;
-    private int lastTrigger = Integer.MIN_VALUE;
+    private static int lastTrigger = Integer.MIN_VALUE;
     private int deadTime = 0;
     private static boolean triggerBit = false;
     private String lcioFile = null;
@@ -44,6 +44,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
 
     /**
      * Set dead time; 0 for no dead time
+     *
      * @param deadTime Minimum number of clock ticks between triggers
      */
     public void setDeadTime(int deadTime) {
@@ -56,7 +57,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
 
     @Override
     public void startOfData() {
-        addTriggerable(this);
+//        addTriggerable(this);
 
         if (outputFileName != null) {
             try {
@@ -83,10 +84,11 @@ public abstract class TriggerDriver extends TriggerableDriver {
 
     @Override
     public void process(EventHeader event) {
-        triggerBit = false; //reset trigger
+//        triggerBit = false; //reset trigger
         //System.out.println(this.getClass().getCanonicalName() + " - process");
         if ((lastTrigger == Integer.MIN_VALUE || ClockSingleton.getClock() - lastTrigger > deadTime) && triggerDecision(event)) {
             sendTrigger();
+            this.addTrigger();
             for (TriggerableDriver triggerable : triggerables) {
                 ReadoutTimestamp.addTimestamp(triggerable, event);
             }
@@ -175,11 +177,16 @@ public abstract class TriggerDriver extends TriggerableDriver {
         System.out.printf(this.getClass().getSimpleName() + ": Trigger count: %d\n", numTriggers);
     }
 
+    @Deprecated
     public static boolean triggerBit() {
         return triggerBit;
     }
-    
+
+    public static void resetTrigger() {
+        triggerBit = false;
+    }
+
     public int getTimestampType() {
-        return ReadoutTimestamp.SYSTEM_TRIGGER;
+        return ReadoutTimestamp.SYSTEM_TRIGGERBITS;
     }
 }
