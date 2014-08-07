@@ -2,12 +2,20 @@ package org.hps.readout.ecal;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.detector.IGeometryInfo;
+import org.lcsim.detector.solids.Trd;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;
 
@@ -77,13 +85,14 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 				}
 				
 				// Add the clusters to the uncut histograms.
+				clusterHitCount.fill(cluster.getCalorimeterHits().size());
 				clusterTotalEnergy.fill(cluster.getEnergy());
 				clusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
 				clusterDistribution.fill(ix, iy, 1);
 				
 				// VERBOSE :: Output the single cluster trigger thresholds.
 				if(verbose) {
-					System.out.printf("\tCluster seed energy threshold  :: %f%n", clusterSeedEnergyThreshold);
+					System.out.printf("\tCluster seed energy threshold  :: [%f, %f]%n", clusterSeedEnergyThresholdLow, clusterSeedEnergyThresholdHigh);
 					System.out.printf("\tCluster total energy threshold :: %f%n%n", clusterTotalEnergyThreshold);
 				}
 				
@@ -91,6 +100,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 				boolean totalEnergyCut = clusterTotalEnergyCut(cluster);
 				boolean seedEnergyCut = clusterSeedEnergyCut(cluster);
 				boolean hitCountCut = clusterHitCountCut(cluster);
+				boolean edgeCrystalCut = isEdgeCluster(cluster);
 				
 				// VERBOSE :: Note whether the cluster passed the single
 				//            cluster cuts.
@@ -98,19 +108,47 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 					System.out.printf("\tPassed seed energy cut    :: %b%n", seedEnergyCut);
 					System.out.printf("\tPassed cluster energy cut :: %b%n%n", totalEnergyCut);
 					System.out.printf("\tPassed hit count cut :: %b%n%n", hitCountCut);
+					System.out.printf("\tIs an edge cluster :: %b%n%n", edgeCrystalCut);
+				}
+				
+				// Determine whether the cluster passes all the single
+				// cluster cuts.
+				boolean passedCuts = false;
+				
+				// If edge crystals should be not be used for triggering,
+				// require that the cluster not be centered in an edge
+				// crystal.
+				if(rejectEdgeCrystals) {
+					if(totalEnergyCut && seedEnergyCut && hitCountCut && !edgeCrystalCut) {
+						passedCuts = true;
+					}
+				}
+				
+				// Otherwise, it just needs to pass the standard trigger
+				// cuts regardless of where it is located.
+				else {
+					if(totalEnergyCut && seedEnergyCut && hitCountCut) {
+						passedCuts = true;
+					}
 				}
 				
 				// If both pass, add the cluster to the list.
-				if(totalEnergyCut && seedEnergyCut && hitCountCut) {
+				if(passedCuts) {
 					// Add the cluster to the cluster list.
 					tempList.add(cluster);
 					
 					// Add the cluster information to the single cut histograms.
+					pClusterHitCount.fill(cluster.getCalorimeterHits().size());
 					pClusterTotalEnergy.fill(cluster.getEnergy());
 					pClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
 					pClusterDistribution.fill(ix, iy, 1);
 				}
 			}
+			
+			// Remove the oldest cluster buffer element and add the new
+			// cluster list to the buffer.
+			clusterBuffer.removeFirst();
+			clusterBuffer.addLast(tempList);
 		}
 		
 		// Otherwise, clear the cluster list.
@@ -119,6 +157,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			if(verbose) { System.out.println("No cluster collection is present for event.\n"); }
 		}
 		
+		/**
 		// If the cluster buffer has fewer than the allowed number of
 		// events stored, just add the temporary list to the buffer.
 		if(clusterBuffer.size() < coincidenceWindow) { clusterBuffer.addLast(tempList); }
@@ -129,50 +168,53 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			clusterBuffer.removeFirst();
 			clusterBuffer.addLast(tempList);
 		}
+		**/
 		
 		// Reset the highest energy pair to null.
-		clusterPair[0] = null;
-		clusterPair[1] = null;
+		clusterTriplet[0] = null;
+		clusterTriplet[1] = null;
+		clusterTriplet[2] = null;
 		
 		// Loop over all of the cluster lists in the cluster buffer.
+		double[] energy = { 0.0, 0.0, 0.0 };
 		for(List<HPSEcalCluster> bufferList : clusterBuffer) {
 			// Loop over all of the clusters in each buffer list.
 			for(HPSEcalCluster cluster : bufferList) {
-				// If the first cluster is null, then any cluster
-				// automatically counts as the highest energy cluster.
-				if(clusterPair[0] == null) { clusterPair[0] = cluster; }
-				
-				// If the second cluster is null and the first has
-				// been populated, add the new cluster to the pair.
-				else if(clusterPair[1] == null) {
-					// If the new cluster exceeds the first cluster in
-					// energy, it gets the first slot and the first
-					// cluster is moved to the second slot.
-					if(cluster.getEnergy() > clusterPair[0].getEnergy()) {
-						clusterPair[1] = clusterPair[0];
-						clusterPair[0] = cluster;
-					}
-					
-					// Otherwise, the new cluster gets the second slot.
-					else { clusterPair[1] = cluster; }
+				// If the new cluster is higher energy than the first
+				// slot cluster, move the subsequent clusters down and
+				// insert the new one.
+				if(cluster.getEnergy() > energy[0]) {
+					clusterTriplet[2] = clusterTriplet[1];
+					clusterTriplet[1] = clusterTriplet[0];
+					clusterTriplet[0] = cluster;
+					energy[2] = energy[1];
+					energy[1] = energy[0];
+					energy[0] = cluster.getEnergy();
 				}
 				
-				// If the current cluster has a higher energy than the
-				// first cluster in the pair, it is the highest energy
-				// cluster of the pair. Replace the second cluster with
-				// the first and the first with the new cluster.
-				else if(cluster.getEnergy() > clusterPair[0].getEnergy()) {
-					clusterPair[1] = clusterPair[0];
-					clusterPair[0] = cluster;
+				// Otherwise, if the new cluster has more energy than
+				// the second slot, it goes there and the second does
+				// to the third.
+				else if(cluster.getEnergy() > energy[1]) {
+					clusterTriplet[2] = clusterTriplet[1];
+					clusterTriplet[1] = cluster;
+					energy[2] = energy[1];
+					energy[1] = cluster.getEnergy();
 				}
 				
-				// Otherwise, if it has more energy than the second
-				// cluster in the pair, it will replace that cluster.
-				else if(cluster.getEnergy() > clusterPair[1].getEnergy()) {
-					clusterPair[1] = cluster;
+				// If the new cluster has more energy than the third
+				// cluster, it just replaces it.
+				else if(cluster.getEnergy() > energy[2]) {
+					clusterTriplet[2] = cluster;
+					energy[2] = cluster.getEnergy();
 				}
 			}
 		}
+		
+		// The highest energy pair is the same as the first two slots
+		// of the highest energy triplet.
+		clusterPair[0] = clusterTriplet[0];
+		clusterPair[1] = clusterTriplet[1];
 		
 		// Run the superclass event process.
 		super.process(event);
@@ -182,39 +224,61 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 		// Initialize the cluster buffer to the size of the coincidence window.
 		clusterBuffer = new LinkedList<List<HPSEcalCluster>>();
 		
+		// Populate the buffer with empty lists.
+		for(int i = 0; i < coincidenceWindow; i++) {
+			clusterBuffer.add(new ArrayList<HPSEcalCluster>(0));
+		}
+		
+		// Initialize the cluster hit count diagnostic plots.
+		clusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution", 9, 1, 10);
+		pClusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed Single Cuts)", 9, 1, 10);
+		aClusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed All Cuts)", 9, 1, 10);
+		
 		// Initialize the cluster total energy diagnostic plots.
-		clusterTotalEnergy = aida.histogram1D("Cluster Total Energy Distribution", 44, 0.0, 2.2);
-		pClusterTotalEnergy = aida.histogram1D("Cluster Total Energy Distribution (Passed Single Cuts)", 44, 0.0, 2.2);
-		aClusterTotalEnergy = aida.histogram1D("Cluster Total Energy Distribution (Passed All Cuts)", 44, 0.0, 2.2);
+		clusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
+		pClusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+		aClusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
 		
 		// Initialize the cluster seed energy diagnostic plots.
-		clusterSeedEnergy = aida.histogram1D("Cluster Seed Energy Distribution", 44, 0.0, 2.2);
-		pClusterSeedEnergy = aida.histogram1D("Cluster Seed Energy Distribution (Passed Single Cuts)", 44, 0.0, 2.2);
-		aClusterSeedEnergy = aida.histogram1D("Cluster Seed Energy Distribution (Passed All Cuts)", 44, 0.0, 2.2);
+		clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+		pClusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+		aClusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
 		
 		// Initialize the seed distribution diagnostic plots.
-		clusterDistribution = aida.histogram2D("Cluster Seed Distribution", 44, -22.0, 22.0, 10, -5, 5);
-		pClusterDistribution = aida.histogram2D("Cluster Seed Distribution (Passed Single Cuts)", 44, -22.0, 22.0, 10, -5, 5);
-		aClusterDistribution = aida.histogram2D("Cluster Seed Distribution (Passed All Cuts)", 44, -22.0, 22.0, 10, -5, 5);
+		clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 176, -22.0, 22.0, 10, -5, 5);
+		pClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 176, -23, 23, 11, -5.5, 5.5);
+		aClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 176, -23, 23, 11, -5.5, 5.5);
 		
 		// Initialize the cluster pair energy sum diagnostic plots.
-		pairEnergySum = aida.histogram1D("Pair Energy Sum Distribution", 88, 0.0, 4.4);
-		pPairEnergySum = aida.histogram1D("Pair Energy Sum Distribution (Passed Pair Cuts)", 88, 0.0, 4.4);
+		pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 2.2);
+		pPairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution (Passed Pair Cuts)", 176, 0.0, 2.2);
 		
 		// Initialize the cluster pair hypothetical invariant mass diagnostic plots.
-		invariantMass = aida.histogram1D("Hypothetical Invariant Mass Distribution", 100, 0.0, 100);
-		pInvariantMass = aida.histogram1D("Hypothetical Invariant Mass Distribution (Passed Pair Cuts)", 100, 0.0, 100);
+		invariantMass = aida.histogram1D("Trigger Plots :: Invariant Mass Distribution", 1500, 0.0, 0.03);
+		pInvariantMass = aida.histogram1D("Trigger Plots :: Invariant Mass Distribution (Passed Pair Cuts)", 1500, 0.0, 0.03);
 	}
 	
 	protected boolean triggerDecision(EventHeader event) {
 		// If the active cluster pair has a null value, then there were
 		// fewer than two clusters in the buffer and we can not trigger.
-		if(clusterPair[0] == null || clusterPair[1] == null) {
+		if(!useClusterTriplet && (clusterPair[0] == null || clusterPair[1] == null)) {
 			// VERBOSE :: Note that triggering failed due to insufficient
 			// clusters. in the cluster buffer.
 			if(verbose) { System.out.println("Inufficient clusters in buffer -- no trigger."); }
 			
 			// Return false; we can not trigger without two clusters.
+			return false;
+		}
+		
+		// If the active cluster triplet has a null value, then there
+		// were fewer than three clusters in the buffer and we can not
+		// trigger.
+		if(useClusterTriplet && (clusterTriplet[0] == null || clusterTriplet[1] == null || clusterTriplet[2] == null)) {
+			// VERBOSE :: Note that triggering failed due to insufficient
+			// clusters. in the cluster buffer.
+			if(verbose) { System.out.println("Inufficient clusters in buffer -- no trigger."); }
+			
+			// Return false; we can not trigger without three clusters.
 			return false;
 		}
 		
@@ -228,35 +292,68 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 					ix[0], iy[0], clusterPair[0].getSeedHit().getCorrectedEnergy(), clusterPair[0].getEnergy());
 			System.out.printf("\tTesting second cluster at (%d, %d) with total energy %f and seed energy %f.%n",
 					ix[1], iy[1], clusterPair[1].getSeedHit().getCorrectedEnergy(), clusterPair[1].getEnergy());
+			if(useClusterTriplet) {
+				System.out.printf("\tTesting third cluster at (%d, %d) with total energy %f and seed energy %f.%n",
+						ix[1], iy[1], clusterTriplet[2].getSeedHit().getCorrectedEnergy(), clusterTriplet[2].getEnergy());
+			}
 		}
 		
-		// Fill the uncut histograms.
-		pairEnergySum.fill(getEnergySumValue(clusterPair));
-		invariantMass.fill(getInvariantMassValue(clusterPair));
-		
-		// VERBOSE :: Output the cluster pair trigger thresholds.
-		if(verbose) {
-			System.out.printf("\tCluster pair energy sum threshold     :: %f%n", pairEnergySumThreshold);
-			System.out.printf("\tHypothetical invariant mass threshold :: [%f, %f]%n%n", invariantMassThresholdLow, invariantMassThresholdHigh);
+		if(!useClusterTriplet) {
+			// Fill the uncut histograms.
+			pairEnergySum.fill(getEnergySumValue(clusterPair));
+			invariantMass.fill(getInvariantMassValue(clusterPair));
+			
+			// VERBOSE :: Output the cluster pair trigger thresholds.
+			if(verbose) {
+				System.out.printf("\tCluster pair energy sum threshold     :: %f%n", pairEnergySumThresholdLow);
+				System.out.printf("\tHypothetical invariant mass threshold :: [%f, %f]%n%n", invariantMassThresholdLow, invariantMassThresholdHigh);
+			}
+			
+			// Perform the cluster pair checks.
+			boolean energySumCut = pairEnergySumCut(clusterPair);
+			boolean invariantMassCut = pairInvariantMassCut(clusterPair);
+			
+			// VERBOSE :: Note the outcome of the trigger cuts.
+			if(verbose) {
+				System.out.printf("\tPassed energy sum cut     :: %b%n", energySumCut);
+				System.out.printf("\tPassed invariant mass cut :: %b%n%n", invariantMassCut);
+			}
+			
+			// If the pair passes both cuts, we have a trigger.
+			if(energySumCut && invariantMassCut) {
+				// Fill the cut histograms.
+				pPairEnergySum.fill(getEnergySumValue(clusterPair));
+				pInvariantMass.fill(getInvariantMassValue(clusterPair));
+				
+				// Fill the all cuts histograms.
+				aClusterHitCount.fill(clusterPair[0].getCalorimeterHits().size());
+				aClusterHitCount.fill(clusterPair[1].getCalorimeterHits().size());
+				aClusterTotalEnergy.fill(clusterPair[0].getEnergy());
+				aClusterTotalEnergy.fill(clusterPair[1].getEnergy());
+				aClusterSeedEnergy.fill(clusterPair[0].getSeedHit().getCorrectedEnergy());
+				aClusterSeedEnergy.fill(clusterPair[1].getSeedHit().getCorrectedEnergy());
+				aClusterDistribution.fill(ix[0], iy[0], 1);
+				aClusterDistribution.fill(ix[1], iy[1], 1);
+				
+				// VERBOSE :: Note that the event has triggered.
+				if(verbose) { System.out.println("Event triggers!\n\n"); }
+				
+				// Return the trigger.
+				return true;
+			}
 		}
 		
-		// Perform the cluster pair checks.
-		boolean energySumCut = pairEnergySumCut(clusterPair);
-		boolean invariantMassCut = pairInvariantMassCut(clusterPair);
-		
-		// VERBOSE :: Note the outcome of the trigger cuts.
-		if(verbose) {
-			System.out.printf("\tPassed energy sum cut     :: %b%n", energySumCut);
-			System.out.printf("\tPassed invariant mass cut :: %b%n%n", invariantMassCut);
-		}
-		
-		// If the pair passes both cuts, we have a trigger.
-		if(energySumCut && invariantMassCut) {
-			// Fill the cut histograms.
-			pPairEnergySum.fill(getEnergySumValue(clusterPair));
-			pInvariantMass.fill(getInvariantMassValue(clusterPair));
+		// If we are using a cluster triplet, apply the cluster triplet
+		// cuts.
+		else {
+			// Perform the cluster triplet checks.
+			boolean energySumCut = tripletEnergySumCut(clusterTriplet);
+			boolean horizontalCut = tripletHorizontalCut(clusterTriplet);
+			boolean energySpatialCut = tripletTotalEnergyCut(clusterTriplet);
 			
 			// Fill the all cuts histograms.
+			aClusterHitCount.fill(clusterPair[0].getCalorimeterHits().size());
+			aClusterHitCount.fill(clusterPair[1].getCalorimeterHits().size());
 			aClusterTotalEnergy.fill(clusterPair[0].getEnergy());
 			aClusterTotalEnergy.fill(clusterPair[1].getEnergy());
 			aClusterSeedEnergy.fill(clusterPair[0].getSeedHit().getCorrectedEnergy());
@@ -264,11 +361,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			aClusterDistribution.fill(ix[0], iy[0], 1);
 			aClusterDistribution.fill(ix[1], iy[1], 1);
 			
-			// VERBOSE :: Note that the event has triggered.
-			if(verbose) { System.out.println("Event triggers!\n\n"); }
-			
-			// Return the trigger.
-			return true;
+			if(energySumCut && horizontalCut && energySpatialCut) {
+				return true;
+			}
 		}
 		
 		// VERBOSE :: Note that the event has failed to trigger.
@@ -284,7 +379,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	
 	/**
 	 * Checks whether the cluster passes the threshold for minimum
-	 * component hits.
+	 * number of component hits.
 	 * @param cluster - The cluster to check.
 	 * @return Returns <code>true</code> if the cluster passes and <code>
 	 * false</code> if it does not.
@@ -294,14 +389,18 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	}
 	
 	/**
-	 * Checks whether the cluster passes the threshold for minimum
-	 * cluster seed energy.
+	 * Checks whether the cluster falls within the allowed range for
+	 * the seed hit energy cut.
 	 * @param cluster - The cluster to check.
 	 * @return Returns <code>true</code> if the cluster passes and <code>
 	 * false</code> if it does not.
 	 */
 	private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
-		return cluster.getSeedHit().getCorrectedEnergy() >= clusterSeedEnergyThreshold;
+		// Get the seed energy value.
+		double seedEnergy = cluster.getSeedHit().getCorrectedEnergy();
+		
+		// Perform the seed energy cut.
+		return seedEnergy >= clusterSeedEnergyThresholdLow && seedEnergy <= clusterSeedEnergyThresholdHigh;
 	}
 	
 	/**
@@ -322,8 +421,15 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * cut value.
 	 * @return Returns the cut value as a <code>double</code>.
 	 */
-	private double getEnergySumValue(HPSEcalCluster[] clusterPair) {
-		return (clusterPair[0].getEnergy() + clusterPair[1].getEnergy());
+	private static double getEnergySumValue(HPSEcalCluster[] clusterGroup) {
+		// Track the sum.
+		double energySum = 0.0;
+		
+		// Add the energies of all clusters in the array.
+		for(HPSEcalCluster cluster : clusterGroup) { energySum += cluster.getEnergy(); }
+		
+		// Return the sum.
+		return energySum;
 	}
 	
 	/**
@@ -334,26 +440,95 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * @return Returns the cut value as a <code>double</code>.
 	 */
 	private double getInvariantMassValue(HPSEcalCluster[] clusterPair) {
+		// Store the x/y positions for the seeds.
+		double x[] = new double[2];
+		double y[] = new double[2];
+		
+		// Get the seed hits.
+		CalorimeterHit[] seed = { clusterPair[0].getSeedHit(), clusterPair[1].getSeedHit() };
+		
+		// Set the positions for each seed.
+		for(int index = 0; index < seed.length; index++) {
+			// Get the seed position array stored in the position map.
+			Double[] seedPos = seedPosMap.get(clusterPair[index].getSeedHit());
+			
+			// If there is a position array for the seed, use it.
+			if(seedPos != null) {
+				x[index] = seedPos[0];
+				y[index] = seedPos[1];
+			}
+			
+			// Otherwise, calculate the position at the crystal face.
+			else {
+				// Get the position and store it in a double array.
+				IGeometryInfo geom = clusterPair[index].getSeedHit().getDetectorElement().getGeometry();
+				double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()),
+						(Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
+				
+				// Set the seed location.
+				x[index] = pos[0];
+				y[index] = pos[1];
+				
+				// Store the seed location for future use.
+				Double[] positionVec = { pos[0], pos[1], pos[2] };
+				seedPosMap.put(clusterPair[index].getSeedHit(), positionVec);
+			}
+		}
+		
+		// Get the cluster energy for each seed.
 		double[] e = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
-		double[] x = { clusterPair[0].getSeedHit().getIdentifierFieldValue("ix"), clusterPair[1].getSeedHit().getIdentifierFieldValue("ix") };
-		double[] y = { clusterPair[0].getSeedHit().getIdentifierFieldValue("iy"), clusterPair[1].getSeedHit().getIdentifierFieldValue("iy") };
+		
+		//Return the invariant mass.
 		return (e[0] * e[1] * (Math.pow(x[0] - x[1], 2) + Math.pow(y[0] - y[1], 2)) / D2);
 	}
 	
 	/**
-	 * Checks whether the cluster pair passes the threshold for the
-	 * minimum pair energy sum check.
+	 * Indicates whether a cluster has a seed hit located on the edge
+	 * of the calorimeter or not.
+	 * 
+	 * @param cluster - The cluster to check.
+	 * @return Returns <code>true</code> if the cluster seed is on the
+	 * edge of the calorimeter and <code>false</code> otherwise.
+	 */
+	private static boolean isEdgeCluster(HPSEcalCluster cluster) {
+		// Get the x- and y-indices of the cluster seed hit.
+		int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+		int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+		
+		// Track whether the cluster is an edge cluster or not.
+    	boolean edge = false;
+    	
+    	// Get the absolute values of the coordinates.
+    	int aix = Math.abs(ix);
+    	int aiy = Math.abs(iy);
+    	
+    	// Check if this an outer edge crystal.
+    	if(aix == 23 || aiy == 5) { edge = true; }
+    	
+    	// Check if this along the central beam gap.
+    	if(aiy == 1) { edge = true; }
+    	
+    	// Check if this is around the beam gap.
+    	if(aiy == 2 && (ix >= -11 && ix <= -1)) { edge = true; }
+    	
+    	// Otherwise, this is not an edge crystal.
+    	return edge;
+	}
+	
+	/**
+	 * Checks whether the cluster pair passes the falls within the
+	 * allowed range for the piar energy sum cut.
 	 * @param clusterPair - An array of size two containing the cluster
 	 * pair to check.
-	 * @return Returns <code>true</code> if the cluster passes and <code>
-	 * false</code> if it does not.
+	 * @return Returns <code>true</code> if the clusters pass and <code>
+	 * false</code> if they does not.
 	 */
 	private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
-		// The cut will fail if this is not a cluster pair.
-		if(clusterPair.length != 2) { return false; }
+		// Get the energy sum value.
+		double energySum = getEnergySumValue(clusterPair);
 		
 		// Otherwise, get the energy sum and compare it to the threshold.
-		return getEnergySumValue(clusterPair) >= pairEnergySumThreshold;
+		return energySum >= pairEnergySumThresholdLow && energySum <= pairEnergySumThresholdHigh;
 	}
 	
 	/**
@@ -361,18 +536,85 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * invariant mass check.
 	 * @param clusterPair - An array of size two containing the cluster
 	 * pair to check.
-	 * @return Returns <code>true</code> if the cluster passes and <code>
-	 * false</code> if it does not.
+	 * @return Returns <code>true</code> if the clusters pass and <code>
+	 * false</code> if they does not.
 	 */
 	private boolean pairInvariantMassCut(HPSEcalCluster[] clusterPair) {
-		// The cut will fail if this is not a cluster pair.
-		if(clusterPair.length != 2) { return false; }
-		
 		// Calculate the invariant mass.
 		double myy2 = getInvariantMassValue(clusterPair);
 		
 		// Perform the cut.
 		return ( (myy2 >= invariantMassThresholdLow) && (myy2 <= invariantMassThresholdHigh));
+	}
+	
+	/**
+	 * Checks whether the cluster pair passes the threshold for the
+	 * minimum pair energy sum check.
+	 * @param clusterTriplet - An array of size three containing the
+	 * cluster triplet to check.
+	 * @return Returns <code>true</code> if the clusters pass and <code>
+	 * false</code> if they does not.
+	 */
+	private boolean tripletEnergySumCut(HPSEcalCluster[] clusterTriplet) {
+		return (getEnergySumValue(clusterTriplet) >= tripletEnergySumThreshold);
+	}
+	
+	/**
+	 * Checks that there is at least one cluster is located on the right
+	 * side and at least one cluster on the left side of the calorimeter.
+	 * @param clusterTriplet - An array of size three containing the
+	 * cluster triplet to check.
+	 * @return Returns <code>true</code> if the clusters pass and <code>
+	 * false</code> if they does not.
+	 */
+	private static boolean tripletHorizontalCut(HPSEcalCluster[] clusterTriplet) {
+		// Track whether a cluster has occurred on each horizontal side
+		// of the calorimeter.
+		boolean leftCluster = false;
+		boolean rightCluster = false;
+		
+		// Sort through the cluster triplet and check where they occur.
+		for(HPSEcalCluster cluster : clusterTriplet) {
+			int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+			if(ix < 0) { leftCluster = true; }
+			if(ix > 0) { rightCluster = true; }
+		}
+		
+		// If a cluster fell on both sides, it passes.
+		if(leftCluster && rightCluster) { return true; }
+		else { return false; }
+	}
+	
+	private boolean tripletTotalEnergyCut(HPSEcalCluster[] clusterTriplet) {
+		// Check to see if each cluster passes the check.
+		for(HPSEcalCluster cluster1 : clusterTriplet) {
+			for(HPSEcalCluster cluster2 : clusterTriplet) {
+				// The cluster pair must be two different clusters.
+				if(cluster1 == cluster2) { continue; }
+				
+				// Check to see if the clusters are over threshold.
+				boolean over1 = cluster1.getEnergy() >= tripletTotalEnergyThreshold;
+				boolean over2 = cluster1.getEnergy() >= tripletTotalEnergyThreshold;
+				
+				// If both the clusters are over threshold, check that
+				// they are sufficiently far apart.
+				if(over1 && over2) {
+					// Get the x and y coordinates of the clusters.
+					double x[] = { cluster1.getPosition()[0], cluster2.getPosition()[0] };
+					double y[] = { cluster1.getPosition()[1], cluster2.getPosition()[1] };
+					
+					// Calculate the distance between the clusters.
+					double dr = Math.sqrt(x[0] * x[0] + y[0] * y[0]);
+					
+					// Run the check.
+					if(dr >= tripletPairSeparationThreshold) { return true; }
+				}
+			}
+		}
+		
+		// If none of the cluster pairs pass all the checks, the
+		// triplet fails.
+		return false;
 	}
 	
 	// ==================================================================
@@ -389,11 +631,10 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	}
 	
 	/**
-	 * Sets the threshold for the number of hits in individual
-	 * clusters under which the cluster will be rejected and not used
-	 * for triggering.
-	 * @param clusterHitCountThreshold - The cluster hit count lower
-	 * bound.
+	 * Sets the minimum number of hits required for a cluster to be
+	 * used in triggering.
+	 * @param clusterHitCountThreshold - The smallest number of hits
+	 * in a cluster.
 	 */
 	public void setClusterHitCountThreshold(int clusterHitCountThreshold) {
 		this.clusterHitCountThreshold = clusterHitCountThreshold;
@@ -401,13 +642,24 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	
 	/**
 	 * Sets the threshold for the cluster seed energy of individual
-	 * clusters under which the cluster will be rejected and not used
+	 * clusters above which the cluster will be rejected and not used
 	 * for triggering.
-	 * @param clusterSeedEnergyThreshold - The cluster seed energy
+	 * @param clusterSeedEnergyThresholdHigh - The cluster seed energy
 	 * lower bound.
 	 */
-	public void setClusterSeedEnergyThreshold(double clusterSeedEnergyThreshold) {
-		this.clusterSeedEnergyThreshold = clusterSeedEnergyThreshold;
+	public void setClusterSeedEnergyThresholdHigh(double clusterSeedEnergyThresholdHigh) {
+		this.clusterSeedEnergyThresholdHigh = clusterSeedEnergyThresholdHigh;
+	}
+	
+	/**
+	 * Sets the threshold for the cluster seed energy of individual
+	 * clusters under which the cluster will be rejected and not used
+	 * for triggering.
+	 * @param clusterSeedEnergyThresholdLow - The cluster seed energy
+	 * lower bound.
+	 */
+	public void setClusterSeedEnergyThresholdLow(double clusterSeedEnergyThresholdLow) {
+		this.clusterSeedEnergyThresholdLow = clusterSeedEnergyThresholdLow;
 	}
 	
 	/**
@@ -457,12 +709,54 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	
 	/**
 	 * Sets the threshold for the sum of the energies of a cluster pair
-	 * under which the pair will be rejected and not produce a trigger.
-	 * @param pairEnergySumThreshold - The cluster pair energy sum
+	 * above which the pair will be rejected and not produce a trigger.
+	 * @param pairEnergySumThresholdHigh - The cluster pair energy sum
 	 * lower bound.
 	 */
-	public void setPairEnergySumThreshold(double pairEnergySumThreshold) {
-		this.pairEnergySumThreshold = pairEnergySumThreshold;
+	public void setPairEnergySumThresholdHigh(double pairEnergySumThresholdHigh) {
+		this.pairEnergySumThresholdHigh = pairEnergySumThresholdHigh;
+	}
+	
+	/**
+	 * Sets the threshold for the sum of the energies of a cluster pair
+	 * under which the pair will be rejected and not produce a trigger.
+	 * @param pairEnergySumThresholdLow - The cluster pair energy sum
+	 * lower bound.
+	 */
+	public void setPairEnergySumThresholdLow(double pairEnergySumThresholdLow) {
+		this.pairEnergySumThresholdLow = pairEnergySumThresholdLow;
+	}
+	
+	/**
+	 * Sets the threshold for the sum of the energies of a cluster triplet
+	 * under which the triplet will be rejected and not produce a trigger.
+	 * @param tripletEnergySumThreshold - The cluster triplet energy sum
+	 * lower bound.
+	 */
+	public void setTripletEnergySumThreshold(double tripletEnergySumThreshold) {
+		this.tripletEnergySumThreshold = tripletEnergySumThreshold;
+	}
+	
+	/**
+	 * Sets the minimum distance apart for a cluster pair within a
+	 * cluster triplet. Clusters that are not sufficiently far apart
+	 * are rejected and do not trigger. 
+	 * @param tripletPairSeparationThreshold - The minimum distance in
+	 * millimeters.
+	 */
+	public void setTripletPairSeparationThreshold(double tripletPairSeparationThreshold) {
+		this.tripletPairSeparationThreshold = tripletPairSeparationThreshold;
+	}
+	
+	/**
+	 * Sets the threshold for which at least two clusters in a cluster
+	 * triplet will be required to surpass. Cluster triplets with one
+	 * or fewer clusters above the threshold will be rejected.
+	 * @param tripletTotalEnergyThreshold - The cluster total energy
+	 * that two clusters must pass.
+	 */
+	public void setTripletTotalEnergyThreshold(double tripletTotalEnergyThreshold) {
+		this.tripletTotalEnergyThreshold = tripletTotalEnergyThreshold;
 	}
 	
 	/**
@@ -475,17 +769,31 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 		this.verbose = verbose;
 	}
 	
+	/**
+	 * Toggles whether the driver triggers off of a pair of clusters
+	 * or a triplet of clusters.
+	 * @param useClusterTriplet - <code>true</code> indicates that a
+	 * triplet should be used and <code>false</code> that a pair should
+	 * be used.
+	 */
+	public void setUseClusterTriplet(boolean useClusterTriplet) {
+		this.useClusterTriplet = useClusterTriplet;
+	}
+	
 	// ==================================================================
 	// ==== AIDA Plots ==================================================
 	// ==================================================================
 	IHistogram2D aClusterDistribution;
+	IHistogram1D aClusterHitCount;
 	IHistogram1D aClusterSeedEnergy;
 	IHistogram1D aClusterTotalEnergy;
 	IHistogram2D clusterDistribution;
+	IHistogram1D clusterHitCount;
 	IHistogram1D clusterSeedEnergy;
 	IHistogram1D clusterTotalEnergy;
 	IHistogram1D invariantMass;
 	IHistogram1D pairEnergySum;
+	IHistogram1D pClusterHitCount;
 	IHistogram2D pClusterDistribution;
 	IHistogram1D pClusterSeedEnergy;
 	IHistogram1D pClusterTotalEnergy;
@@ -521,14 +829,6 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	private String clusterCollectionName = "EcalClusters";
 	
 	/**
-	 * <b>clusterHitCountThreshold</b><br/><br/>
-	 * <code>private int <b>clusterHitCountThreshold</b></code><br/><br/>
-	 * The minimum number of events needed for a cluster to avoid being
-	 * excluded from the trigger.
-	 */
-	private int clusterHitCountThreshold = 2;
-	
-	/**
 	 * <b>clusterPair</b><br/><br/>
 	 * <code>private HPSEcalCluster[] <b>clusterPair</b></code><br/><br/>
 	 * Stores the two highest energy clusters located in the cluster
@@ -536,14 +836,30 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * cluster first in the array.
 	 */
 	private HPSEcalCluster[] clusterPair = new HPSEcalCluster[2];
+    
+	/**
+	 * <b>clusterHitCountThreshold</b><br/><br/>
+	 * <code>private int <b>clusterHitCountThreshold</b></code><br/><br/>
+	 * Defines the minimum number of hits required for a cluster to
+	 * be used in triggering.
+	 */
+	private int clusterHitCountThreshold = 5;
 	
 	/**
-	 * <b>clusterSeedEnergyThreshold</b><br/><br/>
-	 * <code>private double <b>clusterSeedEnergyThreshold</b></code><br/><br/>
+	 * <b>clusterSeedEnergyThresholdLow</b><br/><br/>
+	 * <code>private double <b>clusterSeedEnergyThresholdLow</b></code><br/><br/>
 	 * Defines the threshold for the cluster seed energy under which
 	 * a cluster will be rejected.
 	 */
-	private double clusterSeedEnergyThreshold = 0.05 / 0.83;
+	private double clusterSeedEnergyThresholdLow = 0.15;
+	
+	/**
+	 * <b>clusterSeedEnergyThresholdHigh</b><br/><br/>
+	 * <code>private double <b>clusterSeedEnergyThresholdHigh</b></code><br/><br/>
+	 * Defines the threshold for the cluster seed energy above which
+	 * a cluster will be rejected.
+	 */
+	private double clusterSeedEnergyThresholdHigh = 1.00;
 	
 	/**
 	 * <b>clusterTotalEnergyThreshold</b><br/><br/>
@@ -551,22 +867,31 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Defines the threshold for the total cluster energy under which
 	 * a cluster will be rejected.
 	 */
-	private double clusterTotalEnergyThreshold = 0.15 / 0.83;
-    
+	private double clusterTotalEnergyThreshold = Double.MAX_VALUE;
+	
+	/**
+	 * <b>clusterTriplet</b><br/><br/>
+	 * <code>private HPSEcalCluster[] <b>clusterTriplet</b></code><br/><br/>
+	 * Stores the three highest energy clusters located in the cluster
+	 * buffer. These are sorted by energy, with the highest energy
+	 * cluster first in the array.
+	 */
+	private HPSEcalCluster[] clusterTriplet = new HPSEcalCluster[3]; 
+	
 	/**
 	 * <b>coincidenceWindow</b><br/><br/>
 	 * <code>private int <b>coincidenceWindow</b></code><br/><br/>
 	 * The number of events for which clusters will be retained and
 	 * used in the trigger before they are removed.
 	 */
-    private int coincidenceWindow = 6;
+    private int coincidenceWindow = 3;
     
 	/**
 	 * <b>D2</b><br/><br/>
 	 * <code>private static final double <b>D2</b></code><br/><br/>
 	 * The squared distance of the calorimeter from the target.
 	 */
-    private static final double D2 = 1.414 * 1.414; // (1414^2 mm^2)
+    private static final double D2 = 1414 * 1414; // (1414^2 mm^2)
 	
 	/**
 	 * <b>invariantMassThresholdHigh</b><br/><br/>
@@ -574,7 +899,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Defines the threshold for the invariant mass of the generating
 	 * particle above which the cluster pair will be rejected.
 	 */
-	private double invariantMassThresholdHigh = 0.00228 / 0.83 / 0.83;
+	private double invariantMassThresholdHigh = 0.01472;
 	
 	/**
 	 * <b>invariantMassThresholdLow</b><br/><br/>
@@ -582,15 +907,60 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Defines the threshold for the invariant mass of the generating
 	 * particle below which the cluster pair will be rejected.
 	 */
-	private double invariantMassThresholdLow = 0.00137 / 0.83 / 0.83;
+	private double invariantMassThresholdLow = 0.01028;
 	
 	/**
-	 * <b>pairEnergySumThreshold</b><br/><br/>
-	 * <code>private double <b>pairEnergySumThreshold</b></code><br/><br/>
+	 * <b>pairEnergySumThresholdLow</b><br/><br/>
+	 * <code>private double <b>pairEnergySumThresholdLow</b></code><br/><br/>
 	 * Defines the threshold for the sum of the energies of a cluster
 	 * pair below which the pair will be rejected.
 	 */
-	private double pairEnergySumThreshold = 0.8 / 0.83;
+	private double pairEnergySumThresholdLow = 1.5;
+	
+	/**
+	 * <b>pairEnergySumThresholdHigh</b><br/><br/>
+	 * <code>private double <b>pairEnergySumThresholdHigh</b></code><br/><br/>
+	 * Defines the threshold for the sum of the energies of a cluster
+	 * pair above which the pair will be rejected.
+	 */
+	private double pairEnergySumThresholdHigh = 1.8;
+	
+	/**
+	 * <b>rejectEdgeCrystals</b><br/><br/>
+	 * <code>private boolean <b>rejectEdgeCrystals</b></code><br/><br/>
+	 * Defines whether edge crystals should be used for triggering.
+	 */
+	private boolean rejectEdgeCrystals = false;
+	
+	/**
+	 * <b>tripletEnergySumThreshold</b><br/><br/>
+	 * <code>private double <b>tripletEnergySumThreshold</b></code><br/><br/>
+	 * Defines the threshold for the sum of the energies of a cluster
+	 * triplet below which the pair will be rejected.
+	 */
+	private double tripletEnergySumThreshold = 0.8 / 0.83;
+	
+	/**
+	 * <b>tripletPairSeparationThreshold</b><br/><br/>
+	 * <code>private double <b>tripletPairSeparationThreshold</b></code><br/><br/>
+	 * Defines the minimum distance apart required for a cluster pair
+	 * within a cluster triplet.
+	 */
+	private double tripletPairSeparationThreshold = 160; // 160 mm
+	
+	/**
+	 * <b>tripletTotalEnergyThreshold</b><br/><br/>
+	 * <code>private double <b>tripletTotalEnergyThreshold</b></code><br/><br/>
+	 * Defines the threshold for the total energy of a cluster that is
+	 * required of at least two clusters in a triplet.
+	 */
+	private double tripletTotalEnergyThreshold = 0.25 / 0.83;
+	
+	/**
+	 * <b>useClusterTriplet</b><br/><br/>
+	 * <code>private boolean <b>useClusterTriplet</b></code><br/><br/>
+	 */
+	private boolean useClusterTriplet = false;
 	
 	/**
 	 * <b>verbose</b><br/><br/>
@@ -598,5 +968,13 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Sets whether the driver outputs its clustering decisions to the
 	 * console or not.
 	 */
-	private boolean verbose = true;
+	private boolean verbose = false;
+	
+	/**
+	 * <b>seedPosMap</b><br/><br/>
+	 * <code>private Map<CalorimeterHit, Double[]> <b>seedPosMap</b></code><br/><br/>
+	 * Stores the positions of the crystal faces to be used in the
+	 * invariant mass calculations.
+	 */
+	private Map<CalorimeterHit, Double[]> seedPosMap = new HashMap<CalorimeterHit, Double[]>();
 }
