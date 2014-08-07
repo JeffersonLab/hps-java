@@ -10,7 +10,7 @@ import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.EventHeader;
 
 /**
- * Class <code>FADCVariableTriggerDriver</code> reads reconstructed
+ * Class <code>FADCPrimaryTriggerDriver</code> reads reconstructed
  * clusters and makes trigger decisions on them. It is designed to
  * trigger off 2.2 GeV beam A' events. Cuts can either be set manually
  * in a steering file or automatically by specifying a background level.
@@ -20,7 +20,7 @@ import org.lcsim.event.EventHeader;
  * @author Kyle McCarty
  * @see FADCTriggerDriver
  */
-public class FADCVariableTriggerDriver extends TriggerDriver {
+public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     // ==== Trigger Cut Default Parameters ==============================
     // ==================================================================
