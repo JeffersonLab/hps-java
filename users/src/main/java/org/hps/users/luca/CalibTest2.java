@@ -83,7 +83,7 @@ catch(IOException e){
       eneMCallPlot.fill(particle.getEnergy());
       if(particle.getPDGID()==11)
       {eneEminusPlot.fill(particle.getEnergy());}
-      if(particle.getPDGID()==1 && particle.getEnergy()>2.150)
+      if(particle.getPDGID()==11 && particle.getEnergy()>2.150)
       {eneCoulombEPlot.fill(particle.getEnergy());}
     
       

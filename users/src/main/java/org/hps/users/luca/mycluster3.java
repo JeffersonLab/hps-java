@@ -20,16 +20,16 @@ import org.hps.readout.ecal.TriggerDriver;
 
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.event.Cluster;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.Driver;
 import hep.aida.*;
-import hep.aida.IHistogram3D;
+
 import java.io.FileWriter;
 import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.MCParticle;
+
 
 /**
  * 
@@ -46,12 +46,15 @@ public class mycluster3 extends Driver {
     private LinkedList<ArrayList<HPSEcalCluster>> clusterBuffer;
     protected String clusterCollectionName = "EcalClusters";
     
- 
- 
+ AIDA aida = AIDA.defaultInstance();
+ IHistogram1D clusterEne=aida.histogram1D("Clusters energy with Luca's trigger",300, 0, 3);
+// ArrayList<IHistogram1D> SeedHistograms = new ArrayList<IHistogram1D>(442);
+  //  ArrayList<IHistogram1D> ClustHistograms = new ArrayList<IHistogram1D>(442);
+ //    ArrayList<IHistogram1D> HitHistograms = new ArrayList<IHistogram1D>(442);
     private FileWriter writer;
-    //private FileWriter writer2;
-    String outputFileName = "ClusterInfonew.txt";
-   // String outputFileName2 = "ClusterEnePos2.txt";
+    private FileWriter writer2;
+    String outputFileName = "LucaTriggerFEE.txt";
+    String outputFileName2 = "LucaTriggerHits.txt";
 
    
  
@@ -71,6 +74,9 @@ public class mycluster3 extends Driver {
    public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }
+   public void setOutputFileName2(String outputFileName2){
+this.outputFileName2 = outputFileName2;
+   }
    public void settimeDifference(double time){
    this.timeDifference=time;
    
@@ -99,10 +105,26 @@ public void startOfData(){
     try{
     //initialize the writers
     writer=new FileWriter(outputFileName);
- //   writer2=new FileWriter(outputFileName2);
+    writer2=new FileWriter(outputFileName2);
     //Clear the files
     writer.write("");
-  //  writer2.write("");
+    writer2.write("");
+    
+     //initialize histograms  
+  /*  for(int t=0; t<442; t++){
+      String cristallo=String.valueOf(t);  
+      String seedhistogram="SeedHit_" + String.valueOf(t);
+      String Clushistogram="Clusters_" + String.valueOf(t);
+      String HitHistogram="Hits_" + String.valueOf(t);
+      
+      IHistogram1D seedhisto=aida.histogram1D(seedhistogram, 150, 0.0,3.0);
+      IHistogram1D clushisto=aida.histogram1D(Clushistogram, 150, 0.0,3.0);
+      IHistogram1D hitshisto=aida.histogram1D(HitHistogram,150,0.0,3.0);
+    SeedHistograms.add(seedhisto);
+    ClustHistograms.add(clushisto);
+    HitHistograms.add(hitshisto);
+    }*/
+    
 }
 catch(IOException e ){
 System.err.println("Error initializing output file for event display.");
@@ -116,7 +138,7 @@ System.out.println("Ho contato" + TotalCluster + " clusters di cui " + Clusterco
     try{
 //close the file writer.
     writer.close();
-   // writer2.close();
+    writer2.close();
     }
 catch(IOException e){
     System.err.println("Error closing utput file for event display.");
@@ -131,6 +153,7 @@ catch(IOException e){
            
      
      //get the clusters from the event
+    if(TriggerDriver.triggerBit()){ //if they have triggered!
      if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
         List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );    
              
@@ -138,6 +161,7 @@ catch(IOException e){
      
      ArrayList<HPSEcalCluster> clusterSet = new ArrayList<HPSEcalCluster>(); 
      for(HPSEcalCluster cluster : clusterList){
+         clusterEne.fill(cluster.getEnergy());
          TotalCluster++;
          clusterSet.add(cluster);
      }
@@ -147,6 +171,21 @@ catch(IOException e){
     //Run the sorting algorithm;
      ClusterAnalyzer();
      }
+     
+      //get the hits from the event
+     if(event.hasCollection(CalorimeterHit.class,"EcalCorrectedHits")){
+     List<CalorimeterHit> hits =event.get(CalorimeterHit.class,"EcalCorrectedHits");
+     
+        for(CalorimeterHit hit : hits){
+            int id=getCrystal(hit)-1;
+          //  HitHistograms.get(id).fill(hit.getRawEnergy());
+                try{    writer2.append(id + " " + hit.getRawEnergy()+ "\n");}
+                catch(IOException e ){System.err.println("Error writing to output for event display");} 
+        }//end of for cycle
+     }
+     
+    }
+     
 }
 
  
@@ -179,7 +218,8 @@ ArrayList<HPSEcalCluster> currentClusters = clusterBuffer.get(clusterWindow+1);
      {writer.append(hit.getRawEnergy()+ " ");
        }*/
      writer.append("\n");
-    
+  //  SeedHistograms.get(id-1).fill(cluster.getSeedHit().getRawEnergy());
+  //   ClustHistograms.get(id-1).fill(cluster.getEnergy());
      }
      
    catch(IOException e ){System.err.println("Error writing to output for event display");}   
@@ -277,7 +317,7 @@ return check;
      if(x>0){
   id=-x+245;}
  else if(x==-1 )id=245;
- else if(x<-1){id=-x+257;}}
+ else if(x<-1){id=-x+235;}}
  
  
  else if(y==-2)
@@ -304,6 +344,70 @@ return check;
  
  }
  
+ public int getCrystal (CalorimeterHit hit){
+ int x,y,id=0;
+ x= (-1)*hit.getIdentifierFieldValue("ix");
+ y= hit.getIdentifierFieldValue("iy");
+ 
+ if(y==5){
+ if(x<0)
+ {id=x+24;}
+ else id= x+23;
+ }
+ 
+ else if(y==4)
+ {if(x<0){
+  id=x+70;}
+ else id=x+69;}
+ 
+ else if(y==3)
+ {if(x<0){
+  id=x+116;}
+ else id=x+115;}
+ 
+ else if(y==2)
+ {if(x<0){
+  id=x+162;}
+ else id=x+161;}
+ 
+ else if(y==1)
+ {x=-x;
+     if(x>0){
+  id=-x+208;}
+ else if(x==-1){id=208;}
+ else if(x<-1) id=-x+198;}
+ 
+  else if(y==-1)
+ {x=-x;
+     if(x>0){
+  id=-x+245;}
+ else if(x==-1 )id=245;
+ else if(x<-1){id=-x+235;}}
+ 
+ 
+ else if(y==-2)
+ {if(x<0){
+  id=x+282;}
+ else id=x+281;}
+ 
+  else if(y==-3)
+ {if(x<0){
+  id=x+328;}
+ else id=x+327;}
+ 
+ else if(y==-4)
+ {if(x<0){
+  id=x+374;}
+ else id=x+373;}
+ 
+ else if(y==-5)
+ {if(x<0){
+  id=x+420;}
+ else id=x+419;}
+ 
+ return id;
+ 
+ }
  
  } //chiusura driver  
     

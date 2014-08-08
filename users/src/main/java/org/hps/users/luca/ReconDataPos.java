@@ -35,7 +35,7 @@ import org.lcsim.event.MCParticle;
  * 
  * @author Luca Colaneri 
  */
-public class ReconData extends Driver {
+public class ReconDataPos extends Driver {
     
     AIDA aida = AIDA.defaultInstance();
     
@@ -58,9 +58,9 @@ public class ReconData extends Driver {
  
  
     private FileWriter writer;
-   // private FileWriter writer2;
-    String outputFileName = "TriTrigRecon.txt";
-   // String outputFileName2 = "TriTrigReconHits.txt";
+    private FileWriter writer2;
+    String outputFileName1 = "TriTrigReconAllSeeds.txt";
+    String outputFileName2 = "TriTrigReconAllHits.txt";
 
    
  
@@ -77,8 +77,11 @@ public class ReconData extends Driver {
         this.clusterCollectionName = clusterCollectionName;
     }
  
-   public void setOutputFileName(String outputFileName){
-this.outputFileName = outputFileName;
+   public void setOutputFileName1(String outputFileName){
+this.outputFileName1 = outputFileName;
+}
+    public void setOutputFileName2(String outputFileName2){
+this.outputFileName2 = outputFileName2;
 }
    public void settimeDifference(double time){
    this.timeDifference=time;
@@ -107,11 +110,11 @@ public void startOfData(){
     
     try{
     //initialize the writers
-    writer=new FileWriter(outputFileName);
-  //writer2=new FileWriter(outputFileName2);
+    writer=new FileWriter(outputFileName1);
+    writer2=new FileWriter(outputFileName2);
     //Clear the files
     writer.write("");
- //   writer2.write("");
+    writer2.write("");
     
   //initialize histograms  
     for(int t=0; t<442; t++){
@@ -140,10 +143,10 @@ System.out.println("Ho contato" + TotalCluster + " clusters di cui " +TotalClust
     try{
 //close the file writer.
     writer.close();
-   // writer2.close();
+    writer2.close();
     }
 catch(IOException e){
-    System.err.println("Error closing utput file for event display.");
+    System.err.println("Error closing output file for event display.");
 }
 } 
    
@@ -173,6 +176,16 @@ catch(IOException e){
      ClusterAnalyzer();
      }
      
+        if(event.hasCollection(CalorimeterHit.class, "EcalCorrectedHits")) {
+     List<CalorimeterHit> hits=event.get(CalorimeterHit.class,"EcalCorrectedHits");
+         for(CalorimeterHit hit : hits){
+         int idd=getCrystal(hit);
+         try{writer2.append(idd+" "+hit.getCorrectedEnergy()+" "+ hit.getIdentifierFieldValue("ix")+ " " + hit.getIdentifierFieldValue("iy")+"\n ");}
+         catch(IOException e ){System.err.println("Error writing to output for event display");}
+         }    
+             
+     }
+ 
     
      
      
@@ -199,7 +212,7 @@ ArrayList<Cluster> currentClusters = clusterBuffer.get(clusterWindow+1);
          
          //ciclo for nel set di currentCluster, ovvero il set nel mezzo del buffer
     for(Cluster cluster : currentClusters){ 
-    if((HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("ix")== posx) && (HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("iy")==posy )&& (cluster.getEnergy() > energyThreshold)){
+    if((HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("ix")== posx) && (HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("iy")==posy )){
         
            if(ClusterChecker(cluster)){
             int id;
