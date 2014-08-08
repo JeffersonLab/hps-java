@@ -92,6 +92,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
             for (TriggerableDriver triggerable : triggerables) {
                 ReadoutTimestamp.addTimestamp(triggerable, event);
             }
+            ReadoutTimestamp.addTimestamp(this, event);
             triggerBit = true;
             lastTrigger = ClockSingleton.getClock();
             numTriggers++;
