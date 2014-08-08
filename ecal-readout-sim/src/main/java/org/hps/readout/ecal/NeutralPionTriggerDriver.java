@@ -867,7 +867,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Defines the threshold for the total cluster energy under which
 	 * a cluster will be rejected.
 	 */
-	private double clusterTotalEnergyThreshold = Double.MAX_VALUE;
+	private double clusterTotalEnergyThreshold = Double.MIN_VALUE;
 	
 	/**
 	 * <b>clusterTriplet</b><br/><br/>
