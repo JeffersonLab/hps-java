@@ -69,7 +69,7 @@ public class EcalReadoutSimTest extends TestCase {
     static final int expectedRawTrackerHits = 99732;
     static final int expectedRelations = 116629;
     static final int expectedFpgaData = 15576;
-    static final int expectedReadoutTimestamps = 3894;
+    static final int expectedReadoutTimestamps = 4 * expectedEvents;
     static final int expectedTriggerBanks = 1298;
     
     // Expected values of histogram statistics.
