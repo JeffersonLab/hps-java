@@ -3,7 +3,7 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.DefaultTestSetup;
+import org.hps.conditions.config.DefaultTestSetup;
 
 /**
  * This test loads and prints {@link SvtConditions}, which internally uses the

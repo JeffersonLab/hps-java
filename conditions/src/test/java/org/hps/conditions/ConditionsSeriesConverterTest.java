@@ -2,6 +2,7 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.config.DefaultTestSetup;
 import org.hps.conditions.svt.SvtBadChannel;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 
