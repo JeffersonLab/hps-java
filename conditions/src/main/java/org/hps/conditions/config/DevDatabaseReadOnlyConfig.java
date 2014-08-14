@@ -9,8 +9,8 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  */
 public class DevDatabaseReadOnlyConfig {
     
-    private static String xmlConfig = "/org/hps/conditions/config/conditions_dev.xml";
-    private static String connectionProp = "/org/hps/conditions/config/conditions_dev.properties";
+    private String xmlConfig = "/org/hps/conditions/config/conditions_dev.xml";
+    private String connectionProp = "/org/hps/conditions/config/conditions_dev.properties";
     private DatabaseConditionsManager manager;
 
     /**

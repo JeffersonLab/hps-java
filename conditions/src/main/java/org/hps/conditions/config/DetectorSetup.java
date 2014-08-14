@@ -1,5 +1,6 @@
-package org.hps.conditions;
+package org.hps.conditions.config;
 
+import org.hps.conditions.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /** 
