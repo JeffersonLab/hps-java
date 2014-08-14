@@ -1,6 +1,7 @@
 package org.hps.conditions.svt;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -9,6 +10,8 @@ import org.hps.conditions.ConditionsObjectCollection;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 
 /**
  * This is a simple class for getting an SVT XML configuration file.
@@ -38,5 +41,33 @@ public class SvtConfiguration extends AbstractConditionsObject {
         SAXBuilder builder = new SAXBuilder();
         builder.setValidation(false);
         return builder.build(inputStream);
+    }
+    
+    /**
+     * Save this configuration to a local file on disk.
+     * @param filename The name of the local file.
+     */
+    public void writeToFile(String filename) {
+        XMLOutputter out = new XMLOutputter();
+        out.setFormat(Format.getPrettyFormat());
+        try {
+            out.output(createDocument(), new FileWriter(filename));
+        } catch (IOException | JDOMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Save this configuration to a local file on disk using its name from the database.
+     * @param filename The name of the local file.
+     */
+    public void writeToFile() {
+        XMLOutputter out = new XMLOutputter();
+        out.setFormat(Format.getPrettyFormat());
+        try {
+            out.output(createDocument(), new FileWriter(getFileName()));
+        } catch (IOException | JDOMException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
