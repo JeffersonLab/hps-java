@@ -128,6 +128,14 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public int getCollectionId() {
         return getFieldValue("collection_id");
     }
+    
+    /**
+     * Get the string tag associated with these conditions.
+     * @return The string tag.
+     */
+    public String getTag() {
+        return getFieldValue("tag");
+    }
 
     /**
      * Convert this record to a human readable string, one field per line.
@@ -145,6 +153,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
         buff.append("created: " + getCreated() + '\n');
         buff.append("validFrom: " + getValidFrom() + '\n');
         buff.append("validTo: " + getValidTo() + '\n');
+        buff.append("tag: " + getTag() + '\n');
         buff.append("createdBy: " + getCreatedBy() + '\n');
         buff.append("formatVersion: " + getFormatVersion() + '\n');
         buff.append("notes: " + getNotes() + '\n');
