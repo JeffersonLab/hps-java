@@ -14,7 +14,7 @@ public class ConditionsDatabaseConfiguration {
     private DatabaseConditionsManager manager;
 
     /**
-     * Constructor.
+     * Constructor with XML config, connection properties and ConditionsReader.
      */
     public ConditionsDatabaseConfiguration(
             String xmlConfig, 
@@ -26,7 +26,17 @@ public class ConditionsDatabaseConfiguration {
     }
     
     /**
-     * Setup the XML config and connection properties on the conditions manager.
+     * Constructor with XML config and connection properties.
+     */
+    public ConditionsDatabaseConfiguration(
+            String xmlConfig, 
+            String connectionProp) {
+        this.xmlConfig = xmlConfig;
+        this.connectionProp = connectionProp;
+    }    
+    
+    /**
+     * Setup the configuration on the conditions manager.
      */
     public void setup() {
         manager = new DatabaseConditionsManager();
