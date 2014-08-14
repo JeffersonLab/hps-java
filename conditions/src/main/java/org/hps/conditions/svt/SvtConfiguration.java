@@ -59,7 +59,6 @@ public class SvtConfiguration extends AbstractConditionsObject {
     
     /**
      * Save this configuration to a local file on disk using its name from the database.
-     * @param filename The name of the local file.
      */
     public void writeToFile() {
         XMLOutputter out = new XMLOutputter();
