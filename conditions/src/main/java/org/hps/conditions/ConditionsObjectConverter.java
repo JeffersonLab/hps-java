@@ -112,6 +112,6 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
     }
    
     public boolean allowMultipleCollections() {
-        return false;
+        return true;
     }
 }
