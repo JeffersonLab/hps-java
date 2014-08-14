@@ -1,5 +1,7 @@
 package org.hps.conditions;
 
+import org.hps.conditions.config.DefaultTestSetup;
+
 import junit.framework.TestCase;
 
 public class DatabaseConditionsManagerTest extends TestCase {

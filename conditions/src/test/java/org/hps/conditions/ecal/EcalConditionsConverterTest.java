@@ -3,7 +3,7 @@ package org.hps.conditions.ecal;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.DefaultTestSetup;
+import org.hps.conditions.config.DefaultTestSetup;
 
 /**
  * Tests that a {@link EcalConditions} objects loads without errors.

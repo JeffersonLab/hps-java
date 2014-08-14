@@ -2,6 +2,7 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.config.DefaultTestSetup;
 import org.hps.conditions.svt.SvtGain;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 
@@ -25,7 +26,7 @@ public class ConditionsObjectTest extends TestCase {
 
         // Create a new collection, setting its table meta data and collection ID.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
-        int collectionId = conditionsManager.getNextCollectionId(tableMetaData.getTableName());
+        int collectionId = conditionsManager.getNextCollectionID(tableMetaData.getTableName());
         SvtGainCollection collection = new SvtGainCollection();
         collection.setTableMetaData(tableMetaData);
         try {

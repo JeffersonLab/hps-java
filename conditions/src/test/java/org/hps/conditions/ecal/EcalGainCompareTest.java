@@ -3,11 +3,12 @@ package org.hps.conditions.ecal;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.DetectorSetup;
 import org.hps.conditions.TableConstants;
+import org.hps.conditions.config.DetectorSetup;
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
+
 import static org.hps.conditions.deprecated.EcalConditions.makePhysicalID;
 import static org.hps.conditions.deprecated.EcalConditions.physicalToGain;
 

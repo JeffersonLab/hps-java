@@ -5,7 +5,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.DefaultTestSetup;
+import org.hps.conditions.config.DefaultTestSetup;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
