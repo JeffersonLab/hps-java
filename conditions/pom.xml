@@ -1,25 +1,21 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-conditions</artifactId>
     <name>conditions</name>
     <description>HPS conditions framework</description>
-
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.2-SNAPSHOT</version>
     </parent>
-
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/conditions/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/conditions/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/conditions/</developerConnection>
     </scm>
-
     <build>
         <plugins>
             <plugin>
@@ -40,7 +36,6 @@
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>org.lcsim</groupId>
@@ -61,5 +56,4 @@
             <version>5.1.26</version>
         </dependency>
     </dependencies>
-
 </project>
