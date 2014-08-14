@@ -70,8 +70,8 @@ public final class EtConnection {
      * Get the ET station. 
      * @return The ET station.
      */
-    public EtStation getEtStation() {
-        return stat;
+    public EtStation getEtStation() {              
+        return stat;        
     }
     
     /**

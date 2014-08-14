@@ -1,16 +1,15 @@
 package org.hps.monitoring.record;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
 import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
+import org.freehep.record.loop.LoopListener;
 import org.freehep.record.loop.RecordLoop.Command;
-import org.freehep.record.loop.RecordLoop.State;
-import org.freehep.record.source.RecordSource;
-import org.hps.evio.LCSimEventBuilder;
 import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.record.composite.CompositeRecordLoop;
+import org.hps.monitoring.record.composite.CompositeRecordLoopAdapter;
 import org.hps.monitoring.record.composite.CompositeRecordProcessor;
 import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.record.etevent.EtEventSource;
@@ -26,7 +25,8 @@ import org.lcsim.util.loop.LCIOEventSource;
  * for the monitoring app.  Implementations of FreeHep's <tt>RecordLoop</tt> 
  * are chained together via a <tt>CompositeRecordLoop</tt>.  The processing for 
  * each record type is done by activating registered processors on their
- * individual loop implementations.
+ * individual loop implementations.  Essentially, the class is a facade that
+ * hides the complexity of configuring all the different record loops.
  * 
  * The processing chain can be configured to execute the ET, EVIO event building,
  * or LCIO event building stages.  The source can be set to an ET ring,
@@ -34,10 +34,6 @@ import org.lcsim.util.loop.LCIOEventSource;
  * can be registered with the three different loops for processing the different 
  * record types, in order to plot, update a GUI component, or analyze the events.
  */
-// FIXME: Adding of CompositeRecordProcessors has to happen after setup is called because
-// otherwise the CompositeRecord doesn't have the references to EVIO, etc.  Instead the 
-// additional CompositeRecordProcessors should be stored in a separate list and added
-// automatically after the standard event processing chain is setup.
 public class EventProcessingChain extends AbstractLoopListener {
              
     /**
@@ -49,58 +45,85 @@ public class EventProcessingChain extends AbstractLoopListener {
         LCIO
     }
     
-    private DataSourceType sourceType = DataSourceType.ET_SERVER;
-    private ProcessingStage processingStage = ProcessingStage.LCIO;    
-    private RecordSource recordSource;
-    private LCSimEventBuilder eventBuilder;
-    private int totalEventsProcessed;
-    private String detectorName;
-    private Throwable lastError;
-    private boolean done;
-    private boolean paused;
-    private boolean wasSetup;
-    private boolean stopOnErrors = true;
+    protected int totalEventsProcessed;
+    protected Throwable lastError;
+    protected boolean done;
+    protected boolean paused;
     
-    private EtProcessingStep etStep = new EtProcessingStep();
-    private EvioProcessingStep evioStep = new EvioProcessingStep();
-    private LcioProcessingStep lcioStep = new LcioProcessingStep();
-    private CompositeRecordLoop compositeLoop = new CompositeRecordLoop();
-            
+    protected EtProcessingStep etStep = new EtProcessingStep();
+    protected EvioProcessingStep evioStep = new EvioProcessingStep();
+    protected LcioProcessingStep lcioStep = new LcioProcessingStep();
+    protected CompositeRecordLoop compositeLoop = new CompositeRecordLoop();
+                  
     /**
-     * No argument constructor.  
-     * The setter methods should be used to configure this class.
+     * A configuration object must be supplied to use this class.
+     * @param configuration The configuration of the event processing.
      */
-    public EventProcessingChain() {  
+    public EventProcessingChain(EventProcessingConfiguration configuration) {                
+        configure(configuration);
     }
-            
-    /**
-     * Setup the event processing chain based on the current configuration.
-     */
-    public void setup() {
-        
-        if (wasSetup) {
-            throw new RuntimeException("The EventProcessingChain was already setup.");
-        }
+
+    private void configure(EventProcessingConfiguration configuration) {
         
         // Add this class as a loop listener.
         compositeLoop.addLoopListener(this);
         
-        // Record source must be set by here.
-        if (recordSource == null)
-            throw new RuntimeException("No record source was set.");
-        
-        // Using the ET server for events.
-        if (sourceType == DataSourceType.ET_SERVER) {
+        // Was there no RecordSource provided explicitly?
+        if (configuration.recordSource == null) {
+            // Using an ET server connection?
+            if (configuration.sourceType.equals(DataSourceType.ET_SERVER)) {
+                if (configuration.connection != null)
+                    etStep.getLoop().setRecordSource(new EtEventSource(configuration.connection));
+                else
+                    throw new IllegalArgumentException("Configuration is missing a valid ET connection.");
+            // Using an EVIO file?
+            } else if (configuration.sourceType.equals(DataSourceType.EVIO_FILE)) {
+                if (configuration.filePath != null)
+                    evioStep.getLoop().setRecordSource(new EvioFileSource(new File(configuration.filePath)));
+                else
+                    throw new IllegalArgumentException("Configuration is missing a file path.");
+            // Using an LCIO file?
+            } else if (configuration.sourceType.equals(DataSourceType.LCIO_FILE)) {
+                if (configuration.filePath != null)
+                    try {
+                        lcioStep.getLoop().setLCIORecordSource(new LCIOEventSource(new File(configuration.filePath)));
+                    } catch (IOException e) {
+                        throw new RuntimeException("Error configurating LCIOEventSource.", e);
+                    }
+                else
+                    throw new IllegalArgumentException("Configuration is missing a file path.");
+            }
+        } else {           
+            // User provided an EtEventSource?
+            if (configuration.recordSource instanceof EtEventSource) {
+                etStep.getLoop().setRecordSource((EtEventSource) configuration.recordSource);
+            // User provided an EvioFileSource?
+            } else if (configuration.recordSource instanceof EvioFileSource) {
+                evioStep.getLoop().setRecordSource((EvioFileSource) configuration.recordSource);
+            // User provided an LCIOEventSource?
+            } else if (configuration.recordSource instanceof LCIOEventSource) {
+                try {
+                    lcioStep.getLoop().setLCIORecordSource((LCIOEventSource)configuration.recordSource);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error setting up LCIORecordSource.", e);
+                }
+            } else {
+                throw new IllegalArgumentException("Unknown RecordSource type was supplied.");
+            }
+        }
+                
+        // Using the ET server for events?
+        if (configuration.sourceType == DataSourceType.ET_SERVER) {
             // Add the ET event processing step.
             compositeLoop.addProcessor(etStep);
         }
    
-        // Building EVIO events.
-        if (processingStage.ordinal() >= ProcessingStage.EVIO.ordinal()) {
+        // Building EVIO events?
+        if (configuration.processingStage.ordinal() >= ProcessingStage.EVIO.ordinal()) {
             // Using EVIO event source.
-            if (sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
+            if (configuration.sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
                 // Using ET event source.
-                if (sourceType == DataSourceType.ET_SERVER) {
+                if (configuration.sourceType == DataSourceType.ET_SERVER) {
                     // Use dynamic event queue.
                     evioStep.setEvioEventQueue(new EvioEventQueue());
                 }
@@ -109,134 +132,55 @@ public class EventProcessingChain extends AbstractLoopListener {
             }
         }
         
-        // Building LCIO events.
-        if (processingStage.ordinal() >= ProcessingStage.LCIO.ordinal()) {
+        // Building LCIO events?
+        if (configuration.processingStage.ordinal() >= ProcessingStage.LCIO.ordinal()) {
             // Set detector on event builder.
-            if (eventBuilder != null) 
-                eventBuilder.setDetectorName(detectorName);
-            if (sourceType.ordinal() != DataSourceType.LCIO_FILE.ordinal()) {
+            if (configuration.eventBuilder != null) 
+                configuration.eventBuilder.setDetectorName(configuration.detectorName);
+            else
+                throw new IllegalArgumentException("The eventBuilder was not set in the configuration.");
+            
+            if (configuration.sourceType.ordinal() != DataSourceType.LCIO_FILE.ordinal()) {
                 // Use dynamic event queue.
                 lcioStep.setLcioEventQueue(new LcioEventQueue());
             }
             // Set event builder.
-            lcioStep.setEventBuilder(eventBuilder);
+            lcioStep.setEventBuilder(configuration.eventBuilder);
+            
             // Add LCIO processing step.
             compositeLoop.addProcessor(lcioStep);
         }
         
-        compositeLoop.setStopOnErrors(stopOnErrors);
+        // Set whether to stop on event processing errors.
+        compositeLoop.setStopOnErrors(configuration.stopOnErrors);
         
-        wasSetup = true;
-    }
-    
-    /**
-     * Set the type of source being used.
-     * @param sourceType The type of source.
-     */
-    void setSourceType(DataSourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-        
-    /**
-     * Set the processing stages to execute.
-     * @param processingStage The processing stages to execute.
-     */
-    public void setProcessingStage(ProcessingStage processingStage) {
-        this.processingStage = processingStage;
-    }
-            
-    /**
-     * Set the event builder to be used for the EVIO to LCIO conversion.
-     * @param eventBuilder The event builder to use for EVIO to LCIO conversion.
-     */
-    public void setEventBuilder(LCSimEventBuilder eventBuilder) {
-        this.eventBuilder = eventBuilder;
-    }
-    
-    /**
-     * Set the record source.
-     * @param recordSource The record source.
-     */
-    public void setRecordSource(EtEventSource recordSource) {
-        this.recordSource = recordSource;
-        this.etStep.getLoop().setRecordSource(recordSource);
-        this.sourceType = DataSourceType.ET_SERVER;
-    }
-    
-    /**
-     * Set an EVIO event source.
-     * @param recordSource The EVIO event source.
-     */
-    public void setRecordSource(EvioFileSource recordSource) {
-        this.recordSource = recordSource;
-        evioStep.getLoop().setRecordSource(recordSource);
-        setSourceType(DataSourceType.EVIO_FILE);
-    }
-    
-    /**
-     * Set an LCIO event source.
-     * @param recordSource The LCIO event source.
-     */
-    public void setRecordSource(LCIOEventSource recordSource) {
-        this.recordSource = recordSource;
-        try {
-            lcioStep.getLoop().setLCIORecordSource(recordSource);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        // Add EtEventProcessors to loop.
+        for (EtEventProcessor processor : configuration.etProcessors) {
+            etStep.getLoop().addEtEventProcessor(processor);
         }
-        setSourceType(DataSourceType.LCIO_FILE);
-    }
-    
-    /**
-     * Add a driver to the LCIO loop.
-     * @param driver The Driver to add.
-     */
-    public void add(Driver driver) {
-        lcioStep.getLoop().add(driver);
-    }
-    
-    /**
-     * Add a list of <tt>Drivers</tt> to the LCIO loop.
-     * @param drivers The list of <tt>Drivers</tt> to add.
-     */
-    public void add(Collection<Driver> drivers) {
-        for (Driver driver : drivers) { 
+        
+        // Add EvioEventProcessors to loop.
+        for (EvioEventProcessor processor : configuration.evioProcessors) {
+            evioStep.getLoop().addEvioEventProcessor(processor);
+        }
+        
+        // Add Drivers to loop.
+        for (Driver driver : configuration.drivers) {
             lcioStep.getLoop().add(driver);
         }
+        
+        // Add CompositeRecordProcessors to loop.
+        for (CompositeRecordProcessor processor : configuration.compositeProcessors) {
+            compositeLoop.addProcessor(processor);
+        }
+
+        // Stop on end run?
+        if (configuration.stopOnEndRun) {
+            // Add the CompositeRecordProcessor that will throw the EndRunException.
+            compositeLoop.addProcessor(new EndRunProcessor());
+        }
     }
-    
-    /**
-     * Add a processor of ET events.
-     * @param processor The processor of ET events.
-     */
-    public void add(EtEventProcessor processor) {
-        etStep.getLoop().addEtEventProcessor(processor);
-    }
-    
-    /**
-     * Add a processor of EVIO events.
-     * @param processor The processor of EVIO events.
-     */
-    public void add(EvioEventProcessor processor) {
-        evioStep.getLoop().addEvioEventProcessor(processor);
-    }
-    
-    /**
-     * Add a processor of composite events.
-     * @param processor The processor of composite events.
-     */
-    public void add(CompositeRecordProcessor processor) {
-        compositeLoop.addProcessor(processor);
-    }
-    
-    /**
-     * Set the name of the detector model to use.
-     * @param detectorName The name of the detector model.
-     */
-    public void setDetectorName(String detectorName) {
-        this.detectorName = detectorName;
-    }
-                   
+                                 
     /**
      * Resume event processing from pause mode.
      */
@@ -264,10 +208,8 @@ public class EventProcessingChain extends AbstractLoopListener {
             // Go into loop mode if the system is not paused.
             if (!paused) {
                 try {
-                    if (compositeLoop.getState() != State.IDLE)
-                        throw new IllegalLoopStateException(compositeLoop.getState());
                     compositeLoop.execute(Command.GO, true);
-                } catch (RuntimeException exception) {
+                } catch (Exception exception) {
                     setLastError(exception);
                 } 
                 
@@ -295,8 +237,6 @@ public class EventProcessingChain extends AbstractLoopListener {
      * Pause the event processing.
      */
     public void pause() {
-        if (compositeLoop.getState() != State.LOOPING)
-            throw new IllegalLoopStateException(compositeLoop.getState());
         compositeLoop.execute(Command.PAUSE);
         paused = true;
     }
@@ -305,8 +245,14 @@ public class EventProcessingChain extends AbstractLoopListener {
      * Finish the event processing.
      */
     public void finish() {
-        // TODO: Add check here for correct loop state.        
-        compositeLoop.execute(Command.STOP);    
+        compositeLoop.execute(Command.STOP);
+        
+        // FIXME: Ugly hack because Command.STOP doesn't activate the finish() method
+        // on the CompositeRecordLoopAdapter when errors occur.
+        for (LoopListener listener : compositeLoop.getLoopListeners()) {
+            if (listener instanceof CompositeRecordLoopAdapter)
+                ((CompositeRecordLoopAdapter)listener).finish(null);
+        }
         done = true;
     }    
         
@@ -314,8 +260,6 @@ public class EventProcessingChain extends AbstractLoopListener {
      * Get the next event e.g. while in pause mode.
      */
     public void next() {
-        if (compositeLoop.getState() != State.READY)
-            throw new IllegalLoopStateException(compositeLoop.getState());
         compositeLoop.execute(Command.GO_N, 1L, true);
     }
             
@@ -325,26 +269,5 @@ public class EventProcessingChain extends AbstractLoopListener {
      */
     public int getTotalEventsProcessed() {
         return this.totalEventsProcessed;
-    }
-    
-    /**
-     * Set whether processing will stop when errors occur.
-     * Only specific types of non-fatal errors are affected by this.
-     * For instance, <code>NoSuchRecordException</code> is never 
-     * ignored and always causes processing to stop.
-     * @param stopOnErrors True if processing should stop on errors. 
-     */
-    public void setStopOnErrors(boolean stopOnErrors) {
-        this.stopOnErrors = stopOnErrors;
-    }
-    
-    /**
-     * Exception thrown if the loop is not in the correct state
-     * when a certain method is called.
-     */
-    class IllegalLoopStateException extends RuntimeException {
-        IllegalLoopStateException(State state) {
-            super("Illegal loop state: " + state);
-        }
-    }
+    }           
 }

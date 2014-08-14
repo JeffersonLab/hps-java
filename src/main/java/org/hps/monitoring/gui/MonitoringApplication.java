@@ -1,23 +1,6 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.Commands.AIDA_AUTO_SAVE;
-import static org.hps.monitoring.gui.Commands.CHOOSE_LOG_FILE;
-import static org.hps.monitoring.gui.Commands.CLEAR_LOG_TABLE;
-import static org.hps.monitoring.gui.Commands.CONNECT;
-import static org.hps.monitoring.gui.Commands.DISCONNECT;
-import static org.hps.monitoring.gui.Commands.EXIT;
-import static org.hps.monitoring.gui.Commands.LOAD_DEFAULT_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.gui.Commands.LOG_TO_TERMINAL;
-import static org.hps.monitoring.gui.Commands.NEXT;
-import static org.hps.monitoring.gui.Commands.PAUSE;
-import static org.hps.monitoring.gui.Commands.RESUME;
-import static org.hps.monitoring.gui.Commands.SAVE_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.SAVE_LOG_TABLE;
-import static org.hps.monitoring.gui.Commands.SAVE_PLOTS;
-import static org.hps.monitoring.gui.Commands.SCREENSHOT;
-import static org.hps.monitoring.gui.Commands.SELECT_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
+import static org.hps.monitoring.gui.Commands.*;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -73,10 +56,9 @@ import org.hps.monitoring.gui.model.RunModel;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.record.EventProcessingChain;
+import org.hps.monitoring.record.EventProcessingConfiguration;
 import org.hps.monitoring.record.EventProcessingThread;
 import org.hps.monitoring.record.etevent.EtConnection;
-import org.hps.monitoring.record.etevent.EtEventSource;
-import org.hps.monitoring.record.evio.EvioFileSource;
 import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusListener;
@@ -84,8 +66,8 @@ import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.lcsim.job.JobControlManager;
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.loop.LCIOEventSource;
 
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
@@ -817,9 +799,10 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             
             // Connect to the ET system.
             connect();                        
-
+            
             // Setup the EventProcessingChain object using the EtConnection.
             setupEventProcessingChain();
+            //setupEventProcessingChainNew();
             
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
@@ -835,7 +818,9 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             
             // Log the error that occurred.
             errorHandler.setError(e)
-                .log();
+                .log()
+                .printStackTrace();
+                /*.showErrorDialog("Error setting up the session.");*/
             
             // Disconnect from the session.
             //if (this.connected())
@@ -846,7 +831,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
         }
     }
-
+       
     /**
      * Start the session watchdog thread, which will kill the session if event processing finishes.
      */
@@ -1145,83 +1130,58 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     private void log(String m) {
         log(DEFAULT_LOG_LEVEL, m);
     }
-
+    
     /**
-     * Setup the <tt>EventProcessingChain</tt> object and create a <tt>Thread</tt> for running it.
-     * The processing is not started by this method.
+     * Configure the event processing chain.
      */
     private void setupEventProcessingChain() {
         
-        // Initialize the event processing chain object.
-        eventProcessing = new EventProcessingChain();                
+        EventProcessingConfiguration configuration = new EventProcessingConfiguration();
         
-        // Configure the data source, e.g. ET, EVIO or LCIO.
-        configDataSource();
-        
-        // Set the event builder.
-        eventProcessing.setEventBuilder(eventBuilder);
-        
-        // Set the detector name for LCSim conditions system.
-        eventProcessing.setDetectorName(configurationModel.getDetectorName());
-        
-        // Get a list of Drivers to execute from the JobManager which was
-        // already configured.
-        eventProcessing.add(jobManager.getDriverExecList());
-                                                         
-        // Using an ET server?
-        if (usingEtServer()) {
+        configuration.setStopOnEndRun(true);
+        configuration.setStopOnErrors(true);
+         
+        configuration.setDataSourceType(configurationModel.getDataSourceType());
+        configuration.setEtConnection(connection);
+        configuration.setFilePath(configurationModel.getDataSourcePath());
+        configuration.setLCSimEventBuild(eventBuilder);
+        configuration.setDetectorName(configurationModel.getDetectorName());                
+               
+        // Add all Drivers from the pre-configured JobManager.
+        for (Driver driver : jobManager.getDriverExecList()) {
+            configuration.add(driver);
+        }        
+               
+        // ET system monitor processor.
+        configuration.add(new EtSystemMonitor());
             
-            // ET system monitor.
-            eventProcessing.add(new EtSystemMonitor());
-            
-            // ET system strip charts.
-            eventProcessing.add(new EtSystemStripCharts());
-        }
-                
-        // Setup the event processing based on the above configuration.
-        eventProcessing.setup();
+        // ET system strip charts processor.
+        configuration.add(new EtSystemStripCharts());
+              
+        // RunPanel updater processor.
+        configuration.add(runPanel.new RunModelUpdater());
         
-        // Add processor for updating the RunPanel.
-        eventProcessing.add(runPanel.new RunModelUpdater());
+        // Create the EventProcessingChain object.
+        eventProcessing = new EventProcessingChain(configuration);
         
         // Create the event processing thread.
         eventProcessingThread = new EventProcessingThread(eventProcessing);
         
         // Start the event processing thread.
-        eventProcessingThread.start();
+        eventProcessingThread.start();        
     }
     
+    /**
+     * True if ET server is being used.
+     * @return True if using ET server.
+     */
     private boolean usingEtServer() {
         return configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
     }
-    
-    private boolean usingEvioFile() {
-        return configurationModel.getDataSourceType().equals(DataSourceType.EVIO_FILE);
-    }
-    
-    private void configDataSource() {
-        DataSourceType dataSourceType = configurationModel.getDataSourceType();
-        String filePath = configurationModel.getDataSourcePath();
-        log(Level.CONFIG, "Data source type <" + dataSourceType + ">");
-        if (dataSourceType.equals(DataSourceType.ET_SERVER)) {
-            eventProcessing.setRecordSource(new EtEventSource(connection));
-            log(Level.CONFIG, "ET event source");
-        } else if (dataSourceType.equals(DataSourceType.EVIO_FILE)){
-            eventProcessing.setRecordSource(new EvioFileSource(new File(filePath)));
-            log(Level.CONFIG, "EVIO file <" + filePath + " >");
-        } else if (dataSourceType.equals(DataSourceType.LCIO_FILE)) {
-            try {
-                eventProcessing.setRecordSource(new LCIOEventSource(new File(filePath)));
-                log(Level.CONFIG, "LCIO file <" + filePath + ">");
-            } catch (IOException e) {
-                errorHandler.setError(e)
-                    .log()
-                    .printStackTrace()
-                    .raiseException();
-            }
-        }
-    }
-    
+           
+    /**
+     * Configure the system status monitor panel for a new job.
+     */
     private void setupSystemStatusMonitor() {
         // Clear the system status monitor table.        
         systemStatusFrame.getTableModel().clear();
@@ -1526,7 +1486,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     }
 
     /**
-     * Log all status changes.
+     * Hook for logging all status changes from the system status monitor.
      */
     @Override
     public void statusChanged(SystemStatus status) {

@@ -112,7 +112,8 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
             throw new NoSuchRecordException("No records in queue.");
         }
     }
-    
+   
+    @Override
     public long size() {
         return records.size();
     }

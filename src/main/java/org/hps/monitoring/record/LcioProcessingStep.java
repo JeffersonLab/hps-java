@@ -84,28 +84,30 @@ class LcioProcessingStep extends CompositeRecordProcessor {
                 // The LCIO processing ignores non-physics events coming from EVIO.
                 return;
             }
-            
-            if (!loop.getRecordSource().hasNext())
-                throw new NoSuchRecordException("No next LCIO event.");
         }
-                
+            
+        // Is there a next record?
         if (!loop.getRecordSource().hasNext())
+            // The next record does not exist.
             throw new NoSuchRecordException("No next LCIO event.");
         
-        // Load the next LCIO event.
+        // Load the next LCIO event, triggering Driver process methods.
         loop.execute(NEXT);
-                      
-        // The last call to the loop did not create a current record.
+            
+        // Is there a current record?
         if (loop.getRecordSource().getCurrentRecord() == null) {
+            // The last call to the loop did not create a current record.
             throw new NoSuchRecordException("No current LCIO event.");
         }
         
         // Get the current LCIO event.
         EventHeader lcioEvent = (EventHeader) loop.getRecordSource().getCurrentRecord();
                 
-        // Update the CompositeRecord with reference to the LCIO event.
+        // Update the CompositeRecord with a reference to the LCIO event.
         record.setLcioEvent(lcioEvent);
+        // Was there an EVIO event set?
         if (record.getEvioEvent() == null) {
+            // Set event number from LCIO if no EVIO event was set.
             record.setEventNumber(lcioEvent.getEventNumber());
         }
     }

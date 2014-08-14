@@ -47,6 +47,7 @@ class EtProcessingStep extends CompositeRecordProcessor {
      }
     
     public void endJob() {
+        System.out.println("EtProcessingStep.endJob");
         loop.execute(Command.STOP);
-    }
+    }        
 }
