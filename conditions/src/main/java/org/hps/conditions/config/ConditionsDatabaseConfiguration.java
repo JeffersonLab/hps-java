@@ -1,15 +1,16 @@
 package org.hps.conditions.config;
 
 import org.hps.conditions.DatabaseConditionsManager;
+import org.lcsim.conditions.ConditionsReader;
 
 /**
  * Convenience class for setting up access to the conditions.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsDatabaseConfiguration {
     
     private String xmlConfig;
     private String connectionProp;
+    private ConditionsReader reader;
     private DatabaseConditionsManager manager;
 
     /**
@@ -17,9 +18,11 @@ public class ConditionsDatabaseConfiguration {
      */
     public ConditionsDatabaseConfiguration(
             String xmlConfig, 
-            String connectionProp) {
+            String connectionProp,
+            ConditionsReader reader) {
         this.xmlConfig = xmlConfig;
         this.connectionProp = connectionProp;
+        this.reader = reader;
     }
     
     /**
@@ -29,6 +32,8 @@ public class ConditionsDatabaseConfiguration {
         manager = new DatabaseConditionsManager();
         manager.configure(xmlConfig);
         manager.setConnectionResource(connectionProp);
+        if (reader != null)
+            manager.setBaseConditionsReader(reader);
         manager.register();
     }    
 }
