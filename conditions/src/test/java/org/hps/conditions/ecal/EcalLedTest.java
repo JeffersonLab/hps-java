@@ -18,7 +18,7 @@ public class EcalLedTest extends TestCase {
     
     public void setUp() {
         db.setup();
-        db.load("HPS-TestRun-v5", 1351);
+        db.load("HPS-TestRun-v5", 0);
     }
     
     public void testEcalLed() {
@@ -32,6 +32,7 @@ public class EcalLedTest extends TestCase {
             System.out.println("time_delay: " + led.getTimeDelay());
             System.out.println("amplitude_low: " + led.getAmplitudeLow());
             System.out.println("amplitude_high: " + led.getAmplitudeHigh());
+            System.out.println();
         }
     }
 }
