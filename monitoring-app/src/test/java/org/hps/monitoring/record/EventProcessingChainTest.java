@@ -1,17 +1,12 @@
 package org.hps.monitoring.record;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.hps.evio.LCSimTestRunEventBuilder;
-import org.hps.monitoring.record.etevent.EtEventSource;
+import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.record.evio.EvioEventProcessor;
-import org.hps.monitoring.record.evio.EvioFileSource;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.util.Driver;
-import org.lcsim.util.loop.LCIOEventSource;
 
 public class EventProcessingChainTest {
     
@@ -37,13 +32,15 @@ public class EventProcessingChainTest {
     */
     
     public void testEvioFile() {
-        EventProcessingChain processing = new EventProcessingChain();
-        processing.setRecordSource(new EvioFileSource(new File(evioFilePath)));
-        processing.setEventBuilder(new LCSimTestRunEventBuilder());
-        processing.setDetectorName(detectorName);
-        processing.add(new DummyEvioProcessor());
-        processing.add(new DummyDriver());
-        processing.setup();
+        
+        EventProcessingConfiguration config = new EventProcessingConfiguration();
+        config.setDataSourceType(DataSourceType.EVIO_FILE);
+        config.setFilePath(evioFilePath);
+        config.setLCSimEventBuild(new LCSimTestRunEventBuilder());
+        config.setDetectorName(detectorName);
+        config.add(new DummyEvioProcessor());
+        config.add(new DummyDriver());     
+        EventProcessingChain processing = new EventProcessingChain(config);
         processing.loop();
     }
     

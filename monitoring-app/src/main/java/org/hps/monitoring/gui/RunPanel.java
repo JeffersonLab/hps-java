@@ -25,7 +25,8 @@ import org.jlab.coda.jevio.EvioEvent;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Add current EVIO event number, current event sequence number, job start date, and job end date fields.
+// FIXME: Add current EVIO event number, current event sequence number, job start date, 
+// and job end date fields.
 public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);

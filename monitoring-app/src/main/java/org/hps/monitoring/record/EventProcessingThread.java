@@ -22,6 +22,6 @@ public final class EventProcessingThread extends Thread {
             processing.loop();
         } catch (Exception e) {
             throw new RuntimeException("Error in event processing.", e);
-        }
+        } 
     }
 }

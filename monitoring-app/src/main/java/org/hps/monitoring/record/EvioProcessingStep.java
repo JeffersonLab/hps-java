@@ -29,13 +29,6 @@ class EvioProcessingStep extends CompositeRecordProcessor {
     DataSourceType sourceType;
     EvioEventQueue evioEventQueue;
     boolean stopOnEndRun;
-
-    // FIXME: Should this really be extending IOException?
-    class EndRunException extends IOException {
-        EndRunException(String message) {
-            super(message);
-        }
-    }
     
     /**
      * Get the <tt>EvioEventLoop</tt> associated with this processing step.
@@ -106,16 +99,9 @@ class EvioProcessingStep extends CompositeRecordProcessor {
         if (nextEvioEvent == null)
             throw new NoSuchRecordException("No current EVIO event.");
         
+        // Update the CompositeRecord.
         record.setEvioEvent(nextEvioEvent);
         record.setEventNumber(nextEvioEvent.getEventNumber());
-        
-        // Encountered an end of run record.
-        if (EventConstants.isEndEvent(nextEvioEvent))
-            // If stop on end run is enabled, then trigger an exception to end processing.
-            if (stopOnEndRun)
-                throw new EndRunException("EVIO end event received, and stop on end run is enabled.");
-        
-        //System.out.println("done with EvioProcessingStep.processEvent");
     }
     
     /**

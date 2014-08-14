@@ -45,10 +45,11 @@ public final class CompositeRecordLoop extends DefaultRecordLoop {
     
     protected void handleClientError(Throwable x) {
         if (stopOnErrors || x instanceof NoSuchRecordException) {
+            //this.execute(Command.STOP);
             throw new RuntimeException("Error during event processing.", x);
         } else {
             x.printStackTrace();
-        }        
+        }                
     }
 
     protected void handleSourceError(Throwable x) {
