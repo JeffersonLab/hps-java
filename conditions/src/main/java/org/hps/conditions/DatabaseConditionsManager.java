@@ -125,6 +125,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         return (DatabaseConditionsManager) manager;
     }
+    
+    public Connection getConnection() {
+        return this.connection;
+    }
 
     /**
      * This method catches changes to the detector name and run number. Somewhat
@@ -247,10 +251,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
-    // FIXME: If there are no collections that exist, this method should simply return the
-    // value '1'
-    // or it could throw an exception.
-    public int getNextCollectionId(String tableName) {
+    public int getNextCollectionID(String tableName) {
         TableMetaData tableData = findTableMetaData(tableName);
         if (tableData == null)
             throw new IllegalArgumentException("There is no meta data for table " + tableName);
@@ -528,7 +529,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Open the database connection.
      */
-    private void openConnection() {
+    public void openConnection() {
         if (connectionParameters == null)
             throw new RuntimeException("The connection parameters were not configured.");
         connection = connectionParameters.createConnection();

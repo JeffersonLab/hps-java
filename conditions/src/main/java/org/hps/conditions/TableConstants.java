@@ -49,6 +49,9 @@ public final class TableConstants {
     /** Conditions key for SVT alignment data. */
     public static final String SVT_ALIGNMENTS = "svt_alignments";
 
+    /** Conditions key for SVT bad channels. */
+    public static final String SVT_BAD_CHANNELS = "svt_bad_channels";
+   
     /** Table with SVT channel data. */
     public static final String SVT_CHANNELS = "svt_channels";
 
@@ -57,9 +60,9 @@ public final class TableConstants {
 
     /** Conditions key for SVT calibration data. */
     public static final String SVT_CALIBRATIONS = "svt_calibrations";
-
-    /** Conditions key for SVT bad channels. */
-    public static final String SVT_BAD_CHANNELS = "svt_bad_channels";
+    
+    /** Conditions key for SVT configuration files. */
+    public static final String SVT_CONFIGURATIONS = "svt_configurations";
 
     /** Conditions key for SVT pulse parameters. */
     public static final String SVT_PULSE_PARAMETERS = "svt_pulse_parameters";

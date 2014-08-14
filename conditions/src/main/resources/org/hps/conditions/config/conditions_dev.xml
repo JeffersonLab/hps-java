@@ -10,6 +10,7 @@
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtAlignmentConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtCalibrationConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtConfigurationConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtChannelConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtDaqMappingConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
@@ -75,6 +76,18 @@
                 <field name="hybrid" />
                 <field name="channel" />
             </fields>
+        </table>
+        
+        <table key="svt_configurations" name="svt_configurations">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtConfiguration"/>
+                <collection class="org.hps.conditions.svt.SvtConfiguration$SvtConfigurationCollection"/>                
+            </classes>
+            <fields>
+                <field name="filename"/>
+                <field name="content"/>
+            </fields>
+        
         </table>
     
         <table key="svt_gains" name="svt_gains">

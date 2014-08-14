@@ -5,6 +5,7 @@ import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentCollection;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtConfiguration.SvtConfigurationCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtPulseParameters.SvtPulseParametersCollection;
@@ -27,10 +28,6 @@ public final class SvtConverterRegistry {
         public Class getType() {
             return SvtBadChannelCollection.class;
         }
-
-        public boolean allowMultipleCollections() {
-            return true;
-        }
     }
 
     public static class SvtCalibrationConverter extends ConditionsObjectConverter<SvtCalibrationCollection> {
@@ -42,6 +39,12 @@ public final class SvtConverterRegistry {
     public static class SvtChannelConverter extends ConditionsObjectConverter<SvtChannelCollection> {
         public Class getType() {
             return SvtChannelCollection.class;
+        }
+    }
+    
+    public static class SvtConfigurationConverter extends ConditionsObjectConverter<SvtConfigurationCollection> {
+        public Class getType() {
+            return SvtConfigurationCollection.class;
         }
     }
 
