@@ -19,9 +19,8 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
 //import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.DefaultTestSetup;
 import org.hps.conditions.TableConstants;
-
+import org.hps.conditions.config.DefaultTestSetup;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannelConstants;
