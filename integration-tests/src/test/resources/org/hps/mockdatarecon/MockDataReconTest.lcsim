@@ -1,15 +1,13 @@
 <!-- 
   Offline reconstruction for 2014 (electron run) data.
-  Based on original steering file written by Sho and copied here for access 
-  from integration-tests module.  
+  @author Sho Uemura <meeg@slac.stanford.edu>
+  @version $Id: HPS2014OfflineRecon.lcsim,v 1.7 2013/10/30 16:23:32 phansson Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-<!--              
     <control>
         <numberOfEvents>100</numberOfEvents>
     </control>
--->    
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="CalibrationDriver"/>
@@ -20,15 +18,18 @@
         <driver name="TrackerReconDriver"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-        <driver name="ReconParticle" />        
+        <driver name="ReconParticle" />
+        <driver name="TrackDataDriver" />        
         <driver name="GBLDriver"/> 
         <driver name="LCIOWriter"/>
-        <driver name="CleanupDriver"/>        
+        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
+            <!--            <runNumber>${runNumber}</runNumber>-->
+        </driver>   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
@@ -54,6 +55,7 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
+
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
@@ -67,8 +69,10 @@
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
+            <!--<writeOnlyCollections>blah</writeOnlyCollections>-->
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>

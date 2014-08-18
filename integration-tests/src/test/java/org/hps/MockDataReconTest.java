@@ -35,8 +35,8 @@ public class MockDataReconTest extends TestCase {
     static final File reconFile = new File(outputFile.getAbsolutePath() + ".slcio");
     static final File aidaFile = new File(outputFile.getAbsolutePath() + ".aida");    
 
-    //static final String steeringResource = "/org/hps/mockdatarecon/MockDataReconTest.lcsim";
-    static final String steeringResource = "/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim";
+    static final String steeringResource = "/org/hps/mockdatarecon/MockDataReconTest.lcsim";
+    //static final String steeringResource = "/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim";
     
     // TODO: Get some values for these and add test assertions!
     /*
