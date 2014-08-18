@@ -1,4 +1,4 @@
-package org.lcsim.hps.users.ngraf;
+package org.hps.users.ngraf;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IPlotter;
