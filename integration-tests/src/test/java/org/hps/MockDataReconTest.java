@@ -31,9 +31,9 @@ public class MockDataReconTest extends TestCase {
 
     static final String className = MockDataReconTest.class.getSimpleName();
     static final File outputDir = new File("./target/test-output/" + className);
-    static final File outputFile = new File(outputDir.getPath() + File.separator + className);
-    static final File reconFile = new File(outputFile.getPath() + ".slcio");
-    static final File aidaFile = new File(outputFile.getPath() + ".aida");
+    static final File outputFile = new File(outputDir.getAbsolutePath() + File.separator + className);
+    static final File reconFile = new File(outputFile.getAbsolutePath() + ".slcio");
+    static final File aidaFile = new File(outputFile.getAbsolutePath() + ".aida");    
 
     //static final String steeringResource = "/org/hps/mockdatarecon/MockDataReconTest.lcsim";
     static final String steeringResource = "/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim";
@@ -78,7 +78,7 @@ public class MockDataReconTest extends TestCase {
         createPlots();
 
         // Check the statistics of the plots.
-        checkPlots();
+        //checkPlots();
     }
 
     private void runRecon() {
@@ -106,9 +106,9 @@ public class MockDataReconTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.add(new MockDataChallengeDiagnosticDriver());
         loop.add(new CheckDriver());
-        AidaSaveDriver aidaSaveDriver = new AidaSaveDriver();       
-        loop.add(aidaSaveDriver);
-        aidaSaveDriver.setOutputFileName(aidaFile.getPath());
+        AidaSaveDriver aidaSaveDriver = new AidaSaveDriver();
+        aidaSaveDriver.setOutputFileName(aidaFile.getAbsolutePath());
+        loop.add(aidaSaveDriver);        
         try {
             loop.setLCIORecordSource(reconFile);
             loop.loop(-1);
@@ -117,9 +117,9 @@ public class MockDataReconTest extends TestCase {
         }
     }
 
+    /*
     private void checkPlots() {
 
-        /*
         IHistogram1D reconParticleCountPlot = aida.histogram1D("/" + reconstructedParticleCollectionName + "/Item Count");
         System.out.println("reconParticleCount sumBinHeights = " + reconParticleCountPlot.sumBinHeights());
         System.out.println("reconParticleCount mean = " + reconParticleCountPlot.mean());
@@ -129,14 +129,15 @@ public class MockDataReconTest extends TestCase {
         System.out.println("trackCount Plot sumBinHeights = " + trackCountPlot.sumBinHeights());
         System.out.println("trackCount itemCount = " + computeItemCount(trackCountPlot));
         //assertEquals("Wrong number of tracks counted.", expectedTracks, computeItemCount(trackCountPlot));         
-         */
     }
+     */
     
     /**
      * Compute an item count based on a histogram with bins of size 1.
      * @param histogram
      * @return
      */
+    /*
     private int computeItemCount(IHistogram1D histogram) {
         if (histogram.axis().binUpperEdge(0) - histogram.axis().binLowerEdge(0) != 1.0)
             throw new IllegalArgumentException("The bins are the wrong size for this method.");
@@ -151,6 +152,7 @@ public class MockDataReconTest extends TestCase {
             throw new RuntimeException("Nonsensical number of items computed: " + total);
         return (int)total;
     }
+    */
     
     static class CheckDriver extends Driver {
         
