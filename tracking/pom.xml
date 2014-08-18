@@ -27,6 +27,9 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/recon/tracking/TruthResidualTest.java</exclude>
+                        <!-- Test input LCIO file is missing for next two. -->
+                        <exclude>org/hps/recon/tracking/TestRunTrackReconTest.java</exclude>
+                        <exclude>org/hps/recon/tracking/HelicalTrackHitDriverTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
