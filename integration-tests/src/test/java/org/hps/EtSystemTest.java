@@ -43,7 +43,7 @@ import org.jlab.coda.et.exception.EtWakeUpException;
 public class EtSystemTest extends TestCase {
 
     static final String loadPath = new File("../et/lib/Linux-x86_64/").getAbsoluteFile().getAbsolutePath();
-    static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_001351.evio.0";
+    static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_000975.evio.0";
     static final String classPath = System.getProperty("java.class.path");
     static final String javaPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";        
     static final String etBuffer = "ETBuffer";
@@ -51,7 +51,7 @@ public class EtSystemTest extends TestCase {
     static final int waitTime = 50000000; /* Wait time in microseconds. */
     static final int chunkSize = 1;
     static List<Process> processes = new ArrayList<Process>();
-    static final int minimumEventsExpected = 503000; 
+    static final int minimumEventsExpected = 5000; 
                        
     /**
      * This test will start the ET ring, attach a station to it, and then stream an EVIO
