@@ -76,7 +76,8 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
             }
         }
     }
-     
+    
+    /*
     @Override
     protected void endOfData() {
         try {
@@ -85,6 +86,7 @@ public class MockDataChallengeDiagnosticDriver extends Driver {
             throw new RuntimeException(e);
         }
     }
+    */
         
     @Override
     public void process(EventHeader event) {
