@@ -1,7 +1,8 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.Commands.*;
-import static org.hps.monitoring.gui.model.ConfigurationModel.*;
+import static org.hps.monitoring.gui.Commands.DATA_SOURCE_TYPE_CHANGED;
+import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_PATH_PROPERTY;
+import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -36,27 +37,30 @@ class DataSourcePanel extends AbstractFieldsPanel {
     
     DataSourcePanel() {
         setLayout(new GridBagLayout());        
+        
         dataSourceTypeComboBox = addComboBox("Data Source", dataSourceTypes);
         dataSourceTypeComboBox.setSelectedIndex(0);
         dataSourceTypeComboBox.setActionCommand(DATA_SOURCE_TYPE_CHANGED);
         dataSourceTypeComboBox.addActionListener(this);
         
         dataSourcePathField = addField("Data Source Path", 40);
-        dataSourcePathField.setEditable(false);
-        dataSourcePathField.addPropertyChangeListener("value", this);
+        //dataSourcePathField.setEditable(false);
+        //dataSourcePathField.addPropertyChangeListener("value", this);
+        dataSourcePathField.addPropertyChangeListener(this);        
+        //dataSourcePathField.addPropertyChangeListener(new DummyPropertyChangeListener());
+        //dataSourcePathField.addPropertyChangeListener("value", new DummyPropertyChangeListener());
     }
-
+    
     /*
-    public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals(DATA_SOURCE_COMMAND)) {
-            int selectedIndex = dataSourceCombo.getSelectedIndex();
-            DataSourceType dataSourceType = DataSourceType.values()[selectedIndex];
-            if (dataSourceType.isFile()) { 
-                chooseFile();
-            } else {
-                setFilePath("");
-            }
-        }
+    class DummyPropertyChangeListener implements PropertyChangeListener {
+
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            System.out.println("DummyPropertyChangeListener.propertyChange");
+            System.out.println("  source: " + evt.getSource());
+            System.out.println("  name: " + evt.getPropertyName());
+            System.out.println("  value: " + evt.getNewValue());
+        }        
     }
     */
     
@@ -68,11 +72,65 @@ class DataSourcePanel extends AbstractFieldsPanel {
         if (r == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
             final String filePath = file.getPath();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    dataSourcePathField.setText(filePath);
-                }
-            });
+            
+            // This will cause the GUI to be updated via a PropertyChangeListener.
+            configurationModel.setDataSourcePath(filePath);                      
+        }
+    }
+        
+    @Override
+    public void setConfigurationModel(ConfigurationModel configurationModel) {
+        this.configurationModel = configurationModel;
+        
+        // This listener pushes GUI values into the configuration.
+        this.configurationModel.addPropertyChangeListener(this);
+        
+        // This listener updates the GUI from changes in the configuration.
+        this.configurationModel.addPropertyChangeListener(new DataSourceChangeListener());
+    }
+
+    @Override
+    public ConfigurationModel getConfigurationModel() {
+        return configurationModel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
+            DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
+            configurationModel.setDataSourceType(dataSourceType);
+            if (dataSourceType.isFile()) { 
+                chooseFile();
+            }
+        }
+    }
+    
+    public void propertyChange(PropertyChangeEvent evt) {
+    }    
+    
+    /**
+     * Update the GUI from changes in the underlying configuration.
+     * The changes from the configuration are distinguishable by their 
+     * property name.
+     */
+    public class DataSourceChangeListener implements PropertyChangeListener {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            
+            // FIXME: Anyway to make sure this is not needed?
+            if (evt.getPropertyName().equals("ancestor"))
+                return;
+            
+            //System.out.println("DataSourceChangeListener.propertyChange");
+            //System.out.println("  source: " + evt.getSource());
+            //System.out.println("  name: " + evt.getPropertyName());
+            //System.out.println("  value: " + evt.getNewValue());
+            Object value = evt.getNewValue();            
+            if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
+                dataSourceTypeComboBox.setSelectedItem(value.toString());
+            } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
+                dataSourcePathField.setText((String) value); 
+            }
         }
     }
     
@@ -95,54 +153,5 @@ class DataSourcePanel extends AbstractFieldsPanel {
             new LCIOReader(file);
         }
     }
-    */
-
-    @Override
-    public void setConfigurationModel(ConfigurationModel configurationModel) {
-        this.configurationModel = configurationModel;
-    }
-
-    @Override
-    public ConfigurationModel getConfigurationModel() {
-        return configurationModel;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
-            DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
-            configurationModel.setDataSourceType(dataSourceType);
-            if (dataSourceType.isFile()) { 
-                chooseFile();
-            }
-        }
-    }
-    
-    /**
-     * Updates the configuration with changes from the GUI component values.
-     * The changes from the GUI are distinguishable by their component object.
-     */
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (dataSourcePathField.equals(evt.getSource())) {
-            configurationModel.setDataSourcePath(dataSourcePathField.getText());
-        }
-    }
-    
-    /**
-     * Update the GUI from changes in the underlying configuration.
-     * The changes from the configuration are distinguishable by their 
-     * property name.
-     */
-    public class DataSourceChangeListener implements PropertyChangeListener {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-            Object value = evt.getNewValue();            
-            if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
-                dataSourceTypeComboBox.setSelectedItem(value.toString());
-            } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
-                dataSourcePathField.setText((String) value); 
-            }
-        }
-    }              
+    */    
 }

@@ -15,6 +15,7 @@ public class RunModel extends AbstractModel {
     public final static String EVENTS_RECEIVED_PROPERTY = "EventsReceived"; // events received so far
     public final static String ELAPSED_TIME_PROPERTY = "ElapsedTime"; // updated on the fly, in seconds
     public final static String DATA_RECEIVED_PROPERTY = "DataReceived"; // updated on the fly, in bytes
+    public final static String EVENT_NUMBER_PROPERTY = "EventNumber"; // current event number
 
     static final String[] properties = new String[] {
         RUN_NUMBER_PROPERTY,
@@ -23,7 +24,8 @@ public class RunModel extends AbstractModel {
         RUN_LENGTH_PROPERTY,
         TOTAL_EVENTS_PROPERTY,
         ELAPSED_TIME_PROPERTY,
-        DATA_RECEIVED_PROPERTY
+        DATA_RECEIVED_PROPERTY,
+        EVENT_NUMBER_PROPERTY
     };
     
     int runNumber;
@@ -34,6 +36,7 @@ public class RunModel extends AbstractModel {
     int eventsReceived;
     int elapsedTime;
     long dataReceived;
+    int eventNumber;
           
     public String[] getPropertyNames() {
         return properties;
@@ -133,6 +136,12 @@ public class RunModel extends AbstractModel {
     
     public void addDataReceived(long addDataReceived) {
         this.setDataReceived(dataReceived + addDataReceived);
+    }
+    
+    public void setEventNumber(int eventNumber) {
+        int oldValue = this.eventNumber;
+        this.eventNumber = eventNumber;
+        this.firePropertyChange(EVENT_NUMBER_PROPERTY, oldValue, this.eventNumber);
     }
     
     public void reset() {

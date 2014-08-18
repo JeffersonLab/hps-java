@@ -88,7 +88,7 @@ public class EventProcessingChain extends AbstractLoopListener {
                     try {
                         lcioStep.getLoop().setLCIORecordSource(new LCIOEventSource(new File(configuration.filePath)));
                     } catch (IOException e) {
-                        throw new RuntimeException("Error configurating LCIOEventSource.", e);
+                        throw new RuntimeException("Error configuring LCIOEventSource.", e);
                     }
                 else
                     throw new IllegalArgumentException("Configuration is missing a file path.");
@@ -120,9 +120,9 @@ public class EventProcessingChain extends AbstractLoopListener {
    
         // Building EVIO events?
         if (configuration.processingStage.ordinal() >= ProcessingStage.EVIO.ordinal()) {
-            // Using EVIO event source.
+            // Using EVIO event source?
             if (configuration.sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
-                // Using ET event source.
+                // Using ET event source?
                 if (configuration.sourceType == DataSourceType.ET_SERVER) {
                     // Use dynamic event queue.
                     evioStep.setEvioEventQueue(new EvioEventQueue());
