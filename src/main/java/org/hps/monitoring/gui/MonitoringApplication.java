@@ -1142,8 +1142,9 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         configuration.setStopOnErrors(true);
          
         configuration.setDataSourceType(configurationModel.getDataSourceType());
-        configuration.setEtConnection(connection);
+        configuration.setEtConnection(connection);        
         configuration.setFilePath(configurationModel.getDataSourcePath());
+        System.out.println("dataSourcePath: " + configurationModel.getDataSourcePath());
         configuration.setLCSimEventBuild(eventBuilder);
         configuration.setDetectorName(configurationModel.getDetectorName());                
                

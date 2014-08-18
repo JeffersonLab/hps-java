@@ -25,8 +25,7 @@ import org.jlab.coda.jevio.EvioEvent;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Add current EVIO event number, current event sequence number, job start date, 
-// and job end date fields.
+// FIXME: Add current event sequence number, job start date, and job end date fields.
 public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
@@ -37,6 +36,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
     FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
+    FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
     
     Timer timer;
     long jobStartMillis;
@@ -61,6 +61,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         add(elapsedTimeField);
         add(eventsReceivedField);
         add(dataReceivedField);
+        add(eventNumberField);
         
         this.setMinimumSize(new Dimension(0, 190));
     }
@@ -92,16 +93,19 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         
         @Override
         public void processEvent(CompositeRecord event) {
-            model.incrementEventsReceived();
+            model.incrementEventsReceived();            
             EvioEvent evioEvent = event.getEvioEvent();
             if (evioEvent != null) {                
                 model.addDataReceived((long)evioEvent.getTotalBytes());
+                model.setEventNumber(evioEvent.getEventNumber());
                 if (EventConstants.isPreStartEvent(evioEvent)) {                    
                     startRun(evioEvent);
                 } else if (EventConstants.isEndEvent(evioEvent)) {                    
                     endRun(evioEvent);
                 }        
-            } 
+            } else if (event.getLcioEvent() != null) {
+                model.setEventNumber(event.getLcioEvent().getEventNumber());
+            }
         }
 
         private void endRun(EvioEvent evioEvent) {            
@@ -163,6 +167,8 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
             this.elapsedTimeField.setValue((Integer) value);
         } else if (DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
             this.dataReceivedField.setValue((Long) value);
-        }                              
+        } else if (EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
+            this.eventNumberField.setValue((Integer) value);
+        }
     }
 }
