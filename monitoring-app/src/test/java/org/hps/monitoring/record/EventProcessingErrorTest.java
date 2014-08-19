@@ -11,9 +11,8 @@ import org.lcsim.util.Driver;
 
 
 public class EventProcessingErrorTest extends TestCase {
-    
-    //static String evioFilePath = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_001351.evio.0";
-    static String evioFilePath = "./scratch/hps_000975.evio.0";
+       
+    static String evioFilePath = "/nfs/slac/g/hps3/data/testcase/hps_000975.evio.0";
     
     public void testEventProcessingError() {
                 
