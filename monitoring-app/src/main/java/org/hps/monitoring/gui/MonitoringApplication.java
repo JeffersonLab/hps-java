@@ -65,6 +65,12 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
+import org.jlab.coda.et.EtAttachment;
+import org.jlab.coda.et.EtConstants;
+import org.jlab.coda.et.EtStation;
+import org.jlab.coda.et.EtStationConfig;
+import org.jlab.coda.et.EtSystem;
+import org.jlab.coda.et.EtSystemOpenConfig;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -1003,7 +1009,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     private void createEtConnection() {
         
         // Setup connection to ET system.
-        connection = EtConnection.fromConfigurationModel(configurationModel);
+        connection = fromConfigurationModel(configurationModel);
 
         if (connection != null) {
 
@@ -1507,4 +1513,66 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 + "descr: " + status.getDescription() + ", "                 
                 + "mesg: " + status.getMessage());
     }
+    
+    public static EtConnection fromConfigurationModel(ConfigurationModel configurationModel) {
+        try {
+            
+            // make a direct connection to ET system's tcp server            
+            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(
+                    configurationModel.getEtName(), 
+                    configurationModel.getHost(), 
+                    configurationModel.getPort());
+
+            // create ET system object with verbose debugging output
+            EtSystem sys = new EtSystem(etConfig, EtConstants.debugInfo);
+            sys.open();
+
+            // configuration of a new station
+            EtStationConfig statConfig = new EtStationConfig();
+            //statConfig.setFlowMode(cn.flowMode);
+            // FIXME: Flow mode hard-coded.
+            statConfig.setFlowMode(EtConstants.stationSerial);
+            boolean blocking = configurationModel.getBlocking();
+            if (!blocking) {
+                statConfig.setBlockMode(EtConstants.stationNonBlocking);
+                int qSize = configurationModel.getQueueSize();
+                if (qSize > 0) {
+                    statConfig.setCue(qSize);
+                }
+            }
+            // Set prescale.
+            int prescale = configurationModel.getPrescale();
+            if (prescale > 0) {
+                //System.out.println("setting prescale to " + cn.prescale);
+                statConfig.setPrescale(prescale);
+            }
+
+            // Create the station.
+            //System.out.println("position="+config.getInteger("position"));
+            EtStation stat = sys.createStation(
+                    statConfig, 
+                    configurationModel.getStationName(),
+                    configurationModel.getStationPosition());
+
+            // attach to new station
+            EtAttachment att = sys.attach(stat);
+
+            // Return new connection.
+            EtConnection connection = new EtConnection(
+                    sys, 
+                    att, 
+                    stat,
+                    configurationModel.getWaitMode(),
+                    configurationModel.getWaitTime(),
+                    configurationModel.getChunkSize()
+                    );
+            
+            return connection;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
 }
