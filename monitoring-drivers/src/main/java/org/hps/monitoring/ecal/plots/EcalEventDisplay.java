@@ -11,12 +11,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.util.Resettable;
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
-import org.hps.monitoring.ecal.ui.PEventViewer;
-import org.hps.monitoring.ecal.util.CrystalEvent;
-import org.hps.monitoring.ecal.util.CrystalListener;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
+import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
+import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
@@ -38,7 +37,7 @@ import org.lcsim.util.aida.AIDA;
  *  *
  */
 
-public class EcalEventDisplay extends Driver implements CrystalListener,ActionListener,Resettable {
+public class EcalEventDisplay extends Driver implements CrystalListener, ActionListener {
 
   
     String inputCollection = "EcalCalHits";
@@ -210,7 +209,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         }
     }
     
-
+    /*
     @Override
     public void reset(){
         for(int ii = 0; ii < (47*11); ii = ii +1){         
@@ -219,15 +218,13 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
             channelTimeVsEnergyPlot.get(ii).reset();
         }
     }
+    */
+    
     @Override
     public void actionPerformed(ActionEvent ae) {
      
     }
-    
-    
-    
-    
-    
+                  
     @Override
     public void crystalActivated(CrystalEvent e){
 		
@@ -270,10 +267,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener,ActionLi
         plotter.region(0).plot(channelEnergyPlot.get(id));
     
         plotter.region(1).clear();
-        plotter.region(1).plot(channelTimePlot.get(id));
-    
-       	
-     	
+        plotter.region(1).plot(channelTimePlot.get(id));           	    
    /*    
     * 
     * 
