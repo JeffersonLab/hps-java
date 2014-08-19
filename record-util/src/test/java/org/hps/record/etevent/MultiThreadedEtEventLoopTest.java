@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import org.freehep.record.loop.RecordLoop.Command;
 import org.jlab.coda.et.EtEvent;

@@ -1,8 +1,7 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import org.hps.evio.LCSimTestRunEventBuilder;
-import org.hps.monitoring.enums.DataSourceType;
-import org.hps.monitoring.record.evio.EvioEventProcessor;
+import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;

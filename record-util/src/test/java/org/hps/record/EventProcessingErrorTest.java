@@ -1,11 +1,10 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import junit.framework.TestCase;
 
 import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.evio.LCSimTestRunEventBuilder;
-import org.hps.monitoring.enums.DataSourceType;
-import org.hps.monitoring.record.evio.EvioEventProcessor;
+import org.hps.record.evio.EvioEventProcessor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
