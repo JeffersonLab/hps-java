@@ -1,8 +1,8 @@
 package org.hps.monitoring.subsys.et;
 
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.subsys.SystemStatisticsImpl;
+import org.hps.record.etevent.EtEventProcessor;
 import org.jlab.coda.et.EtEvent;
 import org.lcsim.util.aida.AIDA;
 

@@ -3,8 +3,8 @@ package org.hps.monitoring.gui.model;
 import java.io.File;
 import java.util.logging.Level;
 
-import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.enums.SteeringType;
+import org.hps.record.DataSourceType;
 import org.jlab.coda.et.enums.Mode;
 
 /**

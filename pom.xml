@@ -108,12 +108,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-evio</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jlab.coda</groupId>
-            <artifactId>et</artifactId>
-            <version>14.1</version>
+            <artifactId>hps-record-util</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>

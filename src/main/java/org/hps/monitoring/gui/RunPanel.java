@@ -1,6 +1,14 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.model.RunModel.*;
+import static org.hps.monitoring.gui.model.RunModel.DATA_RECEIVED_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.ELAPSED_TIME_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.END_DATE_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.EVENTS_RECEIVED_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.EVENT_NUMBER_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.RUN_LENGTH_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.RUN_NUMBER_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.START_DATE_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.TOTAL_EVENTS_PROPERTY;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -17,15 +25,14 @@ import javax.swing.border.TitledBorder;
 
 import org.hps.evio.EventConstants;
 import org.hps.monitoring.gui.model.RunModel;
-import org.hps.monitoring.record.composite.CompositeRecord;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
+import org.hps.record.composite.CompositeRecord;
+import org.hps.record.composite.CompositeRecordProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Add current event sequence number, job start date, and job end date fields.
 public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
