@@ -3,11 +3,11 @@ package org.hps.monitoring.subsys.et;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.hps.monitoring.record.etevent.EtEventProcessor;
 import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusImpl;
+import org.hps.record.etevent.EtEventProcessor;
 import org.jlab.coda.et.EtEvent;
 
 /**

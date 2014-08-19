@@ -141,6 +141,7 @@
                 <module>tracking</module>
                 <module>ecal-event-display</module>
                 <module>monitoring-drivers</module>
+                <module>record-util</module>
                 <module>monitoring-app</module>
                 <module>analysis</module>
                 <module>users</module>

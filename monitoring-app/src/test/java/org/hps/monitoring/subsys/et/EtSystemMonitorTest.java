@@ -1,15 +1,6 @@
 package org.hps.monitoring.subsys.et;
 
-import java.io.IOException;
-
 import junit.framework.TestCase;
-
-import org.hps.monitoring.record.etevent.EtEventLoop;
-import org.hps.monitoring.record.etevent.EtEventQueue;
-import org.hps.monitoring.subsys.SystemStatus;
-import org.hps.monitoring.subsys.SystemStatusListener;
-import org.jlab.coda.et.EtEvent;
-import org.jlab.coda.et.EtEventImpl;
 
 /**
  * Test that the {@link EtSystemMonitor} works.

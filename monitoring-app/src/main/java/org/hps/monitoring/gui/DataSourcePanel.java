@@ -13,10 +13,9 @@ import java.io.File;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
-import org.hps.monitoring.enums.DataSourceType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.record.DataSourceType;
 
 /**
  * A sub-panel of the settings window for selecting a data source, 

@@ -36,7 +36,7 @@ public final class EtConnection {
      * @param att The ET attachment.
      * @param stat The ET station.
      */
-    private EtConnection(EtSystem sys, EtAttachment att, EtStation stat, 
+    public EtConnection(EtSystem sys, EtAttachment att, EtStation stat, 
             Mode waitMode, int waitTime, int chunkSize) {
         this.sys = sys;
         this.att = att;
