@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.composite;
+package org.hps.record.composite;
 
 import java.util.ArrayList;
 import java.util.List;

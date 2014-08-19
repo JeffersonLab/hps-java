@@ -1,15 +1,11 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import java.io.IOException;
 
-import org.hps.monitoring.gui.model.ConfigurationModel;
 import org.jlab.coda.et.EtAttachment;
-import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.EtStation;
-import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
-import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
 import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.et.exception.EtBusyException;
@@ -110,67 +106,6 @@ public final class EtConnection {
         catch (Exception e) {
             e.printStackTrace();
         }		
-    }
-    
-    public static EtConnection fromConfigurationModel(ConfigurationModel configurationModel) {
-        try {
-            
-            // make a direct connection to ET system's tcp server            
-            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(
-                    configurationModel.getEtName(), 
-                    configurationModel.getHost(), 
-                    configurationModel.getPort());
-
-            // create ET system object with verbose debugging output
-            EtSystem sys = new EtSystem(etConfig, EtConstants.debugInfo);
-            sys.open();
-
-            // configuration of a new station
-            EtStationConfig statConfig = new EtStationConfig();
-            //statConfig.setFlowMode(cn.flowMode);
-            // FIXME: Flow mode hard-coded.
-            statConfig.setFlowMode(EtConstants.stationSerial);
-            boolean blocking = configurationModel.getBlocking();
-            if (!blocking) {
-                statConfig.setBlockMode(EtConstants.stationNonBlocking);
-                int qSize = configurationModel.getQueueSize();
-                if (qSize > 0) {
-                    statConfig.setCue(qSize);
-                }
-            }
-            // Set prescale.
-            int prescale = configurationModel.getPrescale();
-            if (prescale > 0) {
-                //System.out.println("setting prescale to " + cn.prescale);
-                statConfig.setPrescale(prescale);
-            }
-
-            // Create the station.
-            //System.out.println("position="+config.getInteger("position"));
-            EtStation stat = sys.createStation(
-                    statConfig, 
-                    configurationModel.getStationName(),
-                    configurationModel.getStationPosition());
-
-            // attach to new station
-            EtAttachment att = sys.attach(stat);
-
-            // Return new connection.
-            EtConnection connection = new EtConnection(
-                    sys, 
-                    att, 
-                    stat,
-                    configurationModel.getWaitMode(),
-                    configurationModel.getWaitTime(),
-                    configurationModel.getChunkSize()
-                    );
-            
-            return connection;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
     
     /**

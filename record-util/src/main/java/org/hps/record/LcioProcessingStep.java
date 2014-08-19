@@ -1,14 +1,14 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import static org.freehep.record.loop.RecordLoop.Command.NEXT;
 
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.LCSimEventBuilder;
-import org.hps.monitoring.record.composite.CompositeRecord;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
-import org.hps.monitoring.record.lcio.LcioEventQueue;
-import org.hps.monitoring.record.lcio.LcioLoop;
+import org.hps.record.composite.CompositeRecord;
+import org.hps.record.composite.CompositeRecordProcessor;
+import org.hps.record.lcio.LcioEventQueue;
+import org.hps.record.lcio.LcioLoop;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.loop.LCSimLoop;

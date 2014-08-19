@@ -1,16 +1,15 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.LCSimEventBuilder;
-import org.hps.monitoring.enums.DataSourceType;
-import org.hps.monitoring.record.EventProcessingChain.ProcessingStage;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
-import org.hps.monitoring.record.etevent.EtConnection;
-import org.hps.monitoring.record.etevent.EtEventProcessor;
-import org.hps.monitoring.record.evio.EvioEventProcessor;
+import org.hps.record.EventProcessingChain.ProcessingStage;
+import org.hps.record.composite.CompositeRecordProcessor;
+import org.hps.record.etevent.EtConnection;
+import org.hps.record.etevent.EtEventProcessor;
+import org.hps.record.evio.EvioEventProcessor;
 import org.lcsim.util.Driver;
 
 /**

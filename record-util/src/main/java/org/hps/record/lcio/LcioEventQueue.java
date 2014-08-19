@@ -1,6 +1,6 @@
-package org.hps.monitoring.record.lcio;
+package org.hps.record.lcio;
 
-import org.hps.monitoring.record.AbstractRecordQueue;
+import org.hps.record.AbstractRecordQueue;
 import org.lcsim.event.EventHeader;
 
 /**

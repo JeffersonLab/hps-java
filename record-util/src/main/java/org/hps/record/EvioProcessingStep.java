@@ -1,4 +1,4 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import static org.freehep.record.loop.RecordLoop.Command.NEXT;
 
@@ -8,11 +8,10 @@ import java.nio.BufferUnderflowException;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.EventConstants;
-import org.hps.monitoring.enums.DataSourceType;
-import org.hps.monitoring.record.composite.CompositeRecord;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
-import org.hps.monitoring.record.evio.EvioEventLoop;
-import org.hps.monitoring.record.evio.EvioEventQueue;
+import org.hps.record.composite.CompositeRecord;
+import org.hps.record.composite.CompositeRecordProcessor;
+import org.hps.record.evio.EvioEventLoop;
+import org.hps.record.evio.EvioEventQueue;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;

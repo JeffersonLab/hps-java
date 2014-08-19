@@ -1,4 +1,4 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 /**
  * This is a generic interface for event processing.

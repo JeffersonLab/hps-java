@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import org.freehep.record.loop.DefaultRecordLoop;
 import org.freehep.record.source.RecordSource;

@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.composite;
+package org.hps.record.composite;
 
 import org.freehep.record.loop.DefaultRecordLoop;
 import org.freehep.record.source.NoSuchRecordException;

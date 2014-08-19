@@ -1,8 +1,8 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import org.hps.evio.EventConstants;
-import org.hps.monitoring.record.composite.CompositeRecord;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
+import org.hps.record.composite.CompositeRecord;
+import org.hps.record.composite.CompositeRecordProcessor;
 
 /**
  * This is a CompositeRecordProcessor for ending the run when an EVIO

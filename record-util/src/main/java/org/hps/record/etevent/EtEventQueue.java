@@ -1,6 +1,6 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
-import org.hps.monitoring.record.AbstractRecordQueue;
+import org.hps.record.AbstractRecordQueue;
 import org.jlab.coda.et.EtEvent;
 
 /**

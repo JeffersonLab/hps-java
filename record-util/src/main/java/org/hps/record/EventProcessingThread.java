@@ -1,4 +1,4 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 /**
  * Thread for running the event processing chain.

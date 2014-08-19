@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import java.io.IOException;
 import java.util.Arrays;

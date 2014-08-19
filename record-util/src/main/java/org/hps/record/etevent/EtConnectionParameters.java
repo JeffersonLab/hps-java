@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

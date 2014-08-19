@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.evio;
+package org.hps.record.evio;
 
 import java.io.IOException;
 

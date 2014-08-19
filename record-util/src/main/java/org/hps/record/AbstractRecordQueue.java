@@ -1,4 +1,4 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;

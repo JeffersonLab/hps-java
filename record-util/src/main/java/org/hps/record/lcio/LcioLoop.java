@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.lcio;
+package org.hps.record.lcio;
 
 import org.lcsim.util.loop.LCSimLoop;
 

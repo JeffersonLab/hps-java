@@ -1,4 +1,4 @@
-package org.hps.monitoring.record;
+package org.hps.record;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,16 +7,15 @@ import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.LoopListener;
 import org.freehep.record.loop.RecordLoop.Command;
-import org.hps.monitoring.enums.DataSourceType;
-import org.hps.monitoring.record.composite.CompositeRecordLoop;
-import org.hps.monitoring.record.composite.CompositeRecordLoopAdapter;
-import org.hps.monitoring.record.composite.CompositeRecordProcessor;
-import org.hps.monitoring.record.etevent.EtEventProcessor;
-import org.hps.monitoring.record.etevent.EtEventSource;
-import org.hps.monitoring.record.evio.EvioEventProcessor;
-import org.hps.monitoring.record.evio.EvioEventQueue;
-import org.hps.monitoring.record.evio.EvioFileSource;
-import org.hps.monitoring.record.lcio.LcioEventQueue;
+import org.hps.record.composite.CompositeRecordLoop;
+import org.hps.record.composite.CompositeRecordLoopAdapter;
+import org.hps.record.composite.CompositeRecordProcessor;
+import org.hps.record.etevent.EtEventProcessor;
+import org.hps.record.etevent.EtEventSource;
+import org.hps.record.evio.EvioEventProcessor;
+import org.hps.record.evio.EvioEventQueue;
+import org.hps.record.evio.EvioFileSource;
+import org.hps.record.lcio.LcioEventQueue;
 import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCIOEventSource;
 

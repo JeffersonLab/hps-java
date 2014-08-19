@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.composite;
+package org.hps.record.composite;
 
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;

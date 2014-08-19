@@ -1,4 +1,4 @@
-package org.hps.monitoring.record.etevent;
+package org.hps.record.etevent;
 
 import java.util.ArrayList;
 import java.util.List;

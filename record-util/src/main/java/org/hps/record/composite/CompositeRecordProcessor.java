@@ -1,6 +1,6 @@
-package org.hps.monitoring.record.composite;
+package org.hps.record.composite;
 
-import org.hps.monitoring.record.EventProcessor;
+import org.hps.record.EventProcessor;
 
 /**
  * An <code>EventProcessor</code> implementation for processing <code>CompositeRecord</code>
