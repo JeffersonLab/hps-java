@@ -144,6 +144,11 @@
                 <artifactId>hps-distribution</artifactId>
                 <version>3.0.3-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>org.hps</groupId>
+                <artifactId>hps-ecal-event-display</artifactId>
+                <version>3.0.3-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <reporting>

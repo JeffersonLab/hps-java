@@ -139,6 +139,7 @@
                 <module>evio</module>
                 <module>recon</module>
                 <module>tracking</module>
+                <module>ecal-event-display</module>
                 <module>monitoring-drivers</module>
                 <module>monitoring-app</module>
                 <module>analysis</module>
