@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.util;
+package org.hps.monitoring.ecal.eventdisplay.util;
 
 /**
  * The abstract class <code>ColorScale</code> contains shared methods

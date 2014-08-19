@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.event;
+package org.hps.monitoring.ecal.eventdisplay.event;
 
 import java.awt.Point;
 

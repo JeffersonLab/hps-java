@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.util;
+package org.hps.monitoring.ecal.eventdisplay.util;
 
 import java.awt.Color;
 

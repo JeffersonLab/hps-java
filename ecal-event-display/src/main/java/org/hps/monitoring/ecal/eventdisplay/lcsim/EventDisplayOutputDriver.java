@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.lcsim;
+package org.hps.monitoring.ecal.eventdisplay.lcsim;
 
 import java.io.FileWriter;
 import java.io.IOException;

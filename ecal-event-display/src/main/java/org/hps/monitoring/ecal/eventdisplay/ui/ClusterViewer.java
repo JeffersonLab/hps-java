@@ -1,6 +1,6 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
-import org.hps.monitoring.ecal.io.EventManager;
+import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -19,9 +19,9 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.hps.monitoring.ecal.event.Association;
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.event.Association;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 
 /**
  * Class <code>FileViewer</code> is an implementation of the <code>

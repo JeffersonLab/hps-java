@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.monitoring.ecal.event.EcalHit;
-import org.hps.monitoring.ecal.io.EventManager;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
 
 /**
  * Class <code>OccupancyViewer</code> is an active implementation of

@@ -1,15 +1,15 @@
-package org.hps.monitoring.ecal.exec;
+package org.hps.monitoring.ecal.eventdisplay.exec;
 
-import org.hps.monitoring.ecal.io.TextManager;
+import org.hps.monitoring.ecal.eventdisplay.io.TextManager;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 
-import org.hps.monitoring.ecal.ui.ActiveViewer;
-import org.hps.monitoring.ecal.ui.ClusterViewer;
-import org.hps.monitoring.ecal.ui.FileViewer;
-import org.hps.monitoring.ecal.ui.OccupancyViewer;
+import org.hps.monitoring.ecal.eventdisplay.ui.ActiveViewer;
+import org.hps.monitoring.ecal.eventdisplay.ui.ClusterViewer;
+import org.hps.monitoring.ecal.eventdisplay.ui.FileViewer;
+import org.hps.monitoring.ecal.eventdisplay.ui.OccupancyViewer;
 
 /**
  * The class <code>Main</code> can be used to create an event display that

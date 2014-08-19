@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,8 +15,8 @@ import java.util.NoSuchElementException;
 
 import javax.swing.JFrame;
 
-import org.hps.monitoring.ecal.util.CrystalEvent;
-import org.hps.monitoring.ecal.util.CrystalListener;
+import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
+import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 
 /**
  * The abstract class <code>Viewer</code> handles initialization of the

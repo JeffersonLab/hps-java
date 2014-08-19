@@ -1,9 +1,9 @@
-package org.hps.monitoring.ecal.util;
+package org.hps.monitoring.ecal.eventdisplay.util;
 
 import java.awt.AWTEvent;
 import java.awt.Point;
 
-import org.hps.monitoring.ecal.ui.Viewer;
+import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 
 /**
  * Class <code>CrystalEvent</code> represents some event that occurred

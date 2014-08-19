@@ -1,10 +1,10 @@
-package org.hps.monitoring.ecal.io;
+package org.hps.monitoring.ecal.eventdisplay.io;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 
 /**
  * Interface <code>EventManager</code> is responsible for traversing

@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,8 +13,8 @@ import java.util.Set;
 
 import javax.swing.JPanel;
 
-import org.hps.monitoring.ecal.event.Association;
-import org.hps.monitoring.ecal.util.MultiGradientScale;
+import org.hps.monitoring.ecal.eventdisplay.event.Association;
+import org.hps.monitoring.ecal.eventdisplay.util.MultiGradientScale;
 
 /**
  * The class <code>CalorimeterPanel</code> handles the rendering of the

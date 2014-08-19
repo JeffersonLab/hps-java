@@ -1,10 +1,10 @@
-package org.hps.monitoring.ecal.lcsim;
+package org.hps.monitoring.ecal.eventdisplay.lcsim;
 
 import java.util.List;
 
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
-import org.hps.monitoring.ecal.ui.PEventViewer;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;

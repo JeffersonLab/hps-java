@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.io;
+package org.hps.monitoring.ecal.eventdisplay.io;
 
 import java.io.File;
 import java.io.FileNotFoundException;

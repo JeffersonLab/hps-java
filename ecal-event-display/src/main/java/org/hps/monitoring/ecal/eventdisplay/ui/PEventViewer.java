@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -11,9 +11,9 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import org.hps.monitoring.ecal.event.Association;
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.event.Association;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 
 /**
  * Class <code>PEventViewer</code> represents a <code>PassiveViewer

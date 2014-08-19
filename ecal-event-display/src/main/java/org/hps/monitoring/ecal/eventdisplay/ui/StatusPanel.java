@@ -1,4 +1,4 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;

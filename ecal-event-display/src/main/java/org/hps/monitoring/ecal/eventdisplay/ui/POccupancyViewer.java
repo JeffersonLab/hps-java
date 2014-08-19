@@ -1,11 +1,11 @@
-package org.hps.monitoring.ecal.ui;
+package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Dimension;
 import java.awt.Point;
 import java.util.ArrayList;
 
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 
 /**
  * The class <code>POccupancyViewer</code> is an extension of the <code>

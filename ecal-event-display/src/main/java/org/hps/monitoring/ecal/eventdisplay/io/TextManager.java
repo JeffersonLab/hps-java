@@ -1,11 +1,11 @@
-package org.hps.monitoring.ecal.io;
+package org.hps.monitoring.ecal.eventdisplay.io;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-import org.hps.monitoring.ecal.event.Cluster;
-import org.hps.monitoring.ecal.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
+import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 
 /**
  * The class <code>TextManager</code> handles loading hits and clusters from a
