@@ -1,28 +1,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-monitoring-drivers</artifactId>
     <name>monitoring-drivers</name>
     <description>Drivers for the MonitoringApplication</description>
-    
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.3-SNAPSHOT</version>
     </parent>
-    
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/monitoring-drivers/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-drivers/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-drivers/</developerConnection>
     </scm>
-    
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-recon</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-ecal-event-display</artifactId>
+        </dependency>
     </dependencies>
-    
 </project>
