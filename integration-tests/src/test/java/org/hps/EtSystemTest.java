@@ -9,7 +9,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.monitoring.record.evio.EvioFileProducer;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
@@ -26,6 +25,8 @@ import org.jlab.coda.et.exception.EtEmptyException;
 import org.jlab.coda.et.exception.EtException;
 import org.jlab.coda.et.exception.EtTimeoutException;
 import org.jlab.coda.et.exception.EtWakeUpException;
+
+import org.hps.record.evio.EvioFileProducer;
 
 /**
  * <p>
