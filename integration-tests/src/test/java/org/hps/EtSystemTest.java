@@ -43,7 +43,8 @@ import org.jlab.coda.et.exception.EtWakeUpException;
 public class EtSystemTest extends TestCase {
 
     static final String loadPath = new File("../et/lib/Linux-x86_64/").getAbsoluteFile().getAbsolutePath();
-    static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_000975.evio.0";
+    //static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_000975.evio.0";
+    static final String evioFile = "/nfs/slac/g/hps3/data/testcase/hps_000975.evio.0";
     static final String classPath = System.getProperty("java.class.path");
     static final String javaPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";        
     static final String etBuffer = "ETBuffer";
