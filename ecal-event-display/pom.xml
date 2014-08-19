@@ -17,7 +17,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>ecal-recon</artifactId>
+            <artifactId>hps-ecal-recon</artifactId>
         </dependency>
     </dependencies>
 </project>
