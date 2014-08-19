@@ -68,7 +68,7 @@ def get_ssh_connection_string():
 
     if 'slac' in domainname:
         username = getpass.getuser()
-    elif 'jlab' in domainname and getpass.getuser() == 'clashps':
+    elif 'jlab' in domainname and getpass.getuser() == 'hps':
         username = 'hpscat'
     else:
         username = None
