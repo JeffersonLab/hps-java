@@ -20,7 +20,7 @@ import org.lcsim.util.Driver;
  */
 // TODO: Add class documentation.
 public class RawTrackerHitFitterDriver extends Driver {
-    
+
     private boolean debug = false;
     private ShaperFitAlgorithm _shaper = new DumbShaperFit();
     private String rawHitCollectionName = "SVTRawTrackerHits";
@@ -41,57 +41,59 @@ public class RawTrackerHitFitterDriver extends Driver {
     public void setUseTruthTime(boolean useTruthTime) {
         this.useTruthTime = useTruthTime;
     }
-    
+
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
-    
+
     public void setCorrectT0Shift(boolean correctT0Shift) {
         this.correctT0Shift = correctT0Shift;
     }
-    
+
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
     }
-    
+
     public void setSubtractTOF(boolean subtractTOF) {
         this.subtractTOF = subtractTOF;
     }
-    
+
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic")) {
             _shaper = new ShaperAnalyticFitAlgorithm();
+        } else if (fitAlgorithm.equals("Linear")) {
+            _shaper = new ShaperLinearFitAlgorithm();
         } else {
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
         }
     }
-    
+
     public void setFitCollectionName(String fitCollectionName) {
         this.fitCollectionName = fitCollectionName;
     }
-    
+
     public void setFittedHitCollectionName(String fittedHitCollectionName) {
         this.fittedHitCollectionName = fittedHitCollectionName;
     }
-    
+
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
-    
+
     @Override
     public void startOfData() {
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
     }
-    
+
     @Override
     public void process(EventHeader event) {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
         }
-        
+
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
         if (rawHits == null) {
             throw new RuntimeException("Event is missing SVT hits collection!");
@@ -121,7 +123,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                 double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                 double absoluteHitTime = fit.getT0() + t0Svt;
                 double relativeHitTime = ((absoluteHitTime + 250.0) % 500.0) - 250.0;
-                
+
                 fit.setT0(relativeHitTime);
             }
             if (debug) {
