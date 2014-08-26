@@ -91,7 +91,6 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
         fit.setAmpErr(Math.sqrt(height_var));
         fit.setT0(t0);
         fit.setT0Err(Math.sqrt(time_var));
-        fit.setTp(constants.getTp());
 
         double chisq = 0;
         for (int i = 0; i < samples.length; i++) {

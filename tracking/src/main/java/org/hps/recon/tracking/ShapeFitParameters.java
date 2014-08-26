@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking;
 
 import org.lcsim.event.GenericObject;
@@ -16,8 +12,8 @@ public class ShapeFitParameters implements GenericObject {
     private double _t0Err = Double.NaN;
     private double _amp = Double.NaN;
     private double _ampErr = Double.NaN;
-    private double _tp = Double.NaN;
-    private double _tpErr = Double.NaN;
+//    private double _tp = Double.NaN;
+//    private double _tpErr = Double.NaN;
     private double _chiSq = Double.NaN;
 
     public ShapeFitParameters() {
@@ -36,9 +32,9 @@ public class ShapeFitParameters implements GenericObject {
         _amp = amp;
     }
 
-    public void setTp(double tp) {
-        _tp = tp;
-    }
+//    public void setTp(double tp) {
+//        _tp = tp;
+//    }
 
     public void setAmpErr(double _ampErr) {
         this._ampErr = _ampErr;
@@ -48,9 +44,9 @@ public class ShapeFitParameters implements GenericObject {
         this._t0Err = _t0Err;
     }
 
-    public void setTpErr(double _tpErr) {
-        this._tpErr = _tpErr;
-    }
+//    public void setTpErr(double _tpErr) {
+//        this._tpErr = _tpErr;
+//    }
 
     public void setChiSq(double _chiSq) {
         this._chiSq = _chiSq;
@@ -64,9 +60,9 @@ public class ShapeFitParameters implements GenericObject {
         return _amp;
     }
 
-    public double getTp() {
-        return _tp;
-    }
+//    public double getTp() {
+//        return _tp;
+//    }
 
     public double getT0Err() {
         return _t0Err;
@@ -76,9 +72,9 @@ public class ShapeFitParameters implements GenericObject {
         return _ampErr;
     }
 
-    public double getTpErr() {
-        return _tpErr;
-    }
+//    public double getTpErr() {
+//        return _tpErr;
+//    }
 
     public double getChiSq() {
         return _chiSq;
@@ -100,13 +96,13 @@ public class ShapeFitParameters implements GenericObject {
         return object.getDoubleVal(3);
     }
 
-    public static double getTp(GenericObject object) {
-        return object.getDoubleVal(4);
-    }
-
-    public static double getTpErr(GenericObject object) {
-        return object.getDoubleVal(5);
-    }
+//    public static double getTp(GenericObject object) {
+//        return object.getDoubleVal(4);
+//    }
+//
+//    public static double getTpErr(GenericObject object) {
+//        return object.getDoubleVal(5);
+//    }
 
     public static double getChisq(GenericObject object) {
         return object.getDoubleVal(6);
@@ -124,7 +120,7 @@ public class ShapeFitParameters implements GenericObject {
 
     @Override
     public int getNDouble() {
-        return 7;
+        return 5;
     }
 
     @Override
@@ -148,11 +144,11 @@ public class ShapeFitParameters implements GenericObject {
                 return _amp;
             case 3:
                 return _ampErr;
+//            case 4:
+//                return _tp;
+//            case 5:
+//                return _tpErr;
             case 4:
-                return _tp;
-            case 5:
-                return _tpErr;
-            case 6:
                 return _chiSq;
             default:
                 throw new UnsupportedOperationException("Only 7 double values in " + this.getClass().getSimpleName());

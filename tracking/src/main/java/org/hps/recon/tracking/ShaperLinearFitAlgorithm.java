@@ -83,7 +83,6 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         fit.setChiSq(min.fval());
         fit.setT0(times[0]);
         fit.setT0Err((t0err.lower() + t0err.upper()) / 2);
-        fit.setTp(constants.getTp());
 
         // System.out.format("%f\t%f\t%f\t%f\t%f\t%f\n", samples[0] - constants.getPedestal(),
         // samples[1] - constants.getPedestal(), samples[2] - constants.getPedestal(), samples[3] -
