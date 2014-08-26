@@ -105,37 +105,38 @@ public class RawTrackerHitFitterDriver extends Driver {
         for (RawTrackerHit hit : rawHits) {
             int strip = hit.getIdentifierFieldValue("strip");
             ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
-            ShapeFitParameters fit = _shaper.fitShape(hit, constants);
-            if (correctT0Shift) {
-                fit.setT0(fit.getT0() - constants.getT0Shift());
-            }
-            if (subtractTOF) {
-                double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
-                fit.setT0(fit.getT0() - tof);
-            }
-            if (useTimestamps) {
-                double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
-                double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
-                double corMod = (t0Svt - t0Trig) + 200.0;
-                fit.setT0(fit.getT0() + corMod);
-            }
-            if (useTruthTime) {
-                double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
-                double absoluteHitTime = fit.getT0() + t0Svt;
-                double relativeHitTime = ((absoluteHitTime + 250.0) % 500.0) - 250.0;
+            for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
+                if (correctT0Shift) {
+                    fit.setT0(fit.getT0() - constants.getT0Shift());
+                }
+                if (subtractTOF) {
+                    double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
+                    fit.setT0(fit.getT0() - tof);
+                }
+                if (useTimestamps) {
+                    double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
+                    double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
+                    double corMod = (t0Svt - t0Trig) + 200.0;
+                    fit.setT0(fit.getT0() + corMod);
+                }
+                if (useTruthTime) {
+                    double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
+                    double absoluteHitTime = fit.getT0() + t0Svt;
+                    double relativeHitTime = ((absoluteHitTime + 250.0) % 500.0) - 250.0;
 
-                fit.setT0(relativeHitTime);
+                    fit.setT0(relativeHitTime);
+                }
+                if (debug) {
+                    System.out.println(fit);
+                }
+                fits.add(fit);
+                FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
+                hits.add(hth);
+                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { // drop unbonded channel
+                    continue;
+                }
+                hit.getDetectorElement().getReadout().addHit(hth);
             }
-            if (debug) {
-                System.out.println(fit);
-            }
-            fits.add(fit);
-            FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
-            hits.add(hth);
-            if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { // drop unbonded channel
-                continue;
-            }
-            hit.getDetectorElement().getReadout().addHit(hth);
         }
         event.put(fitCollectionName, fits, ShapeFitParameters.class, genericObjectFlags);
         event.put(fittedHitCollectionName, hits, FittedRawTrackerHit.class, relationFlags);

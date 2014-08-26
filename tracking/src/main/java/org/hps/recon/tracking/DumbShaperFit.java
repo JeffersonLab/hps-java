@@ -1,5 +1,7 @@
 package org.hps.recon.tracking;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.event.RawTrackerHit;
 
@@ -16,12 +18,12 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
     }
 
     @Override
-    public ShapeFitParameters fitShape(RawTrackerHit rth, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
         short[] adcVals = rth.getADCValues();
         return this.fitShape(adcVals, constants);
     }
 
-    public ShapeFitParameters fitShape(short[] adcVals, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(short[] adcVals, ChannelConstants constants) {
         ShapeFitParameters fitresults = new ShapeFitParameters();
         double[] pedSub = { -99.0, -99.0, -99.0, -99.0, -99.0, -99.0 };
         double maxADC = -99999;
@@ -60,6 +62,8 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
         fitresults.setAmp(maxADC);
         fitresults.setT0(t0);
 
-        return fitresults;
+        ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
+        fits.add(fitresults);
+        return fits;
     }
 }

@@ -1,5 +1,7 @@
 package org.hps.recon.tracking;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.lcsim.event.RawTrackerHit;
@@ -14,12 +16,12 @@ import org.lcsim.event.RawTrackerHit;
 public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 
     @Override
-    public ShapeFitParameters fitShape(RawTrackerHit rth, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
         short[] samples = rth.getADCValues();
         return this.fitShape(samples, constants);
     }
 
-    public ShapeFitParameters fitShape(short[] samples, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
         double minChisq = Double.POSITIVE_INFINITY;
         int bestStart = 0;
         ShapeFitParameters fit = new ShapeFitParameters();
@@ -37,7 +39,9 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
         // constants.getPedestal(), samples[4] - constants.getPedestal(), samples[5] -
         // constants.getPedestal());
         // System.out.println("start = " + bestStart + ", " + fit);
-        return fit;
+        ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
+        fits.add(fit);
+        return fits;
     }
 
     private double fitSection(short[] samples, ChannelConstants constants, ShapeFitParameters fit, int start) {
