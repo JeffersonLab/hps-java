@@ -42,7 +42,7 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
     private String outputPlots = null;
     private IHistogram1D[][] t0 = new IHistogram1D[2][10];
     private IHistogram1D[][] amp = new IHistogram1D[2][10];
-    private IHistogram1D[][] chisq = new IHistogram1D[2][10];
+    private IHistogram1D[][] chiprob = new IHistogram1D[2][10];
     private IHistogram2D[][] t0a = new IHistogram2D[2][10];
     private IHistogram2D[][] shape = new IHistogram2D[2][10];
 //    private IHistogram2D shape;
@@ -100,8 +100,8 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
                 plotter.region(region).plot(t0[module][layer]);
                 amp[module][layer] = aida.histogram1D(sensor.getName() + "_amplitude", 50, 0, 2000.0);
                 plotter2.region(region).plot(amp[module][layer]);
-                chisq[module][layer] = aida.histogram1D(sensor.getName() + "_chisq", 100, 0, 10.0);
-                plotter3.region(region).plot(chisq[module][layer]);
+                chiprob[module][layer] = aida.histogram1D(sensor.getName() + "_chiprob", 100, 0, 1.0);
+                plotter3.region(region).plot(chiprob[module][layer]);
                 t0a[module][layer] = aida.histogram2D(sensor.getName() + " A vs. T0", 100, -100, 100, 100, 0, 2000);
                 plotter4.region(region).plot(t0a[module][layer]);
                 shape[module][layer] = aida.histogram2D(sensor.getName() + " Shape", 200, -1, 3, 200, -0.5, 2);
@@ -136,7 +136,7 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
             String sensorName = sensor.getName();
             aida.histogram1D(sensorName + "_timing").fill(fittedT0);
             aida.histogram1D(sensorName + "_amplitude").fill(fittedAmp);
-            aida.histogram1D(sensorName + "_chisq").fill(fit.getShapeFitParameters().getChiSq());
+            aida.histogram1D(sensorName + "_chiprob").fill(fit.getShapeFitParameters().getChiProb());
 
             double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
             double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
@@ -167,7 +167,7 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
             for (int layer = 0; layer < 10; layer++) {
                 t0[module][layer].reset();
                 amp[module][layer].reset();
-                chisq[module][layer].reset();
+                chiprob[module][layer].reset();
                 t0a[module][layer].reset();
                 shape[module][layer].reset();
             }

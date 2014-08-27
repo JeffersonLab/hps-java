@@ -5,8 +5,11 @@ import java.util.Collection;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
+import org.apache.commons.math3.linear.DecompositionSolver;
+import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.special.Gamma;
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
 import org.freehep.math.minuit.MinosError;
@@ -16,7 +19,6 @@ import org.freehep.math.minuit.MnUserParameters;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.lcsim.event.RawTrackerHit;
-//import org.lcsim.math.chisq.ChisqProb;
 
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
@@ -27,7 +29,6 @@ import org.lcsim.event.RawTrackerHit;
 public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
     final int nPeaks;
-    final double[] times;
     final double[] amplitudes;
     final double[] amplitudeErrors;
     private ChannelConstants channelConstants;
@@ -37,22 +38,19 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
     public ShaperLinearFitAlgorithm() {
         nPeaks = 1;
-        times = new double[nPeaks];
         amplitudes = new double[nPeaks];
         amplitudeErrors = new double[nPeaks];
     }
 
     public ShaperLinearFitAlgorithm(int nPeaks) {
         this.nPeaks = nPeaks;
-        times = new double[nPeaks];
         amplitudes = new double[nPeaks];
         amplitudeErrors = new double[nPeaks];
     }
 
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
-        short[] samples = rth.getADCValues();
-        return this.fitShape(samples, constants);
+        return this.fitShape(rth.getADCValues(), constants);
     }
 
     public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
@@ -61,7 +59,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         sigma = new double[samples.length];
         usedSamples = new int[samples.length];
         for (int i = 0; i < samples.length; i++) {
-            y[i] = samples[i];
+            y[i] = samples[i] - constants.getPedestal();
             sigma[i] = constants.getNoise();
             usedSamples[i] = i;
         }
@@ -73,22 +71,24 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         MnSimplex simplex = new MnSimplex(this, myParams, 2);
         FunctionMinimum min = simplex.minimize();
 
-        MnMinos minos = new MnMinos(this, min);
-        MinosError t0err = minos.minos(0);
-
         ShapeFitParameters fit = new ShapeFitParameters();
 
         fit.setAmp(amplitudes[0]);
-        fit.setAmpErr(amplitudes[0]);
-        fit.setChiSq(min.fval());
-        fit.setT0(times[0]);
-        fit.setT0Err((t0err.lower() + t0err.upper()) / 2);
+        fit.setAmpErr(amplitudeErrors[0]);
+        fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2, min.fval()));
+        
+        fit.setT0(min.userState().value(0));
 
-        // System.out.format("%f\t%f\t%f\t%f\t%f\t%f\n", samples[0] - constants.getPedestal(),
-        // samples[1] - constants.getPedestal(), samples[2] - constants.getPedestal(), samples[3] -
-        // constants.getPedestal(), samples[4] - constants.getPedestal(), samples[5] -
-        // constants.getPedestal());
-        // System.out.println("start = " + bestStart + ", " + fit);
+        fit.setT0Err(HPSSVTConstants.SAMPLING_INTERVAL);
+//        if (min.isValid()) {
+//            MnMinos minos = new MnMinos(this, min);
+//            MinosError t0err = minos.minos(0);
+//            if (t0err.isValid()) {
+//                fit.setT0Err((t0err.lower() + t0err.upper()) / 2);
+//            }
+//        }
+
+//        System.out.println(fit);
         ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
         fits.add(fit);
         return fits;
@@ -108,14 +108,25 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
         RealVector a_vec = sc_mat.operate(y_vec);
         RealMatrix coeff_mat = sc_mat.multiply(sc_mat.transpose());
-        CholeskyDecomposition a_qr = new CholeskyDecomposition(coeff_mat);
-        RealVector solved_amplitudes = a_qr.getSolver().solve(a_vec);
-        RealVector amplitude_err = a_qr.getSolver().solve(var_vec);
+        DecompositionSolver a_solver;
+        RealVector solved_amplitudes, amplitude_err;
+        try {
+            CholeskyDecomposition a_cholesky = new CholeskyDecomposition(coeff_mat);
+            a_solver = a_cholesky.getSolver();
+            solved_amplitudes = a_solver.solve(a_vec);
+            amplitude_err = a_solver.solve(sc_mat.operate(var_vec));
+        } catch (NonPositiveDefiniteMatrixException e) {
+            solved_amplitudes = new ArrayRealVector(nPeaks, 0.0);
+            amplitude_err = new ArrayRealVector(nPeaks, Double.POSITIVE_INFINITY);
+        }
+
+        double chisq = y_vec.subtract(sc_mat.preMultiply(solved_amplitudes)).getNorm();
+
         for (int i = 0; i < times.length; i++) {
             amplitudes[i] = solved_amplitudes.getEntry(i);
             amplitudeErrors[i] = Math.sqrt(amplitude_err.getEntry(i));
         }
-        return y_vec.subtract(sc_mat.operate(solved_amplitudes)).getNorm();
+        return chisq;
     }
 
     private static double getAmplitude(double time, ChannelConstants channelConstants) {

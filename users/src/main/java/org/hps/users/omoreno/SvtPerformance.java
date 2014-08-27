@@ -310,7 +310,6 @@ public class SvtPerformance extends Driver {
         ChannelConstants constants = null;
         double clusterAmplitude, maxClusterAmplitude;
         double noise = 0;
-        double chiSquared = -1;
         double trkChiSquared = 0;
         double hitTime = 0;
         double hitX, hitY, pedestal;
@@ -353,7 +352,7 @@ public class SvtPerformance extends Driver {
                     hitsPerCluster = stripHit.rawhits().size();
                     noise = 0;
                     bad_channel = 0;
-                    chiSquared = -1;
+                    double chiSquaredProb = -1;
                     for (Object rh : stripHit.rawhits()) {
 
                         RawTrackerHit rawHit = (RawTrackerHit) rh;
@@ -388,7 +387,7 @@ public class SvtPerformance extends Driver {
                                 maxClusterAmplitude = fit.getAmp();
                             }
                             if (stripHit.rawhits().size() == 1) {
-                                chiSquared = fit.getChiSq();
+                                chiSquaredProb = fit.getChiProb();
                             }
                             noise += Math.pow(sensor.getNoise(channel), 2);
                             clusterAmplitude += fit.getAmp();
@@ -407,7 +406,7 @@ public class SvtPerformance extends Driver {
                                 performanceWriter.write(runNumber + " " + eventNumber + " 1 " + sensor.getLayerNumber() + " ");
                             }
                             performanceWriter.write(maxClusterChannel + " " + clusterAmplitude + " " + noise + " " + hitsPerCluster + " "
-                                    + bad_channel + " " + chiSquared + " " + hitX + " " + hitY + " " + trkChiSquared + " "
+                                    + bad_channel + " " + chiSquaredProb + " " + hitX + " " + hitY + " " + trkChiSquared + " "
                                     + hitTime + "\n");
                         } catch (IOException exception) {
                             exception.printStackTrace();

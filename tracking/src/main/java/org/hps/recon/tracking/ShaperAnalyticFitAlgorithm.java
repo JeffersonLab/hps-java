@@ -2,23 +2,22 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import org.apache.commons.math3.special.Gamma;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.lcsim.event.RawTrackerHit;
-//import org.lcsim.math.chisq.ChisqProb;
 
 /**
- * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants; fits values and
- * errors for T0 and amplitude.
- * 
+ * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
+ * fits values and errors for T0 and amplitude.
+ *
  * @author Sho Uemura
  */
 public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
-        short[] samples = rth.getADCValues();
-        return this.fitShape(samples, constants);
+        return this.fitShape(rth.getADCValues(), constants);
     }
 
     public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
@@ -98,10 +97,10 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
             double fit_y = A * (Math.max(0, (ti - t0)) / constants.getTp()) * Math.exp(1 - (ti - t0) / constants.getTp()) + constants.getPedestal();
             chisq += Math.pow((fit_y - samples[i]) / constants.getNoise(), 2);
         }
-        fit.setChiSq(chisq);
 
-        if (A > 0) {
+        if (A > 0 && chisq < Double.POSITIVE_INFINITY) {
             // return ChisqProb.gammp(samples.length - 2, chisq);
+            fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2, chisq));
             return chisq / (samples.length - 2);
         } else {
             return Double.POSITIVE_INFINITY;

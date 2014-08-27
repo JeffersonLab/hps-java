@@ -301,9 +301,9 @@ public class SvtQA extends Driver {
         //--- Chi Squared vs Channel ---//
         //------------------------------//
         if (enableChiSquaredvsChannel) {
-            title = sensorName + " - Chi Squared vs Channel #";
+            title = sensorName + " - Chi Squared Probability vs Channel #";
             plotters.add(PlotUtils.setupPlotter(title, 0, 0));
-            histo2D = aida.histogram2D(title, 640, 0, 639, 300, 0, 100);
+            histo2D = aida.histogram2D(title, 640, 0, 639, 300, 0, 1.0);
             histos2D.add(histo2D);
             PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 0, "Channel #", "Chi Squared", histo2D);
             plotterIndex++;
@@ -558,8 +558,8 @@ public class SvtQA extends Driver {
 
             // Fill Chi Squared vs Channel # plots
             if (enableChiSquaredvsChannel && SvtUtils.getInstance().getDescription(sensor).equals(sensorName)) {
-                title = sensorName + " - Chi Squared vs Channel #";
-                aida.histogram2D(title).fill(channel, fittedHit.getShapeFitParameters().getChiSq());
+                title = sensorName + " - Chi Squared Probability vs Channel #";
+                aida.histogram2D(title).fill(channel, fittedHit.getShapeFitParameters().getChiProb());
             }
         }
 

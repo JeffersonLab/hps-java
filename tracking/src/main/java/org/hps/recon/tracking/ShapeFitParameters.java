@@ -14,7 +14,7 @@ public class ShapeFitParameters implements GenericObject {
     private double _ampErr = Double.NaN;
 //    private double _tp = Double.NaN;
 //    private double _tpErr = Double.NaN;
-    private double _chiSq = Double.NaN;
+    private double _chiProb = Double.NaN;
 
     public ShapeFitParameters() {
     }
@@ -48,8 +48,8 @@ public class ShapeFitParameters implements GenericObject {
 //        this._tpErr = _tpErr;
 //    }
 
-    public void setChiSq(double _chiSq) {
-        this._chiSq = _chiSq;
+    public void setChiProb(double _chiProb) {
+        this._chiProb = _chiProb;
     }
 
     public double getT0() {
@@ -76,8 +76,8 @@ public class ShapeFitParameters implements GenericObject {
 //        return _tpErr;
 //    }
 
-    public double getChiSq() {
-        return _chiSq;
+    public double getChiProb() {
+        return _chiProb;
     }
 
     public static double getT0(GenericObject object) {
@@ -104,7 +104,7 @@ public class ShapeFitParameters implements GenericObject {
 //        return object.getDoubleVal(5);
 //    }
 
-    public static double getChisq(GenericObject object) {
+    public static double getChiProb(GenericObject object) {
         return object.getDoubleVal(6);
     }
 
@@ -149,9 +149,9 @@ public class ShapeFitParameters implements GenericObject {
 //            case 5:
 //                return _tpErr;
             case 4:
-                return _chiSq;
+                return _chiProb;
             default:
-                throw new UnsupportedOperationException("Only 7 double values in " + this.getClass().getSimpleName());
+                throw new UnsupportedOperationException("Only 5 double values in " + this.getClass().getSimpleName());
         }
 
     }
@@ -163,6 +163,6 @@ public class ShapeFitParameters implements GenericObject {
 
     @Override
     public String toString() {
-        return String.format("chisq=%f\tA=%f\tAerr=%f\tT0=%f\tT0err=%f", _chiSq, _amp, _ampErr, _t0, _t0Err);
+        return String.format("chiprob=%f\tA=%f\tAerr=%f\tT0=%f\tT0err=%f", _chiProb, _amp, _ampErr, _t0, _t0Err);
     }
 }

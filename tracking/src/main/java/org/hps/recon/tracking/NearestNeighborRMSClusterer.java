@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import org.apache.commons.math3.special.Gamma;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -28,7 +28,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     private double _cluster_threshold;
     private double _meanTime = 24;
     private double _timeWindow = 48;
-    private double _maxChisq = 20.0;
+    private final double _minChiProb = Gamma.regularizedGammaQ(4, 20);
 
     /**
      * Instantiate NearestNeighborRMS with specified thresholds. Seed threshold is the minimum
@@ -231,7 +231,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     }
 
     private boolean passChisqCut(FittedRawTrackerHit hit) {
-        return hit.getShapeFitParameters().getChiSq() < _maxChisq;
+        return hit.getShapeFitParameters().getChiProb() > _minChiProb;
     }
 
     public int getNeighborCell(int cell, int ncells_0, int ncells_1) {

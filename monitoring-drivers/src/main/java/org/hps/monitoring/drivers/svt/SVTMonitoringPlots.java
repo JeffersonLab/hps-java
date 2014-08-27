@@ -6,6 +6,7 @@ import hep.aida.IPlotter;
 import hep.aida.IProfile1D;
 
 import java.util.List;
+import org.apache.commons.math3.special.Gamma;
 
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.SvtUtils;
@@ -150,7 +151,7 @@ public class SVTMonitoringPlots extends Driver {
                 int layer = fit.getRawTrackerHit().getIdentifierFieldValue("layer"); // 1-10; axial layers are odd layers; stereo layers are even
                 int module = fit.getRawTrackerHit().getIdentifierFieldValue("module"); // 0-1; module number is top or bottom
                 int strip = fit.getRawTrackerHit().getIdentifierFieldValue("strip");
-                if (fit.getShapeFitParameters().getChiSq() < 5) {
+                if (fit.getShapeFitParameters().getChiProb() > Gamma.regularizedGammaQ(4, 5)) {
                     double noise = HPSSVTCalibrationConstants.getNoise((SiSensor) fit.getRawTrackerHit().getDetectorElement(), strip);
                     if (fit.getAmp() > 4 * noise) {
                         t0s[module][layer - 1].fill(strip, fit.getT0());
@@ -162,6 +163,6 @@ public class SVTMonitoringPlots extends Driver {
     }
 
     public void endOfData() {
-    	//plotterFrame.dispose();
+        //plotterFrame.dispose();
     }
 }
