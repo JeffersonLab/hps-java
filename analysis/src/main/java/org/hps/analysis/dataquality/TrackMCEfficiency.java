@@ -315,12 +315,12 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                     if (fit.getRawTrackerHit().getLayerNumber() == layer) {
                         hasFitHitSL1 = true;
                         fitSL1 = fit;
-                        System.out.println("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiSq() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
+                        System.out.println("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiProb() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
                     }
                     if (fit.getRawTrackerHit().getLayerNumber() == layer + 1) {
                         hasFitHitSL2 = true;
                         fitSL2 = fit;
-                        System.out.println("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiSq() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
+                        System.out.println("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiProb() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
 
                     }
                 }

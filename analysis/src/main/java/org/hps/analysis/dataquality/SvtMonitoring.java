@@ -25,10 +25,9 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 
 /**
- * DQM driver for the monte carlo for reconstructed track quantities
- * plots things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit);
- * each on a per/sensor basis
- * saves to DQM database: <occupancy>
+ * DQM driver for the monte carlo for reconstructed track quantities plots
+ * things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit); each
+ * on a per/sensor basis saves to DQM database: <occupancy>
  *
  * @author mgraham on Mar 28, 2014
  */
@@ -86,7 +85,7 @@ public class SvtMonitoring extends DataQualityMonitor {
             IHistogram1D occupancyPlot = createSensorPlot(plotDir + "occupancy_", sensor, maxChannels, 0, maxChannels - 1);
             IHistogram1D t0Plot = createSensorPlot(plotDir + "t0Hit_", sensor, 50, -50., 50.);
             IHistogram1D amplitudePlot = createSensorPlot(plotDir + "amplitude_", sensor, 50, 0, 2000.0);
-            IHistogram1D chi2Plot = createSensorPlot(plotDir + "chi2_", sensor, 50, 0, 25);           
+            IHistogram1D chiProbPlot = createSensorPlot(plotDir + "chiProb_", sensor, 50, 0, 1.0);
             IHistogram1D t0ClusterPlot = createSensorPlot(plotDir + "t0Cluster_", sensor, 50, -50., 50.);
             IHistogram1D dedxClusterPlot = createSensorPlot(plotDir + "electrons_", sensor, 50, 0., 10.);
             occupancyPlot.reset();
@@ -100,40 +99,40 @@ public class SvtMonitoring extends DataQualityMonitor {
     public void process(EventHeader event) {
         /*  increment the strip occupancy arrays */
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-             System.out.println("Found a raw hit collection");
+            System.out.println("Found a raw hit collection");
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
             for (RawTrackerHit hit : rawTrackerHits) {
                 int[] strips = occupancyMap.get(hit.getDetectorElement().getName());
                 strips[hit.getIdentifierFieldValue("strip")] += 1;
             }
             ++eventCountRaw;
-        } 
-        /*  fill the FittedTrackerHit related histograms */       
+        }
+        /*  fill the FittedTrackerHit related histograms */
         if (event.hasCollection(LCRelation.class, fittedTrackerHitCollectionName)) {
             List<LCRelation> fittedTrackerHits = event.get(LCRelation.class, fittedTrackerHitCollectionName);
             for (LCRelation hit : fittedTrackerHits) {
-                RawTrackerHit rth=(RawTrackerHit)hit.getFrom();
-                GenericObject pars=(GenericObject)hit.getTo();               
-                String sensorName = getNiceSensorName((SiSensor)rth.getDetectorElement());
+                RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
+                GenericObject pars = (GenericObject) hit.getTo();
+                String sensorName = getNiceSensorName((SiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
-                ShapeFitParameters sfp=new ShapeFitParameters();
+                ShapeFitParameters sfp = new ShapeFitParameters();
                 double t0 = sfp.getT0(pars);
                 double amp = sfp.getAmp(pars);
-                double chi2 = sfp.getChisq(pars);
+                double chiProb = sfp.getChiProb(pars);
                 getSensorPlot(plotDir + "t0Hit_", sensorName).fill(t0);
                 getSensorPlot(plotDir + "amplitude_", sensorName).fill(amp);
-                getSensorPlot(plotDir + "chi2_", sensorName).fill(chi2);
+                getSensorPlot(plotDir + "chiProb_", sensorName).fill(chiProb);
             }
             ++eventCountFit;
         }
-        
+
         if (event.hasItem(trackerHitCollectionName)) {
             System.out.println("Found a Si cluster collection");
-            List<TrackerHit> siClusters =  (List<TrackerHit>)event.get(trackerHitCollectionName);
+            List<TrackerHit> siClusters = (List<TrackerHit>) event.get(trackerHitCollectionName);
             for (TrackerHit cluster : siClusters) {
-                String sensorName = getNiceSensorName((SiSensor)((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
+                String sensorName = getNiceSensorName((SiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
                 double t0 = cluster.getTime();
-                double dedx = cluster.getdEdx()*1e6;
+                double dedx = cluster.getdEdx() * 1e6;
 //                System.out.println("dedx = "+dedx);
                 getSensorPlot(plotDir + "t0Cluster_", sensorName).fill(t0);
                 getSensorPlot(plotDir + "electrons_", sensorName).fill(dedx);
@@ -142,7 +141,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     }
 
     private IHistogram1D getSensorPlot(String prefix, SiSensor sensor) {
-        String hname=prefix+getNiceSensorName(sensor);
+        String hname = prefix + getNiceSensorName(sensor);
         return aida.histogram1D(hname);
     }
 
@@ -151,13 +150,13 @@ public class SvtMonitoring extends DataQualityMonitor {
     }
 
     private IHistogram1D createSensorPlot(String prefix, SiSensor sensor, int nchan, double min, double max) {
-        String hname=prefix+getNiceSensorName(sensor);
+        String hname = prefix + getNiceSensorName(sensor);
         IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
         hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
                 .replace("module", "mod")
                 .replace("layer", "lyr")
                 .replace("sensor", "sens"));
-       
+
         return hist;
     }
 
@@ -208,8 +207,9 @@ public class SvtMonitoring extends DataQualityMonitor {
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
                 double stripOccupancy = (double) strips[i] / (double) (eventCountRaw);
-                if (stripOccupancy != 0)
+                if (stripOccupancy != 0) {
                     sensorHist.fill(i, stripOccupancy);
+                }
                 avg += stripOccupancy;
             }
             //do the end-of-run quantities here too since we've already done the loop.  
