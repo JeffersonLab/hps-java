@@ -16,7 +16,7 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.RawTrackerHit;
 
 /**
- * 
+ *
  * @author Matt Graham
  */
 // TODO: Add class documentation.
@@ -31,11 +31,12 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     private final double _minChiProb = Gamma.regularizedGammaQ(4, 20);
 
     /**
-     * Instantiate NearestNeighborRMS with specified thresholds. Seed threshold is the minimum
-     * charge to initiate a cluster. Neighbor threshold is the minimum charge to add a neighboring
-     * cell to a cluster. Cluster threshold is minimum charge of the entire cluster. All thresholds
-     * are in units of RMS noise of the channel(s).
-     * 
+     * Instantiate NearestNeighborRMS with specified thresholds. Seed threshold
+     * is the minimum charge to initiate a cluster. Neighbor threshold is the
+     * minimum charge to add a neighboring cell to a cluster. Cluster threshold
+     * is minimum charge of the entire cluster. All thresholds are in units of
+     * RMS noise of the channel(s).
+     *
      * @param seed_threshold seed threshold
      * @param neighbor_threshold neighbor threshold
      * @param cluster_threshold cluster threshold
@@ -48,9 +49,9 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     /**
      * Instantiate NearestNeighborRMS with default thresholds:
-     * 
-     * seed_threshold = 4*RMS noise neighbor_threshold = 3*RMS noise cluster_threshold = 4*RMS
-     * noise
+     *
+     * seed_threshold = 4*RMS noise neighbor_threshold = 3*RMS noise
+     * cluster_threshold = 4*RMS noise
      */
     public NearestNeighborRMSClusterer() {
         this(4.0, 3.0, 4.0);
@@ -58,7 +59,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     /**
      * Set the seed threshold. Units are RMS noise.
-     * 
+     *
      * @param seed_threshold seed threshold
      */
     public void setSeedThreshold(double seed_threshold) {
@@ -67,7 +68,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     /**
      * Set the neighbor threshold. Units are RMS noise.
-     * 
+     *
      * @param neighbor_threshold neighbor threshold
      */
     public void setNeighborThreshold(double neighbor_threshold) {
@@ -76,7 +77,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     /**
      * Set the cluster threshold. Units are RMS noise.
-     * 
+     *
      * @param cluster_threshold cluster threshold
      */
     public void setClusterThreshold(double cluster_threshold) {
@@ -85,7 +86,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     /**
      * Find clusters using the nearest neighbor algorithm.
-     * 
+     *
      * @param base_hits List of RawTrackerHits to be clustered
      * @return list of clusters, with a cluster being a list of RawTrackerHits
      */
@@ -126,7 +127,12 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             // Check for duplicate RawTrackerHits or channel numbers
             if (channel_to_hit.containsKey(channel_number)) {
                 // throw new RuntimeException("Duplicate channel number: "+channel_number);
-                System.out.println("Duplicate channel number: " + channel_number);
+//                System.out.println("Duplicate channel number: " + channel_number);
+                //if the hit currently in the map has smaller time, use it and discard the new hit
+                //TODO: be smarter about this
+                if (Math.abs(((FittedRawTrackerHit) channel_to_hit.get(channel_number)).getT0()) < Math.abs(base_hit.getT0())) {
+                    continue;
+                }
             }
 
             // Add this hit to the maps that relate channels and hits
