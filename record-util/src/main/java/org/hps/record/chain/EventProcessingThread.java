@@ -1,4 +1,4 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 /**
  * Thread for running the event processing chain.
@@ -19,7 +19,7 @@ public final class EventProcessingThread extends Thread {
     @Override
     public void run() {
         try {
-            processing.loop();
+            processing.run();
         } catch (Exception e) {
             throw new RuntimeException("Error in event processing.", e);
         } 

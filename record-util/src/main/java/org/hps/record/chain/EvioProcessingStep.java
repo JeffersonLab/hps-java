@@ -1,4 +1,4 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 import static org.freehep.record.loop.RecordLoop.Command.NEXT;
 
@@ -8,6 +8,7 @@ import java.nio.BufferUnderflowException;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.EventConstants;
+import org.hps.record.DataSourceType;
 import org.hps.record.composite.CompositeRecord;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.evio.EvioEventLoop;

@@ -1,7 +1,8 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 import static org.freehep.record.loop.RecordLoop.Command.NEXT;
 
+import org.freehep.record.loop.RecordLoop;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.LCSimEventBuilder;
@@ -92,6 +93,9 @@ class LcioProcessingStep extends CompositeRecordProcessor {
             throw new NoSuchRecordException("No next LCIO event.");
         
         // Load the next LCIO event, triggering Driver process methods.
+        //System.out.println("LcioProcessingStep loop state: " + loop.getState().toString());
+        if (!loop.getState().equals(RecordLoop.State.READY) && !loop.getState().equals(RecordLoop.State.IDLE))
+            System.out.println("LcioProcessingStep bad loop state: " + loop.getState().toString());
         loop.execute(NEXT);
             
         // Is there a current record?

@@ -1,4 +1,4 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 import static org.freehep.record.loop.RecordLoop.Command.NEXT;
 

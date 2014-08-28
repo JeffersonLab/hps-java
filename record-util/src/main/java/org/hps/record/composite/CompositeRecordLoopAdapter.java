@@ -7,6 +7,7 @@ import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
+import org.hps.record.EventProcessingException;
 
 /**
  * Adapter for listening on the {@link CompositeRecordLoop} for records and loop events.
@@ -20,6 +21,7 @@ public final class CompositeRecordLoopAdapter extends AbstractLoopListener imple
      * @param loopEvent 
      */
     public void finish(LoopEvent loopEvent) {
+        System.out.println("CompositeRecordLoopAdapter.finish");
         for (CompositeRecordProcessor processor : processors) {
             // Call end job hook on all registered processors, which are 
             // responsible for sending the stop command to their loops.
@@ -51,6 +53,7 @@ public final class CompositeRecordLoopAdapter extends AbstractLoopListener imple
      * @param loopEvent
      */
     public void suspend(LoopEvent loopEvent) { 
+        System.out.println("CompositeRecordLoopAdapter.suspend");
         //if (loopEvent.getException() != null) {
         //    throw new RuntimeException("Error in event processing.", loopEvent.getException());
         //}
@@ -66,7 +69,7 @@ public final class CompositeRecordLoopAdapter extends AbstractLoopListener imple
             try {
                 processor.processEvent((CompositeRecord) record.getRecord());
             } catch (Exception e) {                
-                throw new RuntimeException("Error processing CompositeRecord.", e);
+                throw new EventProcessingException("Error processing CompositeRecord.", e);
             }
         }
     }    

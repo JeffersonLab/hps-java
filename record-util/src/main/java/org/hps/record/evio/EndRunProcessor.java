@@ -1,6 +1,7 @@
-package org.hps.record;
+package org.hps.record.evio;
 
 import org.hps.evio.EventConstants;
+import org.hps.record.EndRunException;
 import org.hps.record.composite.CompositeRecord;
 import org.hps.record.composite.CompositeRecordProcessor;
 

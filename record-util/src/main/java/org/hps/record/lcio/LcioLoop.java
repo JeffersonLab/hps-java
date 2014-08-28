@@ -9,13 +9,21 @@ import org.lcsim.util.loop.LCSimLoop;
 public final class LcioLoop extends LCSimLoop {
 
     protected void handleClientError(Throwable x) {
-        if (x != null) {
+        System.out.println("LcioLoop.handleClientError");
+        System.out.println("  initial loop state: " + this.getState().toString());
+        if (x != null) {            
+            this.execute(Command.STOP);
+            System.out.println("  loop state after stop: " + this.getState().toString());
             throw new RuntimeException(x);
         }
     }
 
     protected void handleSourceError(Throwable x) {
+        System.out.println("LcioLoop.handleSourceError");
+        System.out.println("  initial loop state: " + this.getState().toString());
         if (x != null) {
+            this.execute(Command.STOP);
+            System.out.println("  loop state after stop: " + this.getState().toString());
             throw new RuntimeException(x);
         }
     }

@@ -1,6 +1,9 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 import org.hps.evio.LCSimTestRunEventBuilder;
+import org.hps.record.DataSourceType;
+import org.hps.record.chain.EventProcessingChain;
+import org.hps.record.chain.EventProcessingConfiguration;
 import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
@@ -22,7 +25,7 @@ public class EvioEventProcessingTest {
         config.add(new DummyEvioProcessor());
         config.add(new DummyDriver());
         EventProcessingChain processing = new EventProcessingChain(config);
-        processing.loop();
+        processing.run();
     }
         
     static class DummyDriver extends Driver {

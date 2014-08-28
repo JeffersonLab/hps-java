@@ -1,4 +1,4 @@
-package org.hps.record;
+package org.hps.record.chain;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,12 +6,15 @@ import java.io.IOException;
 import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.LoopListener;
+import org.freehep.record.loop.RecordLoop;
 import org.freehep.record.loop.RecordLoop.Command;
+import org.hps.record.DataSourceType;
 import org.hps.record.composite.CompositeRecordLoop;
 import org.hps.record.composite.CompositeRecordLoopAdapter;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.etevent.EtEventProcessor;
 import org.hps.record.etevent.EtEventSource;
+import org.hps.record.evio.EndRunProcessor;
 import org.hps.record.evio.EvioEventProcessor;
 import org.hps.record.evio.EvioEventQueue;
 import org.hps.record.evio.EvioFileSource;
@@ -201,33 +204,43 @@ public class EventProcessingChain extends AbstractLoopListener {
     /**
      * Loop over events until processing ends for some reason.
      */
-    public void loop() {
+    public void run() {
         // Keep looping until the event processing is flagged as done.
-        while (!done) {
-            // Go into loop mode if the system is not paused.
+        while (true) {
+            // Is the processing unpaused?
             if (!paused) {
                 try {
+                    // Put the RecordLoop into looping mode and process records until exception occurs.
+                    System.out.println("loop state: " + compositeLoop.getState().toString());
                     compositeLoop.execute(Command.GO, true);
-                } catch (Exception exception) {
+                } catch (Exception exception) { 
+                    // Handle an "error" which might really just be control flow ("end of run" etc.).
                     setLastError(exception);
-                } 
-                
-                // When an exception occurs, which can sometimes just be control flow,
-                // the event processing should stop.
-                if (lastError != null) {
-                    if (!done) {
-                        // Call finish manually here as the loop was suspended.                        
-                        finish();
-                    }
-                } 
+                    done = true;
+                }               
+                if (done)
+                    break;
             }
         }
     }
-        
+    
+    public void stop() {
+        compositeLoop.execute(Command.STOP);
+        done = true;
+    }
+     
+    /**
+     * Set the last error that occurred during processing.
+     * @param error The last error that occurred.
+     */
     void setLastError(Throwable error) {
         this.lastError = error;
     }
     
+    /**
+     * Get the last error that occurred.
+     * @return The last error that occurred.
+     */
     public Throwable getLastError() {
         return lastError;
     }
@@ -239,22 +252,7 @@ public class EventProcessingChain extends AbstractLoopListener {
         compositeLoop.execute(Command.PAUSE);
         paused = true;
     }
-        
-    /**
-     * Finish the event processing.
-     */
-    public void finish() {
-        compositeLoop.execute(Command.STOP);
-        
-        // FIXME: Ugly hack because Command.STOP doesn't activate the finish() method
-        // on the CompositeRecordLoopAdapter when errors occur.
-        for (LoopListener listener : compositeLoop.getLoopListeners()) {
-            if (listener instanceof CompositeRecordLoopAdapter)
-                ((CompositeRecordLoopAdapter)listener).finish(null);
-        }
-        done = true;
-    }    
-        
+                  
     /**
      * Get the next event e.g. while in pause mode.
      */
