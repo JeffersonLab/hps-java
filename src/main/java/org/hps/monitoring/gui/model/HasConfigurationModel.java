@@ -4,6 +4,7 @@ package org.hps.monitoring.gui.model;
  * Mixin interface for classes that have an associated {@link ConfigurationModel}.
  */
 public interface HasConfigurationModel {    
+    
     /**
      * Set the ConfigurationModel of the object.
      * @param configurationModel The ConfigurationModel.

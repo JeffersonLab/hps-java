@@ -51,7 +51,7 @@ public abstract class AbstractModel {
                 if (value != null) {
                     firePropertyChange(property, value, value);                    
                     for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
-                        // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!!!                        
+                        // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!!!
                         listener.propertyChange(new PropertyChangeEvent(this, property, value, value));
                     }
                 }

@@ -5,7 +5,8 @@
 AutoSaveAida=true
 AidaFileName=monitoringPlots.aida
 DetectorName=HPS-TestRun-v5
-DisconnectOnError=true
+DisconnectOnError=false
+DisconnectOnEndRun=true
 EventBuilderClassName=org.hps.evio.LCSimTestRunEventBuilder
 #LogFileName=
 LogLevel=ALL

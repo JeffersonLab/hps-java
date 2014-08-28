@@ -7,6 +7,7 @@ package org.hps.monitoring.gui;
 final class Commands {
            
     static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
+    static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
     static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
     static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";
     static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
