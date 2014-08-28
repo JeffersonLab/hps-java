@@ -24,6 +24,7 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";   
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
+    public static final String DISCONNECT_ON_END_RUN_PROPERTY = "DisconnectOnEndRun";    
     public static final String EVENT_BUILDER_PROPERTY = "EventBuilderClassName";
     public static final String LOG_FILE_NAME_PROPERTY = "LogFileName";
     public static final String LOG_LEVEL_PROPERTY = "LogLevel";
@@ -57,6 +58,7 @@ public final class ConfigurationModel extends AbstractModel {
             AIDA_FILE_NAME_PROPERTY,
             DETECTOR_NAME_PROPERTY,
             DISCONNECT_ON_ERROR_PROPERTY,
+            DISCONNECT_ON_END_RUN_PROPERTY,
             EVENT_BUILDER_PROPERTY,
             LOG_FILE_NAME_PROPERTY,
             LOG_LEVEL_PROPERTY,
@@ -210,7 +212,17 @@ public final class ConfigurationModel extends AbstractModel {
         boolean oldValue = getDisconnectOnError();
         config.set(DISCONNECT_ON_ERROR_PROPERTY, disconnectOnError);
         firePropertyChange(DISCONNECT_ON_ERROR_PROPERTY, oldValue, getDisconnectOnError());
-    }        
+    }     
+    
+    public boolean getDisconnectOnEndRun() {
+        return config.getBoolean(DISCONNECT_ON_END_RUN_PROPERTY);
+    }
+    
+    public void setDisconnectOnEndRun(boolean disconnectOnEndRun) {
+        boolean oldValue = getDisconnectOnEndRun();
+        config.set(DISCONNECT_ON_END_RUN_PROPERTY, disconnectOnEndRun);
+        firePropertyChange(DISCONNECT_ON_END_RUN_PROPERTY, oldValue, getDisconnectOnEndRun());
+    }
           
     public DataSourceType getDataSourceType() {
         return DataSourceType.valueOf(config.get(DATA_SOURCE_TYPE_PROPERTY));

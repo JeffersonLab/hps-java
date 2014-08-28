@@ -1161,13 +1161,15 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         
         EventProcessingConfiguration configuration = new EventProcessingConfiguration();
         
-        configuration.setStopOnEndRun(true);
+        configuration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());        
+        // FIXME: This doesn't work properly in the event processing chain right now so hard code to true
+        //        until that is fixed.  (Need to talk with Dima about it.)
+        //configurationModel.getDisconnectOnError();
         configuration.setStopOnErrors(true);
          
         configuration.setDataSourceType(configurationModel.getDataSourceType());
         configuration.setEtConnection(connection);        
         configuration.setFilePath(configurationModel.getDataSourcePath());
-        System.out.println("dataSourcePath: " + configurationModel.getDataSourcePath());
         configuration.setLCSimEventBuild(eventBuilder);
         configuration.setDetectorName(configurationModel.getDetectorName());                
                

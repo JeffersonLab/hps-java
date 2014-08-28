@@ -37,17 +37,16 @@ import org.jdom.input.SAXBuilder;
  * This is the GUI panel for setting job parameters.  It is connected to the global configuration via 
  * a {@link org.hps.monitoring.model.ConfigurationModel} object.
  */
-// TODO: Add validity checks for event builder, lcsim steering files, etc. when edited and revert to old
-//       values if invalid.
+// TODO: Add validity checks for event builder, lcsim steering files, etc. 
+//       and revert to old values if new values are invalid.
 //       http://docs.oracle.com/javase/7/docs/api/javax/swing/JFormattedTextField.html
-// TODO: Remove default values in components.  These should all come from the default configuration.
-// TODO: Double check that all settings to and from the configuration are working properly.
 class JobSettingsPanel extends AbstractFieldsPanel {
 
     private JTextField aidaSaveFileNameField;
     private JCheckBox aidaAutoSaveCheckbox;
     private JTextField detectorNameField;
     private JCheckBox disconnectOnErrorCheckBox;
+    private JCheckBox disconnectOnEndRunCheckBox;
     private JTextField eventBuilderField;
     private JTextField logFileNameField;
     private JComboBox<?> logLevelComboBox;
@@ -62,7 +61,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     // FIXME: This should be in the default global config file rather than hard-coded here.
     static final String DEFAULT_EVENT_BUILDER_CLASS_NAME = "org.hps.evio.LCSimTestRunEventBuilder";
             
-    // This will connect this GUI component to the underlying global configuration.
+    // This will connect the GUI component to the underlying global configuration model.
     ConfigurationModel configurationModel;
                 
     // The available LogLevel settings as an array of strings.     
@@ -89,6 +88,10 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
         disconnectOnErrorCheckBox.setActionCommand(DISCONNECT_ON_ERROR_CHANGED);
         disconnectOnErrorCheckBox.addActionListener(this);
+        
+        disconnectOnEndRunCheckBox = addCheckBox("Disconnect on end run", false, true);
+        disconnectOnEndRunCheckBox.setActionCommand(DISCONNECT_ON_END_RUN_CHANGED);
+        disconnectOnEndRunCheckBox.addActionListener(this);
         
         logLevelComboBox = addComboBox("Log Level", LOG_LEVELS);               
         logLevelComboBox.setActionCommand(Commands.LOG_LEVEL_CHANGED);
@@ -227,7 +230,133 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             throw new IOException("Not an LCSim XML file.");
         }
     }
-         
+                                              
+    /**
+     * Get the files with extension "lcsim" from all loaded jar files.
+     * @return A list of embedded steering file resources.
+     */
+    public static String[] getAvailableSteeringFileResources(String packageName) {
+        List<String> resources = new ArrayList<String>();
+        URL url = JobSettingsPanel.class.getResource("MonitoringApplication.class");
+        String scheme = url.getProtocol();
+        if (!"jar".equals(scheme)) {
+            throw new IllegalArgumentException("Unsupported scheme.  Only jar is allowed.");
+        }
+        try {
+            JarURLConnection con = (JarURLConnection) url.openConnection();
+            JarFile archive = con.getJarFile();
+            Enumeration<JarEntry> entries = archive.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
+                    resources.add(entry.getName());
+                }
+            }
+            archive.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }        
+        java.util.Collections.sort(resources);
+        String[] arr = new String[resources.size()];
+        for (int i=0; i<arr.length; i++) {
+            arr[i] = resources.get(i);
+        }
+        return arr;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {               
+        if (e.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
+            this.chooseSteeringFile();
+        } else if (DISCONNECT_ON_ERROR_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setDisconnectOnError(disconnectOnErrorCheckBox.isSelected());
+        } else if (DISCONNECT_ON_END_RUN_CHANGED.equals(e.getActionCommand())) { 
+            configurationModel.setDisconnectOnEndRun(disconnectOnEndRunCheckBox.isSelected());
+        } else if (STEERING_TYPE_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setSteeringType(SteeringType.valueOf((String) steeringTypeComboBox.getSelectedItem())); 
+        } else if (STEERING_RESOURCE_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setSteeringResource((String) steeringResourcesComboBox.getSelectedItem());
+        } else if (LOG_TO_FILE_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setLogToFile(logToFileCheckbox.isSelected());
+        } else if (LOG_LEVEL_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setLogLevel(Level.parse((String) logLevelComboBox.getSelectedItem()));
+        } else if (AIDA_AUTO_SAVE_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
+        }
+    }
+
+    /**
+     * Updates the configuration with changes from the GUI component values.
+     * The changes from the GUI are distinguishable by their component object.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+
+        // FIXME: Anyway to make sure this is not needed?
+        if (evt.getPropertyName().equals("ancestor"))
+            return;
+
+        Object source = evt.getSource();
+
+        if (source == detectorNameField) {
+            configurationModel.setDetectorName(detectorNameField.getText());
+        } else if (source == eventBuilderField) {
+            configurationModel.setEventBuilderClassName(eventBuilderField.getText());
+        } else if (source == steeringFileField) {
+            configurationModel.setSteeringFile(steeringFileField.getText());
+        } else if (source == logFileNameField) {
+            configurationModel.setLogFileName(logFileNameField.getText());
+        } else if (source == aidaSaveFileNameField) {
+            configurationModel.setAidaFileName(aidaSaveFileNameField.getText());
+        } else if (source == aidaAutoSaveCheckbox) {
+            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
+        }
+    }
+    
+    /**
+     * Update the GUI from changes in the underlying configuration.
+     * The changes from the configuration are distinguishable by their 
+     * property name.
+     */
+    public class JobSettingsChangeListener implements PropertyChangeListener {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            
+            // FIXME: Anyway to make sure this is not needed?
+            if (evt.getPropertyName().equals("ancestor"))
+                return;
+                                              
+            Object value = evt.getNewValue();
+            
+            if (evt.getPropertyName().equals(DETECTOR_NAME_PROPERTY)) {
+                detectorNameField.setText((String) value); 
+            } if (evt.getPropertyName().equals(AIDA_AUTO_SAVE_PROPERTY)) {
+                aidaAutoSaveCheckbox.setSelected((Boolean) value);
+            } if (evt.getPropertyName().equals(AIDA_FILE_NAME_PROPERTY)) {
+                aidaSaveFileNameField.setText((String) value);
+            } if (evt.getPropertyName().equals(DISCONNECT_ON_ERROR_PROPERTY)) {
+                disconnectOnErrorCheckBox.setSelected((Boolean) value);
+            } if (evt.getPropertyName().equals(DISCONNECT_ON_END_RUN_PROPERTY)) {
+                disconnectOnEndRunCheckBox.setSelected((Boolean) value);
+            } if (evt.getPropertyName().equals(EVENT_BUILDER_PROPERTY)) {
+                eventBuilderField.setText((String) value);                
+            } if (evt.getPropertyName().equals(LOG_FILE_NAME_PROPERTY)) {
+                logFileNameField.setText((String) value);                
+            } if (evt.getPropertyName().equals(LOG_LEVEL_PROPERTY)) {
+                logLevelComboBox.setSelectedItem(value.toString());
+            } if (evt.getPropertyName().equals(LOG_TO_FILE_PROPERTY)) {
+                logToFileCheckbox.setSelected((Boolean) value);
+            } if (evt.getPropertyName().equals(STEERING_TYPE_PROPERTY)) {
+                steeringTypeComboBox.setSelectedIndex(((SteeringType)value).ordinal());
+            } if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
+                steeringFileField.setText(((File) value).getPath());
+            } if (evt.getPropertyName().equals(STEERING_RESOURCE_PROPERTY)) {
+                steeringResourcesComboBox.setSelectedItem(value);
+            }                                          
+        }
+    }   
+    
     /**
      * Setup the event builder from the field setting.
      * @return True if builder is setup successfully; false if not.
@@ -274,131 +403,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         });
     }
     */
-                                     
-    /**
-     * Get the files with extension "lcsim" from all loaded jar files.
-     * @return A list of embedded steering file resources.
-     */
-    public static String[] getAvailableSteeringFileResources(String packageName) {
-        List<String> resources = new ArrayList<String>();
-        URL url = JobSettingsPanel.class.getResource("MonitoringApplication.class");
-        String scheme = url.getProtocol();
-        if (!"jar".equals(scheme)) {
-            throw new IllegalArgumentException("Unsupported scheme.  Only jar is allowed.");
-        }
-        try {
-            JarURLConnection con = (JarURLConnection) url.openConnection();
-            JarFile archive = con.getJarFile();
-            Enumeration<JarEntry> entries = archive.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
-                    resources.add(entry.getName());
-                }
-            }
-            archive.close();
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }        
-        java.util.Collections.sort(resources);
-        String[] arr = new String[resources.size()];
-        for (int i=0; i<arr.length; i++) {
-            arr[i] = resources.get(i);
-        }
-        return arr;
-    }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {               
-        if (e.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
-            this.chooseSteeringFile();
-        } else if (DISCONNECT_ON_ERROR_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setDisconnectOnError(disconnectOnErrorCheckBox.isSelected());
-        } else if (STEERING_TYPE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setSteeringType(SteeringType.valueOf((String) steeringTypeComboBox.getSelectedItem())); 
-        } else if (STEERING_RESOURCE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setSteeringResource((String) steeringResourcesComboBox.getSelectedItem());
-        } else if (LOG_TO_FILE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setLogToFile(logToFileCheckbox.isSelected());
-        } else if (LOG_LEVEL_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setLogLevel(Level.parse((String) logLevelComboBox.getSelectedItem()));
-        } else if (AIDA_AUTO_SAVE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
-        }
-    }
-
-    /**
-     * Updates the configuration with changes from the GUI component values.
-     * The changes from the GUI are distinguishable by their component object.
-     */
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-
-        // FIXME: Anyway to make sure this is not needed?
-        if (evt.getPropertyName().equals("ancestor"))
-            return;
-
-        Object source = evt.getSource();
-
-        if (source == detectorNameField) {
-            configurationModel.setDetectorName(detectorNameField.getText());
-        } else if (source == eventBuilderField) {
-            configurationModel.setEventBuilderClassName(eventBuilderField.getText());
-        } else if (source == steeringFileField) {
-            configurationModel.setSteeringFile(steeringFileField.getText());
-        } else if (source == logFileNameField) {
-            configurationModel.setLogFileName(logFileNameField.getText());
-        } else if (source == aidaSaveFileNameField) {
-            configurationModel.setAidaFileName(aidaSaveFileNameField.getText());
-        } /* TODO */ else if (source == aidaAutoSaveCheckbox) {
-            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
-        }
-    }
     
-    /**
-     * Update the GUI from changes in the underlying configuration.
-     * The changes from the configuration are distinguishable by their 
-     * property name.
-     */
-    public class JobSettingsChangeListener implements PropertyChangeListener {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-            
-            if (evt.getPropertyName().equals("ancestor"))
-                return;
-            
-            //System.out.println("JobSettingsChangeListener.propertyChange");
-            //System.out.println("  prop name: " + evt.getPropertyName());
-            //System.out.println("  new val: " + evt.getNewValue());
-            //System.out.println("  old val: " + evt.getOldValue());
-            //System.out.println("  src: " + evt.getSource().getClass().getCanonicalName());
-                        
-            Object value = evt.getNewValue();
-            
-            if (evt.getPropertyName().equals(DETECTOR_NAME_PROPERTY)) {
-                detectorNameField.setText((String) value); 
-            } if (evt.getPropertyName().equals(AIDA_AUTO_SAVE_PROPERTY)) {
-                aidaAutoSaveCheckbox.setSelected((Boolean) value);
-            } if (evt.getPropertyName().equals(AIDA_FILE_NAME_PROPERTY)) {
-                aidaSaveFileNameField.setText((String) value);
-            } if (evt.getPropertyName().equals(DISCONNECT_ON_ERROR_PROPERTY)) {
-                disconnectOnErrorCheckBox.setSelected((Boolean) value);
-            } if (evt.getPropertyName().equals(EVENT_BUILDER_PROPERTY)) {
-                eventBuilderField.setText((String) value);                
-            } if (evt.getPropertyName().equals(LOG_FILE_NAME_PROPERTY)) {
-                logFileNameField.setText((String) value);                
-            } if (evt.getPropertyName().equals(LOG_LEVEL_PROPERTY)) {
-                logLevelComboBox.setSelectedItem(value.toString());
-            } if (evt.getPropertyName().equals(LOG_TO_FILE_PROPERTY)) {
-                logToFileCheckbox.setSelected((Boolean) value);
-            } if (evt.getPropertyName().equals(STEERING_TYPE_PROPERTY)) {
-                steeringTypeComboBox.setSelectedIndex(((SteeringType)value).ordinal());
-            } if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
-                steeringFileField.setText(((File) value).getPath());
-            } if (evt.getPropertyName().equals(STEERING_RESOURCE_PROPERTY)) {
-                steeringResourcesComboBox.setSelectedItem(value);
-            }                                          
-        }
-    }   
 }
