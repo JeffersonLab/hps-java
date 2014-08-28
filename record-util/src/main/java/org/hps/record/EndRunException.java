@@ -7,7 +7,16 @@ import java.io.IOException;
  */
 // TODO: Add run number to this class.
 public class EndRunException extends IOException {
-    public EndRunException(String message) {
+    
+    int runNumber;
+    
+    public EndRunException(String message, int runNumber) {
         super(message);
+        this.runNumber = runNumber;
     }
+    
+    public int getRunNumber() {
+        return runNumber;
+    }
+    
 }

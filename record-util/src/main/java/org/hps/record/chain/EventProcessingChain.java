@@ -5,12 +5,10 @@ import java.io.IOException;
 
 import org.freehep.record.loop.AbstractLoopListener;
 import org.freehep.record.loop.LoopEvent;
-import org.freehep.record.loop.LoopListener;
-import org.freehep.record.loop.RecordLoop;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.record.DataSourceType;
+import org.hps.record.chain.EventProcessingConfiguration.ProcessingStage;
 import org.hps.record.composite.CompositeRecordLoop;
-import org.hps.record.composite.CompositeRecordLoopAdapter;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.etevent.EtEventProcessor;
 import org.hps.record.etevent.EtEventSource;
@@ -37,16 +35,7 @@ import org.lcsim.util.loop.LCIOEventSource;
  * record types, in order to plot, update a GUI component, or analyze the events.
  */
 public class EventProcessingChain extends AbstractLoopListener {
-             
-    /**
-     * Processing stages to execute.
-     */
-    public enum ProcessingStage {
-        ET,
-        EVIO,
-        LCIO
-    }
-    
+                    
     protected int totalEventsProcessed;
     protected Throwable lastError;
     protected boolean done;

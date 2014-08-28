@@ -6,7 +6,6 @@ import java.util.List;
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.LCSimEventBuilder;
 import org.hps.record.DataSourceType;
-import org.hps.record.chain.EventProcessingChain.ProcessingStage;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.etevent.EtConnection;
 import org.hps.record.etevent.EtEventProcessor;
@@ -23,7 +22,16 @@ public class EventProcessingConfiguration {
         
     boolean stopOnErrors = true;
     boolean stopOnEndRun = true;
-
+    
+    /**
+     * Processing stages to execute.
+     */
+    public enum ProcessingStage {
+        ET,
+        EVIO,
+        LCIO
+    }
+    
     DataSourceType sourceType = DataSourceType.ET_SERVER;
     ProcessingStage processingStage = ProcessingStage.LCIO;
     

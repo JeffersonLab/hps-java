@@ -17,6 +17,9 @@ public class EndRunProcessor extends CompositeRecordProcessor {
     public void processEvent(CompositeRecord event) throws EndRunException {
         if (event.getEvioEvent() != null)
             if (EventConstants.isEndEvent(event.getEvioEvent()))
-                throw new EndRunException("EVIO end event received.");
+                throw new EndRunException(
+                        "EVIO end run event received.",
+                        event.getEvioEvent().getIntData()[1]); // FIXME: Is this right?
+
     }
 }
