@@ -189,7 +189,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 fileName = fileName + ".aida";
             }
             final String finalFileName = fileName;
-            configurationModel.setAutoSaveAida(true);
+            configurationModel.setAidaAutoSave(true);
             configurationModel.setAidaFileName(finalFileName);                       
         }
     }
@@ -310,7 +310,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {               
         if (e.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
             this.chooseSteeringFile();
         } else if (DISCONNECT_ON_ERROR_CHANGED.equals(e.getActionCommand())) {
@@ -324,7 +324,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         } else if (LOG_LEVEL_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setLogLevel(Level.parse((String) logLevelComboBox.getSelectedItem()));
         } else if (AIDA_AUTO_SAVE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setAutoSaveAida(aidaAutoSaveCheckbox.isSelected());
+            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
         }
     }
 
@@ -352,7 +352,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         } else if (source == aidaSaveFileNameField) {
             configurationModel.setAidaFileName(aidaSaveFileNameField.getText());
         } /* TODO */ else if (source == aidaAutoSaveCheckbox) {
-            configurationModel.setAutoSaveAida(aidaAutoSaveCheckbox.isSelected());
+            configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
         }
     }
     
@@ -367,6 +367,12 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             
             if (evt.getPropertyName().equals("ancestor"))
                 return;
+            
+            //System.out.println("JobSettingsChangeListener.propertyChange");
+            //System.out.println("  prop name: " + evt.getPropertyName());
+            //System.out.println("  new val: " + evt.getNewValue());
+            //System.out.println("  old val: " + evt.getOldValue());
+            //System.out.println("  src: " + evt.getSource().getClass().getCanonicalName());
                         
             Object value = evt.getNewValue();
             
@@ -389,7 +395,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             } if (evt.getPropertyName().equals(STEERING_TYPE_PROPERTY)) {
                 steeringTypeComboBox.setSelectedIndex(((SteeringType)value).ordinal());
             } if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
-                steeringFileField.setText((String) value);
+                steeringFileField.setText(((File) value).getPath());
             } if (evt.getPropertyName().equals(STEERING_RESOURCE_PROPERTY)) {
                 steeringResourcesComboBox.setSelectedItem(value);
             }                                          
