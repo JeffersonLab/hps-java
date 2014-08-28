@@ -186,7 +186,7 @@ public final class ConfigurationModel extends AbstractModel {
         return config.equals(AIDA_AUTO_SAVE_PROPERTY);
     }
     
-    public void setAutoSaveAida(boolean aidaAutoSave) {
+    public void setAidaAutoSave(boolean aidaAutoSave) {
         boolean oldValue = getAidaAutoSave();
         config.set(AIDA_AUTO_SAVE_PROPERTY, aidaAutoSave);
         firePropertyChange(AIDA_AUTO_SAVE_PROPERTY, oldValue, aidaAutoSave);
