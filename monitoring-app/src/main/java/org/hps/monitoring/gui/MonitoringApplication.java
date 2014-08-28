@@ -78,9 +78,9 @@ import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.DataSourceType;
-import org.hps.record.EventProcessingChain;
-import org.hps.record.EventProcessingConfiguration;
-import org.hps.record.EventProcessingThread;
+import org.hps.record.chain.EventProcessingChain;
+import org.hps.record.chain.EventProcessingConfiguration;
+import org.hps.record.chain.EventProcessingThread;
 import org.hps.record.etevent.EtConnection;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
@@ -121,7 +121,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
 
     // ET connection parameters and state.
     private EtConnection connection;
-    private ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
+    //private ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
 
     // Event processing objects.
     private JobControlManager jobManager;
@@ -561,7 +561,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * @param status The connection status.
      */
     private void setConnectionStatus(ConnectionStatus status) {
-        connectionStatus = status;
+        //connectionStatus = status;
         connectionStatusPanel.setConnectionStatus(status);
         log(Level.FINE, "Connection status changed to <" + status.name() + ">");
         logHandler.flush();
@@ -1345,7 +1345,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 killSessionWatchdogThread();
 
                 // Request the event processing to stop.
-                eventProcessing.finish();
+                eventProcessing.stop();                
             }
 
             // Wait for the event processing thread to finish.  This should just return
@@ -1449,7 +1449,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             File f = fc.getSelectedFile();
             log(Level.CONFIG, "Loading settings from file <" + f.getPath() + ">");
             Configuration newConfig = new Configuration(f);
-            setConfiguration(newConfig);            
+            setConfiguration(newConfig);
+            loadConfiguration();
         }        
     }
     
@@ -1493,7 +1494,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
         
-        // Log that a new configuration was loaded.       
+        // Log that a new configuration was loaded.
         if (configuration.getFile() != null)
             log(Level.CONFIG, "Loaded configuration from file <" + configuration.getFile().getPath() + ">");
         else 
