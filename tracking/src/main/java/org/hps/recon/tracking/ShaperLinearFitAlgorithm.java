@@ -1,5 +1,7 @@
 package org.hps.recon.tracking;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -28,26 +30,40 @@ import org.lcsim.event.RawTrackerHit;
  */
 public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
-    final int nPeaks;
+    private final int nPulses;
     final double[] amplitudes;
     final double[] amplitudeErrors;
     private ChannelConstants channelConstants;
-    private double[] y;
-    private double[] sigma;
-    private int usedSamples[];
+    private final double[] sigma = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
+    private final double[] y = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
+    private int firstUsedSample;
+    private int nUsedSamples;
+    private int firstFittedPulse;
+    private int nFittedPulses;
+    private boolean debug = false;
 
-    public ShaperLinearFitAlgorithm() {
-        nPeaks = 1;
-        amplitudes = new double[nPeaks];
-        amplitudeErrors = new double[nPeaks];
+    public ShaperLinearFitAlgorithm(int nPulses) {
+        this.nPulses = nPulses;
+        amplitudes = new double[nPulses];
+        amplitudeErrors = new double[nPulses];
+        System.setErr(new PrintStream(new OutputStream() {
+            public void write(int b) {
+            }
+        }));
     }
 
-    public ShaperLinearFitAlgorithm(int nPeaks) {
-        this.nPeaks = nPeaks;
-        amplitudes = new double[nPeaks];
-        amplitudeErrors = new double[nPeaks];
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+        if (debug) {
+            System.setErr(System.err);
+        } else {
+            System.setErr(new PrintStream(new OutputStream() {
+                public void write(int b) {
+                }
+            }));
+        }
     }
-
+    
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
         return this.fitShape(rth.getADCValues(), constants);
@@ -55,31 +71,38 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
     public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
         channelConstants = constants;
-        y = new double[samples.length];
-        sigma = new double[samples.length];
-        usedSamples = new int[samples.length];
+        double[] signal = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
+
         for (int i = 0; i < samples.length; i++) {
-            y[i] = samples[i] - constants.getPedestal();
+            signal[i] = samples[i] - constants.getPedestal();
             sigma[i] = constants.getNoise();
-            usedSamples[i] = i;
+        }
+        firstUsedSample = 0;
+        nUsedSamples = samples.length;
+        firstFittedPulse = 0;
+        nFittedPulses = nPulses;
+
+        if (debug) {
+            System.out.print("Signal:\t");
+            for (int i = 0; i < signal.length; i++) {
+                System.out.format("%f\t", signal[i]);
+            }
+            System.out.println();
         }
 
-        MnUserParameters myParams = new MnUserParameters();
+        FunctionMinimum min = doRecursiveFit(signal);
 
-        myParams.add("time", 0.0, HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (samples.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
+        ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
 
-        MnSimplex simplex = new MnSimplex(this, myParams, 2);
-        FunctionMinimum min = simplex.minimize();
+        for (int i = 0; i < nPulses; i++) {
+            ShapeFitParameters fit = new ShapeFitParameters();
+            fit.setAmp(amplitudes[i]);
+            fit.setAmpErr(amplitudeErrors[i]);
+            fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, min.fval()));
 
-        ShapeFitParameters fit = new ShapeFitParameters();
+            fit.setT0(min.userState().value(i));
 
-        fit.setAmp(amplitudes[0]);
-        fit.setAmpErr(amplitudeErrors[0]);
-        fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2, min.fval()));
-        
-        fit.setT0(min.userState().value(0));
-
-        fit.setT0Err(HPSSVTConstants.SAMPLING_INTERVAL);
+            fit.setT0Err(min.userState().error(i));
 //        if (min.isValid()) {
 //            MnMinos minos = new MnMinos(this, min);
 //            MinosError t0err = minos.minos(0);
@@ -89,42 +112,162 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 //        }
 
 //        System.out.println(fit);
-        ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
-        fits.add(fit);
+            fits.add(fit);
+        }
         return fits;
     }
 
-    private double doLinFit(double[] times) {
-        RealMatrix sc_mat = new Array2DRowRealMatrix(nPeaks, usedSamples.length);
-        RealVector y_vec = new ArrayRealVector(usedSamples.length);
-        RealVector var_vec = new ArrayRealVector(usedSamples.length);
+    private FunctionMinimum doRecursiveFit(double[] samples) {
+        if (nFittedPulses == 1) {
+            System.arraycopy(samples, 0, y, 0, samples.length);
+            FunctionMinimum fit = minuitFit(null);
+            return fit;
+        } else {
+            FunctionMinimum bestFit = null;
+            double[] fitData = new double[samples.length];
+            for (int split = 1; split < y.length; split++) {
+                if (debug) {
+                    System.out.println("Split\t" + split);
+                }
 
-        for (int j = 0; j < usedSamples.length; j++) {
-            for (int i = 0; i < times.length; i++) {
-                sc_mat.setEntry(i, usedSamples[j], getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * usedSamples[j] - times[i], channelConstants) / sigma[usedSamples[j]]);
+                //use signal as fit input
+                System.arraycopy(samples, 0, fitData, 0, samples.length);
+                //use first $split samples
+                firstUsedSample = 0;
+                nUsedSamples = split;
+                //fit only the first pulse
+                nFittedPulses = 1;
+                FunctionMinimum frontFit = doRecursiveFit(fitData);
+                if (debug) {
+                    System.out.format("front fit:\tt0=%f,\tA=%f,\tchisq=%f\n", frontFit.userState().value(0), amplitudes[firstFittedPulse], frontFit.fval());
+                }
+
+                //subtract first pulse from fit input
+                for (int i = 0; i < samples.length; i++) {
+                    fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), channelConstants);
+                }
+
+                if (debug) {
+                    System.out.print("Subtracted:\t");
+                    for (int i = 0; i < fitData.length; i++) {
+                        System.out.format("%f\t", fitData[i]);
+                    }
+                    System.out.println();
+                }
+                //use all samples
+                firstUsedSample = 0;
+                nUsedSamples = y.length;
+                //fit the rest of the pulses
+                firstFittedPulse++;
+                nFittedPulses = nPulses - firstFittedPulse;
+                FunctionMinimum backFit = doRecursiveFit(fitData);
+
+                if (debug) {
+                    System.out.format("back fit:\tt0=%f,\tA=%f,\tchisq=%f\n", backFit.userState().value(0), amplitudes[firstFittedPulse], backFit.fval());
+                }
+
+                //use full signal as fit input
+                System.arraycopy(samples, 0, y, 0, samples.length);
+                //still using all samples
+                //fit all pulses
+                firstFittedPulse--;
+                nFittedPulses++;
+                double[] combinedGuess = new double[nFittedPulses];
+                combinedGuess[0] = frontFit.userState().value(0);
+                for (int i = 0; i < nFittedPulses - 1; i++) {
+                    combinedGuess[i + 1] = backFit.userState().value(i);
+                }
+                FunctionMinimum combinedFit = minuitFit(combinedGuess);
+
+                if (debug) {
+                    System.out.format("combined fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", combinedFit.userState().value(0), amplitudes[firstFittedPulse], combinedFit.userState().value(1), amplitudes[firstFittedPulse + 1], combinedFit.fval());
+                }
+
+                if (bestFit == null || combinedFit.fval() < bestFit.fval()) {
+                    bestFit = combinedFit;
+                }
             }
-            y_vec.setEntry(usedSamples[j], y[usedSamples[j]] / sigma[usedSamples[j]]);
-            var_vec.setEntry(usedSamples[j], sigma[usedSamples[j]] * sigma[usedSamples[j]]);
+
+            double[] bestTimes = new double[nFittedPulses];
+            for (int i = 0; i < nFittedPulses; i++) {
+                bestTimes[i] = bestFit.userState().value(i);
+            }
+            double newchisq = doLinFit(bestTimes);
+
+            if (debug) {
+                System.out.println("new chisq:\t" + newchisq);
+                System.out.format("best fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", bestFit.userState().value(0), amplitudes[firstFittedPulse], bestFit.userState().value(1), amplitudes[firstFittedPulse + 1], bestFit.fval());
+            }
+            return bestFit;
+        }
+    }
+
+    private FunctionMinimum minuitFit(double[] guess_t) {
+        if (debug) {
+            System.out.print("y for fit:\t");
+            for (int i = 0; i < y.length; i++) {
+                System.out.format("%f\t", y[i]);
+            }
+            System.out.println();
+        }
+
+        MnUserParameters myParams = new MnUserParameters();
+
+        for (int i = 0; i < nFittedPulses; i++) {
+            if (guess_t != null && guess_t.length == nFittedPulses) {
+                myParams.add("time_" + i, guess_t[i], HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (y.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
+            } else {
+                myParams.add("time_" + i, i * HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (y.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
+            }
+        }
+
+        MnSimplex simplex = new MnSimplex(this, myParams, 2);
+        FunctionMinimum min = simplex.minimize();
+        return min;
+    }
+
+    private double doLinFit(double[] times) {
+        if (times.length != nFittedPulses) {
+            throw new RuntimeException("wrong number of parameters in doLinFit");
+        }
+        RealMatrix sc_mat = new Array2DRowRealMatrix(nFittedPulses, nUsedSamples);
+        RealVector y_vec = new ArrayRealVector(nUsedSamples);
+        RealVector var_vec = new ArrayRealVector(nUsedSamples);
+
+        for (int j = 0; j < nUsedSamples; j++) {
+            for (int i = 0; i < nFittedPulses; i++) {
+                sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
+            }
+            y_vec.setEntry(j, y[firstUsedSample + j] / sigma[firstUsedSample + j]);
+            var_vec.setEntry(j, sigma[firstUsedSample + j] * sigma[firstUsedSample + j]);
         }
         RealVector a_vec = sc_mat.operate(y_vec);
         RealMatrix coeff_mat = sc_mat.multiply(sc_mat.transpose());
         DecompositionSolver a_solver;
-        RealVector solved_amplitudes, amplitude_err;
+        RealVector solved_amplitudes = null, amplitude_err = null;
+        boolean goodFit = true;
         try {
             CholeskyDecomposition a_cholesky = new CholeskyDecomposition(coeff_mat);
             a_solver = a_cholesky.getSolver();
             solved_amplitudes = a_solver.solve(a_vec);
             amplitude_err = a_solver.solve(sc_mat.operate(var_vec));
+            if (solved_amplitudes.getMinValue() < 0) {
+                goodFit = false;
+            }
         } catch (NonPositiveDefiniteMatrixException e) {
-            solved_amplitudes = new ArrayRealVector(nPeaks, 0.0);
-            amplitude_err = new ArrayRealVector(nPeaks, Double.POSITIVE_INFINITY);
+            goodFit = false;
+        }
+
+        if (!goodFit) {
+            solved_amplitudes = new ArrayRealVector(nFittedPulses, 0.0);
+            amplitude_err = new ArrayRealVector(nFittedPulses, Double.POSITIVE_INFINITY);
         }
 
         double chisq = y_vec.subtract(sc_mat.preMultiply(solved_amplitudes)).getNorm();
 
-        for (int i = 0; i < times.length; i++) {
-            amplitudes[i] = solved_amplitudes.getEntry(i);
-            amplitudeErrors[i] = Math.sqrt(amplitude_err.getEntry(i));
+        for (int i = 0; i < nFittedPulses; i++) {
+            amplitudes[firstFittedPulse + i] = solved_amplitudes.getEntry(i);
+            amplitudeErrors[firstFittedPulse + i] = Math.sqrt(amplitude_err.getEntry(i));
         }
         return chisq;
     }

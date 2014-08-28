@@ -15,6 +15,12 @@ import org.lcsim.event.RawTrackerHit;
  */
 public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 
+    private boolean debug = false;
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
         return this.fitShape(rth.getADCValues(), constants);

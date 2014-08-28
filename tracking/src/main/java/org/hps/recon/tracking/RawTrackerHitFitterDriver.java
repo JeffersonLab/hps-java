@@ -62,7 +62,9 @@ public class RawTrackerHitFitterDriver extends Driver {
         if (fitAlgorithm.equals("Analytic")) {
             _shaper = new ShaperAnalyticFitAlgorithm();
         } else if (fitAlgorithm.equals("Linear")) {
-            _shaper = new ShaperLinearFitAlgorithm();
+            _shaper = new ShaperLinearFitAlgorithm(1);
+        } else if (fitAlgorithm.equals("Pileup")) {
+            _shaper = new ShaperLinearFitAlgorithm(2);
         } else {
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
         }
@@ -82,6 +84,7 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     @Override
     public void startOfData() {
+        _shaper.setDebug(debug);
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
