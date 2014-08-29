@@ -105,7 +105,7 @@ public class ShapeFitParameters implements GenericObject {
 //    }
 
     public static double getChiProb(GenericObject object) {
-        return object.getDoubleVal(6);
+        return object.getDoubleVal(4);
     }
 
     @Override
