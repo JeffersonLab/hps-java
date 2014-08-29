@@ -52,10 +52,10 @@ public class EcalDaqPlots extends Driver implements Resettable {
     private EcalConditions conditions;
     private EcalChannel.EcalChannelCollection channels;
     //private DatabaseConditionsManager manager;
-    //private ConditionsManager manager;
+    private ConditionsManager manager;
     public EcalDaqPlots() {
     	//manager = DatabaseConditionsManager.getInstance();
-    	//manager = ConditionsManager.defaultInstance();
+    	manager = ConditionsManager.defaultInstance();
     }
 
     public void setSubdetectorName(String subdetectorName) {
@@ -87,7 +87,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
         //channels = conditions.getChannelCollection(); 
 
     	 // Get the channel information from the database.                
-        //channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
+        channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
 
         List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
         /*I do not want the ECAL Crates and Slots to be hard-coded. 

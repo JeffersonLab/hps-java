@@ -2,6 +2,8 @@ package org.hps.monitoring.ecal.plots;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.aida.ICloud1D;
+import hep.aida.ICloud2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 
@@ -20,6 +22,7 @@ import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -31,7 +34,9 @@ import org.lcsim.util.aida.AIDA;
  * The implementation is as follows:
  * - The event display is opened in a separate window
  * - It is updated regularly, according to the event refresh rate
- * - If the user clicks on a crystal, the corresponding energy and time distributions (both Histogram1D) are shown in the last panel of the MonitoringApplicatopn
+ * - If the user clicks on a crystal, the corresponding energy and time distributions (both Histogram1D) are shown in the last panel of the MonitoringApplication,
+ * as well as a 2D histogram (hit time vs hit energy). Finally, if available, the raw waveshape (in mV) is displayed.
+ * 
  * The single channel plots are created in the  <code>EcalHitPlots</code> driver.
  * @author Andrea Celentano
  *  *
@@ -41,6 +46,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 
   
     String inputCollection = "EcalCalHits";
+    String inputCollectionRaw = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
     private IPlotter plotter;
     private AIDA aida=AIDA.defaultInstance();
@@ -49,16 +55,21 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     int eventRefreshRate = 1;
     int eventn = 0;
 	int ix,iy,id;
+	
+    int[] windowRaw=new int[47*11];//in case we have the raw waveform, this is the window lenght (in samples)
+	boolean[] isFirstRaw=new boolean[47*11];
+	
     private PEventViewer viewer; //this is the Kyle event viewer.    
 
-    IHistogram1D hEnergyDraw,hTimeDraw;
-    IHistogram2D hTimeVsEnergyDraw;
     
-
     ArrayList<IHistogram1D> channelEnergyPlot;
     ArrayList<IHistogram1D> channelTimePlot;
+    ArrayList<IHistogram1D> channelRawWaveform;
+   // ArrayList<ICloud1D> channelRawWaveform;
     ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
-  
+   
+    
+    
     double maxEch = 2500 * ECalUtils.MeV;
     
     public EcalEventDisplay() {
@@ -73,7 +84,14 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
         this.inputCollection = inputCollection;
     }
     
-
+    public void setInputCollectionRaw(String inputCollectionRaw) {
+        this.inputCollectionRaw = inputCollectionRaw;
+    }
+    
+    public void setInputClusterCollection(String inputClusterCollection) {
+        this.clusterCollection = inputClusterCollection;
+    }
+    
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
@@ -89,6 +107,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     	
        channelEnergyPlot=new ArrayList<IHistogram1D>();
        channelTimePlot=new ArrayList<IHistogram1D>();
+       channelRawWaveform=new ArrayList<IHistogram1D>();
+       //channelRawWaveform=new ArrayList<ICloud1D>();
        channelTimeVsEnergyPlot=new ArrayList<IHistogram2D>();
        //create the histograms for single channel energy and time distribution.
        //these are NOT shown in this plotter, but are used in the event display.
@@ -98,6 +118,13 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
              channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+ii, 100, 0, maxEch));  
              channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time : " + (row) + " "+ (column)+ ": "+ii, 100, 0, 400));     
              channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time Vs Energy : " + (row) + " "+ (column)+ ": "+ii, 100, 0, 400,100, 0, maxEch));              
+             channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy : " + (row) + " "+ (column)+ ": "+ii));
+             //the above instruction is a terrible hack, just to fill the arrayList with all the elements. They'll be initialized properly during the event readout,
+             //since we want to account for possibly different raw waveform dimensions!
+             //channelRawWaveform.add(aida.cloud1D(detector.getDetectorName() + " : " + inputCollection + " : Raw Waveform : " + (row) + " "+ (column)+ ": "+ii,1000000000));
+             
+             isFirstRaw[ii]=true;
+             windowRaw[ii]=1;
        }
        id=0;
        iy=EcalMonitoringUtils.getRowFromHistoID(id);
@@ -121,14 +148,12 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
         plotter.region(0).plot(channelEnergyPlot.get(0));
         plotter.region(1).plot(channelTimePlot.get(0));
         plotter.region(2).plot(channelTimeVsEnergyPlot.get(0));
-        //plotter.region(1).plot();
-        //plotter.region(2).plot();
-        //plotter.region(3).plot();
-        
-        //plotterFrame = new AIDAFrame(); //and not AIDA.defaultInstance();
-        //plotterFrame.setVisible(true);
-        //plotterFrame.addPlotter(plotter);
-    
+        plotter.region(3).plot(channelRawWaveform.get(0));
+        plotter.region(3).style().yAxisStyle().setLabel("Amplitude (mV)");
+        plotter.region(3).style().xAxisStyle().setLabel("Time (ns)");
+        plotter.region(3).style().dataStyle().fillStyle().setColor("orange");
+        plotter.region(3).style().dataStyle().markerStyle().setColor("orange");
+        plotter.region(3).style().dataStyle().errorBarStyle().setVisible(false);
         
         
         System.out.println("Create the event viewer");
@@ -172,15 +197,14 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
         	List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
             for (CalorimeterHit hit : hits) {
                 row=hit.getIdentifierFieldValue("iy");
-                column=hit.getIdentifierFieldValue("ix");
-            	if (do_update) viewer.addHit(new EcalHit(column,row, hit.getRawEnergy()));         
+                column=hit.getIdentifierFieldValue("ix");           	
                 if ((row!=0)&&(column!=0)){
                     ii = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
-                    if (hit.getCorrectedEnergy() > 0) { //A.C. > 0 for the 2D plot drawing
+                    if (hit.getCorrectedEnergy() > 0) { //A.C. > 0 for the 2D plot drawing                 	
                     	channelEnergyPlot.get(ii).fill(hit.getCorrectedEnergy());
                         channelTimePlot.get(ii).fill(hit.getTime());
-                        channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());
-                        
+                        channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());        
+                        if (do_update) viewer.addHit(new EcalHit(column,row, hit.getCorrectedEnergy()));         
                         }
                  } 
             }
@@ -192,7 +216,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
                 if (do_update){
                 the_cluster=new Cluster(seedHit.getIdentifierFieldValue("ix"), seedHit.getIdentifierFieldValue("iy"), cluster.getEnergy());
                 for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                    if (hit.getRawEnergy() != 0) 
+                    if (hit.getRawEnergy() > 0) 
                         column=hit.getIdentifierFieldValue("ix");
                         row=hit.getIdentifierFieldValue("iy");                	
                         the_cluster.addComponentHit(hit.getIdentifierFieldValue("ix"),hit.getIdentifierFieldValue("iy"));
@@ -202,10 +226,32 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
         }
         
-        if (do_update){
-        viewer.updateDisplay();
+        //here follows the code for the raw waveform
+        if (event.hasCollection(RawTrackerHit.class, inputCollectionRaw)){       	
+        	List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollectionRaw);
+        	for (RawTrackerHit hit : hits) {
+        		 row=hit.getIdentifierFieldValue("iy");
+                 column=hit.getIdentifierFieldValue("ix");
+                 if ((row!=0)&&(column!=0)){
+                     ii = EcalMonitoringUtils.getHistoIDFromRowColumn(row,column);
+                     if (isFirstRaw[ii]){ //at the very first hit we read for this channel, we need to read the window length and save it
+                    	 isFirstRaw[ii]=false;
+                    	 windowRaw[ii]=hit.getADCValues().length;                   	 
+                    	 channelRawWaveform.set(ii,aida.histogram1D(detector.getDetectorName() + " : " + inputCollectionRaw + " : Raw Waveform : " + (row) + " "+ (column)+ ": "+ii,windowRaw[ii],-0.5*ECalUtils.ecalReadoutPeriod,(-0.5+windowRaw[ii])*ECalUtils.ecalReadoutPeriod));
+                     }
+                     if (do_update){
+                         channelRawWaveform.get(ii).reset();                     
+                         for (int jj = 0; jj < windowRaw[ii]; jj++) {
+                             channelRawWaveform.get(ii).fill(jj*ECalUtils.ecalReadoutPeriod, hit.getADCValues()[jj]*ECalUtils.adcResolution*1000);
+                         }                
+                     } 
+                 }
+            }
+        }
         
-      
+        
+        if (do_update){
+          viewer.updateDisplay(); 
         }
     }
     
@@ -257,29 +303,20 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     	iy=(int) ecalPoint.getY(); //raw
     	id=EcalMonitoringUtils.getHistoIDFromRowColumn(iy,ix);
     	System.out.println("Crystal event: "+ix+" "+iy+" "+id);
-        //  plotter.hide();
-    	//get the new histograms
-    
-    	//clone hEnergyDraw
-       	
+            	
        	
        	plotter.region(0).clear();
         plotter.region(0).plot(channelEnergyPlot.get(id));
     
         plotter.region(1).clear();
         plotter.region(1).plot(channelTimePlot.get(id));           	    
-   /*    
-    * 
-    * 
-    * 
-    * hTimeVsEnergyDraw.reset();
-        
-       	plotter.region(2).setTitle(channelTimeVsEnergyPlot.get(id).title());
-       	hTimeVsEnergyDraw.setTitle(channelTimeVsEnergyPlot.get(id).title());
-       	hTimeVsEnergyDraw.add(channelTimeVsEnergyPlot.get(id));*/
+   
 
     	plotter.region(2).clear();
     	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id));
+    	
+    	plotter.region(3).clear();
+    	plotter.region(3).plot(channelRawWaveform.get(id));
     }    
 }
 

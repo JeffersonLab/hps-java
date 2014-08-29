@@ -57,7 +57,7 @@
         </driver>
         
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
-            <inputCollection>EcalCalHits</inputCollection>
+            <inputCollection>EcalCalHits</inputCollection>         
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
         
@@ -77,6 +77,8 @@
        
         <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
+            <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
+            <inputClusterCollection>EcalClusters</inputClusterCollection>
             <maxEch>2.0</maxEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
