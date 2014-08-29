@@ -15,7 +15,7 @@ parser.add_argument('-n', '--name', help='original dataset name (with no file ex
 parser.add_argument('-f', '--file', help='new physical file location', required=True)
 parser.add_argument('-g', '--group', help='dataset group', default=get_default_group())
 parser.add_argument('-s', '--site', help='new dataset site', default=get_default_site())
-parser.add_argument('-v', '--version', help='dataset version')
+parser.add_argument('-d', '--version', help='dataset version')
 args = vars(parser.parse_args())
 
 # process command line arguments
