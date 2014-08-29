@@ -39,7 +39,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     private String trackerHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private Detector detector = null;
     private IPlotter plotter;
-    private String trackerName = "Tracker";
+    private final String trackerName = "Tracker";
     private List<SiSensor> sensors;
     private Map<String, int[]> occupancyMap;
     private Map<String, Double> avgOccupancyMap;
@@ -53,7 +53,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     private int eventCountCluster = 0;
     private static final String nameStrip = "Tracker_TestRunModule_";
     private static final int maxChannels = 640;
-    private String plotDir = "SvtMonitoring/";
+    private final String plotDir = "SvtMonitoring/";
 
     public void setRawTrackerHitCollectionName(String inputCollection) {
         this.rawTrackerHitCollectionName = inputCollection;
@@ -67,6 +67,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         this.trackerHitCollectionName = inputCollection;
     }
 
+    @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("SvtMonitoring::detectorChanged  Setting up the plotter");
         this.detector = detector;
@@ -99,7 +100,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     public void process(EventHeader event) {
         /*  increment the strip occupancy arrays */
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-            System.out.println("Found a raw hit collection");
+//            System.out.println("Found a raw hit collection");
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
             for (RawTrackerHit hit : rawTrackerHits) {
                 int[] strips = occupancyMap.get(hit.getDetectorElement().getName());
@@ -115,10 +116,9 @@ public class SvtMonitoring extends DataQualityMonitor {
                 GenericObject pars = (GenericObject) hit.getTo();
                 String sensorName = getNiceSensorName((SiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
-                ShapeFitParameters sfp = new ShapeFitParameters();
-                double t0 = sfp.getT0(pars);
-                double amp = sfp.getAmp(pars);
-                double chiProb = sfp.getChiProb(pars);
+                double t0 = ShapeFitParameters.getT0(pars);
+                double amp = ShapeFitParameters.getAmp(pars);
+                double chiProb = ShapeFitParameters.getChiProb(pars);
                 getSensorPlot(plotDir + "t0Hit_", sensorName).fill(t0);
                 getSensorPlot(plotDir + "amplitude_", sensorName).fill(amp);
                 getSensorPlot(plotDir + "chiProb_", sensorName).fill(chiProb);
@@ -127,7 +127,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         }
 
         if (event.hasItem(trackerHitCollectionName)) {
-            System.out.println("Found a Si cluster collection");
+//            System.out.println("Found a Si cluster collection");
             List<TrackerHit> siClusters = (List<TrackerHit>) event.get(trackerHitCollectionName);
             for (TrackerHit cluster : siClusters) {
                 String sensorName = getNiceSensorName((SiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
@@ -161,13 +161,13 @@ public class SvtMonitoring extends DataQualityMonitor {
     }
 
     private void resetOccupancyMap() {
-        occupancyMap = new HashMap<>();
-        avgOccupancyMap = new HashMap<>();
-        avgOccupancyNames = new HashMap<>();
-        avgt0Names = new HashMap<>();
-        sigt0Names = new HashMap<>();
-        avgt0Map = new HashMap<>();
-        sigt0Map = new HashMap<>();
+        occupancyMap = new HashMap<String, int[]>();
+        avgOccupancyMap = new HashMap<String, Double>();
+        avgOccupancyNames = new HashMap<String, String>();
+        avgt0Names = new HashMap<String, String>();
+        sigt0Names = new HashMap<String, String>();
+        avgt0Map = new HashMap<String, Double>();
+        sigt0Map = new HashMap<String, Double>();
         for (SiSensor sensor : sensors) {
             occupancyMap.put(sensor.getName(), new int[640]);
             avgOccupancyMap.put(sensor.getName(), -999.);
