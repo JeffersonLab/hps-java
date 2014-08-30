@@ -14,7 +14,6 @@ import org.hps.record.evio.EvioFileSource;
 import org.hps.record.evio.EvioProcessor;
 import org.hps.record.evio.EvioRecordQueue;
 import org.hps.record.lcio.LcioRecordQueue;
-import org.hps.record.processing.ProcessingConfiguration.ProcessingStage;
 import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCIOEventSource;
 
