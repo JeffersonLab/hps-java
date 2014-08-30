@@ -107,7 +107,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
             if (x.getCause() instanceof NoSuchRecordException)
                 return false;
         
-            // When this occurs on of the loops is probably messed up, 
+            // When this occurs one of the loops is probably messed up, 
             // so it is not considered recoverable.
             if (x.getCause() instanceof IllegalStateException) 
                 return false;
