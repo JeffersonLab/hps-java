@@ -1,5 +1,6 @@
 package org.hps.analysis.dataquality;
 
+import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IProfile1D;
@@ -69,9 +70,10 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             createLayerPlot(plotDir + "clusterEfficiency", kk, 50, -40, 40.);
             createLayerPlot(plotDir + "readoutEfficiency", kk, 50, -40, 40.);
             createLayerPlot(plotDir + "rthToClusterEfficiency", kk, 50, -40, 40.);
-            createLayerPlot2D(plotDir + "toogoodFits", kk, 100, -100, 100, 50, 0, 10000);
-            createLayerPlot2D(plotDir + "goodFits", kk, 100, -100, 100, 50, 0, 10000);
-            createLayerPlot2D(plotDir + "badFits", kk, 100, -100, 100, 50, 0, 10000);
+            createLayerPlot2D(plotDir + "toogoodFits", kk, 200, -100, 100, 100, 0, 20000);
+            createLayerPlot2D(plotDir + "goodFits", kk, 200, -100, 100, 100, 0, 20000);
+            createLayerPlot2D(plotDir + "badFits", kk, 200, -100, 100, 100, 0, 20000);
+            createLayerPlot1D(plotDir + "signalClusterT0", kk, 500, -100, 100);
         }
         resetEfficiencyMap();
     }
@@ -171,6 +173,7 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             Set<SiTrackerHitStrip1D> clusters = clustertosimhit.allTo(simhit);
             if (clusters != null) {
                 for (SiTrackerHitStrip1D clust : clusters) {
+                    getLayerPlot1D(plotDir + "signalClusterT0", simhit.getLayer()).fill(clust.getTime());
 
                     if (Math.abs(clust.getTime()) < t0Cut) {
                         gotCluster = 1;
@@ -219,6 +222,14 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
 
     private IProfile1D createLayerPlot(String prefix, int layer, int nchan, double min, double max) {
         return aida.profile1D(prefix + "_layer" + layer, nchan, min, max);
+    }
+
+    private IHistogram1D getLayerPlot1D(String prefix, int layer) {
+        return aida.histogram1D(prefix + "_layer" + layer);
+    }
+
+    private IHistogram1D createLayerPlot1D(String prefix, int layer, int nchan, double min, double max) {
+        return aida.histogram1D(prefix + "_layer" + layer, nchan, min, max);
     }
 
     private IHistogram2D getLayerPlot2D(String prefix, int layer) {
