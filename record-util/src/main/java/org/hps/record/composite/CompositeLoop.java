@@ -5,17 +5,7 @@ import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.record.EndRunException;
 import org.hps.record.MaxRecordsException;
-import org.jlab.coda.et.exception.EtBusyException;
-import org.jlab.coda.et.exception.EtClosedException;
-import org.jlab.coda.et.exception.EtDeadException;
-import org.jlab.coda.et.exception.EtEmptyException;
-import org.jlab.coda.et.exception.EtException;
-import org.jlab.coda.et.exception.EtExistsException;
-import org.jlab.coda.et.exception.EtReadException;
-import org.jlab.coda.et.exception.EtTimeoutException;
-import org.jlab.coda.et.exception.EtTooManyException;
-import org.jlab.coda.et.exception.EtWakeUpException;
-import org.jlab.coda.et.exception.EtWriteException;
+import org.hps.record.et.EtSource.EtSourceException;
 
 /**
  * Implementation of a composite record loop for processing
@@ -64,14 +54,15 @@ public final class CompositeLoop extends DefaultRecordLoop {
      * only non-fatal record processing exceptions are ignored.
      */
     protected void handleClientError(Throwable x) {      
-        // Print full error traceback.
-        x.printStackTrace();
                 
         // Is the error ignorable?
         if (isIgnorable(x)) {
-            // We can return.
+            // Ignore the error!
             return;
         }
+        
+        // Set the exception on the super class.
+        this._exception = x;
         
         // Stop the event processing.
         this.execute(Command.STOP);
@@ -79,14 +70,15 @@ public final class CompositeLoop extends DefaultRecordLoop {
     }
 
     protected void handleSourceError(Throwable x) {
-        
-        // Print full error traceback.
-        x.printStackTrace();
-        
+                
         // Is the error ignorable?
         if (isIgnorable(x)) {
+            // Ignore the error!
             return;
         }
+        
+        // Set the exception on the super class.
+        this._exception = x;
         
         // Stop the event processing.
         this.execute(Command.STOP);
@@ -95,60 +87,46 @@ public final class CompositeLoop extends DefaultRecordLoop {
     
     private boolean isIgnorable(Throwable x) {
         
-        // EndRunExceptions are never ignored.
-        if (x.getCause() instanceof EndRunException)
-            return false;
-        
-        // MaxRecordsExceptions are never ignored.
-        if (x.getCause() instanceof MaxRecordsException)
-            return false;
-        
-        // ET system errors are always considered fatal.
-        if (isEtError((Exception) x.getCause()))
-            return false;
-        
-        // Should the loop try to recover from the error?
+        // Should the loop try to recover from the error if possible?
         if (!stopOnErrors) {
-            // Is the cause of the error ignorable?
-            if (!(x.getCause() instanceof IllegalStateException) 
-                    && !(x.getCause() instanceof NoSuchRecordException))
-                // Ignore the error.
-                return true;
-        } 
         
-        // Error is not ignorable. 
-        return false;
-    }
-    
-    /**
-     * True if the Exception is from the ET system.
-     * @param e The Exception that was thrown.
-     * @return True if the Exception is from the ET system.
-     */
-    private boolean isEtError(Exception e) {       
-        // Get the actual cause e.g. from 
-        // RecordProcessingException -> IOException -> EtException
-        // which originates from EtRecordSource.
-        Throwable t = e.getCause().getCause(); 
-        if ((t instanceof EtBusyException) ||
-                (t instanceof EtClosedException) ||
-                (t instanceof EtDeadException) ||
-                (t instanceof EtEmptyException) ||
-                (t instanceof EtException) ||
-                (t instanceof EtExistsException) ||
-                (t instanceof EtReadException) ||
-                (t instanceof EtTimeoutException) ||
-                (t instanceof EtTooManyException) ||
-                (t instanceof EtWakeUpException) ||
-                (t instanceof EtWriteException)) {
+            // EndRunExceptions are never ignored.
+            if (x.getCause() instanceof EndRunException)
+                return false;
+        
+            // MaxRecordsExceptions are never ignored.
+            if (x.getCause() instanceof MaxRecordsException)
+                return false;
+        
+            // ET system errors are always considered fatal.
+            if (x.getCause() instanceof EtSourceException)
+                return false;
+        
+            // The NoSuchRecordException indicates a RecordSource 
+            // was exhausted so processing needs to end.
+            if (x.getCause() instanceof NoSuchRecordException)
+                return false;
+        
+            // When this occurs on of the loops is probably messed up, 
+            // so it is not considered recoverable.
+            if (x.getCause() instanceof IllegalStateException) 
+                return false;
+        
+            // Ignore the error.
             return true;
-        } else {
+            
+        } else {        
+            // Error is not ignored. 
             return false;
-        }     
+        }
     }
-    
+        
     public boolean isDone() {
         return done;
+    }
+    
+    public Throwable getLastError() {
+        return _exception;
     }
 }
  

@@ -94,7 +94,13 @@ public final class EtSource extends AbstractRecordSource {
             EtEvent[] mevs = connection.readEtEvents();
             eventQueue.addAll(Arrays.asList(mevs));        
         } catch (Exception e) {
-            throw new IOException("Error while reading ET events.", e);
+            throw new EtSourceException("Error while reading ET events.", e);
+        }
+    }
+    
+    public static class EtSourceException extends IOException {
+        public EtSourceException(String message, Exception cause) {
+            super(message, cause);
         }
     }
 }

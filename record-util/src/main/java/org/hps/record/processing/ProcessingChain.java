@@ -3,8 +3,6 @@ package org.hps.record.processing;
 import java.io.File;
 import java.io.IOException;
 
-import org.freehep.record.loop.AbstractLoopListener;
-import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeProcessor;
@@ -31,10 +29,8 @@ import org.lcsim.util.loop.LCIOEventSource;
  * can be registered with the three different loops for processing the different 
  * record types, in order to plot, update a GUI component, or analyze the events.
  */
-public class ProcessingChain extends AbstractLoopListener {
+public class ProcessingChain {
                     
-    protected int totalEventsProcessed;
-    protected Throwable lastError;
     protected boolean paused;
     protected int maxRecords = -1;
     
@@ -52,10 +48,7 @@ public class ProcessingChain extends AbstractLoopListener {
     }
 
     private void configure(ProcessingConfiguration configuration) {
-        
-        // Add this class as a loop listener.
-        compositeLoop.addLoopListener(this);
-        
+                
         // Was there no RecordSource provided explicitly?
         if (configuration.recordSource == null) {
             // Using an ET server connection?
@@ -180,18 +173,7 @@ public class ProcessingChain extends AbstractLoopListener {
     public void resume() {
         this.paused = false;
     }
-    
-    /**
-     * Suspend event processing e.g. when pausing.
-     * @param loopEvent The loop event.
-     */
-    public void suspend(LoopEvent loopEvent) {
-        if (loopEvent.getException() != null) {
-            loopEvent.getException().printStackTrace();
-            lastError = (Exception) loopEvent.getException();
-        }
-    }
-    
+           
     /**
      * Loop over events until processing ends for some reason.
      */
@@ -200,39 +182,32 @@ public class ProcessingChain extends AbstractLoopListener {
         while (true) {
             // Is the processing unpaused?
             if (!paused) {
-                try {
-                    // Put the RecordLoop into looping mode and process records until Exception occurs
-                    // or processing finishes.
-                    compositeLoop.execute(Command.GO, true);
-                } catch (Exception exception) { 
-                    // Handle exceptions, which might really just be control flow like end or run, etc.
-                    setLastError(exception);
-                }               
+                // Loop until done or error occurs.
+                compositeLoop.execute(Command.GO, true);
+                if (compositeLoop.getLastError() != null)
+                    System.out.println("loop error: " + compositeLoop.getLastError().getMessage());
                 if (compositeLoop.isDone()) {
+                    // Break from processing loop.
                     break;
                 }
             }
+            // FIXME: Should this thread sleep for a bit here?
         }
     }
     
+    /**
+     * Stop the event processing by halting the loop.
+     */
     public void stop() {
         compositeLoop.execute(Command.STOP);
     }
-     
-    /**
-     * Set the last error that occurred during processing.
-     * @param error The last error that occurred.
-     */
-    void setLastError(Throwable error) {
-        this.lastError = error;
-    }
-    
+         
     /**
      * Get the last error that occurred.
      * @return The last error that occurred.
      */
     public Throwable getLastError() {
-        return lastError;
+        return compositeLoop.getLastError();
     }
 
     /**
@@ -248,13 +223,5 @@ public class ProcessingChain extends AbstractLoopListener {
      */
     public void next() {
         compositeLoop.execute(Command.GO_N, 1L, true);
-    }
-            
-    /** 
-     * Get the total number of events processed.
-     * @return The number of events processed.
-     */
-    public int getTotalEventsProcessed() {
-        return this.totalEventsProcessed;
-    }           
+    }                      
 }

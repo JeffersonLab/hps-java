@@ -8,6 +8,7 @@ import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
 import org.hps.evio.EventConstants;
+import org.hps.record.RecordProcessingException;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
@@ -55,12 +56,8 @@ public final class EvioAdapter extends AbstractLoopListener implements RecordLis
     
     @Override
     public void suspend(LoopEvent event) {
-        System.out.println("EvioAdapter.suspend");        
-        if (event.getException() != null) {
-            for (EvioProcessor processor : processors) {
-                processor.endJob();
-            }
-        }
+        if (event.getException() != null)
+            throw new RecordProcessingException("EVIO error.", event.getException());
     }
         
     private void processEvent(EvioEvent event) {
