@@ -2,14 +2,14 @@ package org.hps.monitoring.subsys.et;
 
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.subsys.SystemStatisticsImpl;
-import org.hps.record.etevent.EtEventProcessor;
+import org.hps.record.et.EtProcessor;
 import org.jlab.coda.et.EtEvent;
 import org.lcsim.util.aida.AIDA;
 
 /**
  * A basic set of strip charts for monitoring the ET system.
  */
-public final class EtSystemStripCharts extends EtEventProcessor { 
+public final class EtSystemStripCharts extends EtProcessor { 
         
     SystemStatisticsImpl stats = new SystemStatisticsImpl();               
     MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) 
@@ -73,7 +73,7 @@ public final class EtSystemStripCharts extends EtEventProcessor {
     }
     
     @Override
-    public void processEvent(EtEvent event) {
+    public void process(EtEvent event) {
         stats.update(event.getLength());
     }    
     

@@ -77,11 +77,11 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
-import org.hps.record.DataSourceType;
-import org.hps.record.chain.EventProcessingChain;
-import org.hps.record.chain.EventProcessingConfiguration;
-import org.hps.record.chain.EventProcessingThread;
-import org.hps.record.etevent.EtConnection;
+import org.hps.record.et.EtConnection;
+import org.hps.record.processing.DataSourceType;
+import org.hps.record.processing.ProcessingChain;
+import org.hps.record.processing.ProcessingConfiguration;
+import org.hps.record.processing.ProcessingThread;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
@@ -126,8 +126,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     // Event processing objects.
     private JobControlManager jobManager;
     private LCSimEventBuilder eventBuilder;
-    private EventProcessingChain eventProcessing;
-    private EventProcessingThread eventProcessingThread;
+    private ProcessingChain processingChain;
+    private ProcessingThread processingThread;
     private Thread sessionWatchdogThread;
 
     // Logging objects.
@@ -825,7 +825,6 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             
             // Setup the EventProcessingChain object using the EtConnection.
             setupEventProcessingChain();
-            //setupEventProcessingChainNew();
             
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
@@ -843,10 +842,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             errorHandler.setError(e)
                 .log()
                 .printStackTrace();
-                /*.showErrorDialog("Error setting up the session.");*/
-            
+           
             // Disconnect from the session.
-            //if (this.connected())
             disconnect(ConnectionStatus.ERROR);
             
         } finally {
@@ -1093,7 +1090,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void nextEvent() {
         this.setConnectionStatus(ConnectionStatus.CONNECTED);
-        eventProcessing.next();
+        processingChain.next();
         log(Level.FINEST, "Getting next event.");
         this.setConnectionStatus(ConnectionStatus.PAUSED);
     }
@@ -1103,7 +1100,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void resumeEventProcessing() {
         // Notify event processor to continue.
-        eventProcessing.resume();
+        processingChain.resume();
 
         // Set state of event buttons.
         buttonsPanel.setPauseModeState(false);
@@ -1118,7 +1115,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void pauseEventProcessing() {
        
-        eventProcessing.pause();
+        processingChain.pause();
 
         // Set GUI state.
         buttonsPanel.setPauseModeState(true);
@@ -1159,42 +1156,38 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void setupEventProcessingChain() {
         
-        EventProcessingConfiguration configuration = new EventProcessingConfiguration();
+        ProcessingConfiguration processingConfiguration = new ProcessingConfiguration();   
         
-        configuration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());        
-        // FIXME: This doesn't work properly in the event processing chain right now so hard code to true
-        //        until that is fixed.  (Need to talk with Dima about it.)
-        //configurationModel.getDisconnectOnError();
-        configuration.setStopOnErrors(true);
-         
-        configuration.setDataSourceType(configurationModel.getDataSourceType());
-        configuration.setEtConnection(connection);        
-        configuration.setFilePath(configurationModel.getDataSourcePath());
-        configuration.setLCSimEventBuild(eventBuilder);
-        configuration.setDetectorName(configurationModel.getDetectorName());                
+        processingConfiguration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());        
+        processingConfiguration.setStopOnErrors(configurationModel.getDisconnectOnError());         
+        processingConfiguration.setDataSourceType(configurationModel.getDataSourceType());
+        processingConfiguration.setEtConnection(connection);        
+        processingConfiguration.setFilePath(configurationModel.getDataSourcePath());
+        processingConfiguration.setLCSimEventBuild(eventBuilder);
+        processingConfiguration.setDetectorName(configurationModel.getDetectorName());                
                
         // Add all Drivers from the pre-configured JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
-            configuration.add(driver);
+            processingConfiguration.add(driver);
         }        
                
-        // ET system monitor processor.
-        configuration.add(new EtSystemMonitor());
+        // ET system monitor.
+        processingConfiguration.add(new EtSystemMonitor());
             
-        // ET system strip charts processor.
-        configuration.add(new EtSystemStripCharts());
+        // ET system strip charts.
+        processingConfiguration.add(new EtSystemStripCharts());
               
-        // RunPanel updater processor.
-        configuration.add(runPanel.new RunModelUpdater());
+        // RunPanel updater.
+        processingConfiguration.add(runPanel.new RunModelUpdater());
         
-        // Create the EventProcessingChain object.
-        eventProcessing = new EventProcessingChain(configuration);
+        // Create the ProcessingChain object.
+        processingChain = new ProcessingChain(processingConfiguration);
         
-        // Create the event processing thread.
-        eventProcessingThread = new EventProcessingThread(eventProcessing);
+        // Create the processing thread.
+        processingThread = new ProcessingThread(processingChain);
         
-        // Start the event processing thread.
-        eventProcessingThread.start();        
+        // Start the processing thread.
+        processingThread.start();        
     }
     
     /**
@@ -1339,15 +1332,15 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void stopEventProcessing() {
                        
-        if (eventProcessingThread != null) {
+        if (processingThread != null) {
             // Is the event processing thread actually still alive?
-            if (eventProcessingThread.isAlive()) {
+            if (processingThread.isAlive()) {
 
                 // Interrupt and kill the event processing watchdog thread if necessary.
                 killSessionWatchdogThread();
 
                 // Request the event processing to stop.
-                eventProcessing.stop();                
+                processingChain.stop();                
             }
 
             // Wait for the event processing thread to finish.  This should just return
@@ -1356,19 +1349,19 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 // In the case where ET is configured for sleep or timed wait, an untimed join could 
                 // block forever, so only wait for ~1 second before continuing.  The EventProcessingChain
                 // should still cleanup automatically when its thread completes after the ET system goes down.
-                eventProcessingThread.join(1000);
+                processingThread.join(1000);
             } catch (InterruptedException e) {
                 // Don't know when this would ever happen.
             }
        
             // Handle last error that occurred in event processing.
-            if (eventProcessing.getLastError() != null) {
-                errorHandler.setError(eventProcessing.getLastError()).log().printStackTrace();
+            if (processingChain.getLastError() != null) {
+                errorHandler.setError(processingChain.getLastError()).log().printStackTrace();
             }
        
             // Reset event processing objects.
-            eventProcessing = null;
-            eventProcessingThread = null;
+            processingChain = null;
+            processingThread = null;
         }
     }
 
@@ -1401,7 +1394,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             try {
                 // When the event processing thread finishes, the session should be stopped and
                 // disconnect should occur.
-                eventProcessingThread.join();
+                processingThread.join();
 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
                 // FIXME: When this happens the event processing object and its thread don't get set to null!
