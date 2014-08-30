@@ -273,19 +273,21 @@ public class StripMaker {
     }
 
     private double getTime(List<FittedRawTrackerHit> cluster) {
-        int time_sum = 0;
-        int signal_sum = 0;
+        double time_sum = 0;
+        double signal_sum = 0;
 
+//        System.out.format("Hits:\n");
         for (FittedRawTrackerHit hit : cluster) {
 
             double signal = hit.getAmp();
             double time = hit.getT0();
+//        System.out.format("t0=%f\tA=%f\n",hit.getT0(),hit.getAmp());
 
             time_sum += time * signal;
             signal_sum += signal;
 
         }
-        return (double) time_sum / (double) signal_sum;
+        return time_sum / signal_sum;
     }
 
     private SymmetricMatrix getCovariance(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {

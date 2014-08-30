@@ -14,7 +14,7 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     ShaperLinearFitAlgorithm onePulseFitter = new ShaperLinearFitAlgorithm(1);
     ShaperLinearFitAlgorithm twoPulseFitter = new ShaperLinearFitAlgorithm(2);
     private boolean debug = false;
-    private double refitThreshold = 0.1;
+    private double refitThreshold = 0.5;
 
     public ShaperPileupFitAlgorithm() {
     }

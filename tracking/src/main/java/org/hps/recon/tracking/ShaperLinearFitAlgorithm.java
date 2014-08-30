@@ -14,8 +14,8 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.special.Gamma;
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
-import org.freehep.math.minuit.MinosError;
-import org.freehep.math.minuit.MnMinos;
+//import org.freehep.math.minuit.MinosError;
+//import org.freehep.math.minuit.MnMinos;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
@@ -63,7 +63,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             }));
         }
     }
-    
+
     @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
         return this.fitShape(rth.getADCValues(), constants);
@@ -77,6 +77,10 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             signal[i] = samples[i] - constants.getPedestal();
             sigma[i] = constants.getNoise();
         }
+
+//        if (signal[0]>300.0) {
+//            debug = true;
+//        }
         firstUsedSample = 0;
         nUsedSamples = samples.length;
         firstFittedPulse = 0;
@@ -91,6 +95,14 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
 
         FunctionMinimum min = doRecursiveFit(signal);
+//        if (!min.isValid() && nPulses == 2) {
+//            System.out.format("bad fit to %d pulses, chisq %f\n", nPulses, min.fval());
+//            debug = true;
+//            doRecursiveFit(signal);
+//            debug = false;
+//
+//        }
+        double chisq = evaluateMinimum(min);
 
         ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
 
@@ -98,7 +110,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             ShapeFitParameters fit = new ShapeFitParameters();
             fit.setAmp(amplitudes[i]);
             fit.setAmpErr(amplitudeErrors[i]);
-            fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, min.fval()));
+            fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq));
 
             fit.setT0(min.userState().value(i));
 
@@ -114,6 +126,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 //        System.out.println(fit);
             fits.add(fit);
         }
+//        debug = false;
         return fits;
     }
 
@@ -124,6 +137,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             return fit;
         } else {
             FunctionMinimum bestFit = null;
+            double bestChisq = Double.POSITIVE_INFINITY;
             double[] fitData = new double[samples.length];
             for (int split = 1; split < y.length; split++) {
                 if (debug) {
@@ -183,23 +197,29 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                     System.out.format("combined fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", combinedFit.userState().value(0), amplitudes[firstFittedPulse], combinedFit.userState().value(1), amplitudes[firstFittedPulse + 1], combinedFit.fval());
                 }
 
-                if (bestFit == null || combinedFit.fval() < bestFit.fval()) {
+                double newchisq = evaluateMinimum(combinedFit);
+
+                if (newchisq < bestChisq) {
+                    bestChisq = newchisq;
                     bestFit = combinedFit;
                 }
             }
 
-            double[] bestTimes = new double[nFittedPulses];
-            for (int i = 0; i < nFittedPulses; i++) {
-                bestTimes[i] = bestFit.userState().value(i);
-            }
-            double newchisq = doLinFit(bestTimes);
-
+//            double newchisq = evaluateMinimum(bestFit);
             if (debug) {
-                System.out.println("new chisq:\t" + newchisq);
+                System.out.println("new chisq:\t" + bestChisq);
                 System.out.format("best fit:\tt0=%f,\tA=%f,\tt0=%f,\tA=%f,\tchisq=%f\n", bestFit.userState().value(0), amplitudes[firstFittedPulse], bestFit.userState().value(1), amplitudes[firstFittedPulse + 1], bestFit.fval());
             }
             return bestFit;
         }
+    }
+
+    private double evaluateMinimum(FunctionMinimum min) {
+        double[] times = new double[nFittedPulses];
+        for (int i = 0; i < nFittedPulses; i++) {
+            times[i] = min.userState().value(i);
+        }
+        return doLinFit(times);
     }
 
     private FunctionMinimum minuitFit(double[] guess_t) {
@@ -211,18 +231,63 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             System.out.println();
         }
 
+        if (nFittedPulses == 1) {
+            double guess = 0;
+
+            int numPositiveSamples = 0;
+            int numBigSamples = 0;
+            int lastUsedSample = firstUsedSample + nUsedSamples - 1;
+            int firstBigSample = Integer.MAX_VALUE;
+            for (int i = 0; i < nUsedSamples; i++) {
+                if (y[firstUsedSample + i] > 0) {
+                    numPositiveSamples++;
+                    if (y[firstUsedSample + i] > 3.0 * sigma[firstUsedSample + i]) {
+                        numBigSamples++;
+                        if (firstUsedSample + i < firstBigSample) {
+                            firstBigSample = firstUsedSample + i;
+                        }
+                    }
+                }
+            }
+            boolean made_guess = false;
+            boolean made_bestfit = false;
+            if (nUsedSamples == 1) {
+                if (firstUsedSample == 0) {
+                    guess = -500.0;
+                    made_bestfit = true;
+                } else {
+                    guess = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample - 0.1);
+                    made_bestfit = true;
+                }
+            } else if (numPositiveSamples == 1 && y[lastUsedSample] > 0) {
+                guess = HPSSVTConstants.SAMPLING_INTERVAL * (lastUsedSample - 0.1);
+                made_bestfit = true;
+            } else if (numBigSamples == 1 && y[lastUsedSample] > 3.0 * sigma[lastUsedSample] && nUsedSamples > 1 && y[lastUsedSample - 1] < 0) {
+                guess = HPSSVTConstants.SAMPLING_INTERVAL * (lastUsedSample - 0.1);
+                made_bestfit = true;
+            } else if (nUsedSamples == 2) {
+                guess = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample - 0.1);
+                made_guess = true;
+            }
+            if (made_guess || made_bestfit) {
+//                System.out.println("made guess " + guess);
+                guess_t = new double[1];
+                guess_t[0] = guess;
+            }
+        }
+
         MnUserParameters myParams = new MnUserParameters();
 
         for (int i = 0; i < nFittedPulses; i++) {
             if (guess_t != null && guess_t.length == nFittedPulses) {
                 myParams.add("time_" + i, guess_t[i], HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (y.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
             } else {
-                myParams.add("time_" + i, i * HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (y.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
+                myParams.add("time_" + i, (i - 1) * HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, -500.0, (y.length - 1) * HPSSVTConstants.SAMPLING_INTERVAL);
             }
         }
 
         MnSimplex simplex = new MnSimplex(this, myParams, 2);
-        FunctionMinimum min = simplex.minimize();
+        FunctionMinimum min = simplex.minimize(0, 0.001);
         return min;
     }
 
