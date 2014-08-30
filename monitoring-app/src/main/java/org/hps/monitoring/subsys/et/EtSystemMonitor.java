@@ -7,13 +7,13 @@ import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusImpl;
-import org.hps.record.etevent.EtEventProcessor;
+import org.hps.record.et.EtProcessor;
 import org.jlab.coda.et.EtEvent;
 
 /**
  * This is a class for monitoring the ET system.
  */
-public final class EtSystemMonitor extends EtEventProcessor {
+public final class EtSystemMonitor extends EtProcessor {
 
     SystemStatus systemStatus;
     int events = 0;    
@@ -22,7 +22,7 @@ public final class EtSystemMonitor extends EtEventProcessor {
     Timer timer = new Timer("ET Event Monitor");
     
     public EtSystemMonitor() {
-        systemStatus = new SystemStatusImpl(Subsystem.ET, "Example ET Monitor", false);
+        systemStatus = new SystemStatusImpl(Subsystem.ET, "ET System Monitor", false);
         systemStatus.setStatus(StatusCode.UNKNOWN, "System is not active yet.");
     }
     
@@ -52,7 +52,7 @@ public final class EtSystemMonitor extends EtEventProcessor {
         timer.schedule(task, 0, 1000);
     }
                    
-    public void processEvent(EtEvent event) {
+    public void process(EtEvent event) {
         eventReceivedMillis = System.currentTimeMillis();
     }
     
