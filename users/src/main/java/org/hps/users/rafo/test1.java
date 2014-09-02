@@ -1,4 +1,4 @@
-package org.hps.test_rafopar;
+package org.hps.users.rafo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
