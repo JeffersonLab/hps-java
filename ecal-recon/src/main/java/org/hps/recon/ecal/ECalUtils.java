@@ -74,4 +74,31 @@ public class ECalUtils {
             }
         }
     }
+    
+    
+    /*These methods have been added by A. Celentano: they're mostly used in the monitoring drivers related to Ecal:
+     * however, instead of keeping them in a class "EcalMonitoringUtils", it seems better to have them here.
+     */
+    public static int getRowFromHistoID(int id){
+        return (5-(id%11));
+    }
+
+    public static int getColumnFromHistoID(int id){
+        return ((id/11)-23);
+    }
+    
+    public static int getHistoIDFromRowColumn(int row,int column){
+        return (-row+5)+11*(column+23);
+    }
+    
+    public static Boolean isInHole(int row,int column){
+        Boolean ret;
+        ret=false;
+        if ((row==1)||(row==-1)){
+                if ((column<=-2)&&(column>=-10)) ret=true;
+        }
+        return ret;
+    }
+    
+    
 }
