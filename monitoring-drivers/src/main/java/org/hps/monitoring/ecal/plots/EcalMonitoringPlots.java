@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.ecal.ECalUtils;
 import org.hps.util.Redrawable;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
@@ -87,8 +88,8 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
 
         occupancyPlots = new ArrayList<IHistogram1D>();
         for (int ii = 0; ii < (11 * 47); ii++) {
-            int row = EcalMonitoringUtils.getRowFromHistoID(ii);
-            int column = EcalMonitoringUtils.getColumnFromHistoID(ii);
+            int row = ECalUtils.getRowFromHistoID(ii);
+            int column = ECalUtils.getColumnFromHistoID(ii);
             occupancyPlots.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy : " + (row) + " " + (column) + ": " + ii, 101, 0, 1));
         }
 
@@ -138,7 +139,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
             for (CalorimeterHit hit : hits) {
                 int column = hit.getIdentifierFieldValue("ix");
                 int row = hit.getIdentifierFieldValue("iy");
-                int id = EcalMonitoringUtils.getHistoIDFromRowColumn(row, column);
+                int id = ECalUtils.getHistoIDFromRowColumn(row, column);
                 hitCountFillPlot.fill(column, row);
                 chits[id]++;
                 nhits++;
@@ -188,10 +189,10 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         clusterCountDrawPlot.add(clusterCountFillPlot);
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
-            int row = EcalMonitoringUtils.getRowFromHistoID(id);
-            int column = EcalMonitoringUtils.getColumnFromHistoID(id);
+            int row = ECalUtils.getRowFromHistoID(id);
+            int column = ECalUtils.getColumnFromHistoID(id);
             double mean = occupancyPlots.get(id).mean();
-            if ((row != 0) && (column != 0) && (!EcalMonitoringUtils.isInHole(row, column)))
+            if ((row != 0) && (column != 0) && (!ECalUtils.isInHole(row, column)))
                 occupancyDrawPlot.fill(column, row, mean);
         }
     }

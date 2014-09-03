@@ -19,6 +19,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import org.hps.recon.ecal.ECalUtils;
+
 public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
     private String subdetectorName= "Ecal";
@@ -29,6 +31,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     private Detector detector;
     private IDDecoder dec;
     private IHistogram1D windowPlot;
+    private IHistogram1D windowPlot1;
     private int window = 10;
     private JLabel xLabel, yLabel;
     private JComboBox xCombo;
@@ -38,6 +41,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
     private boolean testX = false;
     private boolean testY = false;
     private int plotX, plotY;
+    private boolean isFirst = true;
 
     public EcalWindowPlotsXY() {
         int count = 0;
@@ -96,31 +100,17 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
-        plotter = aida.analysisFactory().createPlotterFactory().create("HPS ECAL Window Plots");
+        plotter = aida.analysisFactory().createPlotterFactory("ECAL Window plots").create("HPS ECAL Window Plots");
 
         //plotterFrame = new AIDAFrame();
         //plotterFrame.addPlotter(plotter);
         //plotterFrame.setVisible(true);
         IPlotterStyle pstyle = plotter.style();
         pstyle.dataStyle().errorBarStyle().setVisible(false);
-        windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
-        plotter.region(0).plot(windowPlot);
-
-        xCombo = new JComboBox(xList);
-        xCombo.addActionListener(this);
-        xLabel = new JLabel("x");
-        xLabel.setLabelFor(xCombo);
-        //plotterFrame.getControlsPanel().add(xLabel);
-        //plotterFrame.getControlsPanel().add(xCombo);
-        yCombo = new JComboBox(yList);
-        yCombo.addActionListener(this);
-        yLabel = new JLabel("y");
-        yLabel.setLabelFor(yCombo);
-        //plotterFrame.getControlsPanel().add(yLabel);
-        //plotterFrame.getControlsPanel().add(yCombo);
-        //plotterFrame.pack();
-        
-        //plotterFrame.show();
+        plotter.createRegions(1,1);     
+    	windowPlot1 = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : dummy", 1, -0.5, 1 - 0.5);
+    	plotter.region(0).plot(windowPlot1);
+        plotter.show();
     }
 
     public void endOfData() {
@@ -137,8 +127,15 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 int x = dec.getValue("ix");
                 int y = dec.getValue("iy");
 //				System.out.println("got hit: x= " + x + ", y= " + y);
-                if (hit.getADCValues().length != window) {
-                    throw new RuntimeException("Hit has unexpected window length " + hit.getADCValues().length + ", not " + window);
+                if (isFirst) {
+                	System.out.println("FIRST!!!");
+                    isFirst=false;
+                	window=hit.getADCValues().length;
+                	windowPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Window Mode Data", window, -0.5, window - 0.5);
+                	plotter.region(0).clear();
+                	plotter.region(0).plot(windowPlot);
+                	plotter.region(0).refresh();
+                
                 }
                 if (testX && x != plotX) {
                     continue;
@@ -148,7 +145,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 }
                 windowPlot.reset();
                 for (int i = 0; i < window; i++) {
-                    windowPlot.fill(i, hit.getADCValues()[i]);
+                    windowPlot.fill(i, hit.getADCValues()[i]*ECalUtils.adcResolution);
 
                 }
             }
