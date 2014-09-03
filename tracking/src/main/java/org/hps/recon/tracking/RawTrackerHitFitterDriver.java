@@ -10,6 +10,7 @@ import org.hps.readout.ecal.ReadoutTimestamp;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
@@ -85,7 +86,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     }
 
     @Override
-    public void startOfData() {
+    public void detectorChanged(Detector detector) {
         _shaper.setDebug(debug);
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");

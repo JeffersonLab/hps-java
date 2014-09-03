@@ -46,10 +46,10 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         this.nPulses = nPulses;
         amplitudes = new double[nPulses];
         amplitudeErrors = new double[nPulses];
-        System.setErr(new PrintStream(new OutputStream() {
-            public void write(int b) {
-            }
-        }));
+//        System.setErr(new PrintStream(new OutputStream() {
+//            public void write(int b) {
+//            }
+//        }));
     }
 
     public void setDebug(boolean debug) {

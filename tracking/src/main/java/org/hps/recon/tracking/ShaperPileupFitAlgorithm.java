@@ -15,6 +15,9 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     ShaperLinearFitAlgorithm twoPulseFitter = new ShaperLinearFitAlgorithm(2);
     private boolean debug = false;
     private double refitThreshold = 0.5;
+    private int totalFits = 0;
+    private int refitAttempts = 0;
+    private int refitsAccepted = 0;
 
     public ShaperPileupFitAlgorithm() {
     }
@@ -26,18 +29,26 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
         Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, constants);
         double singlePulseChiProb = fittedPulses.iterator().next().getChiProb();
+        totalFits++;
         if (singlePulseChiProb < refitThreshold) {
+            refitAttempts++;
             Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, constants);
             double doublePulseChiProb = doublePulse.iterator().next().getChiProb();
             if (doublePulseChiProb > singlePulseChiProb) {
+                refitsAccepted++;
                 fittedPulses = doublePulse;
             }
+        }
+        if (debug && totalFits % 10000 == 0) {
+            System.out.format("%d fits, %d refit attempts, %d refits accepted\n", totalFits, refitAttempts, refitsAccepted);
         }
         return fittedPulses;
     }
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+        onePulseFitter.setDebug(debug);
+        twoPulseFitter.setDebug(debug);
     }
 
 }

@@ -38,6 +38,9 @@ public class DataTrackerHitDriver extends Driver {
     private double clusterSeedThreshold = 4.0;
     private double clusterNeighborThreshold = 3.0;
     private double clusterThreshold = 4.0;
+    private double meanTime = 24.0;
+    private double timeWindow = 48.0;
+    private double neighborDeltaT = 24.0;
     private int clusterMaxSize = 10;
     private int clusterCentralStripAveragingThreshold = 4;
     // Clustering errors by number of TrackerHits.
@@ -83,6 +86,18 @@ public class DataTrackerHitDriver extends Driver {
 
     public void setClusterThreshold(double clusterThreshold) {
         this.clusterThreshold = clusterThreshold;
+    }
+
+    public void setMeanTime(double meanTime) {
+        this.meanTime = meanTime;
+    }
+
+    public void setTimeWindow(double timeWindow) {
+        this.timeWindow = timeWindow;
+    }
+
+    public void setNeighborDeltaT(double neighborDeltaT) {
+        this.neighborDeltaT = neighborDeltaT;
     }
 
     public void setClusterMaxSize(int clusterMaxSize) {
@@ -154,6 +169,9 @@ public class DataTrackerHitDriver extends Driver {
         stripClusteringAlgo.setSeedThreshold(clusterSeedThreshold);
         stripClusteringAlgo.setNeighborThreshold(clusterNeighborThreshold);
         stripClusteringAlgo.setClusterThreshold(clusterThreshold);
+        stripClusteringAlgo.setMeanTime(meanTime);
+        stripClusteringAlgo.setTimeWindow(timeWindow);
+        stripClusteringAlgo.setNeighborDeltaT(neighborDeltaT);
 
         // hitMaker=new HPSFittedRawTrackerHitMaker(shaperFit);
         // Create the clusterers and set hit-making parameters.

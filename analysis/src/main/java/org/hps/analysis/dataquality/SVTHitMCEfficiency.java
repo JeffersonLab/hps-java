@@ -2,13 +2,14 @@ package org.hps.analysis.dataquality;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import hep.aida.IHistogramFactory;
 import hep.aida.IProfile1D;
+import hep.aida.IProfile2D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShapeFitParameters;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -70,10 +71,16 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             createLayerPlot(plotDir + "clusterEfficiency", kk, 50, -40, 40.);
             createLayerPlot(plotDir + "readoutEfficiency", kk, 50, -40, 40.);
             createLayerPlot(plotDir + "rthToClusterEfficiency", kk, 50, -40, 40.);
-            createLayerPlot2D(plotDir + "toogoodFits", kk, 200, -100, 100, 100, 0, 20000);
-            createLayerPlot2D(plotDir + "goodFits", kk, 200, -100, 100, 100, 0, 20000);
-            createLayerPlot2D(plotDir + "badFits", kk, 200, -100, 100, 100, 0, 20000);
+            createLayerPlot2D(plotDir + "clusterEfficiency2D", kk, 50, -40, 40., 16, 0.5, 16.5);
+            createLayerPlot2D(plotDir + "rthToClusterEfficiency2D", kk, 50, -40, 40., 16, 0.5, 16.5);
+            createLayerPlot2D(plotDir + "allFits", kk, 200, -100, 100, 100, 0, 20000);
+//            createLayerPlot2D(plotDir + "toogoodFits", kk, 200, -100, 100, 100, 0, 20000);
+//            createLayerPlot2D(plotDir + "goodFits", kk, 200, -100, 100, 100, 0, 20000);
+//            createLayerPlot2D(plotDir + "badFits", kk, 200, -100, 100, 100, 0, 20000);
+            createLayerPlot2D(plotDir + "fitT0ChiProb", kk, 200, -100, 100, 100, 0, 1.0);
+            createLayerPlot2D(plotDir + "fitAmpChiProb", kk, 200, 0, 20000, 100, 0, 1.0);
             createLayerPlot1D(plotDir + "signalClusterT0", kk, 500, -100, 100);
+            createLayerPlot2D(plotDir + "badClusterFits", kk, 200, -100, 100, 100, 0, 20000);
         }
         resetEfficiencyMap();
     }
@@ -141,9 +148,14 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
         }
 
         //relational tables from raw and fitted tracker hits to sim hit
+        RelationalTable rthtofit = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         RelationalTable fittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<FittedRawTrackerHit> fittedTrackerHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         for (FittedRawTrackerHit hit : fittedTrackerHits) {
+            ShapeFitParameters oldfit = (ShapeFitParameters) rthtofit.to(hit.getRawTrackerHit());
+            if (oldfit == null || Math.abs(oldfit.getT0()) > Math.abs(hit.getT0())) {
+                rthtofit.add(hit.getRawTrackerHit(), hit.getShapeFitParameters());
+            }
             Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(hit.getRawTrackerHit());
             for (SimTrackerHit simhit : simTrackerHits) {
                 fittomc.add(hit, simhit);
@@ -160,24 +172,39 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             }
             if (signalHit != null) {
 //                System.out.format("chiprob %f, t0 %f, A %f\n", signalHit.getShapeFitParameters().getChiProb(), signalHit.getT0(), signalHit.getAmp());
-                if (signalHit.getShapeFitParameters().getChiProb() > 0.95) {
-                    getLayerPlot2D(plotDir + "toogoodFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
-                } else if (signalHit.getShapeFitParameters().getChiProb() < 0.05) {
-                    getLayerPlot2D(plotDir + "badFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
-                } else {
-                    getLayerPlot2D(plotDir + "goodFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
-                }
+                getLayerPlot2D(plotDir + "allFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
+                getLayerPlot2D(plotDir + "fitT0ChiProb", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getShapeFitParameters().getChiProb());
+                getLayerPlot2D(plotDir + "fitAmpChiProb", simhit.getLayer()).fill(signalHit.getAmp(), signalHit.getShapeFitParameters().getChiProb());
+//                if (signalHit.getShapeFitParameters().getChiProb() > 0.95) {
+//                    getLayerPlot2D(plotDir + "toogoodFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
+//                } else if (signalHit.getShapeFitParameters().getChiProb() < 0.05) {
+//                    getLayerPlot2D(plotDir + "badFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
+//                } else {
+//                    getLayerPlot2D(plotDir + "goodFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
+//                }
             }
 
             int gotCluster = 0;
+            int[] gotClusterAtTime = new int[16];
             Set<SiTrackerHitStrip1D> clusters = clustertosimhit.allTo(simhit);
             if (clusters != null) {
                 for (SiTrackerHitStrip1D clust : clusters) {
                     getLayerPlot1D(plotDir + "signalClusterT0", simhit.getLayer()).fill(clust.getTime());
 
+                    for (int i = 0; i < 16; i++) {
+                        if (Math.abs(clust.getTime()) < i + 1) {
+                            gotClusterAtTime[i] = 1;
+                        }
+                    }
                     if (Math.abs(clust.getTime()) < t0Cut) {
                         gotCluster = 1;
+                    } else {
+                        for (RawTrackerHit rth : clust.getRawHits()) {
+                            ShapeFitParameters fit = (ShapeFitParameters) rthtofit.to(rth);
+                            getLayerPlot2D(plotDir + "badClusterFits", simhit.getLayer()).fill(fit.getT0(), fit.getAmp());
+                        }
                     }
+
                 }
             }
             Set<RawTrackerHit> rawhits = rawtomc.allTo(simhit);
@@ -189,11 +216,21 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             if (gotRawHit == 1) {
                 getLayerPlot(plotDir + "rthToClusterEfficiency", simhit.getLayer()).fill(y, gotCluster);
             }
+            for (int i = 0; i < 16; i++) {
+                getLayerPlot2D(plotDir + "clusterEfficiency2D", simhit.getLayer()).fill(y, i + 1, gotClusterAtTime[i]);
+                if (gotRawHit == 1) {
+                    getLayerPlot2D(plotDir + "rthToClusterEfficiency2D", simhit.getLayer()).fill(y, i + 1, gotClusterAtTime[i]);
+                }
+            }
         }
     }
 
     @Override
     public void fillEndOfRunPlots() {
+        for (int kk = 1; kk < 13; kk++) {
+            getMean2D(getLayerPlot2D(plotDir + "clusterEfficiency2D", kk));
+            getMean2D(getLayerPlot2D(plotDir + "rthToClusterEfficiency2D", kk));
+        }
     }
 
     @Override
@@ -222,6 +259,33 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
 
     private IProfile1D createLayerPlot(String prefix, int layer, int nchan, double min, double max) {
         return aida.profile1D(prefix + "_layer" + layer, nchan, min, max);
+    }
+
+    private void getMean2D(IHistogram2D hist2D) {
+        int nx = hist2D.xAxis().bins();
+        int ny = hist2D.yAxis().bins();
+        double[][] means = new double[nx][ny];
+        for (int ix = 0; ix < nx; ix++) {
+            for (int iy = 0; iy < ny; iy++) {
+                means[ix][iy] = hist2D.binHeight(ix, iy) / hist2D.binEntries(ix, iy);
+            }
+        }
+        hist2D.reset();
+        for (int ix = 0; ix < nx; ix++) {
+            for (int iy = 0; iy < ny; iy++) {
+                double x = hist2D.xAxis().binCenter(ix);
+                double y = hist2D.yAxis().binCenter(iy);
+                hist2D.fill(x, y, means[ix][iy]);
+            }
+        }
+    }
+
+    private IProfile2D getLayerProfile2D(String prefix, int layer) {
+        return aida.profile2D(prefix + "_layer" + layer);
+    }
+
+    private IProfile2D createLayerProfile2D(String prefix, int layer, int nx, double minX, double maxX, int ny, double minY, double maxY) {
+        return aida.profile2D(prefix + "_layer" + layer, nx, minX, maxX, ny, minY, maxY);
     }
 
     private IHistogram1D getLayerPlot1D(String prefix, int layer) {
