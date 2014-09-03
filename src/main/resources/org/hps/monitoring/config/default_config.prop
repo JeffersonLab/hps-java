@@ -18,6 +18,7 @@ SteeringType=RESOURCE
 # event source
 DataSourceType=ET_SERVER
 DataSourcePath=
+ProcessingStage=LCIO
 
 # ET connection settings
 Blocking=false

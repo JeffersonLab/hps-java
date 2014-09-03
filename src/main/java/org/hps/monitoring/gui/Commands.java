@@ -12,13 +12,14 @@ final class Commands {
     static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";
     static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
     static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
-    static final String LOG_LEVEL_CHANGED = "logLevelChanged";
+    static final String LOG_LEVEL_CHANGED = "logLevelChanged";    
     
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String VERBOSE_CHANGED = "verboseChanged";
     static final String WAIT_MODE_CHANGED = "waitModeChanged";
     
     static final String DATA_SOURCE_TYPE_CHANGED = "dataSourceTypeChanged";
+    static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";
        
     static final String AIDA_AUTO_SAVE = "aidaAutoSave";
     static final String CLEAR_LOG_TABLE = "clearLogTable";

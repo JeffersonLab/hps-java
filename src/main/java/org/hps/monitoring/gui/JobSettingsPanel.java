@@ -159,13 +159,15 @@ class JobSettingsPanel extends AbstractFieldsPanel {
      * Enable this component.
      * @param enable Whether to enable or not.
      */
+    /*
     void enableJobPanel(boolean enable) {
         detectorNameField.setEnabled(enable);
         eventBuilderField.setEnabled(enable);
         steeringTypeComboBox.setEnabled(enable);
         steeringFileField.setEnabled(enable);   
         steeringResourcesComboBox.setEnabled(enable);
-    }   
+    } 
+    */  
     
     /**
      * Attaches the ActionListener from the main app to specific GUI components in this class.

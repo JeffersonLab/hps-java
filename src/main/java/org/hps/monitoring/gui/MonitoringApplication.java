@@ -702,7 +702,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 getConnectionSettingsPanel().enableConnectionPanel(true);
 
                 // Re-enable the getJobPanel().
-                getJobSettingsPanel().enableJobPanel(true);
+                //getJobSettingsPanel().enableJobPanel(true);
 
                 // Set relevant event panel buttons to disabled.
                 buttonsPanel.enablePauseButton(false);
@@ -725,7 +725,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 getConnectionSettingsPanel().enableConnectionPanel(false);
 
                 // Disable getJobPanel().
-                getJobSettingsPanel().enableJobPanel(false);
+                //getJobSettingsPanel().enableJobPanel(false);
 
                 // Enable or disable appropriate menu items.
                 savePlotsItem.setEnabled(true);
@@ -1161,21 +1161,27 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         processingConfiguration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());        
         processingConfiguration.setStopOnErrors(configurationModel.getDisconnectOnError());         
         processingConfiguration.setDataSourceType(configurationModel.getDataSourceType());
+        processingConfiguration.setProcessingStage(configurationModel.getProcessingStage());
         processingConfiguration.setEtConnection(connection);        
         processingConfiguration.setFilePath(configurationModel.getDataSourcePath());
         processingConfiguration.setLCSimEventBuild(eventBuilder);
-        processingConfiguration.setDetectorName(configurationModel.getDetectorName());                
+        processingConfiguration.setDetectorName(configurationModel.getDetectorName());
                
         // Add all Drivers from the pre-configured JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
             processingConfiguration.add(driver);
         }        
-               
-        // ET system monitor.
-        processingConfiguration.add(new EtSystemMonitor());
+
+        if (usingEtServer()) {
+
+            // ET system monitor.
+            // FIXME: Make whether this is run or not configurable through the JobPanel. 
+            processingConfiguration.add(new EtSystemMonitor());
             
-        // ET system strip charts.
-        processingConfiguration.add(new EtSystemStripCharts());
+            // ET system strip charts.
+            // FIXME: Make whether this is run or not configurable through the JobPanel.
+            processingConfiguration.add(new EtSystemStripCharts());
+        }
               
         // RunPanel updater.
         processingConfiguration.add(runPanel.new RunModelUpdater());

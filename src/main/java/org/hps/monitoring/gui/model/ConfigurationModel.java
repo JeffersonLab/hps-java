@@ -5,6 +5,7 @@ import java.util.logging.Level;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.record.processing.DataSourceType;
+import org.hps.record.processing.ProcessingStage;
 import org.jlab.coda.et.enums.Mode;
 
 /**
@@ -21,7 +22,7 @@ public final class ConfigurationModel extends AbstractModel {
     
     // Job settings
     public static final String AIDA_AUTO_SAVE_PROPERTY = "AidaAutoSave";
-    public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";   
+    public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
     public static final String DISCONNECT_ON_END_RUN_PROPERTY = "DisconnectOnEndRun";    
@@ -36,6 +37,7 @@ public final class ConfigurationModel extends AbstractModel {
     // Data source
     public static final String DATA_SOURCE_TYPE_PROPERTY = "DataSourceType";
     public static final String DATA_SOURCE_PATH_PROPERTY = "DataSourcePath";
+    public static final String PROCESSING_STAGE_PROPERTY = "ProcessingStage";
     
     // ET connection parameters
     public static final String ET_NAME_PROPERTY = "EtName";
@@ -69,7 +71,8 @@ public final class ConfigurationModel extends AbstractModel {
             
             // Data source
             DATA_SOURCE_TYPE_PROPERTY,
-            DATA_SOURCE_PATH_PROPERTY,            
+            DATA_SOURCE_PATH_PROPERTY,           
+            PROCESSING_STAGE_PROPERTY,
             
             // ET parameters
             ET_NAME_PROPERTY,
@@ -244,6 +247,18 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(DATA_SOURCE_PATH_PROPERTY, oldValue, getDataSourcePath());
     }
     
+    public ProcessingStage getProcessingStage() {
+        if (config.get(PROCESSING_STAGE_PROPERTY) == null)
+            throw new RuntimeException(PROCESSING_STAGE_PROPERTY + " is null!!!");
+        return ProcessingStage.valueOf(config.get(PROCESSING_STAGE_PROPERTY));
+    }
+    
+    public void setProcessingStage(ProcessingStage processingStage) {
+        ProcessingStage oldValue = getProcessingStage();
+        config.set(PROCESSING_STAGE_PROPERTY, processingStage);
+        firePropertyChange(PROCESSING_STAGE_PROPERTY, oldValue, getProcessingStage());
+    }
+    
     public String getEtName() {
         return config.get(ET_NAME_PROPERTY);
     }
@@ -363,7 +378,7 @@ public final class ConfigurationModel extends AbstractModel {
         config.set(PRESCALE_PROPERTY, prescale);
         firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
     }
-            
+                
     @Override
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;

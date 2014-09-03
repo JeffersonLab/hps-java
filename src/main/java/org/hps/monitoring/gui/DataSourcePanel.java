@@ -1,8 +1,10 @@
 package org.hps.monitoring.gui;
 
 import static org.hps.monitoring.gui.Commands.DATA_SOURCE_TYPE_CHANGED;
+import static org.hps.monitoring.gui.Commands.PROCESSING_STAGE_CHANGED;
 import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_PATH_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY;
+import static org.hps.monitoring.gui.model.ConfigurationModel.PROCESSING_STAGE_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -16,6 +18,7 @@ import javax.swing.JTextField;
 
 import org.hps.monitoring.gui.model.ConfigurationModel;
 import org.hps.record.processing.DataSourceType;
+import org.hps.record.processing.ProcessingStage;
 
 /**
  * A sub-panel of the settings window for selecting a data source, 
@@ -23,14 +26,21 @@ import org.hps.record.processing.DataSourceType;
  */
 class DataSourcePanel extends AbstractFieldsPanel {
            
-    static String[] dataSourceTypes = { 
+    static final String[] dataSourceTypes = { 
         DataSourceType.ET_SERVER.description(), 
         DataSourceType.EVIO_FILE.description(),
         DataSourceType.LCIO_FILE.description()
     };
     
+    static final String[] processingStages = {
+        ProcessingStage.ET.name(),
+        ProcessingStage.EVIO.name(),
+        ProcessingStage.LCIO.name()
+    };
+    
     JComboBox<?> dataSourceTypeComboBox;
     JTextField dataSourcePathField;    
+    JComboBox<?> processingStageComboBox;
     
     ConfigurationModel configurationModel;
     
@@ -43,26 +53,14 @@ class DataSourcePanel extends AbstractFieldsPanel {
         dataSourceTypeComboBox.addActionListener(this);
         
         dataSourcePathField = addField("Data Source Path", 40);
-        //dataSourcePathField.setEditable(false);
-        //dataSourcePathField.addPropertyChangeListener("value", this);
-        dataSourcePathField.addPropertyChangeListener(this);        
-        //dataSourcePathField.addPropertyChangeListener(new DummyPropertyChangeListener());
-        //dataSourcePathField.addPropertyChangeListener("value", new DummyPropertyChangeListener());
+        dataSourcePathField.addPropertyChangeListener(this);       
+        
+        processingStageComboBox = addComboBox("Processing Stage", processingStages);
+        processingStageComboBox.setSelectedIndex(2);
+        processingStageComboBox.setActionCommand(PROCESSING_STAGE_CHANGED);
+        processingStageComboBox.addActionListener(this);        
     }
-    
-    /*
-    class DummyPropertyChangeListener implements PropertyChangeListener {
-
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-            System.out.println("DummyPropertyChangeListener.propertyChange");
-            System.out.println("  source: " + evt.getSource());
-            System.out.println("  name: " + evt.getPropertyName());
-            System.out.println("  value: " + evt.getNewValue());
-        }        
-    }
-    */
-    
+       
     private void chooseFile() {
         JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setDialogTitle("Select Data Source");        
@@ -101,6 +99,9 @@ class DataSourcePanel extends AbstractFieldsPanel {
             if (dataSourceType.isFile()) { 
                 chooseFile();
             }
+        } else if (PROCESSING_STAGE_CHANGED.equals(e.getActionCommand())) {
+            ProcessingStage processingStage = ProcessingStage.values()[processingStageComboBox.getSelectedIndex()];
+            configurationModel.setProcessingStage(processingStage);
         }
     }
     
@@ -129,6 +130,8 @@ class DataSourcePanel extends AbstractFieldsPanel {
                 dataSourceTypeComboBox.setSelectedItem(value.toString());
             } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
                 dataSourcePathField.setText((String) value); 
+            } else if (PROCESSING_STAGE_PROPERTY.equals(evt.getPropertyName())) {
+                processingStageComboBox.setSelectedItem(value.toString());
             }
         }
     }

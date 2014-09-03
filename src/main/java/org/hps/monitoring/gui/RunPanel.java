@@ -33,6 +33,11 @@ import org.jlab.coda.jevio.EvioEvent;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Add current data rate field (measured over last ~second).
+// TOOD: Add current event rate field (measured over last ~second).
+// TODO: Add event sequence number from CompositeRecord.
+// TODO: Add average data rate field (over entire session).
+// TODO: Add average proc time per event field (over entire session).
 public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
@@ -102,7 +107,9 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         public void process(CompositeRecord event) {
             model.incrementEventsReceived();            
             EvioEvent evioEvent = event.getEvioEvent();
-            if (evioEvent != null) {                
+            if (event.getEtEvent() != null && event.getEvioEvent() == null) {
+                model.addDataReceived(event.getEtEvent().getData().length);
+            } else if (evioEvent != null) {
                 model.addDataReceived((long)evioEvent.getTotalBytes());
                 model.setEventNumber(evioEvent.getEventNumber());
                 if (EventConstants.isPreStartEvent(evioEvent)) {                    
