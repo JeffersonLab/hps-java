@@ -47,7 +47,7 @@ public abstract class AbstractModel {
                 }
             }
             try {
-                Object value = getMethod.invoke(this, null);
+                Object value = getMethod.invoke(this, (Object[])null);
                 if (value != null) {
                     firePropertyChange(property, value, value);                    
                     for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
