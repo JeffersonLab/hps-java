@@ -13,7 +13,7 @@
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/record-util/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/record-util/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/record-util/</developerConnection>
-    </scm>
+    </scm>    
     <build>
         <plugins>
             <plugin>

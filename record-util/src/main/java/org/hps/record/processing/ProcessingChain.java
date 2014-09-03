@@ -166,14 +166,7 @@ public class ProcessingChain {
             compositeLoop.addProcessor(new MaxRecordsProcessor(configuration.maxRecords));
         }
     }
-                                 
-    /**
-     * Resume event processing from pause mode.
-     */
-    public void resume() {
-        this.paused = false;
-    }
-           
+                                            
     /**
      * Loop over events until processing ends for some reason.
      */
@@ -182,16 +175,20 @@ public class ProcessingChain {
         while (true) {
             // Is the processing unpaused?
             if (!paused) {
-                // Loop until done or error occurs.
+                // Loop until done, error occurs, or pause is requested.
                 compositeLoop.execute(Command.GO, true);
-                if (compositeLoop.getLastError() != null)
-                    System.out.println("loop error: " + compositeLoop.getLastError().getMessage());
+                
+                // Is loop done?
                 if (compositeLoop.isDone()) {
-                    // Break from processing loop.
+                    // Stop record processing.
                     break;
                 }
             }
-            // FIXME: Should this thread sleep for a bit here?
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -213,9 +210,16 @@ public class ProcessingChain {
     /**
      * Pause the event processing.
      */
-    public void pause() {
+    public void pause() {   
         compositeLoop.execute(Command.PAUSE);
         paused = true;
+    }
+    
+    /**
+     * Resume event processing from pause mode.
+     */
+    public void resume() {
+        this.paused = false;
     }
                   
     /**

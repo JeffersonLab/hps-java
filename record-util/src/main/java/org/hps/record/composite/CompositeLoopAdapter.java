@@ -68,7 +68,7 @@ public final class CompositeLoopAdapter extends AbstractLoopListener implements 
                 processor.process((CompositeRecord) record.getRecord());
             } catch (Exception e) {
                 // Throw the processing error so the loop can perform proper handling of it.
-                throw new RecordProcessingException("Error during record processing.", e);
+                throw new RecordProcessingException("Exception occurred during record processing.", e);
             }
         }
     }      
