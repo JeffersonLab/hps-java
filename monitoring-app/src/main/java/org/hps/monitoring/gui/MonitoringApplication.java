@@ -1158,11 +1158,11 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         
         ProcessingConfiguration processingConfiguration = new ProcessingConfiguration();   
         
-        processingConfiguration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());        
-        processingConfiguration.setStopOnErrors(configurationModel.getDisconnectOnError());         
+        processingConfiguration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());
+        processingConfiguration.setStopOnErrors(configurationModel.getDisconnectOnError());
         processingConfiguration.setDataSourceType(configurationModel.getDataSourceType());
         processingConfiguration.setProcessingStage(configurationModel.getProcessingStage());
-        processingConfiguration.setEtConnection(connection);        
+        processingConfiguration.setEtConnection(connection);
         processingConfiguration.setFilePath(configurationModel.getDataSourcePath());
         processingConfiguration.setLCSimEventBuild(eventBuilder);
         processingConfiguration.setDetectorName(configurationModel.getDetectorName());
@@ -1172,10 +1172,11 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             processingConfiguration.add(driver);
         }        
 
+        // Using ET server?
         if (usingEtServer()) {
 
             // ET system monitor.
-            // FIXME: Make whether this is run or not configurable through the JobPanel. 
+            // FIXME: Make whether this is run or not configurable through the JobPanel.
             processingConfiguration.add(new EtSystemMonitor());
             
             // ET system strip charts.
@@ -1271,18 +1272,21 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         try {
             // Log message.
             logger.log(Level.FINER, "Stopping the session.");
-        
-            // Terminate event processing.
-            stopEventProcessing();
-                
+                        
             // Save AIDA file.
             saveAidaFile();
         
             // Disconnect from the ET system.
-            if (usingEtServer())
+            if (usingEtServer()) {
+                // Disconnect from the ET system.
                 disconnect();
-            else 
-                setDisconnectedGuiState();        
+            } else { 
+                // When using direct file streaming, just need to toggle GUI state.
+                setDisconnectedGuiState();
+            }
+            
+            // Terminate event processing.
+            stopEventProcessing();
                 
             logger.log(Level.INFO, "Session was stopped.");
             
@@ -1337,16 +1341,25 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * In this case, event processing will exit later when the ET system goes down.
      */
     private void stopEventProcessing() {
+        //System.out.println("MonitoringApplication.stopEventProcessing");
                        
         if (processingThread != null) {
+            //System.out.println("processingThread not null");
             // Is the event processing thread actually still alive?
             if (processingThread.isAlive()) {
+                
+                //System.out.println("processing thread is alive...");
+                //System.out.println("killing session watchdog");
 
                 // Interrupt and kill the event processing watchdog thread if necessary.
                 killSessionWatchdogThread();
+                
+                //System.out.println("stopping event processing chain...");
 
                 // Request the event processing to stop.
                 processingChain.stop();                
+                
+                //System.out.println("requested stop of event processing");
             }
 
             // Wait for the event processing thread to finish.  This should just return
@@ -1355,19 +1368,25 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 // In the case where ET is configured for sleep or timed wait, an untimed join could 
                 // block forever, so only wait for ~1 second before continuing.  The EventProcessingChain
                 // should still cleanup automatically when its thread completes after the ET system goes down.
+                //System.out.println("joining event processing thread...");
                 processingThread.join(1000);
+                //System.out.println("joined event processing thread!");
             } catch (InterruptedException e) {
                 // Don't know when this would ever happen.
+                //System.out.println("join was interrupted!");
             }
        
             // Handle last error that occurred in event processing.
             if (processingChain.getLastError() != null) {
+                //System.out.println("last error: " + processingChain.getLastError().getMessage());
                 errorHandler.setError(processingChain.getLastError()).log().printStackTrace();
             }
        
             // Reset event processing objects.
+            //System.out.println("setting objects to null...");
             processingChain = null;
             processingThread = null;
+            //System.out.println("stopEventProcessing - done!");
         }
     }
 
