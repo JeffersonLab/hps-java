@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.logging.Level;
 
 import org.hps.monitoring.enums.SteeringType;
-import org.hps.record.processing.DataSourceType;
-import org.hps.record.processing.ProcessingStage;
+import org.hps.record.enums.DataSourceType;
+import org.hps.record.enums.ProcessingStage;
 import org.jlab.coda.et.enums.Mode;
 
 /**

@@ -17,8 +17,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 
 import org.hps.monitoring.gui.model.ConfigurationModel;
-import org.hps.record.processing.DataSourceType;
-import org.hps.record.processing.ProcessingStage;
+import org.hps.record.enums.DataSourceType;
+import org.hps.record.enums.ProcessingStage;
 
 /**
  * A sub-panel of the settings window for selecting a data source, 

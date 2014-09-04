@@ -7,13 +7,13 @@ import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.Subsystem;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusImpl;
-import org.hps.record.et.EtProcessor;
+import org.hps.record.et.EtEventProcessor;
 import org.jlab.coda.et.EtEvent;
 
 /**
  * This is a class for monitoring the ET system.
  */
-public final class EtSystemMonitor extends EtProcessor {
+public final class EtSystemMonitor extends EtEventProcessor {
 
     SystemStatus systemStatus;
     int events = 0;    

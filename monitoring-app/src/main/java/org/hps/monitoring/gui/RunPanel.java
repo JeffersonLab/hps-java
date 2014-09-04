@@ -26,7 +26,7 @@ import javax.swing.border.TitledBorder;
 import org.hps.evio.EventConstants;
 import org.hps.monitoring.gui.model.RunModel;
 import org.hps.record.composite.CompositeRecord;
-import org.hps.record.composite.CompositeProcessor;
+import org.hps.record.composite.CompositeRecordProcessor;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
@@ -95,7 +95,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         timer.purge();
     }
              
-    class RunModelUpdater extends CompositeProcessor {
+    class RunModelUpdater extends CompositeRecordProcessor {
        
         @Override
         public void startJob() {
