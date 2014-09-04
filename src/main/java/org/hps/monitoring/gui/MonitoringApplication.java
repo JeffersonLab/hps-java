@@ -63,6 +63,7 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
+import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.evio.LCSimEventBuilder;
 import org.hps.monitoring.enums.ConnectionStatus;
 import org.hps.monitoring.enums.SteeringType;
@@ -77,11 +78,11 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
+import org.hps.record.composite.CompositeLoop;
+import org.hps.record.composite.CompositeLoopConfiguration;
+import org.hps.record.composite.EventProcessingThread;
+import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
-import org.hps.record.processing.DataSourceType;
-import org.hps.record.processing.ProcessingChain;
-import org.hps.record.processing.ProcessingConfiguration;
-import org.hps.record.processing.ProcessingThread;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
@@ -126,8 +127,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     // Event processing objects.
     private JobControlManager jobManager;
     private LCSimEventBuilder eventBuilder;
-    private ProcessingChain processingChain;
-    private ProcessingThread processingThread;
+    private CompositeLoop loop;
+    private EventProcessingThread processingThread;
     private Thread sessionWatchdogThread;
 
     // Logging objects.
@@ -824,7 +825,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             connect();                        
             
             // Setup the EventProcessingChain object using the EtConnection.
-            setupEventProcessingChain();
+            setupCompositeLoop();
             
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
@@ -1090,7 +1091,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void nextEvent() {
         this.setConnectionStatus(ConnectionStatus.CONNECTED);
-        processingChain.next();
+        loop.execute(Command.GO_N, 1L, true);
         log(Level.FINEST, "Getting next event.");
         this.setConnectionStatus(ConnectionStatus.PAUSED);
     }
@@ -1100,7 +1101,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void resumeEventProcessing() {
         // Notify event processor to continue.
-        processingChain.resume();
+        loop.resume();
 
         // Set state of event buttons.
         buttonsPanel.setPauseModeState(false);
@@ -1115,7 +1116,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void pauseEventProcessing() {
        
-        processingChain.pause();
+        loop.pause();
 
         // Set GUI state.
         buttonsPanel.setPauseModeState(true);
@@ -1154,22 +1155,21 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     /**
      * Configure the event processing chain.
      */
-    private void setupEventProcessingChain() {
+    private void setupCompositeLoop() {
         
-        ProcessingConfiguration processingConfiguration = new ProcessingConfiguration();   
-        
-        processingConfiguration.setStopOnEndRun(configurationModel.getDisconnectOnEndRun());
-        processingConfiguration.setStopOnErrors(configurationModel.getDisconnectOnError());
-        processingConfiguration.setDataSourceType(configurationModel.getDataSourceType());
-        processingConfiguration.setProcessingStage(configurationModel.getProcessingStage());
-        processingConfiguration.setEtConnection(connection);
-        processingConfiguration.setFilePath(configurationModel.getDataSourcePath());
-        processingConfiguration.setLCSimEventBuild(eventBuilder);
-        processingConfiguration.setDetectorName(configurationModel.getDetectorName());
+        CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
+            .setStopOnEndRun(configurationModel.getDisconnectOnEndRun())
+            .setStopOnErrors(configurationModel.getDisconnectOnError())
+            .setDataSourceType(configurationModel.getDataSourceType())
+            .setProcessingStage(configurationModel.getProcessingStage())
+            .setEtConnection(connection)
+            .setFilePath(configurationModel.getDataSourcePath())
+            .setLCSimEventBuilder(eventBuilder)
+            .setDetectorName(configurationModel.getDetectorName());
                
         // Add all Drivers from the pre-configured JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
-            processingConfiguration.add(driver);
+            loopConfig.add(driver);
         }        
 
         // Using ET server?
@@ -1177,24 +1177,24 @@ public final class MonitoringApplication extends JFrame implements ActionListene
 
             // ET system monitor.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            processingConfiguration.add(new EtSystemMonitor());
+            loopConfig.add(new EtSystemMonitor());
             
             // ET system strip charts.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            processingConfiguration.add(new EtSystemStripCharts());
+            loopConfig.add(new EtSystemStripCharts());
         }
               
         // RunPanel updater.
-        processingConfiguration.add(runPanel.new RunModelUpdater());
+        loopConfig.add(runPanel.new RunModelUpdater());
         
-        // Create the ProcessingChain object.
-        processingChain = new ProcessingChain(processingConfiguration);
+        // Create the CompositeLoop with the configuration.        
+        loop = new CompositeLoop(loopConfig);
         
         // Create the processing thread.
-        processingThread = new ProcessingThread(processingChain);
+        processingThread = new EventProcessingThread(loop);
         
         // Start the processing thread.
-        processingThread.start();        
+        processingThread.start();
     }
     
     /**
@@ -1356,8 +1356,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 
                 //System.out.println("stopping event processing chain...");
 
-                // Request the event processing to stop.
-                processingChain.stop();                
+                // Request the event processing to stop.          
+                loop.execute(Command.STOP);
                 
                 //System.out.println("requested stop of event processing");
             }
@@ -1377,14 +1377,15 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             }
        
             // Handle last error that occurred in event processing.
-            if (processingChain.getLastError() != null) {
+            if (loop.getLastError() != null) {
                 //System.out.println("last error: " + processingChain.getLastError().getMessage());
-                errorHandler.setError(processingChain.getLastError()).log().printStackTrace();
+                errorHandler.setError(loop.getLastError()).log().printStackTrace();
             }
        
             // Reset event processing objects.
             //System.out.println("setting objects to null...");
-            processingChain = null;
+            loop.dispose();
+            loop = null;
             processingThread = null;
             //System.out.println("stopEventProcessing - done!");
         }
