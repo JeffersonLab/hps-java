@@ -13,9 +13,14 @@ import java.lang.reflect.Method;
 public abstract class AbstractModel {
 
     protected PropertyChangeSupport propertyChangeSupport;
+    protected boolean listenersEnabled = true;
 
     public AbstractModel() {
         propertyChangeSupport = new PropertyChangeSupport(this);
+    }
+    
+    public void setListenersEnabled(boolean listenersEnabled) {
+        this.listenersEnabled = listenersEnabled;
     }
     
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -27,17 +32,21 @@ public abstract class AbstractModel {
     }
 
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        if (listenersEnabled)
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
     
     protected void firePropertyChange(PropertyChangeEvent evt) {
-        propertyChangeSupport.firePropertyChange(evt);
+        if (listenersEnabled)
+            propertyChangeSupport.firePropertyChange(evt);
     }
     
     abstract public String[] getPropertyNames();
     
     // FIXME: This method is kind of a hack.  Any other good way to do this?
     public void fireAllChanged() {
+        if (!listenersEnabled)
+            return;
         for (String property : getPropertyNames()) {
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
