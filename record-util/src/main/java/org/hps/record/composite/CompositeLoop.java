@@ -1,6 +1,11 @@
 package org.hps.record.composite;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.freehep.record.loop.DefaultRecordLoop;
+import org.freehep.record.loop.RecordEvent;
+import org.freehep.record.loop.RecordListener;
 import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.record.EndRunException;
@@ -14,19 +19,23 @@ import org.hps.record.et.EtSource.EtSourceException;
 public final class CompositeLoop extends DefaultRecordLoop {
 
     CompositeSource recordSource = new CompositeSource();
-    CompositeLoopAdapter adapter = new CompositeLoopAdapter();
-    
+            
     boolean stopOnErrors = true;
     boolean done = false;
     
+    List<CompositeLoopAdapter> adapters = new ArrayList<CompositeLoopAdapter>();
+            
     public CompositeLoop() {
         setRecordSource(recordSource);
-        addLoopListener(adapter);
-        addRecordListener(adapter);
     }
     
     public void setStopOnErrors(boolean stopOnErrors) {
         this.stopOnErrors = stopOnErrors;
+    }
+    
+    public void addAdapter(CompositeLoopAdapter adapter) {
+        addLoopListener(adapter);
+        addRecordListener(adapter);
     }
         
     /**
@@ -38,23 +47,16 @@ public final class CompositeLoop extends DefaultRecordLoop {
         }        
         super.setRecordSource(source);
     }
-    
-    /**
-     * Add a <code>CompositeRecordProcessor</code> which will receive <code>CompositeRecord</code>
-     * objects.
-     * @param processor The <code>CompositeRecordProcessor</code> to add.
-     */
-    public void addProcessor(CompositeProcessor processor) {
-        adapter.addProcessor(processor);
-    }
-            
+                
     /**
      * Handle errors in the client such as adapters.
      * If the loop is setup to try and continue on errors, 
      * only non-fatal record processing exceptions are ignored.
      */
     protected void handleClientError(Throwable x) {      
-                
+        
+        x.printStackTrace();
+        
         // Is the error ignorable?
         if (isIgnorable(x)) {
             // Ignore the error!
@@ -70,7 +72,9 @@ public final class CompositeLoop extends DefaultRecordLoop {
     }
 
     protected void handleSourceError(Throwable x) {
-                
+
+        x.printStackTrace();
+
         // Is the error ignorable?
         if (isIgnorable(x)) {
             // Ignore the error!
@@ -129,4 +133,3 @@ public final class CompositeLoop extends DefaultRecordLoop {
         return _exception;
     }
 }
- 

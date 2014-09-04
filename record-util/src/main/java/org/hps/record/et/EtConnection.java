@@ -3,9 +3,12 @@ package org.hps.record.et;
 import java.io.IOException;
 
 import org.jlab.coda.et.EtAttachment;
+import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.et.EtStation;
+import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
+import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
 import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.et.exception.EtBusyException;
@@ -13,7 +16,9 @@ import org.jlab.coda.et.exception.EtClosedException;
 import org.jlab.coda.et.exception.EtDeadException;
 import org.jlab.coda.et.exception.EtEmptyException;
 import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtExistsException;
 import org.jlab.coda.et.exception.EtTimeoutException;
+import org.jlab.coda.et.exception.EtTooManyException;
 import org.jlab.coda.et.exception.EtWakeUpException;
 
 /**
@@ -36,8 +41,13 @@ public final class EtConnection {
      * @param att The ET attachment.
      * @param stat The ET station.
      */
-    public EtConnection(EtSystem sys, EtAttachment att, EtStation stat, 
-            Mode waitMode, int waitTime, int chunkSize) {
+    public EtConnection(
+            EtSystem sys, 
+            EtAttachment att, 
+            EtStation stat, 
+            Mode waitMode, 
+            int waitTime, 
+            int chunkSize) {
         this.sys = sys;
         this.att = att;
         this.stat = stat;
@@ -110,7 +120,113 @@ public final class EtConnection {
             waitMode,
             Modify.NOTHING,
             waitTime,
-            chunkSize);
-        
+            chunkSize);        
     }     
+    
+    /**
+     * Create an EtConnection with full list of configuration parameters.
+     * @param name The name of the ET system e.g. the buffer file on disk.
+     * @param host The name of the network host.
+     * @param port The port of the network host.
+     * @param blocking True for blocking behavior.
+     * @param queueSize The queue size.
+     * @param prescale The event prescale or 0 for none.
+     * @param stationName The name of the ET station.
+     * @param stationPosition The position of the ET station.
+     * @param waitMode The wait mode.
+     * @param waitTime The wait time if using timed wait.
+     * @param chunkSize The number of ET events to return at once.
+     * @return The EtConnection created from the parameters.
+     */
+    public static EtConnection createConnection(
+            String name,
+            String host,
+            int port,
+            boolean blocking,
+            int queueSize,
+            int prescale,
+            String stationName,
+            int stationPosition,
+            Mode waitMode,
+            int waitTime,
+            int chunkSize) {
+        try {
+            
+            // make a direct connection to ET system's tcp server            
+            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(
+                    name, 
+                    host, 
+                    port);
+
+            // create ET system object with verbose debugging output
+            EtSystem sys = new EtSystem(etConfig, EtConstants.debugInfo);
+            sys.open();
+
+            // configuration of a new station
+            EtStationConfig stationConfig = new EtStationConfig();
+            //statConfig.setFlowMode(cn.flowMode);
+            // FIXME: Flow mode hard-coded.
+            stationConfig.setFlowMode(EtConstants.stationSerial);
+            if (!blocking) {
+                stationConfig.setBlockMode(EtConstants.stationNonBlocking);
+                if (queueSize > 0) {
+                    stationConfig.setCue(queueSize);
+                }
+            }
+            // Set prescale.
+            if (prescale > 0) {
+                //System.out.println("setting prescale to " + cn.prescale);
+                stationConfig.setPrescale(prescale);
+            }
+
+            // Create the station.
+            EtStation stat = sys.createStation(
+                    stationConfig, 
+                    stationName,
+                    stationPosition);
+
+            // attach to new station
+            EtAttachment att = sys.attach(stat);
+
+            // Return new connection.
+            EtConnection connection = new EtConnection(
+                    sys, 
+                    att, 
+                    stat,
+                    waitMode,
+                    waitTime,
+                    chunkSize
+                    );
+            
+            return connection;
+
+        } catch (IOException | 
+                EtException | 
+                EtExistsException | 
+                EtClosedException | 
+                EtDeadException | 
+                EtTooManyException e) {
+            throw new RuntimeException("Failed to create ET connection.", e);
+        }
+    }
+    
+    /**
+     * Create an EtConnection with a set of default parameters.
+     * @return An EtConnection with default parameters.
+     */
+    public static EtConnection createDefaultConnection() {
+        return createConnection(
+                "ETBuffer",
+                "localhost",
+                11111,
+                false,
+                0,
+                0,
+                "MY_STATION",
+                1,
+                Mode.TIMED,
+                5000000,
+                1);                
+    }
+    
 }

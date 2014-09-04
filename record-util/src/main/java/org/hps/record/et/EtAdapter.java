@@ -32,8 +32,13 @@ public final class EtAdapter extends AbstractLoopListener implements RecordListe
     
     @Override
     public void suspend(LoopEvent event) {
-        if (event.getException() != null)
+        if (event.getException() != null) {
             throw new RecordProcessingException("ET system error.", event.getException());
+            //System.out.println("DEBUG");
+            //System.out.println("ET system error...");
+            //event.getException().printStackTrace();
+            //System.exit(1);
+        }
     }
     
     @Override

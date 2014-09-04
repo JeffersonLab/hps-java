@@ -9,6 +9,7 @@ import org.hps.record.composite.CompositeRecord;
  * A @{link CompositeProcessor} for throwing an error when the 
  * maximum number of records is reached or exceeded.
  */
+// TODO: Handle max record counting in CompositeRecordAdapter.
 public class MaxRecordsProcessor extends CompositeProcessor {
     
     int maxRecords;

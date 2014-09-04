@@ -12,7 +12,7 @@ import org.hps.record.RecordProcessingException;
 /**
  * Adapter for listening on the {@link CompositeLoop} for records and loop events.
  */
-public final class CompositeLoopAdapter extends AbstractLoopListener implements RecordListener {
+public class CompositeLoopAdapter extends AbstractLoopListener implements RecordListener {
 
     List<CompositeProcessor> processors = new ArrayList<CompositeProcessor>();
 
@@ -20,7 +20,7 @@ public final class CompositeLoopAdapter extends AbstractLoopListener implements 
      * Add a <tt>CompositeRecordProcessor</tt> that will listen to this loop.
      * @param processor The composite record processor to add.
      */
-    void addProcessor(CompositeProcessor processor) {
+    public void addProcessor(CompositeProcessor processor) {
         processors.add(processor);
     }
     
@@ -45,23 +45,15 @@ public final class CompositeLoopAdapter extends AbstractLoopListener implements 
             processor.startJob();
         }
     }
-    
-    /**
-     * Suspend the loop.
-     * @param loopEvent
-     */
-    public void suspend(LoopEvent loopEvent) { 
-        if (loopEvent.getException() != null) {
-            loopEvent.getException().printStackTrace();
-        }
-    }
-        
+            
     /**
      * Process one record.
      * @param record 
      */
     @Override
     public void recordSupplied(RecordEvent record) {
+        System.out.println("CompositeLoopAdapter.recordSupplied");
+        System.out.flush();
         for (CompositeProcessor processor : processors) {
             try {
                 // Activate the processing step on the CompositeRecord.

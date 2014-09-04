@@ -14,6 +14,9 @@ public final class CompositeSource extends AbstractRecordSource {
     int sequenceNumber = 1;
             
     public void next() throws IOException, NoSuchRecordException {
+        //System.out.println("CompositeSource.next");
+        //System.out.println("  record #" + sequenceNumber);
+        //System.out.flush();
         currentRecord = new CompositeRecord();
         currentRecord.setSequenceNumber(sequenceNumber);
         ++sequenceNumber;

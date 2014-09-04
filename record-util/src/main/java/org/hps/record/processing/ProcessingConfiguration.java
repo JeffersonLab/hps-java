@@ -9,6 +9,8 @@ import org.hps.record.composite.CompositeProcessor;
 import org.hps.record.et.EtConnection;
 import org.hps.record.et.EtProcessor;
 import org.hps.record.evio.EvioProcessor;
+import org.hps.record.processing.DataSourceType;
+import org.hps.record.processing.ProcessingStage;
 import org.lcsim.util.Driver;
 
 /**
