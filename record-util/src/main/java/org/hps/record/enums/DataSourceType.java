@@ -1,4 +1,4 @@
-package org.hps.record.processing;
+package org.hps.record.enums;
 
 /**
  * The type of data source that will supply events to the app.

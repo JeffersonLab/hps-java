@@ -1,22 +1,14 @@
-package org.hps.record.processing;
+package org.hps.record.composite;
 
 import junit.framework.TestCase;
 
-import org.freehep.record.loop.RecordListener;
-import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.evio.EventConstants;
 import org.hps.evio.LCSimEventBuilder;
 import org.hps.evio.LCSimTestRunEventBuilder;
-import org.hps.record.composite.CompositeEtAdapter;
-import org.hps.record.composite.CompositeEvioAdapter;
-import org.hps.record.composite.CompositeLcioAdapter;
-import org.hps.record.composite.CompositeLoop;
-import org.hps.record.composite.CompositeProcessor;
-import org.hps.record.composite.CompositeRecord;
+import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
-import org.hps.record.et.EtProcessor;
-import org.hps.record.et.EtSource;
-import org.hps.record.evio.EvioProcessor;
+import org.hps.record.et.EtEventProcessor;
+import org.hps.record.evio.EvioEventProcessor;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
@@ -24,36 +16,34 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 
-public class ProcessingChainTest extends TestCase {
+public class CompositeLoopTest extends TestCase {
     
     public void testProcessingChain() {
         
-        ProcessingConfiguration configuration = new ProcessingConfiguration();
-        configuration.setDataSourceType(DataSourceType.ET_SERVER);
-        configuration.setDetectorName("HPS-TestRun-v8-5");
-        configuration.setEtConnection(EtConnection.createDefaultConnection());
+        CompositeLoopConfiguration config = new CompositeLoopConfiguration();
+                
         LCSimEventBuilder builder = new LCSimTestRunEventBuilder();
         builder.setDebug(false);
-        configuration.setLCSimEventBuild(builder);
-        configuration.setStopOnEndRun(true);
-        configuration.setStopOnErrors(true);                
         
         DummyEtProcessor etProcessor = new DummyEtProcessor();
         DummyEvioProcessor evioProcessor = new DummyEvioProcessor();
         DummyDriver driver = new DummyDriver();
         DummyCompositeProcessor compositeProcessor = new DummyCompositeProcessor();
         
-        configuration.add(etProcessor);
-        configuration.add(evioProcessor);
-        configuration.add(new EventMarkerDriver());
-        configuration.add(driver);
-        configuration.add(compositeProcessor);
+        config.setDataSourceType(DataSourceType.ET_SERVER)
+            .setDetectorName("HPS-TestRun-v8-5")
+            .setEtConnection(EtConnection.createDefaultConnection())
+            .setLCSimEventBuilder(builder)
+            .setStopOnEndRun(true)
+            .setStopOnErrors(true)
+            .add(etProcessor)
+            .add(evioProcessor)
+            .add(new EventMarkerDriver())
+            .add(driver)
+            .add(compositeProcessor);
         
-        ProcessingChain processing = new ProcessingChain(configuration);
-        for (RecordListener listener : processing.getLoop().getRecordListeners()) {
-            System.out.println("listener: " + listener.getClass().getCanonicalName());
-        }
-        processing.run();
+        CompositeLoop loop = new CompositeLoop(config);
+        loop.loop(-1);
         
         //
         // Test assertions...
@@ -76,56 +66,7 @@ public class ProcessingChainTest extends TestCase {
         TestCase.assertTrue(compositeProcessor.endJobCalled);                              
     }    
 
-    public void testCompositeLoop() {
-        
-        // Setup the primary loop.
-        CompositeLoop loop = new CompositeLoop();
-        
-        // Setup ET system.
-        EtConnection connection = EtConnection.createDefaultConnection();
-        CompositeEtAdapter etAdapter = new CompositeEtAdapter(new EtSource(connection));
-        DummyEtProcessor etProcessor = new DummyEtProcessor();
-        etAdapter.addProcessor(etProcessor);
-        loop.addAdapter(etAdapter);
-        
-        // Setup EVIO adapter.
-        CompositeEvioAdapter evioAdapter = new CompositeEvioAdapter();
-        DummyEvioProcessor evioProcessor = new DummyEvioProcessor();
-        evioAdapter.addProcessor(evioProcessor);
-        loop.addAdapter(evioAdapter);
-        
-        // Setup LCIO adapter and LCSim.
-        LCSimTestRunEventBuilder builder = new LCSimTestRunEventBuilder();
-        builder.setDebug(false);
-        builder.setDetectorName("HPS-TestRun-v8-5");        
-        CompositeLcioAdapter lcioAdapter = new CompositeLcioAdapter();
-        DummyDriver driver = new DummyDriver();
-        lcioAdapter.addDriver(driver);
-        lcioAdapter.setLCSimEventBuilder(builder);
-        loop.addAdapter(lcioAdapter);
-        
-        // Loop over records.
-        loop.execute(Command.GO, true);
-        loop.dispose();
-        
-        //
-        // Test assertions...
-        //        
-        TestCase.assertTrue(etProcessor.startJobCalled);
-        TestCase.assertTrue(etProcessor.processCalled);
-        TestCase.assertTrue(etProcessor.endJobCalled);        
-        
-        TestCase.assertTrue(evioProcessor.startJobCalled);
-        TestCase.assertTrue(evioProcessor.processCalled);
-        TestCase.assertTrue(evioProcessor.endJobCalled);
-        
-        TestCase.assertTrue(driver.startOfDataCalled);
-        TestCase.assertTrue(driver.detectorChangedCalled);
-        TestCase.assertTrue(driver.processCalled);
-        TestCase.assertTrue(driver.endOfDataCalled);
-    }
-    
-    static class DummyCompositeProcessor extends CompositeProcessor {
+    static class DummyCompositeProcessor extends CompositeRecordProcessor {
         
         boolean startJobCalled = false;
         boolean endJobCalled = false;
@@ -154,8 +95,7 @@ public class ProcessingChainTest extends TestCase {
             endJobCalled = true;
         }              
     }
-    
-    
+        
     static class DummyDriver extends Driver {
         
         boolean endOfDataCalled = false;
@@ -189,7 +129,7 @@ public class ProcessingChainTest extends TestCase {
         }
     }    
     
-    static class DummyEtProcessor extends EtProcessor {
+    static class DummyEtProcessor extends EtEventProcessor {
         
         boolean startJobCalled = false;
         boolean endJobCalled = false;
@@ -215,7 +155,7 @@ public class ProcessingChainTest extends TestCase {
         }        
     }
     
-    static class DummyEvioProcessor extends EvioProcessor {
+    static class DummyEvioProcessor extends EvioEventProcessor {
         
         boolean startJobCalled = false;
         boolean endJobCalled = false;

@@ -2,17 +2,13 @@ package org.hps.record.composite;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.source.AbstractRecordSource;
 import org.freehep.record.source.NoSuchRecordException;
 import org.hps.evio.EventConstants;
 import org.hps.record.EndRunException;
 import org.hps.record.RecordProcessingException;
-import org.hps.record.evio.EvioProcessor;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -22,30 +18,25 @@ import org.jlab.coda.jevio.EvioReader;
 /**
  * An adapter for directly using the CompositeLoop to supply and process EvioEvents.
  */
-public class CompositeEvioAdapter extends CompositeLoopAdapter {
+public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
     
     AbstractRecordSource source;
-    List<EvioProcessor> processors = new ArrayList<EvioProcessor>();
     boolean stopOnEndRun = true;
        
-    public CompositeEvioAdapter(AbstractRecordSource source) {
+    public EvioEventAdapter(AbstractRecordSource source) {
         this.source = source;
     }
     
-    public CompositeEvioAdapter() {
+    public EvioEventAdapter() {
     }
-    
-    public void addProcessor(EvioProcessor processor) {
-        processors.add(processor);
-    }
-    
+        
     public void setStopOnEndRun(boolean stopOnEndRun) {
         this.stopOnEndRun = stopOnEndRun;
     }
     
     public void recordSupplied(RecordEvent record) {
         //System.out.println("CompositeEvioAdapter.recordSupplied");
-        System.out.flush();
+        //System.out.flush();
         CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
         try {
             EvioEvent evioEvent;
@@ -65,6 +56,7 @@ public class CompositeEvioAdapter extends CompositeLoopAdapter {
             }
             // Failed to create an EvioEvent?
             if (evioEvent == null) {
+                // Throw an error because EvioEvent was not created.
                 throw new NoSuchRecordException("Failed to get next EVIO record.");
             }
             
@@ -82,6 +74,7 @@ public class CompositeEvioAdapter extends CompositeLoopAdapter {
                 
                 // Stop on end run enabled?
                 if (stopOnEndRun) {
+                    // Throw exception to stop processing from end run.
                     throw new EndRunException("EVIO end event received.", evioEvent.getIntData()[1]);
                 }             
             // Is physics event?
@@ -96,37 +89,7 @@ public class CompositeEvioAdapter extends CompositeLoopAdapter {
             throw new RecordProcessingException("No next EVIO record available from source.", e);
         }  
     }
-    
-    void process(EvioEvent event) {
-        for (EvioProcessor processor : processors) {
-            processor.process(event);
-        }
-    }
-    
-    void startRun(EvioEvent event) {
-        for (EvioProcessor processor : processors) {
-            processor.startRun(event);
-        }
-    }
-    
-    void endRun(EvioEvent event) {
-        for (EvioProcessor processor : processors) {
-            processor.endRun(event);
-        }
-    }     
-        
-    public void finish(LoopEvent event) {
-        for (EvioProcessor processor : processors) {
-            processor.endJob();
-        }
-    }
-    
-    public void start(LoopEvent event) {
-        for (EvioProcessor processor : processors) {
-            processor.startJob();
-        }
-    }    
-    
+          
     /**
      * Create an EvioEvent from an EtEvent byte buffer.
      * @param etEvent The input EtEvent.

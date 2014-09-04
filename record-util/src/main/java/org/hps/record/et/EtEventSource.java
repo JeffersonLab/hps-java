@@ -13,13 +13,13 @@ import org.jlab.coda.et.EtEvent;
  * Implement a loop record source supplying <tt>EtEvent</tt> objects 
  * from an ET ring server connection.
  */
-public final class EtSource extends AbstractRecordSource {
+public final class EtEventSource extends AbstractRecordSource {
     
     EtConnection connection;
     EtEvent currentRecord;
     Queue<EtEvent> eventQueue = new LinkedBlockingQueue<EtEvent>();
         
-    public EtSource(EtConnection connection) {
+    public EtEventSource(EtConnection connection) {
         this.connection = connection;
     }
           

@@ -8,7 +8,7 @@ import org.jlab.coda.et.EtEvent;
  * This would most likely be run on a separate thread than the 
  * loop to avoid undesired blocking behavior.
  */
-public final class EtRecordQueue extends AbstractRecordQueue<EtEvent> {
+public final class EtEventQueue extends AbstractRecordQueue<EtEvent> {
 
     @Override
     public Class<EtEvent> getRecordClass() {

@@ -1,16 +1,28 @@
 package org.hps.record.composite;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.freehep.record.loop.DefaultRecordLoop;
-import org.freehep.record.loop.RecordEvent;
-import org.freehep.record.loop.RecordListener;
+import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.record.EndRunException;
 import org.hps.record.MaxRecordsException;
-import org.hps.record.et.EtSource.EtSourceException;
+import org.hps.record.enums.DataSourceType;
+import org.hps.record.enums.ProcessingStage;
+import org.hps.record.et.EtEventProcessor;
+import org.hps.record.et.EtEventSource;
+import org.hps.record.et.EtEventSource.EtSourceException;
+import org.hps.record.evio.EvioEventProcessor;
+import org.hps.record.evio.EvioFileSource;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.util.Driver;
+import org.lcsim.util.loop.LCIOEventSource;
+import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
 /**
  * Implementation of a composite record loop for processing
@@ -18,15 +30,22 @@ import org.hps.record.et.EtSource.EtSourceException;
  */
 public final class CompositeLoop extends DefaultRecordLoop {
 
-    CompositeSource recordSource = new CompositeSource();
-            
+    CompositeRecordSource recordSource = new CompositeRecordSource();
+    List<CompositeLoopAdapter> adapters = new ArrayList<CompositeLoopAdapter>();
+    
+    boolean paused = false;
     boolean stopOnErrors = true;
     boolean done = false;
     
-    List<CompositeLoopAdapter> adapters = new ArrayList<CompositeLoopAdapter>();
-            
+    CompositeLoopConfiguration config = null;
+                
     public CompositeLoop() {
         setRecordSource(recordSource);
+    }
+    
+    public CompositeLoop(CompositeLoopConfiguration config) {
+        setRecordSource(recordSource);
+        configure(config);
     }
     
     public void setStopOnErrors(boolean stopOnErrors) {
@@ -41,7 +60,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
     /**
      * Set the <code>RecordSource</code> which provides <code>CompositeRecord</code> objects.
      */
-    public void setRecordSource(RecordSource source) {
+    public final void setRecordSource(RecordSource source) {
         if (!source.getRecordClass().isAssignableFrom(CompositeRecord.class)) {
             throw new IllegalArgumentException("The RecordSource has the wrong class.");
         }        
@@ -130,6 +149,146 @@ public final class CompositeLoop extends DefaultRecordLoop {
     }
     
     public Throwable getLastError() {
-        return _exception;
+        return _exception;     
     }
+    
+    /**
+     * Pause the event processing.
+     */
+    public void pause() {   
+        execute(Command.PAUSE);
+        paused = true;
+    }
+    
+    /**
+     * Resume event processing from pause mode.
+     */
+    public void resume() {
+        paused = false;
+    }
+    
+    public boolean isPaused() {
+        return paused;
+    }
+        
+    public long loop(long number) {
+        if (number < 0L) {
+            execute(Command.GO, true);
+        } else {
+            execute(Command.GO_N, number, true);
+            execute(Command.STOP); 
+        }
+        return getSupplied();
+    }
+        
+    public final void configure(CompositeLoopConfiguration config) {
+        
+        if (this.config != null)
+            throw new RuntimeException("CompositeLoop has already been configured.");
+        
+        this.config = config;
+        
+        EtEventAdapter etAdapter = null;
+        EvioEventAdapter evioAdapter = null;
+        LcioEventAdapter lcioAdapter = null;
+        CompositeLoopAdapter compositeAdapter = new CompositeLoopAdapter();
+        
+        // Was there no RecordSource provided explicitly?
+        if (config.recordSource == null) {
+            // Using an ET server connection?
+            if (config.sourceType.equals(DataSourceType.ET_SERVER)) {
+                if (config.connection != null)
+                    etAdapter = new EtEventAdapter(new EtEventSource(config.connection));
+                else
+                    throw new IllegalArgumentException("Configuration is missing a valid ET connection.");
+            // Using an EVIO file?
+            } else if (config.sourceType.equals(DataSourceType.EVIO_FILE)) {
+                if (config.filePath != null) {
+                    evioAdapter = new EvioEventAdapter(new EvioFileSource(new File(config.filePath)));
+                } else {
+                    throw new IllegalArgumentException("Configuration is missing a file path.");
+                }
+            // Using an LCIO file?
+            } else if (config.sourceType.equals(DataSourceType.LCIO_FILE)) {
+                if (config.filePath != null)
+                    try {
+                        lcioAdapter = new LcioEventAdapter(new LCIOEventSource(new File(config.filePath)));
+                    } catch (IOException e) {
+                        throw new RuntimeException("Error configuring LCIOEventSource.", e);
+                    }
+                else
+                    throw new IllegalArgumentException("Configuration is missing a file path.");
+            }
+        }
+        
+        // Configure ET system.
+        if (config.sourceType == DataSourceType.ET_SERVER) {
+            //System.out.println("compositeLoop.addAdapter(etAdapter)");
+            addAdapter(etAdapter);
+        }
+        
+        // Configure EVIO processing.
+        if (config.processingStage.ordinal() >= ProcessingStage.EVIO.ordinal()) {
+            if (config.sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
+                if (evioAdapter == null)
+                    evioAdapter = new EvioEventAdapter();
+                //System.out.println("compositeLoop.addAdapter(evioAdapter)");
+                addAdapter(evioAdapter);
+            }
+        }
+        
+        // Configure LCIO processing.
+        if (config.processingStage.ordinal() >= ProcessingStage.LCIO.ordinal()) {
+            if (lcioAdapter == null)
+                lcioAdapter = new LcioEventAdapter();
+            //System.out.println("compositeLoop.addAdapter(lcioAdapter)");
+            addAdapter(lcioAdapter);
+            if (config.eventBuilder != null) {
+                if (config.detectorName != null) {
+                    // Is LCSim ConditionsManager installed yet?
+                    if (!ConditionsManager.isSetup())
+                        // Setup LCSim conditions system if not already.
+                        LCSimConditionsManagerImplementation.register();
+                    config.eventBuilder.setDetectorName(config.detectorName);
+                } else {
+                    throw new IllegalArgumentException("Missing detectorName in configuration.");
+                }
+                lcioAdapter.setLCSimEventBuilder(config.eventBuilder);
+            } else {
+                throw new IllegalArgumentException("Missing an LCSimEventBuilder in configuration.");
+            }
+        }
+                                                                                    
+        // Set whether to stop on event processing errors.
+        setStopOnErrors(config.stopOnErrors);
+        
+        // Add EtEventProcessors to loop.
+        for (EtEventProcessor processor : config.etProcessors) {
+            etAdapter.addProcessor(processor);
+        }
+                
+        // Add EvioEventProcessors to loop.
+        for (EvioEventProcessor processor : config.evioProcessors) {
+            evioAdapter.addProcessor(processor);
+        }
+        
+        // Add Drivers to loop.
+        for (Driver driver : config.drivers) {
+            lcioAdapter.addDriver(driver);
+        }
+        
+        // Add CompositeLoopAdapter which should execute last.
+        //System.out.println("compositeLoop.addAdapter(compositeAdapter)");
+        addAdapter(compositeAdapter);
+        
+        // Add CompositeRecordProcessors to loop.
+        for (CompositeRecordProcessor processor : config.compositeProcessors) {
+            compositeAdapter.addProcessor(processor);
+        }
+        
+        // Max records was set?
+        if (config.maxRecords != -1) {            
+            compositeAdapter.addProcessor(new MaxRecordsProcessor(config.maxRecords));
+        }                 
+    }    
 }

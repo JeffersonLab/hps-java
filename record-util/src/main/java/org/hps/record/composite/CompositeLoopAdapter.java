@@ -14,13 +14,13 @@ import org.hps.record.RecordProcessingException;
  */
 public class CompositeLoopAdapter extends AbstractLoopListener implements RecordListener {
 
-    List<CompositeProcessor> processors = new ArrayList<CompositeProcessor>();
+    List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
 
     /**
      * Add a <tt>CompositeRecordProcessor</tt> that will listen to this loop.
      * @param processor The composite record processor to add.
      */
-    public void addProcessor(CompositeProcessor processor) {
+    public void addProcessor(CompositeRecordProcessor processor) {
         processors.add(processor);
     }
     
@@ -30,18 +30,18 @@ public class CompositeLoopAdapter extends AbstractLoopListener implements Record
      */
     public void finish(LoopEvent loopEvent) {
         // Call end job hook on all processors.
-        for (CompositeProcessor processor : processors) {
+        for (CompositeRecordProcessor processor : processors) {
             processor.endJob();
         }
     }
         
     /**
-     * Start event processing which will call {@link CompositeProcessor#startJob()}
+     * Start event processing which will call {@link CompositeRecordProcessor#startJob()}
      * on all the registered processors.
      * @param loopEvent
      */
     public void start(LoopEvent loopEvent) {
-        for (CompositeProcessor processor : processors) {
+        for (CompositeRecordProcessor processor : processors) {
             processor.startJob();
         }
     }
@@ -52,9 +52,9 @@ public class CompositeLoopAdapter extends AbstractLoopListener implements Record
      */
     @Override
     public void recordSupplied(RecordEvent record) {
-        System.out.println("CompositeLoopAdapter.recordSupplied");
-        System.out.flush();
-        for (CompositeProcessor processor : processors) {
+        //System.out.println("CompositeLoopAdapter.recordSupplied");
+        //System.out.flush();
+        for (CompositeRecordProcessor processor : processors) {
             try {
                 // Activate the processing step on the CompositeRecord.
                 processor.process((CompositeRecord) record.getRecord());

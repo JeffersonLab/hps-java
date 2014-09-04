@@ -1,16 +1,13 @@
-package org.hps.record.processing;
+package org.hps.record.composite;
 
 import org.hps.record.MaxRecordsException;
 import org.hps.record.RecordProcessingException;
-import org.hps.record.composite.CompositeProcessor;
-import org.hps.record.composite.CompositeRecord;
 
 /**
  * A @{link CompositeProcessor} for throwing an error when the 
  * maximum number of records is reached or exceeded.
  */
-// TODO: Handle max record counting in CompositeRecordAdapter.
-public class MaxRecordsProcessor extends CompositeProcessor {
+public class MaxRecordsProcessor extends CompositeRecordProcessor {
     
     int maxRecords;
     int recordsReceived;

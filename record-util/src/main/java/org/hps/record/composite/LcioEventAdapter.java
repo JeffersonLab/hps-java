@@ -18,19 +18,19 @@ import org.lcsim.util.DriverAdapter;
  * An adapter to supply and process LCSim EventHeader objects using 
  * an (optional) LCSimEventBuilder and the existing DriverAdapter class.
  */
-public class CompositeLcioAdapter extends CompositeLoopAdapter {
+public class LcioEventAdapter extends CompositeLoopAdapter {
 
     DriverAdapter drivers;
     Driver top = new Driver();
     LCSimEventBuilder builder;
     AbstractRecordSource source;
 
-    public CompositeLcioAdapter(AbstractRecordSource source) {
+    public LcioEventAdapter(AbstractRecordSource source) {
         this.source = source;
         drivers = new DriverAdapter(top);
     }
 
-    public CompositeLcioAdapter() {
+    public LcioEventAdapter() {
         drivers = new DriverAdapter(top);
     }
 
@@ -82,5 +82,9 @@ public class CompositeLcioAdapter extends CompositeLoopAdapter {
 
     public void start(LoopEvent loopEvent) {
         drivers.start(loopEvent);
+    }
+    
+    public void suspend(LoopEvent loopEvent) {
+        drivers.suspend(loopEvent);
     }
 }

@@ -34,4 +34,9 @@ public interface RecordProcessor<RecordType> {
      * End of job action.
      */
     void endJob();
+    
+    /**
+     * Action to be taken when recording processing is suspended.
+     */
+    void suspend();
 }

@@ -1,9 +1,10 @@
 package org.hps.record;
 
-public class RecordProcessingException extends RuntimeException {
-    
+/**
+ * Error type for exceptions that occur during event processing.
+ */
+public class RecordProcessingException extends RuntimeException {    
     public RecordProcessingException(String message, Throwable x) {
         super(message, x);
     }
-    
 }

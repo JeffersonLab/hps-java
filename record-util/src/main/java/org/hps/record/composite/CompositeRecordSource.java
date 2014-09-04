@@ -8,7 +8,7 @@ import org.freehep.record.source.NoSuchRecordException;
 /**
  * A record source providing <code>CompositeRecord</code> objects.
  */
-public final class CompositeSource extends AbstractRecordSource {
+public final class CompositeRecordSource extends AbstractRecordSource {
 
     CompositeRecord currentRecord;
     int sequenceNumber = 1;

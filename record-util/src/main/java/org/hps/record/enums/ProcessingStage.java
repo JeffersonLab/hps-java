@@ -1,4 +1,4 @@
-package org.hps.record.processing;
+package org.hps.record.enums;
 
 /**
 * Processing stages to execute.
