@@ -1553,65 +1553,23 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 + "mesg: " + status.getMessage());
     }
     
-    public static EtConnection fromConfigurationModel(ConfigurationModel configurationModel) {
-        try {
-            
-            // make a direct connection to ET system's tcp server            
-            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(
-                    configurationModel.getEtName(), 
-                    configurationModel.getHost(), 
-                    configurationModel.getPort());
-
-            // create ET system object with verbose debugging output
-            EtSystem sys = new EtSystem(etConfig, EtConstants.debugInfo);
-            sys.open();
-
-            // configuration of a new station
-            EtStationConfig statConfig = new EtStationConfig();
-            //statConfig.setFlowMode(cn.flowMode);
-            // FIXME: Flow mode hard-coded.
-            statConfig.setFlowMode(EtConstants.stationSerial);
-            boolean blocking = configurationModel.getBlocking();
-            if (!blocking) {
-                statConfig.setBlockMode(EtConstants.stationNonBlocking);
-                int qSize = configurationModel.getQueueSize();
-                if (qSize > 0) {
-                    statConfig.setCue(qSize);
-                }
-            }
-            // Set prescale.
-            int prescale = configurationModel.getPrescale();
-            if (prescale > 0) {
-                //System.out.println("setting prescale to " + cn.prescale);
-                statConfig.setPrescale(prescale);
-            }
-
-            // Create the station.
-            //System.out.println("position="+config.getInteger("position"));
-            EtStation stat = sys.createStation(
-                    statConfig, 
-                    configurationModel.getStationName(),
-                    configurationModel.getStationPosition());
-
-            // attach to new station
-            EtAttachment att = sys.attach(stat);
-
-            // Return new connection.
-            EtConnection connection = new EtConnection(
-                    sys, 
-                    att, 
-                    stat,
-                    configurationModel.getWaitMode(),
-                    configurationModel.getWaitTime(),
-                    configurationModel.getChunkSize()
-                    );
-            
-            return connection;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    /**
+     * Create an ET server connection from a <code>ConfigurationModel</code>.
+     * @param config The ConfigurationModel with the connection parameters.
+     * @return The EtConnection object.
+     */
+    private static EtConnection fromConfigurationModel(ConfigurationModel config) {
+        return EtConnection.createConnection(
+                config.getEtName(), 
+                config.getHost(), 
+                config.getPort(), 
+                config.getBlocking(), 
+                config.getQueueSize(), 
+                config.getPrescale(), 
+                config.getStationName(), 
+                config.getStationPosition(), 
+                config.getWaitMode(), 
+                config.getWaitTime(), 
+                config.getChunkSize());
     }
-    
 }
