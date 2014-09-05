@@ -10,7 +10,9 @@ import org.freehep.record.source.NoSuchRecordException;
 
 /**
  * Implementation of <tt>AbstractRecordSource</tt> using a dynamic queue that 
- * can receive events "on the fly" e.g. from an ET ring.
+ * can receive events "on the fly" e.g. from an ET ring.  Polling is used in the
+ * {@link #next()} method to get the next record, which might not be immediately
+ * available.
  */
 public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSource {
 

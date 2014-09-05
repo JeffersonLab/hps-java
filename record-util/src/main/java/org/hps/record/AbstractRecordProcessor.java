@@ -1,6 +1,5 @@
 package org.hps.record;
 
-import org.freehep.record.loop.LoopEvent;
 
 /**
  * An abstract implementation of {@link RecordProcessor} with "no op" method implementions.

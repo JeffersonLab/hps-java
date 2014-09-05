@@ -1,9 +1,7 @@
 package org.hps.record.composite;
 
-import org.freehep.record.loop.RecordLoop.Command;
-
 /**
- * Thread for running the event processing chain.
+ * Class for running the {@link CompositeLoop} on a separate thread.
  */
 public final class EventProcessingThread extends Thread {
     
@@ -22,14 +20,15 @@ public final class EventProcessingThread extends Thread {
             // Is the processing unpaused?            
             if (!loop.isPaused()) {
                 
-                // Loop until done, error occurs, or pause is requested.                
+                // Loop until done, error occurs, or pause is requested.
+                // FIXME: The maximum number of records should be used here.
                 loop.loop(-1);
                 
                 // Is loop done?
                 if (loop.isDone()) {
                     // Stop record processing.
                     break;
-                } 
+                }
             }
             
             // Sleep for a little while between loop iterations (e.g. while paused).

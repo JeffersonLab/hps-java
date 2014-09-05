@@ -1,7 +1,11 @@
 package org.hps.record;
 
 /**
- * This is a generic interface for event processing.
+ * This is a generic interface for event processing which implements
+ * hooks for starting the job, starting a new run, processing individual
+ * records, ending a run and ending a job.  This interface should not
+ * be implemented directly.  Instead the {@link AbstractRecordProcessor}
+ * should be extended with a specific type declaration.
  *
  * @param <RecordType> The concrete type of the event record.
  */

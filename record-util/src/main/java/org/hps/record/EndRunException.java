@@ -12,6 +12,10 @@ public class EndRunException extends RuntimeException {
         this.runNumber = runNumber;
     }
     
+    /**
+     * Get the run number.
+     * @return The run number.
+     */
     public int getRunNumber() {
         return runNumber;
     }

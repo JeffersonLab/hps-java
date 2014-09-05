@@ -2,12 +2,10 @@ package org.hps.record.composite;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.freehep.record.loop.DefaultRecordLoop;
-import org.freehep.record.loop.RecordLoop.Command;
 import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.record.EndRunException;
@@ -39,19 +37,39 @@ public final class CompositeLoop extends DefaultRecordLoop {
     
     CompositeLoopConfiguration config = null;
                 
+    /**
+     * No argument constructor.  
+     * The {@link #configure(CompositeLoopConfiguration)} method must be
+     * called on the loop manually.
+     */
     public CompositeLoop() {
         setRecordSource(recordSource);
     }
     
+    /**
+     * Create the loop with the given configuration.
+     * @param config The configuration parameters of the loop.
+     */
     public CompositeLoop(CompositeLoopConfiguration config) {
         setRecordSource(recordSource);
         configure(config);
     }
     
+    /**
+     * Set to true in order to have this loop stop on all
+     * event processing errors.  Certain types of fatal errors
+     * will never be ignored.
+     * @param stopOnErrors True for this loop to stop on errors.
+     */
     public void setStopOnErrors(boolean stopOnErrors) {
         this.stopOnErrors = stopOnErrors;
     }
     
+    /**
+     * Add a {@link CompositeLoopAdapter} which will process 
+     * {@link CompositeRecord} objects.
+     * @param adapter The CompositeLoopAdapter object.
+     */
     public void addAdapter(CompositeLoopAdapter adapter) {
         addLoopListener(adapter);
         addRecordListener(adapter);
@@ -68,7 +86,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
     }
                 
     /**
-     * Handle errors in the client such as adapters.
+     * Handle errors from the client such as registered adapters.
      * If the loop is setup to try and continue on errors, 
      * only non-fatal record processing exceptions are ignored.
      */
@@ -90,6 +108,9 @@ public final class CompositeLoop extends DefaultRecordLoop {
         done = true;
     }
 
+    /**
+     * Handle errors thrown by the <code>RecordSource</code>.
+     */
     protected void handleSourceError(Throwable x) {
 
         x.printStackTrace();
@@ -108,6 +129,14 @@ public final class CompositeLoop extends DefaultRecordLoop {
         done = true;
     }        
     
+    /**
+     * True if an error is ignorable.  If <code>stopOnErrors</code>
+     * is true, then this method always returns false.  Otherwise,
+     * the error cause determines whether the loop can continue 
+     * processing.
+     * @param x The error that occurred.
+     * @return True if the error can be ignored.
+     */
     private boolean isIgnorable(Throwable x) {
         
         // Should the loop try to recover from the error if possible?
@@ -144,10 +173,19 @@ public final class CompositeLoop extends DefaultRecordLoop {
         }
     }
         
+    /**
+     * True if the loop is done processing.  This is 
+     * set to <code>true</code> when fatal errors occur.
+     * @return
+     */
     public boolean isDone() {
         return done;
     }
     
+    /**
+     * Get the last error that occurred.
+     * @return The last error that occurred.
+     */
     public Throwable getLastError() {
         return _exception;     
     }
@@ -167,10 +205,19 @@ public final class CompositeLoop extends DefaultRecordLoop {
         paused = false;
     }
     
+    /**
+     * True if loop is paused.
+     * @return True if loop is current paused.
+     */
     public boolean isPaused() {
         return paused;
     }
         
+    /**
+     * Loop over events from the source.
+     * @param number The number of events to process or -1 for unlimited.
+     * @return The number of records that were processed.
+     */
     public long loop(long number) {
         if (number < 0L) {
             execute(Command.GO, true);
@@ -181,6 +228,10 @@ public final class CompositeLoop extends DefaultRecordLoop {
         return getSupplied();
     }
         
+    /**
+     * Configure the loop using a {@link CompositeLoopConfiguration} object.
+     * @param config The CompositeLoopConfiguration object containing the loop configuration parameter values.
+     */
     public final void configure(CompositeLoopConfiguration config) {
         
         if (this.config != null)

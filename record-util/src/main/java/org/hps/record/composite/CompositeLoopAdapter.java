@@ -11,6 +11,9 @@ import org.hps.record.RecordProcessingException;
 
 /**
  * Adapter for listening on the {@link CompositeLoop} for records and loop events.
+ * Classes that should be part of an "event processing chain" implemented by the 
+ * {@link CompositeLoop} should extend this API in order to receive {@link CompositeRecord}
+ * objects that can be modified.
  */
 public class CompositeLoopAdapter extends AbstractLoopListener implements RecordListener {
 
@@ -52,8 +55,6 @@ public class CompositeLoopAdapter extends AbstractLoopListener implements Record
      */
     @Override
     public void recordSupplied(RecordEvent record) {
-        //System.out.println("CompositeLoopAdapter.recordSupplied");
-        //System.out.flush();
         for (CompositeRecordProcessor processor : processors) {
             try {
                 // Activate the processing step on the CompositeRecord.
