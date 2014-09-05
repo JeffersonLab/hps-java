@@ -12,14 +12,14 @@ import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
 /**
  * DQM driver for the monte carlo SVT hit efficiency April 29 -- first pass,
@@ -94,11 +94,11 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
             return;
         }
-        if (!event.hasCollection(FittedRawTrackerHit.class, fittedTrackerHitCollectionName)) {
+        if (!event.hasCollection(LCRelation.class, fittedTrackerHitCollectionName)) {
             return;
         }
 
-        if (!event.hasCollection(SiTrackerHitStrip1D.class, siClusterCollectionName)) {
+        if (!event.hasCollection(TrackerHit.class, siClusterCollectionName)) {
             return;
         }
 
@@ -132,10 +132,10 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
 
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, trackerHitCollectionName);
         // make relational table for strip clusters to mc particle
-        List<SiTrackerHitStrip1D> siClusters = event.get(SiTrackerHitStrip1D.class, siClusterCollectionName);
+        List<TrackerHit> siClusters = event.get(TrackerHit.class, siClusterCollectionName);
         RelationalTable clustertosimhit = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        for (SiTrackerHit cluster : siClusters) {
-            for (RawTrackerHit rth : cluster.getRawHits()) {
+        for (TrackerHit cluster : siClusters) {
+            for (RawTrackerHit rth : (List<RawTrackerHit>) cluster.getRawHits()) {
                 Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(rth);
                 if (simTrackerHits != null) {
                     for (SimTrackerHit simhit : simTrackerHits) {
@@ -150,31 +150,31 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
         //relational tables from raw and fitted tracker hits to sim hit
         RelationalTable rthtofit = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         RelationalTable fittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        List<FittedRawTrackerHit> fittedTrackerHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
-        for (FittedRawTrackerHit hit : fittedTrackerHits) {
-            ShapeFitParameters oldfit = (ShapeFitParameters) rthtofit.to(hit.getRawTrackerHit());
-            if (oldfit == null || Math.abs(oldfit.getT0()) > Math.abs(hit.getT0())) {
-                rthtofit.add(hit.getRawTrackerHit(), hit.getShapeFitParameters());
+        List<LCRelation> fittedTrackerHits = event.get(LCRelation.class, fittedTrackerHitCollectionName);
+        for (LCRelation hit : fittedTrackerHits) {
+            GenericObject oldfit = (GenericObject) rthtofit.to(FittedRawTrackerHit.getRawTrackerHit(hit));
+            if (oldfit == null || Math.abs(ShapeFitParameters.getT0(oldfit)) > Math.abs(FittedRawTrackerHit.getT0(hit))) {
+                rthtofit.add(FittedRawTrackerHit.getRawTrackerHit(hit), FittedRawTrackerHit.getShapeFitParameters(hit));
             }
-            Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(hit.getRawTrackerHit());
+            Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(FittedRawTrackerHit.getRawTrackerHit(hit));
             for (SimTrackerHit simhit : simTrackerHits) {
                 fittomc.add(hit, simhit);
             }
         }
 
         for (SimTrackerHit simhit : simHits) {
-            Set<FittedRawTrackerHit> fittedRTH = fittomc.allTo(simhit);
-            FittedRawTrackerHit signalHit = null;
-            for (FittedRawTrackerHit frth : fittedRTH) {
-                if (signalHit == null || Math.abs(frth.getT0()) < Math.abs(signalHit.getT0())) {
+            Set<LCRelation> fittedRTH = fittomc.allTo(simhit);
+            LCRelation signalHit = null;
+            for (LCRelation frth : fittedRTH) {
+                if (signalHit == null || Math.abs(FittedRawTrackerHit.getT0(frth)) < Math.abs(FittedRawTrackerHit.getT0(signalHit))) {
                     signalHit = frth;
                 }
             }
             if (signalHit != null) {
 //                System.out.format("chiprob %f, t0 %f, A %f\n", signalHit.getShapeFitParameters().getChiProb(), signalHit.getT0(), signalHit.getAmp());
-                getLayerPlot2D(plotDir + "allFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
-                getLayerPlot2D(plotDir + "fitT0ChiProb", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getShapeFitParameters().getChiProb());
-                getLayerPlot2D(plotDir + "fitAmpChiProb", simhit.getLayer()).fill(signalHit.getAmp(), signalHit.getShapeFitParameters().getChiProb());
+                getLayerPlot2D(plotDir + "allFits", simhit.getLayer()).fill(FittedRawTrackerHit.getT0(signalHit), FittedRawTrackerHit.getAmp(signalHit));
+                getLayerPlot2D(plotDir + "fitT0ChiProb", simhit.getLayer()).fill(FittedRawTrackerHit.getT0(signalHit), ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(signalHit)));
+                getLayerPlot2D(plotDir + "fitAmpChiProb", simhit.getLayer()).fill(FittedRawTrackerHit.getAmp(signalHit), ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(signalHit)));
 //                if (signalHit.getShapeFitParameters().getChiProb() > 0.95) {
 //                    getLayerPlot2D(plotDir + "toogoodFits", simhit.getLayer()).fill(signalHit.getT0(), signalHit.getAmp());
 //                } else if (signalHit.getShapeFitParameters().getChiProb() < 0.05) {
@@ -186,9 +186,9 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
 
             int gotCluster = 0;
             int[] gotClusterAtTime = new int[16];
-            Set<SiTrackerHitStrip1D> clusters = clustertosimhit.allTo(simhit);
+            Set<TrackerHit> clusters = clustertosimhit.allTo(simhit);
             if (clusters != null) {
-                for (SiTrackerHitStrip1D clust : clusters) {
+                for (TrackerHit clust : clusters) {
                     getLayerPlot1D(plotDir + "signalClusterT0", simhit.getLayer()).fill(clust.getTime());
 
                     for (int i = 0; i < 16; i++) {
@@ -199,9 +199,9 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
                     if (Math.abs(clust.getTime()) < t0Cut) {
                         gotCluster = 1;
                     } else {
-                        for (RawTrackerHit rth : clust.getRawHits()) {
-                            ShapeFitParameters fit = (ShapeFitParameters) rthtofit.to(rth);
-                            getLayerPlot2D(plotDir + "badClusterFits", simhit.getLayer()).fill(fit.getT0(), fit.getAmp());
+                        for (RawTrackerHit rth : (List<RawTrackerHit>) clust.getRawHits()) {
+                            GenericObject fit = (GenericObject) rthtofit.to(rth);
+                            getLayerPlot2D(plotDir + "badClusterFits", simhit.getLayer()).fill(ShapeFitParameters.getT0(fit), ShapeFitParameters.getAmp(fit));
                         }
                     }
 

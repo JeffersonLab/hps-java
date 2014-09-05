@@ -1,12 +1,15 @@
 package org.hps.recon.tracking;
 
+import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 
 /**
- * 
+ *
  * @author meeg
- * @version $Id: HPSFittedRawTrackerHit.java,v 1.3 2013/04/16 22:05:43 phansson Exp $
+ * @version $Id: HPSFittedRawTrackerHit.java,v 1.3 2013/04/16 22:05:43 phansson
+ * Exp $
  */
 // TODO: Add class documentation.
 public class FittedRawTrackerHit extends BaseLCRelation {
@@ -29,6 +32,22 @@ public class FittedRawTrackerHit extends BaseLCRelation {
 
     public double getAmp() {
         return getShapeFitParameters().getAmp();
+    }
+
+    public static RawTrackerHit getRawTrackerHit(LCRelation rel) {
+        return (RawTrackerHit) rel.getFrom();
+    }
+
+    public static GenericObject getShapeFitParameters(LCRelation rel) {
+        return (GenericObject) rel.getTo();
+    }
+
+    public static double getT0(LCRelation rel) {
+        return ShapeFitParameters.getT0(getShapeFitParameters(rel));
+    }
+
+    public static double getAmp(LCRelation rel) {
+        return ShapeFitParameters.getAmp(getShapeFitParameters(rel));
     }
 
     @Override
