@@ -8,6 +8,10 @@ import org.jlab.coda.jevio.EvioEvent;
  */
 public final class EvioEventQueue extends AbstractRecordQueue<EvioEvent> {
 
+	/**
+	 * Get the class of the supplied records.
+	 * @return The class of the supplied records.
+	 */
     @Override
     public Class<EvioEvent> getRecordClass() {
         return EvioEvent.class;

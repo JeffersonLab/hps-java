@@ -10,6 +10,10 @@ import org.jlab.coda.et.EtEvent;
  */
 public final class EtEventQueue extends AbstractRecordQueue<EtEvent> {
 
+	/**
+	 * Get the class of the record that is supplied.
+	 * @return The class of the supplied records.
+	 */
     @Override
     public Class<EtEvent> getRecordClass() {
         return EtEvent.class;

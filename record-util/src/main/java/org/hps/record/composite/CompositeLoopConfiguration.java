@@ -159,21 +159,41 @@ public class CompositeLoopConfiguration {
         return this;
     }
     
+    /**
+     * Add an {@link org.hps.record.et.EtEventProcessor} to the loop.
+     * @param processor The EtEventProcessor.
+     * @return This object.
+     */
     public CompositeLoopConfiguration add(EtEventProcessor processor) {
         etProcessors.add(processor);
         return this;
     }
-    
+   
+    /**
+     * Add an {@link org.hps.record.evio.EvioEventProcessor} to the loop.
+     * @param processor The EvioEventProcessor.
+     * @return This object.
+     */
     public CompositeLoopConfiguration add(EvioEventProcessor processor) {
         evioProcessors.add(processor);
         return this;
     }
     
+    /**
+     * Add an org.lcsim <code>Driver</code> to the loop.
+     * @param processor The Driver.
+     * @return This object.
+     */
     public CompositeLoopConfiguration add(Driver processor) {
         drivers.add(processor);
         return this;
     }
     
+    /**
+     * Add a {@link org.hps.record.composite.CompositeRecordProcessor} to the loop.
+     * @param processor The CompositeRecordProcessor.
+     * @return This object.
+     */
     public CompositeLoopConfiguration add(CompositeRecordProcessor processor) {
         compositeProcessors.add(processor);
         return this;

@@ -23,20 +23,33 @@ public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
     AbstractRecordSource source;
     boolean stopOnEndRun = true;
        
+    /**
+     * Constructor that takes a record source. 
+     * @param source The record source.
+     */
     public EvioEventAdapter(AbstractRecordSource source) {
         this.source = source;
     }
     
+    /**
+     * No argument constructor for when ET will be converted to EVIO.
+     */
     public EvioEventAdapter() {
     }
         
+    /**
+     * Set whether to stop when end run records are received.
+     * @param stopOnEndRun True to stop on end run EVIO records.
+     */
     public void setStopOnEndRun(boolean stopOnEndRun) {
         this.stopOnEndRun = stopOnEndRun;
     }
     
+    /**
+     * Process one record which will create an <code>EvioEvent</code> or
+     * get it from the source and set a reference to it on the {@link CompositeRecord}.
+     */
     public void recordSupplied(RecordEvent record) {
-        //System.out.println("CompositeEvioAdapter.recordSupplied");
-        //System.out.flush();
         CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
         try {
             EvioEvent evioEvent;

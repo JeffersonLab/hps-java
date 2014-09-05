@@ -313,6 +313,10 @@ public final class CompositeLoop extends DefaultRecordLoop {
         // Set whether to stop on event processing errors.
         setStopOnErrors(config.stopOnErrors);
         
+        // Set whether to stop on end run EVIO records.
+        if (evioAdapter != null)
+        	evioAdapter.setStopOnEndRun(config.stopOnEndRun);
+        
         // Add EtEventProcessors to loop.
         for (EtEventProcessor processor : config.etProcessors) {
             etAdapter.addProcessor(processor);
@@ -329,7 +333,6 @@ public final class CompositeLoop extends DefaultRecordLoop {
         }
         
         // Add CompositeLoopAdapter which should execute last.
-        //System.out.println("compositeLoop.addAdapter(compositeAdapter)");
         addAdapter(compositeAdapter);
         
         // Add CompositeRecordProcessors to loop.

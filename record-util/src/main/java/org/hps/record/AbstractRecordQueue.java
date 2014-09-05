@@ -66,26 +66,6 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
     public boolean supportsNext() {
         return true;
     }
-  
-    @Override
-    public boolean supportsPrevious() {
-        return false;
-    }
-  
-    @Override
-    public boolean supportsIndex() {
-        return false;
-    }
-  
-    @Override 
-    public boolean supportsShift() {
-        return false;
-    }
-  
-    @Override
-    public boolean supportsRewind() {
-        return false;
-    }
 
     @Override
     public boolean hasCurrent() {

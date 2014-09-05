@@ -25,30 +25,50 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
     LCSimEventBuilder builder;
     AbstractRecordSource source;
 
+    /**
+     * Constructor taking a record source which should supply
+     * LCSim LCIO events.
+     * @param source
+     */
     public LcioEventAdapter(AbstractRecordSource source) {
         this.source = source;
         drivers = new DriverAdapter(top);
     }
 
+    /**
+     * No argument constructor in which case the {@link CompositeRecord}
+     * should supply <code>EvioEvent</code> objects for the builder.
+     */
     public LcioEventAdapter() {
         drivers = new DriverAdapter(top);
     }
 
+    /**
+     * Add an LCSim <code>Driver</code> 
+     * @param driver The Driver to add.
+     */
     public void addDriver(Driver driver) {
         top.add(driver);
     }
 
+    /**
+     * Set the <code>LCSimEventBuilder</code> that will convert
+     * from EVIO to LCIO events.
+     * @param builder
+     */
     public void setLCSimEventBuilder(LCSimEventBuilder builder) {
         this.builder = builder;
     }
 
+    /**
+     * Process a {@link CompositeRecord} which will add an LCSim event
+     * and activate registered <code>Driver</code> objects.
+     */
     public void recordSupplied(RecordEvent record) {
-        //System.out.println("CompositeLcioAdapter.recordSupplied");
-        System.out.flush();
         CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
         EventHeader lcioEvent = null;
         try {
-            // Is there an EVIO event?
+            // Is there an EVIO event to use for the conversion to LCIO?
             if (compositeRecord.getEvioEvent() != null) {
                 // Create the EVIO event.
                 EvioEvent evioEvent = compositeRecord.getEvioEvent();
@@ -61,7 +81,7 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
                     return;                    
                 }
             } else {
-                // Try to use an event source to get the next LCIO event.
+                // Try to use the event source to get the next LCIO event.
                 source.next();
                 lcioEvent = (EventHeader) source.getCurrentRecord();
             }
@@ -70,20 +90,33 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
             RecordEvent recordEvent = new RecordEvent(null, lcioEvent);
             drivers.recordSupplied(recordEvent);
             
+            // Set the reference to the LCIO event on the CompositeRecord.
             compositeRecord.setLcioEvent(lcioEvent);
         } catch (IOException | NoSuchRecordException e) {
             throw new RecordProcessingException("Error creating LCIO event.", e);
         }
     }
 
+    /**
+     * Activates the <code>endOfData</code> method on the registered
+     * <code>Driver</code> objects.
+     */
     public void finish(LoopEvent loopEvent) {
         drivers.finish(loopEvent);
     }
 
+    /**
+     * Activates the <code>startOfData</code> method on registered
+     * <code>Driver</code> objects.
+     */
     public void start(LoopEvent loopEvent) {
         drivers.start(loopEvent);
     }
     
+    /**
+     * Activates the <code>suspend</code> method on registered
+     * <code>Driver</code> objects.
+     */
     public void suspend(LoopEvent loopEvent) {
         drivers.suspend(loopEvent);
     }

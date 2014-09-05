@@ -19,8 +19,9 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
+ * A utility class for streaming an EVIO file to an ET server.
  * 
- * This is copied and modified from the EvioProducer class in the ET 12.0 CODA module.
+ * NOTE: Original version was copied from the CODA group's ET java module.
  */
 // TODO: Add option to set number of events in the put array.
 public final class EvioFileProducer {
@@ -38,6 +39,9 @@ public final class EvioFileProducer {
     EvioFileProducer() {
     }
 
+    /**
+     * Print usage statement.
+     */
     private static void usage() {
         System.out.println("\nUsage: java Producer -f <et name> -e <evio file> [-p <server port>] [-host <host>]"
                 + " [-d <delay in millisec>] [-g <group #>]\n\n"
@@ -51,14 +55,26 @@ public final class EvioFileProducer {
         System.exit(1);
     }
 
+    /**
+     * Copy byte buffer to an <code>EtEvent</code>.
+     * @param event The target EtEvent.
+     */
     public void copyToEtEvent(EtEvent event) {
         event.getDataBuffer().put(byteBuffer);
     }
 
+    /**
+     * The externally accessible main method.
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
         (new EvioFileProducer()).doMain(args); // call wrapper method
     }
 
+    /**
+     * Wrapper method called in main.
+     * @param args The command line arguments.
+     */
     public void doMain(String[] args) {
         try {
             for (int i = 0; i < args.length; i++) {

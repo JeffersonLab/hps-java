@@ -22,7 +22,9 @@ import org.jlab.coda.et.exception.EtTooManyException;
 import org.jlab.coda.et.exception.EtWakeUpException;
 
 /**
- * Create an EtSystem and EtAttachment from ConnectionParameters.
+ * A class for encapsulating the connection information 
+ * for an ET client including the EtSystem and EtAttachment
+ * objects.
  */
 public final class EtConnection {
 
@@ -35,13 +37,13 @@ public final class EtConnection {
     int chunkSize;
 
     /**
-     * Class constructor.
+     * A class constructor for internal convenience.
      * @param param The connection parameters.
      * @param sys The ET system.
      * @param att The ET attachment.
      * @param stat The ET station.
      */
-    public EtConnection(
+    private EtConnection(
             EtSystem sys, 
             EtAttachment att, 
             EtStation stat, 
@@ -98,10 +100,12 @@ public final class EtConnection {
     }
     
     /**
-     * Read EtEvent objects from the ET ring.  
+     * Read EtEvent objects from the ET server.  
+     * 
      * Preserve all specific Exception types in the throws clause so caller
      * may implement their own error and state handling.
-     * @return
+     * 
+     * @return The array of EtEvents.
      * @throws IOException
      * @throws EtException
      * @throws EtDeadException

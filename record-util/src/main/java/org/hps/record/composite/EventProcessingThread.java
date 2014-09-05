@@ -7,11 +7,18 @@ public final class EventProcessingThread extends Thread {
     
     CompositeLoop loop;
            
+    /**
+     * Constructor requiring the loop object.
+     * @param loop The loop object.
+     */
     public EventProcessingThread(CompositeLoop loop) {
         super("EventProcessingThread");
         this.loop = loop;
     }
         
+    /**
+     * Run this thread, which will process records until the loop is done.
+     */
     @Override
     public void run() {                
                 

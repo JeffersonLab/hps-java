@@ -12,9 +12,10 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * A very basic implementation of <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt>
- * objects to a loop from EVIO files.  Unlike the LCIO record source, it has no rewind or
- * indexing capabilities (for now at least).
+ * A basic implementation of an <tt>AbstractRecordSource</tt> for supplying <tt>EvioEvent</tt>
+ * objects to a loop from EVIO files.  
+ * 
+ * Unlike the LCIO record source, it has no rewind or indexing capabilities.
  */
 public final class EvioFileSource extends AbstractRecordSource {
 
@@ -24,16 +25,28 @@ public final class EvioFileSource extends AbstractRecordSource {
     int fileIndex = 0;
     boolean atEnd;
 
+    /**
+     * Constructor taking a list of EVIO files.
+     * @param files The list of EVIO files.
+     */
     public EvioFileSource(List<File> files) {
         this.files.addAll(files);
         openReader();
     }
 
+    /**
+     * Constructor taking a single EVIO file.
+     * @param file The EVIO file.
+     */
     public EvioFileSource(File file) {
         this.files.add(file);
         openReader();
     }
 
+    /**
+     * Open the EVIO reader on the current file from the list.
+     * @throws RuntimeException if an EvioException or IOException occurs while opening file.
+     */
     private void openReader() {
         try {
             System.out.println("Opening reader for file " + files.get(fileIndex) + " ...");
@@ -44,6 +57,9 @@ public final class EvioFileSource extends AbstractRecordSource {
         }
     }
 
+    /**
+     * Close the current reader.
+     */
     private void closeReader() {
         try {
             reader.close();
@@ -52,15 +68,28 @@ public final class EvioFileSource extends AbstractRecordSource {
         }
     }
 
+    /**
+     * Get the current record which is an <code>EvioEvent</code>.
+     * @return The current record.s
+     */
     @Override
     public Object getCurrentRecord() throws IOException {
         return currentEvent;
     }
     
+    /**
+     * True if there are no more files to open in the list.
+     * @return True if there are no more files in the list.
+     */
     boolean endOfFiles() {
         return fileIndex > (files.size() - 1);
     }
     
+    /**
+     * Load the next record.
+     * @throws NoSuchRecordException if source is exhausted.
+     * @throws IOException if there is an error creating the next EvioEvent.
+     */
     @Override
     public void next() throws IOException, NoSuchRecordException {
         for (;;) {
@@ -83,42 +112,29 @@ public final class EvioFileSource extends AbstractRecordSource {
             return;
         }
     }
-    
-    @Override
-    public boolean supportsCurrent() {
-        return true;
-    }
-
+   
+    /**
+     * True because source supports loading next record.
+     * @return True because source supports loading next record.
+     */
     @Override
     public boolean supportsNext() {
         return true;
     }
     
-    @Override
-    public boolean supportsPrevious() {
-        return false;
-    }
-    
-    @Override
-    public boolean supportsIndex() {
-        return false;
-    }
-    
-    @Override
-    public boolean supportsShift() {
-        return false;
-    }
-    
-    @Override
-    public boolean supportsRewind() {
-        return false;
-    }
-    
+    /**
+     * True if there is a current record loaded.
+     * @return True if there is a current record loaded.
+     */
     @Override
     public boolean hasCurrent() {
         return currentEvent != null;
     }
     
+    /**
+     * True if there are more records to load.
+     * @return True if there are more records to load.
+     */
     @Override
     public boolean hasNext() {
         return !atEnd;

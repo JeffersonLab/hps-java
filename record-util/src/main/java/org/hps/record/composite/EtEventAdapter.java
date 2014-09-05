@@ -15,10 +15,20 @@ public class EtEventAdapter extends RecordProcessorAdapter<EtEvent> {
 
     EtEventSource source;
     
+    /**
+     * Constructor with an {@link org.hps.record.et.EtEventSource}
+     * that supplies <code>EtEvent</code> records through a network
+     * ET server.
+     * @param source The event source.
+     */
     public EtEventAdapter(EtEventSource source) {
         this.source = source;
     }
               
+    /**
+     * Process one record which will get the next <code>EtEvent</code>
+     * from the source and set a reference to it on the {@link CompositeRecord}.
+     */
     public void recordSupplied(RecordEvent record) {
         CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
         try {
