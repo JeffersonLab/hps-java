@@ -4,6 +4,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
@@ -14,8 +17,6 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.special.Gamma;
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
-//import org.freehep.math.minuit.MinosError;
-//import org.freehep.math.minuit.MnMinos;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
@@ -41,26 +42,21 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     private int firstFittedPulse;
     private int nFittedPulses;
     private boolean debug = false;
+    private static final Logger minuitLoggger = Logger.getLogger("org.freehep.math.minuit");
 
     public ShaperLinearFitAlgorithm(int nPulses) {
         this.nPulses = nPulses;
         amplitudes = new double[nPulses];
         amplitudeErrors = new double[nPulses];
-//        System.setErr(new PrintStream(new OutputStream() {
-//            public void write(int b) {
-//            }
-//        }));
     }
 
+    @Override
     public void setDebug(boolean debug) {
         this.debug = debug;
         if (debug) {
-            System.setErr(System.err);
+            minuitLoggger.setLevel(Level.INFO);
         } else {
-            System.setErr(new PrintStream(new OutputStream() {
-                public void write(int b) {
-                }
-            }));
+            minuitLoggger.setLevel(Level.OFF);
         }
     }
 
@@ -97,10 +93,11 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         FunctionMinimum min = doRecursiveFit(signal);
 //        if (!min.isValid() && nPulses == 2) {
 //            System.out.format("bad fit to %d pulses, chisq %f\n", nPulses, min.fval());
-//            debug = true;
-//            doRecursiveFit(signal);
-//            debug = false;
-//
+//            if (!debug) {
+//                debug = true;
+//                doRecursiveFit(signal);
+//                debug = false;
+//            }
 //        }
         double chisq = evaluateMinimum(min);
 

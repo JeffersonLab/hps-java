@@ -2,6 +2,8 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
@@ -86,7 +88,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     }
 
     @Override
-    public void detectorChanged(Detector detector) {
+    public void startOfData() {
         _shaper.setDebug(debug);
         if (rawHitCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
