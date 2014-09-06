@@ -40,22 +40,23 @@ public final class SvtConditionsLoader {
             // Get the layer number.
             int layerNumber = sensor.getLayerNumber();
 
-            // Get info from the DAQ map about this sensor.
+            // Get DAQ pair (FEB ID, FEB Hybrid ID) corresponding to this sensor
             Pair<Integer, Integer> daqPair = null;
-            int half = SvtDaqMappingCollection.TOP_HALF;
+            String SvtHalf = SvtDaqMappingCollection.TOP_HALF;
             if (sensor.isBottomLayer()) {
-                half = SvtDaqMappingCollection.BOTTOM_HALF;
+                SvtHalf = SvtDaqMappingCollection.BOTTOM_HALF;
             }
-            daqPair = daqMap.get(half, layerNumber);
+            daqPair = daqMap.getDaqPair(SvtHalf, layerNumber);
             if (daqPair == null) {
                 throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
             }
 
-            // Set FPGA value from DAQ map.
-            sensor.setFpgaNumber(daqPair.getFirstElement());
-
-            // Set hybrid value from DAQ map.
-            sensor.setHybridNumber(daqPair.getSecondElement());
+            // Set the FEB ID of the sensor
+            sensor.setFebID(daqPair.getFirstElement());
+           
+            // Set the FEB Hybrid ID of the sensor
+            sensor.setFebHybridID(daqPair.getSecondElement());
+            
 
             // Find all the channels for this sensor.
             Collection<SvtChannel> channels = channelMap.find(daqPair);
@@ -72,16 +73,18 @@ public final class SvtConditionsLoader {
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);
                 }
+                /*
                 sensor.setGain(channelNumber, constants.getGain().getGain());
                 sensor.setTimeOffset(channelNumber, constants.getGain().getOffset());
                 sensor.setNoise(channelNumber, constants.getCalibration().getNoise());
                 sensor.setPedestal(channelNumber, constants.getCalibration().getPedestal());
                 sensor.setPulseParameters(channelNumber, constants.getPulseParameters().toArray());
+                */
             }
 
             // Set the time shift for the sensor.
             SvtTimeShift sensorTimeShift = timeShifts.find(daqPair).get(0);
-            sensor.setTimeShift(sensorTimeShift.getTimeShift());
+            //sensor.setTimeShift(sensorTimeShift.getTimeShift());
         }
     }
 }
