@@ -1,0 +1,109 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+  xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+  
+  <info name="HPSTestRunTracker2014-v0">
+    <comment>new SVT test run geometry</comment>
+  </info> 
+  
+  <define>
+	<!-- units -->
+	<constant name="mm" value="0.1*cm"/>
+	<constant name="inch" value="25.4*mm"/>
+
+    <!-- world -->
+    <constant name="world_side" value="500.0*cm" />
+    <constant name="world_x" value="world_side" />
+    <constant name="world_y" value="world_side" />
+    <constant name="world_z" value="world_side" />
+  
+ 	 <!-- tracking region -->
+ 	<constant name="tracking_region_radius" value="200.0*cm"/>
+    <constant name="tracking_region_min" value="5.0*cm"/>
+    <constant name="tracking_region_zmax" value="131.8*cm"/>
+    
+     <!--  dipole magnet and  B-field -->
+	<constant name="dipoleMagnetPositionZ" value="45.72*cm" />
+	<constant name="dipoleMagnetHeight" value="17.78*cm" />
+	<constant name="dipoleMagnetWidth" value="41.6052*cm" />
+	<constant name="dipoleMagnetLength" value="dipoleMagnetPositionZ*2.0" />
+	<constant name="constBFieldY" value="-0.491" />
+ 
+ 
+  </define>
+  
+  <materials>
+    <!-- Set tracking material to vacuum. -->
+    <material name="TrackingMaterial">
+      <D type="density" unit="g/cm3" value="0.0000000000000001" />
+      <fraction n="1.0" ref="Vacuum" />
+    </material>
+  </materials>
+  
+  <display>
+	
+    <vis name="SensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="ActiveSensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="CarbonFiberVis" alpha="1.0" r="0.88" g="0.88" b="0.88" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="KaptonVis" alpha="1.0" r="0.91" g="0.77" b="0.06" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="HybridVis" alpha="1.0" r="0.0" g="1.0" b="0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="HalfModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="ColdBlockVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="ModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dotted" showDaughters="true" visible="true"/>
+    <vis name="SupportPlateVis" alpha="1.0" r="0.45" g="0.45" b="0.45" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="SupportVolumeVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="BasePlateVis" alpha="1.0" r="0.35" g="0.35" b="0.35" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="LayerVis" alpha="0.0" r="0.0" g="0.0" b="1.0" drawingStyle="wireframe" showDaughters="true" visible="false"/>
+    <vis name="ComponentVis" alpha="0.0" r="0.0" g="0.2" b="0.4" drawingStyle="solid" showDaughters="false" visible="false"/>
+	<vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true"/>
+    
+  </display>
+  
+  <detectors>
+    <detector id="1" name="Tracker" type="HPSTestRunTracker2014" readout="TrackerHits">
+	  
+      <!-- Definition of half module logical volume. -->
+      <half_modules>
+        <half_module name="SvtHalfModuleLayers1-3">
+          <component x="50.0" y="100.0" z="0.0" material="Silicon" sensitive="true" />
+        </half_module>
+      </half_modules>
+      
+      <!-- Alignment of entire tracker box. -->
+      <alignment x="0.0" y="0.0" z="0.0" />
+      <support_plate name="SupportPlateL1-3bot">
+        <position name="ball" x="0.0" y="0.0" z="0.0"/>
+        <position name="vee" x="0.0" y="0.0" z="0.0"/>
+        <position name="flat" x="0.0" y="0.0" z="0.0"/>
+        <alignment x="5.0" y="5.0" z="5.0" rx="0.1" ry="0.1" rz="0.1"/>
+        <modules>
+          <module layer="1" ref="SvtModule">
+            <position name="ball" x="0.0" y="0.0" z="0.0"/>
+        	<position name="vee" x="0.0" y="0.0" z="0.0"/>
+        	<position name="flat" x="0.0" y="0.0" z="0.0"/>
+        	<alignment x="4.0" y="4.0" z="4.0" rx="0.1" ry="0.1" rz="0.1"/>
+        	<half_module type="axial" ref="SvtHalfModuleLayers1-3">
+	        	<position name="ball" x="0.0" y="0.0" z="0.0"/>
+    	    	<position name="vee" x="0.0" y="0.0" z="0.0"/>
+        		<position name="flat" x="0.0" y="0.0" z="0.0"/>
+            	<alignment x="3.0" y="3.0" z="3.0" rx="0.1" ry="0.1" rz="0.1" />
+            </half_module>
+          </module>
+        </modules>
+      </support_plate>
+    </detector>
+    
+     
+    
+  </detectors>
+  <readouts>
+    <readout name="TrackerHits">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+    </readout>
+  </readouts>
+  
+   <fields>
+        <field type="BoxDipole" name="AnalyzingDipole" x="0*cm" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
+    </fields>
+ 
+</lccdd>
