@@ -28,7 +28,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- *  The driver <code>EcalEvendDisplay</code> implements the histogram shown to the user 
+ *  The driver <code>EcalLEDCommissioning</code> implements the histogram shown to the user 
  * in the fifth tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
  * IT ALSO OPENS KYLE's EVENT DISPLAY <code>PEventViewer</code>.
  * The implementation is as follows:
@@ -41,7 +41,7 @@ import org.lcsim.util.aida.AIDA;
  *  *
  */
 
-public class EcalEventDisplay extends Driver implements CrystalListener, ActionListener {
+public class EcalLedCommissioning extends Driver implements CrystalListener, ActionListener {
 
   
     String inputCollection = "EcalCalHits";
@@ -71,7 +71,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     
     double maxEch = 2500 * ECalUtils.MeV;
     
-    public EcalEventDisplay() {
+    public EcalLedCommissioning() {
     	
     }
 
@@ -356,4 +356,3 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     	}
     }    
 }
-
