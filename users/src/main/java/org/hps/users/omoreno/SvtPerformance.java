@@ -365,7 +365,7 @@ public class SvtPerformance extends Driver {
 
                         if (plotSamples) {
                             samples = rawHit.getADCValues();
-                            pedestal = sensor.getPedestal(channel);
+                            pedestal = sensor.getPedestal(channel, 0);
 
                             try {
                                 if (sensor.isTopLayer()) {
@@ -389,7 +389,7 @@ public class SvtPerformance extends Driver {
                             if (stripHit.rawhits().size() == 1) {
                                 chiSquaredProb = fit.getChiProb();
                             }
-                            noise += Math.pow(sensor.getNoise(channel), 2);
+                            noise += Math.pow(sensor.getNoise(channel, 0), 2);
                             clusterAmplitude += fit.getAmp();
                         }
                     }
