@@ -45,13 +45,36 @@ import org.lcsim.util.aida.AIDA;
  * it will output more details with every event to help with diagnostics.
  * 
  * @author Kyle McCarty
- * @author Michel Garcon
+ * @author Michel Garçon
  */
 public class NeutralPionTriggerDriver extends TriggerDriver {
 	
 	// ==================================================================
 	// ==== Trigger Algorithms ==========================================
 	// ==================================================================	
+	
+    @Override
+    public void endOfData() {
+    	// Print out the results of the trigger cuts.
+    	System.out.printf("Trigger Processing Results%n");
+    	System.out.printf("\tSingle-Cluster Cuts%n");
+    	System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
+    	System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
+    	System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
+    	if(rejectEdgeCrystals) {
+    		System.out.printf("\t\tPassed Edge Crystal Cut      :: %d%n", clusterEdgeCount);
+    	}
+    	System.out.printf("%n");
+    	System.out.printf("\tCluster Pair Cuts%n");
+    	System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
+    	System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
+    	System.out.printf("\t\tPassed Energy Invariant Mass :: %d%n", pairInvariantMassCount);
+    	System.out.printf("%n");
+    	System.out.printf("\tTrigger Count :: %d%n", triggers);
+    	
+    	// Run the superclass method.
+        super.endOfData();
+    }
 	
 	public void process(EventHeader event) {
 		// Generate a temporary list to store the good clusters
@@ -74,6 +97,12 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			// if they pass the minimum total cluster energy and seed
 			// energy thresholds.
 			for(HPSEcalCluster cluster : eventList) {
+				// Increment the clusters processed count.
+				allClusters++;
+				
+				// Plot the seed energy / cluster energy histogram.
+				seedPercent.fill(cluster.getSeedHit().getCorrectedEnergy() / cluster.getEnergy(), 1);
+				
 				// Get the cluster position indices.
 				int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
 				int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
@@ -93,7 +122,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 				// VERBOSE :: Output the single cluster trigger thresholds.
 				if(verbose) {
 					System.out.printf("\tCluster seed energy threshold  :: [%f, %f]%n", clusterSeedEnergyThresholdLow, clusterSeedEnergyThresholdHigh);
-					System.out.printf("\tCluster total energy threshold :: %f%n%n", clusterTotalEnergyThreshold);
+					System.out.printf("\tCluster total energy threshold :: %f%n%n", clusterTotalEnergyThresholdLow);
 				}
 				
 				// Perform the single cluster cuts.
@@ -101,6 +130,17 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 				boolean seedEnergyCut = clusterSeedEnergyCut(cluster);
 				boolean hitCountCut = clusterHitCountCut(cluster);
 				boolean edgeCrystalCut = isEdgeCluster(cluster);
+				
+				// Increment the single cut counts.
+				if(seedEnergyCut) {
+					clusterSeedEnergyCount++;
+					if(hitCountCut) {
+						clusterHitCountCount++;
+						if(rejectEdgeCrystals && edgeCrystalCut) {
+							clusterEdgeCount++;
+						}
+					}
+				}
 				
 				// VERBOSE :: Note whether the cluster passed the single
 				//            cluster cuts.
@@ -156,19 +196,6 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			// VERBOSE :: Note that the event has no clusters.
 			if(verbose) { System.out.println("No cluster collection is present for event.\n"); }
 		}
-		
-		/**
-		// If the cluster buffer has fewer than the allowed number of
-		// events stored, just add the temporary list to the buffer.
-		if(clusterBuffer.size() < coincidenceWindow) { clusterBuffer.addLast(tempList); }
-		
-		// Otherwise, remove the first element of the list (the oldest
-		// buffer) and append the new list.
-		else {
-			clusterBuffer.removeFirst();
-			clusterBuffer.addLast(tempList);
-		}
-		**/
 		
 		// Reset the highest energy pair to null.
 		clusterTriplet[0] = null;
@@ -245,9 +272,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 		aClusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
 		
 		// Initialize the seed distribution diagnostic plots.
-		clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 176, -22.0, 22.0, 10, -5, 5);
-		pClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 176, -23, 23, 11, -5.5, 5.5);
-		aClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 176, -23, 23, 11, -5.5, 5.5);
+		clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 44, -22.0, 22.0, 10, -5, 5);
+		pClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 44, -23, 23, 11, -5.5, 5.5);
+		aClusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 44, -23, 23, 11, -5.5, 5.5);
 		
 		// Initialize the cluster pair energy sum diagnostic plots.
 		pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 2.2);
@@ -256,6 +283,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 		// Initialize the cluster pair hypothetical invariant mass diagnostic plots.
 		invariantMass = aida.histogram1D("Trigger Plots :: Invariant Mass Distribution", 1500, 0.0, 0.03);
 		pInvariantMass = aida.histogram1D("Trigger Plots :: Invariant Mass Distribution (Passed Pair Cuts)", 1500, 0.0, 0.03);
+		
+		// Initialize the seed percentage of cluster energy.
+		seedPercent = aida.histogram1D("Analysis Plots :: Seed Percentage of Total Energy", 400, 0.0, 1.0);
 	}
 	
 	protected boolean triggerDecision(EventHeader event) {
@@ -281,6 +311,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			// Return false; we can not trigger without three clusters.
 			return false;
 		}
+		
+		// Increment the number of pairs considered.
+		allPairs++;
 		
 		// Get the cluster position indices.
 		int[] ix = { clusterPair[0].getSeedHit().getIdentifierFieldValue("ix"), clusterPair[1].getSeedHit().getIdentifierFieldValue("ix") };
@@ -313,6 +346,14 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 			boolean energySumCut = pairEnergySumCut(clusterPair);
 			boolean invariantMassCut = pairInvariantMassCut(clusterPair);
 			
+			// Increment the pair cut counts.
+			if(energySumCut) {
+				pairEnergySumCount++;
+				if(invariantMassCut) {
+					pairInvariantMassCount++;
+				}
+			}
+			
 			// VERBOSE :: Note the outcome of the trigger cuts.
 			if(verbose) {
 				System.out.printf("\tPassed energy sum cut     :: %b%n", energySumCut);
@@ -337,6 +378,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 				
 				// VERBOSE :: Note that the event has triggered.
 				if(verbose) { System.out.println("Event triggers!\n\n"); }
+				
+				// Increment the number of triggers.
+				triggers++;
 				
 				// Return the trigger.
 				return true;
@@ -411,7 +455,11 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * false</code> if it does not.
 	 */
 	private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
-		return cluster.getEnergy() >= clusterTotalEnergyThreshold;
+		// Get the cluster energy.
+		double clusterEnergy = cluster.getEnergy();
+		
+		// Perform the cut.
+		return clusterEnergy >= clusterTotalEnergyThresholdLow && clusterEnergy <= clusterTotalEnergyThresholdHigh;
 	}
 	
 	/**
@@ -666,11 +714,22 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Sets the threshold for the total cluster energy of individual
 	 * clusters under which the cluster will be rejected and not used
 	 * for triggering.
-	 * @param clusterTotalEnergyThreshold - The cluster total energy
+	 * @param clusterTotalEnergyThresholdLow - The cluster total energy
 	 * lower bound.
 	 */
-	public void setClusterTotalEnergyThreshold(double clusterTotalEnergyThreshold) {
-		this.clusterTotalEnergyThreshold = clusterTotalEnergyThreshold;
+	public void setClusterTotalEnergyThresholdLow(double clusterTotalEnergyThresholdLow) {
+		this.clusterTotalEnergyThresholdLow = clusterTotalEnergyThresholdLow;
+	}
+	
+	/**
+	 * Sets the threshold for the total cluster energy of individual
+	 * clusters above which the cluster will be rejected and not used
+	 * for triggering.
+	 * @param clusterTotalEnergyThresholdHigh - The cluster total energy
+	 * upper bound.
+	 */
+	public void setClusterTotalEnergyThresholdHigh(double clusterTotalEnergyThresholdHigh) {
+		this.clusterTotalEnergyThresholdHigh = clusterTotalEnergyThresholdHigh;
 	}
 	
 	/**
@@ -681,6 +740,18 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 */
 	public void setCoincidenceWindow(int coincidenceWindow) {
 		this.coincidenceWindow = coincidenceWindow;
+	}
+	
+	/**
+	 * Sets the invariant mass threshold to accept only cluster pairs
+	 * with a reconstructed invariant mass within a certain number of
+	 * standard deviations of the mean (corrected for sampling fraction).
+	 * @param invariantMassSigma - The number of standard deviations
+	 * within which a cluster pair invariant mass is accepted.
+	 */
+	public void setInvariantMassSigma(int invariantMassSigma) {
+		this.invariantMassThresholdLow = 0.012499 - (invariantMassSigma * 0.0011095);
+		this.invariantMassThresholdHigh = 0.012499 + (invariantMassSigma * 0.0011095);
 	}
 	
 	/**
@@ -711,7 +782,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * Sets the threshold for the sum of the energies of a cluster pair
 	 * above which the pair will be rejected and not produce a trigger.
 	 * @param pairEnergySumThresholdHigh - The cluster pair energy sum
-	 * lower bound.
+	 * upper bound.
 	 */
 	public void setPairEnergySumThresholdHigh(double pairEnergySumThresholdHigh) {
 		this.pairEnergySumThresholdHigh = pairEnergySumThresholdHigh;
@@ -725,6 +796,18 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 */
 	public void setPairEnergySumThresholdLow(double pairEnergySumThresholdLow) {
 		this.pairEnergySumThresholdLow = pairEnergySumThresholdLow;
+	}
+	
+	/**
+	 * Sets whether clusters centered on an edge crystal should be
+	 * used for triggering or not.
+	 * 
+	 * @param rejectEdgeCrystals - <code>true</code> means that edge
+	 * clusters will not be used and <code>false</code> means that they
+	 * will be used.
+	 */
+	public void setRejectEdgeCrystals(boolean rejectEdgeCrystals) {
+		this.rejectEdgeCrystals = rejectEdgeCrystals;
 	}
 	
 	/**
@@ -799,6 +882,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	IHistogram1D pClusterTotalEnergy;
 	IHistogram1D pPairEnergySum;
 	IHistogram1D pInvariantMass;
+	IHistogram1D seedPercent;
 	
 	// ==================================================================
 	// ==== Variables ===================================================
@@ -809,7 +893,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * <code>private AIDA <b>aida</b></code><br/><br/>
 	 * Factory for generating histograms.
 	 */
-    private AIDA aida = AIDA.defaultInstance();
+	private AIDA aida = AIDA.defaultInstance();
 	
 	/**
 	 * <b>clusterBuffer</b><br/><br/>
@@ -836,7 +920,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * cluster first in the array.
 	 */
 	private HPSEcalCluster[] clusterPair = new HPSEcalCluster[2];
-    
+	
 	/**
 	 * <b>clusterHitCountThreshold</b><br/><br/>
 	 * <code>private int <b>clusterHitCountThreshold</b></code><br/><br/>
@@ -862,12 +946,20 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	private double clusterSeedEnergyThresholdHigh = 1.00;
 	
 	/**
-	 * <b>clusterTotalEnergyThreshold</b><br/><br/>
+	 * <b>clusterTotalEnergyThresholdLow</b><br/><br/>
 	 * <code>private double <b>clusterTotalEnergyThreshold</b></code><br/><br/>
 	 * Defines the threshold for the total cluster energy under which
 	 * a cluster will be rejected.
 	 */
-	private double clusterTotalEnergyThreshold = Double.MIN_VALUE;
+	private double clusterTotalEnergyThresholdLow = 0.0;
+	
+	/**
+	 * <b>clusterTotalEnergyThresholdHigh</b><br/><br/>
+	 * <code>private double <b>clusterTotalEnergyThresholdHigh</b></code><br/><br/>
+	 * Defines the threshold for the total cluster energy above which
+	 * a cluster will be rejected.
+	 */
+	private double clusterTotalEnergyThresholdHigh = Double.MAX_VALUE;
 	
 	/**
 	 * <b>clusterTriplet</b><br/><br/>
@@ -884,14 +976,14 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * The number of events for which clusters will be retained and
 	 * used in the trigger before they are removed.
 	 */
-    private int coincidenceWindow = 3;
-    
+	private int coincidenceWindow = 3;
+	
 	/**
 	 * <b>D2</b><br/><br/>
 	 * <code>private static final double <b>D2</b></code><br/><br/>
 	 * The squared distance of the calorimeter from the target.
 	 */
-    private static final double D2 = 1414 * 1414; // (1414^2 mm^2)
+	private static final double D2 = 1414 * 1414; // (1414^2 mm^2)
 	
 	/**
 	 * <b>invariantMassThresholdHigh</b><br/><br/>
@@ -977,4 +1069,13 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
 	 * invariant mass calculations.
 	 */
 	private Map<CalorimeterHit, Double[]> seedPosMap = new HashMap<CalorimeterHit, Double[]>();
+	
+	private int triggers = 0;									// Track the number of triggers.
+    private int allClusters = 0;								// Track the number of clusters processed.
+    private int allPairs = 0;									// Track the number of cluster pairs processed.
+    private int clusterSeedEnergyCount = 0;						// Track the clusters which pass the seed energy cut.
+    private int clusterHitCountCount = 0;						// Track the clusters which pass the hit count cut.
+    private int clusterEdgeCount = 0;							// Track the clusters which pass the edge cut.
+    private int pairEnergySumCount = 0;							// Track the pairs which pass the energy sum cut.
+    private int pairInvariantMassCount = 0;						// Track the pairs which pass the invariant mass cut.
 }
