@@ -106,13 +106,20 @@ public final class SvtConditionsConverter implements ConditionsConverter<SvtCond
     	if(metaData != null){
     		tableName = metaData.getTableName();
     	} else { 
-    		tableName = SVT_BAD_CHANNELS; 
     	}
+    		tableName = SVT_BAD_CHANNELS; 
+    	
         // Add bad channels.
-        SvtBadChannelCollection badChannels = manager.getCachedConditions(SvtBadChannelCollection.class, tableName).getCachedData();
-        for (SvtBadChannel badChannel : badChannels.getObjects()) {
-            SvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
-            conditions.getChannelConstants(channel).setBadChannel(true);
+        // FIXME: This should be changed to catch a conditions record not found exception instead of 
+    	// 		  a runtime exception.
+    	try { 
+        	SvtBadChannelCollection badChannels = manager.getCachedConditions(SvtBadChannelCollection.class, tableName).getCachedData();
+        	for (SvtBadChannel badChannel : badChannels.getObjects()) {
+        		SvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
+        		conditions.getChannelConstants(channel).setBadChannel(true);
+        	}
+        } catch(RuntimeException e){
+        	e.printStackTrace();
         }
 
         // Get the table name containing the SVT gains from the database
