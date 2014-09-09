@@ -8,10 +8,10 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * Read conditions from the dev database and print them out.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ConditionsDevTest extends TestCase {
-    
-    static String config = "/org/hps/conditions/config/conditions_dev.xml";
-    static String prop = "/org/hps/conditions/config/conditions_dev.properties";
+public class ConditionsTestRunTest extends TestCase {
+        
+    static String config = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    static String prop = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
     
     public void testConditionsDev() {
 
@@ -35,6 +35,8 @@ public class ConditionsDevTest extends TestCase {
                         System.out.println(object.toString());
                     }
                 }
+            } else {
+                System.err.println("WARNING: No collections found for key <" + metaData.getKey() + "> in this conditions database!");
             }
         }
     }
