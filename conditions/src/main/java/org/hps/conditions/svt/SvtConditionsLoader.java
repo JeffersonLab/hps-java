@@ -13,6 +13,8 @@ import org.hps.util.Pair;
 /**
  * This class loads {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @version $Id$
  */
 public final class SvtConditionsLoader {
 
@@ -37,8 +39,16 @@ public final class SvtConditionsLoader {
             // Reset possible existing conditions data on sensor.
             sensor.reset();
 
-            // Get the layer number.
+            // Get the layer number.  The layer number will range from 1-12;
             int layerNumber = sensor.getLayerNumber();
+            
+            // Get the module ID number.  The sensors in the first three layers
+            // of the SVT are assigned a module ID = 0 if they are in the top 
+            // volume and 1 if they are on the bottom.  For layers 4-6, the 
+            // assigned module ID is 0 and 2 for top and 1 and 3 for bottom
+            // depending on whether the sensor is on the hole or slot side of
+            // the half-module.
+            int moduleNumber = sensor.getModuleNumber();
 
             // Get DAQ pair (FEB ID, FEB Hybrid ID) corresponding to this sensor
             Pair<Integer, Integer> daqPair = null;
@@ -46,7 +56,7 @@ public final class SvtConditionsLoader {
             if (sensor.isBottomLayer()) {
                 SvtHalf = SvtDaqMappingCollection.BOTTOM_HALF;
             }
-            daqPair = daqMap.getDaqPair(SvtHalf, layerNumber);
+            daqPair = daqMap.getDaqPair(SvtHalf, layerNumber, moduleNumber);
             if (daqPair == null) {
                 throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
             }
@@ -56,7 +66,6 @@ public final class SvtConditionsLoader {
            
             // Set the FEB Hybrid ID of the sensor
             sensor.setFebHybridID(daqPair.getSecondElement());
-            
 
             // Find all the channels for this sensor.
             Collection<SvtChannel> channels = channelMap.find(daqPair);
@@ -73,6 +82,7 @@ public final class SvtConditionsLoader {
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);
                 }
+
                 /*
                 sensor.setGain(channelNumber, constants.getGain().getGain());
                 sensor.setTimeOffset(channelNumber, constants.getGain().getOffset());
@@ -83,7 +93,7 @@ public final class SvtConditionsLoader {
             }
 
             // Set the time shift for the sensor.
-            SvtTimeShift sensorTimeShift = timeShifts.find(daqPair).get(0);
+            //SvtTimeShift sensorTimeShift = timeShifts.find(daqPair).get(0);
             //sensor.setTimeShift(sensorTimeShift.getTimeShift());
         }
     }
