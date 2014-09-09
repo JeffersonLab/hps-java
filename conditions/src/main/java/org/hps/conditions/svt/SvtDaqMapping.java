@@ -15,19 +15,58 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
         public static final String BOTTOM_HALF = "B";
 
         /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) by SVT volume and layer number.
-         * @param svtHalf Value indicating top or bottom half of detector.
-         * @param layerNumber The layer number.
+         * Get a DAQ pair (FEB ID, FEB Hybrid ID) by SVT volume, layer number
+         * and module number.
+         * 
+         * @param svtHalf Value indicating top or bottom half of detector
+         * @param layerNumber The layer number
+         * @param moduleNumber The module number (needed to identify layer's 4-6)
          * @return The DAQ pair for the half and layer number or null if does not exist.
          */
-        Pair<Integer, Integer> getDaqPair(String SvtHalf, int layerNumber) {
-            for (SvtDaqMapping object : this.getObjects()) {
-                if (object.getSvtHalf() == SvtHalf && object.getLayerNumber() == layerNumber) {
-                    return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                }
+        Pair<Integer, Integer> getDaqPair(String SvtHalf, int layerNumber, int moduleNumber) {
+        	
+        	for (SvtDaqMapping object : this.getObjects()) {
+                
+        		if (SvtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == layerNumber) {
+                
+        			// If the sensor belongs to the first three layers of the SVT
+        			// and the detector layer and SVT half match, no further searching
+        			// is required.
+        			if(layerNumber <= 6){
+                		return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                	} 
+                	
+        			// If the sensor belongs to layers 4-6, then find the matching
+        			// DAQ pair by looking at combinations of FEB hybrid ID's and module
+        			// numbers.  At the moment, it is assumed that odd SVT layers will 
+        			// be connected to even FEB hybrid channels and even SVT layers to odd
+        			// FEB hybrid channels.
+        			// TODO: Changes should be made to HpsSiSensor that will allow this
+        			//		 portion of the matching to be greatly simplified.
+                	if(SvtHalf.equals(TOP_HALF)){
+                		if(layerNumber%2 != 0 
+                				&& ((object.getFebHybridID() == 0 && moduleNumber == 0) 
+                						|| object.getFebHybridID() == 2 && moduleNumber == 2)){
+                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                		} else if(layerNumber %2 == 0 &&((object.getFebHybridID() == 1 && moduleNumber == 0)
+                				|| object.getFebHybridID() == 3 && moduleNumber == 2)) { 
+                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                		}
+                	} else if(SvtHalf.equals(BOTTOM_HALF)){ 
+                		if(layerNumber%2 != 0 
+                				&& ((object.getFebHybridID() == 0 && moduleNumber == 1) 
+                						|| object.getFebHybridID() == 2 && moduleNumber == 3)){
+                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                		} else if(layerNumber %2 == 0 &&((object.getFebHybridID() == 1 && moduleNumber == 1)
+                				|| object.getFebHybridID() == 3 && moduleNumber == 3)) { 
+                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                		}
+                	}
+                } 
             }
             return null;
         }
+        
 
         /**
          * Convert this object to a string.
