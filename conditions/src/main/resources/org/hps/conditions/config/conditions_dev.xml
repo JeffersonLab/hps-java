@@ -140,7 +140,7 @@
             </fields>        
         </table>
         
-        <table key="svt_bad_channels" name="svt_bad_channels">
+        <table key="eng_run_svt_bad_channels" name="eng_run_svt_bad_channels">
             <classes>
                 <object class="org.hps.conditions.svt.SvtBadChannel"/>
                 <collection class="org.hps.conditions.svt.SvtBadChannel$SvtBadChannelCollection"/>
