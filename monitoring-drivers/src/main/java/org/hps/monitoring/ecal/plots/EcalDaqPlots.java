@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hps.util.Resettable;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -19,12 +21,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
 //import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableConstants;
-import org.hps.conditions.config.DefaultTestSetup;
-import org.hps.conditions.ecal.EcalChannel;
-import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalChannelConstants;
-import org.lcsim.detector.converter.compact.EcalCrystal;
 
 
 /**
@@ -38,7 +34,7 @@ import org.lcsim.detector.converter.compact.EcalCrystal;
  * 
  *  */
 
-public class EcalDaqPlots extends Driver implements Resettable {
+public class EcalDaqPlots extends Driver {
 
     private String subdetectorName = "Ecal";
     private String inputCollection = "EcalCalHits";
@@ -177,6 +173,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
     }
    
     @Override
+    /*
     public void reset() {
         if (plotter != null) {
             for (IHistogram1D plot : plots) {
@@ -184,6 +181,7 @@ public class EcalDaqPlots extends Driver implements Resettable {
             }
         }
     }
+    */
 
     public void process(EventHeader event) {
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
