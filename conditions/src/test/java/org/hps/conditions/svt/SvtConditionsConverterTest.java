@@ -3,11 +3,12 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
+import org.hps.conditions.config.DevReadOnlyConfiguration;
 
 /**
- * This test loads and prints {@link SvtConditions}, which internally uses the
- * {@link SvtConditionsConverter}. It does not perform any assertions.
+ * This test loads and prints {@link SvtConditions} from the dev database, 
+ * which internally uses the {@link SvtConditionsConverter}. It does not 
+ * perform any assertions.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -15,8 +16,8 @@ public class SvtConditionsConverterTest extends TestCase {
 
     DatabaseConditionsManager conditionsManager;
     
-    public void setUp() {
-        new TestRunReadOnlyConfiguration(true);
+    public void setUp() {                
+        new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
         conditionsManager = DatabaseConditionsManager.getInstance();
     }
 

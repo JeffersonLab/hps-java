@@ -25,7 +25,6 @@
                         <exclude>org/hps/conditions/svt/SvtBadChannelTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtGainInsertTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtDetectorSetupTest.java</exclude> 
-                        <exclude>org/hps/conditions/svt/SvtConditionsConverterTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtConfigurationTest.java</exclude>
                     </excludes>
                 </configuration>
