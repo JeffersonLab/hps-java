@@ -7,7 +7,6 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalDetectorSetup;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDetectorSetup;
-import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 

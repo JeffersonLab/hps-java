@@ -1,7 +1,6 @@
 package org.hps.conditions.config;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.lcsim.conditions.ConditionsReader;
 
 /**
  * Convenience class for setting up access to the conditions.
@@ -12,26 +11,15 @@ public class ResourceConfiguration extends AbstractConfiguration {
     protected String prop; 
 
     /**
-     * Constructor with XML config, connection properties and ConditionsReader.
-     */
-    public ResourceConfiguration(
-            String config, 
-            String prop,
-            ConditionsReader reader) {
-        this.config = config;
-        this.prop = prop;
-    }
-    
-    /**
      * Constructor with XML config and connection properties.
      */
     public ResourceConfiguration(
             String config, 
-            String connection) {
+            String prop) {
         this.config = config;
-        this.prop = connection;
-    }    
-          
+        this.prop = prop;
+    }
+              
     /**
      * Setup the configuration on the conditions manager.
      */

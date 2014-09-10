@@ -2,12 +2,8 @@ package org.hps.conditions.config;
 
 /**
  * <p>
- * This is a static utility class for setting up the conditions system for test cases in
- * this package and sub-packages.
- * <p>
- * It uses the SLAC Test Run 2012 conditions database, with a relative reference to a file
- * containing connection parameters in the hps-conditions module. The XML configuration is
- * read from a classpath resource in the same module.
+ * This is a utility class for setting up the conditions system with Test Run 2012 data
+ * for test cases in this package and sub-packages.
  * <p>
  * The detector is set to <i>HPS-conditions-test</i>, which is a test detector without
  * real data associated to it. There are a few files used in the test cases that use this
@@ -26,6 +22,10 @@ public final class TestRunReadOnlyConfiguration extends ResourceConfiguration {
     private static final String config = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     private static final String prop = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
    
+    /**
+     * Class constructor.
+     * @param setup True to setup the conditions manager and the detector.  
+     */
     public TestRunReadOnlyConfiguration(boolean setup) {
         super(config, prop);
         if (setup) {

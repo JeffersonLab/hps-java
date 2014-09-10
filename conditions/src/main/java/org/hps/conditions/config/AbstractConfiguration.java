@@ -1,9 +1,7 @@
 package org.hps.conditions.config;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-
 
 public abstract class AbstractConfiguration {
 

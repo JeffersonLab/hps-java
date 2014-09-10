@@ -11,7 +11,6 @@ public final class DevReadOnlyConfiguration extends ResourceConfiguration {
      * Constructor.
      */
     public DevReadOnlyConfiguration() {       
-        super("/org/hps/conditions/config/conditions_dev.xml", 
-                "/org/hps/conditions/config/conditions_dev.properties");
+        super("/org/hps/conditions/config/conditions_dev.xml", "/org/hps/conditions/config/conditions_dev.properties");
     }       
 }
