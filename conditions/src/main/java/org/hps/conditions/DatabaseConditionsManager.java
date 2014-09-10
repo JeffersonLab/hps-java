@@ -53,7 +53,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected List<TableMetaData> tableMetaData;
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
-    protected ConditionsReader baseReader;
+    //protected ConditionsReader baseReader;
     protected static Logger logger = null;
     protected ConnectionParameters connectionParameters;
     protected Connection connection;
@@ -66,7 +66,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
-        baseReader = new BaseClasspathConditionsReader();
+        //baseReader = new BaseClasspathConditionsReader();
         setupConnectionFromSystemProperty();
     }
 
@@ -160,10 +160,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param detectorName the name of the detector
      */
     void setup(String detectorName) {
-        if (baseReader instanceof BaseClasspathConditionsReader) {
-            ((BaseClasspathConditionsReader) baseReader).setResourcePath(detectorName);
-            logger.config("set resource path " + detectorName + " on conditions reader");
-        }
+        //if (baseReader instanceof BaseClasspathConditionsReader) {
+        //    ((BaseClasspathConditionsReader) baseReader).setResourcePath(detectorName);
+        //    logger.config("set resource path " + detectorName + " on conditions reader");
+        //}
         if (!isConnected())
             openConnection();
         else
@@ -242,10 +242,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * conditions such as the compact.xml file for the detector.
      * @param reader The base ConditionsReader.
      */
-    public void setBaseConditionsReader(ConditionsReader baseReader) {
-        logger.config("setting conditions reader to " + baseReader.getClass().getCanonicalName());
-        this.baseReader = baseReader;
-    }
+    // FIXME: This doesn't work because the super class has some convoluted logic that always overrides
+    //        whatever is set manually as the conditions reader.
+    //public void setBaseConditionsReader(ConditionsReader baseReader) {
+    //    logger.config("setting conditions reader to " + baseReader.getClass().getCanonicalName());
+    //    this.baseReader = baseReader;
+    //}
 
     /**
      * Get the next collection ID for a database conditions table.

@@ -73,6 +73,7 @@ public final class ConditionsDriver extends Driver {
     /**
      * Set the class of the conditions reader to use.
      */
+    /*
     public void setConditionsReaderClass(String className) {
         try {
             Object object = Class.forName(className).newInstance();
@@ -85,6 +86,7 @@ public final class ConditionsDriver extends Driver {
             throw new RuntimeException(e);
         }
     }
+    */
 
     public void setEcalSubdetectorName(String ecalSubdetectorName) {
         this.ecalSubdetectorName = ecalSubdetectorName;
