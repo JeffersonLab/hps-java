@@ -5,7 +5,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DevDatabaseReadOnlyConfig;
+import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
@@ -25,15 +25,10 @@ public class SvtConditionsLoaderTest extends TestCase {
 	//-----------------//
 	
 	// Total number of SVT sensors
-	public static final int TOTAL_NUMBER_OF_SENSORS = 36;
-	
-	//-----------------//
-	
-    DevDatabaseReadOnlyConfig dbConfig = new DevDatabaseReadOnlyConfig();
-    
+	public static final int TOTAL_NUMBER_OF_SENSORS = 36;	
+	   
 	public void setUp(){
-		dbConfig.setup();
-		dbConfig.load("HPS-Proposal2014-v7-2pt2", 0);
+	    new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
 	}
 
     /**
@@ -66,7 +61,7 @@ public class SvtConditionsLoaderTest extends TestCase {
         	totalSensors++; 
         	
         	// Check that hardware information seems reasonable.
-            int  febHybridID = sensor.getFebHybridID();
+            int febHybridID = sensor.getFebHybridID();
             int febID = sensor.getFebID();
 
             for (int channel = 0; channel < nChannels; channel++) {

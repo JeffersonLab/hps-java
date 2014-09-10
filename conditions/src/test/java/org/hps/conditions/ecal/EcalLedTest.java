@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.config.DevDatabaseReadOnlyConfig;
+import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 
 /**
@@ -13,12 +13,9 @@ import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalLedTest extends TestCase {
-    
-    DevDatabaseReadOnlyConfig db = new DevDatabaseReadOnlyConfig();
-    
+           
     public void setUp() {
-        db.setup();
-        db.load("HPS-TestRun-v5", 0);
+        new DevReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 0);
     }
     
     public void testEcalLed() {

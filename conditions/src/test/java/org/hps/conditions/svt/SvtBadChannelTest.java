@@ -19,8 +19,7 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class tests that {@link org.lcsim.hps.conditions.ConditionsDriver} works
- * correctly.
+ * This class tests that the correct bad channel conditions are found for the test run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtBadChannelTest extends TestCase {

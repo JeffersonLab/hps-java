@@ -3,7 +3,7 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DevDatabaseReadOnlyConfig;
+import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 
@@ -29,7 +29,7 @@ public class SvtDaqMappingTest extends TestCase {
 	
 	//-----------------//
 
-	DevDatabaseReadOnlyConfig dbConfig = new DevDatabaseReadOnlyConfig();
+	DevReadOnlyConfiguration dbConfig = new DevReadOnlyConfiguration();
 	
 	public void setUp(){
 		dbConfig.setup();

@@ -5,7 +5,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DefaultTestSetup;
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
@@ -34,7 +34,7 @@ public class EcalConditionsLoaderTest extends TestCase {
     private static final int CRYSTAL_COUNT = 442;
 
     public void setUp() {
-        new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
     }
 
     /**

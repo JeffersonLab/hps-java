@@ -1,24 +1,25 @@
 package org.hps.conditions;
 
-import org.hps.conditions.config.DefaultTestSetup;
-
 import junit.framework.TestCase;
+
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 
 public class DatabaseConditionsManagerTest extends TestCase {
 
-    DatabaseConditionsManager _conditionsManager;
+    DatabaseConditionsManager conditionsManager;
 
     public void setUp() {
-        _conditionsManager = new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
+        conditionsManager = DatabaseConditionsManager.getInstance();
     }
 
     @SuppressWarnings("rawtypes")
     public void testLoad() {
 
         // Load data from every table registered with the manager.
-        for (TableMetaData metaData : _conditionsManager.getTableMetaDataList()) {
+        for (TableMetaData metaData : conditionsManager.getTableMetaDataList()) {
             System.out.println(">>>> loading conditions from table: " + metaData.getKey());
-            ConditionsObjectCollection conditionsObjects = _conditionsManager.getConditionsData(metaData.getCollectionClass(), metaData.getKey());
+            ConditionsObjectCollection conditionsObjects = conditionsManager.getConditionsData(metaData.getCollectionClass(), metaData.getKey());
             System.out.println("  " + conditionsObjects.getObjects().size() + " " + conditionsObjects.get(0).getClass().getSimpleName() + " objects were created.");
         }
     }

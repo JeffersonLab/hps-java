@@ -151,7 +151,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
 
         // Let the super class do whatever it think it needs to do.
-        super.setDetector(detectorName, runNumber);
+        super.setDetector(detectorName, runNumber);        
+        //super.setConditionsReader(this.baseReader, detectorName);
     }
 
     /**

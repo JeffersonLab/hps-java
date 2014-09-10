@@ -43,7 +43,9 @@ public class PhysicalToGainTest extends TestCase {
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        loop.add(new ConditionsDriver());
+        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        conditionsDriver.setLoadSvtConditions(false);
+        loop.add(conditionsDriver);
         loop.add(new PhysicalToGainDriver());
 
         // Run a few events.

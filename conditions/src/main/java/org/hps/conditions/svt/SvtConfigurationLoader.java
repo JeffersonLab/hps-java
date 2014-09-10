@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.config.ConditionsDatabaseConfiguration;
+import org.hps.conditions.config.ResourceConfiguration;
 
 /**
  * Load an SVT configuration XML file into the conditions database from a file.
@@ -28,8 +28,8 @@ public class SvtConfigurationLoader {
     DatabaseConditionsManager manager;
     
     public SvtConfigurationLoader() {
-        // FIXME: Configuration hard-coded to conditions dev database.
-        new ConditionsDatabaseConfiguration(
+        // FIXME: Configuration hard-coded here.
+        new ResourceConfiguration(
                 "/org/hps/conditions/config/conditions_dev.xml",
                 "/org/hps/conditions/config/conditions_dev_local.properties").setup();
         manager = DatabaseConditionsManager.getInstance();

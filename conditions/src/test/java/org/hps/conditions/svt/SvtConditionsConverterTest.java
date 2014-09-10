@@ -3,7 +3,7 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DefaultTestSetup;
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 
 /**
  * This test loads and prints {@link SvtConditions}, which internally uses the
@@ -13,17 +13,17 @@ import org.hps.conditions.config.DefaultTestSetup;
  */
 public class SvtConditionsConverterTest extends TestCase {
 
+    DatabaseConditionsManager conditionsManager;
+    
     public void setUp() {
-        new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
+        conditionsManager = DatabaseConditionsManager.getInstance();
     }
 
     /**
      * Load and print all SVT conditions for a certain run number.
      */
-    public void test() {
-
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
+    public void test() {        
         // Get conditions and print them out.
         SvtConditions svt = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
         assertNotNull(svt);

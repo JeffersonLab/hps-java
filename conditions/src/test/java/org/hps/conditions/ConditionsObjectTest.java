@@ -2,7 +2,7 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.config.DefaultTestSetup;
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtGain;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 
@@ -19,7 +19,8 @@ public class ConditionsObjectTest extends TestCase {
     DatabaseConditionsManager conditionsManager;
 
     public void setUp() {
-        conditionsManager = new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
+        conditionsManager = DatabaseConditionsManager.getInstance();
     }
 
     public void testBasicOperations() throws ConditionsObjectException {

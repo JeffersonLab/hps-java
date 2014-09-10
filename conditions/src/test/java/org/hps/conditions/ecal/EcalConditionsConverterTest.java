@@ -3,7 +3,7 @@ package org.hps.conditions.ecal;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DefaultTestSetup;
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 
 /**
  * Tests that a {@link EcalConditions} objects loads without errors.
@@ -11,14 +11,14 @@ import org.hps.conditions.config.DefaultTestSetup;
  */
 public class EcalConditionsConverterTest extends TestCase {
 
+    DatabaseConditionsManager conditionsManager;
+    
     public void setUp() {
-        new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
+        conditionsManager = DatabaseConditionsManager.getInstance();
     }
 
-    public void test() {
-
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-
+    public void test() {       
         // Test that the manager gets ECAL conditions.
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
         assertNotNull(conditions);

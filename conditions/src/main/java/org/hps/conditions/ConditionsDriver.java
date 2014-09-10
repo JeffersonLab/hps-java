@@ -31,6 +31,9 @@ public final class ConditionsDriver extends Driver {
 
     String ecalSubdetectorName = "Ecal";
     String svtSubdetectorName = "Tracker";
+    
+    boolean loadSvtConditions = true;
+    boolean loadEcalConditions = true;
 
     /**
      * Constructor which initializes the conditions manager with default connection
@@ -58,6 +61,14 @@ public final class ConditionsDriver extends Driver {
     public void setConnectionResource(String resource) {
         manager.setConnectionResource(resource);
     }
+    
+    public void setLoadSvtConditions(boolean loadSvtConditions) {
+        this.loadSvtConditions = loadSvtConditions;
+    }
+    
+    public void setLoadEcalConditions(boolean loadEcaltConditions) {
+        this.loadEcalConditions = loadSvtConditions;
+    }
 
     /**
      * Set the class of the conditions reader to use.
@@ -82,16 +93,19 @@ public final class ConditionsDriver extends Driver {
     public void setSvtSubdetectorName(String svtSubdetectorName) {
         this.svtSubdetectorName = svtSubdetectorName;
     }
+    
+    
 
     /**
      * This method updates a new detector with SVT and ECal conditions data.
      */
-    // FIXME: Add here a check on the run number and if it is invalid then
-    // set a default before trying to load the conditions.
     public void detectorChanged(Detector detector) {
-        // Load conditions onto the detector.
-        loadSvtConditions(detector); 
-        loadEcalConditions(detector);
+        // Load SVT conditions onto the detector.
+        if (loadSvtConditions)
+            loadSvtConditions(detector);
+        // Load ECAL conditions onto the detector.
+        if (loadEcalConditions)
+            loadEcalConditions(detector);
     }
 
     /**

@@ -42,7 +42,9 @@ public class ConditionsDriverTest extends TestCase {
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        loop.add(new ConditionsDriver());
+        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        conditionsDriver.setLoadSvtConditions(false);
+        loop.add(conditionsDriver);
         RunNumberDriver runNumberDriver = new RunNumberDriver();
         loop.add(runNumberDriver);
 
@@ -80,31 +82,31 @@ public class ConditionsDriverTest extends TestCase {
      */
     static class RunNumberDriver extends Driver {
 
-        int _currentRun = -1;
-        int _nruns = 0;
-        List<Integer> _runsProcessed = new ArrayList<Integer>();
-        Set<Integer> _uniqueRuns = new LinkedHashSet<Integer>();
+        int currentRun = -1;
+        int nruns = 0;
+        List<Integer> runsProcessed = new ArrayList<Integer>();
+        Set<Integer> uniqueRuns = new LinkedHashSet<Integer>();
 
         public void process(EventHeader event) {
             int runNumber = event.getRunNumber();
-            if (runNumber != _currentRun) {
-                _currentRun = runNumber;
-                _uniqueRuns.add(_currentRun);
-                _runsProcessed.add(_currentRun);
-                _nruns++;
+            if (runNumber != currentRun) {
+                currentRun = runNumber;
+                uniqueRuns.add(currentRun);
+                runsProcessed.add(currentRun);
+                nruns++;
             }
         }
 
         int getNumberOfRuns() {
-            return _nruns;
+            return nruns;
         }
 
         List<Integer> getRunsProcessed() {
-            return _runsProcessed;
+            return runsProcessed;
         }
 
         Set<Integer> getUniqueRuns() {
-            return _uniqueRuns;
+            return uniqueRuns;
         }
     }
 }

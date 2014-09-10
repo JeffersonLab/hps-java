@@ -57,7 +57,9 @@ public class BeamCurrentTest extends TestCase {
 
         // Configure and run the loop.
         loop.setLCIORecordSource(testFile);
-        loop.add(new ConditionsDriver());
+        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        conditionsDriver.setLoadSvtConditions(false);
+        loop.add(conditionsDriver);
         loop.add(new BeamCurrentChecker());
         loop.loop(-1, null);
     }

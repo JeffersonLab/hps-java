@@ -2,7 +2,7 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.config.DefaultTestSetup;
+import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtBadChannel;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 
@@ -12,7 +12,8 @@ public class ConditionsSeriesConverterTest extends TestCase {
     DatabaseConditionsManager conditionsManager;
 
     public void setUp() {
-        conditionsManager = new DefaultTestSetup().configure().setup();
+        new TestRunReadOnlyConfiguration(true);
+        conditionsManager = DatabaseConditionsManager.getInstance();
     }
     
     public void testConditionsSeries() {
