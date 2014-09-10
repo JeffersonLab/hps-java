@@ -14,7 +14,7 @@ import org.lcsim.geometry.Detector;
  * for basic validity.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalConditionsLoaderTest extends TestCase {
+public class EcalDetectorSetupTest extends TestCase {
 
     /** Expected number of crystals. */
     private static final int CRYSTAL_COUNT_ANSWER = 442;
@@ -51,7 +51,7 @@ public class EcalConditionsLoaderTest extends TestCase {
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
 
         // Load conditions onto detector.
-        EcalConditionsLoader loader = new EcalConditionsLoader();
+        EcalDetectorSetup loader = new EcalDetectorSetup();
         loader.load(detector.getSubdetector("Ecal"), conditions);
 
         // Get crystals from detector.

@@ -11,12 +11,12 @@ import org.lcsim.geometry.Detector;
 import org.hps.util.Pair;
 
 /**
- * This class loads {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
+ * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @version $Id$
  */
-public final class SvtConditionsLoader {
+public final class SvtDetectorSetup {
 
     /**
      * Load conditions data onto a detector object. This method is analogous to

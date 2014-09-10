@@ -18,7 +18,7 @@ import org.lcsim.geometry.Detector;
  * @version $Id$
  */
 // TODO: Need to fix this tests so that it actually makes sense for the conditions we have.
-public class SvtConditionsLoaderTest extends TestCase {
+public class SvtDetectorSetupTest extends TestCase {
 	
 	
 	//--- Constants ---//
@@ -45,7 +45,7 @@ public class SvtConditionsLoaderTest extends TestCase {
         SvtConditions conditions = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
 
         // Load the SVT conditions onto detector.
-        SvtConditionsLoader loader = new SvtConditionsLoader();
+        SvtDetectorSetup loader = new SvtDetectorSetup();
         loader.load(detector, conditions);
 
         // Check sensor data.

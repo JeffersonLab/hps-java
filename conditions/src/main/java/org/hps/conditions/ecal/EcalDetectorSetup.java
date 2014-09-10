@@ -9,10 +9,10 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.geometry.Subdetector;
 
 /**
- * Load {@link EcalConditions} data onto <code>EcalCrystal</code> objects.
+ * Puts {@link EcalConditions} data onto <code>EcalCrystal</code> objects on the detector.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class EcalConditionsLoader {
+public final class EcalDetectorSetup {
 
     /**
      * Load ECal conditions data onto a full detector object.

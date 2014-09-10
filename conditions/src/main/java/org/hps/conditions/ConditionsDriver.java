@@ -4,9 +4,9 @@ import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
 import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalConditionsLoader;
+import org.hps.conditions.ecal.EcalDetectorSetup;
 import org.hps.conditions.svt.SvtConditions;
-import org.hps.conditions.svt.SvtConditionsLoader;
+import org.hps.conditions.svt.SvtDetectorSetup;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -114,7 +114,7 @@ public final class ConditionsDriver extends Driver {
      */
     private void loadSvtConditions(Detector detector) {
         SvtConditions conditions = manager.getCachedConditions(SvtConditions.class, SVT_CONDITIONS).getCachedData();
-        SvtConditionsLoader loader = new SvtConditionsLoader();
+        SvtDetectorSetup loader = new SvtDetectorSetup();
         loader.load(detector, conditions);
     }
 
@@ -124,7 +124,7 @@ public final class ConditionsDriver extends Driver {
      */
     private void loadEcalConditions(Detector detector) {
         EcalConditions conditions = manager.getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
-        EcalConditionsLoader loader = new EcalConditionsLoader();
+        EcalDetectorSetup loader = new EcalDetectorSetup();
         loader.load(detector.getSubdetector(ecalSubdetectorName), conditions);
     }
 
