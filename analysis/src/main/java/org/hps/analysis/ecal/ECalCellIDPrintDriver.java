@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.ecal;
+package org.hps.analysis.ecal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
