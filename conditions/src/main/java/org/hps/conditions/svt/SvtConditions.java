@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
-import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+
+import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
  * This class contains all SVT conditions data by readout channel. {@link SvtChannel}
@@ -13,7 +15,7 @@ import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
  * {@link #getChannelConstants(SvtChannel)} method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: SvtConditions.java,v 1.11 2013/10/15 23:45:56 jeremy Exp $
+ * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public final class SvtConditions {
 
@@ -21,10 +23,11 @@ public final class SvtConditions {
     private Map<SvtChannel, ChannelConstants> channelData = new HashMap<SvtChannel, ChannelConstants>();
     private SvtChannelCollection channelMap = null;
     private SvtDaqMappingCollection daqMap = null;
-    private SvtTimeShiftCollection timeShifts = null;
+    private SvtT0ShiftCollection t0Shifts = null;
 
     /**
      * Class constructor, which takes a channel map.
+     * 
      * @param channelMap The SVT channel map.
      */
     SvtConditions(SvtChannelCollection channelMap) {
@@ -35,6 +38,7 @@ public final class SvtConditions {
      * Get the conditions constants for a specific channel. These will be created if they
      * do not exist for the given channel, BUT only channels in the current channel map
      * are allowed as an argument.
+     * 
      * @param channel The SVT channel.
      * @return The conditions constants for the channel.
      * @throws IllegalArgumentException if .
@@ -53,6 +57,7 @@ public final class SvtConditions {
 
     /**
      * Get the {@link SvtChannelCollection} for this set of conditions.
+     * 
      * @return The SVT channel map.
      */
     public SvtChannelCollection getChannelMap() {
@@ -61,6 +66,7 @@ public final class SvtConditions {
 
     /**
      * Get the {@link SvtDaqMappingCollection} associated with these conditions.
+     * 
      * @return The SVT DAQ map.
      */
     public SvtDaqMappingCollection getDaqMap() {
@@ -68,15 +74,17 @@ public final class SvtConditions {
     }
 
     /**
-     * Get the {@link SvtTimeShiftCollection}.
-     * @return The time shifts by sensor.
+     * Get the {@link SvtT0ShiftCollection}.
+     * 
+     * @return The t0 shifts by sensor.
      */
-    public SvtTimeShiftCollection getTimeShifts() {
-        return timeShifts;
+    public SvtT0ShiftCollection getT0Shifts() {
+        return t0Shifts;
     }
 
     /**
      * Set the {@link SvtDaqMappingCollection} associated with these conditions.
+     * 
      * @param daqMap The SVT DAQ map.
      */
     void setDaqMap(SvtDaqMappingCollection daqMap) {
@@ -84,11 +92,12 @@ public final class SvtConditions {
     }
 
     /**
-     * Set the sensor time shifts.
-     * @param timeShifts The sensor time shifts collection.
+     * Set the sensor t0 shifts.
+     * 
+     * @param t0Shifts The sensor time shifts collection.
      */
-    void setTimeShifts(SvtTimeShiftCollection timeShifts) {
-        this.timeShifts = timeShifts;
+    void setTimeShifts(SvtT0ShiftCollection t0Shifts) {
+        this.t0Shifts = t0Shifts;
     }
 
     /**
@@ -96,7 +105,10 @@ public final class SvtConditions {
      * table of channel data independently of how its member objects implement their
      * string conversion method. For now, it does not print the time shifts by sensor as
      * all other information is by channel.
+     * 
      * @return This object converted to a string, without the DAQ map.
+     * TODO: Make this look more human readable.  At the moment, reading this
+     * 		 requires a huge terminal window.
      */
     public String toString() {
         StringBuffer buff = new StringBuffer();
@@ -107,31 +119,49 @@ public final class SvtConditions {
         buff.append('\n');
 
         // Table header:
-        buff.append("id");
+        buff.append("Channel ID");
         buff.append("     ");
-        buff.append("fpga");
+        buff.append("FEB ID");
         buff.append("  ");
-        buff.append("hybrid");
+        buff.append("FEB Hybrid ID");
         buff.append("   ");
-        buff.append("channel");
+        buff.append("Channel");
         buff.append("  ");
-        buff.append("noise");
+        buff.append("Pedestal sample 0");
         buff.append("     ");
-        buff.append("pedestal");
-        buff.append("    ");
-        buff.append("gain");
+        buff.append("Pedestal sample 1");
+        buff.append("     ");
+        buff.append("Pedestal sample 2");
+        buff.append("     ");
+        buff.append("Pedestal sample 3");
+        buff.append("     ");
+        buff.append("Pedestal sample 4");
+        buff.append("     ");
+        buff.append("Pedestal sample 5");
+        buff.append("     ");
+        buff.append("Noise sample 0");
+        buff.append("     ");
+        buff.append("Noise sample 1");
+        buff.append("     ");
+        buff.append("Noise sample 2");
+        buff.append("     ");
+        buff.append("Noise sample 3");
+        buff.append("     ");
+        buff.append("Noise sample 4");
+        buff.append("     ");
+        buff.append("Noise sample 5");
+        buff.append("     ");
+        buff.append("Gain");
         buff.append("   ");
-        buff.append("offset");
+        buff.append("Offset");
         buff.append("    ");
-        buff.append("amplitude");
+        buff.append("Amplitude");
         buff.append("  ");
         buff.append("t0");
         buff.append("       ");
-        buff.append("shift");
+        buff.append("tp");
         buff.append("    ");
-        buff.append("chisq");
-        buff.append("      ");
-        buff.append("bad");
+        buff.append("Bad Channels");
         buff.append('\n');
         for (int i = 0; i < 115; i++) {
             buff.append("-");
@@ -143,20 +173,27 @@ public final class SvtConditions {
             // Get the conditions for the channel.
             ChannelConstants constants = getChannelConstants(channel);
             SvtGain gain = constants.getGain();
-            SvtPulseParameters pulse = constants.getPulseParameters();
+            SvtShapeFitParameters shapeFit = constants.getShapeFitParameters();
             SvtCalibration calibration = constants.getCalibration();
 
             // Channel data.
-            buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelId(), channel.getFpga(), channel.getHybrid(), channel.getChannel()));
+            buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelID(), channel.getFebID(), channel.getFebHybridID(), channel.getChannel()));
 
             // Calibration.
-            buff.append(String.format("%-9.4f %-11.4f ", calibration.getNoise(), calibration.getPedestal()));
+            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
+            	buff.append(calibration.getPedestal(sample));
+            	buff.append("      ");
+            }
+            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
+            	buff.append(calibration.getNoise(sample));
+            	buff.append("      ");
+            }
 
             // Gain.
             buff.append(String.format("%-6.4f %-9.4f ", gain.getGain(), gain.getOffset()));
 
             // Pulse shape.
-            buff.append(String.format("%-10.4f %-8.4f %-8.4f %-10.4f ", pulse.getAmplitude(), pulse.getT0(), pulse.getTimeShift(), pulse.getChisq()));
+            buff.append(String.format("%-10.4f %-8.4f %-8.4f", shapeFit.getAmplitude(), shapeFit.getT0(), shapeFit.getTp()));
 
             // Bad channel.
             buff.append(constants.isBadChannel());
