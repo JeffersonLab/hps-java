@@ -14,8 +14,8 @@
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtChannelConverter"/>
 		<converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtDaqMappingConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtPulseParametersConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtTimeShiftConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtShapeFitParametersConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtT0ShiftConverter"/>
 
         <!-- ECal converters -->
         <converter class="org.hps.conditions.ecal.EcalConditionsConverter"/>
@@ -108,8 +108,8 @@
         
         <table key="svt_shape_fit_parameters" name="svt_shape_fit_parameters">
             <classes>
-                <object class="org.hps.conditions.svt.SvtPulseParameters"/>
-                <collection class="org.hps.conditions.svt.SvtPulseParameters$SvtPulseParametersCollection"/>
+                <object class="org.hps.conditions.svt.SvtShapeFitParameters"/>
+                <collection class="org.hps.conditions.svt.SvtShapeFitParameters$SvtShapeFitParametersCollection"/>
             </classes>
             <fields>
                 <field name="svt_channel_id" />
@@ -143,8 +143,8 @@
         
         <table key="svt_t0_shifts" name="svt_t0_shifts">
             <classes>
-                <object class="org.hps.conditions.svt.SvtTimeShift"/>
-                <collection class="org.hps.conditions.svt.SvtTimeShift$SvtTimeShiftCollection"/>
+                <object class="org.hps.conditions.svt.SvtT0Shift"/>
+                <collection class="org.hps.conditions.svt.SvtT0Shift$SvtT0ShiftCollection"/>
             </classes>
             <fields>
                 <field name="feb_id" />
