@@ -25,13 +25,17 @@ public final class EventProcessingThread extends Thread {
         // Keep looping until the event processing is flagged as done.
         while (true) {
             // Is the processing unpaused?            
+            // TODO: See if can check for IDLE state. (???)
             if (!loop.isPaused()) {
                 
                 // Loop until done, error occurs, or pause is requested.
                 // FIXME: The maximum number of records should be used here.
                 loop.loop(-1);
                 
+                // If paused, current record will still be completed!
+                
                 // Is loop done?
+                // TODO: See if can check for IDLE state instead.
                 if (loop.isDone()) {
                     // Stop record processing.
                     break;

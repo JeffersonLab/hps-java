@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.freehep.record.source.RecordSource;
 import org.hps.evio.LCSimEventBuilder;
-import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.et.EtConnection;
@@ -41,10 +40,16 @@ public class CompositeLoopConfiguration {
     LCSimEventBuilder eventBuilder = null;
     String detectorName = null;
     
+    // Event processors.
     List<EvioEventProcessor> evioProcessors = new ArrayList<EvioEventProcessor>();
     List<Driver> drivers = new ArrayList<Driver>();
     List<CompositeRecordProcessor> compositeProcessors = new ArrayList<CompositeRecordProcessor>();
     List<EtEventProcessor> etProcessors = new ArrayList<EtEventProcessor>();
+    
+    // Configuration for supplying LCIO events to JAS3 Studio.
+    boolean supplyLcioEvents;
+    int maxQueueSize = -1;
+    long timeout = -1L;
                      
     /**
      * Set the full path to a file being used as an event source.
@@ -156,6 +161,37 @@ public class CompositeLoopConfiguration {
         if (maxRecords < 1)
             throw new IllegalArgumentException("Invalid maxRecords value: " + maxRecords);
         this.maxRecords = maxRecords;
+        return this;
+    }
+    
+    /**
+     * Set whether to supply LCIO events to a DataSource that will automatically
+     * register itself to JAS3 in order to drive Wired, the LCSim Event Browser, etc. 
+     * @param supplyLcioEvents True to supply LCIO events to JAS3.
+     * @return This object.
+     */
+    public CompositeLoopConfiguration setSupplyLcioEvents(boolean supplyLcioEvents) {
+        this.supplyLcioEvents = supplyLcioEvents;
+        return this;
+    }
+    
+    /**
+     * Set the max queue size for the LCIO DataSource that hooks into JAS3.
+     * @param maxQueueSize The maximum queue size or -1 for unlimited.
+     * @return This object.
+     */
+    public CompositeLoopConfiguration setMaxQueueSize(int maxQueueSize) {
+        this.maxQueueSize = maxQueueSize;
+        return this;
+    }
+    
+    /**
+     * Set the timeout for calling <code>next</code> on the LCIO record queue.
+     * @param timeout The timeout in milliseconds.
+     * @return This object.
+     */
+    public CompositeLoopConfiguration setTimeout(long timeout) {
+        this.timeout = timeout;
         return this;
     }
     

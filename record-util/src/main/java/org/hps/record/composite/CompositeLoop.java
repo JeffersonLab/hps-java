@@ -36,6 +36,9 @@ public final class CompositeLoop extends DefaultRecordLoop {
     boolean done = false;
     
     CompositeLoopConfiguration config = null;
+            
+    // Look in javadoc API and DefaultRecordLoop for what this does.
+    //this._stopOnEOF
                 
     /**
      * No argument constructor.  
@@ -72,7 +75,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
      */
     public void addAdapter(CompositeLoopAdapter adapter) {
         addLoopListener(adapter);
-        addRecordListener(adapter);
+        addRecordListener(adapter);        
     }
         
     /**
@@ -338,6 +341,10 @@ public final class CompositeLoop extends DefaultRecordLoop {
         // Add CompositeRecordProcessors to loop.
         for (CompositeRecordProcessor processor : config.compositeProcessors) {
             compositeAdapter.addProcessor(processor);
+        }
+        
+        if (config.supplyLcioEvents) {
+            addAdapter(new LcioEventSupplier(config.timeout, config.maxQueueSize));
         }
         
         // Max records was set?

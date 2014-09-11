@@ -14,42 +14,41 @@ import org.freehep.record.source.NoSuchRecordException;
  * {@link #next()} method to get the next record, which might not be immediately
  * available.
  */
+// TODO: Add max elements argument to limit pile up of unconsumed events.
 public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSource {
 
     // The queue, which is a linked list with blocking behavior. 
-    BlockingQueue<RecordType> records = new LinkedBlockingQueue<RecordType>();
+    BlockingQueue<RecordType> records;
     
     // The current LCIO events.
     RecordType currentRecord;
     
     // The amount of time to wait for an LCIO event from the queue before dying.
-    long timeOutMillis = 1000;
+    long timeOutMillis = -1;
     
     /**
      * Constructor that takes the timeout time in seconds.
      * @param timeoutSeconds the timeout time in seconds
      */
-    public AbstractRecordQueue(long timeoutMillis) {
+    public AbstractRecordQueue(long timeoutMillis, int maxSize) {
         this.timeOutMillis = timeoutMillis;
+        records = new LinkedBlockingQueue<RecordType>(maxSize);
     }
     
     public AbstractRecordQueue() {
-    }
-    
-    /**
-     * Set the time wait time before the poll call times out.
-     * @param timeoutMillis
-     */
-    public void setTimeOutMillis(long timeoutMillis) {
-        this.timeOutMillis = timeoutMillis;
+        // Unlimited queue size.
+        records = new LinkedBlockingQueue<RecordType>();
     }
     
     /**
      * Add a record to the queue.
+     * If the queue is full, then drain it first.
      * @param event the LCIO event to add
      */
     public void addRecord(RecordType record) {
-        records.add(record);
+        if (records.remainingCapacity() > 0)
+            records.add(record);
+        // TODO: Maybe automatically drain the queue here if at capacity???
     }
   
     @Override
