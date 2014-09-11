@@ -1,23 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-plugin</artifactId>
     <name>plugin</name>
     <description>HPS JAS3 Plugin</description>
-
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.3-SNAPSHOT</version>
     </parent>
-
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/plugin/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/plugin/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/plugin/</developerConnection>
     </scm>
-
     <build>
         <resources>
             <resource>
@@ -51,15 +47,22 @@
                         </property>
                     </redirectUrls>
                     <includes>
-                        <include>org.hps:hps-users</include>
-                        <include>org.hps:hps-conditions</include>
-                        <include>org.hps:hps-util</include>
-                        <include>org.hps:hps-detector-data</include>
-                        <include>org.hps:hps-jevio</include>
-                        <include>org.hps:hps-et</include>
-                        <include>mysql:mysql-connector-java</include>
                         <include>org.apache.commons:commons-math3</include>
-                        <include>org.hps:cmsg</include>
+                        <include>org.hps:hps-analysis</include>
+                        <include>org.hps:hps-conditions</include>
+                        <include>org.hps:hps-detector-data</include>
+                        <include>org.hps:hps-ecal-readout-sim</include>
+                        <include>org.hps:hps-ecal-recon</include>
+                        <include>org.hps:hps-et</include>
+                        <include>org.hps:hps-evio</include>
+                        <include>org.hps:hps-recon</include>
+                        <include>org.hps:hps-record-util</include>
+                        <include>org.hps:hps-tracking</include>
+                        <include>org.hps:hps-users</include>
+                        <include>org.hps:hps-util</include>                                                                                                                                              
+                        <include>mysql:mysql-connector-java</include>
+                        <include>org.jlab.coda:jevio</include>
+                        <include>org.jlab.coda:et</include>                        
                     </includes>
                 </configuration>
                 <executions>
@@ -78,7 +81,6 @@
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
@@ -88,8 +90,15 @@
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-record-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-evio</artifactId>
+        </dependency>
     </dependencies>
-
     <profiles>
         <profile>
             <id>submit-plugin-descriptor</id>
@@ -117,5 +126,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>
