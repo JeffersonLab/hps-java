@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
-import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 import org.hps.util.Pair;
 
 /**
  * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
+ *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  */
 public final class SvtDetectorSetup {
 
@@ -31,7 +31,7 @@ public final class SvtDetectorSetup {
         List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
-        SvtTimeShiftCollection timeShifts = conditions.getTimeShifts();
+        SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 
         // Loop over sensors.
         for (HpsSiSensor sensor : sensors) {

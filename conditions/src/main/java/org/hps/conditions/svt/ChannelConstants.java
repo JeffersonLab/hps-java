@@ -5,13 +5,13 @@ package org.hps.conditions.svt;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ChannelConstants.java,v 1.5 2013/10/04 01:43:48 jeremy Exp $
+ *
  */
 public final class ChannelConstants {
 
     private SvtCalibration calibration = null;
     private SvtGain gain = null;
-    private SvtPulseParameters pulseParameters = null;
+    private SvtShapeFitParameters shapeFitParameters = null;
     private boolean badChannel = false;
 
     /**
@@ -24,8 +24,8 @@ public final class ChannelConstants {
      * Set the pulse parameters.
      * @param pulseParameters The pulse parameters
      */
-    void setPulseParameters(SvtPulseParameters pulseParameters) {
-        this.pulseParameters = pulseParameters;
+    void setShapeFitParameters(SvtShapeFitParameters shapeFitParameters) {
+        this.shapeFitParameters = shapeFitParameters;
     }
 
     /**
@@ -61,11 +61,11 @@ public final class ChannelConstants {
     }
 
     /**
-     * Get the pulse parameters.
-     * @return The pulse parameters.
+     * Get the shape fit parameters.
+     * @return The shape fit parameters.
      */
-    public SvtPulseParameters getPulseParameters() {
-        return pulseParameters;
+    public SvtShapeFitParameters getShapeFitParameters() {
+        return shapeFitParameters;
     }
 
     /**
@@ -94,7 +94,7 @@ public final class ChannelConstants {
         buffer.append(", ");
         buffer.append(getGain());
         buffer.append(", ");
-        buffer.append(getPulseParameters());
+        buffer.append(getShapeFitParameters());
         return buffer.toString();
     }
 }

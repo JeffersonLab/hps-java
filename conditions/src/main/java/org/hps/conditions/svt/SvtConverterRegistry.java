@@ -8,8 +8,8 @@ import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtConfiguration.SvtConfigurationCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
-import org.hps.conditions.svt.SvtPulseParameters.SvtPulseParametersCollection;
-import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 
 /**
  * Definitions of converters from the database to SVT specific conditions classes.
@@ -60,15 +60,15 @@ public final class SvtConverterRegistry {
         }
     }
 
-    public static class SvtPulseParametersConverter extends ConditionsObjectConverter<SvtPulseParametersCollection> {
+    public static class SvtShapeFitParametersConverter extends ConditionsObjectConverter<SvtShapeFitParametersCollection> {
         public Class getType() {
-            return SvtPulseParametersCollection.class;
+            return SvtShapeFitParametersCollection.class;
         }
     }
 
-    public static class SvtTimeShiftConverter extends ConditionsObjectConverter<SvtTimeShiftCollection> {
+    public static class SvtT0ShiftConverter extends ConditionsObjectConverter<SvtT0ShiftCollection> {
         public Class getType() {
-            return SvtTimeShiftCollection.class;
+            return SvtT0ShiftCollection.class;
         }
     }
 }

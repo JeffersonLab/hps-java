@@ -15,8 +15,8 @@ import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
-import org.hps.conditions.svt.SvtPulseParameters.SvtPulseParametersCollection;
-import org.hps.conditions.svt.SvtTimeShift.SvtTimeShiftCollection;
+import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -26,7 +26,6 @@ import org.lcsim.conditions.ConditionsManager;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * $Id$
  */
 public final class SvtConditionsConverter implements ConditionsConverter<SvtConditions> {
 
@@ -81,23 +80,23 @@ public final class SvtConditionsConverter implements ConditionsConverter<SvtCond
     	// Get the calibrations from the conditions database
         SvtCalibrationCollection calibrations = manager.getCachedConditions(SvtCalibrationCollection.class, tableName).getCachedData();
         for (SvtCalibration calibration : calibrations.getObjects()) {
-            SvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelId());
+            SvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }
 
         // Get the table name containing the SVT pulse shape parameters from 
         // the database configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtPulseParametersCollection.class);
+        metaData = dbConditionsManager.findTableMetaData(SvtShapeFitParametersCollection.class);
     	if(metaData != null){
     		tableName = metaData.getTableName();
     	} else { 
     		tableName = SVT_PULSE_PARAMETERS; 
     	}
         // Add pulse parameters by channel.
-        SvtPulseParametersCollection pulseParametersCollection = manager.getCachedConditions(SvtPulseParametersCollection.class, tableName).getCachedData();
-        for (SvtPulseParameters pulseParameters : pulseParametersCollection.getObjects()) {
-            SvtChannel channel = conditions.getChannelMap().findChannel(pulseParameters.getChannelId());
-            conditions.getChannelConstants(channel).setPulseParameters(pulseParameters);
+        SvtShapeFitParametersCollection shapeFitParametersCollection = manager.getCachedConditions(SvtShapeFitParametersCollection.class, tableName).getCachedData();
+        for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection.getObjects()) {
+            SvtChannel channel = conditions.getChannelMap().findChannel(shapeFitParameters.getChannelID());
+            conditions.getChannelConstants(channel).setShapeFitParameters(shapeFitParameters);
         }
 
         // Get the table name containing the SVT bad channel map from the 
@@ -141,14 +140,14 @@ public final class SvtConditionsConverter implements ConditionsConverter<SvtCond
 
         // Get the table name containing the SVT t0 shifts. If it doesn't 
         // exist, use the default value. 
-        metaData = dbConditionsManager.findTableMetaData(SvtTimeShiftCollection.class);
+        metaData = dbConditionsManager.findTableMetaData(SvtT0ShiftCollection.class);
     	if(metaData != null){
     		tableName = metaData.getTableName();
     	} else { 
     		tableName = SVT_TIME_SHIFTS; 
     	}	
         // Set the t0 shifts by sensor.
-        SvtTimeShiftCollection t0Shifts = manager.getCachedConditions(SvtTimeShiftCollection.class, tableName).getCachedData();
+        SvtT0ShiftCollection t0Shifts = manager.getCachedConditions(SvtT0ShiftCollection.class, tableName).getCachedData();
         conditions.setTimeShifts(t0Shifts);
 
         return conditions;
