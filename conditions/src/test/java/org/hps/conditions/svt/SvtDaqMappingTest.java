@@ -3,6 +3,7 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.TableMetaData;
 import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
@@ -16,11 +17,12 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
  */
 public class SvtDaqMappingTest extends TestCase {
 
+	TableMetaData metaData = null;
+	DatabaseConditionsManager conditionsManager = null;
+	
 	//--- Constants ---//
 	//-----------------//
 	
-	// DAQ map table name
-	public static final String DAQ_MAP_TABLE_NAME = "eng_run_svt_daq_map";
 	// Total number of SVT sensors
 	public static final int TOTAL_NUMBER_OF_SENSORS = 36;
 	// Min and max values of front end boad (FEB) hybrid ID's
@@ -32,16 +34,17 @@ public class SvtDaqMappingTest extends TestCase {
 	DevReadOnlyConfiguration dbConfig = new DevReadOnlyConfiguration();
 	
 	public void setUp(){
-		dbConfig.setup();
-		dbConfig.load("HPS-Proposal2014-v7-2pt2", 0);
+        new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
+        conditionsManager = DatabaseConditionsManager.getInstance();
+		
+		
 	}
 	
 	public void test(){
 		
-		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-		
+		metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
 		SvtDaqMappingCollection daqMappingCollection 
-			= conditionsManager.getConditionsData(SvtDaqMappingCollection.class, DAQ_MAP_TABLE_NAME);
+			= conditionsManager.getConditionsData(SvtDaqMappingCollection.class, metaData.getTableName());
 		
 		int totalSensors = 0; 
 		int febHybridID; 
