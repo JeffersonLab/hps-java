@@ -12,22 +12,26 @@ import org.hps.conditions.ConditionsObjectException;
 import org.hps.util.Pair;
 
 /**
- * This class represents SVT channel setup information, including hybrid, FPGA, and
- * channel numbers.
+ * This class represents SVT channel setup information, including FEB ID, 
+ * FEB Hybrid ID, and channel numbers.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public final class SvtChannel extends AbstractConditionsObject {
 
-    public static class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel> {
+	public static final int MAX_NUMBER_OF_SAMPLES = 6;
+
+	public static class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel> {
 
         Map<Integer, SvtChannel> channelMap = new HashMap<Integer, SvtChannel>();
 
         public void add(SvtChannel channel) {
             // Add to map.
-            if (channelMap.containsKey(channel.getChannelId())) {
-                throw new IllegalArgumentException("Channel ID already exists: " + channel.getChannelId());
+            if (channelMap.containsKey(channel.getChannelID())) {
+                throw new IllegalArgumentException("Channel ID already exists: " + channel.getChannelID());
             }
-            channelMap.put(channel.getChannelId(), channel);
+            channelMap.put(channel.getChannelID(), channel);
 
             // Add to collection.
             try {
@@ -42,16 +46,16 @@ public final class SvtChannel extends AbstractConditionsObject {
         }
 
         /**
-         * Find channels that match a DAQ pair (FPGA, hybrid).
+         * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
          * @param pair The DAQ pair.
          * @return The channels matching the DAQ pair or null if not found.
          */
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
             List<SvtChannel> channels = new ArrayList<SvtChannel>();
-            int fpga = pair.getFirstElement();
-            int hybrid = pair.getSecondElement();
+            int febID = pair.getFirstElement();
+            int febHybridID = pair.getSecondElement();
             for (SvtChannel channel : this.getObjects()) {
-                if (channel.getFpga() == fpga && channel.getHybrid() == hybrid) {
+                if (channel.getFebID() == febID && channel.getFebHybridID() == febHybridID) {
                     channels.add(channel);
                 }
             }
@@ -75,24 +79,24 @@ public final class SvtChannel extends AbstractConditionsObject {
      * Get the channel ID.
      * @return The channel ID.
      */
-    public int getChannelId() {
+    public int getChannelID() {
         return getFieldValue("channel_id");
     }
 
     /**
-     * Get the hybrid number.
-     * @return The hybrid number.
+     * Get the FEB ID.
+     * @return The FEB ID.
      */
-    public int getHybrid() {
-        return getFieldValue("hybrid");
+    public int getFebID() {
+        return getFieldValue("feb_id");
     }
 
     /**
-     * Get the FPGA number.
-     * @return The FPGA number.
+     * Get the FEB hybrid ID.
+     * @return The FEB hybrid ID.
      */
-    public int getFpga() {
-        return getFieldValue("fpga");
+    public int getFebHybridID() {
+        return getFieldValue("feb_hybrid_id");
     }
 
     /**
@@ -108,7 +112,7 @@ public final class SvtChannel extends AbstractConditionsObject {
      * @return This object as a string.
      */
     public String toString() {
-        return "channel_id: " + getChannelId() + ", fpga: " + getFpga() + ", hybrid: " + getHybrid() + ", channel: " + getChannel();
+        return "channel_id: " + getChannelID() + ", feb_id: " + getFebID() + ", feb_hybrid_id: " + getFebHybridID() + ", channel: " + getChannel();
     }
 
     /**
@@ -123,6 +127,6 @@ public final class SvtChannel extends AbstractConditionsObject {
         if (o == this)
             return true;
         SvtChannel channel = (SvtChannel) o;
-        return getChannelId() == channel.getChannelId() && getHybrid() == channel.getHybrid() && getFpga() == channel.getFpga() && getHybrid() == channel.getHybrid();
+        return getChannelID() == channel.getChannelID() && getFebID() == channel.getFebID() && getFebHybridID() == channel.getFebHybridID() && getChannel() == channel.getChannel();
     }
 }
