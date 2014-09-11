@@ -16,12 +16,6 @@
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/evio/</developerConnection>
     </scm>
     <dependencies>
-<!--    
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-jevio</artifactId>
-        </dependency>
--->        
         <dependency>
             <groupId>org.jlab.coda</groupId>
             <artifactId>jevio</artifactId>
