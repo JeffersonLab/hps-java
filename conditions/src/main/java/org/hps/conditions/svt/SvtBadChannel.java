@@ -11,5 +11,9 @@ public final class SvtBadChannel extends AbstractConditionsObject {
     public int getChannelId() {
         return getFieldValue("svt_channel_id");
     }
+    
+    public int getNote(){
+    	return getFieldValue("notes");
+    }
 
 }

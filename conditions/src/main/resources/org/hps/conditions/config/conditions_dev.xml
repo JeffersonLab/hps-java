@@ -160,6 +160,7 @@
             </classes>
             <fields>
                 <field name="svt_channel_id" />
+                <field name="notes"          />
             </fields>        
         </table>
         
