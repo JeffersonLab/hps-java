@@ -22,11 +22,10 @@ public final class ConditionsDriver extends Driver {
     static DatabaseConditionsManager manager;
 
     // Default conditions system XML config, which is for the Test Run 2012 database.
-    String _defaultConfigResource = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
 
-    // Default database connection parameters, which points to the SLAC development
-    // database.
-    static String _defaultConnectionResource = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
+    // Default database connection parameters, which points to the SLAC development database.
+    static final String DEFAULT_CONNECTION = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
 
     String ecalSubdetectorName = "Ecal";
     String svtSubdetectorName = "Tracker";
@@ -40,8 +39,8 @@ public final class ConditionsDriver extends Driver {
      */
     public ConditionsDriver() {
         manager = new DatabaseConditionsManager();
-        manager.setConnectionResource(_defaultConnectionResource);
-        manager.configure(_defaultConfigResource);
+        manager.setConnectionResource(DEFAULT_CONNECTION);
+        manager.configure(DEFAULT_CONFIG);
         manager.register();
     }
 
@@ -68,25 +67,7 @@ public final class ConditionsDriver extends Driver {
     public void setLoadEcalConditions(boolean loadEcaltConditions) {
         this.loadEcalConditions = loadSvtConditions;
     }
-
-    /**
-     * Set the class of the conditions reader to use.
-     */
-    /*
-    public void setConditionsReaderClass(String className) {
-        try {
-            Object object = Class.forName(className).newInstance();
-            ConditionsReader reader = (ConditionsReader) object;
-            if (reader != null)
-                manager.setBaseConditionsReader(reader);
-            else
-                throw new IllegalArgumentException("The class " + className + " is not a ConditionsReader.");
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    */
-
+    
     public void setEcalSubdetectorName(String ecalSubdetectorName) {
         this.ecalSubdetectorName = ecalSubdetectorName;
     }
@@ -94,9 +75,7 @@ public final class ConditionsDriver extends Driver {
     public void setSvtSubdetectorName(String svtSubdetectorName) {
         this.svtSubdetectorName = svtSubdetectorName;
     }
-    
-    
-
+       
     /**
      * This method updates a new detector with SVT and ECal conditions data.
      */
