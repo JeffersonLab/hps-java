@@ -15,7 +15,6 @@ import org.lcsim.geometry.Detector;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  */
 // TODO: Update this test with more meaningful test.
 public class SvtDetectorSetupTest extends TestCase {
@@ -23,10 +22,19 @@ public class SvtDetectorSetupTest extends TestCase {
 	
 	//--- Constants ---//
 	//-----------------//
+	// TODO: Move all of these constants to their own class
 	
 	// Total number of SVT sensors
 	public static final int TOTAL_NUMBER_OF_SENSORS = 36;	
-	   
+	// Max FEB ID 
+	public static final int MAX_FEB_ID = 9; 
+	// Max FEB Hybrid ID
+	public static final int MAX_FEB_HYBRID_ID = 3;
+	// Max channel number
+	public static final int MAX_CHANNEL_NUMBER = 639;
+	// SVT Subdetector name
+	public static final String SVT_SUBDETECTOR_NAME = "Tracker";
+	
 	public void setUp(){
 	    new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
 	}
@@ -49,41 +57,48 @@ public class SvtDetectorSetupTest extends TestCase {
         loader.load(detector, conditions);
 
         // Check sensor data.
-        List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
+        List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+        //List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
         
-        int nChannels = sensors.get(0).getNumberOfChannels();
-        this.printDebug("Total number of channels per sensor: " + nChannels);
+        // Check for correct number of sensors processed.
+		this.printDebug("Total number of sensors found: " + sensors.size());
+		assertTrue(sensors.size() == TOTAL_NUMBER_OF_SENSORS);
         
         // Loop over sensors.
         int totalSensors = 0; 
         for (HpsSiSensor sensor : sensors) {
 
+        	int nChannels = sensor.getNumberOfChannels();
+        	assertTrue("The number of channels this sensor has is invalid", nChannels <= MAX_CHANNEL_NUMBER);
+        
         	this.printDebug(sensor.toString());
         	
-        	totalSensors++; 
-        	
-        	// Check that hardware information seems reasonable.
-            int febHybridID = sensor.getFebHybridID();
+        	// Check that the FEB ID as within the appropriate range
             int febID = sensor.getFebID();
-
+            assertTrue("FEB ID is invalid.  The FEB ID should be less than " + MAX_FEB_ID,
+            		febID <= MAX_FEB_ID);
+            
+            int febHybridID = sensor.getFebHybridID();
+            assertTrue("FEB Hybrid ID is invalid.  The FEB Hybrid ID should be less than " + MAX_FEB_HYBRID_ID,
+            		febHybridID <= MAX_FEB_HYBRID_ID);
+            
             for (int channel = 0; channel < nChannels; channel++) {
         
             	//
                 // Check that channel conditions values are not zero
             	//
             	for(int sampleN = 0; sampleN < 6; sampleN++){
-            		assertTrue("Pedestal is zero.", sensor.getPedestal(channel, sampleN) != 0);
-            		assertTrue("Noise is zero.", sensor.getNoise(channel, sampleN) != 0);
+            		assertTrue("Pedestal sample " + sampleN + " is zero.",
+            				sensor.getPedestal(channel, sampleN) != 0);
+            		assertTrue("Noise sample " + sampleN + " is zero.",
+            				sensor.getNoise(channel, sampleN) != 0);
             	}
                 assertTrue("Gain is zero.", sensor.getGain(channel) != 0);
-                assertTrue("PulseParameters points to null.", sensor.getShapeFitParameters(channel) != null);
+                assertTrue("Shape fit parameters points to null.",
+                		sensor.getShapeFitParameters(channel) != null);
                 
             }
         }
-        
-        // Check for correct number of sensors processed.
-		this.printDebug("Total number of sensors found: " + totalSensors);
-		//assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
         
         System.out.println("Successfully loaded conditions data onto " + totalSensors + " SVT sensors!"); 
     }

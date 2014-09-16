@@ -19,16 +19,16 @@ import org.hps.util.Pair;
 public final class SvtDetectorSetup {
 
     /**
-     * Load conditions data onto a detector object. This method is analogous to
-     * {@link org.lcsim.hps.recon.tracking.SvtUtils#setup(Detector)}.
+     * Load conditions data onto a detector object.
+     * 
      * @param detector The detector object.
      * @param conditions The conditions object.
      */
-    // FIXME: Change this to use a Subdetector instead of the Detector.
     public void load(Detector detector, SvtConditions conditions) {
 
         // Find sensor objects.
-        List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    	List<HpsSiSensor> sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
+        //List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
