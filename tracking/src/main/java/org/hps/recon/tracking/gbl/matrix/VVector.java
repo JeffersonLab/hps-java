@@ -21,8 +21,7 @@ public class VVector
     {
         numRows = nRows;
         theVec = new ArrayList(nRows);
-        for (int i = 0; i < numRows; ++i)
-        {
+        for (int i = 0; i < numRows; ++i) {
             theVec.add(0.);
         }
     }
@@ -44,12 +43,12 @@ public class VVector
     {
         theVec.set(row, val);
     }
-    
+
     public void addTo(int row, double val)
     {
         theVec.set(row, (double) theVec.get(row) + val);
     }
-    
+
     public void subFrom(int row, double val)
     {
         theVec.set(row, (double) theVec.get(row) - val);
@@ -67,7 +66,7 @@ public class VVector
      */
     public VVector getVec(int len, int start)
     {
-        return new VVector(theVec.subList(start, start + len - 1));
+        return new VVector(theVec.subList(start, start + len));
 
     }
 
@@ -93,10 +92,8 @@ public class VVector
     public void print()
     {
         System.out.println(theVec.size());
-        for (int i = 0; i < numRows; ++i)
-        {
-            if (i % 5 == 0)
-            {
+        for (int i = 0; i < numRows; ++i) {
+            if (i % 5 == 0) {
                 System.out.format("%n%4d " + " - " + "%4d" + " : ", i, min(i + 4, numRows));
             }
             System.out.format("%13f", theVec.get(i));
@@ -108,8 +105,7 @@ public class VVector
     VVector minus(VVector aVector)
     {
         VVector aResult = new VVector(numRows);
-        for (int i = 0; i < numRows; ++i)
-        {
+        for (int i = 0; i < numRows; ++i) {
             aResult.set(i, (double) theVec.get(i) - aVector.get(i));
         }
         return aResult;
@@ -119,8 +115,7 @@ public class VVector
     public VVector copy()
     {
         VVector aResult = new VVector(numRows);
-        for (int i = 0; i < numRows; ++i)
-        {
+        for (int i = 0; i < numRows; ++i) {
             aResult.set(i, get(i));
         }
         return aResult;
