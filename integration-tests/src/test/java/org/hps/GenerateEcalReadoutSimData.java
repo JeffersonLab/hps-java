@@ -15,7 +15,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class GenerateEcalReadoutSimData extends TestCase {
     
     // This file is tridents, AP and backgrounds merged together into one event file.
-    static String dataPath = "/u1/work/hps_test/ap025mev_egs_tri_2.2gev_0.00125x0_200na_5e5b_30mr_001_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-Proposal2014-v8-6pt6.slcio";
+    static String dataPath = "/nfs/slac/g/hps3/data/testcase/ap025mev_egs_tri_2.2gev_0.00125x0_200na_5e5b_30mr_001_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-Proposal2014-v8-6pt6.slcio";
     
     public void testGenerateReadoutSimData() throws Exception {
         
