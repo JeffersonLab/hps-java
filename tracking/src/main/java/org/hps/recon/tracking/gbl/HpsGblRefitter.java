@@ -23,16 +23,17 @@ import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
 /**
- * A Driver which refits tracks using GBL 
- * Modeled on the hps-dst code written by Per Hansson and Omar Moreno
- * Requires the GBL Collections and Relations to be present in the event.
- * 
+ * A Driver which refits tracks using GBL Modeled on the hps-dst code written by
+ * Per Hansson and Omar Moreno Requires the GBL Collections and Relations to be
+ * present in the event.
+ *
  * @author Norman A Graf
  *
  * @version $Id:
  */
 public class HpsGblRefitter extends Driver
 {
+
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -68,19 +69,16 @@ public class HpsGblRefitter extends Driver
 //            System.out.println(t.getTrackStates().get(0));
 //        }
         //get the relations to the GBLtracks
-        if(!event.hasItem(track2GblTrackRelationName))
-        {
-            System.out.println("Need Relations "+track2GblTrackRelationName);
+        if (!event.hasItem(track2GblTrackRelationName)) {
+            System.out.println("Need Relations " + track2GblTrackRelationName);
             return;
         }
         // and strips
-        if(!event.hasItem(gblTrack2StripRelationName))
-        {
-            System.out.println("Need Relations "+gblTrack2StripRelationName);
+        if (!event.hasItem(gblTrack2StripRelationName)) {
+            System.out.println("Need Relations " + gblTrack2StripRelationName);
             return;
         }
-        
-        
+
         List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
         //need a map of GBLTrackData keyed on the Generic object from which it created
         Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
@@ -370,10 +368,12 @@ public class HpsGblRefitter extends Driver
         Vector aCorrection = new Vector(5);
         SymMatrix aCovariance = new SymMatrix(5);
         traj.getResults(1, aCorrection, aCovariance);
-        System.out.println(" cor ");
-        aCorrection.print(6, 4);
-        System.out.println(" cov ");
-        aCovariance.print(6, 4);
+        if (_debug) {
+            System.out.println(" cor ");
+            aCorrection.print(6, 4);
+            System.out.println(" cov ");
+            aCovariance.print(6, 4);
+        }
 
 //	// write to MP binary file
 //	traj.milleOut(mille);

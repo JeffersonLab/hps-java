@@ -34,13 +34,11 @@ public class GblTrajectory
     public void fit(double m_chi2, int m_ndf, int m_lost_weight)
     {
         // TODO Auto-generated method stub
-
     }
 
     public void milleOut(MilleBinary mille)
     {
-        // TODO Auto-generated method stub
-
+        // TODO implement binary writeout of millepedeII data
     }
 
     /**
