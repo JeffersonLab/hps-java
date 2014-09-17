@@ -14,9 +14,11 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
  *
  * @version $Id:
  */
-public class GblPoint {
+public class GblPoint
+{
 
-    public GblPoint(hep.physics.matrix.BasicMatrix jacPointToPoint) {
+    public GblPoint(hep.physics.matrix.BasicMatrix jacPointToPoint)
+    {
         theLabel = 0;
         theOffset = 0;
         measDim = 0;
@@ -34,70 +36,65 @@ public class GblPoint {
         }
     }
 
-    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas, hep.physics.matrix.BasicMatrix measPrec) {
+    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas, hep.physics.matrix.BasicMatrix measPrec)
+    {
 
         int ncols = proL2m.getNColumns();
         int nrows = proL2m.getNRows();
-        System.out.println("proL2m has "+nrows+" rows and "+ ncols+ "columns");
+        System.out.println("proL2m has " + nrows + " rows and " + ncols + "columns");
         Matrix a = new Matrix(nrows, ncols);
-        for(int i=0; i<nrows; ++i)
-        {
-            for(int j=0; j<ncols; ++j)
-            {
-                a.set(i,j,proL2m.e(i, j));
+        for (int i = 0; i < nrows; ++i) {
+            for (int j = 0; j < ncols; ++j) {
+                a.set(i, j, proL2m.e(i, j));
             }
         }
         System.out.println("GblPoint add matrix: ");
         a.print(10, 6);
-        
-        
-        
+
         int measnrows = meas.getNRows();
         int measncols = meas.getNColumns();
-        System.out.println("meas has "+measnrows+" rows and "+measncols+" columns");
-        
+        System.out.println("meas has " + measnrows + " rows and " + measncols + " columns");
+
         Vector measvec = new Vector(measncols);
-        for(int i=0; i<measnrows; ++i)
-        {
+        for (int i = 0; i < measnrows; ++i) {
             measvec.set(i, meas.e(0, i));
         }
         System.out.println("GblPoint add meas: ");
         measvec.print(10, 6);
-        
-        
+
         int measPrecnrows = measPrec.getNRows();
         int measPrecncols = measPrec.getNColumns();
-        
-        System.out.println("measPrec has "+measPrecnrows+" rows and "+measPrecncols+" columns");
+
+        System.out.println("measPrec has " + measPrecnrows + " rows and " + measPrecncols + " columns");
         Vector measPrecvec = new Vector(measPrecncols);
-        for(int i=0; i<measPrecnrows; ++i)
-        {
+        for (int i = 0; i < measPrecnrows; ++i) {
             measPrecvec.set(i, measPrec.e(0, i));
         }
         System.out.println("GblPoint add measPrec: ");
-        measPrecvec.print(10, 6); 
-        
+        measPrecvec.print(10, 6);
+
         addMeasurement(a, measvec, measPrecvec, 0.);
     }
 
-    public void addScatterer(hep.physics.matrix.BasicMatrix scat, hep.physics.matrix.BasicMatrix scatPrec) {
+    public void addScatterer(hep.physics.matrix.BasicMatrix scat, hep.physics.matrix.BasicMatrix scatPrec)
+    {
         // TODO Auto-generated method stub
 
     }
 
     private int theLabel; ///< Label identifying point
     private int theOffset; ///< Offset number at point if not negative (else interpolation needed)
-    private Matrix p2pJacobian = new SymMatrix(5); ///< Point-to-point jacobian from previous point
-    private Matrix prevJacobian = new SymMatrix(5); ///< Jacobian to previous scatterer (or first measurement)
-    private Matrix nextJacobian = new SymMatrix(5); ///< Jacobian to next scatterer (or last measurement)
+    private Matrix p2pJacobian = new Matrix(5, 5); ///< Point-to-point jacobian from previous point
+    private Matrix prevJacobian = new Matrix(5, 5); ///< Jacobian to previous scatterer (or first measurement)
+    private Matrix nextJacobian = new Matrix(5, 5); ///< Jacobian to next scatterer (or last measurement)
     private int measDim; ///< Dimension of measurement (1-5), 0 indicates absence of measurement
-    private SymMatrix measProjection = new SymMatrix(5); ///< Projection from measurement to local system
+    private Matrix measProjection = new Matrix(5, 5); ///< Projection from measurement to local system
     private Vector measResiduals = new Vector(5); ///< Measurement residuals
     private Vector measPrecision = new Vector(5); ///< Measurement precision (diagonal of inverse covariance matrix)
     private boolean transFlag; ///< Transformation exists?
     private Matrix measTransformation; ///< Transformation of diagonalization (of meas. precision matrix)
     private boolean scatFlag; ///< Scatterer present?
-    private SymMatrix scatTransformation = new SymMatrix(2); ///< Transformation of diagonalization (of scat. precision matrix)
+    private Matrix scatTransformation = new Matrix(2, 2); ///< Transformation of diagonalization (of scat. precision matrix)
     private Vector scatResiduals = new Vector(2); ///< Scattering residuals (initial kinks if iterating)
     private Vector scatPrecision = new Vector(2); ///< Scattering precision (diagonal of inverse covariance matrix)
     private Matrix localDerivatives = new Matrix(0, 0); ///< Derivatives of measurement vs additional local (fit) parameters
@@ -110,7 +107,8 @@ public class GblPoint {
      * previous point. \param [in] aJacobian Transformation jacobian from
      * previous point
      */
-    public GblPoint(Matrix aJacobian) {
+    public GblPoint(Matrix aJacobian)
+    {
 
         theLabel = 0;
         theOffset = 0;
@@ -129,7 +127,8 @@ public class GblPoint {
         }
     }
 
-    public GblPoint(SymMatrix aJacobian) {
+    public GblPoint(SymMatrix aJacobian)
+    {
         theLabel = 0;
         theOffset = 0;
         p2pJacobian = new SymMatrix(aJacobian);
@@ -153,8 +152,9 @@ public class GblPoint {
      * Minimal precision to accept measurement
      */
     public void addMeasurement(Matrix aProjection,
-            Vector aResiduals, Vector aPrecision,
-            double minPrecision) {
+                               Vector aResiduals, Vector aPrecision,
+                               double minPrecision)
+    {
         measDim = aResiduals.getRowDimension();
         int iOff = 5 - measDim;
         for (int i = 0; i < measDim; ++i) {
@@ -176,8 +176,9 @@ public class GblPoint {
      * (matrix) \param [in] minPrecision Minimal precision to accept measurement
      */
     public void addMeasurement(Matrix aProjection,
-            Vector aResiduals, SymMatrix aPrecision,
-            double minPrecision) {
+                               Vector aResiduals, SymMatrix aPrecision,
+                               double minPrecision)
+    {
         measDim = aResiduals.getRowDimension();
         EigenvalueDecomposition measEigen = new EigenvalueDecomposition(aPrecision);
         measTransformation.ResizeTo(measDim, measDim);
@@ -206,7 +207,8 @@ public class GblPoint {
      * minPrecision Minimal precision to accept measurement
      */
     public void addMeasurement(Vector aResiduals,
-            Vector aPrecision, double minPrecision) {
+                               Vector aPrecision, double minPrecision)
+    {
         measDim = aResiduals.getRowDimension();
         int iOff = 5 - measDim;
         for (int i = 0; i < measDim; ++i) {
@@ -214,7 +216,7 @@ public class GblPoint {
             measPrecision.set(iOff + i,
                     aPrecision.get(i) >= minPrecision ? aPrecision.get(i) : 0.);
         }
-        measProjection.setToIdentity();
+        measProjection.UnitMatrix();// setToIdentity();
     }
 
 /// Add a measurement to a point.
@@ -226,7 +228,8 @@ public class GblPoint {
      * (matrix) \param [in] minPrecision Minimal precision to accept measurement
      */
     public void addMeasurement(Vector aResiduals,
-            SymMatrix aPrecision, double minPrecision) {
+                               SymMatrix aPrecision, double minPrecision)
+    {
         measDim = aResiduals.getRowDimension();
         EigenvalueDecomposition measEigen = new EigenvalueDecomposition(aPrecision);
         measTransformation.ResizeTo(measDim, measDim);
@@ -249,7 +252,8 @@ public class GblPoint {
     /**
      * Get dimension of measurement (0 = none). \return measurement dimension
      */
-    int hasMeasurement() {
+    int hasMeasurement()
+    {
         return measDim;
     }
 
@@ -259,18 +263,20 @@ public class GblPoint {
      * local system \param [out] aResiduals Measurement residuals \param [out]
      * aPrecision Measurement precision (diagonal)
      */
-    public void getMeasurement(SymMatrix aProjection, Vector aResiduals,
-            Vector aPrecision) {
-        aProjection = measProjection;
-        aResiduals = measResiduals;
-        aPrecision = measPrecision;
+    public void getMeasurement(Matrix aProjection, Vector aResiduals,
+                               Vector aPrecision)
+    {
+        aProjection.placeAt(measProjection, 0, 0);
+        aResiduals.placeInCol(measResiduals, 0, 0);
+        aPrecision.placeInCol(measPrecision, 0, 0);
     }
 
 /// Get measurement transformation (from diagonalization).
     /**
      * \param [out] aTransformation Transformation matrix
      */
-    public void getMeasTransformation(Matrix aTransformation) {
+    public void getMeasTransformation(Matrix aTransformation)
+    {
         aTransformation.ResizeTo(measDim, measDim);
         if (transFlag) {
             aTransformation = measTransformation;
@@ -288,13 +294,14 @@ public class GblPoint {
      * Scatterer precision (diagonal of inverse covariance matrix)
      */
     public void addScatterer(Vector aResiduals,
-            Vector aPrecision) {
+                             Vector aPrecision)
+    {
         scatFlag = true;
         scatResiduals.set(0, aResiduals.get(0));
         scatResiduals.set(1, aResiduals.get(1));
         scatPrecision.set(0, aPrecision.get(0));
         scatPrecision.set(1, aPrecision.get(1));
-        scatTransformation.setToIdentity();
+        scatTransformation.UnitMatrix();// setToIdentity();
     }
 
 /// Add a (thin) scatterer to a point.
@@ -313,7 +320,8 @@ public class GblPoint {
      * Scatterer precision (matrix)
      */
     public void addScatterer(Vector aResiduals,
-            SymMatrix aPrecision) {
+                             SymMatrix aPrecision)
+    {
         scatFlag = true;
         EigenvalueDecomposition scatEigen = new EigenvalueDecomposition(aPrecision);
         Matrix aTransformation = scatEigen.getEigenVectors();
@@ -330,7 +338,8 @@ public class GblPoint {
     }
 
 /// Check for scatterer at a point.
-    boolean hasScatterer() {
+    boolean hasScatterer()
+    {
         return scatFlag;
     }
 
@@ -340,18 +349,20 @@ public class GblPoint {
      * diagonalization \param [out] aResiduals Scatterer residuals \param [out]
      * aPrecision Scatterer precision (diagonal)
      */
-    public void getScatterer(SymMatrix aTransformation, Vector aResiduals,
-            Vector aPrecision) {
-        aTransformation = scatTransformation;
-        aResiduals = scatResiduals;
-        aPrecision = scatPrecision;
+    public void getScatterer(Matrix aTransformation, Vector aResiduals,
+                             Vector aPrecision)
+    {
+        aTransformation.placeAt(scatTransformation, 0, 0);
+        aResiduals.placeAt(scatResiduals, 0, 0);
+        aPrecision.placeAt(scatPrecision, 0, 0);
     }
 
 /// Get scatterer transformation (from diagonalization).
     /**
      * \param [out] aTransformation Transformation matrix
      */
-    public void getScatTransformation(Matrix aTransformation) {
+    public void getScatTransformation(Matrix aTransformation)
+    {
         aTransformation.ResizeTo(2, 2);
         if (scatFlag) {
             for (int i = 0; i < 2; ++i) {
@@ -369,7 +380,8 @@ public class GblPoint {
      * Point needs to have a measurement. \param [in] aDerivatives Local
      * derivatives (matrix)
      */
-    public void addLocals(Matrix aDerivatives) {
+    public void addLocals(Matrix aDerivatives)
+    {
         if (measDim != 0) {
             localDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
             if (transFlag) {
@@ -381,12 +393,14 @@ public class GblPoint {
     }
 
 /// Retrieve number of local derivatives from a point.
-    int getNumLocals() {
+    int getNumLocals()
+    {
         return localDerivatives.getColumnDimension();
     }
 
 /// Retrieve local derivatives from a point.
-    Matrix getLocalDerivatives() {
+    Matrix getLocalDerivatives()
+    {
         return localDerivatives;
     }
 
@@ -396,7 +410,8 @@ public class GblPoint {
      * labels \param [in] aDerivatives Global derivatives (matrix)
      */
     public void addGlobals(List<Integer> aLabels,
-            Matrix aDerivatives) {
+                           Matrix aDerivatives)
+    {
         if (measDim != 0) {
             globalLabels = aLabels;
             globalDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
@@ -410,17 +425,20 @@ public class GblPoint {
     }
 
 /// Retrieve number of global derivatives from a point.
-    int getNumGlobals() {
+    int getNumGlobals()
+    {
         return globalDerivatives.getColumnDimension();
     }
 
 /// Retrieve global derivatives labels from a point.
-    List<Integer> getGlobalLabels() {
+    List<Integer> getGlobalLabels()
+    {
         return globalLabels;
     }
 
 /// Retrieve global derivatives from a point.
-    Matrix getGlobalDerivatives() {
+    Matrix getGlobalDerivatives()
+    {
         return globalDerivatives;
     }
 
@@ -428,12 +446,14 @@ public class GblPoint {
     /**
      * \param [in] aLabel Label identifying point
      */
-    public void setLabel(int aLabel) {
+    public void setLabel(int aLabel)
+    {
         theLabel = aLabel;
     }
 
 /// Retrieve label of point
-    int getLabel() {
+    int getLabel()
+    {
         return theLabel;
     }
 
@@ -441,17 +461,20 @@ public class GblPoint {
     /**
      * \param [in] anOffset Offset number
      */
-    public void setOffset(int anOffset) {
+    public void setOffset(int anOffset)
+    {
         theOffset = anOffset;
     }
 
 /// Retrieve offset for point
-    int getOffset() {
+    int getOffset()
+    {
         return theOffset;
     }
 
 /// Retrieve point-to-(previous)point jacobian
-    Matrix getP2pJacobian() {
+    Matrix getP2pJacobian()
+    {
         return p2pJacobian;
     }
 
@@ -459,7 +482,8 @@ public class GblPoint {
     /**
      * \param [in] aJac Jacobian
      */
-    public void addPrevJacobian(Matrix aJac) {
+    public void addPrevJacobian(Matrix aJac)
+    {
         int ifail = 0;
 // to optimize: need only two last rows of inverse
 //	prevJacobian = aJac.InverseFast(ifail);
@@ -476,7 +500,8 @@ public class GblPoint {
     /**
      * \param [in] aJac Jacobian
      */
-    public void addNextJacobian(Matrix aJac) {
+    public void addNextJacobian(Matrix aJac)
+    {
         nextJacobian = aJac;
     }
 
@@ -489,21 +514,23 @@ public class GblPoint {
      * std::overflow_error : matrix S is singular.
      */
     public void getDerivatives(int aDirection, Matrix matW, Matrix matWJ,
-            Vector vecWd) {
+                               Vector vecWd)
+    {
 
         Matrix matJ;
+        Matrix matWt;
         Vector vecd;
         if (aDirection < 1) {
             matJ = prevJacobian.sub(2, 3, 3);
-            matW = prevJacobian.sub(2, 3, 1).uminus();
+            matWt = prevJacobian.sub(2, 3, 1).uminus();
             vecd = prevJacobian.subCol(2, 0, 3);
         } else {
             matJ = nextJacobian.sub(2, 3, 3);
-            matW = nextJacobian.sub(2, 3, 1);
+            matWt = nextJacobian.sub(2, 3, 1);
             vecd = nextJacobian.subCol(2, 0, 3);
         }
 
-        matW = matW.inverse();
+        matW.placeAt(matWt.inverse(), 0, 0);
 //	if (!matW.InvertFast()) {
 //		std::cout << " getDerivatives failed to invert matrix: "
 //				<< matW << "\n";
@@ -512,8 +539,8 @@ public class GblPoint {
 //				<< "\n";
 //		throw std::overflow_error("Singular matrix inversion exception");
 //	}
-        matWJ = matW.times(matJ);
-        vecWd = matW.times(vecd);
+        matWJ.placeAt(matW.times(matJ), 0, 0);
+        vecWd.placeAt(matW.times(vecd), 0, 0);
 
     }
 //
@@ -522,7 +549,8 @@ public class GblPoint {
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */
-    public void printPoint(int level) {
+    public void printPoint(int level)
+    {
         StringBuffer sb = new StringBuffer("GblPoint");
         if (theLabel != 0) {
             sb.append(", label " + theLabel);
@@ -586,5 +614,4 @@ public class GblPoint {
         }
         System.out.println(sb.toString());
     }
-
 }
