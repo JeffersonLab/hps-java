@@ -24,7 +24,6 @@ public class GenerateEcalReadoutSimData extends TestCase {
         job.addVariableDefinition("outputFile", new TestOutputFile("readout").getPath());
         job.addInputFile(new File(dataPath));
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");
-        job.configure();
         job.run();
         
         // Read in the readout file and print summary info.
