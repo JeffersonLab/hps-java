@@ -8,6 +8,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.compact.Subdetector;
 import org.hps.util.Pair;
 
 /**
@@ -21,14 +22,13 @@ public final class SvtDetectorSetup {
     /**
      * Load conditions data onto a detector object.
      * 
-     * @param detector The detector object.
+     * @param  The detector object.
      * @param conditions The conditions object.
      */
-    public void load(Detector detector, SvtConditions conditions) {
+    public void load(Subdetector subdetector, SvtConditions conditions) {
 
         // Find sensor objects.
-    	List<HpsSiSensor> sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
-        //List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();

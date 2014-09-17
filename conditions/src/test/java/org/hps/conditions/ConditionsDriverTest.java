@@ -42,7 +42,7 @@ public class ConditionsDriverTest extends TestCase {
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        ConditionsDriver conditionsDriver = new TestRunConditionsDriver();
         conditionsDriver.setLoadSvtConditions(false);
         loop.add(conditionsDriver);
         RunNumberDriver runNumberDriver = new RunNumberDriver();

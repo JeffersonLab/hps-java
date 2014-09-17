@@ -11,55 +11,25 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * This {@link org.lcsim.util.Driver} sets up the {@link DatabaseConditionsManager} and
- * loads the conditions onto a detector.
+ * This abstract {@link org.lcsim.util.Driver} contains the 
+ * general methods used to set up {@link DatabaseConditionsManager} 
+ * and load the conditions onto a detector.  The connection
+ * parameters are set by subclasses.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ConditionsDriver extends Driver {
+public abstract class ConditionsDriver extends Driver {
 
     // Static instance of the manager.
     static DatabaseConditionsManager manager;
 
-    // Default conditions system XML config, which is for the Test Run 2012 database.
-    static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-
-    // Default database connection parameters, which points to the SLAC development database.
-    static final String DEFAULT_CONNECTION = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
-
-    String ecalSubdetectorName = "Ecal";
-    String svtSubdetectorName = "Tracker";
+    private String ecalSubdetectorName = "Ecal";
+    private String svtSubdetectorName = "Tracker";
     
     boolean loadSvtConditions = true;
     boolean loadEcalConditions = true;
 
-    /**
-     * Constructor which initializes the conditions manager with default connection
-     * parameters and configuration.
-     */
-    public ConditionsDriver() {
-        manager = new DatabaseConditionsManager();
-        manager.setConnectionResource(DEFAULT_CONNECTION);
-        manager.configure(DEFAULT_CONFIG);
-        manager.register();
-    }
 
-    /**
-     * Set the configuration XML resource to be used by the manager.
-     * @param resource the configuration resource
-     */
-    public void setConfigResource(String resource) {
-        manager.configure(resource);
-    }
-
-    /**
-     * Set the connection properties file resource to be used by the manager.
-     * @param resource the connection resource
-     */
-    public void setConnectionResource(String resource) {
-        manager.setConnectionResource(resource);
-    }
-    
     public void setLoadSvtConditions(boolean loadSvtConditions) {
         this.loadSvtConditions = loadSvtConditions;
     }
@@ -95,7 +65,7 @@ public final class ConditionsDriver extends Driver {
     private void loadSvtConditions(Detector detector) {
         SvtConditions conditions = manager.getCachedConditions(SvtConditions.class, SVT_CONDITIONS).getCachedData();
         SvtDetectorSetup loader = new SvtDetectorSetup();
-        loader.load(detector, conditions);
+        loader.load(detector.getSubdetector(svtSubdetectorName), conditions);
     }
 
     /**

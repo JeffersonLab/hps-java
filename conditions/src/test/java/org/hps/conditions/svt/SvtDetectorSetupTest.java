@@ -54,11 +54,10 @@ public class SvtDetectorSetupTest extends TestCase {
 
         // Load the SVT conditions onto detector.
         SvtDetectorSetup loader = new SvtDetectorSetup();
-        loader.load(detector, conditions);
+        loader.load(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
 
         // Check sensor data.
         List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
-        //List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
         
         // Check for correct number of sensors processed.
 		this.printDebug("Total number of sensors found: " + sensors.size());
