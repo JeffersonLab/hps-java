@@ -17,6 +17,7 @@ import org.hps.monitoring.gui.model.Configuration;
  * This is the front-end for running the monitoring app via a 
  * {@link #main(String[])} method.
  */
+// FIXME: Move to org.hps.monitoring instead of gui package.
 public class Main {
 
     /**

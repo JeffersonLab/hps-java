@@ -9,14 +9,12 @@ import static org.hps.monitoring.gui.model.SystemStatusTableModel.SYSTEM_COL;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -32,14 +30,13 @@ import org.hps.monitoring.subsys.StatusCode;
  */
 // TODO: It might be a good idea if there was a second table which logged all status changes as separate
 //       rows so they could be seen in order.
-class SystemStatusFrame extends JFrame {
+class SystemStatusWindow extends ApplicationWindow {
 
     JTable table;
-
-    int WIDTH = 650;
-    int HEIGHT = ScreenUtil.getScreenHeight() / 2;
         
-    SystemStatusFrame() {
+    SystemStatusWindow() {
+        super("System Status Monitor");
+        
         table = new JTable(new SystemStatusTableModel());
         
         // Rendering of system status cells using different background colors.
@@ -104,7 +101,7 @@ class SystemStatusFrame extends JFrame {
         table.getColumnModel().getColumn(ACTIVE_COL).setPreferredWidth(8);
         table.getColumnModel().getColumn(STATUS_COL).setPreferredWidth(10);
         table.getColumnModel().getColumn(SYSTEM_COL).setPreferredWidth(10);
-        // TODO: Add widths for every column.
+        // TODO: Add default width setting for every column.
         
         table.setAutoCreateRowSorter(true);
                 
@@ -113,8 +110,6 @@ class SystemStatusFrame extends JFrame {
         scrollPane.setOpaque(true);
 
         // Additional config.
-        setMinimumSize(new Dimension(WIDTH, HEIGHT));
-        setTitle("System Status Monitor");
         setContentPane(scrollPane);
         setResizable(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

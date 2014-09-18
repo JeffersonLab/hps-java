@@ -11,13 +11,17 @@ import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
 import static org.hps.monitoring.gui.Commands.LOG_TO_TERMINAL;
 import static org.hps.monitoring.gui.Commands.NEXT;
 import static org.hps.monitoring.gui.Commands.PAUSE;
+import static org.hps.monitoring.gui.Commands.RESTORE_DEFAULT_GUI_LAYOUT;
 import static org.hps.monitoring.gui.Commands.RESUME;
 import static org.hps.monitoring.gui.Commands.SAVE_CONFIG_FILE;
+import static org.hps.monitoring.gui.Commands.SAVE_LAYOUT;
 import static org.hps.monitoring.gui.Commands.SAVE_LOG_TABLE;
 import static org.hps.monitoring.gui.Commands.SAVE_PLOTS;
 import static org.hps.monitoring.gui.Commands.SCREENSHOT;
 import static org.hps.monitoring.gui.Commands.SELECT_CONFIG_FILE;
 import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
+import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
+import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -32,6 +36,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,6 +56,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -83,12 +90,6 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
-import org.jlab.coda.et.EtAttachment;
-import org.jlab.coda.et.EtConstants;
-import org.jlab.coda.et.EtStation;
-import org.jlab.coda.et.EtStationConfig;
-import org.jlab.coda.et.EtSystem;
-import org.jlab.coda.et.EtSystemOpenConfig;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -96,22 +97,24 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
  */
-public final class MonitoringApplication extends JFrame implements ActionListener, SystemStatusListener {
+// TODO: Move GUI/window functionality to a new class.  (This one is too big!)
+public final class MonitoringApplication extends ApplicationWindow implements ActionListener, SystemStatusListener, PropertyChangeListener {
 
     // Top-level Swing components.
     private JPanel mainPanel;
     private EventButtonsPanel buttonsPanel;
     private ConnectionStatusPanel connectionStatusPanel;
     private RunPanel runPanel;
-    private JMenuBar menuBar;
     private SettingsDialog settingsDialog;
-    private PlotFrame plotFrame;
-    private SystemStatusFrame systemStatusFrame;
+    private PlotWindow plotWindow;
+    private SystemStatusWindow systemStatusWindow;
+    private JMenuBar menuBar;
 
     // References to menu items that will be toggled depending on application state.
     private JMenuItem savePlotsItem;
     private JMenuItem logItem;
     private JMenuItem terminalItem;
+    private JMenuItem saveLayoutItem;
 
     // Saved references to System.out and System.err in case need to reset.
     private final PrintStream sysOut = System.out;
@@ -122,7 +125,6 @@ public final class MonitoringApplication extends JFrame implements ActionListene
 
     // ET connection parameters and state.
     private EtConnection connection;
-    //private ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
 
     // Event processing objects.
     private JobControlManager jobManager;
@@ -139,17 +141,16 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     private JTable logTable;
     private static Level DEFAULT_LOG_LEVEL = Level.INFO;
 
-    // Format for screenshots.  
-    // FIXME: This is hard-coded to PNG format.
-    private static final String screenshotFormat = "png";
+    // Graogucs format for screenshots.  
+    private static final String SCREENSHOT_FORMAT = "png";
 
     // Format of date field for log.
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
 
-    // GUI size settings.
+    // Some useful GUI size settings.
     private static final int SCREEN_WIDTH = ScreenUtil.getScreenWidth();
     private static final int SCREEN_HEIGHT = ScreenUtil.getScreenHeight();
-    private final static int LOG_TABLE_WIDTH = 700; // FIXME: Should be set from main panel width.
+    private final static int LOG_TABLE_WIDTH = 700; /* FIXME: Should be set from main panel width. */
     private final static int LOG_TABLE_HEIGHT = 270;
     private static final int MAIN_FRAME_HEIGHT = ScreenUtil.getScreenHeight() / 2;
     private static final int MAIN_FRAME_WIDTH = 650;
@@ -170,60 +171,203 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * Constructor for the monitoring application.
      */
     public MonitoringApplication() {
+        
+        super(getApplicationTitle());
+        
+        // Add the application as a property change listener on the configuration model.
+        configurationModel.addPropertyChangeListener(this);
     }
         
     /**
-     * Perform all intialization on start up.
+     * Initialize GUI components and all other necessary objects
+     * to put the application in a usable state.
      */
     public void initialize() {
-        
+                
         // Create and configure the logger.
         setupLogger();
-        
+                
         // Setup the error handling class.
         setupErrorHandler();
         
         // Setup an uncaught exception handler.
         setupUncaughtExceptionHandler();
 
-        // Setup the application menus.
-        createApplicationMenu();
-
         // Create the main GUI panel.
         createMainPanel();
 
         // Create the log table GUI component.
         createLogTable();
-
-        // Configuration of window for showing plots.
-        createPlotFrame();
         
-        // Create the system status window.
-        createSystemStatusFrame();
-
-        // Setup AIDA.
-        setupAida();
-
-        // Configure the application's primary JFrame.
-        configApplicationFrame();
-
         // Create settings dialog window.
         createSettingsDialog();
-        
-        // Register the ConfigurationModel with sub-components.
-        setupConfigurationModel();
                 
-        // Load the current configuration, either the default or from command line arg.
+        // Setup the application menus.
+        createMenuBar();
+                        
+        // Create the system status window.
+        createSystemStatusWindow();
+        
+        // Configuration of window for showing plots.
+        createPlotWindow();
+        
+        // Setup AIDA.
+        setupAida();
+       
+        // Configure the application's primary JFrame.
+        configApplicationFrame();
+        
+        // Load the current configuration, which will push values into the GUI.
         loadConfiguration();
-
+        
         // Log that the application started successfully.
         log(Level.CONFIG, "Application initialized successfully.");
     }
-         
+    
+    /**
+     * The action handler method for the application.
+     * @param e The event to handle.
+     */
+    public void actionPerformed(ActionEvent e) {
+        String cmd = e.getActionCommand();
+        if (CONNECT.equals(cmd)) {
+            // Run the start session method on a seperate thread.
+            new Thread() {
+                public void run() {
+                    startSession();
+                }                
+            }.start();
+        } else if (DISCONNECT.equals(cmd)) {
+            // Run the stop session method on a seperate thread.
+            new Thread() {
+                public void run() {
+                    stopSession();
+                }
+            }.start();            
+        } else if (SAVE_PLOTS.equals(cmd)) {
+            savePlots();
+        } else if (CHOOSE_LOG_FILE.equals(cmd)) {
+            chooseLogFile();
+        } else if (LOG_TO_TERMINAL.equals(cmd)) {
+            logToTerminal();
+        } else if (SCREENSHOT.equals(cmd)) {
+            chooseScreenshot();
+        } else if (EXIT.equals(cmd)) {
+            exit();
+        } else if (SAVE_LOG_TABLE.equals(cmd)) {
+            saveLogTableToFile();
+        } else if (CLEAR_LOG_TABLE.equals(cmd)) {
+            clearLogTable();
+        } else if (PAUSE.equals(cmd)) {
+            pauseEventProcessing();
+        } else if (NEXT.equals(cmd)) {
+            nextEvent();
+        } else if (RESUME.equals(cmd)) {
+            resumeEventProcessing();
+        } else if (LOG_LEVEL_CHANGED.equals(cmd)) {
+            setLogLevel();
+        } else if (AIDA_AUTO_SAVE.equals(cmd)) {
+            getJobSettingsPanel().chooseAidaAutoSaveFile();
+        } else if (SHOW_SETTINGS.equals(cmd)) {
+            showSettingsDialog();
+        } else if (SELECT_CONFIG_FILE.equals(cmd)) {
+            chooseConfigurationFile();
+        } else if (SAVE_CONFIG_FILE.equals(cmd)) {
+            updateLayoutConfiguration(); /* Save current GUI layout settings first, if needed. */
+            saveConfigurationFile();
+        } else if (LOAD_DEFAULT_CONFIG_FILE.equals(cmd)) {
+            loadDefaultConfigFile();
+        } else if (SAVE_LAYOUT.equals(cmd)) {
+            setSaveLayout();
+        } else if (RESTORE_DEFAULT_GUI_LAYOUT.equals(cmd)) {
+            restoreDefaultLayout();
+        }
+    }
+        
+    /**
+     * Set the GUI to visible.
+     */
+    public void setVisible(boolean visible) {
+        
+        super.setVisible(true);
+        
+        this.systemStatusWindow.setVisible(true);
+        
+        // FIXME: If this is done earlier before app is visible, then the GUI will fail to show!
+        this.connectionStatusPanel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+    }
+    
+    /**
+     * Set the Configuration but don't update the ConfigurationModel.
+     * @param configuration
+     */
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }    
+    
+    /**
+     * Handle a property change event.
+     * @evt The property change event.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+                       
+        if (evt.getPropertyName().equals("ancestor"))
+            return;                                          
+        Object value = evt.getNewValue();
+        if (evt.getPropertyName().equals(SAVE_LAYOUT_PROPERTY)) {
+            saveLayoutItem.setSelected((Boolean) value);
+        } else if (evt.getPropertyName().equals(MONITORING_APPLICATION_LAYOUT_PROPERTY)){
+            updateWindowConfiguration(new WindowConfiguration((String) value));
+        } else if (evt.getPropertyName().equals(ConfigurationModel.SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY)) {
+            if (systemStatusWindow != null) {
+                systemStatusWindow.updateWindowConfiguration(new WindowConfiguration((String) value));
+            } else {
+                System.err.println("ERROR: The systemStatusFrame is null!");
+            }
+        } else if (evt.getPropertyName().equals(ConfigurationModel.PLOT_FRAME_LAYOUT_PROPERTY)) {
+            if (plotWindow != null) {
+                plotWindow.updateWindowConfiguration(new WindowConfiguration((String) value));
+            } else {
+                System.err.println("ERROR: The plotWindow is null!");
+            }
+        }
+    }
+    
+    /**
+     * Hook for logging all status changes from the system status monitor.
+     */
+    @Override
+    public void statusChanged(SystemStatus status) {
+        
+        // Choose the appropriate log level.
+        Level level = Level.INFO;
+        if (status.getStatusCode().equals(Level.WARNING)) {
+            level = Level.WARNING;
+        } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
+            level = Level.SEVERE;
+        }
+       
+        // Log all status changes.
+        log(level, "STATUS, "
+                + "subsys: " + status.getSubsystem() + ", "
+                + "code: " + status.getStatusCode().name() + ", "                 
+                + "descr: " + status.getDescription() + ", "                 
+                + "mesg: " + status.getMessage());
+    }
+    
+    /* -------------------------- private methods ----------------------------- */
+               
+    /**
+     * Setup the error handler.
+     */
     private void setupErrorHandler() {
         errorHandler = new ErrorHandler(this, logger);
     }
     
+    /**
+     * Setup the uncaught exception handler which will trap unhandled errors.
+     */
     private void setupUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {            
             public void uncaughtException(Thread thread, Throwable exception) {
@@ -234,45 +378,59 @@ public final class MonitoringApplication extends JFrame implements ActionListene
             }
         });
     }
-            
+     
+    /**
+     * Create the settings dialog GUI component.
+     */
     private void createSettingsDialog() {
+        
+        // Create and configure the settings dialog which has sub-panels for application configuration.
         settingsDialog = new SettingsDialog();
         settingsDialog.getSettingsPanel().addActionListener(this);
         getJobSettingsPanel().addActionListener(this);
+        
+        // Push the ConfigurationModel to the job settings dialog.
+        getJobSettingsPanel().setConfigurationModel(configurationModel);
+        getConnectionSettingsPanel().setConfigurationModel(configurationModel);
+        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);        
     }
 
-    private void createPlotFrame() {
-        plotFrame = new PlotFrame();                
-        plotFrame.setSize(SCREEN_WIDTH - MAIN_FRAME_WIDTH, SCREEN_HEIGHT);
-        plotFrame.setLocation(
-                (int)(ScreenUtil.getBoundsX(0)) + MAIN_FRAME_WIDTH,
-                plotFrame.getY());
+    /**
+     * Create the plot window.
+     */
+    private void createPlotWindow() {
+        
+        // Create the JFrame.
+        plotWindow = new PlotWindow();
+        
+        // Set initial size and position which might be overridden later.
+        plotWindow.setDefaultWindowConfiguration(
+                new WindowConfiguration(
+                        SCREEN_WIDTH - MAIN_FRAME_WIDTH,
+                        SCREEN_HEIGHT,
+                        (int)(ScreenUtil.getBoundsX(0)) + MAIN_FRAME_WIDTH,
+                        plotWindow.getY()
+                ));               
     }
     
-    private void createSystemStatusFrame() {
-        systemStatusFrame = new SystemStatusFrame();
-        systemStatusFrame.setLocation(
+    private void createSystemStatusWindow() {
+        systemStatusWindow = new SystemStatusWindow();
+        WindowConfiguration wc = new WindowConfiguration(
+                650, /* FIXME: Hard-coded width setting. */
+                ScreenUtil.getScreenHeight() / 2,
                 (int)ScreenUtil.getBoundsX(0),
                 MAIN_FRAME_HEIGHT);
+        systemStatusWindow.setMinimumSize(new Dimension(wc.width, wc.height));
+        systemStatusWindow.setDefaultWindowConfiguration(wc);
     }
     
-    public void setVisible(boolean visible) {
-        
-        super.setVisible(true);
-        
-        this.systemStatusFrame.setVisible(true);
-        
-        // FIXME: If this is done earlier before app is visible, the GUI will fail to show!
-        this.connectionStatusPanel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
-    }
-
     /**
      * Configure the AIDA plotting backend.
      */
     private void setupAida() {
         MonitoringAnalysisFactory.register();
         MonitoringAnalysisFactory.configure();
-        MonitoringPlotFactory.setRootPane(this.plotFrame.getPlotPane());
+        MonitoringPlotFactory.setRootPane(this.plotWindow.getPlotPane());
     }
 
     /**
@@ -320,7 +478,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     /**
      * Create the application menu bar and menu items.
      */
-    private void createApplicationMenu() {
+    private void createMenuBar() {
 
         menuBar = new JMenuBar();
 
@@ -332,28 +490,46 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         loadConfigItem.addActionListener(this);
         loadConfigItem.setMnemonic(KeyEvent.VK_C);
         loadConfigItem.setActionCommand(SELECT_CONFIG_FILE);
-        loadConfigItem.setToolTipText("Load application settings from a properties file.");
+        loadConfigItem.setToolTipText("Load application settings from a properties file");
         applicationMenu.add(loadConfigItem);
         
         JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
         saveConfigItem.addActionListener(this);
         saveConfigItem.setMnemonic(KeyEvent.VK_S);
         saveConfigItem.setActionCommand(SAVE_CONFIG_FILE);        
-        saveConfigItem.setToolTipText("Save settings to a properties file.");
+        saveConfigItem.setToolTipText("Save settings to a properties file");
         applicationMenu.add(saveConfigItem);
         
         JMenuItem settingsItem = new JMenuItem("Show Settings ...");
         settingsItem.setMnemonic(KeyEvent.VK_P);
         settingsItem.setActionCommand(SHOW_SETTINGS);
         settingsItem.addActionListener(this);
-        settingsItem.setToolTipText("Show application settings menu.");
+        settingsItem.setToolTipText("Show application settings menu");
         applicationMenu.add(settingsItem);
+       
+        applicationMenu.addSeparator();
+        
+        saveLayoutItem = new JCheckBoxMenuItem("Save GUI Layout");
+        saveLayoutItem.setActionCommand(SAVE_LAYOUT);
+        saveLayoutItem.addActionListener(this);
+        saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
+        saveLayoutItem.setSelected(configurationModel.getSaveLayout()); /* Initial setting from config. */
+        saveLayoutItem.addPropertyChangeListener(this); /* Any subsequent changes to model will activate this. */
+        applicationMenu.add(saveLayoutItem);
+        
+        JMenuItem restoreLayoutItem = new JMenuItem("Restore Default GUI Layout");
+        restoreLayoutItem.setActionCommand(RESTORE_DEFAULT_GUI_LAYOUT);
+        restoreLayoutItem.addActionListener(this);
+        restoreLayoutItem.setToolTipText("Restore the GUI windows to their default positions and sizes");
+        applicationMenu.add(restoreLayoutItem);
+        
+        applicationMenu.addSeparator();
                 
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.setActionCommand(EXIT);
         exitItem.addActionListener(this);
-        exitItem.setToolTipText("Exit from the application.");
+        exitItem.setToolTipText("Exit from the application");
         applicationMenu.add(exitItem);
         
         JMenu plotsMenu = new JMenu("Plots");
@@ -417,7 +593,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         screenshotItem.setMnemonic(KeyEvent.VK_N);
         screenshotItem.setActionCommand(SCREENSHOT);
         screenshotItem.addActionListener(this);
-        screenshotItem.setToolTipText("Save a full screenshot to a " + screenshotFormat + " file.");
+        screenshotItem.setToolTipText("Save a full screenshot to a " + SCREENSHOT_FORMAT + " file.");
         utilMenu.add(screenshotItem);
     }
    
@@ -484,64 +660,9 @@ public final class MonitoringApplication extends JFrame implements ActionListene
     }
    
     /**
-     * The action handler method for the entire application.
-     * @param e The event to handle.
-     */
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        if (CONNECT.equals(cmd)) {
-            // Run the start session method on a seperate thread.
-            new Thread() {
-                public void run() {
-                    startSession();
-                }                
-            }.start();
-        } else if (DISCONNECT.equals(cmd)) {
-            // Run the stop session method on a seperate thread.
-            new Thread() {
-                public void run() {
-                    stopSession();
-                }
-            }.start();            
-        } else if (SAVE_PLOTS.equals(cmd)) {
-            savePlots();
-        } else if (CHOOSE_LOG_FILE.equals(cmd)) {
-            chooseLogFile();
-        } else if (LOG_TO_TERMINAL.equals(cmd)) {
-            logToTerminal();
-        } else if (SCREENSHOT.equals(cmd)) {
-            chooseScreenshot();
-        } else if (EXIT.equals(cmd)) {
-            exit();
-        } else if (SAVE_LOG_TABLE.equals(cmd)) {
-            saveLogTableToFile();
-        } else if (CLEAR_LOG_TABLE.equals(cmd)) {
-            clearLogTable();
-        } else if (PAUSE.equals(cmd)) {
-            pauseEventProcessing();
-        } else if (NEXT.equals(cmd)) {
-            nextEvent();
-        } else if (RESUME.equals(cmd)) {
-            resumeEventProcessing();
-        } else if (LOG_LEVEL_CHANGED.equals(cmd)) {
-            setLogLevel();
-        } else if (AIDA_AUTO_SAVE.equals(cmd)) {
-            getJobSettingsPanel().chooseAidaAutoSaveFile();
-        } else if (SHOW_SETTINGS.equals(cmd)) {
-            showSettingsWindow();
-        } else if (SELECT_CONFIG_FILE.equals(cmd)) {
-            chooseConfigurationFile();
-        } else if (SAVE_CONFIG_FILE.equals(cmd)) {
-            saveConfigurationFile();
-        } else if (LOAD_DEFAULT_CONFIG_FILE.equals(cmd)) {
-            loadDefaultConfigFile();
-        } 
-    }
-
-    /**
      * Show the settings window.
      */
-    private void showSettingsWindow() {
+    private void showSettingsDialog() {
         settingsDialog.setVisible(true);
     }
        
@@ -562,7 +683,6 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * @param status The connection status.
      */
     private void setConnectionStatus(ConnectionStatus status) {
-        //connectionStatus = status;
         connectionStatusPanel.setConnectionStatus(status);
         log(Level.FINE, "Connection status changed to <" + status.name() + ">");
         logHandler.flush();
@@ -572,18 +692,27 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * Setup the primary <code>JFrame</code> for the application.
      */
     private void configApplicationFrame() {
-        mainPanel.setOpaque(true);
-        setTitle(getApplicationTitle());
+        
+        mainPanel.setOpaque(true);        
+
+        // Configure window size and position.
+        WindowConfiguration wc = new WindowConfiguration(
+                MAIN_FRAME_WIDTH, 
+                MAIN_FRAME_HEIGHT, 
+                (int)ScreenUtil.getBoundsX(0), 
+                getY());
+        setMinimumSize(new Dimension(wc.width, wc.height));
+        setPreferredSize(new Dimension(wc.width, wc.height));
+        setDefaultWindowConfiguration(wc);
+        
+        setResizable(true);
         setContentPane(mainPanel);
         setJMenuBar(menuBar);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setPreferredSize(new Dimension(MAIN_FRAME_WIDTH, MAIN_FRAME_HEIGHT));
-        setMinimumSize(new Dimension(MAIN_FRAME_WIDTH, MAIN_FRAME_HEIGHT));        
-        setResizable(true);        
-        setLocation((int)ScreenUtil.getBoundsX(0), getY());
-        pack();              
+                                
+        pack();                                     
     }
-        
+               
     /**
      * Save all the plots to a file using a <code>JFileChooser</code>.
      */
@@ -749,10 +878,6 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         if (connection != null) {
             cleanupEtConnection();
         }
-        if (plotFrame.isVisible())
-            plotFrame.setVisible(false);
-        if (systemStatusFrame.isVisible())
-            systemStatusFrame.setVisible(false);
         setVisible(false);
         System.exit(0);
     }
@@ -768,8 +893,8 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         if (r == JFileChooser.APPROVE_OPTION) {
             String fileName = fc.getSelectedFile().getPath();
             int extIndex = fileName.lastIndexOf(".");
-            if ((extIndex == -1) || !(fileName.substring(extIndex + 1, fileName.length())).toLowerCase().equals(screenshotFormat)) {
-                fileName = fileName + "." + screenshotFormat;
+            if ((extIndex == -1) || !(fileName.substring(extIndex + 1, fileName.length())).toLowerCase().equals(SCREENSHOT_FORMAT)) {
+                fileName = fileName + "." + SCREENSHOT_FORMAT;
             }
             takeScreenshot(fileName);
             log(Level.INFO, "Screenshot saved to file <" + fileName + ">");
@@ -786,7 +911,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         try {
             Robot robot = new Robot();
             BufferedImage image = robot.createScreenCapture(screenRectangle);
-            ImageIO.write(image, screenshotFormat, new File(fileName));
+            ImageIO.write(image, SCREENSHOT_FORMAT, new File(fileName));
         } catch (Exception e) {
             errorHandler.setError(e)
                 .setMessage("Failed to take screenshot.")
@@ -1210,7 +1335,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      */
     private void setupSystemStatusMonitor() {
         // Clear the system status monitor table.        
-        systemStatusFrame.getTableModel().clear();
+        systemStatusWindow.getTableModel().clear();
         
         // Get the global registry of SystemStatus objects.
         SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
@@ -1218,7 +1343,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         // Process the SystemStatus objects.
         for (SystemStatus systemStatus : registry.getSystemStatuses()) {
             // Add a row to the table for every SystemStatus.
-            systemStatusFrame.getTableModel().addSystemStatus(systemStatus);
+            systemStatusWindow.getTableModel().addSystemStatus(systemStatus);
             
             // Add this class as a listener so all status changes can be logged.
             systemStatus.addListener(this);
@@ -1234,12 +1359,12 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         resetAidaTree();
 
         // Plot frame visible?
-        if (!plotFrame.isVisible())
+        if (!plotWindow.isVisible())
             // Turn on plot frame if it is off.
-            plotFrame.setVisible(true);
+            plotWindow.setVisible(true);
             
         // Reset plots.
-        plotFrame.reset(); 
+        plotWindow.reset(); 
     }
 
     /**
@@ -1325,11 +1450,11 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 dialog.setVisible(false);
                 dialog.dispose();
                 MonitoringApplication.this.setEnabled(true);
-                plotFrame.setEnabled(true);
+                plotWindow.setEnabled(true);
             }
         });
         MonitoringApplication.this.setEnabled(false);
-        plotFrame.setEnabled(false);
+        plotWindow.setEnabled(false);
         dialog.setVisible(visible);
         return dialog;
     }    
@@ -1341,25 +1466,18 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * In this case, event processing will exit later when the ET system goes down.
      */
     private void stopEventProcessing() {
-        //System.out.println("MonitoringApplication.stopEventProcessing");
-                       
+            
+        // Is the event processing thread not null? 
         if (processingThread != null) {
-            //System.out.println("processingThread not null");
+            
             // Is the event processing thread actually still alive?
             if (processingThread.isAlive()) {
-                
-                //System.out.println("processing thread is alive...");
-                //System.out.println("killing session watchdog");
 
                 // Interrupt and kill the event processing watchdog thread if necessary.
                 killSessionWatchdogThread();
-                
-                //System.out.println("stopping event processing chain...");
-
-                // Request the event processing to stop.          
-                loop.execute(Command.STOP);
-                
-                //System.out.println("requested stop of event processing");
+               
+                // Request the event processing loop to execute stop.
+                loop.execute(Command.STOP);                
             }
 
             // Wait for the event processing thread to finish.  This should just return
@@ -1368,26 +1486,20 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                 // In the case where ET is configured for sleep or timed wait, an untimed join could 
                 // block forever, so only wait for ~1 second before continuing.  The EventProcessingChain
                 // should still cleanup automatically when its thread completes after the ET system goes down.
-                //System.out.println("joining event processing thread...");
                 processingThread.join(1000);
-                //System.out.println("joined event processing thread!");
             } catch (InterruptedException e) {
                 // Don't know when this would ever happen.
-                //System.out.println("join was interrupted!");
             }
        
-            // Handle last error that occurred in event processing.
+            // Notify of last error that occurred in event processing.
             if (loop.getLastError() != null) {
-                //System.out.println("last error: " + processingChain.getLastError().getMessage());
                 errorHandler.setError(loop.getLastError()).log().printStackTrace();
             }
        
-            // Reset event processing objects.
-            //System.out.println("setting objects to null...");
+            // Reset event processing objects for next session.
             loop.dispose();
             loop = null;
             processingThread = null;
-            //System.out.println("stopEventProcessing - done!");
         }
     }
 
@@ -1395,7 +1507,9 @@ public final class MonitoringApplication extends JFrame implements ActionListene
      * Kill the current session watchdog thread.
      */
     private void killSessionWatchdogThread() {
+        // Is the session watchdog thread not null?
         if (sessionWatchdogThread != null) {
+            // Is the thread still alive?
             if (sessionWatchdogThread.isAlive()) {
                 // Interrupt the thread which should cause it to stop.
                 sessionWatchdogThread.interrupt();
@@ -1403,8 +1517,10 @@ public final class MonitoringApplication extends JFrame implements ActionListene
                     // This should always work once the thread is interupted.
                     sessionWatchdogThread.join();
                 } catch (InterruptedException e) {
+                    // Should never happen.
                 }
             }
+            // Set the thread object to null.
             sessionWatchdogThread = null;
         }
     }
@@ -1485,28 +1601,44 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         int r = fc.showSaveDialog(mainPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");
-            configuration.writeToFile(f);            
+            log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");            
+            configuration.writeToFile(f);
         }
     }
-       
-    /**
-     * Setup the <code>ConfigurationModel</code> by registering it with sub-components.
-     */
-    private void setupConfigurationModel() {        
-        getJobSettingsPanel().setConfigurationModel(configurationModel);
-        getConnectionSettingsPanel().setConfigurationModel(configurationModel);
-        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);
-    }
-
-    /**
-     * Set the Configuration but don't update the ConfigurationModel.
-     * @param configuration
-     */
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
-    }    
     
+    private void updateLayoutConfiguration() {
+        // Should the GUI config be saved?
+        if (configurationModel.getSaveLayout()) {
+            // Push the current GUI settings into the configuration.
+            saveLayoutConfiguration();
+        } else {
+            // Remove any GUI settings from the configuration.
+            clearLayoutConfiguration();
+        }
+    }
+    
+    private void saveLayoutConfiguration() {
+        configurationModel.setMonitoringApplicationLayout(new WindowConfiguration(this).toString());
+        configurationModel.setSystemStatusFrameLayout(new WindowConfiguration(systemStatusWindow).toString());
+        configurationModel.setPlotFrameLayout(new WindowConfiguration(plotWindow).toString());
+    }
+    
+    private void clearLayoutConfiguration() {
+        configurationModel.remove(ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY);
+        configurationModel.remove(ConfigurationModel.SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY);
+        configurationModel.remove(ConfigurationModel.PLOT_FRAME_LAYOUT_PROPERTY);
+    }
+    
+    private void setSaveLayout() {
+        configurationModel.setSaveLayout(saveLayoutItem.isSelected());
+    }      
+    
+    private void restoreDefaultLayout() {
+        resetWindowConfiguration();
+        plotWindow.resetWindowConfiguration();
+        systemStatusWindow.resetWindowConfiguration();
+    }
+           
     /**
      * Load the current Configuration by updating the ConfigurationModel.
      */
@@ -1530,29 +1662,7 @@ public final class MonitoringApplication extends JFrame implements ActionListene
         setConfiguration(new Configuration(DEFAULT_CONFIG_RESOURCE));
         loadConfiguration();
     }
-
-    /**
-     * Hook for logging all status changes from the system status monitor.
-     */
-    @Override
-    public void statusChanged(SystemStatus status) {
         
-        // Choose the appropriate log level.
-        Level level = Level.INFO;
-        if (status.getStatusCode().equals(Level.WARNING)) {
-            level = Level.WARNING;
-        } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
-            level = Level.SEVERE;
-        }
-       
-        // Log all status changes.
-        log(level, "STATUS, "
-                + "subsys: " + status.getSubsystem() + ", "
-                + "code: " + status.getStatusCode().name() + ", "                 
-                + "descr: " + status.getDescription() + ", "                 
-                + "mesg: " + status.getMessage());
-    }
-    
     /**
      * Create an ET server connection from a <code>ConfigurationModel</code>.
      * @param config The ConfigurationModel with the connection parameters.
