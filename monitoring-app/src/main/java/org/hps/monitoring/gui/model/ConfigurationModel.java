@@ -1,6 +1,7 @@
 package org.hps.monitoring.gui.model;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.hps.monitoring.enums.SteeringType;
@@ -30,6 +31,10 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String LOG_FILE_NAME_PROPERTY = "LogFileName";
     public static final String LOG_LEVEL_PROPERTY = "LogLevel";
     public static final String LOG_TO_FILE_PROPERTY = "LogToFile";    
+    public static final String MONITORING_APPLICATION_LAYOUT_PROPERTY = "MonitoringApplicationLayout";
+    public static final String PLOT_FRAME_LAYOUT_PROPERTY = "PlotFrameLayout";
+    public static final String SAVE_LAYOUT_PROPERTY = "SaveLayout";
+    public static final String SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY = "SystemStatusFrameLayout";
     public static final String STEERING_TYPE_PROPERTY = "SteeringType";
     public static final String STEERING_FILE_PROPERTY = "SteeringFile";
     public static final String STEERING_RESOURCE_PROPERTY = "SteeringResource";
@@ -64,7 +69,7 @@ public final class ConfigurationModel extends AbstractModel {
             EVENT_BUILDER_PROPERTY,
             LOG_FILE_NAME_PROPERTY,
             LOG_LEVEL_PROPERTY,
-            LOG_TO_FILE_PROPERTY,
+            LOG_TO_FILE_PROPERTY,            
             STEERING_FILE_PROPERTY,
             STEERING_RESOURCE_PROPERTY,
             STEERING_TYPE_PROPERTY,
@@ -86,7 +91,13 @@ public final class ConfigurationModel extends AbstractModel {
             STATION_POSITION_PROPERTY,
             WAIT_MODE_PROPERTY,
             WAIT_TIME_PROPERTY,
-            PRESCALE_PROPERTY            
+            PRESCALE_PROPERTY,
+            
+            // GUI layout
+            SAVE_LAYOUT_PROPERTY,
+            MONITORING_APPLICATION_LAYOUT_PROPERTY,
+            PLOT_FRAME_LAYOUT_PROPERTY,
+            SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY
     };        
     
     String detectorName;
@@ -102,6 +113,10 @@ public final class ConfigurationModel extends AbstractModel {
     public void setConfiguration(Configuration config) {
         this.config = config;
         fireAllChanged();
+    }
+    
+    public Configuration getConfiguration() {
+        return this.config;
     }
            
     public Level getLogLevel() {
@@ -378,9 +393,57 @@ public final class ConfigurationModel extends AbstractModel {
         config.set(PRESCALE_PROPERTY, prescale);
         firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
     }
-                
+    
+    public boolean getSaveLayout() {
+        return config.getBoolean(SAVE_LAYOUT_PROPERTY);
+    }
+    
+    public void setSaveLayout(boolean saveLayout) {
+        boolean oldValue = getSaveLayout();
+        config.set(SAVE_LAYOUT_PROPERTY, saveLayout);
+        firePropertyChange(SAVE_LAYOUT_PROPERTY, oldValue, getSaveLayout());
+    }
+       
+    public String getMonitoringApplicationLayout() {
+        return config.get(MONITORING_APPLICATION_LAYOUT_PROPERTY);
+    }
+    
+    public void setMonitoringApplicationLayout(String layout) {
+        String oldValue = getMonitoringApplicationLayout();
+        config.set(MONITORING_APPLICATION_LAYOUT_PROPERTY, layout);
+        firePropertyChange(MONITORING_APPLICATION_LAYOUT_PROPERTY, oldValue, getMonitoringApplicationLayout());
+    }
+    
+    public String getSystemStatusFrameLayout() {
+        return config.get(SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY);
+    }
+    
+    public void setSystemStatusFrameLayout(String layout) {
+        String oldValue = getSystemStatusFrameLayout();
+        config.set(SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY, layout);
+        firePropertyChange(SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY, oldValue, getSystemStatusFrameLayout());
+    }
+    
+    public String getPlotFrameLayout() {
+        return config.get(PLOT_FRAME_LAYOUT_PROPERTY);
+    }
+    
+    public void setPlotFrameLayout(String layout) {
+        String oldValue = getPlotFrameLayout();
+        config.set(PLOT_FRAME_LAYOUT_PROPERTY, layout);
+        firePropertyChange(PLOT_FRAME_LAYOUT_PROPERTY, oldValue, getPlotFrameLayout());        
+    }
+    
+    public void remove(String property) {
+        Object oldValue = config.get(property);
+        if (oldValue != null) {
+            config.remove(property);
+            firePropertyChange(property, oldValue, null);
+        }
+    }
+                                          
     @Override
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
-    }
+    }    
 }

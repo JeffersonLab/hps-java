@@ -12,7 +12,7 @@ import java.util.Properties;
  * The accessor methods to get these values are not public, because the {@link ConfigurationModel}
  * should be used instead.
  */
-public class Configuration {
+public final class Configuration {
     
     Properties properties;
     File file;
@@ -135,6 +135,14 @@ public class Configuration {
      */
     void set(String key, Object value) {
         properties.put(key, String.valueOf(value));
+    }
+    
+    /**
+     * Remove a configuration value.
+     * @param key The key of the value.
+     */
+    void remove(String key) {
+        properties.remove(key);
     }
     
     /**
