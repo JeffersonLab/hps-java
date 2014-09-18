@@ -6,6 +6,7 @@ import hep.aida.ICloud1D;
 import hep.aida.ICloud2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.IPlotterStyle;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -67,6 +68,7 @@ public class EcalLedCommissioning extends Driver implements CrystalListener, Act
    // ArrayList<ICloud1D> channelRawWaveform;
     ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
    
+    IPlotterStyle pstyle;
     
     
     double maxEch = 2500 * ECalUtils.MeV;
@@ -130,44 +132,34 @@ public class EcalLedCommissioning extends Driver implements CrystalListener, Act
    	   ix=ECalUtils.getColumnFromHistoID(id);  
    	   
    	   
-    	
-    			
-    			
-    			
-    	plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal single channel plots");
-   
-       
+    	plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal LED commissioning");       
         plotter = plotterFactory.create("Single channel");
+   	    pstyle = this.createDefaultStyle(); 		
         plotter.setTitle("");
-        plotter.style().setParameter("hist2DStyle", "colorMap");
-        plotter.style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
-        plotter.style().dataStyle().errorBarStyle().setVisible(false);
+   
+     
         plotter.createRegions(2,2);
 
 
+        pstyle.xAxisStyle().setLabel("Hit energy (GeV)");
+        pstyle.yAxisStyle().setLabel("");
+        plotter.region(0).plot(channelEnergyPlot.get(id),pstyle);
+   
+        pstyle.xAxisStyle().setLabel("Hit Time (ns)");
+        pstyle.yAxisStyle().setLabel("");    
+        plotter.region(1).plot(channelTimePlot.get(id),pstyle);           	    
         
-        plotter.region(0).plot(channelEnergyPlot.get(id));
-        plotter.region(0).style().xAxisStyle().setLabel("Hit energy (GeV)");
-        plotter.region(0).style().yAxisStyle().setLabel("");
-        
-        plotter.region(1).plot(channelTimePlot.get(id));           	    
-        plotter.region(1).style().xAxisStyle().setLabel("Hit Time (ns)");
-        plotter.region(1).style().yAxisStyle().setLabel("");
+        pstyle.xAxisStyle().setLabel("Hit Time (ns)");
+        pstyle.yAxisStyle().setLabel("Hit Energy (GeV)");    
+    	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id),pstyle);
 
-    	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id));
-        plotter.region(2).style().xAxisStyle().setLabel("Hit Time (ns)");
-        plotter.region(2).style().yAxisStyle().setLabel("Hit Energy (GeV)");
-    
-    	
-	    plotter.region(3).plot(channelRawWaveform.get(id));
-	    plotter.region(3).style().xAxisStyle().setLabel("Hit energy (GeV)");
-        plotter.region(3).style().yAxisStyle().setLabel("");
-        plotter.region(3).style().dataStyle().fillStyle().setColor("orange");
-        plotter.region(3).style().dataStyle().markerStyle().setColor("orange");
-        plotter.region(3).style().dataStyle().errorBarStyle().setVisible(false);
-        
-        
+    	pstyle.xAxisStyle().setLabel("Hit Energy (GeV)");    
+        pstyle.yAxisStyle().setLabel("");
+        pstyle.dataStyle().fillStyle().setColor("orange");
+        pstyle.dataStyle().markerStyle().setColor("orange");
+        pstyle.dataStyle().errorBarStyle().setVisible(false);
+	    plotter.region(3).plot(channelRawWaveform.get(id),pstyle);
+	
         
         
         System.out.println("Create the event viewer");
@@ -323,36 +315,78 @@ public class EcalLedCommissioning extends Driver implements CrystalListener, Act
     	    id=ECalUtils.getHistoIDFromRowColumn(iy,ix);
     	    System.out.println("Crystal event: "+ix+" "+iy+" "+id);
         
-    	
-       	
-           	plotter.region(0).clear();
-            plotter.region(0).plot(channelEnergyPlot.get(id));
-            plotter.region(0).style().xAxisStyle().setLabel("Hit energy (GeV)");
-            plotter.region(0).style().yAxisStyle().setLabel("");
-            
-            plotter.region(1).clear();
-            plotter.region(1).plot(channelTimePlot.get(id));           	    
-            plotter.region(1).style().xAxisStyle().setLabel("Hit Time (ns)");
-            plotter.region(1).style().yAxisStyle().setLabel("");
+    	    
+    	    
+    	    
+    	    
+        	plotter.region(0).clear();
+            pstyle.xAxisStyle().setLabel("Hit energy (GeV)");
+            pstyle.yAxisStyle().setLabel("");
+            plotter.region(0).plot(channelEnergyPlot.get(id),pstyle);
+       
+        	plotter.region(1).clear();
+            pstyle.xAxisStyle().setLabel("Hit Time (ns)");
+            pstyle.yAxisStyle().setLabel("");    
+            plotter.region(1).plot(channelTimePlot.get(id),pstyle);           	    
+     
+            plotter.region(2).clear();
+            pstyle.xAxisStyle().setLabel("Hit Time (ns)");
+            pstyle.yAxisStyle().setLabel("Hit Energy (GeV)");    
+        	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id),pstyle);
 
-    	    plotter.region(2).clear();
-        	plotter.region(2).plot(channelTimeVsEnergyPlot.get(id));
-            plotter.region(2).style().yAxisStyle().setLabel("Hit Energy (GeV)");
-            plotter.region(2).style().xAxisStyle().setLabel("Hit Time (ns)");
+        	plotter.region(3).clear();
         	
-    	    plotter.region(3).clear();
-    	    plotter.region(3).plot(channelRawWaveform.get(id));
+        	 
     	    if (!isFirstRaw[id]){
-    	        plotter.region(3).style().yAxisStyle().setLabel("Signal amplitude (mV)");
-                plotter.region(3).style().xAxisStyle().setLabel("Time (ns)");
-                plotter.region(3).style().dataStyle().fillStyle().setColor("orange");
-                plotter.region(3).style().dataStyle().markerStyle().setColor("orange");
-                plotter.region(3).style().dataStyle().errorBarStyle().setVisible(false);
+    	        pstyle.yAxisStyle().setLabel("Signal amplitude (mV)");
+    	        pstyle.xAxisStyle().setLabel("Time (ns)");
+    	        pstyle.dataStyle().fillStyle().setColor("orange");
+    	        pstyle.dataStyle().markerStyle().setColor("orange");
+    	        pstyle.dataStyle().errorBarStyle().setVisible(false);
     	    }
     	    else{
-    	    	 plotter.region(3).style().xAxisStyle().setLabel("Hit energy (GeV)");
-    	         plotter.region(3).style().yAxisStyle().setLabel("");
+    	    	pstyle.xAxisStyle().setLabel("Hit Energy (GeV)");    
+                pstyle.yAxisStyle().setLabel("");  	    
     	    }
+    	    plotter.region(3).plot(channelRawWaveform.get(id),pstyle);
+        
+
+    	    
+ 
+         
+       
     	}
     }    
+    
+    
+    /*
+     * This method set the default style.
+     */
+    public IPlotterStyle createDefaultStyle() {
+    	IPlotterStyle pstyle = plotterFactory.createPlotterStyle();
+    	// Axis appearence.
+    	pstyle.xAxisStyle().labelStyle().setBold(true);
+    	pstyle.yAxisStyle().labelStyle().setBold(true);
+    	pstyle.xAxisStyle().tickLabelStyle().setBold(true);
+    	pstyle.yAxisStyle().tickLabelStyle().setBold(true);
+    	pstyle.xAxisStyle().lineStyle().setColor("black");
+    	pstyle.yAxisStyle().lineStyle().setColor("black");
+    	pstyle.xAxisStyle().lineStyle().setThickness(2);
+    	pstyle.yAxisStyle().lineStyle().setThickness(2);
+    	
+    	pstyle.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+    	pstyle.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
+    	pstyle.dataStyle().errorBarStyle().setVisible(false);
+        pstyle.setParameter("hist2DStyle", "colorMap");
+    	// Force auto range to zero.
+    	pstyle.yAxisStyle().setParameter("allowZeroSuppression", "false");
+    	pstyle.xAxisStyle().setParameter("allowZeroSuppression", "false");
+    	// Title style.
+    	pstyle.titleStyle().textStyle().setFontSize(20);
+    	// Draw caps on error bars.
+    	pstyle.dataStyle().errorBarStyle().setParameter("errorBarDecoration", (new Float(1.0f)).toString());
+    	// Turn off grid lines until explicitly enabled.
+    	pstyle.gridStyle().setVisible(false);
+    	return pstyle;
+    	}   
 }

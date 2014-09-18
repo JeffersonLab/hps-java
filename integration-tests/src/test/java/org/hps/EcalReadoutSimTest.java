@@ -86,9 +86,8 @@ public class EcalReadoutSimTest extends TestCase {
     static final String className = EcalReadoutSimTest.class.getSimpleName();
     
     // Resource locations.    
-    static final String resourceDir = "/org/hps/ecalreadoutsim/";
-    static final String steeringResource = resourceDir + className + ".lcsim";
-    static final String triggeredEventsResource = resourceDir + "triggered_events.txt";
+    static final String steeringResource = "/org/hps/steering/test/EcalReadoutSimTest.lcsim";
+    static final String triggeredEventsResource = "/org/hps/test/EcalReadoutSimTest/triggered_events.txt";
     
     // File information.
     static final File inputFile = new File("/nfs/slac/g/hps3/data/testcase/ecal_readout_sim_input.slcio");

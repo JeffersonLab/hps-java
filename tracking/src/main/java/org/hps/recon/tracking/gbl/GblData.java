@@ -2,8 +2,8 @@ package org.hps.recon.tracking.gbl;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.VVector;
-
 
 /**
  *
@@ -40,92 +40,109 @@ public class GblData
         thePrediction = 0.;
     }
 
-///// Add derivatives from measurement.
-///**
-// * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters.
-// * \param [in] iRow Row index (0-4) in up to 5D measurement
-// * \param [in] labDer Labels for derivatives
-// * \param [in] matDer Derivatives (matrix) 'measurement vs track fit parameters'
-// * \param [in] iOff Offset for row index for additional parameters
-// * \param [in] derLocal Derivatives (matrix) for additional local parameters
-// * \param [in] labGlobal Labels for additional global (MP-II) parameters
-// * \param [in] derGlobal Derivatives (matrix) for additional global (MP-II) parameters
-// * \param [in] extOff Offset for external parameters
-// * \param [in] extDer Derivatives for external Parameters
-// */
-//void addDerivatives(unsigned int iRow,
-//		const std::vector<unsigned int> &labDer, const SMatrix55 &matDer,
-//		unsigned int iOff, const TMatrixD &derLocal,
-//		const std::vector<int> &labGlobal, const TMatrixD &derGlobal,
-//		unsigned int extOff, const TMatrixD &extDer) {
-//
-//	unsigned int nParMax = 5 + derLocal.GetNcols() + extDer.GetNcols();
+/// Add derivatives from measurement.
+    /**
+     * Add (non-zero) derivatives to data block. Fill list of labels of used fit
+     * parameters. \param [in] iRow Row index (0-4) in up to 5D measurement
+     * \param [in] labDer Labels for derivatives \param [in] matDer Derivatives
+     * (matrix) 'measurement vs track fit parameters' \param [in] iOff Offset
+     * for row index for additional parameters \param [in] derLocal Derivatives
+     * (matrix) for additional local parameters \param [in] labGlobal Labels for
+     * additional global (MP-II) parameters \param [in] derGlobal Derivatives
+     * (matrix) for additional global (MP-II) parameters \param [in] extOff
+     * Offset for external parameters \param [in] extDer Derivatives for
+     * external Parameters
+     */
+    void addDerivatives(int iRow,
+                        List<Integer> labDer, Matrix matDer,
+                        int iOff, Matrix derLocal,
+                        List<Integer> labGlobal, Matrix derGlobal,
+                        int extOff, Matrix extDer)
+    {
+        int nLocal = 0;
+        int nExt = 0;
+        if (derLocal != null) {
+            nLocal = derLocal.getColumnDimension();
+        }
+        if (extDer != null) {
+            nExt = extDer.getColumnDimension();
+        }
+        int nParMax = 5 + nLocal + nExt;
 //	theParameters.reserve(nParMax); // have to be sorted
 //	theDerivatives.reserve(nParMax);
-//
-//	for (int i = 0; i < derLocal.GetNcols(); ++i) // local derivatives
-//			{
-//		if (derLocal(iRow - iOff, i)) {
-//			theParameters.push_back(i + 1);
-//			theDerivatives.push_back(derLocal(iRow - iOff, i));
-//		}
-//	}
-//
-//	for (int i = 0; i < extDer.GetNcols(); ++i) // external derivatives
-//			{
-//		if (extDer(iRow - iOff, i)) {
-//			theParameters.push_back(extOff + i + 1);
-//			theDerivatives.push_back(extDer(iRow - iOff, i));
-//		}
-//	}
-//
-//	for (unsigned int i = 0; i < 5; ++i) // curvature, offset derivatives
-//			{
-//		if (labDer[i] && matDer(iRow, i)) {
-//			theParameters.push_back(labDer[i]);
-//			theDerivatives.push_back(matDer(iRow, i));
-//		}
-//	}
-//
-//	globalLabels = labGlobal;
-//	for (int i = 0; i < derGlobal.GetNcols(); ++i) // global derivatives
-//		globalDerivatives.push_back(derGlobal(iRow - iOff, i));
-//}
-//
-///// Add derivatives from kink.
-///**
-// * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters.
-// * \param [in] iRow Row index (0-1) in 2D kink
-// * \param [in] labDer Labels for derivatives
-// * \param [in] matDer Derivatives (matrix) 'kink vs track fit parameters'
-// * \param [in] extOff Offset for external parameters
-// * \param [in] extDer Derivatives for external Parameters
-// */
-//void addDerivatives(unsigned int iRow,
-//		const std::vector<unsigned int> &labDer, const SMatrix27 &matDer,
-//		unsigned int extOff, const TMatrixD &extDer) {
-//
-//	unsigned int nParMax = 7 + extDer.GetNcols();
+
+        if (derLocal != null) {
+            for (int i = 0; i < derLocal.getColumnDimension(); ++i) // local derivatives
+            {
+                if (derLocal.get(iRow - iOff, i) != 0) {
+                    theParameters.add(i + 1);
+                    theDerivatives.add(derLocal.get(iRow - iOff, i));
+                }
+            }
+        }
+
+        if (extDer != null) {
+            for (int i = 0; i < extDer.getColumnDimension(); ++i) // external derivatives
+            {
+                if (extDer.get(iRow - iOff, i) > 0) {
+                    theParameters.add(extOff + i + 1);
+                    theDerivatives.add(extDer.get(iRow - iOff, i));
+                }
+            }
+        }
+        for (int i = 0; i < 5; ++i) // curvature, offset derivatives
+        {
+            if (labDer.get(i) != 0 && matDer.get(iRow, i) != 0) {
+                theParameters.add(labDer.get(i));
+                theDerivatives.add(matDer.get(iRow, i));
+            }
+        }
+
+        globalLabels = labGlobal;
+        for (int i = 0; i < derGlobal.getColumnDimension(); ++i) // global derivatives
+        {
+            globalDerivatives.add(derGlobal.get(iRow - iOff, i));
+        }
+    }
+
+/// Add derivatives from kink.
+    /**
+     * Add (non-zero) derivatives to data block. Fill list of labels of used fit
+     * parameters. \param [in] iRow Row index (0-1) in 2D kink \param [in]
+     * labDer Labels for derivatives \param [in] matDer Derivatives (matrix)
+     * 'kink vs track fit parameters' \param [in] extOff Offset for external
+     * parameters \param [in] extDer Derivatives for external Parameters
+     */
+    void addDerivatives(int iRow,
+                        List<Integer> labDer, Matrix matDer,
+                        int extOff, Matrix extDer)
+    {
+        int nExtDer = 0;
+        if (extDer != null) {
+            nExtDer = extDer.getColumnDimension();
+        }
+        int nParMax = 7 + nExtDer;
 //	theParameters.reserve(nParMax); // have to be sorted
 //	theDerivatives.reserve(nParMax);
-//
-//	for (int i = 0; i < extDer.GetNcols(); ++i) // external derivatives
-//			{
-//		if (extDer(iRow, i)) {
-//			theParameters.push_back(extOff + i + 1);
-//			theDerivatives.push_back(extDer(iRow, i));
-//		}
-//	}
-//
-//	for (unsigned int i = 0; i < 7; ++i) // curvature, offset derivatives
-//			{
-//		if (labDer[i] && matDer(iRow, i)) {
-//			theParameters.push_back(labDer[i]);
-//			theDerivatives.push_back(matDer(iRow, i));
-//		}
-//	}
-//}
-//
+
+        if (extDer != null) {
+            for (int i = 0; i < extDer.getColumnDimension(); ++i) // external derivatives
+            {
+                if (extDer.get(iRow, i) != 0) {
+                    theParameters.add(extOff + i + 1);
+                    theDerivatives.add(extDer.get(iRow, i));
+                }
+            }
+        }
+        for (int i = 0; i < 7; ++i) // curvature, offset derivatives
+        {
+            if (labDer.get(i) != 0 && matDer.get(iRow, i) != 0) {
+                theParameters.add(labDer.get(i));
+                theDerivatives.add(matDer.get(iRow, i));
+            }
+        }
+    }
+
 ///// Add derivatives from external seed.
 ///**
 // * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters.
@@ -191,29 +208,33 @@ public class GblData
         return aDiff * aDiff * thePrecision * theDownWeight;
     }
 
-///// Print data block.
-//void printData() const {
-//
-//	std::cout << " measurement at label " << theLabel << ": " << theValue
-//			<< ", " << thePrecision << std::endl;
-//	std::cout << "  param " << theParameters.size() << ":";
-//	for (unsigned int i = 0; i < theParameters.size(); ++i)
-//		std::cout << " " << theParameters[i];
-//	}
-//	std::cout << std::endl;
-//	std::cout << "  deriv " << theDerivatives.size() << ":";
-//	for (unsigned int i = 0; i < theDerivatives.size(); ++i) {
-//		std::cout << " " << theDerivatives[i];
-//	}
-//	std::cout << std::endl;
-//}
-//
+/// Print data block.
+    void printData()
+    {
+        System.out.println(" measurement at label " + theLabel + ": " + theValue
+                + ", " + thePrecision);
+        System.out.print("  param " + theParameters.size() + ":");
+        for (int i = 0; i < theParameters.size(); ++i) {
+            System.out.print(" " + theParameters.get(i));
+        }
+        System.out.println("\n");
+        System.out.print("  deriv " + theDerivatives.size() + ":");
+        for (int i = 0; i < theDerivatives.size(); ++i) {
+            System.out.print(" " + theDerivatives.get(i));
+        }
+        System.out.println("");
+    }
+
     public String toString()
     {
         StringBuffer sb = new StringBuffer(" measurement at label " + theLabel + ": " + theValue + ", " + thePrecision + "\n");
         sb.append("  param " + theParameters.size() + ":");
         for (int i = 0; i < theParameters.size(); ++i) {
             sb.append(" " + theParameters.get(i));
+        }
+        sb.append("\n");
+        for (int i = 0; i < theDerivatives.size(); ++i) {
+            sb.append(" " + theDerivatives.get(i));
         }
         sb.append("\n");
         return sb.toString();
@@ -236,16 +257,17 @@ public class GblData
 
     void getLocalData(double[] retVal, int[] indLocal, double[] derLocal)
     {
-
         retVal[0] = theValue;
         retVal[1] = thePrecision * theDownWeight;
-        indLocal = new int[theParameters.size()];
-        derLocal = new double[theParameters.size()];
         for (int i = 0; i < theParameters.size(); ++i) {
             indLocal[i] = theParameters.get(i);
             derLocal[i] = theDerivatives.get(i);
         }
+    }
 
+    int getNumParameters()
+    {
+        return theParameters.size();
     }
 
 //

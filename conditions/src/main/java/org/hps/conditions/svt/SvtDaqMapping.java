@@ -4,6 +4,12 @@ import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
+/**
+ * This class encapsulates the SVT DAQ map.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author Omar Moreno <omoreno1@ucsc.edu>
+ */
 public final class SvtDaqMapping extends AbstractConditionsObject {
 
     public static class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
@@ -13,6 +19,12 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
          */
         public static final String TOP_HALF = "T";
         public static final String BOTTOM_HALF = "B";
+        
+        /**
+         * Flag values for axial or stereo sensors 
+         */
+        public static final String AXIAL = "A";
+        public static final String STEREO = "S";
 
         /**
          * Get a DAQ pair (FEB ID, FEB Hybrid ID) by SVT volume, layer number
@@ -67,6 +79,25 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
             return null;
         }
         
+        /**
+         * Get the orientation of a sensor using the FEB ID and FEB Hybrid ID.
+         * If the FEB ID and FEB Hybrid ID combination is not found, return null.
+         * 
+         * @param daqPair (Pair<FEB ID, FEB Hybrid ID>) for a given sensor
+         * @return If a daqPair is found, return an "A" if the sensor 
+         * 		   orientation is Axial, an "S" if the orientation is Stereo or
+         * 		   null if the daqPair doesn't exist.
+         */
+        public String getOrientation(Pair<Integer, Integer> daqPair){
+        	
+        	for(SvtDaqMapping daqMapping : this.getObjects()){
+        		
+        		if(daqPair.getFirstElement() == daqMapping.getFebID() && daqPair.getSecondElement() == daqMapping.getFebHybridID()){
+        			return daqMapping.getOrientation(); 
+        		}
+        	}
+        	return null;
+        }
 
         /**
          * Convert this object to a string.

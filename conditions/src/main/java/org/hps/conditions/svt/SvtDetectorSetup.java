@@ -8,6 +8,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.compact.Subdetector;
 import org.hps.util.Pair;
 
 /**
@@ -19,16 +20,15 @@ import org.hps.util.Pair;
 public final class SvtDetectorSetup {
 
     /**
-     * Load conditions data onto a detector object. This method is analogous to
-     * {@link org.lcsim.hps.recon.tracking.SvtUtils#setup(Detector)}.
-     * @param detector The detector object.
+     * Load conditions data onto a detector object.
+     * 
+     * @param  The detector object.
      * @param conditions The conditions object.
      */
-    // FIXME: Change this to use a Subdetector instead of the Detector.
-    public void load(Detector detector, SvtConditions conditions) {
+    public void load(Subdetector subdetector, SvtConditions conditions) {
 
         // Find sensor objects.
-        List<HpsSiSensor> sensors = detector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
@@ -66,35 +66,56 @@ public final class SvtDetectorSetup {
            
             // Set the FEB Hybrid ID of the sensor
             sensor.setFebHybridID(daqPair.getSecondElement());
+           
+            // Set the orientation of the sensor
+            String orientation = daqMap.getOrientation(daqPair);
+            if(orientation != null && orientation.contentEquals(SvtDaqMappingCollection.AXIAL)){
+            	sensor.setAxial(true);
+            } else if(orientation != null && orientation.contains(SvtDaqMappingCollection.STEREO)){
+            	sensor.setStereo(true);
+            }
 
             // Find all the channels for this sensor.
             Collection<SvtChannel> channels = channelMap.find(daqPair);
 
             // Loop over the channels of the sensor.
             for (SvtChannel channel : channels) {
-                // Get conditions data for this channel.
+                
+            	// Get conditions data for this channel.
                 ChannelConstants constants = conditions.getChannelConstants(channel);
                 int channelNumber = channel.getChannel();
 
                 //
                 // Set conditions data for this channel on the sensor object:
                 //
+                
+                // Check if the channel was flagged as bad
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);
                 }
-
-                /*
+                
+                // Set the pedestal and noise of each of the samples for the 
+                // channel
+                double[] pedestal = new double[6];
+                double[] noise = new double[6];
+                for(int sampleN = 0; sampleN < HpsSiSensor.NUMBER_OF_SAMPLES; sampleN++){
+                	pedestal[sampleN] = constants.getCalibration().getPedestal(sampleN);
+                	noise[sampleN] = constants.getCalibration().getNoise(sampleN);
+                }
+                sensor.setPedestal(channelNumber, pedestal);
+                sensor.setNoise(channelNumber, noise);
+               
+                // Set the gain and offset for the channel
                 sensor.setGain(channelNumber, constants.getGain().getGain());
-                sensor.setTimeOffset(channelNumber, constants.getGain().getOffset());
-                sensor.setNoise(channelNumber, constants.getCalibration().getNoise());
-                sensor.setPedestal(channelNumber, constants.getCalibration().getPedestal());
-                sensor.setPulseParameters(channelNumber, constants.getPulseParameters().toArray());
-                */
+                sensor.setOffset(channelNumber, constants.getGain().getOffset());
+               
+                // Set the shape fit parameters
+                sensor.setShapeFitParameters(channelNumber, constants.getShapeFitParameters().toArray());
             }
 
-            // Set the time shift for the sensor.
-            //SvtTimeShift sensorTimeShift = timeShifts.find(daqPair).get(0);
-            //sensor.setTimeShift(sensorTimeShift.getTimeShift());
+            // Set the t0 shift for the sensor.
+            SvtT0Shift sensorT0Shift = t0Shifts.find(daqPair).get(0);
+            sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
     }
 }

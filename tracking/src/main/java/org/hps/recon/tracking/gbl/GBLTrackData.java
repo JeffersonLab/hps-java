@@ -3,6 +3,11 @@ package org.hps.recon.tracking.gbl;
 import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 import org.lcsim.event.GenericObject;
 
+/**
+ * 
+ * 
+ * @version $Id:
+ */
 public class GBLTrackData implements GenericObject {
 	
 	/*
@@ -34,6 +39,23 @@ public class GBLTrackData implements GenericObject {
 	public GBLTrackData(int id) {	
 		setTrackId(id);
 	}
+        
+        /*
+        * Constructor from GenericObject
+        * TODO add size checks for backwards compatability
+        */
+        public GBLTrackData(GenericObject o)
+        {
+            for(int i=0; i<GBLINT.BANK_INT_SIZE; ++i)
+            {
+                bank_int[i] = o.getIntVal(i);
+            }
+            for(int i=0; i<GBLDOUBLE.BANK_DOUBLE_SIZE; ++i)
+            {
+                bank_double[i] = o.getDoubleVal(i);
+            }
+            
+        }
 	
 	/**
 	 * @param set track id to val
@@ -103,6 +125,5 @@ public class GBLTrackData implements GenericObject {
 	public boolean isFixedSize() {
 		return false;
 	}
-
 
 }

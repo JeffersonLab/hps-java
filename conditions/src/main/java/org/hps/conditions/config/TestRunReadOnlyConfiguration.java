@@ -22,6 +22,10 @@ public final class TestRunReadOnlyConfiguration extends ResourceConfiguration {
     private static final String config = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     private static final String prop = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
    
+    public TestRunReadOnlyConfiguration() {
+        super(config, prop);
+    }
+    
     /**
      * Class constructor.
      * @param setup True to setup the conditions manager and the detector.  

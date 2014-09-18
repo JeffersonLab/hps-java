@@ -13,14 +13,14 @@ public class ConditionsTestRunTest extends TestCase {
     static String config = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     static String prop = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
     
-    public void testConditionsDev() {
+    public void testConditionsTestRun() {
 
         DatabaseConditionsManager manager = new DatabaseConditionsManager();
         manager.configure(config);
         manager.setConnectionResource(prop);
         manager.register();
         try {
-            manager.setDetector("HPS-Proposal2014-v8-6pt6", 0);
+            manager.setDetector("HPS-TestRun-v8-5", 0);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }

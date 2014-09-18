@@ -10,6 +10,7 @@ import org.lcsim.event.GenericObject;
  * 
  * @author phansson
  *
+ * @version $Id:
  */
 public class GBLStripClusterData implements GenericObject {
 	
@@ -61,6 +62,23 @@ public class GBLStripClusterData implements GenericObject {
 	public GBLStripClusterData(int id) {
 		setId(id);
 	}
+        
+        /*
+        * Constructor from GenericObject
+        * TODO add size checks for backwards compatability
+        */
+        public GBLStripClusterData(GenericObject o)
+        {
+            for(int i=0; i<GBLINT.BANK_INT_SIZE; ++i)
+            {
+                bank_int[i] = o.getIntVal(i);
+            }
+            for(int i=0; i<GBLDOUBLE.BANK_DOUBLE_SIZE; ++i)
+            {
+                bank_double[i] = o.getDoubleVal(i);
+            }
+            
+        }
 	
 	/**
 	 * @param set track id to val
@@ -263,11 +281,6 @@ public class GBLStripClusterData implements GenericObject {
 		return getDoubleVal(GBLDOUBLE.MSANGLE);
 	}
 	
-
-	
-
-
-
 	/*
 	 * The functions below are all overide from 
 	 * @see org.lcsim.event.GenericObject#getNInt()
@@ -300,8 +313,5 @@ public class GBLStripClusterData implements GenericObject {
 	public boolean isFixedSize() {
 		return false;
 	}
-
-	
-
 
 }

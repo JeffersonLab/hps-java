@@ -15,7 +15,7 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class tests that {@link org.lcsim.hps.conditions.ConditionsDriver} works correctly
+ * This class tests that {@link org.lcsim.hps.conditions.TestRunConditionsDriver} works correctly
  * by checking the number of runs it processes.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -42,7 +42,7 @@ public class ConditionsDriverTest extends TestCase {
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        TestRunConditionsDriver conditionsDriver = new TestRunConditionsDriver();
         conditionsDriver.setLoadSvtConditions(false);
         loop.add(conditionsDriver);
         RunNumberDriver runNumberDriver = new RunNumberDriver();

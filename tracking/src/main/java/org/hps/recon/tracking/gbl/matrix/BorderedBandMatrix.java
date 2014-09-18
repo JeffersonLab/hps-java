@@ -3,6 +3,7 @@ package org.hps.recon.tracking.gbl.matrix;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
+import java.util.List;
 
 /**
  *
@@ -37,8 +38,8 @@ public class BorderedBandMatrix
     private int numBand; ///< Band width
     private int numCol; ///< Band matrix size
     private VSymMatrix theBorder = new VSymMatrix(0); ///< Border part
-    private VMatrix theMixed = new VMatrix(0,0); ///< Mixed part
-    private VMatrix theBand = new VMatrix(0,0); ///< Band part
+    private VMatrix theMixed = new VMatrix(0, 0); ///< Mixed part
+    private VMatrix theBand = new VMatrix(0, 0); ///< Band part
 
 /// Resize bordered band matrix.
     /**
@@ -65,26 +66,21 @@ public class BorderedBandMatrix
      * of rows/colums to be used \param aVector [in] Vector
      */
     public void addBlockMatrix(double aWeight,
-            int[] anIndex,
-            double[] aVector)
+                               int[] anIndex,
+                               double[] aVector)
     {
         int nBorder = numBorder;
-        for (int i = 0; i < anIndex.length; ++i)
-        {
+        for (int i = 0; i < anIndex.length; ++i) {
             int iIndex = (anIndex)[i] - 1; // anIndex has to be sorted
-            for (int j = 0; j <= i; ++j)
-            {
+            for (int j = 0; j <= i; ++j) {
                 int jIndex = (anIndex)[j] - 1;
-                if (iIndex < nBorder)
-                {
+                if (iIndex < nBorder) {
                     theBorder.addTo(iIndex, jIndex, aVector[i] * aWeight
                             * aVector[j]);
-                } else if (jIndex < nBorder)
-                {
+                } else if (jIndex < nBorder) {
                     theMixed.addTo(jIndex, iIndex - nBorder, aVector[i] * aWeight
                             * aVector[j]);
-                } else
-                {
+                } else {
                     int nBand = iIndex - jIndex;
                     theBand.addTo(nBand, jIndex - nBorder, aVector[i] * aWeight
                             * aVector[j]);
@@ -94,34 +90,36 @@ public class BorderedBandMatrix
         }
     }
 
-///// Retrieve symmetric block matrix.
-///**
-// * Get (compressed) block from bordered band matrix: aMatrix(i,j) = BBmatrix(anIndex(i),anIndex(j)).
-// * \param anIndex [in] List of rows/colums to be used
-// */
-//TMatrixDSym BorderedBandMatrix::getBlockMatrix(
-//		const std::vector<unsigned int> anIndex) const {
-//
-//	TMatrixDSym aMatrix(anIndex.size());
-//	int nBorder = numBorder;
-//	for (unsigned int i = 0; i < anIndex.size(); ++i) {
-//		int iIndex = anIndex[i] - 1; // anIndex has to be sorted
-//		for (unsigned int j = 0; j <= i; ++j) {
-//			int jIndex = anIndex[j] - 1;
-//			if (iIndex < nBorder) {
-//				aMatrix(i, j) = theBorder(iIndex, jIndex); // border part of inverse
-//			} else if (jIndex < nBorder) {
-//				aMatrix(i, j) = -theMixed(jIndex, iIndex - nBorder); // mixed part of inverse
-//			} else {
-//				unsigned int nBand = iIndex - jIndex;
-//				aMatrix(i, j) = theBand(nBand, jIndex - nBorder); // band part of inverse
-//			}
-//			aMatrix(j, i) = aMatrix(i, j);
-//		}
-//	}
-//	return aMatrix;
-//}    
+/// Retrieve symmetric block matrix.
+    /**
+     * Get (compressed) block from bordered band matrix: aMatrix(i,j) =
+     * BBmatrix(anIndex(i),anIndex(j)). \param anIndex [in] List of rows/colums
+     * to be used
+     */
+    public SymMatrix getBlockMatrix(List<Integer> anIndex)
+    {
+
+        SymMatrix aMatrix = new SymMatrix(anIndex.size());
+        int nBorder = numBorder;
+        for (int i = 0; i < anIndex.size(); ++i) {
+            int iIndex = anIndex.get(i) - 1; // anIndex has to be sorted
+            for (int j = 0; j <= i; ++j) {
+                int jIndex = anIndex.get(j) - 1;
+                if (iIndex < nBorder) {
+                    aMatrix.set(i, j, theBorder.get(iIndex, jIndex)); // border part of inverse
+                } else if (jIndex < nBorder) {
+                    aMatrix.set(i, j, -theMixed.get(jIndex, iIndex - nBorder)); // mixed part of inverse
+                } else {
+                    int nBand = iIndex - jIndex;
+                    aMatrix.set(i, j, theBand.get(nBand, jIndex - nBorder)); // band part of inverse
+                }
+                aMatrix.set(j, i, aMatrix.get(i, j));
+            }
+        }
+        return aMatrix;
+    }
 /// Solve linear equation system, partially calculate inverse.
+
     /**
      * Solve linear equation A*x=b system with bordered band matrix A, calculate
      * bordered band part of inverse of A. Use decomposition in border and band
@@ -146,38 +144,40 @@ public class BorderedBandMatrix
      * \param [in] aRightHandSide Right hand side (vector) 'b' of A*x=b \param
      * [out] aSolution Solution (vector) x of A*x=b
      */
-public void  solveAndInvertBorderedBand(
-		  VVector aRightHandSide, VVector aSolution) {
+    public void solveAndInvertBorderedBand(
+            VVector aRightHandSide, VVector aSolution)
+    {
 
-	// decompose band
-	decomposeBand();
-	// invert band
-	VMatrix inverseBand = invertBand();
-	if (numBorder > 0) { // need to use block matrix decomposition to solve
-		// solve for mixed part
-		 VMatrix auxMat = solveBand(theMixed); // = Xt
-		 VMatrix auxMatT = auxMat.transpose(); // = X
-		// solve for border part
-		 VVector auxVec = aRightHandSide.getVec(numBorder,0).minus(
-				auxMat.times( aRightHandSide.getVec(numCol, numBorder) ) ); // = b1 - Xt*b2
-		VSymMatrix inverseBorder = theBorder.minus(theMixed.times(auxMatT) );
-		inverseBorder.invert(); // = E
-		 VVector borderSolution = inverseBorder.times(auxVec); // = x1
-		// solve for band part
-		 VVector bandSolution = solveBand(
-				aRightHandSide.getVec(numCol, numBorder)); // = x
-		aSolution.putVec(borderSolution,0);
-		aSolution.putVec(bandSolution.minus(auxMatT.times(borderSolution)), numBorder); // = x2
-		// parts of inverse
-		theBorder = inverseBorder; // E
-		theMixed = inverseBorder.times(auxMat); // E*Xt (-mixed part of inverse) !!!
-		theBand = inverseBand.plus(bandOfAVAT(auxMatT, inverseBorder)); // band(D^-1 + X*E*Xt)
-	} else {
-		aSolution.putVec(solveBand(aRightHandSide),0);
-		theBand = inverseBand;
-	}
-}
+        // decompose band
+        decomposeBand();
+        // invert band
+        VMatrix inverseBand = invertBand();
+        if (numBorder > 0) { // need to use block matrix decomposition to solve
+            // solve for mixed part
+            VMatrix auxMat = solveBand(theMixed); // = Xt
+            VMatrix auxMatT = auxMat.transpose(); // = X
+            // solve for border part
+            VVector auxVec = aRightHandSide.getVec(numBorder, 0).minus(
+                    auxMat.times(aRightHandSide.getVec(numCol, numBorder))); // = b1 - Xt*b2
+            VSymMatrix inverseBorder = theBorder.minus(theMixed.times(auxMatT));
+            inverseBorder.invert(); // = E
+            VVector borderSolution = inverseBorder.times(auxVec); // = x1
+            // solve for band part
+            VVector bandSolution = solveBand(
+                    aRightHandSide.getVec(numCol, numBorder)); // = x
+            aSolution.putVec(borderSolution, 0);
+            aSolution.putVec(bandSolution.minus(auxMatT.times(borderSolution)), numBorder); // = x2
+            // parts of inverse
+            theBorder = inverseBorder; // E
+            theMixed = inverseBorder.times(auxMat); // E*Xt (-mixed part of inverse) !!!
+            theBand = inverseBand.plus(bandOfAVAT(auxMatT, inverseBorder)); // band(D^-1 + X*E*Xt)
+        } else {
+            aSolution.putVec(solveBand(aRightHandSide), 0);
+            theBand = inverseBand;
+        }
+    }
 /// Print bordered band matrix.
+
     public void printMatrix()
     {
         System.out.println("Border part ");
@@ -204,29 +204,22 @@ public void  solveAndInvertBorderedBand(
         int nRow = numBand + 1;
         int nCol = numCol;
         VVector auxVec = new VVector(nCol);
-        for (int i = 0; i < nCol; ++i)
-        {
+        for (int i = 0; i < nCol; ++i) {
             auxVec.set(i, theBand.get(0, i) * 16.0); // save diagonal elements
         }
-        for (int i = 0; i < nCol; ++i)
-        {
-            if ((theBand.get(0, i) + auxVec.get(i)) != theBand.get(0, i))
-            {
+        for (int i = 0; i < nCol; ++i) {
+            if ((theBand.get(0, i) + auxVec.get(i)) != theBand.get(0, i)) {
                 theBand.set(0, i, 1.0 / theBand.get(0, i));
-                if (theBand.get(0, i) < 0.)
-                {
+                if (theBand.get(0, i) < 0.) {
                     throw new RuntimeException("BorderedBandMatrix decomposeBand not positive definite");
                 }
-            } else
-            {
+            } else {
                 theBand.set(0, i, 0.0);
                 throw new RuntimeException("BorderedBandMatrix decomposeBand singular");
             }
-            for (int j = 1; j < min(nRow, nCol - i); ++j)
-            {
+            for (int j = 1; j < min(nRow, nCol - i); ++j) {
                 double rxw = theBand.get(j, i) * theBand.get(0, i);
-                for (int k = 0; k < min(nRow, nCol - i) - j; ++k)
-                {
+                for (int k = 0; k < min(nRow, nCol - i) - j; ++k) {
                     theBand.subFrom(k, i + j, theBand.get(k + j, i) * rxw);
                 }
                 theBand.set(j, i, rxw);
@@ -245,13 +238,10 @@ public void  solveAndInvertBorderedBand(
         int nCol = numCol;
         VMatrix inverseBand = new VMatrix(nRow, nCol);
 
-        for (int i = nCol - 1; i >= 0; i--)
-        {
+        for (int i = nCol - 1; i >= 0; i--) {
             double rxw = theBand.get(0, i);
-            for (int j = i; j >= max(0, i - nRow + 1); j--)
-            {
-                for (int k = j + 1; k < min(nCol, j + nRow); ++k)
-                {
+            for (int j = i; j >= max(0, i - nRow + 1); j--) {
+                for (int k = j + 1; k < min(nCol, j + nRow); ++k) {
                     rxw -= inverseBand.get(abs(i - k), min(i, k))
                             * theBand.get(k - j, j);
                 }
@@ -277,16 +267,14 @@ public void  solveAndInvertBorderedBand(
         VVector aSolution = new VVector(aRightHandSide);
         for (int i = 0; i < nCol; ++i) // forward substitution
         {
-            for (int j = 1; j < min(nRow, nCol - i); ++j)
-            {
+            for (int j = 1; j < min(nRow, nCol - i); ++j) {
                 aSolution.subFrom(j + i, theBand.get(j, i) * aSolution.get(i));
             }
         }
         for (int i = nCol - 1; i >= 0; i--) // backward substitution
         {
             double rxw = theBand.get(0, i) * aSolution.get(i);
-            for (int j = 1; j < min(nRow, nCol - i); ++j)
-            {
+            for (int j = 1; j < min(nRow, nCol - i); ++j) {
                 rxw -= theBand.get(j, i) * aSolution.get(j + i);
             }
             aSolution.set(i, rxw);
@@ -306,12 +294,10 @@ public void  solveAndInvertBorderedBand(
         int nRow = theBand.getNumRows();
         int nCol = theBand.getNumCols();
         VMatrix aSolution = new VMatrix(aRightHandSide);
-        for (int iBorder = 0; iBorder < numBorder; iBorder++)
-        {
+        for (int iBorder = 0; iBorder < numBorder; iBorder++) {
             for (int i = 0; i < nCol; ++i) // forward substitution
             {
-                for (int j = 1; j < min(nRow, nCol - i); ++j)
-                {
+                for (int j = 1; j < min(nRow, nCol - i); ++j) {
                     aSolution.subFrom(iBorder, j + i, theBand.get(j, i)
                             * aSolution.get(iBorder, i));
                 }
@@ -319,8 +305,7 @@ public void  solveAndInvertBorderedBand(
             for (int i = nCol - 1; i >= 0; i--) // backward substitution
             {
                 double rxw = theBand.get(0, i) * aSolution.get(iBorder, i);
-                for (int j = 1; j < min(nRow, nCol - i); ++j)
-                {
+                for (int j = 1; j < min(nRow, nCol - i); ++j) {
                     rxw -= theBand.get(j, i) * aSolution.get(iBorder, j + i);
                 }
                 aSolution.set(iBorder, i, rxw);
@@ -329,32 +314,31 @@ public void  solveAndInvertBorderedBand(
         return aSolution;
     }
 
-
     /// Calculate band part of: 'anArray * aSymArray * anArray.T'.
-/**
- * \return Band part of product
- */
-private VMatrix bandOfAVAT( VMatrix anArray,
-		 VSymMatrix aSymArray)  {
-	int nBand = numBand;
-	int nCol = numCol;
-	int nBorder = numBorder;
-	double sum;
-	VMatrix aBand = new VMatrix((nBand + 1), nCol);
-	for (int i = 0; i < nCol; ++i) {
-		for (int j = max(0, i - nBand); j <= i; ++j) {
-			sum = 0.;
-			for (int l = 0; l < nBorder; ++l) { // diagonal
-				sum += anArray.get(i, l) * aSymArray.get(l, l) * anArray.get(j, l);
-				for (int k = 0; k < l; ++k) { // off diagonal
-					sum += anArray.get(i, l) * aSymArray.get(l, k) * anArray.get(j, k)
-							+ anArray.get(i, k) * aSymArray.get(l, k) * anArray.get(j, l);
-				}
-			}
-			aBand.set(i - j, j, sum);
-		}
-	}
-	return aBand;
-}
-    
+    /**
+     * \return Band part of product
+     */
+    private VMatrix bandOfAVAT(VMatrix anArray,
+                               VSymMatrix aSymArray)
+    {
+        int nBand = numBand;
+        int nCol = numCol;
+        int nBorder = numBorder;
+        double sum;
+        VMatrix aBand = new VMatrix((nBand + 1), nCol);
+        for (int i = 0; i < nCol; ++i) {
+            for (int j = max(0, i - nBand); j <= i; ++j) {
+                sum = 0.;
+                for (int l = 0; l < nBorder; ++l) { // diagonal
+                    sum += anArray.get(i, l) * aSymArray.get(l, l) * anArray.get(j, l);
+                    for (int k = 0; k < l; ++k) { // off diagonal
+                        sum += anArray.get(i, l) * aSymArray.get(l, k) * anArray.get(j, k)
+                                + anArray.get(i, k) * aSymArray.get(l, k) * anArray.get(j, l);
+                    }
+                }
+                aBand.set(i - j, j, sum);
+            }
+        }
+        return aBand;
+    }
 }

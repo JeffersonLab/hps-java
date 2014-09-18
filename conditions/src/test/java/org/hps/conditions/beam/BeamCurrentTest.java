@@ -9,7 +9,7 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.ConditionsDriver;
+import org.hps.conditions.TestRunConditionsDriver;
 import org.hps.conditions.beam.BeamCurrent.BeamCurrentCollection;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
@@ -57,7 +57,7 @@ public class BeamCurrentTest extends TestCase {
 
         // Configure and run the loop.
         loop.setLCIORecordSource(testFile);
-        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        TestRunConditionsDriver conditionsDriver = new TestRunConditionsDriver();
         conditionsDriver.setLoadSvtConditions(false);
         loop.add(conditionsDriver);
         loop.add(new BeamCurrentChecker());

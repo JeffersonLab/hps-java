@@ -205,22 +205,22 @@ public class Matrix implements Cloneable, java.io.Serializable
 //        return X;
 //    }
 //
-//    /**
-//     * Make a deep copy of a matrix
-//     */
-//    public Matrix copy()
-//    {
-//        Matrix X = new Matrix(m, n);
-//        double[][] C = X.getArray();
-//        for (int i = 0; i < m; i++)
-//        {
-//            for (int j = 0; j < n; j++)
-//            {
-//                C[i][j] = A[i][j];
-//            }
-//        }
-//        return X;
-//    }
+    /**
+     * Make a deep copy of a matrix
+     */
+    public Matrix copy()
+    {
+        Matrix X = new Matrix(m, n);
+        double[][] C = X.getArray();
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                C[i][j] = A[i][j];
+            }
+        }
+        return X;
+    }
 //
 //    /**
 //     * Clone the Matrix object.
@@ -1354,26 +1354,26 @@ public void placeInCol(Vector v, int rIndex, int cIndex)
         output.println();   // end with blank line.
     }
 
-//    /**
-//     * String representation for this Object.
-//     *
-//     * @return string representation of this object.
-//     */
-//    public String toString()
-//    {
-//        StringBuffer tmp = new StringBuffer();
-//        for (int i = 0; i < m; ++i)
-//        {
-//            for (int j = 0; j < n; ++j)
-//            {
-//                tmp.append(" " + A[i][j]);
-//            }
-//            tmp.append("\n");
-//        }
-//        tmp.append("\n");
-//        return tmp.toString();
-//    }
-//
+    /**
+     * String representation for this Object.
+     *
+     * @return string representation of this object.
+     */
+    public String toString()
+    {
+        StringBuffer tmp = new StringBuffer();
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                tmp.append(" " + A[i][j]);
+            }
+            tmp.append("\n");
+        }
+        tmp.append("\n");
+        return tmp.toString();
+    }
+
 //    /**
 //     * Read a matrix from a stream. The format is the same the print method, so
 //     * printed matrices can be read back in (provided they were printed using US

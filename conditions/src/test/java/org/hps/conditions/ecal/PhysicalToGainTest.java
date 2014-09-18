@@ -6,8 +6,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.TableConstants;
+import org.hps.conditions.TestRunConditionsDriver;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.lcsim.conditions.ConditionsManager;
@@ -43,7 +43,7 @@ public class PhysicalToGainTest extends TestCase {
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        ConditionsDriver conditionsDriver = new ConditionsDriver();
+        TestRunConditionsDriver conditionsDriver = new TestRunConditionsDriver();
         conditionsDriver.setLoadSvtConditions(false);
         loop.add(conditionsDriver);
         loop.add(new PhysicalToGainDriver());

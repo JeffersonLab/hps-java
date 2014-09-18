@@ -73,7 +73,7 @@ public class Vector extends Matrix implements java.io.Serializable
     {
         Vector x = copyVector();
         for (int i = 0; i < size(); ++i) {
-            A[i][0] = -A[i][0];
+            x.set(i, -get(i));
         }
         return x;
     }
@@ -184,7 +184,12 @@ public class Vector extends Matrix implements java.io.Serializable
 
     public Vector plus(Vector vec) throws IllegalArgumentException
     {
-        return (Vector) super.plus(vec);
+        Vector tmp = new Vector(getSize());
+        for(int i=0; i<getSize(); ++i)
+        {
+            tmp.set(i, get(i)+vec.get(i));
+        }
+        return tmp;
     }
 
     /**
@@ -196,7 +201,12 @@ public class Vector extends Matrix implements java.io.Serializable
      */
     public Vector timesScalar(double s)
     {
-        return (Vector) super.times(s);
+        Vector tmp = new Vector(getSize());
+        for(int i=0; i<getSize(); ++i)
+        {
+            tmp.set(i, get(i)*s);
+        }
+        return tmp;
     }
 
 //    /**
