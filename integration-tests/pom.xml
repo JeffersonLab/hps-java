@@ -27,7 +27,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/GenerateEcalReadoutSimData.java</exclude>
+                        <exclude>/org/hps/TestRunEvioToLcioTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -51,6 +51,7 @@
                             <excludes>
                                 <exclude>org/hps/EcalReadoutSimTest.java</exclude>
                                 <exclude>org/hps/EtSystemTest.java</exclude>
+                                <exclude>org/hps/MCReconTest</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
