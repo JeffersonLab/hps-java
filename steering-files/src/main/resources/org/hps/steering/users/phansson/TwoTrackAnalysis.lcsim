@@ -2,9 +2,12 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <inputFiles>
         <!--<fileRegExp baseDir="./../data/mc/HPS-TestRun-v5/1.8-SNAPSHOT-recoil-101013/">egs_5.5gev_0.016x0_500mb_recoil_readout_[0-9].slcio</fileRegExp>-->
+    	<fileRegExp baseDir="./../data/testrun/mc/HPS-TestRun-v7/">egs_5.5gev_0.016x0_500mb_90na_readout_\d\d.slcio</fileRegExp>
+    
+    
     </inputFiles>
     <control>
-        <numberOfEvents>-1</numberOfEvents>
+        <numberOfEvents>1000000000</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
@@ -19,12 +22,11 @@
         <driver name="TrackerReconDriver"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-<!--        <driver name="TrackingReconstructionPlots"/> -->
 <!--    <driver name="MCParticlePlots"/> -->
 <!--    <driver name="TruthMomentumAnalysis"/> -->
 <!--    <driver name="LCIOWriter"/> -->
         <driver name="ROOTFlatTupleDriver"/> 
-<!--	    <driver name="GBLDriver"/> -->
+	    <driver name="GBLOutputDriver"/> 
 <!--        <driver name="PrintGeometryDriver"/>-->
 
 
@@ -32,12 +34,17 @@
     </execute>    
 
     <drivers>
-        <driver name="GBLDriver"
+        <driver name="GBLOutputDriver"
                 type="org.hps.recon.tracking.gbl.GBLOutputDriver">
                 <debug>0</debug>
                 <isMC>${isMC}</isMC>
                 <outputPlotFileName></outputPlotFileName>
                 <gblFileName>gblinput.txt</gblFileName>
+	</driver>
+ 	<driver name="GBLDriver"
+                type="org.hps.recon.tracking.gbl.GBLDriver">
+                <debug>0</debug>
+                
 	</driver>
         <driver name="ROOTFlatTupleDriver" 
                 type="org.hps.users.phansson.ROOTFlatTupleDriver">
@@ -53,10 +60,7 @@
                 <debug>false</debug>
          </driver>
          <driver name="MCParticlePlots" type="org.hps.analysis.ecal.HPSMCParticlePlotsDriver" />
-     	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-                <outputPlots></outputPlots>
-        </driver>
-        <driver name="PrintGeometryDriver" type="org.hps.analysis.examples.PrintGeometryDriver"/>
+     	<driver name="PrintGeometryDriver" type="org.hps.analysis.examples.PrintGeometryDriver"/>
         
 
 
@@ -90,7 +94,8 @@
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
+            <!--<strategyResource>/org/lcsim/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>-->
+            <strategyResource>/org/lcsim/hps/recon/tracking/strategies/${strategy}.xml</strategyResource>
         </driver>        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

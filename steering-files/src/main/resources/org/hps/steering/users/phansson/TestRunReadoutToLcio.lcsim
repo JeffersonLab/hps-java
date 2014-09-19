@@ -5,22 +5,29 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <!--
+                <!--
+        <driver name="HPSSVTSensorSetup"/>   
+
         <driver name="CalibrationDriver"/>   
         <driver name="SimpleSVTReadout"/>
-        -->
-        <driver name="TrackingGeometryChecker"/>
+        
         <driver name="TrackerDigiDriver"/>
+        <driver name="TrackingGeometryChecker"/>
+        <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
+    -->
     </execute> 
 
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
+        <!--
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
             <runNumber>1351</runNumber>
-        </driver>        
+        </driver>  
+        <driver name="HPSSVTSensorSetup" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>
+          
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout"/>
         <driver name="TrackerDigiDriver"
                 type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
@@ -30,6 +37,11 @@
             <collectionNames>TrackerHits</collectionNames>
         </driver> 
         <driver name="TrackingGeometryChecker" type="org.hps.users.phansson.TrackingGeometryChecker"/>
+        <driver name="LCIOWriter"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
+        -->
     </drivers>
 </lcsim>
 	
