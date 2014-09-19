@@ -206,11 +206,12 @@ public class EcalClusterIC extends Driver {
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
 
         	// Get generated hits
-            List<MCParticle> genPart = event.getMCParticles();
-            for(MCParticle m : genPart){
-            	mcList.add(m);
+            if (event.hasCollection(MCParticle.class, "MCParticle")) {
+                List<MCParticle> genPart = event.getMCParticles();
+                for(MCParticle m : genPart){
+                    mcList.add(m);
+                }        	
             }
-        	
         	
             // Generate clusters from the calorimeter hits.
             //List<HPSEcalClusterIC> clusterList = null;
@@ -506,33 +507,32 @@ public class EcalClusterIC extends Driver {
         }
         
         
-    	// Energy Corrections as per HPS Note 2014-001
-        int pdg = mcList.get(0).getPDGID();
         // Make mapping to contain clusters with corrected energy.
         Map<CalorimeterHit, Double> seedEnergyCorr = new HashMap<CalorimeterHit, Double>();
-
-        // Iterate through known clusters with energies and apply correction.
-        for (Map.Entry<CalorimeterHit, Double> entryC : seedEnergyTot.entrySet()) { 
-        	double rawEnergy = entryC.getValue();
-        	if (pdg == 11){// electron energy correction
-        		double corrEnergy = rawEnergy/(-0.0027*rawEnergy-0.06/(Math.sqrt(rawEnergy))+0.95);
-        		seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-        	}
-        	else if (pdg == 22){// photon energy correction
-        		double corrEnergy = rawEnergy/(0.0015*rawEnergy-0.047/(Math.sqrt(rawEnergy))+0.94);
-        		seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-
-        	}
-        	else if (pdg == -11){// positron energy correction
-        		double corrEnergy = rawEnergy/(-0.0096*rawEnergy-0.042/(Math.sqrt(rawEnergy))+0.94);
-        		seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-        	}
-        	else{// some other particle, but I have no energy correction for this
-        		double corrEnergy = rawEnergy;
-        		seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-        	}               
-        }// end of energy corrections
         
+        // Energy Corrections as per HPS Note 2014-001
+        if (mcList.size() > 0) {
+            int pdg = mcList.get(0).getPDGID();
+
+            // Iterate through known clusters with energies and apply correction.
+            for (Map.Entry<CalorimeterHit, Double> entryC : seedEnergyTot.entrySet()) {
+                double rawEnergy = entryC.getValue();
+                if (pdg == 11) {// electron energy correction
+                    double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
+                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
+                } else if (pdg == 22) {// photon energy correction
+                    double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
+                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
+
+                } else if (pdg == -11) {// positron energy correction
+                    double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
+                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
+                } else {// some other particle, but I have no energy correction for this
+                    double corrEnergy = rawEnergy;
+                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
+                }
+            }// end of energy corrections
+        }
         
         
         // Cluster Position as per HPS Note 2014-001
@@ -648,8 +648,8 @@ public class EcalClusterIC extends Driver {
                 		
                 		//can't seem to get this to go into cluster information-------!!!!
  //                      	cluster.addPositionCorr(seedPosition.get(entry2.getKey()));
-                       	cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
-
+                		if (seedEnergyCorr.values().size() > 0)
+                		    cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
 
                 		for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
                 			if (entry3.getValue() == entry2.getValue()) {
