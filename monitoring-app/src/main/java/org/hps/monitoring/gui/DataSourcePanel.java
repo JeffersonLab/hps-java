@@ -1,20 +1,25 @@
 package org.hps.monitoring.gui;
 
+import static org.hps.monitoring.gui.Commands.CHOOSE_FILE_SOURCE;
 import static org.hps.monitoring.gui.Commands.DATA_SOURCE_TYPE_CHANGED;
 import static org.hps.monitoring.gui.Commands.PROCESSING_STAGE_CHANGED;
+import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_PATH_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.PROCESSING_STAGE_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.hps.monitoring.gui.model.ConfigurationModel;
 import org.hps.record.enums.DataSourceType;
@@ -39,7 +44,9 @@ class DataSourcePanel extends AbstractFieldsPanel {
     };
     
     JComboBox<?> dataSourceTypeComboBox;
-    JTextField dataSourcePathField;    
+    JTextField dataSourcePathField;
+    JButton fileSourceButton;
+    JButton validateDataFileButton;
     JComboBox<?> processingStageComboBox;
     
     ConfigurationModel configurationModel;
@@ -53,25 +60,48 @@ class DataSourcePanel extends AbstractFieldsPanel {
         dataSourceTypeComboBox.addActionListener(this);
         
         dataSourcePathField = addField("Data Source Path", 40);
-        dataSourcePathField.addPropertyChangeListener(this);       
+        dataSourcePathField.addPropertyChangeListener(this);
         
+        fileSourceButton = addButton("Select data file");
+        fileSourceButton.setActionCommand(CHOOSE_FILE_SOURCE);
+        fileSourceButton.addActionListener(this);
+        
+        validateDataFileButton = addButton("Validate data file");
+        validateDataFileButton.setActionCommand(VALIDATE_DATA_FILE);
+                
         processingStageComboBox = addComboBox("Processing Stage", processingStages);
         processingStageComboBox.setSelectedIndex(2);
         processingStageComboBox.setActionCommand(PROCESSING_STAGE_CHANGED);
         processingStageComboBox.addActionListener(this);        
     }
+    
+    private String getFileExtension(String path) {
+        return path.substring(path.lastIndexOf(".") + 1);
+    }
        
-    private void chooseFile() {
+    private void chooseDataFile() {
         JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
-        fc.setDialogTitle("Select Data Source");        
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("LCIO files", "slcio"));
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("EVIO files", "evio"));        
+        fc.setDialogTitle("Select Data File");
         int r = fc.showDialog(this, "Select ...");
         File file = null;
         if (r == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
             final String filePath = file.getPath();
+            final String extension = getFileExtension(filePath);
             
             // This will cause the GUI to be updated via a PropertyChangeListener.
-            configurationModel.setDataSourcePath(filePath);                      
+            configurationModel.setDataSourcePath(filePath);
+                                    
+            // This will set the combo box in the GUI to the correct state, which will then
+            // update the model.
+            if (extension.equals("slcio")) { 
+                dataSourceTypeComboBox.setSelectedIndex(DataSourceType.LCIO_FILE.ordinal());
+            } else if (extension.equals("evio")) {
+                dataSourceTypeComboBox.setSelectedIndex(DataSourceType.EVIO_FILE.ordinal());
+            } 
         }
     }
         
@@ -95,14 +125,14 @@ class DataSourcePanel extends AbstractFieldsPanel {
     public void actionPerformed(ActionEvent e) {
         if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
             DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
-            configurationModel.setDataSourceType(dataSourceType);
-            if (dataSourceType.isFile()) { 
-                chooseFile();
-            }
+            configurationModel.setDataSourceType(dataSourceType);            
+            validateDataFileButton.setEnabled(dataSourceType.isFile());
         } else if (PROCESSING_STAGE_CHANGED.equals(e.getActionCommand())) {
             ProcessingStage processingStage = ProcessingStage.values()[processingStageComboBox.getSelectedIndex()];
             configurationModel.setProcessingStage(processingStage);
-        }
+        } else if (CHOOSE_FILE_SOURCE.equals(e.getActionCommand())) { 
+            chooseDataFile();
+        } 
     }
     
     public void propertyChange(PropertyChangeEvent evt) {
@@ -116,18 +146,11 @@ class DataSourcePanel extends AbstractFieldsPanel {
     public class DataSourceChangeListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            
-            // FIXME: Anyway to make sure this is not needed?
             if (evt.getPropertyName().equals("ancestor"))
-                return;
-            
-            //System.out.println("DataSourceChangeListener.propertyChange");
-            //System.out.println("  source: " + evt.getSource());
-            //System.out.println("  name: " + evt.getPropertyName());
-            //System.out.println("  value: " + evt.getNewValue());
-            Object value = evt.getNewValue();            
+                return;            
+            Object value = evt.getNewValue();
             if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
-                dataSourceTypeComboBox.setSelectedItem(value.toString());
+                dataSourceTypeComboBox.setSelectedIndex(((DataSourceType)evt.getNewValue()).ordinal());
             } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
                 dataSourcePathField.setText((String) value); 
             } else if (PROCESSING_STAGE_PROPERTY.equals(evt.getPropertyName())) {
@@ -136,24 +159,8 @@ class DataSourcePanel extends AbstractFieldsPanel {
         }
     }
     
-    /*
-    void checkFile() throws IOException {
-        DataSourceType dataSourceType = DataSourceType.values()[this.dataSourceTypeComboBox.getSelectedIndex()];
-        if (!dataSourceType.isFile())
-            return;
-        File file = new File(dataSourcePathField.getText());
-        if (!file.exists()) {
-            throw new IOException("File " + file + " does not exist!");
-        }
-        if (dataSourceType.equals(DataSourceType.EVIO_FILE)) {
-            try {
-                new EvioReader(file, false, false);
-            } catch (EvioException e) {
-                throw new IOException("Error with EVIO file.", e);
-            }
-        } else if (dataSourceType.equals(DataSourceType.LCIO_FILE)) {
-            new LCIOReader(file);
-        }
+    public void addActionListener(ActionListener listener) {
+        // Hook the validate button to the main app where that task actually executes.
+        validateDataFileButton.addActionListener(listener);
     }
-    */    
 }

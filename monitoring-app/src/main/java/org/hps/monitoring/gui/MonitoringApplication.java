@@ -20,9 +20,11 @@ import static org.hps.monitoring.gui.Commands.SAVE_PLOTS;
 import static org.hps.monitoring.gui.Commands.SCREENSHOT;
 import static org.hps.monitoring.gui.Commands.SELECT_CONFIG_FILE;
 import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
+import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -90,7 +92,10 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
+import org.jlab.coda.jevio.EvioException;
+import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.job.JobControlManager;
+import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -166,6 +171,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     
     // The RunModel for updating the RunPanel.
     private RunModel runModel = new RunModel();
+    
+    private FileValidationThread fileValidationThread;
                    
     /**
      * Constructor for the monitoring application.
@@ -229,6 +236,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      * @param e The event to handle.
      */
     public void actionPerformed(ActionEvent e) {
+        
+        //System.out.println("MonitoringApplication. actionPerformed: " + e.getActionCommand());
+        
         String cmd = e.getActionCommand();
         if (CONNECT.equals(cmd)) {
             // Run the start session method on a seperate thread.
@@ -281,9 +291,13 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             setSaveLayout();
         } else if (RESTORE_DEFAULT_GUI_LAYOUT.equals(cmd)) {
             restoreDefaultLayout();
+        } else if (VALIDATE_DATA_FILE.equals(cmd)) {
+            if (fileValidationThread == null) {
+                new FileValidationThread().start();
+            }
         }
     }
-        
+           
     /**
      * Set the GUI to visible.
      */
@@ -356,6 +370,18 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 + "mesg: " + status.getMessage());
     }
     
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        plotWindow.setEnabled(enabled);
+        systemStatusWindow.setEnabled(enabled);
+        //settingsDialog.setEnabled(false);
+        
+        //this.setFocusable(enabled);
+        //plotWindow.setFocusable(enabled);
+        //systemStatusWindow.setFocusable(enabled);
+        //settingsDialog.setFocusable(false);
+    }
+    
     /* -------------------------- private methods ----------------------------- */
                
     /**
@@ -388,11 +414,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         settingsDialog = new SettingsDialog();
         settingsDialog.getSettingsPanel().addActionListener(this);
         getJobSettingsPanel().addActionListener(this);
+        settingsDialog.getSettingsPanel().getDataSourcePanel().addActionListener(this);
         
         // Push the ConfigurationModel to the job settings dialog.
         getJobSettingsPanel().setConfigurationModel(configurationModel);
         getConnectionSettingsPanel().setConfigurationModel(configurationModel);
-        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);        
+        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);               
     }
 
     /**
@@ -931,7 +958,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         log(Level.FINE, "Starting a new monitoring session.");
         
         // Show a modal window that will block the GUI until connected or an error occurs.
-        JDialog dialog = showStatusDialog("Info", "Starting new session ...", true);
+        JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Starting new session ...");
         
         try {
                         
@@ -1392,7 +1419,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void stopSession() {
         // Show a modal message window while this method executes.
-        JDialog dialog = showStatusDialog("Info", "Disconnecting from session ...", true);
+        JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Disconnecting from session ...");
         
         try {
             // Log message.
@@ -1420,45 +1447,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
         }
     }
-                         
-    /**
-     * Show a dialog which is modal-like but will not block the current thread
-     * from executing after <code>isVisible(true)</code> is called.  It does not 
-     * have any buttons so must be closed using an action event.
-     * @param title The title of the dialog box.
-     * @param message The message to display.
-     * @param visible Whether it should be immediately visible.
-     * @return The JDialog that was created.
-     */
-    private JDialog showStatusDialog(String title, String message, boolean visible) {
-        final JOptionPane optionPane = new JOptionPane(
-                message, 
-                JOptionPane.INFORMATION_MESSAGE,
-                JOptionPane.DEFAULT_OPTION, 
-                null, 
-                new Object[]{}, 
-                null);
-        final JDialog dialog = new JDialog();
-        dialog.setContentPane(optionPane);        
-        dialog.setTitle(title);
-        dialog.setAlwaysOnTop(true);
-        dialog.setLocationRelativeTo(null);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();        
-        dialog.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                dialog.setVisible(false);
-                dialog.dispose();
-                MonitoringApplication.this.setEnabled(true);
-                plotWindow.setEnabled(true);
-            }
-        });
-        MonitoringApplication.this.setEnabled(false);
-        plotWindow.setEnabled(false);
-        dialog.setVisible(visible);
-        return dialog;
-    }    
-            
+                                       
     /**
      * Finish event processing and stop its thread, first killing the session watchdog 
      * thread, if necessary.  The event processing thread may still be alive after 
@@ -1662,7 +1651,77 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         setConfiguration(new Configuration(DEFAULT_CONFIG_RESOURCE));
         loadConfiguration();
     }
-        
+    
+    /**
+     * Validate the current file source by throwing an IOException if
+     * there appears to be a problem with it. 
+     * @throws IOException if there a problem with the current file source.
+     */
+    private void validateDataFile() throws IOException {
+        DataSourceType dataSourceType = configurationModel.getDataSourceType();        
+        if (dataSourceType.isFile()) {                                         
+            try {
+                if (configurationModel.getDataSourcePath() == null)
+                    throw new IOException("No data file set.");
+                if (configurationModel.getDataSourcePath().equals(""))
+                    throw new IOException("Data file has empty path.");
+                File file = new File(configurationModel.getDataSourcePath());
+                if (!file.exists()) {
+                    throw new IOException("File does not exist.");
+                }
+                if (dataSourceType.equals(DataSourceType.EVIO_FILE)) {
+                    try {
+                        new EvioReader(file, false, false);
+                    } catch (EvioException e) {
+                        throw new IOException("Error reading EVIO file.", e);
+                    }
+                } else if (dataSourceType.equals(DataSourceType.LCIO_FILE)) {
+                    new LCIOReader(file);
+                }
+            } catch (IOException e) {
+                throw e;
+            } 
+        } else {
+            // This shouldn't really ever happen!
+            throw new IOException("No file source was selected.");
+        }
+    }
+    
+    /**
+     * This is a thread to validate the current input file.  This must 
+     * be done on a seperate thread, because EVIO files may take a long time
+     * to be completely read in using the EvioReader.  Also, since
+     * the request for file validation comes on the EDT thread, the task 
+     * must be put onto a seperate thread so that actionPerformed() may exit 
+     * and not block the EDT from updating the GUI.        
+     */
+    class FileValidationThread extends Thread {                
+        boolean isFileValid;
+        public void run() {
+            settingsDialog.setEnabled(false);
+            JDialog dialog = DialogUtil.showStatusDialog(
+                    MonitoringApplication.this,
+                    "Validating data file", 
+                    configurationModel.getDataSourcePath());
+            try {                                
+                validateDataFile();
+                DialogUtil.showInfoDialog(
+                        MonitoringApplication.this, 
+                        "File is valid", 
+                        configurationModel.getDataSourcePath());
+            } catch (IOException error) {
+                DialogUtil.showErrorDialog(
+                        MonitoringApplication.this, 
+                        error, 
+                        "Error validating file");
+            } finally {
+                dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+                settingsDialog.setEnabled(true);
+                fileValidationThread = null;
+            }            
+        }    
+    }
+            
     /**
      * Create an ET server connection from a <code>ConfigurationModel</code>.
      * @param config The ConfigurationModel with the connection parameters.
@@ -1681,5 +1740,5 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 config.getWaitMode(), 
                 config.getWaitTime(), 
                 config.getChunkSize());
-    }
+    }                      
 }
