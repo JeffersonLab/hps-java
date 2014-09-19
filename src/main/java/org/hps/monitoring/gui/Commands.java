@@ -10,6 +10,7 @@ final class Commands {
     static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
+    static final String CHOOSE_FILE_SOURCE = "chooseFileSource";
     static final String CHOOSE_STEERING_FILE = "chooseSteeringFile";
     static final String CONNECT = "connect";
     static final String CLEAR_LOG_TABLE = "clearLogTable";
@@ -33,7 +34,7 @@ final class Commands {
     static final String SAVE_LOG_TABLE = "saveLogTable";
     static final String SAVE_PLOTS = "savePlots";
     static final String SCREENSHOT = "screenshot";
-    static final String SELECT_CONFIG_FILE = "selectConfigFile";
+    static final String SELECT_CONFIG_FILE = "selectConfigFile";    
     static final String SELECT_LOG_FILE = "logToFile";
     static final String SET_EVENT_BUILDER = "setEventBuilder";
     static final String SET_STEERING_RESOURCE = "setSteeringResource";
@@ -41,5 +42,6 @@ final class Commands {
     static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
     static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";                   
     static final String VERBOSE_CHANGED = "verboseChanged";
+    static final String VALIDATE_DATA_FILE = "validateDataFile";
     static final String WAIT_MODE_CHANGED = "waitModeChanged";                         
 }
