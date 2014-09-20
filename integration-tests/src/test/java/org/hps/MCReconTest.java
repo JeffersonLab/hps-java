@@ -25,16 +25,16 @@ public class MCReconTest extends TestCase {
     File inputFile = new File("/nfs/slac/g/hps3/data/testcase/MCReconTestInput.slcio");
     
     static final int TOTAL_CLUSTERS = 3960;        
-    static final int TOTAL_TRACKER_HITS = 28129;
+    static final int TOTAL_TRACKER_HITS = 28691;
     static final int TOTAL_CALORIMETER_HITS = 61924;
        
     static final long TOTAL_RECON_EVENTS = 945;
-    static final int TOTAL_TRACKS = 1990;
+    static final int TOTAL_TRACKS = 2086;
     static final int TOTAL_TRACKS_DELTA = 13;
     static final int TOTAL_TRACKS_LOWER = TOTAL_TRACKS - TOTAL_TRACKS_DELTA;
     static final int TOTAL_TRACKS_UPPER = TOTAL_TRACKS + TOTAL_TRACKS_DELTA;
     
-    static final int TOTAL_RECONSTRUCTED_PARTICLES = 4341; 
+    static final int TOTAL_RECONSTRUCTED_PARTICLES = 4321; 
     static final int TOTAL_RECONSTRUCTED_PARTICLES_DELTA = 9;
     static final int TOTAL_RECONSTRUCTED_PARTICLES_LOWER = TOTAL_RECONSTRUCTED_PARTICLES - TOTAL_RECONSTRUCTED_PARTICLES_DELTA;
     static final int TOTAL_RECONSTRUCTED_PARTICLES_UPPER = TOTAL_RECONSTRUCTED_PARTICLES + TOTAL_RECONSTRUCTED_PARTICLES_DELTA;
