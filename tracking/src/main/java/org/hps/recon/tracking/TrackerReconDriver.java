@@ -15,10 +15,10 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.SeedTrackerDiagnostics;
 import org.lcsim.util.Driver;
 
 /**
- * This class runs the Track Reconstruction for the HPS Test Proposal detector. The tracker
- * digitization must be run in front of it. It is intended to work with the
- * {@link TrackerDigiDriver} digitization Driver.
- * 
+ * This class runs the Track Reconstruction for the HPS Test Proposal detector.
+ * The tracker digitization must be run in front of it. It is intended to work
+ * with the {@link TrackerDigiDriver} digitization Driver.
+ *
  * @author Matt Graham
  */
 public final class TrackerReconDriver extends Driver {
@@ -47,6 +47,7 @@ public final class TrackerReconDriver extends Driver {
     private boolean _useHPSMaterialManager = true;
     // enable the use of sectoring using sector binning in SeedTracker
     private boolean _applySectorBinning = true;
+    private double rmsTimeCut = -1;
 
     public TrackerReconDriver() {
     }
@@ -57,8 +58,9 @@ public final class TrackerReconDriver extends Driver {
 
     /**
      * Set the tracking strategy resource.
-     * 
-     * @param strategyResource The absolute path to the strategy resource in the hps-java jar.
+     *
+     * @param strategyResource The absolute path to the strategy resource in the
+     * hps-java jar.
      */
     public void setStrategyResource(String strategyResource) {
         this.strategyResource = strategyResource;
@@ -78,7 +80,7 @@ public final class TrackerReconDriver extends Driver {
 
     /**
      * Set to enable the use of the HPS material manager implementation
-     * 
+     *
      * @param useHPSMaterialManager switch
      */
     public void setUseHPSMaterialManager(boolean useHPSMaterialManager) {
@@ -90,12 +92,21 @@ public final class TrackerReconDriver extends Driver {
     }
 
     /**
-     * Set to enable the sectoring to use the sector bins in checking for consistent hits.
-     * 
+     * Set to enable the sectoring to use the sector bins in checking for
+     * consistent hits.
+     *
      * @param applySectorBinning apply sector binning switch
      */
     public void setApplySectorBinning(boolean applySectorBinning) {
         this._applySectorBinning = applySectorBinning;
+    }
+
+    /**
+     * Set time cut.
+     * @param rmsTimeCut
+     */
+    public void setRmsTimeCut(double rmsTimeCut) {
+        this.rmsTimeCut = rmsTimeCut;
     }
 
     /**
@@ -126,7 +137,6 @@ public final class TrackerReconDriver extends Driver {
         //
         // 1) Driver to run Seed Tracker.
         //
-
         if (!strategyResource.startsWith("/")) {
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
         }
@@ -146,10 +156,15 @@ public final class TrackerReconDriver extends Driver {
         // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
+
+        if (rmsTimeCut > 0) {
+            stFinal.setTrackCheck(new HitTimeTrackCheck(rmsTimeCut));
+        }
     }
 
     /**
-     * This method is used to run the reconstruction and print debug information.
+     * This method is used to run the reconstruction and print debug
+     * information.
      */
     @Override
     public void process(EventHeader event) {
@@ -174,7 +189,7 @@ public final class TrackerReconDriver extends Driver {
                 System.out.println(this.getClass().getSimpleName() + ": chi2 = " + track.getChi2());
             }
         }
-        
+
         // Set the type of track to indicate B-field in Y e.g. for swimming in Wired.
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         setTrackType(tracks);
@@ -185,14 +200,15 @@ public final class TrackerReconDriver extends Driver {
         // Add to tracks found.
         ntracks += event.get(Track.class, trackCollectionName).size();
     }
-    
+
     /**
      * Set the track type to Y_FIELD so swimming is done correctly in Wired.
+     *
      * @param tracks The list of <code>Track</code> objects.
      */
     private void setTrackType(List<Track> tracks) {
         for (Track track : tracks) {
-            ((BaseTrack)track).setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+            ((BaseTrack) track).setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         }
     }
 
