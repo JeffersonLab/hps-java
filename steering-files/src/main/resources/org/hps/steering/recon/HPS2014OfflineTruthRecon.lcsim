@@ -30,16 +30,19 @@
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>true</useTruthTime>
             <subtractTOF>true</subtractTOF>
+            <debug>false</debug>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>16.0</clusterTimeCut>
+            <clusterTimeCut>12.0</clusterTimeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
