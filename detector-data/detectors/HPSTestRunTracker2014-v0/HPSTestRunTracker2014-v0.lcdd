@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPSTestRunTracker2014-v0" />
-    <generator name="GeomConverter" version="1.0" file="HPSTestRunTracker2014-v0/compact.xml" checksum="3555888184" />
+    <generator name="GeomConverter" version="1.0" file="../../hps-java/detector-data/detectors/HPSTestRunTracker2014-v0/compact.xml" checksum="3555888184" />
     <author name="NONE" />
     <comment>new SVT test run geometry</comment>
   </header>
@@ -103,11 +103,13 @@
       <constant name="world_x" value="5000.0" />
       <position name="beamPlaneVol_position" x="0.0" y="4.999999999999999E-9" z="1.1368683772161603E-13" unit="mm" />
       <rotation name="beamPlaneVol_rotation" x="1.5707963267948968" y="-0.0" z="0.0" unit="radian" />
-      <position name="base_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="base_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <position name="base_position" x="30.19999999999999" y="0.9999999999999858" z="318.59000000000015" unit="mm" />
+      <rotation name="base_rotation" x="1.5707963267948968" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_position" x="-69.9" y="53.10000000000002" z="-48.05" unit="mm" />
+      <rotation name="module_L1b_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_position" x="1.1500000000000057" y="-3.94375" z="0.26500000000000057" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <position name="module_L1b_halfmodule_axial_sensor_position" x="30.0" y="0.48375" z="3.414999999999999" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_sensor_rotation" x="1.5707963267948966" y="-0.0" z="1.5707963267948966" unit="radian" />
       <position name="module_L1b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -154,6 +156,7 @@
       <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
       <box name="beamPlaneVolBox" x="385.0" y="2432.0" z="1.0E-8" />
       <box name="baseBox" x="385.0" y="1216.0" z="175.79999999999998" />
+      <box name="module_L1bBox" x="205.2" y="12.5" z="58.3" />
       <box name="module_L1b_halfmodule_axialBox" x="200.0" y="1.8875" z="47.17" />
       <box name="module_L1b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L1b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -192,9 +195,9 @@
         </physvol>
         <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="base_volume">
+      <volume name="module_L1b_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="baseBox" />
+        <solidref ref="module_L1bBox" />
         <physvol>
           <volumeref ref="module_L1b_halfmodule_axial_volume" />
           <positionref ref="module_L1b_halfmodule_axial_position" />
@@ -203,6 +206,15 @@
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="2" />
           <physvolid field_name="module" value="1" />
+        </physvol>
+      </volume>
+      <volume name="base_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="baseBox" />
+        <physvol>
+          <volumeref ref="module_L1b_volume" />
+          <positionref ref="module_L1b_position" />
+          <rotationref ref="module_L1b_rotation" />
         </physvol>
       </volume>
       <volume name="tracking_volume">
