@@ -23,8 +23,9 @@ import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
+import hep.aida.jfree.plotter.PlotterRegion;
+import hep.aida.jfree.plotter.PlotterRegionListener;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -35,7 +36,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -94,10 +94,10 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.job.JobControlManager;
 
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
@@ -112,6 +112,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private RunPanel runPanel;
     private SettingsDialog settingsDialog;
     private PlotWindow plotWindow;
+    private PlotInfoWindow plotInfoWindow = new PlotInfoWindow();
     private SystemStatusWindow systemStatusWindow;
     private JMenuBar menuBar;
 
@@ -458,6 +459,15 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         MonitoringAnalysisFactory.register();
         MonitoringAnalysisFactory.configure();
         MonitoringPlotFactory.setRootPane(this.plotWindow.getPlotPane());
+        MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
+            @Override
+            public void regionSelected(PlotterRegion region) {                
+                if (region == null)
+                    throw new RuntimeException("The region arg is null!!!");
+                //System.out.println("MonitoringApplication - regionSelected - " + region.title());
+                plotInfoWindow.setCurrentRegion(region);
+            }
+        });
     }
 
     /**
@@ -1324,17 +1334,20 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             loopConfig.add(driver);
         }        
 
+        
+        // DEBUG: Turn these off while doing other stuff!!!!
+        
         // Using ET server?
-        if (usingEtServer()) {
+        //if (usingEtServer()) {
 
             // ET system monitor.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            loopConfig.add(new EtSystemMonitor());
+            //loopConfig.add(new EtSystemMonitor());
             
             // ET system strip charts.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            loopConfig.add(new EtSystemStripCharts());
-        }
+            //loopConfig.add(new EtSystemStripCharts());
+        //}
               
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
@@ -1386,9 +1399,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         resetAidaTree();
 
         // Plot frame visible?
-        if (!plotWindow.isVisible())
+        if (!plotWindow.isVisible()) {
             // Turn on plot frame if it is off.
             plotWindow.setVisible(true);
+            //plotInfoWindow.setVisible(true);
+        }
             
         // Reset plots.
         plotWindow.reset(); 
