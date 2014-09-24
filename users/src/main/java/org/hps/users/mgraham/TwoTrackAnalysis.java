@@ -981,7 +981,7 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
             try {
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
-                Logger.getLogger(ElwinsTrackingRecon.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TwoTrackAnalysis.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
