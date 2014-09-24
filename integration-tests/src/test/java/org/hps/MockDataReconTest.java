@@ -1,7 +1,5 @@
 package org.hps;
 
-import hep.aida.IHistogram1D;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -53,7 +51,9 @@ public class MockDataReconTest extends TestCase {
 
     AIDA aida = AIDA.defaultInstance();
 
-    static final String mockDataUrl = "http://www.slac.stanford.edu/~meeg/hps2/meeg/mock_data/tritrig-beam-tri_1-10_readout.slcio";
+    // FIXME: Move this out of a personal web directory to a more standard location on lcsim.org.
+    //static final String mockDataUrl = "http://www.slac.stanford.edu/~meeg/hps2/meeg/mock_data/tritrig-beam-tri_1-10_readout.slcio";
+    static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/MockDataReconTest.slcio";
 
     public void setUp() {
         // Delete files if they already exist.
@@ -84,12 +84,12 @@ public class MockDataReconTest extends TestCase {
     private void runRecon() {
         
         System.out.println("caching file ...");
-        System.out.println(mockDataUrl);
+        System.out.println(fileLocation);
         
         File mockDataFile = null;
         try {
             FileCache cache = new FileCache();
-            mockDataFile = cache.getCachedFile(new URL(mockDataUrl));
+            mockDataFile = cache.getCachedFile(new URL(fileLocation));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

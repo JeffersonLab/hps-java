@@ -1,6 +1,7 @@
 package org.hps;
 
 import java.io.File;
+import java.net.URL;
 
 import junit.framework.TestCase;
 
@@ -12,6 +13,7 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
+import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
@@ -22,7 +24,8 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class MCReconTest extends TestCase {
     
     File reconOutputFile = new TestOutputFile("recon");
-    File inputFile = new File("/nfs/slac/g/hps3/data/testcase/MCReconTestInput.slcio");
+    
+    static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/MCReconTest.slcio";
     
     static final int TOTAL_CLUSTERS = 3960;        
     static final int TOTAL_TRACKER_HITS = 28691;
@@ -40,6 +43,9 @@ public class MCReconTest extends TestCase {
     static final int TOTAL_RECONSTRUCTED_PARTICLES_UPPER = TOTAL_RECONSTRUCTED_PARTICLES + TOTAL_RECONSTRUCTED_PARTICLES_DELTA;
         
     public void testMCRecon() throws Exception {
+        
+        FileCache cache = new FileCache();
+        File inputFile = cache.getCachedFile(new URL(fileLocation));
         
         System.out.println("Running MC recon on " + inputFile.getPath() + " ...");
         JobControlManager job = new JobControlManager();
