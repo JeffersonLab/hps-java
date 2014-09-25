@@ -24,7 +24,7 @@ import org.lcsim.util.loop.LCSimLoop;
 public class BeamCurrentTest extends TestCase {
 
     /** This test file has a few events from the "good runs" of the Test Run. */
-    private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
+    private static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/ConditionsTest.slcio";
 
     /** Answer key for beam current by run. */
     static Map<Integer, Double> beamCurrentAnswerKey = new HashMap<Integer, Double>();
@@ -50,7 +50,7 @@ public class BeamCurrentTest extends TestCase {
 
         // Cache file locally from URL.
         FileCache cache = new FileCache();
-        File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
+        File testFile = cache.getCachedFile(new URL(fileLocation));
 
         // Create the LCSimLoop.
         LCSimLoop loop = new LCSimLoop();

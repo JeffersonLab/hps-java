@@ -33,7 +33,7 @@ public class ConditionsDevTest extends TestCase {
                     System.out.println("Printing " + collection.getObjects().size()  + " objects in collection " + metaData.getKey() + " ...");
                     for (ConditionsObject object : collection.getObjects()) {
                         System.out.println(object.toString());
-                    }
+                    }                                        
                 }
             }
         }
