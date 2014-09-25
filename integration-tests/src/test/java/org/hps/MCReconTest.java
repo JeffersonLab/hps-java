@@ -28,7 +28,7 @@ public class MCReconTest extends TestCase {
     static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/MCReconTest.slcio";
     
     static final int TOTAL_CLUSTERS = 3960;        
-    static final int TOTAL_TRACKER_HITS = 28691;
+    static final int TOTAL_TRACKER_HITS = 28689;
     static final int TOTAL_CALORIMETER_HITS = 61924;
        
     static final long TOTAL_RECON_EVENTS = 945;

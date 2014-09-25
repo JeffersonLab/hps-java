@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +23,6 @@ import org.lcsim.job.AidaSaveDriver;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
@@ -91,10 +89,9 @@ public class EcalReadoutSimTest extends TestCase {
     static final String steeringResource = "/org/hps/steering/test/EcalReadoutSimTest.lcsim";
     static final String triggeredEventsResource = "/org/hps/test/EcalReadoutSimTest/triggered_events.txt";
     
-    // File information.    
-    //static final File inputFile = new File("/nfs/slac/g/hps3/data/testcase/ecal_readout_sim_input.slcio");
-    
-    static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/EcalReadoutSimInput.slcio";
+    // File information.        
+    //static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/EcalReadoutSimTest.slcio";
+    static final File inputFile = new File("/nfs/slac/g/hps/hps_data/hps_java_test_case_data/EcalReadoutSimTest.slcio");
     
     static final File outputDir = new File("./target/test-output/" + className);    
     static final File outputFile = new File(outputDir + File.separator + className);
@@ -138,8 +135,8 @@ public class EcalReadoutSimTest extends TestCase {
      */
     private void runEcalReadoutSim() throws Exception {
         
-        FileCache cache = new FileCache();
-        File inputFile = cache.getCachedFile(new URL(fileLocation));
+        //FileCache cache = new FileCache();
+        //File inputFile = cache.getCachedFile(new URL(fileLocation));
                          
         outputDir.mkdirs();
         if (!outputDir.exists()) {
