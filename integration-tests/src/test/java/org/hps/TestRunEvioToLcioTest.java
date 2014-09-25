@@ -17,7 +17,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class TestRunEvioToLcioTest extends TestCase {
     
-    final static String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/TestRunEvioToLcioTest.evio"; 
+    final static String fileLocation = "http://www.lcsim.org/test/hps-java/TestRunEvioToLcioTest.evio"; 
     
     public void testTestRunEvioToLcio() throws Exception {
         

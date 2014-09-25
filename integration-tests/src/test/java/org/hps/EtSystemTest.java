@@ -47,7 +47,7 @@ public class EtSystemTest extends TestCase {
     static final String loadPath = new File("../et/lib/Linux-x86_64/").getAbsoluteFile().getAbsolutePath();
     //static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_000975.evio.0";
     //static final String evioFile = "/nfs/slac/g/hps3/data/testcase/hps_000975.evio.0";
-    static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/EtSystemTest.evio";
+    static final String fileLocation = "http://www.lcsim.org/test/hps-java/EtSystemTest.evio";
     static final String classPath = System.getProperty("java.class.path");
     static final String javaPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";        
     static final String etBuffer = "ETBuffer";
