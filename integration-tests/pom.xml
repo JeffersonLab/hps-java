@@ -28,6 +28,7 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                        <exclude>org/hps/MCFilteredReconTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
