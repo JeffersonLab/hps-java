@@ -14,12 +14,7 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="HPSSVTSensorSetup"/>   
-        <!--
-        <driver name="CalibrationDriver"/>
         <driver name="TrackerDigiDriver"/> 
-        <driver name="RawTrackerHitFitterDriver" />
-        <driver name="TrackerHitDriver"/>
-        -->
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
         <driver name="LCIOWriter"/>
@@ -35,16 +30,11 @@
         </driver>
  		<driver name="HPSSVTSensorSetup" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>
         
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-        	<debug>true</debug>
-            <fitAlgorithm>Analytic</fitAlgorithm>
-            <correctT0Shift>true</correctT0Shift>
-        </driver>
-        
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-        	<debug>true</debug>
-        </driver>     
-        
+        <driver name="TrackerDigiDriver"
+                type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
+            <debug>true</debug>
+        </driver> 
+
         <driver name="HelicalTrackHitDriver"
                 type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>true</debug>
