@@ -23,6 +23,7 @@ import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
+import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
 
@@ -85,8 +86,6 @@ import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
-import org.hps.monitoring.subsys.et.EtSystemMonitor;
-import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
@@ -94,10 +93,10 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
+import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.job.JobControlManager;
 
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
@@ -345,6 +344,18 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 plotWindow.updateWindowConfiguration(new WindowConfiguration((String) value));
             } else {
                 System.err.println("ERROR: The plotWindow is null!");
+            }
+        } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
+            
+            //System.out.println("propertyChange - " + evt.getPropertyName());
+            //System.out.println("  value: " + value);
+            
+            if ((Boolean)value == true) {
+                //System.out.println("setting logToFile - " + configurationModel.getLogFileName());
+                logToFile(new File(configurationModel.getLogFileName()));
+            } else {
+                //System.out.println("setting logToTerminal");
+                logToTerminal();
             }
         }
     }
@@ -829,7 +840,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             public void run() {
                 configurationModel.setLogToFile(false);
                 
-                // FIXME: These should be toggled via a PropertyChangeListener or ActionEvent.
+                // FIXME: These should be toggled via a PropertyChangeListener on the ConfigurationModel.
                 terminalItem.setEnabled(false);
                 logItem.setEnabled(true);
             }
@@ -1566,9 +1577,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             if (file.exists()) {
                 throw new RuntimeException("Log file already exists.");
             } else {                    
-                configurationModel.setLogToFile(true);
                 try {
                     configurationModel.setLogFileName(file.getCanonicalPath());
+                    configurationModel.setLogToFile(true);
                 } catch (IOException e) {
                     errorHandler.setError(e).log().printStackTrace().showErrorDialog();
                 }
