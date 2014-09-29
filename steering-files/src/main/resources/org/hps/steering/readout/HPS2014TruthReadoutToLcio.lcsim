@@ -8,6 +8,8 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         
+        <driver name="ConditionsDriver"/>   
+
         <driver name="CalibrationDriver"/>   
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -28,8 +30,11 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <loadSvtConditions>false</loadSvtConditions>
+        </driver>
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
+            <!--            <runNumber>1351</runNumber>    -->
         </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
@@ -42,17 +47,17 @@
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
             <addNoise>true</addNoise>
-<!--            <fixedGain>0.15</fixedGain>-->
-<!--            <debug>true</debug>-->
+            <!--            <fixedGain>0.15</fixedGain>-->
+            <!--            <debug>true</debug>-->
         </driver>
 
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
-<!--            <gain>0.15</gain>-->
+            <!--            <gain>0.15</gain>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>true</use2014Gain>
-<!--            <debug>true</debug>-->
+            <!--            <debug>true</debug>-->
         </driver>	
 
         <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
@@ -71,7 +76,7 @@
         </driver>
 
         <driver name="AidaSaveDriver"
-                        type="org.lcsim.job.AidaSaveDriver">
+                type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
         </driver>
 

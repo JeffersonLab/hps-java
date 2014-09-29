@@ -32,6 +32,9 @@ import org.lcsim.util.Driver;
  * @author Sho Uemura
  */
 public class GTPEcalClusterer extends Driver {
+	Detector detector = null;
+	
+	
     /**
      * <b>calorimeter</b><br/><br/>
      * <code>private HPSEcal3 <b>calorimeter</b></code><br/><br/>
@@ -112,6 +115,9 @@ public class GTPEcalClusterer extends Driver {
      */
     @Override
     public void detectorChanged(Detector detector) {
+    	
+    	this.detector = detector;
+    	
         // Get the calorimeter object.
         calorimeter = (HPSEcal3) detector.getSubdetector(ecalName);
         
@@ -153,7 +159,9 @@ public class GTPEcalClusterer extends Driver {
             
             // Store the crystals that are part of this potential cluster, 
             // starting with the cluster seed candidate.
-            HPSEcalCluster cluster = new HPSEcalCluster(currentHit);
+            HPSEcalCluster cluster = new HPSEcalCluster();
+            cluster.setDetector(detector);
+            cluster.setSeedHit(currentHit);
             cluster.addHit(currentHit);
             
             // Get the set of neighbors for this hit.

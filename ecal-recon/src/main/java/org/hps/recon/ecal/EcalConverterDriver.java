@@ -2,9 +2,11 @@ package org.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOConstants;
 
@@ -14,6 +16,8 @@ import org.lcsim.lcio.LCIOConstants;
  * @version $Id: EcalConverterDriver.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class EcalConverterDriver extends Driver {
+	
+	Detector detector = null;
 
     String rawCollectionName;
     String ecalReadoutName = "EcalHits";
@@ -51,6 +55,11 @@ public class EcalConverterDriver extends Driver {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
     }
+    
+    @Override
+    public void detectorChanged(Detector detector) {
+    	this.detector = detector;
+    }
 
     @Override
     public void process(EventHeader event) {
@@ -77,7 +86,9 @@ public class EcalConverterDriver extends Driver {
     }
 
     private CalorimeterHit HitDtoA(RawCalorimeterHit hit) {
-        return new HPSCalorimeterHit(DtoA(hit.getAmplitude(), hit.getCellID()), period * hit.getTimeStamp() + dt, hit.getCellID(), 0);
+    	HPSCalorimeterHit h = new HPSCalorimeterHit(DtoA(hit.getAmplitude(), hit.getCellID()), period * hit.getTimeStamp() + dt, hit.getCellID(), 0);
+        h.setDetector(detector);
+    	return h;
     }
 
 //    private RawCalorimeterHit HitAtoD(CalorimeterHit hit) {

@@ -2,12 +2,16 @@ package org.hps.evio;
 
 import java.io.IOException;
 
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalConditions;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
@@ -26,9 +30,17 @@ public class TestRunReconToEvio extends Driver {
 	private int eventsWritten = 0;
 	ECalHitWriter ecalWriter = null;
 	SVTHitWriter svtWriter = null;
+	
+	Detector detector = null;
 
 	public TestRunReconToEvio() {
 	}
+	
+    @Override
+    public void detectorChanged(Detector detector) {    	
+    	// set the detector
+        this.detector = detector;
+    }
 
 	public void setEvioOutputFile(String evioOutputFile) {
 		this.evioOutputFile = evioOutputFile;
@@ -49,6 +61,7 @@ public class TestRunReconToEvio extends Driver {
 		}
 
 		ecalWriter = new ECalHitWriter();
+		ecalWriter.setDetector(detector);
 		ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
 
 		svtWriter = new SVTHitWriter();

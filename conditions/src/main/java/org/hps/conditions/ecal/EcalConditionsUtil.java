@@ -61,7 +61,7 @@ public final class EcalConditionsUtil {
      * @param cellId The cell ID of the hit.
      * @return The crate number of the channel.
      */
-    int getCrate(IIdentifierHelper helper, long cellId) {
+    public int getCrate(IIdentifierHelper helper, long cellId) {
         return findChannel(helper, cellId).getCrate();
     }
 
@@ -71,7 +71,7 @@ public final class EcalConditionsUtil {
      * @param cellId The cell ID of the hit.
      * @return The slot number of the channel.
      */
-    int getSlot(IIdentifierHelper helper, long cellId) {
+    public int getSlot(IIdentifierHelper helper, long cellId) {
         return findChannel(helper, cellId).getSlot();
     }
 

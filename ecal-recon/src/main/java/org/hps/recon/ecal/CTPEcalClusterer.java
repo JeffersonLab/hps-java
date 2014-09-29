@@ -19,6 +19,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOConstants;
 
+import org.hps.recon.ecal.HPSEcalCluster;
+
 /**
  * Creates clusters from CalorimeterHits in the HPSEcal detector.
  *
@@ -30,6 +32,8 @@ import org.lcsim.lcio.LCIOConstants;
  * @version $Id: CTPEcalClusterer.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class CTPEcalClusterer extends Driver {
+	
+	Detector detector = null;
     // The calorimeter object.
     HPSEcal3 ecal;
     IDDecoder dec;
@@ -87,6 +91,9 @@ public class CTPEcalClusterer extends Driver {
     
     @Override
     public void detectorChanged(Detector detector) {
+    	
+    	this.detector = detector;
+    	
         // Get the Subdetector.
         ecal = (HPSEcal3) detector.getSubdetector(ecalName);
         
@@ -116,6 +123,9 @@ public class CTPEcalClusterer extends Driver {
                 clusterCenters.add(cellID);
             }
         }
+        
+        System.out.println("You are using CTPEcalCluster.java with the database conditions.");
+        
     }
     
     public void process(EventHeader event) {
@@ -127,7 +137,7 @@ public class CTPEcalClusterer extends Driver {
             // Define a list of clusters to be filled.
             List<HPSEcalCluster> clusters;
             
-            // If there is a cluster window, run the clsuter window code. A cluster window is a time
+            // If there is a cluster window, run the cluster window code. A cluster window is a time
             // period in nanoseconds during which hits can be applied to the same cluster.
             if (clusterWindow >= 0) {
                 // Create priority queues. These are sorted by the time variable associated with each hit.
@@ -344,17 +354,18 @@ public class CTPEcalClusterer extends Driver {
                 }
                 
                 // Generate a new cluster seed hit from the above results.
-                CalorimeterHit seedHit = new HPSCalorimeterHit(0.0, clusterTime, possibleCluster, hits.get(0).getType());
+                HPSCalorimeterHit seedHit = new HPSCalorimeterHit(0.0, clusterTime, possibleCluster, hits.get(0).getType());               
+                seedHit.setDetector(detector);
                 seedHit.setMetaData(hits.get(0).getMetaData());
                 
                 // Generate a new cluster from the seed hit.
-                HPSEcalCluster cluster = new HPSEcalCluster(seedHit);
-                
+                HPSEcalCluster cluster = new HPSEcalCluster();
+                cluster.setDetector(detector);
+                cluster.setSeedHit(seedHit);
                 // Populate the cluster with each of the chosen neighbors.
                 for (CalorimeterHit clusterHit : hits) {
                     cluster.addHit(clusterHit);
                 }
-                
                 // Add the cluster to the cluster list.
                 clusters.add(cluster);
             }

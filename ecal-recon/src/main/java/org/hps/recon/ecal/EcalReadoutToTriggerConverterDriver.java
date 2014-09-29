@@ -3,7 +3,19 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.ConditionsDriver;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalChannel.GeometryId;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalConditionsUtil;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -17,6 +29,12 @@ import org.lcsim.util.Driver;
  */
 public class EcalReadoutToTriggerConverterDriver extends Driver {
 
+	// To import database conditions
+    static EcalConditions ecalConditions = null;
+    static IIdentifierHelper helper = null;
+    static EcalChannelCollection channels = null;
+	Detector detector = null;
+	
     String rawCollectionName = "EcalReadoutHits";
     String ecalReadoutName = "EcalHits";
     String ecalCollectionName = "EcalCalHits";
@@ -31,6 +49,7 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
     private int triggerThreshold = 80;
     private double timeShift = 0;
     private int truncateScale = 128;
+    private static boolean isBadChannelLoaded = true;
 
     public EcalReadoutToTriggerConverterDriver() {
     }
@@ -76,15 +95,30 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+    	this.detector = detector;
+    	
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        
+        // List of channels.
+        channels = ecalConditions.getChannelCollection();
+        
+        // ID helper.
+        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
+        
+        System.out.println("You are now using the database conditions for EcalReadoutToTriggerConverterDriver.");
     }
 
     public boolean isBadCrystal(CalorimeterHit hit) {
-        return EcalConditions.badChannelsLoaded() ? EcalConditions.isBadChannel(hit.getCellID()) : false;
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+    	
+        return isBadChannelLoaded ? channelData.isBadChannel() : false;
     }
 
     public boolean isBadFADC(CalorimeterHit hit) {
-        long daqID = EcalConditions.physicalToDaqID(hit.getCellID());
-        return (EcalConditions.getCrate(daqID) == 1 && EcalConditions.getSlot(daqID) == 3);
+        return (getCrate(hit.getCellID()) == 1 && getSlot(hit.getCellID()) == 3);
     }
 
     @Override
@@ -112,8 +146,12 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
     }
 
     public CalorimeterHit HitDtoA(BaseRawCalorimeterHit hit, int window) {
+    	
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+    	
         double integral = tp * Math.E / readoutPeriod;
-        double readoutIntegral = (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(hit.getCellID()));
+        double readoutIntegral = (hit.getAmplitude() - window * channelData.getCalibration().getPedestal());
         double amplitude = readoutIntegral / integral;
 
 //        double time = readoutPeriod * (Math.random() - 1);
@@ -168,7 +206,8 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
         if (truncatedIntegral <= 0) {
             truncatedIntegral = 0;
         }
-        CalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hitTime, id, 0);
+        HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hitTime, id, 0);
+        h.setDetector(detector);
 //        CalorimeterHit h = new HPSRawCalorimeterHit(triggerIntegral + 0.0000001, hit.getPosition(), hitTime, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;
@@ -188,4 +227,52 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
             }
         }
     }
+
+    /** 
+     * Convert physical ID to gain value.
+     * @param cellID (long)
+     * @return channel constants (EcalChannelConstants)
+     */
+    private static EcalChannelConstants findChannel(long cellID) {
+        // Make an ID object from raw hit ID.
+        IIdentifier id = new Identifier(cellID);
+        
+        // Get physical field values.
+        int system = helper.getValue(id, "system");
+        int x = helper.getValue(id, "ix");
+        int y = helper.getValue(id, "iy");
+        
+        // Create an ID to search for in channel collection.
+        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
+                
+        // Get the channel data.
+        return ecalConditions.getChannelConstants(channels.findChannel(geometryId));    
+    }  
+    
+    /**
+     * Return crate number from cellID
+     * @param cellID (long)
+     * @return Crate number (int)
+     */
+    private int getCrate(long cellID) {
+        
+        EcalConditionsUtil util = new EcalConditionsUtil();
+
+        // Find the ECAL channel and return the crate number.
+        return util.getCrate(helper, cellID);
+    }
+    
+    /**
+     * Return slot number from cellID
+     * @param cellID (long)
+     * @return Slot number (int)
+     */
+    private int getSlot(long cellID) {
+        EcalConditionsUtil util = new EcalConditionsUtil();
+
+        // Find the ECAL channel and return the crate number.
+        return util.getSlot(helper, cellID);         
+    }
+    
+    
 }

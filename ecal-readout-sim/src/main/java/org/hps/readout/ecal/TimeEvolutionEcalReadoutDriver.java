@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.geometry.Detector;
 
 /**
  * Performs readout of ECal hits.
@@ -16,12 +17,19 @@ import org.lcsim.event.CalorimeterHit;
  */
 public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit> {
 
+	Detector detector = null;
+	
     //buffer for deposited energy
     Map<Long, RingBuffer> eDepMap = null;
     //length of ring buffer (in readout cycles)
     int bufferLength = 20;
     //shaper time constant in ns; negative values generate square pulses of the given width
     double t0 = 18.0;
+    
+    @Override
+    public void detectorChanged(Detector detector) {
+    	this.detector = detector;
+    }
 
     public TimeEvolutionEcalReadoutDriver() {
 		hitClass = HPSCalorimeterHit.class;
@@ -45,7 +53,9 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorim
 //                int iy = dec.getValue("iy");
 //                if (iy == 1 && ix == -2)
 //                    System.out.printf("Time %f, output signal %f\n", ClockSingleton.getTime(), eDepBuffer.currentValue());
-                hits.add(new HPSCalorimeterHit(eDepBuffer.currentValue(), readoutTime(), cellID, hitType));
+            	HPSCalorimeterHit h = new HPSCalorimeterHit(eDepBuffer.currentValue(), readoutTime(), cellID, hitType);
+            	h.setDetector(detector);
+            	hits.add(h);
             }
             eDepBuffer.step();
         }

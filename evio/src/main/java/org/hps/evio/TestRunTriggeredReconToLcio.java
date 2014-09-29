@@ -18,6 +18,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
@@ -60,9 +61,17 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     static final String trackerCollectionName = "TrackerHits";
     private String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
+    Detector detector = null;
 
     public TestRunTriggeredReconToLcio() {
         setTriggerDelay(0);
+    }
+    
+    @Override
+    public void detectorChanged(Detector detector) {    	
+    	// set the detector
+        this.detector = detector;
+        ecalWriter.setDetector(detector);
     }
 
     public void setEcalMode(int ecalMode) {

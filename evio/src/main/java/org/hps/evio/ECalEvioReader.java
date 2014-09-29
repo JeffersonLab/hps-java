@@ -3,18 +3,32 @@ package org.hps.evio;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ConditionsDriver;
+import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalChannel.DaqId;
+import org.hps.conditions.ecal.EcalChannel.GeometryId;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalConditionsUtil;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
+//import org.hps.conditions.deprecated.EcalConditions;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
-import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
+import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
@@ -27,9 +41,35 @@ public class ECalEvioReader extends EvioReader {
 
     private int bankTag = EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG;
     private Class hitClass = BaseRawCalorimeterHit.class;
+    
+    // FIXME: Hard-coded detector names.
+    private static String readoutName = "EcalHits";
+    private static String subdetectorName = "Ecal";
+    Detector detector;
+    Subdetector subDetector;
+    
+    static EcalConditions ecalConditions = null;
+    static IIdentifierHelper helper = null;
+    static EcalChannelCollection channels = null; 
 
     public ECalEvioReader() {
         hitCollectionName = "EcalReadoutHits";
+        
+        detector = DatabaseConditionsManager.getInstance().getDetectorObject();
+        subDetector = detector.getSubdetector(subdetectorName);
+        
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        
+        // List of channels.
+        channels = ecalConditions.getChannelCollection();
+        
+        helper = subDetector.getDetectorElement().getIdentifierHelper();
+        
+        System.out.println("You are now using the database conditions for ECalEvioReader.java");
+        // ID helper.
+//        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
     }
 
     @Override
@@ -91,7 +131,7 @@ public class ECalEvioReader extends EvioReader {
                 }
             }
         }
-        String readoutName = EcalConditions.getSubdetector().getReadout().getName();
+//        String readoutName = ;
         lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
 //        for (Object hit : hits) {
 //            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
@@ -126,21 +166,43 @@ public class ECalEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; nSamples=" + nSamples);
                 }
-                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
 
+                
+                 long id = daqToGeometryId(crate, slot, channel);
+//                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
+
+                 System.out.println("The long id is: " + id);
+                 
                 short[] adcValues = new short[nSamples];
                 for (int i = 0; i < nSamples; i++) {
                     adcValues[i] = cdata.getShort();
                 }
-                if (id == null) {
-                    System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
-                } else {
-                    hits.add(new BaseRawTrackerHit(0, id, adcValues, new ArrayList<SimTrackerHit>(), EcalConditions.getSubdetector().getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
-                }
+//                if (id == null) {
+//                    System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
+//                } else {
+                    hits.add(new BaseRawTrackerHit(
+                    		0, 
+                    		id, 
+                    		adcValues, 
+                    		new ArrayList<SimTrackerHit>(), 
+                    		subDetector
+                    		    .getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
+//                }
             }
         }
         return hits;
     }
+
+	private long daqToGeometryId(int crate, short slot, short channel) {
+		DaqId daqId = new DaqId(new int[]{crate,slot,channel});
+		 EcalChannel ecalChannel = channels.findChannel(daqId);
+		 if(ecalChannel == null) throw new RuntimeException("Daq Id not found.");
+		 int ix = ecalChannel.getX();
+		 int iy = ecalChannel.getY();
+		 GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(),ix,iy});
+		 long id = geometryId.encode();
+		return id;
+	}
 
     private List<BaseRawTrackerHit> makePulseHits(CompositeData cdata, int crate) {
         List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
@@ -168,7 +230,7 @@ public class ECalEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
-                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
+                Long id = daqToGeometryId(crate, slot, channel);
                 for (int k = 0; k < npulses; k++) {
                     short pulseNum = cdata.getByte();
                     int sampleCount = cdata.getNValue();
@@ -179,7 +241,7 @@ public class ECalEvioReader extends EvioReader {
                     if (id == null) {
                         System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
                     } else {
-                        hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), EcalConditions.getSubdetector().getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
+                        hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
                     }
                 }
             }
@@ -213,7 +275,7 @@ public class ECalEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
-                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
+                Long id = daqToGeometryId(crate, slot, channel);
 
                 for (int k = 0; k < npulses; k++) {
                     short pulseTime = cdata.getShort();

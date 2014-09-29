@@ -5,7 +5,18 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.ConditionsDriver;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalChannel.DaqId;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalChannel.GeometryId;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalConditionsUtil;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -18,6 +29,13 @@ import org.lcsim.util.Driver;
  */
 public class EcalTriggerFilterDriver extends Driver {
 
+	// To import database conditions
+    static EcalConditions ecalConditions = null;
+    static IIdentifierHelper helper = null;
+    static EcalChannelCollection channels = null;
+    int systemId;
+    Detector detector = null;
+    
     private String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalReadoutHits";
     private String outputCollection = "EcalCalHits";
@@ -55,6 +73,22 @@ public class EcalTriggerFilterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+    	
+    	this.detector = detector;
+    	
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        
+        // List of channels.
+        channels = ecalConditions.getChannelCollection();
+        
+        // ID helper.
+        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
+
+        systemId = detector.getSubdetector("Ecal").getSystemID();
+        
+        System.out.println("You are now using the database conditions for EcalTriggerFilterDriver.");
     }
 
     @Override
@@ -85,15 +119,19 @@ public class EcalTriggerFilterDriver extends Driver {
         }
     }
 
+    /**
+     * This method takes input hits and makes new hits with different ix
+     * @param CalorimeterHit hit
+     * @return new HPSCalorimeterHit
+     */
     private CalorimeterHit filterHit(CalorimeterHit hit) {
         int ix = hit.getIdentifierFieldValue("ix");
         int iy = hit.getIdentifierFieldValue("iy");
-        long daqID = EcalConditions.physicalToDaqID(hit.getCellID());
-        int crate = EcalConditions.getCrate(daqID);
-        short slot = EcalConditions.getSlot(daqID);
-        short channel = EcalConditions.getChannel(daqID);
+        int crate = getCrate(hit.getCellID());
+        int slot = getSlot(hit.getCellID());
 
-        int delay = iy>0?topDelay:bottomDelay;
+        int delay = iy>0?topDelay:bottomDelay;  
+        
         // no triggers from crate 1, slot 3 
         if (crate == 1 && slot == 3) {
             return null;
@@ -103,8 +141,43 @@ public class EcalTriggerFilterDriver extends Driver {
         if (ix > 0 && iy > 0) {
             ix = 24 - ix;
         }
-        long newID = EcalConditions.makePhysicalID(ix, iy);
+     
+        int values[] = {systemId, ix, iy};
+        GeometryId geomId = new GeometryId(helper, values);       
+        // Creating the new channel from cell id, ix and iy, then reading its ID       
+        long newID = geomId.encode();      
+        
         //make new hit; set position to null so it gets recalculated
-        return new HPSCalorimeterHit(hit.getRawEnergy(), hit.getTime()+delay*4, newID, hit.getType());
+        HPSCalorimeterHit h = new HPSCalorimeterHit(hit.getRawEnergy(), hit.getTime()+delay*4, newID, hit.getType());
+        h.setDetector(detector);
+        return h;
     }
+    
+    /**
+     * Return crate number from cellID
+     * @param cellID (long)
+     * @return Crate number (int)
+     */
+    private int getCrate(long cellID) {
+        
+        EcalConditionsUtil util = new EcalConditionsUtil();
+
+        // Find the ECAL channel and return the crate number.
+        return util.getCrate(helper, cellID);
+    }
+    
+    /**
+     * Return slot number from cellID
+     * @param cellID (long)
+     * @return Slot number (int)
+     */
+    private int getSlot(long cellID) {
+        EcalConditionsUtil util = new EcalConditionsUtil();
+
+        // Find the ECAL channel and return the crate number.
+        return util.getSlot(helper, cellID);         
+    } 
+ 
+    
+    
 }

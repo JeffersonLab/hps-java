@@ -3,12 +3,20 @@ package org.hps.recon.ecal;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.util.List;
+
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.IGeometryInfo;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
+import org.lcsim.geometry.Detector;
 
 /**
  * Cluster with position defined by seed hit (for 1-bit trigger)
@@ -17,6 +25,11 @@ import org.lcsim.event.base.BaseCluster;
  * @version $Id: HPSEcalCluster.java,v 1.11 2013/02/25 22:39:24 meeg Exp $
  */
 public class HPSEcalCluster extends BaseCluster {
+	
+    Detector detector = null;    
+    static EcalConditions ecalConditions = null;
+    static IIdentifierHelper helper = null;
+    static EcalChannelCollection channels = null;
 
     private CalorimeterHit seedHit = null;
     private long cellID;
@@ -27,16 +40,37 @@ public class HPSEcalCluster extends BaseCluster {
     private boolean needsElectronPosCalculation = true;
     double[] photonPosAtDepth = new double[3];
     private boolean needsPhotonPosCalculation = true;
+
+    /** 
+     * After the declaration, yourHPSEcalCluster.setDetector(detector) must be called
+     * @param cellID (long)
+     */
+    public HPSEcalCluster() {
+    }    
     
+    /** 
+     * After the declaration, yourHPSEcalCluster.setDetector(detector) must be called
+     * @param cellID (long)
+     */
     public HPSEcalCluster(Long cellID) {
         this.cellID = cellID;
     }
 
-    public HPSEcalCluster(CalorimeterHit seedHit) {
+    /** 
+     * Before using this method yourHPSEcalCluster.setDetector(detector) must be called
+     * @param CalorimeterHit
+     */ 
+    public void setSeedHit(CalorimeterHit seedHit) {
         this.seedHit = seedHit;
+        ((HPSCalorimeterHit) seedHit).setDetector(detector);
         this.cellID = seedHit.getCellID();
     }
 
+    /**
+     * 
+     * @param 
+     * @return CalorimeterHit
+     */
     public CalorimeterHit getSeedHit() {
         if (seedHit == null) {
             CalorimeterHit hit = hits.get(0);
@@ -44,16 +78,25 @@ public class HPSEcalCluster extends BaseCluster {
                 throw new RuntimeException("HPSEcalCluster has no hits");
             }
             seedHit = new HPSCalorimeterHit(0.0, 0.0, cellID, hit.getType());
+//            seedHit.setDetector(detector);
             seedHit.setMetaData(hit.getMetaData());
         }
         return seedHit;
+    }
+    
+    /** 
+     * Must be set when an object HPSEcalCluster is created.
+     * @param detector (long)
+     */
+    public void setDetector(Detector detector) {
+        this.detector = detector;
     }
     
     /**
      * Find highest-energy hit in a cluster. For clusters made by GTPEcalClusterer, HPSEcalCluster.getSeedHit(cluster) should be equivalent to cluster.getSeedHit().
      * Since this method doesn't require that the cluster be an HPSEcalCluster, it will work on clusters read from LCIO.
      * @param cluster
-     * @return
+     * @return CalorimeterHit
      */
     public static CalorimeterHit getSeedHit(Cluster cluster) {
         CalorimeterHit seedHit = null;

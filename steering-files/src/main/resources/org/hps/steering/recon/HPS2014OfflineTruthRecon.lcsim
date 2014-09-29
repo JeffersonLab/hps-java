@@ -7,6 +7,9 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
+
+        <driver name="ConditionsDriver"/>   
+
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -25,21 +28,27 @@
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
             <!--            <runNumber>${runNumber}</runNumber>-->
         </driver>   
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <loadSvtConditions>false</loadSvtConditions>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Analytic</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>true</useTruthTime>
             <subtractTOF>true</subtractTOF>
+            <debug>false</debug>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>16.0</clusterTimeCut>
+            <clusterTimeCut>12.0</clusterTimeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>

@@ -27,12 +27,15 @@ public class HPSEcalClusterIC extends BaseCluster {
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>(); 
     
     
+    
+    
     static final double eCriticalW = 800.0*ECalUtils.MeV/(74+1);
     static final double radLenW = 8.8; //mm
     double[] electronPosAtDepth = new double[3];
     private boolean needsElectronPosCalculation = true;
     double[] photonPosAtDepth = new double[3];
     private boolean needsPhotonPosCalculation = true;
+    double[] positionCorrection = new double[2];
     
     public HPSEcalClusterIC(Long cellID) {
         this.cellID = cellID;
@@ -59,9 +62,16 @@ public class HPSEcalClusterIC extends BaseCluster {
     	sharedHitList.add(sharedHit);
     }
     
+    
+    
     public List<CalorimeterHit> getSharedHits() {
     	return sharedHitList;
     }
+    
+    public void addPositionCorr(Double[] posCorr) {
+    	this.addPositionCorr(posCorr);
+    }
+    
     
 //    public double[] getPosition() {
 //        return getSeedHit().getPosition();

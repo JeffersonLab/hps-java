@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.geometry.Detector;
 
 /**
  * Performs readout of ECal hits.
@@ -17,11 +18,20 @@ import org.lcsim.event.CalorimeterHit;
 public class SimpleEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit> {
     //buffer for deposited energy
     Map<Long, Double> eDepMap = null;
+    
+    Detector detector = null;
+    
+    HPSCalorimeterHit h = null;
 
 	public SimpleEcalReadoutDriver() {
 		hitClass = HPSCalorimeterHit.class;
 	}
 
+    @Override
+    public void detectorChanged(Detector detector) {
+    	this.detector = detector;
+    }
+	
     @Override
     protected void readHits(List<HPSCalorimeterHit> hits) {
         for (Long cellID : eDepMap.keySet()) {
@@ -32,7 +42,9 @@ public class SimpleEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit
 //            if (iy == 1 && ix*side >= -10 && ix*side <= -2)
 //                continue;
             if (eDepMap.get(cellID) > threshold)
-                hits.add(new HPSCalorimeterHit(eDepMap.get(cellID), readoutTime(), cellID, hitType));
+            	h = new HPSCalorimeterHit(eDepMap.get(cellID), readoutTime(), cellID, hitType); 
+                h.setDetector(detector);
+                hits.add(h);
         }
         //reset hit integration
         eDepMap = new HashMap<Long, Double>();
