@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Backing model for run information that shows in the {@link org.hps.monitoring.gui.RunPanel}.
  */
-public class RunModel extends AbstractModel {
+public final class RunModel extends AbstractModel {
     
     public final static String RUN_NUMBER_PROPERTY = "RunNumber"; 
     public final static String START_DATE_PROPERTY = "StartDate";

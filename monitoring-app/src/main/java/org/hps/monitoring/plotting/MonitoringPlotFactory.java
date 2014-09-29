@@ -2,6 +2,7 @@ package org.hps.monitoring.plotting;
 
 import hep.aida.IPlotter;
 import hep.aida.jfree.plotter.PlotterFactory;
+import hep.aida.jfree.plotter.PlotterRegionListener;
 import hep.aida.ref.plotter.PlotterUtilities;
 
 import java.awt.BorderLayout;
@@ -31,18 +32,22 @@ public class MonitoringPlotFactory extends PlotterFactory {
 
     // Root pane where this factory's top-level tab will be inserted.
     private static JTabbedPane rootPane = null;
+    
+    private static PlotterRegionListener regionListener;
+    
+    public static void setPlotterRegionListener(PlotterRegionListener regionListener) {
+        MonitoringPlotFactory.regionListener = regionListener;
+    }
 
     /**
      * Class constructor.
      */
     MonitoringPlotFactory() {
-        super();
-        
-        // Enable embedded mode.
+        super();        
         setEmbedded(true);
-
-        // Setup the root pane by adding an (unlabeled!) tab for this factory.
         setupRootPane("  ");
+        if (regionListener != null)
+            addPlotterRegionListener(regionListener);
     }
 
     /**
@@ -52,10 +57,10 @@ public class MonitoringPlotFactory extends PlotterFactory {
     MonitoringPlotFactory(String name) {
         super();
         this.name = name;
-        
         setEmbedded(true);
-        
         setupRootPane(name);
+        if (regionListener != null)
+            addPlotterRegionListener(regionListener);
     }
 
     private void setupRootPane(String name) {

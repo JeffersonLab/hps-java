@@ -34,6 +34,10 @@ public abstract class AbstractModel {
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         if (listenersEnabled)
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        //System.out.println("firePropertyChange");
+        //System.out.println("  name: " + propertyName);
+        //System.out.println("  old value: " + oldValue);
+        //System.out.println("  new value: " + newValue);
     }
     
     protected void firePropertyChange(PropertyChangeEvent evt) {
@@ -56,7 +60,14 @@ public abstract class AbstractModel {
                 }
             }
             try {
-                Object value = getMethod.invoke(this, (Object[])null);
+                Object value = null;
+                try {
+                    value = getMethod.invoke(this, (Object[])null);
+                } catch (NullPointerException e) {
+                    throw new RuntimeException("No get method exists for property: " + property, e);
+                }
+                // Is the value non-null?  
+                // (Null values are actually okay.  It just means the property is not set.)
                 if (value != null) {
                     firePropertyChange(property, value, value);                    
                     for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {

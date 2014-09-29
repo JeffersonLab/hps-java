@@ -1,9 +1,9 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <execute>
-        <driver name="EcalMonitoringTestDriver"/>
+        <driver name="DummyErrorDriver"/>
     </execute>   
     <drivers>
-        <driver name="EcalMonitoringTestDriver" type="org.hps.monitoring.drivers.ecal.EcalMonitoringTestDriver" />
+        <driver name="DummyErrorDriver" type="org.hps.monitoring.drivers.test.DummyErrorDriver"/>
     </drivers>
 </lcsim>

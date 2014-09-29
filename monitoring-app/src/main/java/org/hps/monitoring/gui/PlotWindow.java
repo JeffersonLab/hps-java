@@ -6,14 +6,14 @@ import javax.swing.JTabbedPane;
 /**
  * A <code>JFrame</code> where monitoring plots will show in tabs.
  */
-class PlotFrame extends JFrame {
+class PlotWindow extends ApplicationWindow {
     
     private JTabbedPane plotPane;
     
-    PlotFrame() {
+    PlotWindow() {
+        super("Monitoring Plots");
         plotPane = new JTabbedPane();
         setContentPane(plotPane);
-        setTitle("Monitoring Plots");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setResizable(true);
         pack();           

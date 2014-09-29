@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
@@ -28,6 +29,7 @@ public class TrackingResiduals extends DataQualityMonitor {
     // Collection Names
     String trackTimeDataCollectionName = "TrackTimeData";
     String trackResidualsCollectionName = "TrackResiduals";
+    String gblStripClusterDataCollectionName = "GBLStripClusterData";
 
     int nEvents = 0;
 
@@ -35,6 +37,7 @@ public class TrackingResiduals extends DataQualityMonitor {
     String[] trackingQuantNames = {};
     int nmodules = 6;
     private String posresDir = "PostionResiduals/";
+    private String uresDir = "UResiduals/";
     private String timeresDir = "TimeResiduals/";
     private Map<String, Double> xposTopMeanResidMap;
     private Map<String, Double> yposTopMeanResidMap;
@@ -52,15 +55,17 @@ public class TrackingResiduals extends DataQualityMonitor {
 
         aida.tree().cd("/");
         resetOccupancyMap();
-        for (int i = 0; i < nmodules; i++) {
-            IHistogram1D xresid = aida.histogram1D(plotDir + posresDir + "Module " + i + "Top x Residual", 50,-getRange(i,true),getRange(i,true));
-            IHistogram1D yresid = aida.histogram1D(plotDir + posresDir + "Module " + i + "Top y Residual", 50,-getRange(i,false),getRange(i,false));
-            IHistogram1D xresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot x Residual", 50,-getRange(i,true),getRange(i,true));
-            IHistogram1D yresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot y Residual", 50,-getRange(i,false),getRange(i,false));
+        for (int i = 1; i <= nmodules; i++) {
+            IHistogram1D xresid = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
+            IHistogram1D yresid = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
+            IHistogram1D xresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
+            IHistogram1D yresidbot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
         }
 
-        for (int i = 0; i < nmodules * 2; i++) {
+        for (int i = 1; i <= nmodules * 2; i++) {
             IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual", 50, -20, 20);
+            IHistogram1D utopresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
+            IHistogram1D ubotresid = aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual", 50, -getRange((i + 1) / 2, false), getRange((i + 1) / 2, false));
         }
     }
 
@@ -76,22 +81,38 @@ public class TrackingResiduals extends DataQualityMonitor {
         for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
             int isBot = trd.getIntVal(trd.getNInt() - 1);//last Int is the top/bottom flag
-            for (int i = 0; i < nResid; i++)
-                if (isBot == 1) {
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot x Residual").fill(trd.getDoubleVal(i));//x is the double value in the generic object
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot y Residual").fill(trd.getFloatVal(i));//y is the float value in the generic object
-                } else {
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + "Top x Residual").fill(trd.getDoubleVal(i));//x is the double value in the generic object
-                    aida.histogram1D(plotDir + posresDir + "Module " + i + "Top y Residual").fill(trd.getFloatVal(i));//y is the float value in the generic object                    
-                }
+            for (int i = 1; i <= nResid; i++)
 
+                if (isBot == 1) {
+                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
+                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object
+                } else {
+                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
+                    aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object                    
+                }
         }
 
         List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
         for (GenericObject ttd : ttdList) {
             int nResid = ttd.getNDouble();
-            for (int i = 0; i < nResid; i++)
-                aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i));//x is the double value in the generic object               
+            for (int i = 1; i <= nResid; i++)
+                aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual").fill(ttd.getDoubleVal(i - 1));//x is the double value in the generic object               
+        }
+        if (!event.hasCollection(GenericObject.class, gblStripClusterDataCollectionName))
+            return;
+        List<GenericObject> gblSCDList = event.get(GenericObject.class, gblStripClusterDataCollectionName);
+        for (GenericObject gblSCD : gblSCDList) {
+            double umeas = gblSCD.getDoubleVal(15);//TODO:  implement generic methods into GBLStripClusterData so this isn't hard coded
+            double utrk = gblSCD.getDoubleVal(16);//implement generic methods into GBLStripClusterData so this isn't hard coded
+            double resid = umeas - utrk;
+            double tanlambda = gblSCD.getDoubleVal(21);//use the slope as a proxy for the top/bottom half of tracker
+
+            int i = gblSCD.getIntVal(0);//implement generic methods into GBLStripClusterData so this isn't hard coded
+            if (tanlambda > 0)
+                aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Top u Residual").fill(resid);//x is the double value in the generic object                 
+            else
+                aida.histogram1D(plotDir + uresDir + "HalfModule " + i + " Bot u Residual").fill(resid);//x is the double value in the generic object                 
+
         }
     }
 
@@ -129,11 +150,11 @@ public class TrackingResiduals extends DataQualityMonitor {
         int irXBot = 0;
         int irYTop = 0;
         int irYBot = 0;
-        for (int i = 0; i < nmodules; i++) {
-            IHistogram1D xresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + "Top x Residual");
-            IHistogram1D yresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + "Top y Residual");
-            IHistogram1D xresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot x Residual");
-            IHistogram1D yresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + "Bot y Residual");
+        for (int i = 1; i <= nmodules; i++) {
+            IHistogram1D xresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top x Residual");
+            IHistogram1D yresidTop = aida.histogram1D(plotDir + posresDir + "Module " + i + " Top y Residual");
+            IHistogram1D xresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot x Residual");
+            IHistogram1D yresidBot = aida.histogram1D(plotDir + posresDir + "Module " + i + " Bot y Residual");
             IFitResult xresultTop = fitGaussian(xresidTop, fitter, "range=\"(-1.0,1.0)\"");
             IFitResult yresultTop = fitGaussian(yresidTop, fitter, "range=\"(-0.5,0.5)\"");
             IFitResult xresultBot = fitGaussian(xresidBot, fitter, "range=\"(-1.0,1.0)\"");
@@ -168,7 +189,7 @@ public class TrackingResiduals extends DataQualityMonitor {
 
         }
         int iTime = 0;
-        for (int i = 0; i < nmodules * 2; i++) {
+        for (int i = 1; i <= nmodules * 2; i++) {
             IHistogram1D tresid = aida.histogram1D(plotDir + timeresDir + "HalfModule " + i + " t Residual");
             IFitResult tresult = fitGaussian(tresid, fitter, "range=\"(-15.0,15.0)\"");
             double[] parsTime = tresult.fittedParameters();
@@ -208,7 +229,6 @@ public class TrackingResiduals extends DataQualityMonitor {
                 Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }
 
     private String getQuantityName(int itype, int iquant, int top, int nlayer) {
@@ -311,8 +331,8 @@ public class TrackingResiduals extends DataQualityMonitor {
     }
 
     IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
-         double[] init = {20.0, 0.0, 0.2};  
-        return fitter.fit(h1d, "g", init,range);
+        double[] init = {20.0, 0.0, 0.2};
+        return fitter.fit(h1d, "g", init, range);
 //        double[] init = {20.0, 0.0, 1.0, 20, -1};
 //        return fitter.fit(h1d, "g+p1", init, range);
     }
@@ -320,30 +340,30 @@ public class TrackingResiduals extends DataQualityMonitor {
     private double getRange(int layer, boolean isX) {
         double range = 2.5;
         if (isX) {
-            if (layer == 0)
-                return 0.5;
             if (layer == 1)
                 return 0.5;
             if (layer == 2)
                 return 0.5;
             if (layer == 3)
-                return 1.0;
+                return 0.5;
             if (layer == 4)
                 return 1.0;
             if (layer == 5)
+                return 1.0;
+            if (layer == 6)
                 return 1.0;
         } else {
-            if (layer == 0)
-                return 0.005;
             if (layer == 1)
-                return 0.5;
+                return 0.005;
             if (layer == 2)
                 return 0.5;
             if (layer == 3)
-                return 1.0;
+                return 0.5;
             if (layer == 4)
                 return 1.0;
             if (layer == 5)
+                return 1.0;
+            if (layer == 6)
                 return 1.5;
         }
         return range;

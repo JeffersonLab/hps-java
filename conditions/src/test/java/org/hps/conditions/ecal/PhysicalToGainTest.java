@@ -29,14 +29,14 @@ import org.lcsim.util.loop.LCSimLoop;
 public class PhysicalToGainTest extends TestCase {
 
     // This test file has a few events from each of the "good runs" of the 2012 Test Run.
-    private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
+    private static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/ConditionsTest.slcio";
 
     // Run the test.
     public void test() throws Exception {
 
         // Cache a data file from the www.
         FileCache cache = new FileCache();
-        File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
+        File testFile = cache.getCachedFile(new URL(fileLocation));
 
         // Create the record loop.
         LCSimLoop loop = new LCSimLoop();

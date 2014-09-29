@@ -1,6 +1,7 @@
 package org.hps.monitoring.gui;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -11,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -248,7 +250,7 @@ abstract class AbstractFieldsPanel extends JPanel
         ++currY;
         return button;
     }
-    
+        
     /**
      * Add an ActionListener to this component.  By default this does nothing, but 
      * individual sub-components should attach this to individual components.

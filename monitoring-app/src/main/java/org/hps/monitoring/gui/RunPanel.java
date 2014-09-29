@@ -38,7 +38,7 @@ import org.jlab.coda.jevio.EvioEvent;
 // TODO: Add event sequence number from CompositeRecord.
 // TODO: Add average data rate field (over entire session).
 // TODO: Add average proc time per event field (over entire session).
-public class RunPanel extends JPanel implements PropertyChangeListener {
+class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
     DatePanel startDateField = new DatePanel("Run Start", "", 16, false); 

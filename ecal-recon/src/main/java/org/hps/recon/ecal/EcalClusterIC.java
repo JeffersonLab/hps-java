@@ -491,7 +491,6 @@ public class EcalClusterIC extends Driver {
         Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
         
         //Distribute common hit energies with clusters
-        
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
         	CalorimeterHit commonCell = entry1.getKey();
         	CalorimeterHit seedA = entry1.getValue().get(0);

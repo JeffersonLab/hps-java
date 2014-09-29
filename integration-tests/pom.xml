@@ -27,19 +27,37 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/GenerateEcalReadoutSimData.java</exclude>
+                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                        <exclude>org/hps/MCFilteredReconTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
-        </plugins>            
+        </plugins>
     </build>
-    <profiles>
+     <profiles>
         <profile>
-            <id>non-slac</id>
+            <id>no-integration-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>  
+        <profile>
+            <id>no-slac-nfs</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
                 <file>
-                    <missing>/nfs/slac/g/hps3/</missing>
+                    <missing>/nfs/slac/g/hps/</missing>
                 </file>
             </activation>
             <build>
@@ -50,12 +68,11 @@
                         <configuration>
                             <excludes>
                                 <exclude>org/hps/EcalReadoutSimTest.java</exclude>
-                                <exclude>org/hps/EtSystemTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
-                </plugins>            
-            </build>
-        </profile>    
+                </plugins>
+            </build>        
+        </profile>  
     </profiles>    
 </project>

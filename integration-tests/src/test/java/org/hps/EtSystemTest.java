@@ -4,11 +4,13 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.hps.record.evio.EvioFileProducer;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtEvent;
@@ -25,8 +27,7 @@ import org.jlab.coda.et.exception.EtEmptyException;
 import org.jlab.coda.et.exception.EtException;
 import org.jlab.coda.et.exception.EtTimeoutException;
 import org.jlab.coda.et.exception.EtWakeUpException;
-
-import org.hps.record.evio.EvioFileProducer;
+import org.lcsim.util.cache.FileCache;
 
 /**
  * <p>
@@ -45,7 +46,8 @@ public class EtSystemTest extends TestCase {
 
     static final String loadPath = new File("../et/lib/Linux-x86_64/").getAbsoluteFile().getAbsolutePath();
     //static final String evioFile = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_000975.evio.0";
-    static final String evioFile = "/nfs/slac/g/hps3/data/testcase/hps_000975.evio.0";
+    //static final String evioFile = "/nfs/slac/g/hps3/data/testcase/hps_000975.evio.0";
+    static final String fileLocation = "http://www.lcsim.org/test/hps-java/EtSystemTest.evio";
     static final String classPath = System.getProperty("java.class.path");
     static final String javaPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";        
     static final String etBuffer = "ETBuffer";
@@ -60,8 +62,11 @@ public class EtSystemTest extends TestCase {
      * file onto the ring.  Each of these tasks is done on a separate operating system
      * process.
      */
-    public void testEtSystem() {
+    public void testEtSystem() throws Exception {
         
+        FileCache cache = new FileCache();
+        File inputFile = cache.getCachedFile(new URL(fileLocation));
+                
         // Add shutdown hook to cleanup processes in case test case is interrupted.
         Runtime.getRuntime().addShutdownHook(new ProcessCleanupThread());
                         
@@ -89,7 +94,7 @@ public class EtSystemTest extends TestCase {
         processes.add(etStationProcess);
         
         // Start the file producer.
-        Process fileProducerProcess = execFileProducer();
+        Process fileProducerProcess = execFileProducer(inputFile);
         processes.add(fileProducerProcess);
                 
         // Wait for the file producer to finish.
@@ -154,7 +159,7 @@ public class EtSystemTest extends TestCase {
      * Execute the EVIO file producer process.
      * @return The <tt>Process</tt> that was created by <tt>ProcessBuilder</tt>.
      */
-    Process execFileProducer() {        
+    Process execFileProducer(File file) {        
         
         ProcessBuilder processBuilder = new ProcessBuilder(
                 javaPath,
@@ -163,7 +168,7 @@ public class EtSystemTest extends TestCase {
                 classPath,                
                 EvioFileProducer.class.getName(),                
                 "-e",
-                evioFile,
+                file.getPath(),
                 "-f",
                 etBuffer,
                 "-host",

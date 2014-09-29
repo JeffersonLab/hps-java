@@ -10,12 +10,12 @@ import javax.swing.SwingUtilities;
 /**
  * <p>
  * An error handling class which is able to do any of the following,
- * depending on what the caller wants to do with the error.
+ * depending on how the users wants to handle the error.
  * </p>
  * <ul>
  * <li>Print a message</li>
  * <li>Print the stack trace</li>
- * <li>Log to a Logger</li>
+ * <li>Log message to a Logger</li>
  * <li>Show an error dialog</li>
  * <li>Raise an exception</li>
  * <li>Exit the application</li>
@@ -23,8 +23,7 @@ import javax.swing.SwingUtilities;
  * </p>
  * It mostly uses the "builder" pattern so that the various handling methods
  * can be easily chained, where appropriate.  Some methods are not available
- * for chaining when it doesn't make sense, e.g. popping up a dialog should
- * happen last so this is not chainable.
+ * for chaining when it doesn't make sense.
  * </p>
  */
 class ErrorHandler {

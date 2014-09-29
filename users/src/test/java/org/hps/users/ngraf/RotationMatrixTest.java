@@ -42,8 +42,8 @@ public class RotationMatrixTest extends TestCase
         Vector3D axisZ = new Vector3D(0., 0., 1.);
 
         double alpha1 = PI / 4.;
-        double alpha2 = PI / 3.;
-        double alpha3 = PI / 2.;
+        double alpha2 = PI / 4.;
+        double alpha3 = 0.;
 
         //set up a rotation by alpha1 about the X axis
         Rotation r1 = new Rotation(axisX, alpha1);
