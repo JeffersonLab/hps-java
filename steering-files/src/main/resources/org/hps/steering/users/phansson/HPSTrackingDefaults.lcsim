@@ -13,54 +13,54 @@
 
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="HPSSVTSensorSetup"/>   
+        <!--
         <driver name="CalibrationDriver"/>
-        <driver name="TrackerDigiDriver"/>
+        <driver name="TrackerDigiDriver"/> 
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        -->
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
-        <!-- <driver name="LCIOWriter"/> -->
-        <driver name="GBLDriver"/> 
+        <driver name="LCIOWriter"/>
 
 
 
     </execute>    
  
     <drivers>
-        <driver name="GBLDriver"
-                type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-                <debug>0</debug>
-                <outputPlotFileName></outputPlotFileName>
-                <gblFileName>gblinput.txt</gblFileName>
-	</driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
-        </driver>
-
-        <driver name="EventMarkerDriver"
+       	<driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
         </driver>
-    
-        <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
-<!--            <dropBadChannels>true</dropBadChannels>-->
-            <debug>false</debug>
+ 		<driver name="HPSSVTSensorSetup" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>
+        
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+        	<debug>true</debug>
+            <fitAlgorithm>Analytic</fitAlgorithm>
+            <correctT0Shift>true</correctT0Shift>
         </driver>
-              
+        
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+        	<debug>true</debug>
+        </driver>     
+        
         <driver name="HelicalTrackHitDriver"
                 type="org.hps.recon.tracking.HelicalTrackHitDriver">
-            <debug>false</debug>
+            <debug>true</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
         
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
-            <debug>false</debug>
+            <debug>true</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>
 
         <driver name="LCIOWriter"
                 type="org.lcsim.util.loop.LCIODriver">
-            <!--<outputFilePath>${outputFile}</outputFilePath>-->
+            <outputFilePath>${outputFile}</outputFilePath>
         </driver>
                                                                     
     </drivers>
