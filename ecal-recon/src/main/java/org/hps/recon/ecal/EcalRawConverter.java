@@ -1,14 +1,9 @@
 package org.hps.recon.ecal;
 
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
@@ -30,10 +25,7 @@ public class EcalRawConverter {
     //get the database condition manager
     
 //    Detector detector = DatabaseConditionsManager.getInstance().getDetectorObject();
-    Detector detector = null;
-    static EcalConditions ecalConditions = null;
-    static IIdentifierHelper helper = null;
-    static EcalChannelCollection channels = null; 
+    private EcalConditions ecalConditions = null;
 
 
     public EcalRawConverter() {	
@@ -151,20 +143,9 @@ public class EcalRawConverter {
      */   
     void setDetector(Detector detector) {
     	
-//    	h1.setDetector(detector);
-//    	h2.setDetector(detector);
-    	
-        this.detector = detector;
-        
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
-        
-        // ID helper.
-        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
         
         System.out.println("You are now using the database conditions for EcalRawConverter.");
     }
@@ -174,20 +155,7 @@ public class EcalRawConverter {
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
-    private static EcalChannelConstants findChannel(long cellID) {
-        // Make an ID object from raw hit ID.
-        IIdentifier id = new Identifier(cellID);
-        
-        // Get physical field values.
-        int system = helper.getValue(id, "system");
-        int x = helper.getValue(id, "ix");
-        int y = helper.getValue(id, "iy");
-        
-        // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
-                
-        // Get the channel data.
-        return ecalConditions.getChannelConstants(channels.findChannel(geometryId));    
+    private EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }   
-    
 }

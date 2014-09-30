@@ -59,7 +59,6 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     static final String trackerCollectionName = "TrackerHits";
     private final String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
-    Detector detector = null;
 
     public TestRunTriggeredReconToLcio() {
         setTriggerDelay(0);
@@ -68,7 +67,6 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     @Override
     public void detectorChanged(Detector detector) {    	
     	// set the detector
-        this.detector = detector;
         ecalWriter.setDetector(detector);
     }
 

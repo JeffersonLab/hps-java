@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import org.hps.conditions.TableConstants;
 
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
-import org.hps.conditions.ecal.EcalConditionsUtil;
+import org.hps.conditions.ecal.EcalConditions;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -22,9 +24,10 @@ import org.lcsim.util.Driver;
 public class EcalTriggerFilterDriver extends Driver {
 
     // To import database conditions
+    private EcalConditions ecalConditions = null;
+
     private IIdentifierHelper helper = null;
     private int systemId;
-    private EcalConditionsUtil util = null;
 
     private final String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalReadoutHits";
@@ -68,7 +71,9 @@ public class EcalTriggerFilterDriver extends Driver {
 
         systemId = detector.getSubdetector("Ecal").getSystemID();
 
-        util = new EcalConditionsUtil();
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
 
         System.out.println("You are now using the database conditions for EcalTriggerFilterDriver.");
     }
@@ -144,7 +149,7 @@ public class EcalTriggerFilterDriver extends Driver {
      */
     private int getCrate(long cellID) {
         // Find the ECAL channel and return the crate number.
-        return util.getCrate(helper, cellID);
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getCrate();
     }
 
     /**
@@ -154,8 +159,8 @@ public class EcalTriggerFilterDriver extends Driver {
      * @return Slot number (int)
      */
     private int getSlot(long cellID) {
-        // Find the ECAL channel and return the crate number.
-        return util.getSlot(helper, cellID);
+        // Find the ECAL channel and return the slot number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getSlot();
     }
 
 }

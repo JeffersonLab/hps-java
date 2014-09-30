@@ -3,7 +3,6 @@ package org.hps.evio;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
@@ -46,7 +45,6 @@ public class ECalEvioReader extends EvioReader {
 
     private static EcalConditions ecalConditions = null;
     private static IIdentifierHelper helper = null;
-    private static EcalChannelCollection channels = null;
 
     public ECalEvioReader() {
         hitCollectionName = "EcalReadoutHits";
@@ -56,9 +54,6 @@ public class ECalEvioReader extends EvioReader {
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
 
         helper = subDetector.getDetectorElement().getIdentifierHelper();
 
@@ -189,7 +184,7 @@ public class ECalEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
         DaqId daqId = new DaqId(new int[]{crate, slot, channel});
-        EcalChannel ecalChannel = channels.findChannel(daqId);
+        EcalChannel ecalChannel = ecalConditions.getChannelCollection().findChannel(daqId);
         if (ecalChannel == null) {
             return null;
         }

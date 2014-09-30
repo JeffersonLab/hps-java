@@ -4,14 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -24,17 +19,13 @@ import org.lcsim.util.Driver;
  */
 public class FADCConverterDriver extends Driver {
 
-    EcalConditions ecalConditions = null;
-    IIdentifierHelper helper = null;
-    EcalChannelCollection channels = null; 
-    EcalRawConverter converter = null;
-    String rawCollectionName = "EcalReadoutHits";
-    String ecalReadoutName = "EcalHits";
-    String ecalCollectionName = "EcalIntegralHits";
-    boolean debug = false;
-    int numSamplesBefore = 5;
-    int numSamplesAfter = 30;
-    int threshold = 50;
+    private EcalConditions ecalConditions = null;
+    private String rawCollectionName = "EcalReadoutHits";
+    private String ecalReadoutName = "EcalHits";
+    private String ecalCollectionName = "EcalIntegralHits";
+    private int numSamplesBefore = 5;
+    private int numSamplesAfter = 30;
+    private int threshold = 50;
 
     public FADCConverterDriver() {
     }
@@ -71,24 +62,17 @@ public class FADCConverterDriver extends Driver {
     }
 
     @Override
-    public void detectorChanged(Detector detector) {        
+    public void detectorChanged(Detector detector) {
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
-        
-        // ID helper.
-        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
-        
+
         System.out.println("You are now using the database conditions for FADCConverterDriver");
     }
 
     @Override
     public void process(EventHeader event) {
         ArrayList<BaseRawCalorimeterHit> readoutHits = new ArrayList<BaseRawCalorimeterHit>();
-        ArrayList<BaseRawCalorimeterHit> triggerHits = new ArrayList<BaseRawCalorimeterHit>();
 
         // Get the list of ECal hits.
         if (event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
@@ -97,10 +81,10 @@ public class FADCConverterDriver extends Driver {
             for (RawTrackerHit hit : hits) {
                 short[] window = hit.getADCValues();
                 long id = hit.getCellID();
-                
+
                 // Get the channel data.
                 EcalChannelConstants channelData = findChannel(id);
-                
+
                 //do DAQ readout
                 double crystalThreshold = channelData.getCalibration().getPedestal() + threshold;
                 int adcSum = 0;
@@ -112,7 +96,7 @@ public class FADCConverterDriver extends Driver {
                         adcSum += window[i - pointerOffset];
                         numSamplesToRead--;
                         if (numSamplesToRead == 0) {
-                            readoutHits.add(new BaseRawCalorimeterHit(id, adcSum, 64*thresholdCrossing));
+                            readoutHits.add(new BaseRawCalorimeterHit(id, adcSum, 64 * thresholdCrossing));
                         }
                     } else if ((i == 0 || window[i - 1] <= crystalThreshold) && window[i] > crystalThreshold) {
                         thresholdCrossing = i;
@@ -127,26 +111,15 @@ public class FADCConverterDriver extends Driver {
         int flags = 0;
         event.put(ecalCollectionName, readoutHits, BaseRawCalorimeterHit.class, flags, ecalReadoutName);
     }
-    
-    /** 
+
+    /**
      * Convert physical ID to gain value.
+     *
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
     private EcalChannelConstants findChannel(long cellID) {
-        // Make an ID object from raw hit ID.
-        IIdentifier id = new Identifier(cellID);
-        
-        // Get physical field values.
-        int system = helper.getValue(id, "system");
-        int x = helper.getValue(id, "ix");
-        int y = helper.getValue(id, "iy");
-        
-        // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
-                
-        // Get the channel data.
-        return ecalConditions.getChannelConstants(channels.findChannel(geometryId));    
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }
-    
+
 }

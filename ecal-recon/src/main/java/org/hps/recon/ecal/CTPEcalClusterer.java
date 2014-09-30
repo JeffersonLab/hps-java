@@ -19,8 +19,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOConstants;
 
-import org.hps.recon.ecal.HPSEcalCluster;
-
 /**
  * Creates clusters from CalorimeterHits in the HPSEcal detector.
  *
@@ -77,6 +75,7 @@ public class CTPEcalClusterer extends Driver {
         this.ecalName = ecalName;
     }
     
+    @Override
     public void startOfData() {
         // Make sure that there is a cluster collection name into which clusters may be placed.
         if (ecalCollectionName == null) {
@@ -123,11 +122,9 @@ public class CTPEcalClusterer extends Driver {
                 clusterCenters.add(cellID);
             }
         }
-        
-        System.out.println("You are using CTPEcalCluster.java with the database conditions.");
-        
     }
     
+    @Override
     public void process(EventHeader event) {
         // Make sure that this event has calorimeter hits.
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {

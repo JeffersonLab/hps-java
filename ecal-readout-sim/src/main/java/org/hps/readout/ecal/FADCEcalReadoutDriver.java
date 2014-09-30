@@ -15,17 +15,10 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalConditionsUtil;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
@@ -53,11 +46,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private static final int ECAL_WINDOW_MODE = 1;
     private static final int ECAL_PULSE_MODE = 2;
     private static final int ECAL_PULSE_INTEGRAL_MODE = 3;
-    String ecalName = "Ecal";
-    Subdetector ecal;
-    EcalConditions ecalConditions = null;
-    IIdentifierHelper helper = null;
-    EcalChannelCollection channels = null; 
+    private String ecalName = "Ecal";
+    private Subdetector ecal;
+    private EcalConditions ecalConditions = null;
     //buffer for preamp signals (units of volts, no pedestal)
     private Map<Long, RingBuffer> signalMap = null;
     //ADC pipeline for readout (units of ADC counts)
@@ -490,12 +481,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
-        
-        // ID helper.
-        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
-        
         resetFADCBuffers();
     }
 
@@ -580,8 +565,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
     public class FADCPipeline {
 
-        private int[] array;
-        private int size;
+        private final int[] array;
+        private final int size;
         private int ptr;
 
         public FADCPipeline(int size) {
@@ -632,19 +617,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
      * @return channel constants (EcalChannelConstants)
      */
     private EcalChannelConstants findChannel(long cellID) {
-        // Make an ID object from raw hit ID.
-        IIdentifier id = new Identifier(cellID);
-        
-        // Get physical field values.
-        int system = helper.getValue(id, "system");
-        int x = helper.getValue(id, "ix");
-        int y = helper.getValue(id, "iy");
-        
-        // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
-                
-        // Get the channel data.
-        return ecalConditions.getChannelConstants(channels.findChannel(geometryId));    
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }
     
 }

@@ -20,7 +20,6 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
 import org.hps.util.RunControlDialog;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
 

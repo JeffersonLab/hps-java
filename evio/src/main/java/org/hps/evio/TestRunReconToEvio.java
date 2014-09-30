@@ -2,14 +2,11 @@ package org.hps.evio;
 
 import java.io.IOException;
 
-import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalConditions;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;

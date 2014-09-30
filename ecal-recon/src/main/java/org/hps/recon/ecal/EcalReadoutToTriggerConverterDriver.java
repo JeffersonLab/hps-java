@@ -3,19 +3,10 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalConditionsUtil;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -29,27 +20,23 @@ import org.lcsim.util.Driver;
  */
 public class EcalReadoutToTriggerConverterDriver extends Driver {
 
-	// To import database conditions
-    static EcalConditions ecalConditions = null;
-    static IIdentifierHelper helper = null;
-    static EcalChannelCollection channels = null;
-	Detector detector = null;
-	
-    String rawCollectionName = "EcalReadoutHits";
-    String ecalReadoutName = "EcalHits";
-    String ecalCollectionName = "EcalCalHits";
-    int integralWindow = 30;
-    boolean debug = false;
-    double threshold = Double.NEGATIVE_INFINITY;
-    boolean applyBadCrystalMap = true;
-    boolean dropBadFADC = false;
-    double tp = 14.0;
-    double readoutPeriod = 4.0;
-    private int readoutThreshold = 50;
-    private int triggerThreshold = 80;
+    // To import database conditions
+    private EcalConditions ecalConditions = null;
+
+    private String rawCollectionName = "EcalReadoutHits";
+    private final String ecalReadoutName = "EcalHits";
+    private String ecalCollectionName = "EcalCalHits";
+    private int integralWindow = 30;
+    private double threshold = Double.NEGATIVE_INFINITY;
+    private boolean applyBadCrystalMap = true;
+    private boolean dropBadFADC = false;
+    private double tp = 14.0;
+    private final double readoutPeriod = 4.0;
+    private final int readoutThreshold = 50;
+    private final int triggerThreshold = 80;
     private double timeShift = 0;
     private int truncateScale = 128;
-    private static boolean isBadChannelLoaded = true;
+    private static final boolean isBadChannelLoaded = true;
 
     public EcalReadoutToTriggerConverterDriver() {
     }
@@ -95,25 +82,18 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-    	this.detector = detector;
-    	
+
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
-        
-        // ID helper.
-        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
-        
+
         System.out.println("You are now using the database conditions for EcalReadoutToTriggerConverterDriver.");
     }
 
     public boolean isBadCrystal(CalorimeterHit hit) {
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(hit.getCellID());
-    	
+
         return isBadChannelLoaded ? channelData.isBadChannel() : false;
     }
 
@@ -146,10 +126,10 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
     }
 
     public CalorimeterHit HitDtoA(BaseRawCalorimeterHit hit, int window) {
-    	
+
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(hit.getCellID());
-    	
+
         double integral = tp * Math.E / readoutPeriod;
         double readoutIntegral = (hit.getAmplitude() - window * channelData.getCalibration().getPedestal());
         double amplitude = readoutIntegral / integral;
@@ -187,7 +167,6 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
         }
 
 //        System.out.format("%f %f %f\n", readoutIntegral, amplitude, triggerIntegral);
-
         if (hit.getTimeStamp() % 64 != 0) {
             System.out.println("unexpected timestamp " + hit.getTimeStamp());
         }
@@ -227,51 +206,35 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
         }
     }
 
-    /** 
+    /**
      * Convert physical ID to gain value.
+     *
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
-    private static EcalChannelConstants findChannel(long cellID) {
-        // Make an ID object from raw hit ID.
-        IIdentifier id = new Identifier(cellID);
-        
-        // Get physical field values.
-        int system = helper.getValue(id, "system");
-        int x = helper.getValue(id, "ix");
-        int y = helper.getValue(id, "iy");
-        
-        // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
-                
-        // Get the channel data.
-        return ecalConditions.getChannelConstants(channels.findChannel(geometryId));    
-    }  
-    
+    private EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+
     /**
      * Return crate number from cellID
+     *
      * @param cellID (long)
      * @return Crate number (int)
      */
     private int getCrate(long cellID) {
-        
-        EcalConditionsUtil util = new EcalConditionsUtil();
-
         // Find the ECAL channel and return the crate number.
-        return util.getCrate(helper, cellID);
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getCrate();
     }
-    
+
     /**
      * Return slot number from cellID
+     *
      * @param cellID (long)
      * @return Slot number (int)
      */
     private int getSlot(long cellID) {
-        EcalConditionsUtil util = new EcalConditionsUtil();
-
-        // Find the ECAL channel and return the crate number.
-        return util.getSlot(helper, cellID);         
+        // Find the ECAL channel and return the slot number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getSlot();
     }
-    
-    
 }
