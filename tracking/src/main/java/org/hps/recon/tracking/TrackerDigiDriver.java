@@ -291,7 +291,9 @@ public class TrackerDigiDriver extends Driver {
 
         // Put output hits into collection.
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.
-        event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag, toString());
-        event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
+        //System.out.println("TrackerDigiDriver putting collection " + this.rawTrackerHitOutputCollectionName + " with readoutName " + readoutCollectionName);
+        event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag, readoutCollectionName);
+        //System.out.println("TrackerDigiDriver putting collection " + this.stripHitOutputCollectionName + " with readoutName " + readoutCollectionName);
+        event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, readoutCollectionName);
     }
 }
