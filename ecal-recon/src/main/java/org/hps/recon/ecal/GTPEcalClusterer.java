@@ -160,7 +160,6 @@ public class GTPEcalClusterer extends Driver {
             // Store the crystals that are part of this potential cluster, 
             // starting with the cluster seed candidate.
             HPSEcalCluster cluster = new HPSEcalCluster();
-            cluster.setDetector(detector);
             cluster.setSeedHit(currentHit);
             cluster.addHit(currentHit);
             

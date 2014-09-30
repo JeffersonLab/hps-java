@@ -207,7 +207,6 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
             truncatedIntegral = 0;
         }
         HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hitTime, id, 0);
-        h.setDetector(detector);
 //        CalorimeterHit h = new HPSRawCalorimeterHit(triggerIntegral + 0.0000001, hit.getPosition(), hitTime, id, 0);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h;

@@ -1,13 +1,10 @@
 package org.hps.recon.ecal;
 
-import org.hps.conditions.ConditionsDriver;
-import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableConstants;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalConditionsUtil;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -25,7 +22,7 @@ import org.lcsim.geometry.Detector;
  */
 public class EcalRawConverter {
 
-    private boolean debug = false;
+    private final boolean debug = false;
     private boolean constantGain = false;
     private double gain;
     private boolean use2014Gain = true;
@@ -78,7 +75,6 @@ public class EcalRawConverter {
         long id = hit.getCellID();
         double rawEnergy = adcToEnergy(sumADC(hit), id);
         HPSCalorimeterHit h1 = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
-        h1.setDetector(detector);
 //        double[] pos = hit.getDetectorElement().getGeometry().getPosition().v();
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h1;
@@ -95,7 +91,6 @@ public class EcalRawConverter {
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
         double rawEnergy = adcToEnergy(adcSum, id);
         HPSCalorimeterHit h2 = new HPSCalorimeterHit(rawEnergy + 0.0000001, time + timeOffset, id, 0);
-        h2.setDetector(detector);
         //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
         return h2;
     }

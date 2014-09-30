@@ -5,13 +5,11 @@ import java.util.List;
 
 
 //import org.hps.conditions.deprecated.EcalConditions;
-import org.hps.conditions.ConditionsDriver;
 import org.hps.conditions.TableConstants;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.conditions.ecal.EcalConditionsUtil;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -30,28 +28,27 @@ import org.lcsim.util.Driver;
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
 	
-	Detector detector = null;
-    static EcalConditions ecalConditions = null;
-    static IIdentifierHelper helper = null;
-    static EcalChannelCollection channels = null; 
+    private static EcalConditions ecalConditions = null;
+    private static IIdentifierHelper helper = null;
+    private static EcalChannelCollection channels = null; 
     
-    private static boolean isBadChannelLoaded = true;
+    private static final boolean isBadChannelLoaded = true;
 	
-    private String ecalReadoutName = "EcalHits";
+    private final String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalHits";
     private String readoutCollection = "EcalCalHits";
     private String triggerCollection = "EcalTriggerHits";
     private boolean applyBadCrystalMap = true;
     private double tp = 14.0;
-    private double readoutPeriod = 4.0;
-    private int readoutThreshold = 50;
-    private int triggerThreshold = 80;
+    private final double readoutPeriod = 4.0;
+    private final int readoutThreshold = 50;
+    private final int triggerThreshold = 80;
     private int truncateScale = 128;
-    private double pulseIntegral = tp * Math.E / readoutPeriod;
-    private double gainScale = 1.0; //gain miscalibration factor
+    private final double pulseIntegral = tp * Math.E / readoutPeriod;
+    private final double gainScale = 1.0; //gain miscalibration factor
     private double _gain = -1.0; //constant gain, activated if >0
     private boolean addNoise = false;
-    private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
+    private final double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
 
     public EcalEdepToTriggerConverterDriver() {
     }
@@ -98,9 +95,6 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-    	
-    	//Must be set to use the database conditions
-        this.detector = detector;
     	
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
@@ -181,7 +175,6 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
         int truncatedIntegral = (int) Math.floor(triggerIntegral / truncateScale);
         if (truncatedIntegral > 0) {
         	HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hit.getTime(), hit.getCellID(), 0);
-        	h.setDetector(detector);
             return h ;
         }
         return null;
@@ -222,7 +215,6 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 
 //        System.out.format("readout: %f %f\n", amplitude, integral);
         HPSCalorimeterHit h = new HPSCalorimeterHit(integral, hit.getTime(), hit.getCellID(), 0);
-        h.setDetector(detector);
         return h;
     }
 

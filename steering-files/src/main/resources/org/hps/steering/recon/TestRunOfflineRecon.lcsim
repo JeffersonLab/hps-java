@@ -7,6 +7,9 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
+
+        <driver name="ConditionsDriver"/>   
+
         <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" />
@@ -25,6 +28,9 @@
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
             <runNumber>${runNumber}</runNumber>
         </driver>   
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <loadSvtConditions>false</loadSvtConditions>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        

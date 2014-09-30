@@ -20,6 +20,7 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
 import org.hps.util.RunControlDialog;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
 
@@ -100,7 +101,6 @@ public class TestRunEvioToLcio {
         //if (cl.hasOption("e")) {
         //    System.out.println("Option -e is deprecated; EVIO file name is now a non-option argument");
         //}
-
         // LCIO output file.
         if (cl.hasOption("l")) {
             lcioFileName = cl.getOptionValue("l");
@@ -176,6 +176,8 @@ public class TestRunEvioToLcio {
                 jobManager.addVariableDefinition(key, value);
             }
         }
+
+        new org.hps.conditions.config.TestRunReadOnlyConfiguration(false).setup().load(detectorName, 0);
 
         jobManager.setup(steeringStream);
         jobManager.configure();

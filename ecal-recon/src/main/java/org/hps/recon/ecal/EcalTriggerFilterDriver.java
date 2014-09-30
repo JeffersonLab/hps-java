@@ -5,17 +5,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.hps.conditions.ConditionsDriver;
-import org.hps.conditions.TableConstants;
-import org.hps.conditions.ecal.EcalChannel;
-import org.hps.conditions.ecal.EcalChannel.DaqId;
-import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
-import org.hps.conditions.ecal.EcalChannelConstants;
-import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsUtil;
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -24,23 +15,22 @@ import org.lcsim.util.Driver;
 
 /**
  * Changes ECal hit IDs to match what the test run trigger sees.
+ *
  * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
  * phansson Exp $
  */
 public class EcalTriggerFilterDriver extends Driver {
 
-	// To import database conditions
-    static EcalConditions ecalConditions = null;
-    static IIdentifierHelper helper = null;
-    static EcalChannelCollection channels = null;
-    int systemId;
-    Detector detector = null;
-    
-    private String ecalReadoutName = "EcalHits";
+    // To import database conditions
+    private IIdentifierHelper helper = null;
+    private int systemId;
+    private EcalConditionsUtil util = null;
+
+    private final String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalReadoutHits";
     private String outputCollection = "EcalCalHits";
-    private int topDelay = 0;
-    private int bottomDelay = 5;
+    private final int topDelay = 0;
+    private final int bottomDelay = 5;
     private Queue<List<CalorimeterHit>> topHitsQueue = null;
     private Queue<List<CalorimeterHit>> bottomHitsQueue = null;
 
@@ -73,21 +63,13 @@ public class EcalTriggerFilterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-    	
-    	this.detector = detector;
-    	
-        // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        
-        // List of channels.
-        channels = ecalConditions.getChannelCollection();
-        
         // ID helper.
         helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
 
         systemId = detector.getSubdetector("Ecal").getSystemID();
-        
+
+        util = new EcalConditionsUtil();
+
         System.out.println("You are now using the database conditions for EcalTriggerFilterDriver.");
     }
 
@@ -103,7 +85,8 @@ public class EcalTriggerFilterDriver extends Driver {
             for (CalorimeterHit hit : hits) {
                 CalorimeterHit newHit = filterHit(hit);
                 if (newHit != null) {
-                    if (hit.getIdentifierFieldValue("iy") > 0) { //should really be checking newHit, but it doesn't have metadata yet
+                    newHit.setMetaData(hit.getMetaData());
+                    if (newHit.getIdentifierFieldValue("iy") > 0) {
                         topHits.add(newHit);
                     } else {
                         bottomHits.add(newHit);
@@ -121,6 +104,7 @@ public class EcalTriggerFilterDriver extends Driver {
 
     /**
      * This method takes input hits and makes new hits with different ix
+     *
      * @param CalorimeterHit hit
      * @return new HPSCalorimeterHit
      */
@@ -130,8 +114,8 @@ public class EcalTriggerFilterDriver extends Driver {
         int crate = getCrate(hit.getCellID());
         int slot = getSlot(hit.getCellID());
 
-        int delay = iy>0?topDelay:bottomDelay;  
-        
+        int delay = iy > 0 ? topDelay : bottomDelay;
+
         // no triggers from crate 1, slot 3 
         if (crate == 1 && slot == 3) {
             return null;
@@ -141,43 +125,37 @@ public class EcalTriggerFilterDriver extends Driver {
         if (ix > 0 && iy > 0) {
             ix = 24 - ix;
         }
-     
+
         int values[] = {systemId, ix, iy};
-        GeometryId geomId = new GeometryId(helper, values);       
+        GeometryId geomId = new GeometryId(helper, values);
         // Creating the new channel from cell id, ix and iy, then reading its ID       
-        long newID = geomId.encode();      
-        
+        long newID = geomId.encode();
+
         //make new hit; set position to null so it gets recalculated
-        HPSCalorimeterHit h = new HPSCalorimeterHit(hit.getRawEnergy(), hit.getTime()+delay*4, newID, hit.getType());
-        h.setDetector(detector);
+        HPSCalorimeterHit h = new HPSCalorimeterHit(hit.getRawEnergy(), hit.getTime() + delay * 4, newID, hit.getType());
         return h;
     }
-    
+
     /**
      * Return crate number from cellID
+     *
      * @param cellID (long)
      * @return Crate number (int)
      */
     private int getCrate(long cellID) {
-        
-        EcalConditionsUtil util = new EcalConditionsUtil();
-
         // Find the ECAL channel and return the crate number.
         return util.getCrate(helper, cellID);
     }
-    
+
     /**
      * Return slot number from cellID
+     *
      * @param cellID (long)
      * @return Slot number (int)
      */
     private int getSlot(long cellID) {
-        EcalConditionsUtil util = new EcalConditionsUtil();
-
         // Find the ECAL channel and return the crate number.
-        return util.getSlot(helper, cellID);         
-    } 
- 
-    
-    
+        return util.getSlot(helper, cellID);
+    }
+
 }

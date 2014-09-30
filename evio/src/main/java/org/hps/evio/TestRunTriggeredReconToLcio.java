@@ -11,7 +11,6 @@ import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.deprecated.QuietBaseLCSimEvent;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
-import org.hps.readout.ecal.TriggerDriver;
 import org.hps.readout.ecal.TriggerableDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -20,7 +19,6 @@ import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOWriter;
-import org.lcsim.util.Driver;
 
 /**
  * This class takes raw data generated from MC and converts it to EVIO. The goal
@@ -59,7 +57,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     List<SimTrackerHit> triggerECalScoringPlaneHits = null;
     static final String ecalCollectionName = "EcalHits";
     static final String trackerCollectionName = "TrackerHits";
-    private String relationCollectionName = "SVTTrueHitRelations";
+    private final String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
     Detector detector = null;
 

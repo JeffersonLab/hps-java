@@ -87,7 +87,6 @@ public class EcalConverterDriver extends Driver {
 
     private CalorimeterHit HitDtoA(RawCalorimeterHit hit) {
     	HPSCalorimeterHit h = new HPSCalorimeterHit(DtoA(hit.getAmplitude(), hit.getCellID()), period * hit.getTimeStamp() + dt, hit.getCellID(), 0);
-        h.setDetector(detector);
     	return h;
     }
 

@@ -9,7 +9,6 @@ import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ecal.ReadoutTimestamp;
-import org.hps.readout.ecal.TriggerDriver;
 import org.hps.readout.ecal.TriggerableDriver;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
@@ -18,7 +17,6 @@ import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
 
 /**
  * This class takes raw data generated from MC and converts it to EVIO. The goal

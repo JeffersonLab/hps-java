@@ -164,7 +164,6 @@ public class EcalClusterer extends Driver {
             if (isSeed) {
                 // Make a cluster from the hit list.
                 HPSEcalCluster cluster = new HPSEcalCluster();
-                cluster.setDetector(detector);
                 cluster.setSeedHit(hit);
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {

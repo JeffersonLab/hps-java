@@ -355,12 +355,10 @@ public class CTPEcalClusterer extends Driver {
                 
                 // Generate a new cluster seed hit from the above results.
                 HPSCalorimeterHit seedHit = new HPSCalorimeterHit(0.0, clusterTime, possibleCluster, hits.get(0).getType());               
-                seedHit.setDetector(detector);
                 seedHit.setMetaData(hits.get(0).getMetaData());
                 
                 // Generate a new cluster from the seed hit.
                 HPSEcalCluster cluster = new HPSEcalCluster();
-                cluster.setDetector(detector);
                 cluster.setSeedHit(seedHit);
                 // Populate the cluster with each of the chosen neighbors.
                 for (CalorimeterHit clusterHit : hits) {
