@@ -1,0 +1,79 @@
+<!--
+    This steering file shows a simple example of running reconstruction on MC data without 
+    first processing the data through the readout simulation.  It also includes a recon
+    filter that will prevent empty events from being written to the output LCIO file.
+    
+    This is a toy example only and should NOT be used for production purposes.
+    
+    author: Jeremy McCormick <jeremym@slac.stanford.edu>       
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">      
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="CalibrationDriver"/>        
+        <driver name="TrackerDigiDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>     
+<!--        
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="EcalClusterer"/> 
+-->           
+        <driver name="EcalClusterer"/>        
+        <driver name="ReconParticleDriver"/>
+        <driver name="SimpleEventFilterDriver"/>        
+        <driver name="LCIOWriter"/>
+    </execute>    
+    <drivers>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>    
+        <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
+            <debug>false</debug>
+        </driver>              
+        <driver name="HelicalTrackHitDriver"
+                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>        
+        <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
+        </driver>        
+<!--        
+        <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
+            <coincidenceWindow>1</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <addNoise>true</addNoise>
+        </driver>
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>true</use2014Gain>
+        </driver>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <clusterWindow>1</clusterWindow>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+        </driver>
+-->        
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+        </driver>
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver"/>
+        <driver name="SimpleEventFilterDriver" type="org.hps.recon.filtering.SimpleEventFilterDriver">
+            <minClusters>1</minClusters>
+            <minTracks>1</minTracks>
+            <minReconParticles>1</minReconParticles>
+        </driver>        
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>                                                                   
+    </drivers>
+</lcsim>
