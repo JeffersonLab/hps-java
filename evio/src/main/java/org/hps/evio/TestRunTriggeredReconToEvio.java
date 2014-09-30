@@ -46,7 +46,7 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
     
     @Override
     public void detectorChanged(Detector detector) {    	
-    	//ecalWriter.setDetector(detector);
+    	ecalWriter.setDetector(detector);
         if(detector == null) System.out.println("detectorChanged, Detector == null");
         else System.out.println("detectorChanged, Detector != null");
     }
@@ -82,17 +82,17 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
         }
 
         writePrestartEvent();
-        this.detector = DatabaseConditionsManager.getInstance().getDetectorObject();
+//        this.detector = DatabaseConditionsManager.getInstance().getDetectorObject();
 
         writers = new ArrayList<HitWriter>();
 
         ecalWriter = new ECalHitWriter();
-        if(detector == null) System.out.println("Detector == null");
-        else System.out.println("Detector != null");
+//        if(detector == null) System.out.println("Detector == null");
+//        else System.out.println("Detector != null");
         //ecalWriter.setDetector(detector);
         ecalWriter.setMode(ecalMode);
         ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
-        ecalWriter.setDetector(detector);
+//        ecalWriter.setDetector(detector);
         writers.add(ecalWriter);
 
         svtWriter = new SVTHitWriter();

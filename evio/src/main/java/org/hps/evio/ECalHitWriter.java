@@ -176,7 +176,6 @@ public class ECalHitWriter implements HitWriter {
 
     private long getCellID(Object hit) {
         if (RawCalorimeterHit.class.isInstance(hit)) {
-            System.out.println("hit.getCellID() " + ((RawCalorimeterHit) hit).getCellID());
             return ((RawCalorimeterHit) hit).getCellID();
         } else if (RawTrackerHit.class.isInstance(hit)) {
             return ((RawTrackerHit) hit).getCellID();
@@ -243,7 +242,7 @@ public class ECalHitWriter implements HitWriter {
             }
         }
         // New bank for this slot.
-        EvioBank cdataBank = new EvioBank(EventConstants.ECAL_PULSE_BANK_TAG, DataType.COMPOSITE, 0);
+        EvioBank cdataBank = new EvioBank(EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG, DataType.COMPOSITE, 0);
         List<CompositeData> cdataList = new ArrayList<CompositeData>();
 
         // Add CompositeData to bank.

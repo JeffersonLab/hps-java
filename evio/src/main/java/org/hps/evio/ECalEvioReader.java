@@ -34,7 +34,7 @@ import org.lcsim.lcio.LCIOConstants;
 public class ECalEvioReader extends EvioReader {
     // Names of subdetectors.
 
-    private int bankTag = EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG;
+    private int bankTag = 0;
     private Class hitClass = BaseRawCalorimeterHit.class;
 
     // FIXME: Hard-coded detector names.
