@@ -59,7 +59,7 @@
                         <include>org.hps:hps-record-util</include>
                         <include>org.hps:hps-tracking</include>
                         <include>org.hps:hps-users</include>
-                        <include>org.hps:hps-util</include>                                                                                                                                              
+                        <include>org.hps:hps-util</include>
                         <include>mysql:mysql-connector-java</include>
                         <include>org.jlab.coda:jevio</include>
                         <include>org.jlab.coda:et</include>                        
