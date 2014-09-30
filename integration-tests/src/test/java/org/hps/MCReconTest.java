@@ -23,9 +23,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 // FIXME: Change to MCReadoutReconTest
 public class MCReconTest extends TestCase {
-    
-    File reconOutputFile = new TestOutputFile("recon");
-    
+        
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MCReconTest.slcio";
     
     /*
@@ -46,6 +44,11 @@ public class MCReconTest extends TestCase {
     */
         
     public void testMCRecon() throws Exception {
+        
+        new TestOutputFile(this.getClass().getSimpleName()).mkdirs();
+        
+        File reconOutputFile = new TestOutputFile(this.getClass().getSimpleName() 
+                + File.separator + this.getClass().getSimpleName() + "_recon");
         
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileLocation));
