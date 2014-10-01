@@ -25,12 +25,14 @@ import org.lcsim.util.loop.LCSimLoop;
  */
 public class HPSTestRunTracker2014GeometryTrackReconTest extends TestCase {
 
+    static final String fileLocationBottom = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-bottom.slcio";
+    static final String fileLocationTop = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-top.slcio";
     //static final String fileLocationBottom = "http://www.lcsim.org/test/hps-java/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-bottom-tracks.slcio";
     //static final String fileLocationTop = "http://www.lcsim.org/test/hps-java/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-top-tracks.slcio";
     //static final String fileLocationBottom = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-bottom.slcio";
     //static final String fileLocationTop = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-bottom.slcio";
-    static final String fileLocationBottom = "http://www.slac.stanford.edu/~phansson/files/temp/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-bottom-tracks.slcio";
-    static final String fileLocationTop = "http://www.slac.stanford.edu/~phansson/files/temp/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-top-tracks.slcio";
+    //static final String fileLocationBottom = "http://www.slac.stanford.edu/~phansson/files/temp/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-bottom-tracks.slcio";
+    //static final String fileLocationTop = "http://www.slac.stanford.edu/~phansson/files/temp/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0-50-top-tracks.slcio";
     //static final String fileLocation = "/Users/phansson/work/HPS/software/run/geomDev/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTestRunTracker2014-v0.slcio";
     //static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     
