@@ -27,7 +27,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/EtSystemTest</exclude>
+                        <exclude>org/hps/EtSystemTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
