@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-distribution</artifactId>
     <name>distribution</name>
@@ -8,20 +7,17 @@
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
-
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.3-SNAPSHOT</version>
-    </parent>
-    
+    </parent>    
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/distribution/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
     </scm>
-
     <build>       
         <plugins>
             <plugin>
@@ -63,9 +59,8 @@
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
-        <!-- This pulls in analysis et al transitively. -->
+        <!-- This next dep pulls in analysis et al. transitively. -->
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
@@ -79,5 +74,4 @@
             <artifactId>hps-steering-files</artifactId>
         </dependency>
     </dependencies>
-
 </project>

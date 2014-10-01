@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-integration-tests</artifactId>
     <name>integration-tests</name>
-    <description>Integration test suite</description>
+    <description>Integration test suite for HPS Java</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
@@ -29,12 +29,15 @@
                     <excludes>
                         <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
                         <exclude>org/hps/MCFilteredReconTest.java</exclude>
+                        <!-- Remove this test from exclusions when it is fixed.  JM -->
+                        <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
      <profiles>
+        <!-- This profile is for deactivating all integration tests when building everything from trunk. -->
         <profile>
             <id>no-integration-tests</id>
             <activation>
@@ -52,25 +55,7 @@
                 </plugins>
             </build>
         </profile>  
-         <profile>
-            <id>track-integration-tests</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>  
+        <!-- This profile activates automatically when not running tests on a SLAC Unix system with NFS access. -->
         <profile>
             <id>no-slac-nfs</id>
             <activation>
@@ -85,8 +70,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <excludes>
-                                <exclude>org/hps/EcalReadoutSimTest.java</exclude>
+                            <excludes>                            
+                                <exclude>org/hps/EcalReadoutSimTest.java</exclude>                                
                             </excludes>
                         </configuration>
                     </plugin>

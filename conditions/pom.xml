@@ -35,11 +35,6 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.lcsim</groupId>
-            <artifactId>lcsim-event-processing</artifactId>
-            <version>${lcsimVersion}</version>
-        </dependency>
-        <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-util</artifactId>
         </dependency>
