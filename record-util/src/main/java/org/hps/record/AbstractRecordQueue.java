@@ -14,7 +14,6 @@ import org.freehep.record.source.NoSuchRecordException;
  * {@link #next()} method to get the next record, which might not be immediately
  * available.
  */
-// TODO: Add max elements argument to limit pile up of unconsumed events.
 public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSource {
 
     // The queue, which is a linked list with blocking behavior. 
@@ -25,6 +24,7 @@ public abstract class AbstractRecordQueue<RecordType> extends AbstractRecordSour
     
     // The amount of time to wait for an LCIO event from the queue before dying.
     long timeOutMillis = -1;
+    
     
     /**
      * Constructor that takes the timeout time in seconds.

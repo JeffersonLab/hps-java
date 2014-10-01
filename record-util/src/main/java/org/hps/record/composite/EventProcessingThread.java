@@ -1,5 +1,7 @@
 package org.hps.record.composite;
 
+import org.freehep.record.loop.RecordLoop;
+
 /**
  * Class for running the {@link CompositeLoop} on a separate thread.
  */
@@ -22,33 +24,29 @@ public final class EventProcessingThread extends Thread {
     @Override
     public void run() {                
                 
-        // Keep looping until the event processing is flagged as done.
-        while (true) {
-            // Is the processing unpaused?            
-            // TODO: See if can check for IDLE state. (???)
-            if (!loop.isPaused()) {
+        // Flag that is turned on when looping starts.
+        boolean started = false;
+        
+        // Keep looping until the event processing is done.
+        while (true) {                        
+            
+            // If the loop was started and now is in the IDLE state, it means
+            // that STOP was executed, so break from the processing while loop.
+            if (started && loop.getState().equals(RecordLoop.State.IDLE)) {                
+                // Stop record processing.
+                break;
+            }
+                        
+            // Is the processing unpaused?
+            if (!loop.isPaused()) {                                                
+                
+                // Set a flag to indicate that looping has started.
+                started = true;
                 
                 // Loop until done, error occurs, or pause is requested.
                 // FIXME: The maximum number of records should be used here.
                 loop.loop(-1);
-                
-                // If paused, current record will still be completed!
-                
-                // Is loop done?
-                // TODO: See if can check for IDLE state instead.
-                if (loop.isDone()) {
-                    // Stop record processing.
-                    break;
-                }
-            }
-            
-            // Sleep for a little while between loop iterations (e.g. while paused).
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            }            
         }
-        
     }
 }
