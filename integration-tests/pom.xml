@@ -27,8 +27,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
-                        <exclude>org/hps/MCFilteredReconTest.java</exclude>
+                        <exclude>org/hps/EtSystemTest</exclude>
                     </excludes>
                 </configuration>
             </plugin>
