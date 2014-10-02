@@ -2,9 +2,12 @@ package org.hps;
 
 import java.io.File;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
+import org.hps.recon.tracking.RawTrackerHitFitterDriver;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -21,28 +24,10 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// FIXME: Change to MCReadoutReconTest
 public class MCReconTest extends TestCase {
         
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MCReconTest.slcio";
-    
-    /*
-    static final int TOTAL_CLUSTERS = 3960;        
-    static final int TOTAL_TRACKER_HITS = 28689;
-    static final int TOTAL_CALORIMETER_HITS = 61924;
-       
-    static final long TOTAL_RECON_EVENTS = 945;
-    static final int TOTAL_TRACKS = 2086;
-    static final int TOTAL_TRACKS_DELTA = 13;
-    static final int TOTAL_TRACKS_LOWER = TOTAL_TRACKS - TOTAL_TRACKS_DELTA;
-    static final int TOTAL_TRACKS_UPPER = TOTAL_TRACKS + TOTAL_TRACKS_DELTA;
-    
-    static final int TOTAL_RECONSTRUCTED_PARTICLES = 4321; 
-    static final int TOTAL_RECONSTRUCTED_PARTICLES_DELTA = 9;
-    static final int TOTAL_RECONSTRUCTED_PARTICLES_LOWER = TOTAL_RECONSTRUCTED_PARTICLES - TOTAL_RECONSTRUCTED_PARTICLES_DELTA;
-    static final int TOTAL_RECONSTRUCTED_PARTICLES_UPPER = TOTAL_RECONSTRUCTED_PARTICLES + TOTAL_RECONSTRUCTED_PARTICLES_DELTA;
-    */
-        
+            
     public void testMCRecon() throws Exception {
         
         new TestOutputFile(this.getClass().getSimpleName()).mkdirs();
@@ -57,9 +42,16 @@ public class MCReconTest extends TestCase {
         JobControlManager job = new JobControlManager();
         job.addVariableDefinition("outputFile", reconOutputFile.getPath());
         job.addInputFile(inputFile);
-        job.setup("/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim");
+        job.setup("/org/hps/steering/test/MCReconTest.lcsim");
         ReconCheckDriver reconCheckDriver = new ReconCheckDriver();
         job.getLCSimLoop().add(reconCheckDriver);
+        for (Driver driver : job.getDriverAdapter().getDriver().drivers()) {
+            System.out.println(driver.getClass().getCanonicalName());
+            if (driver instanceof RawTrackerHitFitterDriver) {
+                ((RawTrackerHitFitterDriver)driver).setDebug(false);
+            }
+        }
+        Logger.getLogger("org.freehep.math.minuit").setLevel(Level.OFF);
         long startMillis = System.currentTimeMillis();
         job.run();
         long elapsedMillis = System.currentTimeMillis() - startMillis;
@@ -68,17 +60,6 @@ public class MCReconTest extends TestCase {
         System.out.print("MC recon took " + ((double)elapsedMillis/1000L) + " seconds");
         System.out.println(" which is " + ((double)elapsedMillis / (double)nevents) + " ms per event.");
         job.getLCSimLoop().dispose();
-                
-        //TestCase.assertEquals("Number of recon events processed was wrong.", TOTAL_RECON_EVENTS, nevents);     
-                                
-        //assertEquals("Wrong number of tracker hits.", TOTAL_TRACKER_HITS, reconCheckDriver.nTrackerHits);
-        //assertEquals("Wrong number of calorimeter hits.", TOTAL_CALORIMETER_HITS, reconCheckDriver.nCalorimeterHits);
-        //assertEquals("Wrong number of clusters.", TOTAL_CLUSTERS, reconCheckDriver.nClusters);
-        //TestCase.assertTrue("Number of tracks not within acceptable range.", 
-        //        (reconCheckDriver.nTracks >= TOTAL_TRACKS_LOWER && reconCheckDriver.nTracks <= TOTAL_TRACKS_UPPER));
-        //assertTrue("Number of reconstructed particles not within acceptable range.", 
-        //        (reconCheckDriver.nReconstructedParticles >= TOTAL_RECONSTRUCTED_PARTICLES_LOWER 
-        //        && reconCheckDriver.nReconstructedParticles <= TOTAL_RECONSTRUCTED_PARTICLES_UPPER));
     }          
     
     static class ReconCheckDriver extends Driver {
@@ -91,15 +72,12 @@ public class MCReconTest extends TestCase {
         int nEvents;
         
         public void process(EventHeader event) {
-            //System.out.println("ReconCheckDriver - event #" + event.getEventNumber());
             ++nEvents;
             if (event.hasCollection(Track.class, "MatchedTracks")) {
                 nTracks += event.get(Track.class, "MatchedTracks").size();
-                //System.out.println("  MatchedTracks: " + event.get(Track.class, "MatchedTracks").size());
             }
             if (event.hasCollection(Cluster.class, "EcalClusters")) {
                 nClusters += event.get(Cluster.class, "EcalClusters").size();
-                //System.out.println("  EcalClusters: " + event.get(Cluster.class, "EcalClusters").size());
             }
             if (event.hasCollection(TrackerHit.class, "RotatedHelicalTrackHits")) {
                 nTrackerHits += event.get(TrackerHit.class, "RotatedHelicalTrackHits").size();
@@ -109,7 +87,6 @@ public class MCReconTest extends TestCase {
             }
             if (event.hasCollection(ReconstructedParticle.class, "FinalStateParticles")) {
                 nReconstructedParticles += event.get(ReconstructedParticle.class, "FinalStateParticles").size();
-                //System.out.println("  FinalStateParticles: " + event.get(ReconstructedParticle.class, "FinalStateParticles").size());
             }
         }        
         
