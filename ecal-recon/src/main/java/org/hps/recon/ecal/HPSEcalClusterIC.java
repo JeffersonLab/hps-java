@@ -13,20 +13,20 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.base.BaseCluster;
 
 /**
- * Cluster with position defined by seed hit (for 1-bit trigger)
+ * Cluster with addition to include shared hits and set position
+ * as calculated in full cluster code. 
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Holly Szumila <hvanc001@odu.edu>
  * 
- * @version $Id: HPSEcalCluster.java,v 1.11 2013/02/25 22:39:24 meeg Exp $
  */
 public class HPSEcalClusterIC extends BaseCluster {
 
     private CalorimeterHit seedHit = null;
     private long cellID;
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>(); 
-    
-    
+    private double[] position = new double[2];
+
     
     
     static final double eCriticalW = 800.0*ECalUtils.MeV/(74+1);
@@ -35,7 +35,6 @@ public class HPSEcalClusterIC extends BaseCluster {
     private boolean needsElectronPosCalculation = true;
     double[] photonPosAtDepth = new double[3];
     private boolean needsPhotonPosCalculation = true;
-    double[] positionCorrection = new double[2];
     
     public HPSEcalClusterIC(Long cellID) {
         this.cellID = cellID;
@@ -62,22 +61,24 @@ public class HPSEcalClusterIC extends BaseCluster {
     	sharedHitList.add(sharedHit);
     }
     
-    
-    
     public List<CalorimeterHit> getSharedHits() {
     	return sharedHitList;
     }
     
-    public void addPositionCorr(Double[] posCorr) {
-    	this.addPositionCorr(posCorr);
+    
+    public void setPosition(double[] Position) {
+    	position = Position;
+    }
+    
+    @Override
+    public double[] getPosition(){
+    	return this.position;
     }
     
     
-//    public double[] getPosition() {
-//        return getSeedHit().getPosition();
-//    }
-//    
-    @Override
+    
+    
+ /*   @Override
     public double[] getPosition() {
         //Electron by default!?
         return this.getPositionAtShowerMax(true);
@@ -103,7 +104,8 @@ public class HPSEcalClusterIC extends BaseCluster {
         double y = E/eCriticalW;
         double Cj = isElectron ? -0.5 : 0.5;
         double tmax = Math.log(y) + Cj; //Maximum of dE/dt profile in units of rad. len. 
-        double dmax = tmax*radLenW; //mm
+//        double dmax = tmax*radLenW; //mm
+        double dmax = 0.0; //Changed this to readout crystal centroid at face
         if(isElectron) {
             electronPosAtDepth =  calculatePositionAtDepth(dmax);
         } else {
@@ -175,7 +177,10 @@ public class HPSEcalClusterIC extends BaseCluster {
             //Find position at shower max
             IGeometryInfo geom = hit.getDetectorElement().getGeometry();
             double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()),(Hep3Vector)new BasicHep3Vector(0,0,dmax-1*((Trd)geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
-                        
+
+
+            
+            
 //            System.out.println("global pos " + global_pos.toString());
 //            System.out.println("local pos " + local_pos.toString());
 //            System.out.println("local pos tmax " + local_pos_tmax.toString());
@@ -441,7 +446,7 @@ public class HPSEcalClusterIC extends BaseCluster {
         return positionLocal;
     }
     
-    
+  */  
     
     
 }

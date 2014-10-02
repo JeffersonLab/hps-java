@@ -20,7 +20,6 @@ import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.MCParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
@@ -161,16 +160,8 @@ public class EcalClusterIC extends Driver {
         this.timeWindow = timeWindow;
     }
     
-    // For storing MC particle list
-    public ArrayList<MCParticle> mcList = new ArrayList<MCParticle>();
-    
     // Make a map for quick calculation of the x-y position of crystal face
-    public Map<Point, Double[]> correctedPositionMap = new HashMap<Point, Double[]>();
-    
-    // MC particle list
-    public void addMCGen(MCParticle genMC){
-    	mcList.add(genMC);
-    }
+    public Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
     
     public void startOfData() {
     	// Make sure that the calorimeter hit collection name is defined.
@@ -204,14 +195,6 @@ public class EcalClusterIC extends Driver {
     public void process(EventHeader event) {
     	// Make sure the current event contains calorimeter hits.
         if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
-
-        	// Get generated hits
-            if (event.hasCollection(MCParticle.class, "MCParticle")) {
-                List<MCParticle> genPart = event.getMCParticles();
-                for(MCParticle m : genPart){
-                    mcList.add(m);
-                }        	
-            }
         	
             // Generate clusters from the calorimeter hits.
             //List<HPSEcalClusterIC> clusterList = null;
@@ -466,7 +449,7 @@ public class EcalClusterIC extends Driver {
         
         
         /*
-         * All hits are sorted from above. The next part of the code is for calculating energies.
+         * All hits are sorted from above. The next part of the code is for calculating energies and positions.
          */
                 
         //Create map to contain the total energy of each cluster
@@ -487,7 +470,7 @@ public class EcalClusterIC extends Driver {
             seedEnergy.put(eSeed, eEnergy);
         }
 
-        // Create a map to contain final uncorrected cluster energies with common hit distributions.
+        // Create a map to contain final uncorrected cluster energies including common hit distributions.
         Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
         
         //Distribute common hit energies with clusters
@@ -511,40 +494,32 @@ public class EcalClusterIC extends Driver {
         Map<CalorimeterHit, Double> seedEnergyCorr = new HashMap<CalorimeterHit, Double>();
         
         // Energy Corrections as per HPS Note 2014-001
-        if (mcList.size() > 0) {
-            int pdg = mcList.get(0).getPDGID();
-
             // Iterate through known clusters with energies and apply correction.
             for (Map.Entry<CalorimeterHit, Double> entryC : seedEnergyTot.entrySet()) {
                 double rawEnergy = entryC.getValue();
-                if (pdg == 11) {// electron energy correction
-                    double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
-                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-                } else if (pdg == 22) {// photon energy correction
-                    double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
-                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
+                // Energy correction for electron:
+                double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
 
-                } else if (pdg == -11) {// positron energy correction
-                    double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
-                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-                } else {// some other particle, but I have no energy correction for this
-                    double corrEnergy = rawEnergy;
-                    seedEnergyCorr.put(entryC.getKey(), corrEnergy);
-                }
+                // Energy correction for positron:
+//                double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
+                // Energy correction for photon:
+//                double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
+
+                
+                seedEnergyCorr.put(entryC.getKey(), corrEnergy);    
             }// end of energy corrections
-        }
         
-        
+                
         // Cluster Position as per HPS Note 2014-001
         // Create map with seed as key to position/centroid value
-        Map<CalorimeterHit, Double[]> seedPosition = new HashMap<CalorimeterHit, Double[]>();
+        Map<CalorimeterHit, double[]> seedPosition = new HashMap<CalorimeterHit, double[]>();
         
         // top level iterates through seeds
         for (Map.Entry<CalorimeterHit, Double> entryS : seedEnergyTot.entrySet()) {
         	//get the seed for this iteration
            	CalorimeterHit seedP = entryS.getKey();
            	
-           	double xCl = 0.0; // calculated cluster x position
+           	double xCl = 0.0; // calculated cluster x position, prior to correction
             double yCl = 0.0; // calculated cluster y position
             double eNumX = 0.0; 
             double eNumY = 0.0;
@@ -562,7 +537,7 @@ public class EcalClusterIC extends Driver {
         			Point hitIndex = new Point(ix, iy);
 
         			// Get the corrected position for this index pair.
-        			Double[] position = correctedPositionMap.get(hitIndex);
+        			double[] position = correctedPositionMap.get(hitIndex);
 
         			// If the result is null, it hasn't been calculated yet.
         			if(position == null) {
@@ -571,7 +546,7 @@ public class EcalClusterIC extends Driver {
         				double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()),(Hep3Vector)new BasicHep3Vector(0,0,-1*((Trd)geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
       
         				// Convert the result to  a Double[] array.
-        				position = new Double[3];
+        				position = new double[3];
         				position[0] = pos[0];
         				position[1] = pos[1];
         				position[2] = pos[2];
@@ -595,11 +570,25 @@ public class EcalClusterIC extends Driver {
         	xCl = eNumX/eDen;
             yCl = eNumY/eDen;
             
-            Double[] corrPosition = new Double[2];
-            corrPosition[0] = xCl;
+            // Apply position correction factors:
+            // Position correction for electron:
+            double xCorr = xCl-(0.0066/Math.sqrt(seedEnergyTot.get(seedP))-0.03)*xCl-
+            		(0.028*seedEnergyTot.get(seedP)-0.45/Math.sqrt(seedEnergyTot.get(seedP))+0.465);
+            
+            // Position correction for positron:
+//            double xCorr = xCl-(0.0072/Math.sqrt(seedEnergyTot.get(seedP))-0.031)*xCl-
+//            		(0.007*seedEnergyTot.get(seedP)+0.342/Math.sqrt(seedEnergyTot.get(seedP))+0.108);
+            
+            // Position correction for photon:
+//            double xCorr = xCl-(0.005/Math.sqrt(seedEnergyTot.get(seedP))-0.032)*xCl-
+//            		(0.011*seedEnergyTot.get(seedP)-0.037/Math.sqrt(seedEnergyTot.get(seedP))+0.294);
+            
+            
+            
+            double[] corrPosition = new double[2];
+            corrPosition[0] = xCorr;
             corrPosition[1] = yCl;
             seedPosition.put(seedP, corrPosition);
-        		
         	
         }// end of cluster position calculation
 
@@ -607,90 +596,54 @@ public class EcalClusterIC extends Driver {
               
         
         /*
-         * Prints the results in event display format. Not analyzed
-         * for efficiency, as this will ultimately not be a part of
-         * the driver and should be handled by the event display output
-         * driver instead. Contains output loops to collection.
+         * Outputs results to cluster collection. 
          */
-        // Only write to the output file is something actually exists.
+        // Only write output if something actually exists.
         if (hitMap.size() != 0) {
-        	// Increment the event number.
-        	eventNum++;
-        	
-        	// Write the event header.
-//        	writeHits.append(String.format("Event\t%d%n", eventNum));
-        	
-        	// Write the calorimeter hits that passed the energy cut.
-            for (CalorimeterHit n : hitList) {
-            	int hix = n.getIdentifierFieldValue("ix");
-            	int hiy = n.getIdentifierFieldValue("iy");
-            	double energy = n.getCorrectedEnergy();
-//            	writeHits.append(String.format("EcalHit\t%d\t%d\t%f%n", hix, hiy, energy));
-            }
-            
-            
+            // Loop over seeds
             for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
                 if (entry2.getKey() == entry2.getValue()){
                 	if((entry2.getKey().getCorrectedEnergy()<seedEnergyThreshold)
                 		||(seedEnergyTot.get(entry2.getKey())<clusterEnergyThreshold)) 
                 	{	
-                		rejectedHitList.add(entry2.getKey());
+                		//Not clustered for not passing cuts
+                		rejectedHitList.add(entry2.getKey()); 
                 	}
                 	
                 	else{
-                	
-                		int six = entry2.getKey().getIdentifierFieldValue("ix");
-                		int siy = entry2.getKey().getIdentifierFieldValue("iy");
-//                		writeHits.append(String.format("Cluster\t%d\t%d\t%f%n", six, siy, energy));
-                	
+                		// New cluster
                 		HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
-                		cluster.addHit(entry2.getKey());
-                		
-                		//can't seem to get this to go into cluster information-------!!!!
- //                      	cluster.addPositionCorr(seedPosition.get(entry2.getKey()));
-                		if (seedEnergyCorr.values().size() > 0)
-                		    cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
-
+                		clusterList.add(cluster);
+                		// Loop over hits belonging to seeds
                 		for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
                 			if (entry3.getValue() == entry2.getValue()) {
                 				if(rejectedHitList.contains(entry2.getValue())){
                 					rejectedHitList.add(entry3.getKey());
                 				}
                 				else{
-                					int ix = entry3.getKey().getIdentifierFieldValue("ix");
-                					int iy = entry3.getKey().getIdentifierFieldValue("iy");
-//                       			writeHits.append(String.format("CompHit\t%d\t%d%n", ix, iy));
-                        	
+                					// Add hit to cluster
                 					cluster.addHit(entry3.getKey());
                 				}
                 			}
                 		}
                 		
                     for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
-                        if (entry4.getValue().contains(entry2.getKey())) {
-                        	int ix = entry4.getKey().getIdentifierFieldValue("ix");
-                        	int iy = entry4.getKey().getIdentifierFieldValue("iy");
-//                        	writeHits.append(String.format("SharHit\t%d\t%d%n", ix, iy));
-                        	
+                        if (entry4.getValue().contains(entry2.getKey())) {                       	
                         	// Added in shared hits for energy distribution between clusters, changed by HS 02JUN14
-//                            cluster.addHit(entry4.getKey());
-                            cluster.addSharedHit(entry4.getKey());
+                            cluster.addSharedHit(entry4.getKey()); 
                         }
                     }
-                    for(CalorimeterHit q : rejectedHitList)
-                    {// This does not output in correct event display format, just for de-bugging
-//                    	writeHits.append("Rejected"+q.getIdentifierFieldValue("ix")+"\t"+q.getIdentifierFieldValue("iy")+"\n");
-                    }
+                                        
+                    //Overwrites cluster energy with corrected cluster energy
+            		if (seedEnergyCorr.values().size() > 0){cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));}
+
+            		//Overwrites cluster position with corrected cluster position
+            		cluster.setPosition(seedPosition.get(entry2.getKey()));
+                  
                     
-                    
-                   	clusterList.add(cluster);
                 	}// End checking thresholds and write out.
-                }
-                
-            
+                }                            
             } //End cluster loop
-         // Write the event termination header.
-//            writeHits.append("EndEvent\n");
 //            System.out.println("Number of clusters: "+clusterList.size());    
 
             
@@ -712,49 +665,11 @@ public class EcalClusterIC extends Driver {
         }
     }
     
-  /*  private static class EnergyComparator implements Comparator<CalorimeterHit> {
-        public int compare(CalorimeterHit o1, CalorimeterHit o2) {
-        	// If the energies are equivalent, the same, the two hits
-        	// are considered equivalent.
-        	if(o1.getCorrectedEnergy() == o2.getCorrectedEnergy()) { return 0; }
-        	
-        	// Higher energy hits are ranked higher than lower energy hits.
-        	else if(o1.getCorrectedEnergy() > o2.getCorrectedEnergy()) { return -1; }
-        	
-        	// Lower energy hits are ranked lower than higher energy hits.
-        	else { return 1; }
-        }
-    }*/
-    
-/*    // Also accounts for pathological case of cluster hits that are EXACTLY the same.
-    private static class EnergyComparator implements Comparator<CalorimeterHit> {
-        public int compare(CalorimeterHit o1, CalorimeterHit o2) {
-        	// If the energies are equivalent, the same, the two hits
-        	// are considered equivalent.
-        	if(o1.getCorrectedEnergy() == o2.getCorrectedEnergy()) { 
-        		if(Math.abs(o1.getIdentifierFieldValue("iy")) < Math.abs(o2.getIdentifierFieldValue("iy"))){
-        			return -1;
-        		}
-        		else if((Math.abs(o1.getIdentifierFieldValue("iy")) == Math.abs(o2.getIdentifierFieldValue("iy")))
-        			&& (o1.getIdentifierFieldValue("ix") < o2.getIdentifierFieldValue("ix"))){
-        			return -1; }
-        		else if (Math.abs(o1.getIdentifierFieldValue("iy")) > Math.abs(o2.getIdentifierFieldValue("iy"))){
-        			return 1;
-        		}
-        		else{return 1;}
-        	}
-        	// Higher energy hits are ranked higher than lower energy hits.
-        	else if(o1.getCorrectedEnergy() > o2.getCorrectedEnergy()) { return -1; }
-        	
-        	// Lower energy hits are ranked lower than higher energy hits.
-        	else { return 1; }
-        }
-    }
-*/
+ 
     private static class EnergyComparator implements Comparator<CalorimeterHit> {
     	/**
     	 * Compares the first hit with respect to the second. This
-    	 * method will compare hits first by energy, and the spatially.
+    	 * method will compare hits first by energy, and then spatially.
     	 * In the case of equal energy hits, the hit closest to the
     	 * beam gap and closest to the positron side of the detector
     	 * will be selected. If all of these conditions are true, the
@@ -839,4 +754,5 @@ public class EcalClusterIC extends Driver {
     
     
     
+
 }    
