@@ -1,14 +1,8 @@
 package org.hps.recon.ecal;
 
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lcsim.detector.IGeometryInfo;
-import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.base.BaseCluster;
 
@@ -25,7 +19,7 @@ public class HPSEcalClusterIC extends BaseCluster {
     private CalorimeterHit seedHit = null;
     private long cellID;
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>(); 
-    private double[] position = new double[2];
+    private double[] rawPosition = new double[2];
 
     
     
@@ -56,26 +50,97 @@ public class HPSEcalClusterIC extends BaseCluster {
         }
         return seedHit;
     }
-    
+    /**
+     * Input shared hits between two clusters. 
+     */
     public void addSharedHit(CalorimeterHit sharedHit) {
     	sharedHitList.add(sharedHit);
     }
-    
+    /**
+     * Return shared hit list between two clusters. 
+     */
     public List<CalorimeterHit> getSharedHits() {
     	return sharedHitList;
-    }
-    
-    
-    public void setPosition(double[] Position) {
-    	position = Position;
-    }
-    
+    }  
+    /**
+     * Inputs the uncorrected x,y,z position of the cluster.
+     */
+    public void setRawPosition(double[] Position) {
+    	rawPosition = Position;
+    }  
+    /**
+     * Returns the uncorrected x,y,z position of the cluster.
+     */
     @Override
     public double[] getPosition(){
+    	return this.rawPosition;
+    }   
+    /**
+     * Do an external calculation of the raw energy and set it. Includes shared hit distribution.
+     */
+    public void setRawEnergy(double rawEnergy){
+    	raw_energy = rawEnergy;
+    }
+    /**
+     * Inputs the corrected position of the cluster, see HPS Note 2014-001.
+     */
+    public void setCorrPosition(double[] Position) {
+    	position = Position;
+    }    
+    /**
+     * Returns the corrected position of the cluster. 
+     */
+    public double[] getCorrPosition(){
     	return this.position;
     }
     
+    /**
+     * Calculates energy correction based on cluster raw energy and particle type as per HPS Note 2014-001
+     * @param pdg Particle id as per PDG
+     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
+     * @return Corrected Energy
+     */    
+    public double energyCorrection(int pdg, double rawEnergy){
+  	   if (pdg == 11) { // Particle is electron
+  		   double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
+  		  return corrEnergy;}
+  	   else if (pdg == -11) { //Particle is positron
+  		   double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
+  		  return corrEnergy;}
+  	   else if (pdg == 22) { //Particle is photon
+  		   double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
+  		  return corrEnergy;}
+  	   else { //Unknown 
+  		   double corrEnergy = rawEnergy;
+  		  return corrEnergy;}
+  	   
+     }   
     
+    /**
+     * Calculates position correction based on cluster raw energy, x calculated position, 
+     * and particle type as per HPS Note 2014-001
+     * @param pdg Particle id as per PDG
+     * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
+     * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
+     * @return Corrected x position
+     */
+    public double positionCorrection(int pdg, double xCl, double rawEnergy){
+    	if (pdg == 11) { //Particle is electron
+    		double xCorr = xCl-(0.0066/Math.sqrt(rawEnergy)-0.03)*xCl-
+    				(0.028*rawEnergy-0.45/Math.sqrt(rawEnergy)+0.465);
+    		return xCorr;}
+    	else if (pdg == -11) {// Particle is positron
+    		double xCorr = xCl-(0.0072/Math.sqrt(rawEnergy)-0.031)*xCl-
+    				(0.007*rawEnergy+0.342/Math.sqrt(rawEnergy)+0.108);
+    		return xCorr;}
+    	else if (pdg == 22) {// Particle is photon
+    		double xCorr = xCl-(0.005/Math.sqrt(rawEnergy)-0.032)*xCl-
+    				(0.011*rawEnergy-0.037/Math.sqrt(rawEnergy)+0.294);
+    		return xCorr;}
+    	else { //Unknown 
+    		double xCorr = xCl;
+    		return xCorr;}
+    	}
     
     
  /*   @Override
