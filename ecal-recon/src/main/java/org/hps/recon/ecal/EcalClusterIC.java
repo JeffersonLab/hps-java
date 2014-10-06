@@ -581,7 +581,7 @@ public class EcalClusterIC extends Driver {
             int pdg = 11;
             double xCorr = posCorrection(pdg, xCl, seedEnergyTot.get(seedP));
            
-            double[] corrPosition = new double[2];
+            double[] corrPosition = new double[3];
             corrPosition[0] = xCorr;
             corrPosition[1] = yCl;
             corrPosition[2] = correctedPositionMap.get(hitIndex)[2];
