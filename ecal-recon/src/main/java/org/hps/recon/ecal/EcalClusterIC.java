@@ -569,7 +569,12 @@ public class EcalClusterIC extends Driver {
             double[] rawPosition = new double[3];
             rawPosition[0] = xCl;
             rawPosition[1] = yCl;
-            rawPosition[2] = correctedPositionMap.get(seedP)[2];
+            int ix = seedP.getIdentifierFieldValue("ix");
+			int iy = seedP.getIdentifierFieldValue("iy");
+			Point hitIndex = new Point(ix, iy);
+            rawPosition[2] = correctedPositionMap.get(hitIndex)[2];
+            
+            
             
             // Apply position correction factors:
             // Position correction for electron:
@@ -579,7 +584,7 @@ public class EcalClusterIC extends Driver {
             double[] corrPosition = new double[2];
             corrPosition[0] = xCorr;
             corrPosition[1] = yCl;
-            corrPosition[2] = correctedPositionMap.get(seedP)[2];
+            corrPosition[2] = correctedPositionMap.get(hitIndex)[2];
                         
             corrSeedPosition.put(seedP, corrPosition);
             rawSeedPosition.put(seedP, rawPosition);
