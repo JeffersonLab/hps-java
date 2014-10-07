@@ -124,6 +124,20 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
+        </profile>        
+        <profile>
+            <id>test-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.freehep</groupId>
+                        <artifactId>freehep-jas-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
     </profiles>
 </project>
