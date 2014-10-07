@@ -42,12 +42,11 @@ public class MollerTrigger extends TriggerDriver {
     public void endOfData() {
         // Print out the results of the trigger cuts.
         System.out.printf("Trigger Processing Results%n");
-        System.out.printf("\tSingle-Cluster Cuts%n");
-        System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
-        System.out.printf("\t\tPassed Positional Cut        :: %d%n", clusterPositionCount);
-        System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
-        System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
-        System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
+        System.out.printf("\tTotal Clusters Processed     :: %d%n", allClusters);
+        System.out.printf("\tPassed Positional Cut        :: %d%n", clusterPositionCount);
+        System.out.printf("\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
+        System.out.printf("\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
+        System.out.printf("\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
         System.out.printf("%n");
         System.out.printf("\tTrigger Count :: %d%n", triggers);
         
@@ -82,9 +81,11 @@ public class MollerTrigger extends TriggerDriver {
         // Add the allowed seed crystal positions to the seed set.
         // y = +/- 1, x = -11 -> -15
         for(int ix = -15; ix <= -11; ix++) {
+            allowedSeedSet.add(new Point(ix, 1));
             allowedSeedSet.add(new Point(ix, -1));
         } // y = +/- 2, x = -9 -> -15
         for(int ix = -15; ix <= -9; ix++) {
+            allowedSeedSet.add(new Point(ix, 2));
             allowedSeedSet.add(new Point(ix, -2));
         }
     }
@@ -94,7 +95,7 @@ public class MollerTrigger extends TriggerDriver {
         // Check if there is a cluster collection. If not, there is no
         // reason to continue; a trigger can not be produced if there
         // are no clusters.
-        if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if(!event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
             // VERBOSE :: Note that no cluster collection exists for
             //            this event.
             if(verbose) { System.out.println("No cluster collection is present for event."); }
@@ -182,6 +183,9 @@ public class MollerTrigger extends TriggerDriver {
                 aClusterTotalEnergy.fill(cluster.getEnergy());
                 aClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
                 aClusterDistribution.fill(ix > 0 ? ix - 1 : ix, iy, 1);
+                
+                // Increment the trigger count.
+                triggers++;
                 
                 // VERBOSE :: Indicate that a trigger occurred.
                 if(verbose) { System.out.printf("\tTriggered!%n%n"); }
