@@ -13,7 +13,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Class <code>MollerTrigger</code> simulates a Møller trigger. It
+ * Class <code>MollerTriggerDriver</code> simulates a Møller trigger. It
  * executes four cuts, three of which are single cluster cuts and the
  * last of which is a positional cut. The single cluster cuts are on
  * the seed and total energies of the cluster and the energy of the seed
@@ -32,7 +32,7 @@ import org.lcsim.util.aida.AIDA;
  * 
  * @author Kyle McCarty
  */
-public class MollerTrigger extends TriggerDriver {
+public class MollerTriggerDriver extends TriggerDriver {
     
     // ==================================================================
     // ==== Trigger Algorithms ==========================================
