@@ -28,45 +28,45 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     // ==== Trigger Cut Default Parameters ==============================
     // ==================================================================
-    private int minHitCount = 1;								// Minimum required cluster hit count threshold. (Hits)			
-    private double seedEnergyHigh = Double.MAX_VALUE;			// Maximum allowed cluster seed energy. (GeV)
-    private double seedEnergyLow = Double.MIN_VALUE;			// Minimum required cluster seed energy. (GeV)
-    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;		// Maximum allowed cluster total energy. (GeV)
-    private double clusterEnergyLow = .1 * ECalUtils.GeV;		// Minimum required cluster total energy. (GeV)
-    private double energySumHigh = 1.9 * ECalUtils.GeV;			// Maximum allowed pair energy sum. (GeV)
-    private double energySumLow = 0.0 * ECalUtils.GeV;			// Minimum required pair energy sum. (GeV)
-    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;	// Maximum allowed pair energy difference. (GeV)
-    private double energySlopeLow = 1.1;						// Minimum required pair energy slope value.
-    private double coplanarityHigh = 35;						// Maximum allowed pair coplanarity deviation. (Degrees)
+    private int minHitCount = 1;                                   // Minimum required cluster hit count threshold. (Hits)            
+    private double seedEnergyHigh = Double.MAX_VALUE;              // Maximum allowed cluster seed energy. (GeV)
+    private double seedEnergyLow = Double.MIN_VALUE;               // Minimum required cluster seed energy. (GeV)
+    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;        // Maximum allowed cluster total energy. (GeV)
+    private double clusterEnergyLow = .1 * ECalUtils.GeV;          // Minimum required cluster total energy. (GeV)
+    private double energySumHigh = 1.9 * ECalUtils.GeV;            // Maximum allowed pair energy sum. (GeV)
+    private double energySumLow = 0.0 * ECalUtils.GeV;             // Minimum required pair energy sum. (GeV)
+    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;     // Maximum allowed pair energy difference. (GeV)
+    private double energySlopeLow = 1.1;                           // Minimum required pair energy slope value.
+    private double coplanarityHigh = 35;                           // Maximum allowed pair coplanarity deviation. (Degrees)
     
     // ==================================================================
     // ==== Trigger General Default Parameters ==========================
     // ==================================================================
-    private String clusterCollectionName = "EcalClusters";		// Name for the LCIO cluster collection.
-    private int pairCoincidence = 2;							// Maximum allowed time difference between clusters. (4 ns clock-cycles)
-    private double energySlopeParamF = 0.005500;				// A parameter value used for the energy slope calculation.
-    private double originX = 1393.0 * Math.tan(0.03052);		// ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
-    private int backgroundLevel = -1;							// Automatically sets the cuts to achieve a predetermined background rate.
+    private String clusterCollectionName = "EcalClusters";        // Name for the LCIO cluster collection.
+    private int pairCoincidence = 2;                              // Maximum allowed time difference between clusters. (4 ns clock-cycles)
+    private double energySlopeParamF = 0.005500;                  // A parameter value used for the energy slope calculation.
+    private double originX = 1393.0 * Math.tan(0.03052);          // ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
+    private int backgroundLevel = -1;                            // Automatically sets the cuts to achieve a predetermined background rate.
     
     // ==================================================================
     // ==== Driver Internal Variables ===================================
     // ==================================================================
-    private Queue<List<HPSEcalCluster>> topClusterQueue = null;	// Store clusters on the top half of the calorimeter.
-    private Queue<List<HPSEcalCluster>> botClusterQueue = null;	// Store clusters on the bottom half of the calorimeter.
-    private int allClusters = 0;								// Track the number of clusters processed.
-    private int allPairs = 0;									// Track the number of cluster pairs processed.
-    private int clusterTotalEnergyCount = 0;					// Track the clusters which pass the total energy cut.
-    private int clusterSeedEnergyCount = 0;						// Track the clusters which pass the seed energy cut.
-    private int clusterHitCountCount = 0;						// Track the clusters which pass the hit count cut.
-    private int pairEnergySumCount = 0;							// Track the pairs which pass the energy sum cut.
-    private int pairEnergyDifferenceCount = 0;					// Track the pairs which pass the energy difference cut.
-    private int pairEnergySlopeCount = 0;						// Track the pairs which pass the energy slope cut.
-    private int pairCoplanarityCount = 0;						// Track the pairs which pass the coplanarity cut.
+    private Queue<List<HPSEcalCluster>> topClusterQueue = null;    // Store clusters on the top half of the calorimeter.
+    private Queue<List<HPSEcalCluster>> botClusterQueue = null;    // Store clusters on the bottom half of the calorimeter.
+    private int allClusters = 0;                                   // Track the number of clusters processed.
+    private int allPairs = 0;                                      // Track the number of cluster pairs processed.
+    private int clusterTotalEnergyCount = 0;                       // Track the clusters which pass the total energy cut.
+    private int clusterSeedEnergyCount = 0;                        // Track the clusters which pass the seed energy cut.
+    private int clusterHitCountCount = 0;                          // Track the clusters which pass the hit count cut.
+    private int pairEnergySumCount = 0;                            // Track the pairs which pass the energy sum cut.
+    private int pairEnergyDifferenceCount = 0;                     // Track the pairs which pass the energy difference cut.
+    private int pairEnergySlopeCount = 0;                          // Track the pairs which pass the energy slope cut.
+    private int pairCoplanarityCount = 0;                          // Track the pairs which pass the coplanarity cut.
     
     // ==================================================================
     // ==== Trigger Distribution Plots ==================================
     // ==================================================================
-	private AIDA aida = AIDA.defaultInstance();
+    private AIDA aida = AIDA.defaultInstance();
     IHistogram1D clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
     IHistogram1D clusterSeedEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
     IHistogram1D clusterSeedEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
@@ -89,34 +89,36 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     IHistogram1D pairEnergySlope = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 400, 0.0, 4.0);
     IHistogram1D pairEnergySlopeAll = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution (Passed All Cuts)", 400, 0.0, 4.0);
     
-	IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 44, -22.0, 22.0, 10, -5, 5);
-	IHistogram2D clusterDistribution100 = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Over 100 MeV)", 44, -23, 23, 11, -5.5, 5.5);
-	IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 44, -23, 23, 11, -5.5, 5.5);
-	IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 44, -23, 23, 11, -5.5, 5.5);
+    IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram2D clusterDistribution100 = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Over 100 MeV)", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    
+    IHistogram1D hotCrystalEnergy = aida.histogram1D("Trigger Plots :: Hot Crystal Energy Distribution", 176, 0.0, 2.2);
     
     /**
      * Prints out the results of the trigger at the end of the run.
      */
     @Override
     public void endOfData() {
-    	// Print out the results of the trigger cuts.
-    	System.out.printf("Trigger Processing Results%n");
-    	System.out.printf("\tSingle-Cluster Cuts%n");
-    	System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
-    	System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
-    	System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
-    	System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
-    	System.out.printf("%n");
-    	System.out.printf("\tCluster Pair Cuts%n");
-    	System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
-    	System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
-    	System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
-    	System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
-    	System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
-    	System.out.printf("%n");
-    	System.out.printf("\tTrigger Count :: %d%n", numTriggers);
-    	
-    	// Run the superclass method.
+        // Print out the results of the trigger cuts.
+        System.out.printf("Trigger Processing Results%n");
+        System.out.printf("\tSingle-Cluster Cuts%n");
+        System.out.printf("\t\tTotal Clusters Processed     :: %d%n", allClusters);
+        System.out.printf("\t\tPassed Seed Energy Cut       :: %d%n", clusterSeedEnergyCount);
+        System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
+        System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
+        System.out.printf("%n");
+        System.out.printf("\tCluster Pair Cuts%n");
+        System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
+        System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
+        System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
+        System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
+        System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
+        System.out.printf("%n");
+        System.out.printf("\tTrigger Count :: %d%n", numTriggers);
+        
+        // Run the superclass method.
         super.endOfData();
     }
     
@@ -126,81 +128,89 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     @Override
     public void process(EventHeader event) {
-    	// Process the list of clusters for the event, if it exists.
+        // Process the list of clusters for the event, if it exists.
         if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
-        	// Get the collection of clusters.
-        	List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
-        	
-        	// Create a list to hold clusters which pass the single
-        	// cluster cuts.
-        	List<HPSEcalCluster> goodClusterList = new ArrayList<HPSEcalCluster>(clusterList.size());
-        	
-        	// Sort through the cluster list and add clusters that pass
-        	// the single cluster cuts to the good list.
-        	clusterLoop:
-        	for(HPSEcalCluster cluster : clusterList) {
-        		// Increment the number of processed clusters.
-        		allClusters++;
-        		
-        		// Get the cluster plot values.
-        		int hitCount = cluster.getCalorimeterHits().size();
-        		double seedEnergy = cluster.getSeedHit().getCorrectedEnergy();
-        		double clusterEnergy = cluster.getEnergy();
-        		int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-        		int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
-        		if(ix > 0) { ix = ix - 1; }
-        		
-        		// Fill the general plots.
-        		clusterSeedEnergy.fill(seedEnergy, 1);
-        		clusterTotalEnergy.fill(clusterEnergy, 1);
-        		clusterHitCount.fill(hitCount, 1);
-        		clusterDistribution.fill(ix, iy, 1);
-        		
-        		// Fill the "over 100 MeV" plots if applicable.
-        		if(seedEnergy >= 0.100) {
-            		clusterSeedEnergy100.fill(seedEnergy, 1);
-            		clusterTotalEnergy100.fill(clusterEnergy, 1);
-            		clusterHitCount100.fill(hitCount, 1);
-            		clusterDistribution100.fill(ix, iy, 1);
-        		}
-        		
-        		// ==== Seed Hit Energy Cut ====================================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterSeedEnergyCount++;
-        		
-        		// ==== Cluster Hit Count Cut ==================================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterHitCountCount++;
-        		
-        		// ==== Cluster Total Energy Cut ===============================
-        		// =============================================================
-        		// If the cluster fails the cut, skip to the next cluster.
-        		if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
-        		
-        		// Otherwise, note that it passed the cut.
-        		clusterTotalEnergyCount++;
-        		
-        		// Fill the "passed single cuts" plots.
-        		clusterSeedEnergySingle.fill(seedEnergy, 1);
-        		clusterTotalEnergySingle.fill(clusterEnergy, 1);
-        		clusterHitCountSingle.fill(hitCount, 1);
-        		clusterDistributionSingle.fill(ix, iy, 1);
-        		
-        		// A cluster that passes all of the single-cluster cuts
-        		// can be used in cluster pairs.
-        		goodClusterList.add(cluster);
-        	}
-        	
-        	// Put the good clusters into the cluster queue.
-        	updateClusterQueues(goodClusterList);
+            // Get the collection of clusters.
+            List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+            
+            // Create a list to hold clusters which pass the single
+            // cluster cuts.
+            List<HPSEcalCluster> goodClusterList = new ArrayList<HPSEcalCluster>(clusterList.size());
+            
+            // Sort through the cluster list and add clusters that pass
+            // the single cluster cuts to the good list.
+            clusterLoop:
+            for(HPSEcalCluster cluster : clusterList) {
+                // Increment the number of processed clusters.
+                allClusters++;
+                
+                // Get the cluster plot values.
+                int hitCount = cluster.getCalorimeterHits().size();
+                double seedEnergy = cluster.getSeedHit().getCorrectedEnergy();
+                double clusterEnergy = cluster.getEnergy();
+                int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+                int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                
+                // If the cluster is in the "hot" region, write out its
+                // energy to a special plot.
+                if((iy == 1 || iy == -1) && (ix == -1 || ix == 1 || ix == 2)) {
+                    hotCrystalEnergy.fill(clusterEnergy, 1);
+                }
+                
+                // Correct for "hole" on the x-axis for plotting.
+                if(ix > 0) { ix = ix - 1; }
+                
+                // Fill the general plots.
+                clusterSeedEnergy.fill(seedEnergy, 1);
+                clusterTotalEnergy.fill(clusterEnergy, 1);
+                clusterHitCount.fill(hitCount, 1);
+                clusterDistribution.fill(ix, iy, 1);
+                
+                // Fill the "over 100 MeV" plots if applicable.
+                if(seedEnergy >= 0.100) {
+                    clusterSeedEnergy100.fill(seedEnergy, 1);
+                    clusterTotalEnergy100.fill(clusterEnergy, 1);
+                    clusterHitCount100.fill(hitCount, 1);
+                    clusterDistribution100.fill(ix, iy, 1);
+                }
+                
+                // ==== Seed Hit Energy Cut ====================================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterSeedEnergyCount++;
+                
+                // ==== Cluster Hit Count Cut ==================================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterHitCountCount++;
+                
+                // ==== Cluster Total Energy Cut ===============================
+                // =============================================================
+                // If the cluster fails the cut, skip to the next cluster.
+                if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
+                
+                // Otherwise, note that it passed the cut.
+                clusterTotalEnergyCount++;
+                
+                // Fill the "passed single cuts" plots.
+                clusterSeedEnergySingle.fill(seedEnergy, 1);
+                clusterTotalEnergySingle.fill(clusterEnergy, 1);
+                clusterHitCountSingle.fill(hitCount, 1);
+                clusterDistributionSingle.fill(ix, iy, 1);
+                
+                // A cluster that passes all of the single-cluster cuts
+                // can be used in cluster pairs.
+                goodClusterList.add(cluster);
+            }
+            
+            // Put the good clusters into the cluster queue.
+            updateClusterQueues(goodClusterList);
         }
         
         // Perform the superclass event processing.
@@ -214,7 +224,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be set. Actual background rates equal about (5 * backgroundLevel) kHz.
      */
     public void setBackgroundLevel(int backgroundLevel) {
-    	this.backgroundLevel = backgroundLevel;
+        this.backgroundLevel = backgroundLevel;
     }
     
     /**
@@ -277,7 +287,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySlopeLow - The parameter value.
      */
     public void setEnergySlopeLow(double energySlopeLow) {
-    	this.energySlopeLow = energySlopeLow;
+        this.energySlopeLow = energySlopeLow;
     }
     
     /**
@@ -361,12 +371,12 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     @Override
     public void startOfData() {
-    	// Make sure that a valid cluster collection name has been
-    	// defined. If it has not, throw an exception.
+        // Make sure that a valid cluster collection name has been
+        // defined. If it has not, throw an exception.
         if (clusterCollectionName == null) {
             throw new RuntimeException("The parameter clusterCollectionName was not set!");
         }
-    	
+        
         // Initialize the top and bottom cluster queues.
         topClusterQueue = new LinkedList<List<HPSEcalCluster>>();
         botClusterQueue = new LinkedList<List<HPSEcalCluster>>();
@@ -407,9 +417,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         for (HPSEcalCluster botCluster : botClusterQueue.element()) {
             for (List<HPSEcalCluster> topClusters : topClusterQueue) {
                 for (HPSEcalCluster topCluster : topClusters) {
-                	// The first cluster in a pair should always be
-                	// the higher energy cluster. If the top cluster
-                	// is higher energy, it goes first.
+                    // The first cluster in a pair should always be
+                    // the higher energy cluster. If the top cluster
+                    // is higher energy, it goes first.
                     if (topCluster.getEnergy() > botCluster.getEnergy()) {
                         HPSEcalCluster[] clusterPair = {topCluster, botCluster};
                         clusterPairs.add(clusterPair);
@@ -428,24 +438,24 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         return clusterPairs;
     }
     
-	/**
-	 * Determines if the event produces a trigger.
-	 * 
-	 * @return Returns <code>true</code> if the event produces a trigger
-	 * and <code>false</code> if it does not.
-	 */
-	@Override
-	protected boolean triggerDecision(EventHeader event) {
-    	// If there is a list of clusters present for this event,
-    	// check whether it passes the trigger conditions.
-    	if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
-        	return testTrigger();
+    /**
+     * Determines if the event produces a trigger.
+     * 
+     * @return Returns <code>true</code> if the event produces a trigger
+     * and <code>false</code> if it does not.
+     */
+    @Override
+    protected boolean triggerDecision(EventHeader event) {
+        // If there is a list of clusters present for this event,
+        // check whether it passes the trigger conditions.
+        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+            return testTrigger();
         }
         
         // Otherwise, this event can not produce a trigger and should
         // return false automatically.
         else { return false; }
-	}
+    }
     
     /**
      * Checks whether the argument cluster possesses the minimum
@@ -456,7 +466,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterHitCountCut(HPSEcalCluster cluster) {
-    	return (getValueClusterHitCount(cluster) >= minHitCount);
+        return (getValueClusterHitCount(cluster) >= minHitCount);
     }
     
     /**
@@ -468,12 +478,12 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
-    	// Get the cluster seed energy.
-    	double energy = getValueClusterSeedEnergy(cluster);
-    	
-    	// Check that it is above the minimum threshold and below the
-    	// maximum threshold.
-    	return (energy < seedEnergyHigh) && (energy > seedEnergyLow);
+        // Get the cluster seed energy.
+        double energy = getValueClusterSeedEnergy(cluster);
+        
+        // Check that it is above the minimum threshold and below the
+        // maximum threshold.
+        return (energy < seedEnergyHigh) && (energy > seedEnergyLow);
     }
     
     /**
@@ -485,12 +495,12 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
-    	// Get the total cluster energy.
-    	double energy = getValueClusterTotalEnergy(cluster);
-    	
-    	// Check that it is above the minimum threshold and below the
-    	// maximum threshold.
-    	return (energy < clusterEnergyHigh) && (energy > clusterEnergyLow);
+        // Get the total cluster energy.
+        double energy = getValueClusterTotalEnergy(cluster);
+        
+        // Check that it is above the minimum threshold and below the
+        // maximum threshold.
+        return (energy < clusterEnergyHigh) && (energy > clusterEnergyLow);
     }
     
     /**
@@ -512,7 +522,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueClusterTotalEnergy(HPSEcalCluster cluster) {
-    	return cluster.getEnergy();
+        return cluster.getEnergy();
     }
     
     /**
@@ -523,7 +533,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private int getValueClusterHitCount(HPSEcalCluster cluster) {
-    	return cluster.getCalorimeterHits().size();
+        return cluster.getCalorimeterHits().size();
     }
     
     /**
@@ -534,7 +544,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueClusterSeedEnergy(HPSEcalCluster cluster) {
-    	return cluster.getSeedHit().getCorrectedEnergy();
+        return cluster.getSeedHit().getCorrectedEnergy();
     }
     
     /**
@@ -545,14 +555,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueCoplanarity(HPSEcalCluster[] clusterPair) {
-    	// Get the cluster angles.
-    	double[] clusterAngle = new double[2];
-    	for(int i = 0; i < 2; i++) {
+        // Get the cluster angles.
+        double[] clusterAngle = new double[2];
+        for(int i = 0; i < 2; i++) {
             double position[] = clusterPair[i].getSeedHit().getPosition();
             clusterAngle[i] = (Math.toDegrees(Math.atan2(position[1], position[0] - originX)) + 180.0) % 180.0;
-    	}
-    	
-    	// Calculate the coplanarity cut value.
+        }
+        
+        // Calculate the coplanarity cut value.
         return Math.abs(clusterAngle[1] - clusterAngle[0]);
     }
     
@@ -564,7 +574,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergyDifference(HPSEcalCluster[] clusterPair) {
-    	return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
+        return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
     }
     
     /**
@@ -575,15 +585,15 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergySlope(HPSEcalCluster[] clusterPair) {
-    	// E + R*F
-    	// Get the low energy cluster energy.
-    	double slopeParamE = clusterPair[1].getEnergy();
-    	
-    	// Get the low energy cluster radial distance.
-    	double slopeParamR = getClusterDistance(clusterPair[1]);
-    	
-    	// Calculate the energy slope.
-    	return slopeParamE + slopeParamR * energySlopeParamF;
+        // E + R*F
+        // Get the low energy cluster energy.
+        double slopeParamE = clusterPair[1].getEnergy();
+        
+        // Get the low energy cluster radial distance.
+        double slopeParamR = getClusterDistance(clusterPair[1]);
+        
+        // Calculate the energy slope.
+        return slopeParamE + slopeParamR * energySlopeParamF;
     }
     
     /**
@@ -594,7 +604,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns the cut value.
      */
     private double getValueEnergySum(HPSEcalCluster[] clusterPair) {
-    	return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
+        return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
     }
     
     /**
@@ -630,7 +640,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return true if pair is found, false otherwise
      */
     private boolean pairEnergySlopeCut(HPSEcalCluster[] clusterPair) {
-    	return (getValueEnergySlope(clusterPair) > energySlopeLow);
+        return (getValueEnergySlope(clusterPair) > energySlopeLow);
     }
     
     /**
@@ -642,216 +652,216 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
-    	// Get the energy sum value.
-    	double energySum = getValueEnergySum(clusterPair);
-    	
-    	// Check that it is within the allowed range.
+        // Get the energy sum value.
+        double energySum = getValueEnergySum(clusterPair);
+        
+        // Check that it is within the allowed range.
         return (energySum < energySumHigh) && (energySum > energySumLow);
     }
-	
+    
     private void setBackgroundCuts(int backgroundLevel) {
-    	// Make sure that the background level is valid.
-    	if(backgroundLevel < 1 || backgroundLevel > 10) {
-    		throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
-    	}
-    	
-    	// Otherwise, set the trigger cuts. Certain cuts are constant
-    	// across all background levels.
-    	clusterEnergyLow = 0.000;
-    	seedEnergyLow = 0.100;
-    	
-    	// Set the variable values.
-    	if(backgroundLevel == 1) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.300;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.00;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 1.0;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 2) {
-    		clusterEnergyHigh = 1.600;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.300;
-    		energySumHigh = 2.00;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.8;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 3) {
-    		clusterEnergyHigh = 1.600;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.7;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 4) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.500;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 40;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 5) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 45;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 6) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 55;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 7) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 60;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 8) {
-    		clusterEnergyHigh = 1.700;
-    		seedEnergyHigh = 1.300;
-    		energySumLow = 0.200;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.500;
-    		energySlopeLow = 0.6;
-    		coplanarityHigh = 65;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 9) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 1.950;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.5;
-    		coplanarityHigh = 60;
-    		minHitCount = 2;
-    	} else if(backgroundLevel == 10) {
-    		clusterEnergyHigh = 1.500;
-    		seedEnergyHigh = 1.200;
-    		energySumLow = 0.400;
-    		energySumHigh = 2.000;
-    		energyDifferenceHigh = 1.400;
-    		energySlopeLow = 0.5;
-    		coplanarityHigh = 65;
-    		minHitCount = 2;
-    	}
+        // Make sure that the background level is valid.
+        if(backgroundLevel < 1 || backgroundLevel > 10) {
+            throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
+        }
+        
+        // Otherwise, set the trigger cuts. Certain cuts are constant
+        // across all background levels.
+        clusterEnergyLow = 0.000;
+        seedEnergyLow = 0.100;
+        
+        // Set the variable values.
+        if(backgroundLevel == 1) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.300;
+            energySumLow = 0.400;
+            energySumHigh = 2.00;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 1.0;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 2) {
+            clusterEnergyHigh = 1.600;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.300;
+            energySumHigh = 2.00;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.8;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 3) {
+            clusterEnergyHigh = 1.600;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.7;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 4) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.500;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 40;
+            minHitCount = 2;
+        } else if(backgroundLevel == 5) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 45;
+            minHitCount = 2;
+        } else if(backgroundLevel == 6) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 55;
+            minHitCount = 2;
+        } else if(backgroundLevel == 7) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 60;
+            minHitCount = 2;
+        } else if(backgroundLevel == 8) {
+            clusterEnergyHigh = 1.700;
+            seedEnergyHigh = 1.300;
+            energySumLow = 0.200;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.500;
+            energySlopeLow = 0.6;
+            coplanarityHigh = 65;
+            minHitCount = 2;
+        } else if(backgroundLevel == 9) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 1.950;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.5;
+            coplanarityHigh = 60;
+            minHitCount = 2;
+        } else if(backgroundLevel == 10) {
+            clusterEnergyHigh = 1.500;
+            seedEnergyHigh = 1.200;
+            energySumLow = 0.400;
+            energySumHigh = 2.000;
+            energyDifferenceHigh = 1.400;
+            energySlopeLow = 0.5;
+            coplanarityHigh = 65;
+            minHitCount = 2;
+        }
     }
     
-	/**
-	 * Tests all of the current cluster pairs for triggers.
-	 * 
-	 * @return Returns <code>true</code> if one of the cluster pairs
-	 * passes all of the cluster cuts and <code>false</code> otherwise.
-	 */
+    /**
+     * Tests all of the current cluster pairs for triggers.
+     * 
+     * @return Returns <code>true</code> if one of the cluster pairs
+     * passes all of the cluster cuts and <code>false</code> otherwise.
+     */
     private boolean testTrigger() {
-    	// Get the list of cluster pairs.
-    	List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+        // Get the list of cluster pairs.
+        List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
         
         // Iterate over the cluster pairs and perform each of the cluster
         // pair cuts on them. A cluster pair that passes all of the
         // cuts registers as a trigger.
-    	pairLoop:
+        pairLoop:
         for (HPSEcalCluster[] clusterPair : clusterPairs) {
-    		// Increment the number of processed cluster pairs.
-    		allPairs++;
-    		
-    		// Get the plot values for the pair cuts.
-    		double energySum = getValueEnergySum(clusterPair);
-    		double energyDifference = getValueEnergyDifference(clusterPair);
-    		double energySlope = getValueEnergySlope(clusterPair);
-    		double coplanarity = getValueCoplanarity(clusterPair);
-    		
-    		// Fill the general plots.
-    		pairEnergySum.fill(energySum, 1);
-    		pairEnergyDifference.fill(energyDifference, 1);
-    		pairEnergySlope.fill(energySlope, 1);
-    		pairCoplanarity.fill(coplanarity, 1);
-    		
-    		// ==== Pair Energy Sum Cut ====================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergySumCount++;
-        	
-    		// ==== Pair Energy Difference Cut =============================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairEnergyDifferenceCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergyDifferenceCount++;
-    		
-    		// ==== Pair Energy Slope Cut ==================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		//if(!energyDistanceCut(clusterPair)) { continue pairLoop; }
-    		if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairEnergySlopeCount++;
-    		
-    		// ==== Pair Coplanarity Cut ===================================
-    		// =============================================================
-    		// If the cluster fails the cut, skip to the next pair.
-    		if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
-    		
-    		// Otherwise, note that it passed the cut.
-    		pairCoplanarityCount++;
-    		
-    		// Get the cluster plot values.
-    		int[] hitCount = new int[2];
-    		double[] seedEnergy = new double[2];
-    		double[] clusterEnergy = new double[2];
-    		int[] ix = new int[2];
-    		int[] iy = new int[2];
-    		for(int i = 0; i < 2; i++) {
-    			hitCount[i] = clusterPair[i].getCalorimeterHits().size();
-    			seedEnergy[i] = clusterPair[i].getSeedHit().getCorrectedEnergy();
-    			clusterEnergy[i] = clusterPair[i].getEnergy();
-    			ix[i] = clusterPair[i].getSeedHit().getIdentifierFieldValue("ix");
-    			iy[i] = clusterPair[i].getSeedHit().getIdentifierFieldValue("iy");
-    			if(ix[i] > 0) { ix[i] = ix[i] - 1; }
-    		}
-    		
-    		// Fill the general plots.
-    		for(int i = 0; i < 2; i++) {
-	    		clusterSeedEnergyAll.fill(seedEnergy[i], 1);
-	    		clusterTotalEnergyAll.fill(clusterEnergy[i], 1);
-	    		clusterHitCountAll.fill(hitCount[i], 1);
-	    		clusterDistributionAll.fill(ix[i], iy[i], 1);
-    		}
-    		
-    		// Fill the "passed all cuts" plots.
-    		pairEnergySumAll.fill(energySum, 1);
-    		pairEnergyDifferenceAll.fill(energyDifference, 1);
-    		pairEnergySlopeAll.fill(energySlope, 1);
-    		pairCoplanarityAll.fill(coplanarity, 1);
-    		
-    		// Clusters that pass all of the pair cuts produce a trigger.
-    		return true;
+            // Increment the number of processed cluster pairs.
+            allPairs++;
+            
+            // Get the plot values for the pair cuts.
+            double energySum = getValueEnergySum(clusterPair);
+            double energyDifference = getValueEnergyDifference(clusterPair);
+            double energySlope = getValueEnergySlope(clusterPair);
+            double coplanarity = getValueCoplanarity(clusterPair);
+            
+            // Fill the general plots.
+            pairEnergySum.fill(energySum, 1);
+            pairEnergyDifference.fill(energyDifference, 1);
+            pairEnergySlope.fill(energySlope, 1);
+            pairCoplanarity.fill(coplanarity, 1);
+            
+            // ==== Pair Energy Sum Cut ====================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergySumCount++;
+            
+            // ==== Pair Energy Difference Cut =============================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairEnergyDifferenceCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergyDifferenceCount++;
+            
+            // ==== Pair Energy Slope Cut ==================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            //if(!energyDistanceCut(clusterPair)) { continue pairLoop; }
+            if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairEnergySlopeCount++;
+            
+            // ==== Pair Coplanarity Cut ===================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next pair.
+            if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
+            
+            // Otherwise, note that it passed the cut.
+            pairCoplanarityCount++;
+            
+            // Get the cluster plot values.
+            int[] hitCount = new int[2];
+            double[] seedEnergy = new double[2];
+            double[] clusterEnergy = new double[2];
+            int[] ix = new int[2];
+            int[] iy = new int[2];
+            for(int i = 0; i < 2; i++) {
+                hitCount[i] = clusterPair[i].getCalorimeterHits().size();
+                seedEnergy[i] = clusterPair[i].getSeedHit().getCorrectedEnergy();
+                clusterEnergy[i] = clusterPair[i].getEnergy();
+                ix[i] = clusterPair[i].getSeedHit().getIdentifierFieldValue("ix");
+                iy[i] = clusterPair[i].getSeedHit().getIdentifierFieldValue("iy");
+                if(ix[i] > 0) { ix[i] = ix[i] - 1; }
+            }
+            
+            // Fill the general plots.
+            for(int i = 0; i < 2; i++) {
+                clusterSeedEnergyAll.fill(seedEnergy[i], 1);
+                clusterTotalEnergyAll.fill(clusterEnergy[i], 1);
+                clusterHitCountAll.fill(hitCount[i], 1);
+                clusterDistributionAll.fill(ix[i], iy[i], 1);
+            }
+            
+            // Fill the "passed all cuts" plots.
+            pairEnergySumAll.fill(energySum, 1);
+            pairEnergyDifferenceAll.fill(energyDifference, 1);
+            pairEnergySlopeAll.fill(energySlope, 1);
+            pairCoplanarityAll.fill(coplanarity, 1);
+            
+            // Clusters that pass all of the pair cuts produce a trigger.
+            return true;
         }
         
         // If the loop terminates without producing a trigger, there
-    	// are no cluster pairs which meet the trigger conditions.
+        // are no cluster pairs which meet the trigger conditions.
         return false;
     }
     
@@ -862,14 +872,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterList - The clusters to add to the queues.
      */
     private void updateClusterQueues(List<HPSEcalCluster> clusterList) {
-    	// Create lists to store the top and bottom clusters.
+        // Create lists to store the top and bottom clusters.
         ArrayList<HPSEcalCluster> topClusterList = new ArrayList<HPSEcalCluster>();
         ArrayList<HPSEcalCluster> botClusterList = new ArrayList<HPSEcalCluster>();
         
         // Loop over the clusters in the cluster list.
         for (HPSEcalCluster cluster : clusterList) {
-        	// If the cluster is on the top of the calorimeter, it
-        	// goes into the top cluster list.
+            // If the cluster is on the top of the calorimeter, it
+            // goes into the top cluster list.
             if (cluster.getSeedHit().getIdentifierFieldValue("iy") > 0) {
                 topClusterList.add(cluster);
             }
