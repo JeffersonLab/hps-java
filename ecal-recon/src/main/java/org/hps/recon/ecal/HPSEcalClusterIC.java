@@ -124,22 +124,23 @@ public class HPSEcalClusterIC extends BaseCluster {
      * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected x position
      */
-    public double positionCorrection(int pdg, double xCl, double rawEnergy){
+    public double positionCorrection(int pdg, double xPos, double rawEnergy){
+    	double xCl = xPos/10.0;//convert to mm
     	if (pdg == 11) { //Particle is electron
     		double xCorr = xCl-(0.0066/Math.sqrt(rawEnergy)-0.03)*xCl-
     				(0.028*rawEnergy-0.45/Math.sqrt(rawEnergy)+0.465);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else if (pdg == -11) {// Particle is positron
     		double xCorr = xCl-(0.0072/Math.sqrt(rawEnergy)-0.031)*xCl-
     				(0.007*rawEnergy+0.342/Math.sqrt(rawEnergy)+0.108);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else if (pdg == 22) {// Particle is photon
     		double xCorr = xCl-(0.005/Math.sqrt(rawEnergy)-0.032)*xCl-
     				(0.011*rawEnergy-0.037/Math.sqrt(rawEnergy)+0.294);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else { //Unknown 
     		double xCorr = xCl;
-    		return xCorr;}
+    		return xCorr*10.0;}
     	}
     
     

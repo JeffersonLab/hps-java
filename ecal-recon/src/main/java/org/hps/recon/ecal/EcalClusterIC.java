@@ -567,8 +567,8 @@ public class EcalClusterIC extends Driver {
             yCl = eNumY/eDen;
             
             double[] rawPosition = new double[3];
-            rawPosition[0] = xCl;
-            rawPosition[1] = yCl;
+            rawPosition[0] = xCl*10.0;//mm
+            rawPosition[1] = yCl*10.0;//mm
             int ix = seedP.getIdentifierFieldValue("ix");
 			int iy = seedP.getIdentifierFieldValue("iy");
 			Point hitIndex = new Point(ix, iy);
@@ -579,11 +579,11 @@ public class EcalClusterIC extends Driver {
             // Apply position correction factors:
             // Position correction for electron:
             int pdg = 11;
-            double xCorr = posCorrection(pdg, xCl, seedEnergyTot.get(seedP));
+            double xCorr = posCorrection(pdg, xCl*10.0, seedEnergyTot.get(seedP));
            
             double[] corrPosition = new double[3];
-            corrPosition[0] = xCorr;
-            corrPosition[1] = yCl;
+            corrPosition[0] = xCorr*10.0;//mm
+            corrPosition[1] = yCl*10.0;//mm
             corrPosition[2] = correctedPositionMap.get(hitIndex)[2];
                         
             corrSeedPosition.put(seedP, corrPosition);
@@ -788,22 +788,23 @@ public class EcalClusterIC extends Driver {
      * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected x position
      */
-    public double posCorrection(int pdg, double xCl, double rawEnergy){
+    public double posCorrection(int pdg, double xPos, double rawEnergy){
+    	double xCl = xPos/10.0;//convert to mm
     	if (pdg == 11) { //Particle is electron
     		double xCorr = xCl-(0.0066/Math.sqrt(rawEnergy)-0.03)*xCl-
     				(0.028*rawEnergy-0.45/Math.sqrt(rawEnergy)+0.465);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else if (pdg == -11) {// Particle is positron
     		double xCorr = xCl-(0.0072/Math.sqrt(rawEnergy)-0.031)*xCl-
     				(0.007*rawEnergy+0.342/Math.sqrt(rawEnergy)+0.108);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else if (pdg == 22) {// Particle is photon
     		double xCorr = xCl-(0.005/Math.sqrt(rawEnergy)-0.032)*xCl-
     				(0.011*rawEnergy-0.037/Math.sqrt(rawEnergy)+0.294);
-    		return xCorr;}
+    		return xCorr*10.0;}
     	else { //Unknown 
     		double xCorr = xCl;
-    		return xCorr;}
+    		return xCorr*10.0;}
     	}
     
     
