@@ -35,7 +35,7 @@ import org.lcsim.event.CalorimeterHit;
  * 
  * @author Luca Colaneri 
  */
-public class TriggerAna extends Driver {
+public class TriggerAnaFEE extends Driver {
     int posx, posy;
     int radius=2;
     int Clustercount=0;
@@ -50,11 +50,10 @@ public class TriggerAna extends Driver {
 //IHistogram1D clusterEne=aida.histogram1D("Clusters energy with Kyle's trigger",300, 0, 3);
     private FileWriter writer;
    // private FileWriter writer2;
-    private FileWriter writer3;
-    private FileWriter writer4;
+    
     String outputFileName = "KyleTriggerFEE.txt";
   //  String outputFileName2 = "KyleTriggerHits.txt";
-    String outputFileName3 = "NoTriggerFEE.txt";
+   
    
    
  
@@ -74,9 +73,7 @@ public class TriggerAna extends Driver {
    public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }
-   public void setOutputFileName3(String outputFileName3){
-this.outputFileName3 = outputFileName3;
-   }
+   
    public void settimeDifference(double time){
    this.timeDifference=time;
    
@@ -106,12 +103,12 @@ public void startOfData(){
     //initialize the writers
     writer=new FileWriter(outputFileName);
     //writer2=new FileWriter(outputFileName2);
-    writer3=new FileWriter(outputFileName3);
+    
     
     //Clear the files
     writer.write("");
-   // writer2.write("");
-    writer3.write("");
+   
+    
     
     
     
@@ -128,8 +125,7 @@ public void endOfData(){
     try{
 //close the file writer.
     writer.close();
- //   writer2.close();
-    writer3.close();
+
     
     }
 catch(IOException e){
@@ -140,20 +136,7 @@ catch(IOException e){
  @Override  
  public void process (EventHeader event){
    
-          if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
-        List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );   
-            for(HPSEcalCluster cluster : clusterList){
-                
-                if(cluster.getEnergy()>energyThreshold){
-                 int idd=getCrystal(cluster); 
-                    try{
-                        writer3.append(idd + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getSeedHit().getRawEnergy() + " " + cluster.getSeedHit().getIdentifierFieldValue("ix")+" " +cluster.getSeedHit().getIdentifierFieldValue("iy")+"\n");
-                        }
-                    catch(IOException e ){System.err.println("Error writing to output for event display");} 
-                 }
-            }
           
-          }
            
      
      //get the clusters from the event IF they are triggered
@@ -161,9 +144,9 @@ catch(IOException e){
      if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
         List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );    
              
-     //put the clusters in the arraylist
+    
      
-     
+    
      for(HPSEcalCluster cluster : clusterList){
         // clusterEne.fill(cluster.getEnergy());
          TotalCluster++;
@@ -189,6 +172,12 @@ catch(IOException e){
     }
      
 }
+
+ 
+ 
+ 
+
+      
  
  
  public int getCrystal (HPSEcalCluster cluster){

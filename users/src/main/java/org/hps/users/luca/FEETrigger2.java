@@ -15,7 +15,7 @@ import org.lcsim.event.EventHeader;
  * 
  * @author Luca Colaneri
  */
-public class FEETrigger extends TriggerDriver {
+public class FEETrigger2 extends TriggerDriver {
 	// Store the LCIO cluster collection name.
 	private String clusterCollectionName = "EcalClusters";
 	
@@ -26,12 +26,13 @@ public class FEETrigger extends TriggerDriver {
 	private int zone1Count = 0;
 	private int zone2Count = 0;
 	private int zone3Count = 0;
+        private int zone4Count = 0;
 	
     // The number of cluster over threshold that must occur in a region
 	// before a trigger occurs.
 	private int zone1Prescaling = 1000;
-	private int zone2Prescaling = 100;
-	
+	private int zone2Prescaling = 70;
+	private int zone4Prescaling = 200;
 	/**
 	 * Sets the energy threshold required for a cluster to be counted.
 	 * 
@@ -88,12 +89,13 @@ public class FEETrigger extends TriggerDriver {
 					// Determine in which region the cluster is located
 					// and increment the counter for that region. Zones
 					// are defined as:
-					// Zone 1 is -13 < ix < -4 and 14 < ix < 21  MISTAKE!!! it's all reversed!! remember!!!
+					// Zone 1 is -13 < ix < -4 and 14 < ix < 21
 					// Zone 2 is -20 < ix < -14 and ix > 20
-					// Zone 3 is -23 <= ix < -18
-					if( ix > 18 || ix < -22) { zone3Count++; }
-					if(ix < 19 && ix  > 12 )  { zone2Count++; }
-					if((ix > 4 && ix < 13) || (ix > -23 && ix < -14)) { zone1Count++; }
+					// Zone 3 is -23 <= ix < -19
+					if(-23 <= ix && ix < -19) { zone3Count++; }
+					if((-20 < ix && ix < -14))  { zone2Count++; }
+					if((-13 < ix && ix < -4) || (14 < ix && ix < 21)) { zone1Count++; }
+                                        if(ix>20){zone4Count++;}
 				}
 			}
 		}
@@ -159,7 +161,13 @@ public class FEETrigger extends TriggerDriver {
                         if(zone2Count==zone2Prescaling){zone2Count=0;}
 			trigger = true;
 		}
-		
+		else if(zone4Count == zone4Prescaling) {
+			zone4Count = 0;
+                        if(zone3Count>0){zone3Count=0;}
+                        if(zone2Count==zone2Prescaling){zone2Count=0;}
+                        if(zone1Count==zone1Prescaling){zone1Count=0;}
+			trigger = true;
+		}
 		// Return whether or not a trigger occurred.
 		return trigger;
 	}
