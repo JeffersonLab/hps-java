@@ -34,10 +34,13 @@ public class ECalEvioReader extends EvioReader {
 
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
+    	
+    	
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
         hitClass = Object.class;
         int flags = 0;
+        int tag = 0;
         for (BaseStructure bank : event.getChildren()) {
             BaseStructureHeader header = bank.getHeader();
             int crateBankTag = header.getTag();
@@ -47,9 +50,11 @@ public class ECalEvioReader extends EvioReader {
                     if (debug) {
                         System.out.println("ECal bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
-                    try {
+                    try { 
                         for (BaseStructure slotBank : bank.getChildren()) {
-                            if (slotBank.getHeader().getTag() == EventConstants.TRIGGER_BANK_TAG) {
+                            tag=slotBank.getHeader().getTag();
+                         
+                            if (tag == EventConstants.TRIGGER_BANK_TAG) {
                                 if (debug) {
                                     int[] data = slotBank.getIntData();
                                     for (int i = 0; i < data.length; i++) {
@@ -58,31 +63,42 @@ public class ECalEvioReader extends EvioReader {
                                 }
                                 continue;
                             }
-                            for (CompositeData cdata : slotBank.getCompositeData()) {
-//                            CompositeData cdata = slotBank.getCompositeData();
-                                if (slotBank.getHeader().getTag() != bankTag) {
-                                    bankTag = slotBank.getHeader().getTag();
-                                    System.out.printf("ECal format tag: 0x%x\n", bankTag);
+                            
+			    else if ((tag==EventConstants.ECAL_WINDOW_BANK_TAG)||(tag== EventConstants.ECAL_PULSE_BANK_TAG)||(tag==EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG)){
+                            
+                          
+                            
+                                for (CompositeData cdata : slotBank.getCompositeData()) {
+                                
+				    if (cdata==null){
+				      System.out.println("Cazzo.! "+slotBank.getHeader().getTag());
+				    }
+                                    if (slotBank.getHeader().getTag() != bankTag) {
+                                        bankTag = slotBank.getHeader().getTag();
+                                        System.out.printf("ECal format tag: 0x%x\n", bankTag);
+                                    }
+                                    switch (slotBank.getHeader().getTag()) {
+                                        case EventConstants.ECAL_WINDOW_BANK_TAG:
+                                            hits.addAll(makeWindowHits(cdata, crateBankTag));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        case EventConstants.ECAL_PULSE_BANK_TAG:
+                                            hits.addAll(makePulseHits(cdata, crateBankTag));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
+                                            hits.addAll(makeIntegralHits(cdata, crateBankTag));
+                                            hitClass = BaseRawCalorimeterHit.class;
+                                            flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
+                                            break;
+                                    
+				       }	
+                                    }
                                 }
-                                switch (slotBank.getHeader().getTag()) {
-                                    case EventConstants.ECAL_WINDOW_BANK_TAG:
-                                        hits.addAll(makeWindowHits(cdata, crateBankTag));
-                                        hitClass = RawTrackerHit.class;
-                                        flags = 0;
-                                        break;
-                                    case EventConstants.ECAL_PULSE_BANK_TAG:
-                                        hits.addAll(makePulseHits(cdata, crateBankTag));
-                                        hitClass = RawTrackerHit.class;
-                                        flags = 0;
-                                        break;
-                                    case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
-                                        hits.addAll(makeIntegralHits(cdata, crateBankTag));
-                                        hitClass = BaseRawCalorimeterHit.class;
-                                        flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
-                                        break;
-                                    default:
-                                        throw new RuntimeException("Unsupported ECal format - bank tag " + slotBank.getHeader().getTag());
-                                }
+                            else{
+			      continue; //A.C. the TI case, for example, goes here.
                             }
                         }
                     } catch (EvioException e) {
@@ -118,23 +134,32 @@ public class ECalEvioReader extends EvioReader {
             long timestamp = cdata.getLong();
             int nchannels = cdata.getNValue();
             if (debug) {
-                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
+                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);System.out.flush();
             }
             for (int j = 0; j < nchannels; j++) {
                 short channel = cdata.getByte();
+               
+          
                 int nSamples = cdata.getNValue();
                 if (debug) {
-                    System.out.println("  channel=" + channel + "; nSamples=" + nSamples);
+                    System.out.println("  channel=" + channel + "; nSamples=" + nSamples);System.out.flush();
                 }
+                
+              
                 Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
-
+		
+		
                 short[] adcValues = new short[nSamples];
                 for (int i = 0; i < nSamples; i++) {
                     adcValues[i] = cdata.getShort();
                 }
                 if (id == null) {
                     System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
-                } else {
+                }
+                else if ((slot==20)&&(channel>=13)) { //A.C. temporary work around. Has to be here since we need to read the full EVIO composite.
+		  continue;
+		}
+                else {
                     hits.add(new BaseRawTrackerHit(0, id, adcValues, new ArrayList<SimTrackerHit>(), EcalConditions.getSubdetector().getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
                 }
             }
@@ -164,6 +189,7 @@ public class ECalEvioReader extends EvioReader {
             }
             for (int j = 0; j < nchannels; j++) {
                 short channel = cdata.getByte();
+               
                 int npulses = cdata.getNValue();
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
@@ -178,7 +204,11 @@ public class ECalEvioReader extends EvioReader {
                     }
                     if (id == null) {
                         System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
-                    } else {
+                    } 
+                    else if ((slot==20)&&(channel>=13)) { //A.C. temporary work around. Has to be here since we need to read the full EVIO composite.
+		      continue;
+		    }
+		    else {
                         hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), EcalConditions.getSubdetector().getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
                     }
                 }
@@ -209,6 +239,8 @@ public class ECalEvioReader extends EvioReader {
             }
             for (int j = 0; j < nchannels; j++) {
                 short channel = cdata.getByte();
+                //A.C. temporary work-around
+                if ((slot==20)&&(channel>=13)) continue;
                 int npulses = cdata.getNValue();
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
@@ -223,7 +255,11 @@ public class ECalEvioReader extends EvioReader {
                     }
                     if (id == null) {
                         System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
-                    } else {
+                    } 
+                    else if ((slot==20)&&(channel>=13)) { //A.C. temporary work around. Has to be here since we need to read the full EVIO composite.
+		      continue;
+		    }
+                    else {
                         hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
                     }
                 }
