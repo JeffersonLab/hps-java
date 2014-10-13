@@ -249,15 +249,13 @@ public class EcalClusterIC extends Driver {
         //Map a crystal to the seed of the cluster of which it is a member.
         HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap = new HashMap<CalorimeterHit, CalorimeterHit>();
         
-      	//Set containing hits immediately around a seed hit.
-      	HashSet<CalorimeterHit> surrSeedSet = new HashSet<CalorimeterHit>();
-        
         // Loop through all calorimeter hits to locate seeds and perform
         // first pass calculations for component and common hits.
-        for (CalorimeterHit hit : hitList) {
+        for (int ii = 0; ii <= hitList.size() - 1; ii ++){
+        	CalorimeterHit hit = hitList.get(ii);
         	// Get the set of all neighboring crystals to the current hit.
             Set<Long> neighbors = neighborMap.get(hit.getCellID());
-            
+
             // Generate a list to store any neighboring hits in.
             ArrayList<CalorimeterHit> neighborHits = new ArrayList<CalorimeterHit>();
             
@@ -278,17 +276,23 @@ public class EcalClusterIC extends Driver {
             // Loops through all the neighboring hits to determine if
             // the current hit is the local maximum within its set of
             // neighboring hits.
-            seedHitLoop:
-            for(CalorimeterHit neighbor : neighborHits) {
-            	if(!equalEnergies(hit, neighbor)) {
-            		isSeed = false;
-               		break seedHitLoop;
-            	}
-           
-            }
-            
+            	seedHitLoop:
+            		for(CalorimeterHit neighbor : neighborHits) {
+            			if(!equalEnergies(hit, neighbor)) {
+            				isSeed = false;
+            				break seedHitLoop;
+            			}
+            		}
             // If this hit is a seed hit, just map it to itself.
-            if (isSeed) { hitSeedMap.put(hit, hit); }
+            if (isSeed && hit.getCorrectedEnergy() >= seedEnergyThreshold) { hitSeedMap.put(hit, hit); }
+            
+            // If this hit is a local maximum but does not pass seed threshold, 
+            // remove from hit list and do not cluster. 
+            else if (isSeed  && hit.getCorrectedEnergy() < seedEnergyThreshold){           	
+            	hitList.remove(ii);
+            	rejectedHitList.add(hit); 
+            	ii --;
+        	}
             
             // If this hit is not a seed hit, see if it should be
             // attached to any neighboring seed hits.
@@ -325,7 +329,6 @@ public class EcalClusterIC extends Driver {
                         // that it has been clustered.
                         else {
                           	hitSeedMap.put(hit, neighborHit);
-                        	surrSeedSet.add(hit);
                         }
                 	}
                 }
@@ -335,8 +338,7 @@ public class EcalClusterIC extends Driver {
         // Performs second pass calculations for component hits.
         secondaryHitsLoop:
         for (CalorimeterHit secondaryHit : hitList) {
-        	// If the secondary hit is not associated with a seed, then
-        	// the rest of there is nothing further to be done.
+        	// Look for hits that already have an associated seed/clustering.
         	if(!hitSeedMap.containsKey(secondaryHit)) { continue secondaryHitsLoop; }
         	
         	// Get the secondary hit's neighboring crystals.
@@ -353,7 +355,7 @@ public class EcalClusterIC extends Driver {
             	
             	// If the neighboring crystal exists and is not already
             	// in a cluster, add it to the list of neighboring hits.
-                if (secondaryNeighborHit != null && !hitSeedMap.containsKey(secondaryNeighborHit)) { //!clusteredHitSet.contains(secondaryNeighborHit)) {
+                if (secondaryNeighborHit != null && !hitSeedMap.containsKey(secondaryNeighborHit)) {
                 	secondaryNeighborHits.add(secondaryNeighborHit);
                 }
             }
@@ -363,30 +365,19 @@ public class EcalClusterIC extends Driver {
             	// If the neighboring hit is of lower energy than the
             	// current secondary hit, then associate the neighboring
             	// hit with the current secondary hit's seed.
-            	
-            	//  if (secondaryNeighborHit.getCorrectedEnergy() < secondaryHit.getCorrectedEnergy()) {
-            	if(!equalEnergies(secondaryNeighborHit, secondaryHit)) {
-                	hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));
-                }
+            	if(!equalEnergies(secondaryNeighborHit, secondaryHit)){
+            		hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));}
             	else {continue;}
             }
         } // End component hits loop.
 
-        // This is a check to ensure ALL hits are either components or seeds. 
-        for (CalorimeterHit check : hitList){
-        	if(!hitSeedMap.containsKey(check)){
-        		System.out.println("Something is not clustered or component!");
-        		System.out.println("not clustered:"+"\t"+check.getIdentifierFieldValue("ix")+"\t"+
-        		check.getIdentifierFieldValue("iy")+"\t"+check.getCorrectedEnergy());
-        	}
-        }
-        
-                
+      
         // Performs second pass calculations for common hits.
         commonHitsLoop:
         for (CalorimeterHit clusteredHit : hitSeedMap.keySet()) {
+        	        	
         	// Seed hits are never common hits and can be skipped.
-        	if(hitSeedMap.get(clusteredHit) == clusteredHit || surrSeedSet.contains(clusteredHit)) { continue commonHitsLoop; }
+        	if(hitSeedMap.get(clusteredHit) == clusteredHit) { continue commonHitsLoop; }
         	
     		// Get the current clustered hit's neighboring crystals.
             Set<Long> clusteredNeighbors = neighborMap.get(clusteredHit.getCellID());
@@ -401,42 +392,45 @@ public class EcalClusterIC extends Driver {
             	CalorimeterHit clusteredNeighborHit = hitMap.get(neighbor);
             	
             	// If it exists, add it to the neighboring hit list.
-                if (clusteredNeighborHit != null) {
+
+                if (clusteredNeighborHit != null && hitSeedMap.get(clusteredNeighborHit) != null) {         	
                 	clusteredNeighborHits.add(clusteredNeighborHit);
                 }
             }
             
             // Get the seed hit associated with this clustered hit.
             CalorimeterHit clusteredHitSeed = hitSeedMap.get(clusteredHit);
+
             
             // Loop over the clustered neighbor hits.
             for (CalorimeterHit clusteredNeighborHit : clusteredNeighborHits) {
             	// Check to make sure that the clustered neighbor hit
             	// is not already associated with the current clustered
-            	// hit's seed.
+            	// hit's seed.                    	
             	
-                if (hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed){
-
-                    //if (clusteredHit.getCorrectedEnergy() < clusteredNeighborHit.getCorrectedEnergy()) {
-                	if(!equalEnergies(clusteredHit, clusteredNeighborHit)){
-                	// Check and see if a list of common seeds
-                    	// for this hit already exists or not.
-                    	List<CalorimeterHit> commonHitList = commonHits.get(clusteredHit);
+                if ((hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed)){
+                	// Check for lowest energy hit and that comparison hit is not already common. 
+                	// If already common, this boundary is already accounted for. 
+                	if(!equalEnergies(clusteredHit, clusteredNeighborHit)
+                			&& !commonHits.containsKey(clusteredNeighborHit)){
+                		                		     		
+                			// Check and see if a list of common seeds
+                			// for this hit already exists or not.
+                			List<CalorimeterHit> commonHitList = commonHits.get(clusteredHit);
                     	
-                    	// If it does not, make a new one.
-                    	if(commonHitList == null) { commonHitList = new ArrayList<CalorimeterHit>(); }
+                			// If it does not, make a new one.                 	
+                			if(commonHitList == null) { commonHitList = new ArrayList<CalorimeterHit>();}
                     	
-                    	// Add the neighbors to the seeds to set of
-                    	// common seeds.
-                        commonHitList.add(clusteredHitSeed);
-                       	commonHitList.add(hitSeedMap.get(clusteredNeighborHit));
+                			// Add the neighbors to the seeds to set of
+                			// common seeds.
+                			commonHitList.add(clusteredHitSeed);                			
+                			commonHitList.add(hitSeedMap.get(clusteredNeighborHit));
                         
-                        // Put the common seed list back into the set.
-                        commonHits.put(clusteredHit, commonHitList);
-                    }
-                }
-                
-                
+                			// Put the common seed list back into the set.
+                			commonHits.put(clusteredHit, commonHitList); 
+                			
+                	}
+                }             
             }
         } // End common hits loop.
 
@@ -465,7 +459,7 @@ public class EcalClusterIC extends Driver {
         for (Map.Entry<CalorimeterHit, CalorimeterHit> entry : hitSeedMap.entrySet()) {
             CalorimeterHit eSeed = entry.getValue();
             double eEnergy = seedEnergy.get(eSeed);
-            eEnergy += entry.getKey().getRawEnergy();
+            eEnergy += entry.getKey().getCorrectedEnergy();
             seedEnergy.put(eSeed, eEnergy);
         }
 
@@ -477,8 +471,8 @@ public class EcalClusterIC extends Driver {
         	CalorimeterHit commonCell = entry1.getKey();
         	CalorimeterHit seedA = entry1.getValue().get(0);
         	CalorimeterHit seedB = entry1.getValue().get(1);    	
-        	double eFractionA = Math.log(seedEnergy.get(seedA))/Math.log((seedEnergy.get(seedA)+seedEnergy.get(seedB)));
-        	double eFractionB = Math.log(seedEnergy.get(seedB))/Math.log((seedEnergy.get(seedA)+seedEnergy.get(seedB)));
+        	double eFractionA = (seedEnergy.get(seedA))/((seedEnergy.get(seedA)+seedEnergy.get(seedB)));
+        	double eFractionB = (seedEnergy.get(seedB))/((seedEnergy.get(seedA)+seedEnergy.get(seedB)));
         	double currEnergyA = seedEnergyTot.get(seedA);
         	double currEnergyB = seedEnergyTot.get(seedB);
         	currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
@@ -500,6 +494,9 @@ public class EcalClusterIC extends Driver {
                 // Energy correction for initial guess of electron:
                 int pdg = 11;
                 double corrEnergy = enCorrection(pdg, rawEnergy);
+                if(corrEnergy<1){ //this only happens below threshold
+                	corrEnergy = rawEnergy;
+                }
               
                 seedEnergyCorr.put(entryC.getKey(), corrEnergy);    
             }// end of energy corrections
@@ -759,30 +756,54 @@ public class EcalClusterIC extends Driver {
     	return isSeed;	
     }
     /**
-     * Calculates energy correction based on cluster raw energy and particle type as per HPS Note 2014-001
+     * Calculates energy correction based on cluster raw energy and particle type as per 
+     *<a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
      * @param pdg Particle id as per PDG
      * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected Energy
      */    
     public double enCorrection(int pdg, double rawEnergy){
   	   if (pdg == 11) { // Particle is electron
-  		   double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
-  		  return corrEnergy;}
+  		   double A = -0.0027;
+  		   double B = -0.06;
+  		   double C = 0.95;
+		   return energyCorrection(rawEnergy,A,B,C);   
+  	   }
   	   else if (pdg == -11) { //Particle is positron
-  		   double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
-  		  return corrEnergy;}
+  		   double A = -0.0096;
+		   double B = -0.042;
+		   double C = 0.94;
+		   return energyCorrection(rawEnergy,A,B,C);   
+  	   }
   	   else if (pdg == 22) { //Particle is photon
-  		   double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
-  		  return corrEnergy;}
+  		   double A = 0.0015;
+		   double B = -0.047;
+		   double C = 0.94;
+		   return energyCorrection(rawEnergy,A,B,C);   
+  	   }
   	   else { //Unknown 
   		   double corrEnergy = rawEnergy;
-  		  return corrEnergy;}
+  		   return corrEnergy;}
   	   
      }   
     
     /**
+     * Calculates the energy correction to a cluster given the variables from the fit as per
+     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+     * @param rawEnergy Raw energy of the cluster
+     * @param A,B,C from fitting in note
+     * @return Corrected Energy
+     */   
+    public double energyCorrection(double rawEnergy, double A, double B, double C){
+    	double corrEnergy = rawEnergy / (A * rawEnergy + B / (Math.sqrt(rawEnergy)) + C);
+    	return corrEnergy;
+    }
+       
+    
+    /**
      * Calculates position correction based on cluster raw energy, x calculated position, 
-     * and particle type as per HPS Note 2014-001
+     * and particle type as per 
+     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
      * @param pdg Particle id as per PDG
      * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
      * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
@@ -791,21 +812,62 @@ public class EcalClusterIC extends Driver {
     public double posCorrection(int pdg, double xPos, double rawEnergy){
     	double xCl = xPos/10.0;//convert to mm
     	if (pdg == 11) { //Particle is electron
-    		double xCorr = xCl-(0.0066/Math.sqrt(rawEnergy)-0.03)*xCl-
-    				(0.028*rawEnergy-0.45/Math.sqrt(rawEnergy)+0.465);
-    		return xCorr*10.0;}
+    		double A = 0.0066;
+    		double B = -0.03;
+    		double C = 0.028;
+    		double D = -0.45;
+    		double E = 0.465;
+    	
+    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    		return xCorr*10.0;
+    	}
     	else if (pdg == -11) {// Particle is positron
-    		double xCorr = xCl-(0.0072/Math.sqrt(rawEnergy)-0.031)*xCl-
-    				(0.007*rawEnergy+0.342/Math.sqrt(rawEnergy)+0.108);
-    		return xCorr*10.0;}
+    		double A = 0.0072;
+    		double B = -0.031;
+    		double C = 0.007;
+    		double D = 0.342;
+    		double E = 0.108;   	
+    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    		return xCorr*10.0;
+    		}
     	else if (pdg == 22) {// Particle is photon
-    		double xCorr = xCl-(0.005/Math.sqrt(rawEnergy)-0.032)*xCl-
-    				(0.011*rawEnergy-0.037/Math.sqrt(rawEnergy)+0.294);
-    		return xCorr*10.0;}
+    		double A = 0.005;
+    		double B = -0.032;
+    		double C = 0.011;
+    		double D = -0.037;
+    		double E = 0.294;   	
+    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    		return xCorr*10.0;
+    	}
     	else { //Unknown 
     		double xCorr = xCl;
     		return xCorr*10.0;}
     	}
+    
+    
+   /**
+    * Calculates the position correction in cm using the raw energy and variables associated with the fit
+    * of the particle as described in  
+    * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+    * @param xCl
+    * @param rawEnergy
+    * @param A
+    * @param B
+    * @param C
+    * @param D
+    * @param E
+    * @return
+    */    
+    public double positionCorrection(double xCl, double rawEnergy, double A, double B, double C, double D, double E){
+    	double xCorr = xCl-(A/Math.sqrt(rawEnergy) + B )*xCl-
+				(C*rawEnergy + D/Math.sqrt(rawEnergy) + E);
+    	return xCorr;
+    }
+    
+    
+    
+    
+    
     
     
     	
