@@ -80,6 +80,37 @@ public class EcalClusterIC extends Driver {
     double minTime = 0.0;
     // Maximum time cut window range. Units in ns.
     double timeWindow = 20.0;
+    // Variables for electron energy corrections
+    static final double ELECTRON_ENERGY_A = -0.0027;
+    static final double ELECTRON_ENERGY_B = -0.06;
+    static final double ELECTRON_ENERGY_C = 0.95;
+    // Variables for positron energy corrections
+    static final double POSITRON_ENERGY_A = -0.0096;
+    static final double POSITRON_ENERGY_B = -0.042;
+    static final double POSITRON_ENERGY_C = 0.94;
+    // Variables for photon energy corrections
+    static final double PHOTON_ENERGY_A = 0.0015;
+    static final double PHOTON_ENERGY_B = -0.047;
+    static final double PHOTON_ENERGY_C = 0.94;
+    // Variables for electron position corrections
+    static final double ELECTRON_POS_A = 0.0066;
+	static final double ELECTRON_POS_B = -0.03;
+	static final double ELECTRON_POS_C = 0.028;
+	static final double ELECTRON_POS_D = -0.45;
+	static final double ELECTRON_POS_E = 0.465;
+    // Variables for positron position corrections
+	static final double POSITRON_POS_A = 0.0072;
+	static final double POSITRON_POS_B = -0.031;
+	static final double POSITRON_POS_C = 0.007;
+	static final double POSITRON_POS_D = 0.342;
+	static final double POSITRON_POS_E = 0.108;
+    // Variables for photon position corrections
+	static final double PHOTON_POS_A = 0.005;
+	static final double PHOTON_POS_B = -0.032;
+	static final double PHOTON_POS_C = 0.011;
+	static final double PHOTON_POS_D = -0.037;
+	static final double PHOTON_POS_E = 0.294;
+	
     
        
     public void setClusterCollectionName(String clusterCollectionName) {
@@ -763,23 +794,14 @@ public class EcalClusterIC extends Driver {
      * @return Corrected Energy
      */    
     public double enCorrection(int pdg, double rawEnergy){
-  	   if (pdg == 11) { // Particle is electron
-  		   double A = -0.0027;
-  		   double B = -0.06;
-  		   double C = 0.95;
-		   return energyCorrection(rawEnergy,A,B,C);   
+  	   if (pdg == 11) { // Particle is electron  		   
+  		   return energyCorrection(rawEnergy, ELECTRON_ENERGY_A, ELECTRON_ENERGY_B, ELECTRON_ENERGY_C);   
   	   }
   	   else if (pdg == -11) { //Particle is positron
-  		   double A = -0.0096;
-		   double B = -0.042;
-		   double C = 0.94;
-		   return energyCorrection(rawEnergy,A,B,C);   
+		   return energyCorrection(rawEnergy, POSITRON_ENERGY_A, POSITRON_ENERGY_B, POSITRON_ENERGY_C);   
   	   }
   	   else if (pdg == 22) { //Particle is photon
-  		   double A = 0.0015;
-		   double B = -0.047;
-		   double C = 0.94;
-		   return energyCorrection(rawEnergy,A,B,C);   
+		   return energyCorrection(rawEnergy, PHOTON_ENERGY_A, PHOTON_ENERGY_B, PHOTON_ENERGY_C);   
   	   }
   	   else { //Unknown 
   		   double corrEnergy = rawEnergy;
@@ -794,8 +816,8 @@ public class EcalClusterIC extends Driver {
      * @param A,B,C from fitting in note
      * @return Corrected Energy
      */   
-    public double energyCorrection(double rawEnergy, double A, double B, double C){
-    	double corrEnergy = rawEnergy / (A * rawEnergy + B / (Math.sqrt(rawEnergy)) + C);
+    public double energyCorrection(double rawEnergy, double varA, double varB, double varC){
+    	double corrEnergy = rawEnergy / (varA * rawEnergy + varB / (Math.sqrt(rawEnergy)) + varC);
     	return corrEnergy;
     }
        
@@ -811,32 +833,16 @@ public class EcalClusterIC extends Driver {
      */
     public double posCorrection(int pdg, double xPos, double rawEnergy){
     	double xCl = xPos/10.0;//convert to mm
-    	if (pdg == 11) { //Particle is electron
-    		double A = 0.0066;
-    		double B = -0.03;
-    		double C = 0.028;
-    		double D = -0.45;
-    		double E = 0.465;
-    	
-    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    	if (pdg == 11) { //Particle is electron    	
+    		double xCorr = positionCorrection(xCl, rawEnergy, ELECTRON_POS_A, ELECTRON_POS_B, ELECTRON_POS_C, ELECTRON_POS_D, ELECTRON_POS_E);
     		return xCorr*10.0;
     	}
-    	else if (pdg == -11) {// Particle is positron
-    		double A = 0.0072;
-    		double B = -0.031;
-    		double C = 0.007;
-    		double D = 0.342;
-    		double E = 0.108;   	
-    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    	else if (pdg == -11) {// Particle is positron   	
+    		double xCorr = positionCorrection(xCl, rawEnergy, POSITRON_POS_A, POSITRON_POS_B, POSITRON_POS_C, POSITRON_POS_D, POSITRON_POS_E);
     		return xCorr*10.0;
-    		}
-    	else if (pdg == 22) {// Particle is photon
-    		double A = 0.005;
-    		double B = -0.032;
-    		double C = 0.011;
-    		double D = -0.037;
-    		double E = 0.294;   	
-    		double xCorr = positionCorrection(xCl, rawEnergy, A, B, C, D, E);
+    	}
+    	else if (pdg == 22) {// Particle is photon  	
+    		double xCorr = positionCorrection(xCl, rawEnergy, PHOTON_POS_A, PHOTON_POS_B, PHOTON_POS_C, PHOTON_POS_D, PHOTON_POS_E);
     		return xCorr*10.0;
     	}
     	else { //Unknown 
@@ -851,24 +857,18 @@ public class EcalClusterIC extends Driver {
     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
     * @param xCl
     * @param rawEnergy
-    * @param A
-    * @param B
-    * @param C
-    * @param D
-    * @param E
+    * @param varA
+    * @param varB
+    * @param varC
+    * @param varD
+    * @param varE
     * @return
     */    
-    public double positionCorrection(double xCl, double rawEnergy, double A, double B, double C, double D, double E){
-    	double xCorr = xCl-(A/Math.sqrt(rawEnergy) + B )*xCl-
-				(C*rawEnergy + D/Math.sqrt(rawEnergy) + E);
+    public double positionCorrection(double xCl, double rawEnergy, double varA, double varB, double varC, double varD, double varE){
+    	double xCorr = xCl-(varA/Math.sqrt(rawEnergy) + varB )*xCl-
+				(varC*rawEnergy + varD/Math.sqrt(rawEnergy) + varE);
     	return xCorr;
     }
-    
-    
-    
-    
-    
-    
-    
+   
     	
  }    
