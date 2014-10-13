@@ -1,5 +1,7 @@
 package org.hps.conditions.svt;
 
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+
 import org.hps.conditions.AbstractConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
@@ -35,45 +37,16 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
          * @param moduleNumber The module number (needed to identify layer's 4-6)
          * @return The DAQ pair for the half and layer number or null if does not exist.
          */
-        Pair<Integer, Integer> getDaqPair(String SvtHalf, int layerNumber, int moduleNumber) {
+        Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
         	
+        	String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
         	for (SvtDaqMapping object : this.getObjects()) {
+        		
+        		if(svtHalf.equals(object.getSvtHalf()) 
+        				&& object.getLayerNumber() == sensor.getLayerNumber()
+        				&& object.getSide().equals(sensor.getSide())) {
                 
-        		if (SvtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == layerNumber) {
-                
-        			// If the sensor belongs to the first three layers of the SVT
-        			// and the detector layer and SVT half match, no further searching
-        			// is required.
-        			if(layerNumber <= 6){
-                		return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                	} 
-                	
-        			// If the sensor belongs to layers 4-6, then find the matching
-        			// DAQ pair by looking at combinations of FEB hybrid ID's and module
-        			// numbers.  At the moment, it is assumed that odd SVT layers will 
-        			// be connected to even FEB hybrid channels and even SVT layers to odd
-        			// FEB hybrid channels.
-        			// TODO: Changes should be made to HpsSiSensor that will allow this
-        			//		 portion of the matching to be greatly simplified.
-                	if(SvtHalf.equals(TOP_HALF)){
-                		if(layerNumber%2 != 0 
-                				&& ((object.getFebHybridID() == 0 && moduleNumber == 0) 
-                						|| object.getFebHybridID() == 2 && moduleNumber == 2)){
-                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                		} else if(layerNumber %2 == 0 &&((object.getFebHybridID() == 1 && moduleNumber == 0)
-                				|| object.getFebHybridID() == 3 && moduleNumber == 2)) { 
-                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                		}
-                	} else if(SvtHalf.equals(BOTTOM_HALF)){ 
-                		if(layerNumber%2 != 0 
-                				&& ((object.getFebHybridID() == 0 && moduleNumber == 1) 
-                						|| object.getFebHybridID() == 2 && moduleNumber == 3)){
-                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                		} else if(layerNumber %2 == 0 &&((object.getFebHybridID() == 1 && moduleNumber == 1)
-                				|| object.getFebHybridID() == 3 && moduleNumber == 3)) { 
-                			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                		}
-                	}
+        			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
                 } 
             }
             return null;
@@ -125,11 +98,11 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
                 buff.append("    ");
             	buff.append(object.getFebHybridID());
                 buff.append("    ");
-            	buff.append(object.getHybridID());
-                buff.append("    ");
                 buff.append(object.getSvtHalf());
                 buff.append("    ");
                 buff.append(String.format("%-2d", object.getLayerNumber()));
+                buff.append("    ");
+                buff.append(object.getSide());
                 buff.append("    ");
                 buff.append(object.getOrientation());
                 buff.append("    ");
@@ -147,16 +120,16 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
     	return getFieldValue("feb_hybrid_id");
     }
     
-    public int getHybridID() { 
-    	return getFieldValue("hybrid_id");
-    }
-    
     public String getSvtHalf() {
         return getFieldValue("svt_half");
     }
 
     public int getLayerNumber() {
         return getFieldValue("layer");
+    }
+    
+    public String getSide(){
+    	return getFieldValue("side");
     }
 
     public String getOrientation() { 

@@ -39,24 +39,8 @@ public final class SvtDetectorSetup {
             // Reset possible existing conditions data on sensor.
             sensor.reset();
 
-            // Get the layer number.  The layer number will range from 1-12;
-            int layerNumber = sensor.getLayerNumber();
-            
-            // Get the module ID number.  The sensors in the first three layers
-            // of the SVT are assigned a module ID = 0 if they are in the top 
-            // volume and 1 if they are on the bottom.  For layers 4-6, the 
-            // assigned module ID is 0 and 2 for top and 1 and 3 for bottom
-            // depending on whether the sensor is on the hole or slot side of
-            // the half-module.
-            int moduleNumber = sensor.getModuleNumber();
-
             // Get DAQ pair (FEB ID, FEB Hybrid ID) corresponding to this sensor
-            Pair<Integer, Integer> daqPair = null;
-            String SvtHalf = SvtDaqMappingCollection.TOP_HALF;
-            if (sensor.isBottomLayer()) {
-                SvtHalf = SvtDaqMappingCollection.BOTTOM_HALF;
-            }
-            daqPair = daqMap.getDaqPair(SvtHalf, layerNumber, moduleNumber);
+            Pair<Integer, Integer> daqPair = daqMap.getDaqPair(sensor);
             if (daqPair == null) {
                 throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
             }
