@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-monitoring-app</artifactId>
     <name>monitoring-app</name>
-    <description>HPS online monitoring application</description>
+    <description>online monitoring application</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
