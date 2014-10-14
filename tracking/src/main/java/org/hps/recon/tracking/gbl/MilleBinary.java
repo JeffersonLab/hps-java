@@ -46,6 +46,18 @@ public class MilleBinary
     FileChannel _channel;
     List<Integer> _intBuffer = new ArrayList<Integer>();
     List<Float> _floatBuffer = new ArrayList<Float>();
+    
+    static String DEFAULT_OUTPUT_FILE_NAME = "millepedeData.bin"; 
+    
+    public MilleBinary() {
+        try {
+            _channel = new FileOutputStream(DEFAULT_OUTPUT_FILE_NAME).getChannel();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(MilleBinary.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        _intBuffer.add(0); // first word is error counter
+        _floatBuffer.add(0f);
+    }
 
 // Create binary file.
     public MilleBinary(String outputFileName)
