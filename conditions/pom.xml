@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-conditions</artifactId>
     <name>conditions</name>
-    <description>HPS conditions framework</description>
+    <description>extensions to the org.lcsim conditions framework</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

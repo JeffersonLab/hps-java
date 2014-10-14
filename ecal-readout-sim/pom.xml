@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-ecal-readout-sim</artifactId>
     <name>ecal-readout-sim</name>
-    <description>HPS ECAL readout simulation</description>
+    <description>MC readout simulation</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-steering-files</artifactId>
     <name>steering-files</name>
-    <description>XML steering files</description>
+    <description>org.lcsim XML steering file resources</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     <version>3.0.3-SNAPSHOT</version>
     <name>parent</name>
-    <description>HPS Java parent module POM</description>
+    <description>HPS Java parent POM</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>

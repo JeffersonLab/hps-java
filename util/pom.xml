@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-util</artifactId>
     <name>util</name>
-    <description>miscellaneous utility classes</description>
+    <description>various utility classes</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-record-util</artifactId>
     <name>record-util</name>
-    <description>Record processing utilities</description>
+    <description>record processing utilities for EVIO, LCIO and ET events</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

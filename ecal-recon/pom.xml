@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-ecal-recon</artifactId>
     <name>ecal-recon</name>
-    <description>HPS ECAL reconstruction module</description>
+    <description>ECAL reconstruction algorithms</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

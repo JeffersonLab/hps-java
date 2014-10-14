@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-tracking</artifactId>
     <name>tracking</name>
-    <description>HPS tracking reconstruction module</description>
+    <description>tracking reconstruction algorithms</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

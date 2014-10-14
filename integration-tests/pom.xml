@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-integration-tests</artifactId>
     <name>integration-tests</name>
-    <description>Integration test suite for HPS Java</description>
+    <description>integration test suite</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

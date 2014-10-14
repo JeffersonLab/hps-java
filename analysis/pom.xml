@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-analysis</artifactId>
     <name>analysis</name>
-    <description>HPS analysis code</description>
+    <description>common analysis code</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-distribution</artifactId>
     <name>distribution</name>
-    <description>runnable jar distribution and JAS plugin configuration</description>
+    <description>module for creating a standalone runnable bin jar for HPS Java</description>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
