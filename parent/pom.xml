@@ -8,10 +8,12 @@
     <packaging>pom</packaging>
     <version>3.0.3-SNAPSHOT</version>
     <name>parent</name>
+    <description>HPS Java parent module POM</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <lcsimVersion>3.0.5-SNAPSHOT</lcsimVersion>
+        <skipSite>false</skipSite>
     </properties>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
@@ -223,6 +225,8 @@
                     <version>3.3</version>
                     <configuration>
                         <chmod>false</chmod>
+                        <skip>${skipSite}</skip>
+                        <skipDeploy>${skipSite}</skipDeploy>
                     </configuration>
                 </plugin>
                 <plugin>

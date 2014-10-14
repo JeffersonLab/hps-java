@@ -18,8 +18,17 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
     </scm>
-    <build>       
+    <build>              
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <skip>true</skip>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
+            </plugin>        
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
