@@ -525,10 +525,7 @@ public class EcalClusterIC extends Driver {
                 // Energy correction for initial guess of electron:
                 int pdg = 11;
                 double corrEnergy = enCorrection(pdg, rawEnergy);
-                if(corrEnergy<1){ //this only happens below threshold
-                	corrEnergy = rawEnergy;
-                }
-              
+
                 seedEnergyCorr.put(entryC.getKey(), corrEnergy);    
             }// end of energy corrections
         
