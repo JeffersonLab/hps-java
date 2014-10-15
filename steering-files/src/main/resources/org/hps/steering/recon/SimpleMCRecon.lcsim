@@ -10,14 +10,23 @@
         <driver name="TrackerDigiDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
+        <!-- FIXME: This should be changed to use the current ECAL clustering algorithm. -->
+        <driver name="SimpleEcalClusterer"/>
+<!--        
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
+-->        
         <driver name="ReconParticle" />
+<!--        
         <driver name="TrackDataDriver" />
+-->        
         <driver name="GBLDriver"/>
         <driver name="LCIOWriter"/>
     </execute>
     <drivers>
+        <driver name="SimpleEcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+        </driver>
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
@@ -39,6 +48,7 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
+<!--        
        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
@@ -50,8 +60,11 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <timeCut>false</timeCut>
         </driver>
+-->        
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver"/>
+<!--        
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+-->        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
