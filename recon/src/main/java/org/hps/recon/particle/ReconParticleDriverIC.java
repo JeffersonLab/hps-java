@@ -8,7 +8,7 @@ import hep.physics.vec.HepLorentzVector;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
@@ -19,7 +19,6 @@ import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-import org.hps.recon.ecal.HPSEcalClusterIC;
 
 
 /**
@@ -277,10 +276,10 @@ public abstract class ReconParticleDriverIC extends Driver {
             	int pid = particle.getParticleIDUsed().getPDG();
             	if (pid != 11) {
             		double rawE = matchedCluster.getRawEnergy();
-            		double corrE = matchedCluster.energyCorrection(pid, rawE);
+            		double corrE = matchedCluster.enCorrection(pid, rawE);
             		matchedCluster.setEnergy(corrE);
             		double rawP[] = matchedCluster.getPosition();
-            		double corrP = matchedCluster.positionCorrection(pid, rawP[0], rawE);
+            		double corrP = matchedCluster.posCorrection(pid, rawP[0], rawE);
                     double[] corrPosition = new double[3];
                     corrPosition[0] = corrP;
                     corrPosition[1] = rawP[1];
@@ -311,10 +310,10 @@ public abstract class ReconParticleDriverIC extends Driver {
             	int pid = particle.getParticleIDUsed().getPDG();
             	if (pid != 11) {
             		double rawE = unmatchedCluster.getRawEnergy();
-            		double corrE = unmatchedCluster.energyCorrection(pid, rawE);
+            		double corrE = unmatchedCluster.enCorrection(pid, rawE);
             		unmatchedCluster.setEnergy(corrE);
             		double rawP[] = unmatchedCluster.getPosition();
-            		double corrP = unmatchedCluster.positionCorrection(pid, rawP[0], rawE);
+            		double corrP = unmatchedCluster.posCorrection(pid, rawP[0], rawE);
                     double[] corrPosition = new double[3];
                     corrPosition[0] = corrP;
                     corrPosition[1] = rawP[1];
