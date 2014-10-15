@@ -357,54 +357,5 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 steeringResourcesComboBox.setSelectedItem(value);
             }                                          
         }
-    }   
-    
-    /**
-     * Setup the event builder from the field setting.
-     * @return True if builder is setup successfully; false if not.
-     */
-    // FIXME: This method should throw an exception if an error occurs.
-    /*
-    void editEventBuilder() {
-        String eventBuilderClassName = eventBuilderField.getText();
-        boolean okay = true;
-        try {
-            // Test that the event builder can be created without throwing any exceptions.
-            Class<?> eventBuilderClass = Class.forName(eventBuilderClassName);
-            eventBuilderClass.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Error setting up event builder.", e);
-        }        
-        catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(this, "The event builder class does not exist.");
-            okay = false;
-        } 
-        catch (InstantiationException e) {
-            JOptionPane.showMessageDialog(this, "Failed to instantiate instance of event builder class.");
-            okay = false;
-        } 
-        catch (IllegalAccessException e) {
-            JOptionPane.showMessageDialog(this, "Couldn't access event builder class.");
-            okay = false;
-        }
-        
-        if (!okay)
-            resetEventBuilder();
-    }    
-
-    /**
-     * Reset the event builder to the default.
-     */
-    /*
-    // FIXME: Handle this with property change listener and use old value if new one is invalid.    
-    private void resetEventBuilder() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                eventBuilderField.setText(DEFAULT_EVENT_BUILDER_CLASS_NAME);
-            }
-        });
-    }
-    */
-
-    
+    }        
 }
