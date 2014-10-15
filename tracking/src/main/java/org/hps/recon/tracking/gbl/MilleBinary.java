@@ -1,5 +1,4 @@
 package org.hps.recon.tracking.gbl;
-///  Millepede-II (binary) record.
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -13,8 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Millepede-II (binary) record.
  * Containing information for local (track) and global fit.
- *\verbatim
+ *
  *         real array              integer array
  *     0   0.0                     error count (this record)
  *     1   RMEAS, measured value   0                            -+
@@ -33,8 +33,6 @@ import java.util.logging.Logger;
  *         global derivative       label of global derivative
  *         ...
  *         global derivative       label of global derivative
- *\endverbatim
- * 
  *
  * @author Norman A Graf
  *
