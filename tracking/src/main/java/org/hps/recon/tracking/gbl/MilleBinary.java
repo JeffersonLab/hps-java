@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  *
  * @author Norman A Graf
  *
- * @version $Id:
+ * @version $Id$
  * 
  */
 public class MilleBinary
@@ -49,6 +49,9 @@ public class MilleBinary
     
     static String DEFAULT_OUTPUT_FILE_NAME = "millepedeData.bin"; 
     
+    /**
+     * Default Constructor
+     */
     public MilleBinary() {
         try {
             _channel = new FileOutputStream(DEFAULT_OUTPUT_FILE_NAME).getChannel();
@@ -59,8 +62,11 @@ public class MilleBinary
         _floatBuffer.add(0f);
     }
 
-// Create binary file.
-    public MilleBinary(String outputFileName)
+    /**
+     * Fully qualified Constructor
+     * @param outputFileName name of output binary file for millepede II
+     */
+        public MilleBinary(String outputFileName)
     {
         try {
             _channel = new FileOutputStream(outputFileName).getChannel();
@@ -71,6 +77,9 @@ public class MilleBinary
         _floatBuffer.add(0f);
     }
 
+    /**
+     * Closes the binary output file
+     */
     public void close()
     {
         try {
@@ -80,16 +89,16 @@ public class MilleBinary
         }
     }
 
-// Add data block to (end of) record.
-///**
-// * \param [in] aMeas Value
-// * \param [in] aErr Error
-// * \param [in] indLocal List of labels of local parameters
-// * \param [in] derLocal List of derivatives for local parameters
-// * \param [in] labGlobal List of labels of global parameters
-// * \param [in] derGlobal List of derivatives for global parameters
-// */
-    public void addData(float aMeas, float aErr,
+    /**
+     * Add data block to (end of) record.
+     * @param aMeas      Value
+     * @param aErr       Error
+     * @param indLocal   List of labels of local parameters
+     * @param derLocal   List of derivatives for local parameters
+     * @param labGlobal  List of labels of global parameters
+     * @param derGlobal  List of derivatives for global parameters
+     */
+        public void addData(float aMeas, float aErr,
                         List<Integer> indLocal,
                         List<Double> derLocal,
                         List<Integer> labGlobal,
@@ -111,8 +120,10 @@ public class MilleBinary
         }
     }
 
-// Write record to file.
-    public void writeRecord()
+    /**
+     * Write record to file.
+     */
+        public void writeRecord()
     {
         int recordLength = _intBuffer.size() * 2;
         ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2);
