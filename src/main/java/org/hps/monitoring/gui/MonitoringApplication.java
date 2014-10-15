@@ -322,7 +322,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     
     /**
      * Handle a property change event.
-     * @evt The property change event.
+     * @param evt The property change event.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -409,11 +409,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void setupUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {            
-            public void uncaughtException(Thread thread, Throwable exception) {
-               MonitoringApplication.this.errorHandler.setError(exception)
+            public void uncaughtException(Thread thread, Throwable exception) {                               
+                MonitoringApplication.this.errorHandler.setError(exception)
                    .log()
                    .printStackTrace()
                    .showErrorDialog();
+                // FIXME: This should probably cause a system.exit after the dialog box is closed!
             }
         });
     }
