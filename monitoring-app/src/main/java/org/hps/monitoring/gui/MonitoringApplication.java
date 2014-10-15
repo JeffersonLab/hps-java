@@ -470,7 +470,6 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void setupAida() {
         MonitoringAnalysisFactory.register();
-        MonitoringAnalysisFactory.configure();
         MonitoringPlotFactory.setRootPane(this.plotWindow.getPlotPane());
         MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
             @Override
