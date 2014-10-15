@@ -4,7 +4,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 
 import hep.aida.IPlotterFactory;
-import hep.aida.jfree.chart.DefaultChartTheme;
+import hep.aida.jfree.DefaultChartTheme;
 import hep.aida.ref.AnalysisFactory;
 
 /**
