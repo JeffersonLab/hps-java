@@ -19,7 +19,7 @@ public class HPSEcalClusterIC extends BaseCluster {
     private CalorimeterHit seedHit = null;
     private long cellID;
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>(); 
-    private double[] rawPosition = new double[2];
+    private double[] rawPosition = new double[3];
 
     
     
@@ -29,6 +29,37 @@ public class HPSEcalClusterIC extends BaseCluster {
     private boolean needsElectronPosCalculation = true;
     double[] photonPosAtDepth = new double[3];
     private boolean needsPhotonPosCalculation = true;
+    
+ // Variables for electron energy corrections
+    static final double ELECTRON_ENERGY_A = -0.0027;
+    static final double ELECTRON_ENERGY_B = -0.06;
+    static final double ELECTRON_ENERGY_C = 0.95;
+    // Variables for positron energy corrections
+    static final double POSITRON_ENERGY_A = -0.0096;
+    static final double POSITRON_ENERGY_B = -0.042;
+    static final double POSITRON_ENERGY_C = 0.94;
+    // Variables for photon energy corrections
+    static final double PHOTON_ENERGY_A = 0.0015;
+    static final double PHOTON_ENERGY_B = -0.047;
+    static final double PHOTON_ENERGY_C = 0.94;
+    // Variables for electron position corrections
+    static final double ELECTRON_POS_A = 0.0066;
+	static final double ELECTRON_POS_B = -0.03;
+	static final double ELECTRON_POS_C = 0.028;
+	static final double ELECTRON_POS_D = -0.45;
+	static final double ELECTRON_POS_E = 0.465;
+    // Variables for positron position corrections
+	static final double POSITRON_POS_A = 0.0072;
+	static final double POSITRON_POS_B = -0.031;
+	static final double POSITRON_POS_C = 0.007;
+	static final double POSITRON_POS_D = 0.342;
+	static final double POSITRON_POS_E = 0.108;
+    // Variables for photon position corrections
+	static final double PHOTON_POS_A = 0.005;
+	static final double PHOTON_POS_B = -0.032;
+	static final double PHOTON_POS_C = 0.011;
+	static final double PHOTON_POS_D = -0.037;
+	static final double PHOTON_POS_E = 0.294;
     
     public HPSEcalClusterIC(Long cellID) {
         this.cellID = cellID;
@@ -95,53 +126,88 @@ public class HPSEcalClusterIC extends BaseCluster {
     }
     
     /**
-     * Calculates energy correction based on cluster raw energy and particle type as per HPS Note 2014-001
+     * Calculates energy correction based on cluster raw energy and particle type as per 
+     *<a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
      * @param pdg Particle id as per PDG
      * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected Energy
      */    
-    public double energyCorrection(int pdg, double rawEnergy){
-  	   if (pdg == 11) { // Particle is electron
-  		   double corrEnergy = rawEnergy / (-0.0027 * rawEnergy - 0.06 / (Math.sqrt(rawEnergy)) + 0.95);
-  		  return corrEnergy;}
+    public double enCorrection(int pdg, double rawEnergy){
+  	   if (pdg == 11) { // Particle is electron  		   
+  		   return energyCorrection(rawEnergy, ELECTRON_ENERGY_A, ELECTRON_ENERGY_B, ELECTRON_ENERGY_C);   
+  	   }
   	   else if (pdg == -11) { //Particle is positron
-  		   double corrEnergy = rawEnergy / (-0.0096 * rawEnergy - 0.042 / (Math.sqrt(rawEnergy)) + 0.94);
-  		  return corrEnergy;}
+		   return energyCorrection(rawEnergy, POSITRON_ENERGY_A, POSITRON_ENERGY_B, POSITRON_ENERGY_C);   
+  	   }
   	   else if (pdg == 22) { //Particle is photon
-  		   double corrEnergy = rawEnergy / (0.0015 * rawEnergy - 0.047 / (Math.sqrt(rawEnergy)) + 0.94);
-  		  return corrEnergy;}
+		   return energyCorrection(rawEnergy, PHOTON_ENERGY_A, PHOTON_ENERGY_B, PHOTON_ENERGY_C);   
+  	   }
   	   else { //Unknown 
   		   double corrEnergy = rawEnergy;
-  		  return corrEnergy;}
+  		   return corrEnergy;}
   	   
      }   
     
     /**
+     * Calculates the energy correction to a cluster given the variables from the fit as per
+     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+     * @param rawEnergy Raw energy of the cluster
+     * @param A,B,C from fitting in note
+     * @return Corrected Energy
+     */   
+    public double energyCorrection(double rawEnergy, double varA, double varB, double varC){
+    	double corrEnergy = rawEnergy / (varA * rawEnergy + varB / (Math.sqrt(rawEnergy)) + varC);
+    	return corrEnergy;
+    }
+       
+    
+    /**
      * Calculates position correction based on cluster raw energy, x calculated position, 
-     * and particle type as per HPS Note 2014-001
+     * and particle type as per 
+     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
      * @param pdg Particle id as per PDG
      * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
      * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected x position
      */
-    public double positionCorrection(int pdg, double xPos, double rawEnergy){
+    public double posCorrection(int pdg, double xPos, double rawEnergy){
     	double xCl = xPos/10.0;//convert to mm
-    	if (pdg == 11) { //Particle is electron
-    		double xCorr = xCl-(0.0066/Math.sqrt(rawEnergy)-0.03)*xCl-
-    				(0.028*rawEnergy-0.45/Math.sqrt(rawEnergy)+0.465);
-    		return xCorr*10.0;}
-    	else if (pdg == -11) {// Particle is positron
-    		double xCorr = xCl-(0.0072/Math.sqrt(rawEnergy)-0.031)*xCl-
-    				(0.007*rawEnergy+0.342/Math.sqrt(rawEnergy)+0.108);
-    		return xCorr*10.0;}
-    	else if (pdg == 22) {// Particle is photon
-    		double xCorr = xCl-(0.005/Math.sqrt(rawEnergy)-0.032)*xCl-
-    				(0.011*rawEnergy-0.037/Math.sqrt(rawEnergy)+0.294);
-    		return xCorr*10.0;}
+    	if (pdg == 11) { //Particle is electron    	
+    		double xCorr = positionCorrection(xCl, rawEnergy, ELECTRON_POS_A, ELECTRON_POS_B, ELECTRON_POS_C, ELECTRON_POS_D, ELECTRON_POS_E);
+    		return xCorr*10.0;
+    	}
+    	else if (pdg == -11) {// Particle is positron   	
+    		double xCorr = positionCorrection(xCl, rawEnergy, POSITRON_POS_A, POSITRON_POS_B, POSITRON_POS_C, POSITRON_POS_D, POSITRON_POS_E);
+    		return xCorr*10.0;
+    	}
+    	else if (pdg == 22) {// Particle is photon  	
+    		double xCorr = positionCorrection(xCl, rawEnergy, PHOTON_POS_A, PHOTON_POS_B, PHOTON_POS_C, PHOTON_POS_D, PHOTON_POS_E);
+    		return xCorr*10.0;
+    	}
     	else { //Unknown 
     		double xCorr = xCl;
     		return xCorr*10.0;}
     	}
+    
+    
+   /**
+    * Calculates the position correction in cm using the raw energy and variables associated with the fit
+    * of the particle as described in  
+    * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+    * @param xCl
+    * @param rawEnergy
+    * @param varA
+    * @param varB
+    * @param varC
+    * @param varD
+    * @param varE
+    * @return
+    */    
+    public double positionCorrection(double xCl, double rawEnergy, double varA, double varB, double varC, double varD, double varE){
+    	double xCorr = xCl-(varA/Math.sqrt(rawEnergy) + varB )*xCl-
+				(varC*rawEnergy + varD/Math.sqrt(rawEnergy) + varE);
+    	return xCorr;
+    }
     
     
  /*   @Override
