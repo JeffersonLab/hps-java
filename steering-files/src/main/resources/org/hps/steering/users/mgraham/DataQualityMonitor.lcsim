@@ -6,26 +6,30 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="DQMDatabaseDriver"/>  
+<!--        <driver name="DQMDatabaseDriver"/>   -->
         <driver name="CalibrationDriver"/> 
          <driver name="RawTrackerHitSensorSetup"/>
-        <driver name="BadChannelFilter" /> 
+<!--        <driver name="BadChannelFilter" />  -->
          <driver name="RawTrackerHitFitterDriver" />
          <driver name="TrackerHitDriver"/>
          <driver name="HelicalTrackHitDriver"/>
          <driver name="TrackerReconDriver"/>
-          <driver name="TrackDataDriver"/>
+          <driver name="TrackDataDriver"/>         
         <driver name="EcalRawConverter" />
-         <driver name="EcalClusterer" />
-          <driver name="ReconParticle" />      
-        <driver name="SVTMonitoring"/>  
+         <driver name="EcalClusterer" /> 
+          <driver name="ReconParticle" />     
+<!--        <driver name="SVTMonitoring"/>  
        <driver name="SVTHitMCEfficiency"/>  
         <driver name="TrackingMonitoring"/> 
         <driver name="TrackingResiduals"/> 
         <driver name="TrackMCEfficiency"/>
         <driver name="FinalStateMonitoring"/>  
-        <driver name="V0Monitoring"/>         
-        <driver name="AidaSaveDriver"/>
+        <driver name="V0Monitoring"/>         -->
+        <driver name="AddBeamSpotToTrack"/>
+       <driver name="BSTrackReconParticle" />     
+        <driver name="BeamSpotTrackAnalysis"/> 
+        <driver name="AidaSaveDriver"/> 
+        <driver name="LCIOWriter"/> 
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
@@ -68,12 +72,26 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
+        <driver name="AddBeamSpotToTrack" type="org.hps.users.mgraham.AddBeamSpotToTrack">            
+        </driver>
+     <driver name="BeamSpotTrackAnalysis" type="org.hps.users.mgraham.BeamSpotTrackAnalysis">            
+        </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
-            <debug>false</debug>
+            <debug>true</debug>
         </driver>
-        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFile}.slcio</outputFilePath>
+
+    <driver name="BSTrackReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">  
+            <debug>true</debug>
+            <tracksCollectionName>BeamSpotTracks</tracksCollectionName>
+            <finalStateParticlesColName>BSFinalStateParticles</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>BSUnconstrainedV0Candidates</unconstrainedV0CandidatesColName>
+            <beamConV0CandidatesColName>BSBeamspotConstrainedV0Candidates</beamConV0CandidatesColName>
+            <targetConV0CandidatesColName>BSTargetConstrainedV0Candidates</targetConV0CandidatesColName>
+            <unconstrainedV0VerticesColName>BSUnconstrainedV0Vertices</unconstrainedV0VerticesColName>
+            <beamConV0VerticesColName>BSBeamspotConstrainedV0Vertices</beamConV0VerticesColName>
+            <targetConV0VerticesColName>BSTargetConstrainedV0Vertices</targetConV0VerticesColName>
         </driver>
+       
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
                  <outputFileName>./conditions_test_plots.root</outputFileName>
         </driver>
@@ -105,6 +123,9 @@
             <overwriteDB>false</overwriteDB>
        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
+   <driver name="LCIOWriter"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>blah.slcio</outputFilePath>
+        </driver>
     </drivers>
 </lcsim>

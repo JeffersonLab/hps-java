@@ -80,28 +80,34 @@
         <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
              <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
+            <printDQMStrings>true</printDQMStrings>
         </driver>
        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
              <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
+             <printDQMStrings>true</printDQMStrings>
        </driver>
   <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
              <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
+            <printDQMStrings>true</printDQMStrings>
        </driver>
        <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
              <runNumber>${runNumber}</runNumber>
             <overwriteDB>false</overwriteDB>
+             <printDQMStrings>true</printDQMStrings>
        </driver>
       <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
             <overwriteDB>false</overwriteDB>
+             <printDQMStrings>true</printDQMStrings>
        </driver> 
         <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
             <overwriteDB>false</overwriteDB>
-            <printDQMStrings>false</printDQMStrings>
+            <printDQMStrings>true</printDQMStrings>
        </driver> 
        <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
              <runNumber>${runNumber}</runNumber>
+              <printDQMStrings>true</printDQMStrings>
             <overwriteDB>false</overwriteDB>
        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
