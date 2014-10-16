@@ -24,7 +24,7 @@ import org.lcsim.util.loop.LCSimLoop;
 public class BeamCurrentTest extends TestCase {
 
     /** This test file has a few events from the "good runs" of the Test Run. */
-    private static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/ConditionsTest.slcio";
+    private static final String fileLocation = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
 
     /** Answer key for beam current by run. */
     static Map<Integer, Double> beamCurrentAnswerKey = new HashMap<Integer, Double>();
