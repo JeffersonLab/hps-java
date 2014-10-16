@@ -22,7 +22,7 @@ import org.lcsim.util.loop.LCSimLoop;
 public class ConditionsDriverTest extends TestCase {
 
     // This test file has a few events from each of the "good runs" of the 2012 Test Run.
-    private static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/ConditionsTest.slcio";
+    private static final String fileLocation = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
 
     // Number of runs that should be processed in the job.
     static final int NRUNS = 9;
