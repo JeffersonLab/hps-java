@@ -23,7 +23,7 @@ public class HpsGblRefitterTest extends TestCase
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testFileName = "HpsGblRefitterTest.slcio";
-    private final int nEvents = 10000;
+    private final int nEvents = 10;
 
     public void testHpsGblRefitter() throws Exception
     {
