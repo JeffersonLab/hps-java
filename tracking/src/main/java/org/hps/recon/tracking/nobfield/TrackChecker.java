@@ -19,4 +19,9 @@ public class TrackChecker {
         return true;
     }
 
+    public boolean checkSeed(StraightTrack trk) {
+
+        return true;
+    }
+
 }
