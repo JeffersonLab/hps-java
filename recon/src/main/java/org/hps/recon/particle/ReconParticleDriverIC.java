@@ -275,8 +275,6 @@ public abstract class ReconParticleDriverIC extends Driver {
             	// of the associated cluster for particles other than the initially guessed electron --HS,2oct14
             	int pid = particle.getParticleIDUsed().getPDG();
             	if (pid != 11) {
-                	System.out.println("matched clusters pid: " + pid);
-
             		double rawE = matchedCluster.getRawEnergy();
             		double corrE = matchedCluster.enCorrection(pid, rawE);
             		matchedCluster.setEnergy(corrE);
@@ -312,8 +310,6 @@ public abstract class ReconParticleDriverIC extends Driver {
             	// of the associated cluster for particles other than the initially guessed electron --HS,2oct14
             	int pid = particle.getParticleIDUsed().getPDG();
             	if (pid != 11) {
-                	System.out.println("unmatched clusters pid: " + pid);
-
             		double rawE = unmatchedCluster.getRawEnergy();
             		double corrE = unmatchedCluster.enCorrection(pid, rawE);
             		unmatchedCluster.setEnergy(corrE);
