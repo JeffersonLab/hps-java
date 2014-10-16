@@ -41,22 +41,28 @@ public abstract class ReconParticleDriver extends Driver {
     List<ReconstructedParticle> electrons;
     List<ReconstructedParticle> positrons;
     List<Vertex> unconstrainedV0Vertices;
-    List<Vertex> beamConV0Vertices; 
+    List<Vertex> beamConV0Vertices;
     List<Vertex> targetConV0Vertices;
 
     // Collections
     String ecalClustersCollectionName = "EcalClusters";
     String tracksCollectionName = "MatchedTracks";
     String finalStateParticlesColName = "FinalStateParticles";
-    String unconstrainedV0CandidatesColName = null;
-    String beamConV0CandidatesColName = null;
-    String targetConV0CandidatesColName = null;
-    String vertexCandidatesColName = null;
-    String vertexBeamConsCandidatesName = null;
-	String unconstrainedV0VerticesColName = null;
-	String beamConV0VerticesColName = null;
-	String targetConV0VerticesColName = null;
-	
+    String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+    String targetConV0CandidatesColName = "TargetConstrainedV0Candidates";
+    String unconstrainedV0VerticesColName = "UnconstrainedV0Vertices";
+    String beamConV0VerticesColName = "BeamspotConstrainedV0Vertices";
+    String targetConV0VerticesColName = "TargetConstrainedV0Vertices";
+//    String unconstrainedV0CandidatesColName = null;
+//    String beamConV0CandidatesColName = null;
+//    String targetConV0CandidatesColName = null;
+//    String vertexCandidatesColName = null;
+//    String vertexBeamConsCandidatesName = null;
+//	String unconstrainedV0VerticesColName = null;
+//	String beamConV0VerticesColName = null;
+//	String targetConV0VerticesColName = null;
+
     // The beamsize array is in the tracking frame
     /* TODO  mg-May 14, 2014:  the the beam size from the conditions db...also beam position!  */
     double[] beamsize = {0.001, 0.2, 0.02};
@@ -94,8 +100,42 @@ public abstract class ReconParticleDriver extends Driver {
         this.ecalClustersCollectionName = ecalClustersCollectionName;
     }
 
-    public void setTrackCollectoinName(String tracksCollectionName) {
+    public void setTracksCollectionName(String tracksCollectionName) {
         this.tracksCollectionName = tracksCollectionName;
+    }
+    
+    public void setFinalStateParticlesColName(String finalStateParticlesColName) {
+        this.finalStateParticlesColName = finalStateParticlesColName;
+    }
+    
+     
+    public void setUnconstrainedV0CandidatesColName(String unconstrainedV0CandidatesColName) {
+        this.unconstrainedV0CandidatesColName = unconstrainedV0CandidatesColName;
+    }
+    
+    
+    public void setBeamConV0CandidatesColName(String beamConV0CandidatesColName) {
+        this.beamConV0CandidatesColName = beamConV0CandidatesColName;
+    }
+    
+     
+    public void setTargetConV0CandidatesColName(String targetV0CandidatesColName) {
+        this.targetConV0CandidatesColName = targetConV0CandidatesColName;
+    }
+    
+    
+    public void setUnconstrainedV0VerticesColName(String unconstrainedV0VerticesColName) {
+        this.unconstrainedV0VerticesColName = unconstrainedV0VerticesColName;
+    }
+    
+    
+    public void setBeamConV0VerticesColName(String beamConV0VerticesColName) {
+        this.beamConV0VerticesColName = beamConV0VerticesColName;
+    }
+    
+     
+    public void setTargetConV0VerticesColName(String targetV0VerticesColName) {
+        this.targetConV0VerticesColName = targetConV0VerticesColName;
     }
 
     @Override
@@ -112,8 +152,8 @@ public abstract class ReconParticleDriver extends Driver {
 
         // All events should have a collection of Ecal clusters.  If the event 
         // doesn't have one, skip the event.
-        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) 
-        	return;
+        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName))
+            return;
 
         // Get the collection of Ecal clusters from the event. A triggered 
         // event should have Ecal clusters.  If it doesn't, skip the event.
@@ -123,7 +163,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Get the collection of tracks from the event
         List<Track> tracks = event.get(Track.class, tracksCollectionName);
-        this.printDebug("Number of Tracks: " + tracks.size());
+        this.printDebug("Number of Tracks in "+tracksCollectionName+" : " + tracks.size());
 
         finalStateParticles = new ArrayList<ReconstructedParticle>();
         electrons = new ArrayList<ReconstructedParticle>();
@@ -145,40 +185,41 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through the list of final state particles and separate the
         // charged particles to either electrons or positrons.  These lists
         // will be used for vertexing purposes.
-        for (ReconstructedParticle finalStateParticle : finalStateParticles) {
-            if (finalStateParticle.getCharge() > 0) positrons.add(finalStateParticle);
-            else if (finalStateParticle.getCharge() < 0) electrons.add(finalStateParticle);
-        }
+        for (ReconstructedParticle finalStateParticle : finalStateParticles)
+            if (finalStateParticle.getCharge() > 0)
+                positrons.add(finalStateParticle);
+            else if (finalStateParticle.getCharge() < 0)
+                electrons.add(finalStateParticle);
         this.printDebug("Number of Electrons: " + electrons.size());
         this.printDebug("Number of Positrons: " + positrons.size());
-        
+
         // Vertex electron and positron candidates 
         findVertices(electrons, positrons);
 
         // If the list exist, put the vertexed candidates and vertices into the event
-        if (unconstrainedV0CandidatesColName != null){
+        if (unconstrainedV0CandidatesColName != null) {
             this.printDebug("Total number of unconstrained V0 candidates: " + unconstrainedV0Candidates.size());
             event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
         }
-        if (beamConV0CandidatesColName != null){
+        if (beamConV0CandidatesColName != null) {
             this.printDebug("Total number of beam constrained V0 candidates: " + unconstrainedV0Candidates.size());
             event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
         }
-        if (targetConV0CandidatesColName != null){
+        if (targetConV0CandidatesColName != null) {
             this.printDebug("Total number of target constrained V0 candidates: " + unconstrainedV0Candidates.size());
             event.put(targetConV0CandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
         }
-        if(unconstrainedV0VerticesColName != null){
-        	this.printDebug("Total number of unconstrained V0 vertices: " + unconstrainedV0Vertices.size());
-        	event.put(unconstrainedV0VerticesColName, unconstrainedV0Vertices, Vertex.class, 0);
+        if (unconstrainedV0VerticesColName != null) {
+            this.printDebug("Total number of unconstrained V0 vertices: " + unconstrainedV0Vertices.size());
+            event.put(unconstrainedV0VerticesColName, unconstrainedV0Vertices, Vertex.class, 0);
         }
-        if(beamConV0VerticesColName != null){
-        	this.printDebug("Total number of beam constrained V0 vertices: " + beamConV0Vertices.size());
-        	event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
+        if (beamConV0VerticesColName != null) {
+            this.printDebug("Total number of beam constrained V0 vertices: " + beamConV0Vertices.size());
+            event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
         }
-        if(targetConV0VerticesColName != null){
-        	this.printDebug("Total number of target constrained V0 vertices: " + beamConV0Vertices.size());
-        	event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
+        if (targetConV0VerticesColName != null) {
+            this.printDebug("Total number of target constrained V0 vertices: " + beamConV0Vertices.size());
+            event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
         }
     }
 
@@ -198,19 +239,17 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Instantiate the list of unmatched  clusters.  Remove if we find track match
         List<Cluster> unmatchedClusters = new ArrayList<Cluster>(clusters);
-       
 
         for (Track track : tracks) {
-            
+
             ReconstructedParticle particle = new BaseReconstructedParticle();
             HepLorentzVector fourVector = new BasicHepLorentzVector(0, 0, 0, 0);
-            
+
             //
             // Add all track information to the ReconstructedParticle
             //
-            
             particle.addTrack(track);
-            
+
             // Set the momentum of the ReconstructedParticle
             Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
             momentum = CoordinateTransformations.transformVectorToDetector(momentum);
@@ -230,7 +269,7 @@ public abstract class ReconParticleDriver extends Driver {
 
                 // Get the position of the Ecal cluster
                 Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-                
+
                 // Extrapolate the track to the Ecal cluster position
                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
                 this.printDebug("Ecal cluster position: " + clusterPosition.toString());
@@ -257,17 +296,17 @@ public abstract class ReconParticleDriver extends Driver {
                     this.printDebug("Track and Ecal cluster are in opposite volumes. Track Y @ ECAL = " + trackPosAtEcal.z());
                     continue;
                 }
-                
+
                 // TODO: Checking whether r < rMax should be occuring within isMatch.  isMatch 
                 // 		 is basically repeating a lot of the same code as above.
-                if (r < rMax && isMatch(cluster,track)) {
-                	rMax = r;
-                	matchedCluster = cluster;
+                if (r < rMax && isMatch(cluster, track)) {
+                    rMax = r;
+                    matchedCluster = cluster;
                 }
             }
-            
+
             if (matchedCluster != null) {
-            	particle.addCluster(matchedCluster);
+                particle.addCluster(matchedCluster);
                 ((BasicHepLorentzVector) fourVector).setT(matchedCluster.getEnergy());
                 unmatchedClusters.remove(matchedCluster);
             }
@@ -303,14 +342,14 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * 
+     *
      */
     boolean isMatch(Cluster cluster, Track track) {
-     
-    	// Get the position of the Ecal cluster
-    	Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-        
-    	// Extrapolate the track to the Ecal cluster position
+
+        // Get the position of the Ecal cluster
+        Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+
+        // Extrapolate the track to the Ecal cluster position
         Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
 
         double dxCut = 20.0;
@@ -318,10 +357,10 @@ public abstract class ReconParticleDriver extends Driver {
 
         if (Math.abs(trackPosAtEcal.x() - clusterPosition.x()) > dxCut)
             return false;
-        
+
         if (Math.abs(trackPosAtEcal.y() - clusterPosition.y()) > dyCut)
             return false;
-        
+
         return true;
     }
 }
