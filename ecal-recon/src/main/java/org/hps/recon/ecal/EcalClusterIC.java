@@ -626,8 +626,7 @@ public class EcalClusterIC extends Driver {
             // Loop over seeds
             for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
                 if (entry2.getKey() == entry2.getValue()){
-                	if((entry2.getKey().getCorrectedEnergy()<seedEnergyThreshold)
-                		||(seedEnergyTot.get(entry2.getKey())<clusterEnergyThreshold)) 
+                	if(seedEnergyCorr.get(entry2.getKey())<clusterEnergyThreshold) 
                 	{	
                 		//Not clustered for not passing cuts
                 		rejectedHitList.add(entry2.getKey()); 
