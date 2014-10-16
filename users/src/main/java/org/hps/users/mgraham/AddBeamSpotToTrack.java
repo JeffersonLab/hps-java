@@ -59,7 +59,8 @@ public class AddBeamSpotToTrack extends Driver {
         List<LCRelation> bsRelations = new ArrayList<LCRelation>();
         for (Track trk : tracks) {
             //make a copy of the track. 
-            SeedTrack strk = new SeedTrack((SeedTrack) trk);
+        //            SeedTrack strk = new SeedTrack((SeedTrack) trk);
+            SeedTrack strk = (SeedTrack) trk;
 
             SeedCandidate scand = strk.getSeedCandidate();
             System.out.println("scand has " + scand.getHits().size() + "  hits...");
