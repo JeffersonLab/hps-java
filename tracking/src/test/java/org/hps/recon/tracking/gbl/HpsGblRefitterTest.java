@@ -3,12 +3,6 @@ package org.hps.recon.tracking.gbl;
 import java.io.File;
 import java.net.URL;
 import junit.framework.TestCase;
-import org.hps.conditions.deprecated.CalibrationDriver;
-import org.hps.recon.tracking.HelicalTrackHitDriver;
-import org.hps.recon.tracking.TrackerReconDriver;
-import static org.hps.recon.tracking.gbl.GBLDriverTest.testURLBase;
-import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
