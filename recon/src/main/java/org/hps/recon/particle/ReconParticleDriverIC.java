@@ -232,7 +232,7 @@ public abstract class ReconParticleDriverIC extends Driver {
             for (HPSEcalClusterIC cluster : unmatchedClusters) {
 
                 // Get the position of the Ecal cluster
-                Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
+                Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getCorrPosition());
                 
                 // Extrapolate the track to the Ecal cluster position
                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
@@ -283,6 +283,7 @@ public abstract class ReconParticleDriverIC extends Driver {
                     double[] corrPosition = new double[3];
                     corrPosition[0] = corrP;
                     corrPosition[1] = rawP[1];
+                    corrPosition[2] = rawP[2];
                     matchedCluster.setCorrPosition(corrPosition);           	
             	}// End of cluster position/energy corrections. 
             	            	
@@ -317,6 +318,7 @@ public abstract class ReconParticleDriverIC extends Driver {
                     double[] corrPosition = new double[3];
                     corrPosition[0] = corrP;
                     corrPosition[1] = rawP[1];
+                    corrPosition[2] = rawP[2];
                     unmatchedCluster.setCorrPosition(corrPosition);           	
             	}// End of cluster position/energy corrections. 
 
