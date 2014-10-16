@@ -25,11 +25,14 @@ import org.lcsim.util.loop.LCSimLoop;
  * This is a simple example of how to retrieve the gain and noise by physical ID (X,Y) in
  * the ECAL.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * 
+ * @version $Id$
+ * 
  */
 public class PhysicalToGainTest extends TestCase {
 
     // This test file has a few events from each of the "good runs" of the 2012 Test Run.
-    private static final String fileLocation = "ftp://ftp-hps.slac.stanford.edu/hps/hps_data/hps_java_test_case_data/ConditionsTest.slcio";
+    private static final String fileLocation = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
 
     // Run the test.
     public void test() throws Exception {
