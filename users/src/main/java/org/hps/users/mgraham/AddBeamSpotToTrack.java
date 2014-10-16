@@ -77,11 +77,7 @@ public class AddBeamSpotToTrack extends Driver {
             test.setHelix(_fitter.getFit());
             SeedTrack bstrack = makeSeedTrack(test);
             bsTracks.add(bstrack);
-            bsRelations.add(new BaseLCRelation(bstrack, trk));
-            SeedTrack nstrk = new SeedTrack((SeedTrack) trk);
-
-            SeedCandidate nscand = strk.getSeedCandidate();
-            System.out.println("\t\t\tand really nscand has " + nscand.getHits().size() + "  hits...");
+            bsRelations.add(new BaseLCRelation(bstrack, trk)); 
         }
 
         //  Make tracks from the final list of track seeds
