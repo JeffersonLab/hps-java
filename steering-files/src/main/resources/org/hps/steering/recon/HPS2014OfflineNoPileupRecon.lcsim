@@ -1,5 +1,7 @@
 <!-- 
   Offline reconstruction for 2014 (electron run) data.
+    Updated on 16Oct to include new clustering with corrections. -HS <hvanc001@odu.edu>
+  
   @author Sho Uemura <meeg@slac.stanford.edu>
   @version $Id: HPS2014OfflineRecon.lcsim,v 1.7 2013/10/30 16:23:32 phansson Exp $
 -->
@@ -58,12 +60,12 @@
             <useTimestamps>true</useTimestamps>
             <useTruthTime>false</useTruthTime>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <timeCut>true</timeCut>
         </driver>
-        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriverIC">          
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
