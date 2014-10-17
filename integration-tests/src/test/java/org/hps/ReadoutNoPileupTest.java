@@ -25,7 +25,9 @@ import junit.framework.TestCase;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReadoutNoPileupTest extends TestCase {
-        
+    
+    static final int nEvents = 100;
+    
     public void testReadoutNoPileup() throws Exception {
         new TestOutputFile(this.getClass().getSimpleName()).mkdir();
         
@@ -37,6 +39,7 @@ public class ReadoutNoPileupTest extends TestCase {
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014ReadoutNoPileup.lcsim");
+        job.setNumberOfEvents(nEvents);
         job.run();
     }
 }

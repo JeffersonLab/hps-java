@@ -21,6 +21,8 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 public class SimpleMCReconTest extends TestCase {
 
+    static final int nEvents = 100;
+    
 	public void testSimpleMCReconTest() throws Exception {
 		
         new TestOutputFile(this.getClass().getSimpleName()).mkdir();
@@ -34,6 +36,7 @@ public class SimpleMCReconTest extends TestCase {
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);
         job.setup("/org/hps/steering/recon/SimpleMCRecon.lcsim");
+        job.setNumberOfEvents(nEvents);
         job.run();
         
         // Read in the LCIO event file and print out summary information.
@@ -86,14 +89,13 @@ public class SimpleMCReconTest extends TestCase {
         public void endOfData() {
             System.out.println("ReconCheckDriver results ...");
             System.out.println("  nEvents: " + nEvents);
-            System.out.println("  nTracks: " + nTracks);
-            System.out.println("  nClusters: " + nClusters);
-            System.out.println("  nTrackerHits: " + nTrackerHits);
             System.out.println("  nSimCalorimeterHits: " + nSimCalorimeterHits);
-            System.out.println("  nCalorimeterHits: " + nCalorimeterHits);
+            System.out.println("  nClusters: " + nClusters);
+            System.out.println("  nTrackerHits: " + nTrackerHits);            
+            System.out.println("  nTracks: " + nTracks);                                    
             System.out.println("  nReconstructedParticles: " + nReconstructedParticles);
-            System.out.println("  nTracks / nEvents = " + (double)nTracks / (double)nEvents);
-            System.out.println("  nClusters / nEvents = " + (double)nClusters / (double)nEvents);
+            System.out.println("  < nTracks / nEvents > = " + (double)nTracks / (double)nEvents);
+            System.out.println("  < nClusters / nEvents > = " + (double)nClusters / (double)nEvents);
         }
     }              
 }

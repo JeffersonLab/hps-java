@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +23,6 @@ import org.lcsim.job.AidaSaveDriver;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**

@@ -22,7 +22,9 @@ import junit.framework.TestCase;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReadoutToLcioTest extends TestCase {
-        
+    
+    static final int nEvents = 100;
+    
     public void testReadoutToLcio() throws Exception {
         
         new TestOutputFile(this.getClass().getSimpleName()).mkdir();
@@ -35,6 +37,7 @@ public class ReadoutToLcioTest extends TestCase {
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName());
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014ReadoutToLcio.lcsim");
+        job.setNumberOfEvents(nEvents);
         job.run();
     }
 
