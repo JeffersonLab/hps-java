@@ -1,3 +1,11 @@
+<!--
+    This is a steering file for running a simplified version of the reconstruction directly
+    on LCIO files generated with SLIC, which only contain MCParticle, SimCalorimeterHit,
+    and SimTrackerHit collections.
+    
+    It should NOT be used for production purposes and is primarily intended for testing,
+    or for performing a quick analysis on MC data without running the trigger simulation.      
+-->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
@@ -5,32 +13,30 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>
     <execute>
+        <!-- Print out event numbers. -->
         <driver name="EventMarkerDriver"/>
+        <!-- Load the text based conditions. -->
         <driver name="CalibrationDriver"/>
+        <!-- Simple tracker hit digi. -->
         <driver name="TrackerDigiDriver"/>
+        <!-- Create tracker hits. -->
         <driver name="HelicalTrackHitDriver"/>
+        <!-- Find tracks. -->
         <driver name="TrackerReconDriver"/>
-        <!-- FIXME: This should be changed to use the current ECAL clustering algorithm. -->
-        <driver name="SimpleEcalClusterer"/>
-<!--        
-        <driver name="EcalRawConverter" />
-        <driver name="EcalClusterer" />
--->        
+        <!-- Create ecal clusters. -->
+        <driver name="EcalClusterer"/>
+        <!-- Create recon particles. -->       
         <driver name="ReconParticle" />
-<!--        
-        <driver name="TrackDataDriver" />
--->        
-        <driver name="GBLDriver"/>
+        <!-- Write out a recon LCIO file. -->
         <driver name="LCIOWriter"/>
+        <!-- Cleanup the readout collections on the detector after each event. -->
+        <driver name="CleanupDriver" />
     </execute>
     <drivers>
-        <driver name="SimpleEcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
-            <ecalCollectionName>EcalHits</ecalCollectionName>
-        </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <debug>false</debug>
         </driver>
@@ -43,31 +49,15 @@
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>
-        <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-            <debug>1</debug>
-            <isMC>false</isMC>
-            <gblFileName></gblFileName>
-        </driver>
-<!--        
-       <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <use2014Gain>false</use2014Gain>
-            <useTimestamps>false</useTimestamps>
-            <useTruthTime>true</useTruthTime>
-        </driver>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
             <ecalName>Ecal</ecalName>
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
             <timeCut>false</timeCut>
-        </driver>
--->        
+        </driver>              
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver"/>
-<!--        
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
--->        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>
-
