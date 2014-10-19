@@ -35,6 +35,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrack2DHit;
+import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
@@ -96,25 +97,26 @@ public class TrackAnalysis {
         _hasLayerOne = false;
         //  Loop over the hits on the track and make sure we have HelicalTrackHits (which contain the MC particle)
         for (TrackerHit hit : trk.getTrackerHits()) {
+            HelicalTrackHit htc = (HelicalTrackHit) hit;
+            if (htc.Detector().equals("BeamSpot"))
+                continue;
+
             //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
             Set<MCParticle> mclist = hittomc.allFrom(hit);
             for (MCParticle mcp : mclist) {
                 Integer mchits = 0;
-                if (mcmap.containsKey(mcp)) {
+                if (mcmap.containsKey(mcp))
                     mchits = mcmap.get(mcp);
-                }
                 mchits++;
                 mcmap.put(mcp, mchits);
             }
 
-//            HelicalTrackHit htc = (HelicalTrackHit) hit;
-            if (hit instanceof HelicalTrackCross) {
+            if (hit instanceof HelicalTrackCross)
                 countHit((HelicalTrackCross) hit);
-            } else if (hit instanceof HelicalTrack2DHit) {
+            else if (hit instanceof HelicalTrack2DHit)
                 countHit((HelicalTrack2DHit) hit);
-            } else {
+            else
                 countHit(hit, rthtosimhit, hittostrip, hittorotated);
-            }
         }
 
         //  Find the MCParticle that has the most hits on the track
@@ -128,9 +130,8 @@ public class TrackAnalysis {
             }
         }
 
-        if (nbest > 0) {
+        if (nbest > 0)
             _mcp = mcbest;
-        }
         _purity = (double) nbest / (double) _nhits;
         _nbadhits = _nhits - nbest;
 
@@ -145,32 +146,25 @@ public class TrackAnalysis {
             }
         }
 
-        if (nbestAll > 0) {
+        if (nbestAll > 0)
             _mcpNew = mcbestAll;
-        }
         _purityNew = (double) nbestAll / (double) _nhitsNew;
         _nbadhitsNew = _nhitsNew - nbestAll;
 
-        for (TrackerHit hit : trk.getTrackerHits()) {
-            if (hit instanceof HelicalTrackCross) {
+        for (TrackerHit hit : trk.getTrackerHits())
+            if (hit instanceof HelicalTrackCross)
                 checkForBadHit((HelicalTrackCross) hit);
-            }
-        }
 
-        if (_nAxialhits > 0) {
-            if (mcmapAxial.containsKey(_mcpNew)) {
+        if (_nAxialhits > 0)
+            if (mcmapAxial.containsKey(_mcpNew))
                 _nbadAxialhits = _nAxialhits - mcmapAxial.get(_mcpNew);
-            } else {
+            else
                 _nbadAxialhits = _nAxialhits;
-            }
-        }
-        if (_nZhits > 0) {
-            if (mcmapZ.containsKey(_mcpNew)) {
+        if (_nZhits > 0)
+            if (mcmapZ.containsKey(_mcpNew))
                 _nbadZhits = _nZhits - mcmapZ.get(_mcpNew);
-            } else {
+            else
                 _nbadZhits = _nZhits;
-            }
-        }
     }
 
     private void countHit(HelicalTrackCross cross) {
@@ -178,9 +172,8 @@ public class TrackAnalysis {
 
         for (HelicalTrackStrip cl : clusterlist) {
             int layer = cl.layer();
-            if (layer == 1) {
+            if (layer == 1)
                 _hasLayerOne = true;
-            }
 
             _nStripHitsPerLayer[layer - 1] = cl.rawhits().size();
             _hitLocationPerLayer.put(layer, clusterPosition(cl));
@@ -191,30 +184,26 @@ public class TrackAnalysis {
             if (axdotu > 0.5) {
                 isAxial = true;
                 _nAxialhits++;
-            } else {
+            } else
                 _nZhits++;
-            }
             List<MCParticle> mcPartList = cl.MCParticles();
             _nMCHitsPerLayer[layer - 1] = mcPartList.size();
             for (MCParticle mcp : mcPartList) {
                 Integer mchits = 0;
-                if (mcmapAll.containsKey(mcp)) {
+                if (mcmapAll.containsKey(mcp))
                     mchits = mcmapAll.get(mcp);
-                }
                 mchits++;
                 mcmapAll.put(mcp, mchits);
                 if (isAxial) {
                     Integer mchitsAxial = 0;
-                    if (mcmapAxial.containsKey(mcp)) {
+                    if (mcmapAxial.containsKey(mcp))
                         mchitsAxial = mcmapAxial.get(mcp);
-                    }
                     mchitsAxial++;
                     mcmapAxial.put(mcp, mchitsAxial);
                 } else {
                     Integer mchitsZ = 0;
-                    if (mcmapZ.containsKey(mcp)) {
+                    if (mcmapZ.containsKey(mcp))
                         mchitsZ = mcmapZ.get(mcp);
-                    }
                     mchitsZ++;
                     mcmapZ.put(mcp, mchitsZ);
                 }
@@ -236,21 +225,18 @@ public class TrackAnalysis {
 //                    System.out.println(rawHit.getCellID());
                 IIdentifier id = new Identifier(rawHit.getCellID());
                 int newLayer = SvtUtils.getInstance().getHelper().getValue(id, "layer");
-                if (layer != -1 && layer != newLayer) {
+                if (layer != -1 && layer != newLayer)
                     System.out.format("TrackerHit has hits from multiple layers: %d and %d\n", layer, newLayer);
-                }
                 layer = newLayer;
                 int newModule = SvtUtils.getInstance().getHelper().getValue(id, "module");
-                if (module != -1 && module != newModule) {
+                if (module != -1 && module != newModule)
                     System.out.format("TrackerHit has hits from multiple modules: %d and %d\n", module, newModule);
-                }
                 module = newModule;
 //                    System.out.println(SvtUtils.getInstance().getHelper().getValue(id, "strip"));
             }
 
-            if (layer == 1) {
+            if (layer == 1)
                 _hasLayerOne = true;
-            }
             DiagonalizedCovarianceMatrix covariance = new DiagonalizedCovarianceMatrix(cl);
             _nStripHitsPerLayer[layer - 1] = cl.getRawHits().size();
             _hitLocationPerLayer.put(layer, new BasicHep3Vector(hit.getPosition()));
@@ -262,41 +248,35 @@ public class TrackAnalysis {
             if (axdotu > 0.5) {
                 isAxial = true;
                 _nAxialhits++;
-            } else {
+            } else
                 _nZhits++;
-            }
             //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
 
             Set<MCParticle> mcPartList = new HashSet<MCParticle>();
             for (RawTrackerHit rawHit : rawHits) {
                 Set<SimTrackerHit> simhits = (Set<SimTrackerHit>) rthtosimhit.allFrom(rawHit);
-                for (SimTrackerHit simhit : simhits) {
-                    if (simhit != null && simhit.getMCParticle() != null) {
+                for (SimTrackerHit simhit : simhits)
+                    if (simhit != null && simhit.getMCParticle() != null)
                         mcPartList.add(simhit.getMCParticle());
-                    }
-                }
             }
 //            System.out.println("MCParticle count: " + mcPartList.size());
             _nMCHitsPerLayer[layer - 1] = mcPartList.size();
             for (MCParticle mcp : mcPartList) {
                 Integer mchits = 0;
-                if (mcmapAll.containsKey(mcp)) {
+                if (mcmapAll.containsKey(mcp))
                     mchits = mcmapAll.get(mcp);
-                }
                 mchits++;
                 mcmapAll.put(mcp, mchits);
                 if (isAxial) {
                     Integer mchitsAxial = 0;
-                    if (mcmapAxial.containsKey(mcp)) {
+                    if (mcmapAxial.containsKey(mcp))
                         mchitsAxial = mcmapAxial.get(mcp);
-                    }
                     mchitsAxial++;
                     mcmapAxial.put(mcp, mchitsAxial);
                 } else {
                     Integer mchitsZ = 0;
-                    if (mcmapZ.containsKey(mcp)) {
+                    if (mcmapZ.containsKey(mcp))
                         mchitsZ = mcmapZ.get(mcp);
-                    }
                     mchitsZ++;
                     mcmapZ.put(mcp, mchitsZ);
                 }
@@ -312,15 +292,13 @@ public class TrackAnalysis {
         boolean isAxial = true;
         for (MCParticle mcp : mcPartList) {
             Integer mchits = 0;
-            if (mcmapAll.containsKey(mcp)) {
+            if (mcmapAll.containsKey(mcp))
                 mchits = mcmapAll.get(mcp);
-            }
             mchits++;
             mcmapAll.put(mcp, mchits);
             Integer mchitsAxial = 0;
-            if (mcmapAxial.containsKey(mcp)) {
+            if (mcmapAxial.containsKey(mcp))
                 mchitsAxial = mcmapAxial.get(mcp);
-            }
             mchitsAxial++;
             mcmapAxial.put(mcp, mchitsAxial);
         }
@@ -334,9 +312,8 @@ public class TrackAnalysis {
                 badHitList.add(cl.layer());
                 badhits.put(_mcpNew, cross);
             }
-            if (cl.MCParticles().size() > 1) {
+            if (cl.MCParticles().size() > 1)
                 sharedHitList.add(cl.layer());
-            }
         }
     }
 
@@ -437,18 +414,14 @@ public class TrackAnalysis {
         public DiagonalizedCovarianceMatrix(TrackerHit hit) {
             SymmetricMatrix cov = new SymmetricMatrix(3, hit.getCovMatrix(), true);
             RealMatrix covMatrix = new Array2DRowRealMatrix(3, 3);
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
                     covMatrix.setEntry(i, j, cov.e(i, j));
-                }
-            }
             EigenDecomposition decomposed = new EigenDecomposition(covMatrix);
             BasicHep3Matrix localToGlobal = new BasicHep3Matrix();
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
                     localToGlobal.setElement(i, j, decomposed.getV().getEntry(i, j));
-                }
-            }
 //            SymmetricMatrix localToGlobal = decomposed.getV().operate(new ArrayRealVector(3))
             {
                 double eigenvalue = decomposed.getRealEigenvalue(0);

@@ -1,10 +1,6 @@
 package org.hps.monitoring.plotting;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.renderer.xy.XYBarRenderer;
-
 import hep.aida.IPlotterFactory;
-import hep.aida.jfree.chart.DefaultChartTheme;
 import hep.aida.ref.AnalysisFactory;
 
 /**
@@ -27,14 +23,6 @@ public class MonitoringAnalysisFactory extends AnalysisFactory {
         System.setProperty("hep.aida.IAnalysisFactory", MonitoringAnalysisFactory.class.getName());
     }
     
-    /**
-     * Do some JFreeChart related configuration.
-     */
-    public static void configure() {
-        ChartFactory.setChartTheme(new DefaultChartTheme());
-        XYBarRenderer.setDefaultShadowsVisible(false);
-    }
-
     /**
      * Create a named plotter factory for the monitoring application.
      */

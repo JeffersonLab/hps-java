@@ -1,4 +1,4 @@
-package main.java.org.hps.users.sfegan;
+package org.hps.users.sfegan;
 
 
 /**

@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-users</artifactId>
     <name>users</name>
-    <description>user code packages</description>
+    <description>miscellaneous user code</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
@@ -33,6 +33,7 @@
                     <excludes>
                         <exclude>org/hps/users/jeremym/MockDataChallengeDiagnosticDriverTest.java</exclude>
                         <exclude>org/hps/users/ngraf/NearestNeighborClusterDriverTest.java</exclude>
+			<exclude>org/hps/users/holly/ECalClusterICTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

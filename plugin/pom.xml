@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-plugin</artifactId>
     <name>plugin</name>
-    <description>HPS JAS3 Plugin</description>
+    <description>JAS3 Plugin</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
@@ -59,7 +59,7 @@
                         <include>org.hps:hps-record-util</include>
                         <include>org.hps:hps-tracking</include>
                         <include>org.hps:hps-users</include>
-                        <include>org.hps:hps-util</include>                                                                                                                                              
+                        <include>org.hps:hps-util</include>
                         <include>mysql:mysql-connector-java</include>
                         <include>org.jlab.coda:jevio</include>
                         <include>org.jlab.coda:et</include>                        
@@ -124,6 +124,20 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
+        </profile>        
+        <profile>
+            <id>test-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.freehep</groupId>
+                        <artifactId>freehep-jas-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
     </profiles>
 </project>

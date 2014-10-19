@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-tracking</artifactId>
     <name>tracking</name>
-    <description>HPS tracking reconstruction module</description>
-    
+    <description>tracking reconstruction algorithms</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>3.0.3-SNAPSHOT</version>
     </parent>
-    
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/tracking/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/tracking/</developerConnection>
     </scm>
-    
     <build>
         <plugins>
             <plugin>
@@ -27,6 +23,7 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/recon/tracking/TruthResidualTest.java</exclude>
+                        <exclude>org/hps/recon/tracking/TrackRecoFromScratchTest.java</exclude>
                         <!-- Test input LCIO file is missing for next two. -->
                         <exclude>org/hps/recon/tracking/TestRunTrackReconTest.java</exclude>
                         <exclude>org/hps/recon/tracking/HelicalTrackHitDriverTest.java</exclude>
@@ -35,13 +32,7 @@
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
-        <dependency>
-            <groupId>org.lcsim</groupId>
-            <artifactId>lcsim-distribution</artifactId>
-            <version>${lcsimVersion}</version>
-        </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-conditions</artifactId>
@@ -61,5 +52,4 @@
             <version>1.0.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
-    
 </project>

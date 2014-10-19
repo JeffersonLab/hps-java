@@ -42,18 +42,18 @@ public class TriggerAna extends Driver {
     int clusterWindow=50;
     int TotalCluster=0;
     double timeDifference;
-    double energyThreshold=1.5;
+    double energyThreshold=0;
     private LinkedList<ArrayList<HPSEcalCluster>> clusterBuffer;
     protected String clusterCollectionName = "EcalClusters";
     
- AIDA aida = AIDA.defaultInstance();
-IHistogram1D clusterEne=aida.histogram1D("Clusters energy with Kyle's trigger",300, 0, 3);
+ //AIDA aida = AIDA.defaultInstance();
+//IHistogram1D clusterEne=aida.histogram1D("Clusters energy with Kyle's trigger",300, 0, 3);
     private FileWriter writer;
-    private FileWriter writer2;
+   // private FileWriter writer2;
     private FileWriter writer3;
     private FileWriter writer4;
     String outputFileName = "KyleTriggerFEE.txt";
-    String outputFileName2 = "KyleTriggerHits.txt";
+  //  String outputFileName2 = "KyleTriggerHits.txt";
     String outputFileName3 = "NoTriggerFEE.txt";
    
    
@@ -74,8 +74,8 @@ IHistogram1D clusterEne=aida.histogram1D("Clusters energy with Kyle's trigger",3
    public void setOutputFileName(String outputFileName){
 this.outputFileName = outputFileName;
 }
-   public void setOutputFileName2(String outputFileName2){
-this.outputFileName2 = outputFileName2;
+   public void setOutputFileName3(String outputFileName3){
+this.outputFileName3 = outputFileName3;
    }
    public void settimeDifference(double time){
    this.timeDifference=time;
@@ -105,12 +105,12 @@ public void startOfData(){
     try{
     //initialize the writers
     writer=new FileWriter(outputFileName);
-    writer2=new FileWriter(outputFileName2);
+    //writer2=new FileWriter(outputFileName2);
     writer3=new FileWriter(outputFileName3);
     
     //Clear the files
     writer.write("");
-    writer2.write("");
+   // writer2.write("");
     writer3.write("");
     
     
@@ -123,12 +123,12 @@ System.err.println("Error initializing output file for event display.");
   
 @Override
 public void endOfData(){
-System.out.println("Ho contato" + TotalCluster + " clusters di cui " + Clustercount + "isolati\n");
+//System.out.println("Ho contato" + TotalCluster + " clusters di cui " + Clustercount + "isolati\n");
     
     try{
 //close the file writer.
     writer.close();
-    writer2.close();
+ //   writer2.close();
     writer3.close();
     
     }
@@ -163,58 +163,11 @@ catch(IOException e){
              
      //put the clusters in the arraylist
      
-     ArrayList<HPSEcalCluster> clusterSet = new ArrayList<HPSEcalCluster>(); 
+     
      for(HPSEcalCluster cluster : clusterList){
-         clusterEne.fill(cluster.getEnergy());
+        // clusterEne.fill(cluster.getEnergy());
          TotalCluster++;
-         clusterSet.add(cluster);
-     }
-     //remove the last event from cluster buffer and add the new one
-     clusterBuffer.removeLast();
-     clusterBuffer.addFirst(clusterSet);
-    //Run the sorting algorithm;
-     ClusterAnalyzer();
-     }
-     
-      //get the hits from the event
-     if(event.hasCollection(CalorimeterHit.class,"EcalCorrectedHits")){
-     List<CalorimeterHit> hits =event.get(CalorimeterHit.class,"EcalCorrectedHits");
-     
-     for(CalorimeterHit hit : hits){
-     int id=getCrystal(hit)-1;
-     
-     try{    writer2.append(id + " " + hit.getRawEnergy()+ "\n");}
-      catch(IOException e ){System.err.println("Error writing to output for event display");} 
-     }
-     
-     }
-     
-    }
-     
-}
-
- 
- /**
-  * For each crystal, looks for clusters that hit that clystar, if it is an isolated cluster, it's put in goodclusterqueue
-  */
- public void ClusterAnalyzer(){
- //get the cluster list at the current time in the buffer
-ArrayList<HPSEcalCluster> currentClusters = clusterBuffer.get(clusterWindow+1);
-
-
- ///cerca i cluster nella posizione che ci interessa poi chiama la funzione che decide se sono "isolati"
-   //System.out.println("Sta partendo il for sulla Queue \n");
- for(int y=-5;y<6;y++){
-     for(int x=-23;x<24;x++){
-      posx=x;
-      posy=y;
-         
-         //ciclo for nel set di currentCluster, ovvero il set nel mezzo del buffer
-    for(HPSEcalCluster cluster : currentClusters){ 
-    if((cluster.getSeedHit().getIdentifierFieldValue("ix")== posx) && (cluster.getSeedHit().getIdentifierFieldValue("iy")==posy )&& (cluster.getEnergy() > energyThreshold)){
-        
-           if(ClusterChecker(cluster)){
-            int id;
+        int id;
             Clustercount++;
            id=getCrystal(cluster);
            try{
@@ -227,60 +180,15 @@ ArrayList<HPSEcalCluster> currentClusters = clusterBuffer.get(clusterWindow+1);
      }
      
    catch(IOException e ){System.err.println("Error writing to output for event display");}   
-           
-           }
-      }
+     }
+   
+     }
+     
      
      
     }
- 
- 
- 
- }
- }
- 
- 
- 
- 
-
- }
- /**
-  * Check if the cluster is isolaterd checking if there are clusters near it in time and in space in the buffer
-  * @param cluster
-  * @return 
-  */
- 
-public boolean ClusterChecker (HPSEcalCluster cluster){
-//System.out.println("Sono nel clustercheck! \n");
-    
-boolean check=true;
-  
-    //ciclo sulle liste del buffer
-loops:
-     for(ArrayList<HPSEcalCluster> currentList : clusterBuffer){
-     //ciclo sui cluster della lista corrente
-         for(HPSEcalCluster currentcluster : currentList){
-           if(currentcluster!= cluster){
-             //if there is a cluster in the buffer that is in the considered radius in a time window lower than expected, the loop is brocken and the analyzed cluster is not good
-         if(!((currentcluster.getSeedHit().getIdentifierFieldValue("ix") < posx-radius || currentcluster.getSeedHit().getIdentifierFieldValue("ix")> posx+radius)&& (currentcluster.getSeedHit().getIdentifierFieldValue("iy")< posy-radius || currentcluster.getSeedHit().getIdentifierFieldValue("iy")> posy+radius))&& Math.abs(cluster.getSeedHit().getTime()-currentcluster.getSeedHit().getTime())<timeDifference){
-         check=false;
-         break loops;
-         }
-           }
-           
-        
-         
-         }
-      
      
-     }
-        
-        
-   
-return check;
-
 }
-      
  
  
  public int getCrystal (HPSEcalCluster cluster){

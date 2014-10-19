@@ -9,9 +9,9 @@ import org.hps.recon.tracking.RawTrackerHitFitterDriver;
 import org.hps.recon.tracking.TrackerReconDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
-
+import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
+import org.lcsim.util.Driver;
 
 /**
  * <p>
@@ -31,6 +31,9 @@ public class TestRunReconDriver extends Driver {
         CalibrationDriver calibrationDriver = new CalibrationDriver();
         calibrationDriver.setRunNumber(975);
         this.add(calibrationDriver);
+        
+        RawTrackerHitSensorSetup rawTrackerHitDriver = new RawTrackerHitSensorSetup();
+        this.add(rawTrackerHitDriver);
 
         EcalRawConverterDriver ecalRawConverter = new EcalRawConverterDriver();
         ecalRawConverter.setEcalCollectionName("EcalCalHits");

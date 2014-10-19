@@ -22,7 +22,7 @@ import org.hps.recon.vertexing.BilliorVertexer;
 
 
 /**
- * 
+ * The Main HPS implementation of ReconParticleDriver...makes V0 candidates and does vertex fits
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @version $Id$
  */
@@ -39,12 +39,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 	@Override
 	protected void startOfData(){
 		
-		unconstrainedV0CandidatesColName    = "UnconstrainedV0Candidates";
-		beamConV0CandidatesColName   		= "BeamspotConstrainedV0Candidates";
-		targetConV0CandidatesColName 		= "TargetConstrainedV0Candidates";	
-		unconstrainedV0VerticesColName 		= "UnconstrainedV0Vertices";
-		beamConV0VerticesColName 			= "BeamspotConstrainedV0Vertices";
-		targetConV0VerticesColName			= "TargetConstrainedV0Vertices";
+//		unconstrainedV0CandidatesColName    = "UnconstrainedV0Candidates";
+//		beamConV0CandidatesColName   		= "BeamspotConstrainedV0Candidates";
+//		targetConV0CandidatesColName 		= "TargetConstrainedV0Candidates";	
+//		unconstrainedV0VerticesColName 		= "UnconstrainedV0Vertices";
+//		beamConV0VerticesColName 			= "BeamspotConstrainedV0Vertices";
+//		targetConV0VerticesColName			= "TargetConstrainedV0Vertices";
 	}
 
 	/**

@@ -1,20 +1,12 @@
 package org.hps.recon.tracking.nobfield;
 
 import hep.physics.matrix.SymmetricMatrix;
-import static java.lang.Math.abs;
-import static java.lang.Math.signum;
 import java.util.ArrayList;
 import java.util.List;
-import org.lcsim.constants.Constants;
 import org.lcsim.event.LCIOParameters;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
-import static org.lcsim.event.base.BaseTrack.D0;
-import static org.lcsim.event.base.BaseTrack.OMEGA;
-import static org.lcsim.event.base.BaseTrack.PHI;
-import static org.lcsim.event.base.BaseTrack.TANLAMBDA;
-import static org.lcsim.event.base.BaseTrack.Z0;
 import org.lcsim.event.base.BaseTrackState;
 
 /**
@@ -31,6 +23,9 @@ public class StraightTrack implements Track {
     protected List<TrackState> _trackStates;
     protected double[] _chi2 = new double[2];
     protected double[] _parameters = new double[5];
+     protected double[] _momentum = new double[3];
+      protected double[] _ref = new double[3];
+    protected int _ndf;
     // Parameter ordering.
     public static final int x0 = LCIOParameters.ParameterName.d0.ordinal();
     public static final int slopeXZ = LCIOParameters.ParameterName.phi0.ordinal();
@@ -139,59 +134,59 @@ public class StraightTrack implements Track {
 
     @Override
     public int getCharge() {
-        throw new UnsupportedOperationException("StraightTrack...no momentum measured."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public double[] getReferencePoint() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return _ref;
     }
 
     @Override
     public double getReferencePointX() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return _ref[0];
     }
 
     @Override
     public double getReferencePointY() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return _ref[1];
     }
 
     @Override
     public double getReferencePointZ() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+         return _ref[2];
     }
 
     @Override
     public boolean isReferencePointPCA() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return false;
     }
 
     @Override
     public double[] getMomentum() {
-        throw new UnsupportedOperationException("StraightTrack...no momentum measured."); //To change body of generated methods, choose Tools | Templates.
+        return _momentum;
     }
 
     @Override
     public double getPX() {
-        throw new UnsupportedOperationException("StraightTrack...no momentum measured."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public double getPY() {
-        throw new UnsupportedOperationException("StraightTrack...no momentum measured."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public double getPZ() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public boolean fitSuccess() {
         throw new UnsupportedOperationException("StraightTrack...no momentum measured."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public double getTrackParameter(int i) {
         return _parameters[i];
@@ -227,24 +222,32 @@ public class StraightTrack implements Track {
 
     @Override
     public int getNDF() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return _ndf;
+    }
+
+    public void setNDF(int ndf) {
+        _ndf = ndf;
     }
 
     @Override
     public double getdEdx() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public double getdEdxError() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
     @Override
     public double getRadiusOfInnermostHit() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return -999;
     }
 
+//    public TrackDirection getTrackDirection(){
+        
+ //   }
+    
     public String toString() {
         String className = getClass().getName();
         int lastDot = className.lastIndexOf('.');

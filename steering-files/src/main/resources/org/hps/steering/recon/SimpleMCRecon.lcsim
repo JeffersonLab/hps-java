@@ -1,0 +1,63 @@
+<!--
+    This is a steering file for running a simplified version of the reconstruction directly
+    on LCIO files generated with SLIC, which only contain MCParticle, SimCalorimeterHit,
+    and SimTrackerHit collections.
+    
+    It should NOT be used for production purposes and is primarily intended for testing,
+    or for performing a quick analysis on MC data without running the trigger simulation.      
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+    <execute>
+        <!-- Print out event numbers. -->
+        <driver name="EventMarkerDriver"/>
+        <!-- Load the text based conditions. -->
+        <driver name="CalibrationDriver"/>
+        <!-- Simple tracker hit digi. -->
+        <driver name="TrackerDigiDriver"/>
+        <!-- Create tracker hits. -->
+        <driver name="HelicalTrackHitDriver"/>
+        <!-- Find tracks. -->
+        <driver name="TrackerReconDriver"/>
+        <!-- Create ecal clusters. -->
+        <driver name="EcalClusterer"/>
+        <!-- Create recon particles. -->       
+        <driver name="ReconParticle" />
+        <!-- Write out a recon LCIO file. -->
+        <driver name="LCIOWriter"/>
+        <!-- Cleanup the readout collections on the detector after each event. -->
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10</eventInterval>
+        </driver>
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
+        <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
+            <debug>false</debug>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <maxSeperation>20.0</maxSeperation>
+            <tolerance>1.0</tolerance>
+        </driver>
+        <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+        </driver>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <timeCut>false</timeCut>
+        </driver>              
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver"/>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+    </drivers>
+</lcsim>

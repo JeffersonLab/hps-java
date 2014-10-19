@@ -88,12 +88,12 @@ public class FEETrigger extends TriggerDriver {
 					// Determine in which region the cluster is located
 					// and increment the counter for that region. Zones
 					// are defined as:
-					// Zone 1 is -13 < ix < -4 and 14 < ix < 21
+					// Zone 1 is -13 < ix < -4 and 14 < ix < 21  MISTAKE!!! it's all reversed!! remember!!!
 					// Zone 2 is -20 < ix < -14 and ix > 20
-					// Zone 3 is -23 <= ix < -19
-					if(-23 <= ix && ix < -19) { zone3Count++; }
-					if((-20 < ix && ix < -14) || (ix > 20))  { zone2Count++; }
-					if((-13 < ix && ix < -4) || (14 < ix && ix < 21)) { zone1Count++; }
+					// Zone 3 is -23 <= ix < -18
+					if( ix > 18 || ix < -22) { zone3Count++; }
+					if(ix < 19 && ix  > 12 )  { zone2Count++; }
+					if((ix > 4 && ix < 13) || (ix > -23 && ix < -14)) { zone1Count++; }
 				}
 			}
 		}

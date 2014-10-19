@@ -23,7 +23,6 @@ import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
 
@@ -86,6 +85,8 @@ import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
+import org.hps.monitoring.subsys.et.EtSystemMonitor;
+import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
@@ -321,7 +322,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     
     /**
      * Handle a property change event.
-     * @evt The property change event.
+     * @param evt The property change event.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -408,11 +409,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void setupUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {            
-            public void uncaughtException(Thread thread, Throwable exception) {
-               MonitoringApplication.this.errorHandler.setError(exception)
+            public void uncaughtException(Thread thread, Throwable exception) {                               
+                MonitoringApplication.this.errorHandler.setError(exception)
                    .log()
                    .printStackTrace()
                    .showErrorDialog();
+                // FIXME: This should probably cause a system.exit after the dialog box is closed!
             }
         });
     }
@@ -468,7 +470,6 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void setupAida() {
         MonitoringAnalysisFactory.register();
-        MonitoringAnalysisFactory.configure();
         MonitoringPlotFactory.setRootPane(this.plotWindow.getPlotPane());
         MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
             @Override
@@ -1078,7 +1079,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void disconnect(ConnectionStatus status) {
 
-        log(Level.FINE, "Disconnecting from the ET server.");
+        log(Level.FINE, "Disconnecting the current session.");
 
         // Cleanup the ET connection.
         cleanupEtConnection();
@@ -1089,11 +1090,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         // Finally, change application state to fully disconnected.
         setConnectionStatus(ConnectionStatus.DISCONNECTED);
 
-        // Set the application status from the caller if an error had occurred.
+        // Set the application status from the caller if an error occurred.
         if (status == ConnectionStatus.ERROR)
             setConnectionStatus(status);
 
-        log(Level.INFO, "Disconnected from the ET server.");
+        log(Level.INFO, "Disconnected from the session.");
     }
 
     /**
@@ -1102,7 +1103,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private void cleanupEtConnection() {
         if (connection != null) {     
             if (connection.getEtSystem().alive()) {
+                log(Level.FINEST, "Cleaning up the ET connection.");
                 connection.cleanup();
+                log(Level.FINEST, "Done cleaning up the ET connection.");
             }
             connection = null;
         }
@@ -1346,19 +1349,18 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         }        
 
         
-        // DEBUG: Turn these off while doing other stuff!!!!
-        
+        // DEBUG: Turn these off while doing other stuff!!!!        
         // Using ET server?
-        //if (usingEtServer()) {
+        if (usingEtServer()) {
 
             // ET system monitor.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            //loopConfig.add(new EtSystemMonitor());
+            loopConfig.add(new EtSystemMonitor());
             
             // ET system strip charts.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
-            //loopConfig.add(new EtSystemStripCharts());
-        //}
+            loopConfig.add(new EtSystemStripCharts());
+        }
               
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
@@ -1450,20 +1452,17 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         try {
             // Log message.
             logger.log(Level.FINER, "Stopping the session.");
+            
+            // Kill the watchdog thread which looks for disconnects, if it is active.
+            killSessionWatchdogThread();
                         
-            // Save AIDA file.
+            // Automatically write AIDA file from job settings.
             saveAidaFile();
         
-            // Disconnect from the ET system.
-            if (usingEtServer()) {
-                // Disconnect from the ET system.
-                disconnect();
-            } else { 
-                // When using direct file streaming, just need to toggle GUI state.
-                setDisconnectedGuiState();
-            }
+            // Disconnect from ET system, if using the ET server, and set the proper disconnected GUI state.           
+            disconnect();
             
-            // Terminate event processing.
+            // Stop the event processing, which is called after the ET system goes down to avoid hanging in calls to ET system.
             stopEventProcessing();
                 
             logger.log(Level.INFO, "Session was stopped.");
@@ -1475,47 +1474,42 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
                                        
     /**
-     * Finish event processing and stop its thread, first killing the session watchdog 
-     * thread, if necessary.  The event processing thread may still be alive after 
-     * this method, e.g. if there is a call to <code>EtSystem.getEvents()</code> happening.
-     * In this case, event processing will exit later when the ET system goes down.
+     * Stop the event processing by executing a <code>STOP</code> command on the 
+     * record loop and killing the event processing thread.  This is executed
+     * after the ET system is disconnected so that the event processing does
+     * not potentially hang in a call to <code>EtSystem.getEvents()</code> forever.
      */
     private void stopEventProcessing() {
-            
-        // Is the event processing thread not null? 
+
+        // Is the event processing thread not null?
         if (processingThread != null) {
             
             // Is the event processing thread actually still alive?
             if (processingThread.isAlive()) {
-
-                // Interrupt and kill the event processing watchdog thread if necessary.
-                killSessionWatchdogThread();
-               
+                
                 // Request the event processing loop to execute stop.
-                loop.execute(Command.STOP);                
+                loop.execute(Command.STOP);
+                
+                try {
+                    // This should always work, because the ET system is disconnected before this.
+                    processingThread.join();
+                } catch (InterruptedException e) {
+                    // Don't know when this would ever happen.
+                    e.printStackTrace();                   
+                }
             }
 
-            // Wait for the event processing thread to finish.  This should just return
-            // immediately if it isn't alive so don't bother checking if alive is false.
-            try {
-                // In the case where ET is configured for sleep or timed wait, an untimed join could 
-                // block forever, so only wait for ~1 second before continuing.  The EventProcessingChain
-                // should still cleanup automatically when its thread completes after the ET system goes down.
-                processingThread.join(1000);
-            } catch (InterruptedException e) {
-                // Don't know when this would ever happen.
-            }
-       
             // Notify of last error that occurred in event processing.
             if (loop.getLastError() != null) {
                 errorHandler.setError(loop.getLastError()).log().printStackTrace();
             }
-       
-            // Reset event processing objects for next session.
-            loop.dispose();
-            loop = null;
+
+            // Set the event processing thread to null as it is unusable now.
             processingThread = null;
         }
+
+        // Set the loop to null as a new one will be created for next session.
+        loop = null;
     }
 
     /**
@@ -1532,7 +1526,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                     // This should always work once the thread is interupted.
                     sessionWatchdogThread.join();
                 } catch (InterruptedException e) {
-                    // Should never happen.
+                    // This should never happen.
+                    e.printStackTrace();
                 }
             }
             // Set the thread object to null.
@@ -1559,7 +1554,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             } catch (InterruptedException e) {
                 // This probably just means that the disconnect button was pushed, and this thread should
-                // no longer wait on event processing to finish.
+                // no longer monitor the event processing.
+                e.printStackTrace();
             }
         }
     }

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-recon</artifactId>
     <name>recon</name>
-    <description>HPS recon code</description>
+    <description>reconstruction algorithms</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

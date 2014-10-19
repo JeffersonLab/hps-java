@@ -8,10 +8,12 @@
     <packaging>pom</packaging>
     <version>3.0.3-SNAPSHOT</version>
     <name>parent</name>
+    <description>HPS Java parent POM</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <lcsimVersion>3.0.5-SNAPSHOT</lcsimVersion>
+        <skipSite>false</skipSite>
     </properties>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
@@ -69,6 +71,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lcsim</groupId>
+            <artifactId>lcsim-distribution</artifactId>
+            <version>${lcsimVersion}</version>
         </dependency>
     </dependencies>
     <!-- DO NOT EDIT THESE DEPENDENCY VERSIONS MANUALLY. -->
@@ -218,6 +225,8 @@
                     <version>3.3</version>
                     <configuration>
                         <chmod>false</chmod>
+                        <skip>${skipSite}</skip>
+                        <skipDeploy>${skipSite}</skipDeploy>
                     </configuration>
                 </plugin>
                 <plugin>

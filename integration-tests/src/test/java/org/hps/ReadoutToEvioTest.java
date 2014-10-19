@@ -23,6 +23,8 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ReadoutToEvioTest extends TestCase {
     
+    static final int nEvents = 100;
+    
     public void testReadoutToEvio() throws Exception {
         new TestOutputFile(this.getClass().getSimpleName()).mkdir();
         
@@ -34,6 +36,7 @@ public class ReadoutToEvioTest extends TestCase {
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014ReadoutToEvio.lcsim");
+        job.setNumberOfEvents(nEvents);
         job.run();
     }
 }

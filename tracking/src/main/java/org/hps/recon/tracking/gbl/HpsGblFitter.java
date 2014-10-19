@@ -192,8 +192,8 @@ public class HpsGblFitter {
 
             Matrix mDirT = MatrixOp.transposed(mDir); //new BasicMatrix(MatrixOp.transposed(mDir));
             if (_debug) {
-                System.out.printf(" mDir \n%s\n", this.getClass().getSimpleName(), mDir.toString());
-                System.out.printf(" mDirT \n%s\n", this.getClass().getSimpleName(), mDirT.toString());
+                System.out.printf(" mDir \n%s\n%s\n", this.getClass().getSimpleName(), mDir.toString());
+                System.out.printf(" mDirT \n%s\n%s\n", this.getClass().getSimpleName(), mDirT.toString());
             }
 
             // Track direction 
@@ -213,7 +213,7 @@ public class HpsGblFitter {
             uvDir.setElement(1, 2, cosLambda);
 
             if (_debug) {
-                System.out.printf(" uvDir \n%s\n", this.getClass().getSimpleName(), uvDir.toString());
+                System.out.printf(" uvDir \n%s\n%s\n", this.getClass().getSimpleName(), uvDir.toString());
             }
 
             // projection from  measurement to local (curvilinear uv) directions (duv/dm)
@@ -224,8 +224,8 @@ public class HpsGblFitter {
 
             //proL2m_list[strip->GetId()] = new TMatrixD(proL2m);
             if (_debug) {
-                System.out.printf(" proM2l \n%s\n", this.getClass().getSimpleName(), proM2l.toString());
-                System.out.printf(" proL2m \n%s\n", this.getClass().getSimpleName(), proL2m.toString());
+                System.out.printf(" proM2l \n%s\n%s\n", this.getClass().getSimpleName(), proM2l.toString());
+                System.out.printf(" proL2m \n%s\n%s\n", this.getClass().getSimpleName(), proL2m.toString());
             }
 
             // measurement/residual in the measurement system
@@ -404,6 +404,12 @@ public class HpsGblFitter {
             return -3;
         }
 
+        // print the trajectory
+        if(_debug)
+        {
+            System.out.println(" Gbl Trajectory ");
+            _traj.printPoints(4);
+        }
         // fit trajectory
         _traj.fit(m_chi2, m_ndf, m_lost_weight);
         

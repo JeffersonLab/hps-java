@@ -33,16 +33,12 @@ public final class CompositeLoop extends DefaultRecordLoop {
     
     boolean paused = false;
     boolean stopOnErrors = true;
-    boolean done = false;
     
     CompositeLoopConfiguration config = null;
-            
-    // Look in javadoc API and DefaultRecordLoop for what this does.
-    //this._stopOnEOF
-                
+                            
     /**
      * No argument constructor.  
-     * The {@link #configure(CompositeLoopConfiguration)} method must be
+     * The {@link #setCompositeLoopConfiguration(CompositeLoopConfiguration)} method must be
      * called on the loop manually.
      */
     public CompositeLoop() {
@@ -55,7 +51,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
      */
     public CompositeLoop(CompositeLoopConfiguration config) {
         setRecordSource(recordSource);
-        configure(config);
+        setCompositeLoopConfiguration(config);
     }
     
     /**
@@ -108,7 +104,6 @@ public final class CompositeLoop extends DefaultRecordLoop {
         
         // Stop the event processing.
         this.execute(Command.STOP);
-        done = true;
     }
 
     /**
@@ -129,7 +124,6 @@ public final class CompositeLoop extends DefaultRecordLoop {
         
         // Stop the event processing.
         this.execute(Command.STOP);
-        done = true;
     }        
     
     /**
@@ -175,16 +169,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
             return false;
         }
     }
-        
-    /**
-     * True if the loop is done processing.  This is 
-     * set to <code>true</code> when fatal errors occur.
-     * @return
-     */
-    public boolean isDone() {
-        return done;
-    }
-    
+            
     /**
      * Get the last error that occurred.
      * @return The last error that occurred.
@@ -230,12 +215,20 @@ public final class CompositeLoop extends DefaultRecordLoop {
         }
         return getSupplied();
     }
-        
+    
+    public void setConfiguration(Object object) {
+        if (object instanceof CompositeLoopConfiguration) {
+            setCompositeLoopConfiguration((CompositeLoopConfiguration)object);
+        } else {
+            throw new IllegalArgumentException("Wrong type of object to configure CompositeLoop: " + object.getClass().getCanonicalName());
+        }
+    }
+    
     /**
      * Configure the loop using a {@link CompositeLoopConfiguration} object.
      * @param config The CompositeLoopConfiguration object containing the loop configuration parameter values.
      */
-    public final void configure(CompositeLoopConfiguration config) {
+    void setCompositeLoopConfiguration(CompositeLoopConfiguration config) {
         
         if (this.config != null)
             throw new RuntimeException("CompositeLoop has already been configured.");

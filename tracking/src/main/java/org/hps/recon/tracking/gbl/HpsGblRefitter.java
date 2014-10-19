@@ -23,13 +23,13 @@ import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
 /**
- * A Driver which refits tracks using GBL Modeled on the hps-dst code written by
- * Per Hansson and Omar Moreno Requires the GBL Collections and Relations to be
- * present in the event.
+ * A Driver which refits tracks using GBL. 
+ * Modeled on the hps-dst code written by Per Hansson and Omar Moreno. 
+ * Requires the GBL Collections and Relations to be present in the event.
  *
  * @author Norman A Graf
  *
- * @version $Id:
+ * @version $Id$
  */
 public class HpsGblRefitter extends Driver
 {

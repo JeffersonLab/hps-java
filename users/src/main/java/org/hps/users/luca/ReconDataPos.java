@@ -15,8 +15,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
+
 
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
@@ -30,6 +29,7 @@ import hep.aida.IHistogram3D;
 import java.io.FileWriter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.ReconstructedParticle;
 
 /**
  * 
@@ -154,9 +154,34 @@ catch(IOException e){
  public void process (EventHeader event){
    
           
-     
+     //see if it has the reconstructed collectiom
+     if(event.hasCollection(ReconstructedParticle.class, "FinalStateParticles")){
+ List<ReconstructedParticle> particles = event.get(ReconstructedParticle.class, "FinalStateParticles");
+ 
+ for(ReconstructedParticle particle: particles){
+ 
+     if(particle.getCharge()>0){
+        
+         System.out.println(particle.getEnergy()*particle.getEnergy()-particle.getMomentum().magnitudeSquared()+"\n");
+                   
+       double mass=Math.sqrt(particle.getEnergy()*particle.getEnergy() - particle.getMomentum().magnitudeSquared());
+       List<Cluster> clusters = particle.getClusters();
+      
+      for(Cluster cluster : clusters){
+      
+          int id=getCrystal(cluster);
+          try{
+          writer.append(id + " " + cluster.getEnergy() + " " + cluster.getSize() + " " + HPSEcalCluster.getSeedHit(cluster).getCorrectedEnergy() + " " + HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("ix")+" " +HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("iy")+ "\n");
+          }
+          
+        catch(IOException e ){System.err.println("Error writing to output for event display");} 
+
            
-     
+      }
+      
+     }
+ }
+     }
      //get the clusters from the event
      if(event.hasCollection(Cluster.class, "EcalClusters")) {
         List<Cluster> clusterList =event.get(Cluster.class,clusterCollectionName );    

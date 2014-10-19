@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hps-monitoring-drivers</artifactId>
     <name>monitoring-drivers</name>
-    <description>Drivers for the MonitoringApplication</description>
+    <description>org.lcsim Drivers for using in the monitoring application</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>

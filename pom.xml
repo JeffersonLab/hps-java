@@ -1,5 +1,4 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hps</groupId>
     <artifactId>hps-modules</artifactId>
@@ -7,27 +6,23 @@
     <name>HPS Java Project</name>
     <description>HPS module build</description>
     <url>http://www.lcsim.org/sites/hps/</url>
-
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>parent/pom.xml</relativePath>
         <version>3.0.3-SNAPSHOT</version>
     </parent>   
-
     <scm>
         <url>svn://svn.freehep.org/hps/java/trunk/</url>
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
     </scm>
-
     <distributionManagement>
         <site>
             <id>lcsim-site</id>
             <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
         </site>
     </distributionManagement>
-
     <build>
         <pluginManagement>
             <plugins>
@@ -46,7 +41,6 @@
             </plugins>
         </pluginManagement>
     </build>
-
     <reporting>
         <plugins>
             <plugin>
@@ -122,52 +116,26 @@
             </plugin>
         </plugins>
     </reporting>
-    
-    <profiles>
-        <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>parent</module>
-                <module>util</module>
-                <module>detector-data</module>
-                <module>conditions</module>
-                <module>ecal-readout-sim</module>
-                <module>ecal-recon</module>
-                <module>evio</module>
-                <module>recon</module>
-                <module>tracking</module>
-                <module>ecal-event-display</module>
-                <module>monitoring-drivers</module>
-                <module>record-util</module>
-                <module>monitoring-app</module>
-                <module>analysis</module>
-                <module>users</module>
-                <module>steering-files</module>
-                <module>distribution</module>
-                <module>plugin</module>
-                <module>integration-tests</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>site</id>
-            <modules>
-                <module>analysis</module>
-                <module>conditions</module>
-                <module>ecal-readout-sim</module>
-                <module>ecal-recon</module>
-                <module>evio</module>
-                <module>monitoring-app</module>
-                <module>monitoring-drivers</module>
-                <module>plugin</module>                                                                              
-                <module>recon</module>
-                <module>tracking</module>
-                <module>users</module>                
-                <module>util</module>
-            </modules>
-        </profile>
-    </profiles>
-
+    <modules>
+        <module>analysis</module>
+        <module>conditions</module>
+        <module>datacat</module>
+        <module>detector-data</module>
+        <module>distribution</module>
+        <module>ecal-event-display</module>
+        <module>ecal-readout-sim</module>
+        <module>ecal-recon</module>
+        <module>evio</module>
+        <module>integration-tests</module>
+        <module>monitoring-app</module>
+        <module>monitoring-drivers</module>
+        <module>parent</module>
+        <module>plugin</module>
+        <module>recon</module>
+        <module>record-util</module>
+        <module>steering-files</module>
+        <module>tracking</module>
+        <module>users</module>
+        <module>util</module>
+    </modules>
 </project>

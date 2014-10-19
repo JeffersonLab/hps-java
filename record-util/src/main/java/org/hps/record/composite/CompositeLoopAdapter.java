@@ -32,6 +32,7 @@ public class CompositeLoopAdapter extends AbstractLoopListener implements Record
      * @param loopEvent 
      */
     public void finish(LoopEvent loopEvent) {
+        System.out.println(this.getClass().getCanonicalName() + ".finish");
         // Call end job hook on all processors.
         for (CompositeRecordProcessor processor : processors) {
             processor.endJob();

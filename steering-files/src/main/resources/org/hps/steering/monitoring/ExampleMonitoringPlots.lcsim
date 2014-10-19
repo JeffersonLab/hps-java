@@ -1,9 +1,15 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <execute>
-        <driver name="SimplePlotDriver"/>
+        <driver name="EventMarkerDriver"/>
+        <driver name="TestRunReconDriver"/>
+        <driver name="ExamplePlotDriver"/>
     </execute>   
     <drivers>
-        <driver name="SimplePlotDriver" type="org.hps.monitoring.drivers.example.SimplePlotDriver" />
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+        <driver name="TestRunReconDriver" type="org.hps.users.jeremym.TestRunReconDriver"/>
+        <driver name="ExamplePlotDriver" type="org.hps.monitoring.drivers.example.ExamplePlotDriver" />
     </drivers>
 </lcsim>

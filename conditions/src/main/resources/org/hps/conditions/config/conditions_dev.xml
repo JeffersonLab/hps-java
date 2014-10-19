@@ -75,10 +75,10 @@
                 <collection class="org.hps.conditions.svt.SvtChannel$SvtChannelCollection"/>
             </classes>
             <fields>
-                <field name="channel_id" />
-                <field name="feb_id" />
+                <field name="channel_id"    />
+                <field name="feb_id"        />
                 <field name="feb_hybrid_id" />
-                <field name="channel" />
+                <field name="channel"       />
             </fields>
         </table>
         
@@ -88,8 +88,8 @@
                 <collection class="org.hps.conditions.svt.SvtConfiguration$SvtConfigurationCollection"/>                
             </classes>
             <fields>
-                <field name="filename"/>
-                <field name="content"/>
+                <field name="filename"  />
+                <field name="content"   />
             </fields>
         
         </table>
@@ -100,9 +100,9 @@
                 <collection class="org.hps.conditions.svt.SvtGain$SvtGainCollection"/>
             </classes>            
             <fields>
-                <field name="svt_channel_id" />
-                <field name="gain" />
-                <field name="offset" />
+                <field name="svt_channel_id"    />
+                <field name="gain"              />
+                <field name="offset"            />
             </fields>
         </table>
         
@@ -112,10 +112,10 @@
                 <collection class="org.hps.conditions.svt.SvtShapeFitParameters$SvtShapeFitParametersCollection"/>
             </classes>
             <fields>
-                <field name="svt_channel_id" />
-                <field name="amplitude" />
-                <field name="t0" />
-                <field name="tp" />
+                <field name="svt_channel_id"    />
+                <field name="amplitude"         />
+                <field name="t0"                />
+                <field name="tp"                />
             </fields>        
         </table>
         
@@ -125,19 +125,19 @@
                 <collection class="org.hps.conditions.svt.SvtCalibration$SvtCalibrationCollection"/>
             </classes>
             <fields>
-                <field name="svt_channel_id" />
-                <field name="pedestal_0" />
-                <field name="pedestal_1" />
-                <field name="pedestal_2" />
-                <field name="pedestal_3" />
-                <field name="pedestal_4" />
-                <field name="pedestal_5" />
-                <field name="noise_0" />
-                <field name="noise_1" />
-                <field name="noise_2" />
-                <field name="noise_3" />
-                <field name="noise_4" />
-                <field name="noise_5" />
+                <field name="svt_channel_id"    />
+                <field name="pedestal_0"        />
+                <field name="pedestal_1"        />
+                <field name="pedestal_2"        />
+                <field name="pedestal_3"        />
+                <field name="pedestal_4"        />
+                <field name="pedestal_5"        />
+                <field name="noise_0"           />
+                <field name="noise_1"           />
+                <field name="noise_2"           />
+                <field name="noise_3"           />
+                <field name="noise_4"           />
+                <field name="noise_5"           />
             </fields>        
         </table>
         
@@ -147,9 +147,9 @@
                 <collection class="org.hps.conditions.svt.SvtT0Shift$SvtT0ShiftCollection"/>
             </classes>
             <fields>
-                <field name="feb_id" />
+                <field name="feb_id"        />
                 <field name="feb_hybrid_id" />
-                <field name="t0_shift" />
+                <field name="t0_shift"      />
             </fields>        
         </table>
         
@@ -170,12 +170,12 @@
 				<collection class="org.hps.conditions.svt.SvtDaqMapping$SvtDaqMappingCollection"/>
             </classes>
             <fields>
-                <field name="feb_id" />
+                <field name="feb_id"        />
                 <field name="feb_hybrid_id" />
-                <field name="hybrid_id" />
-                <field name="svt_half" />
-                <field name="layer" />
-                <field name="orientation" />
+                <field name="svt_half"      />
+                <field name="layer"         />
+                <field name="side"          />
+                <field name="orientation"   />
             </fields>  
         </table>
 

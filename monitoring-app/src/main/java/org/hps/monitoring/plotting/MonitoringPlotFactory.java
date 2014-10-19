@@ -44,7 +44,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
      */
     MonitoringPlotFactory() {
         super();        
-        setEmbedded(true);
+        setIsEmbedded(true);
         setupRootPane("  ");
         if (regionListener != null)
             addPlotterRegionListener(regionListener);
@@ -57,7 +57,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
     MonitoringPlotFactory(String name) {
         super();
         this.name = name;
-        setEmbedded(true);
+        setIsEmbedded(true);
         setupRootPane(name);
         if (regionListener != null)
             addPlotterRegionListener(regionListener);

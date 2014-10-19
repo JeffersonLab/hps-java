@@ -24,6 +24,7 @@ import org.lcsim.util.Driver;
  * may end up being ignored (e.g. setting a file path
  * when actually using an ET server, etc.).
  */
+// TODO: Add lcsim steering setting that uses JobControlManager to create Driver list.
 public class CompositeLoopConfiguration {
         
     boolean stopOnErrors = true;
