@@ -2,15 +2,17 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+
+
+//===>import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
 /**
  *
  * @author Matt Graham
  */
-// FIXME: Is there some other description besides "dumb" that could be used in this class name?
-// --JM
+// FIXME: Change the name of the class to SimpleShaperFit - OM
 // TODO: Add class documentation.
 public class DumbShaperFit implements ShaperFitAlgorithm {
 
@@ -24,19 +26,22 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
     }
 
     @Override
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
-        short[] adcVals = rth.getADCValues();
-        return this.fitShape(adcVals, constants);
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+        short[] samples = rth.getADCValues();
+        HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
+        int channel = rth.getIdentifierFieldValue("strip");
+        return fitShape(channel, samples, sensor);
     }
-
-    public Collection<ShapeFitParameters> fitShape(short[] adcVals, ChannelConstants constants) {
+    
+    public Collection<ShapeFitParameters> fitShape(int channel, short[] samples, HpsSiSensor sensor){
+    	
         ShapeFitParameters fitresults = new ShapeFitParameters();
         double[] pedSub = {-99.0, -99.0, -99.0, -99.0, -99.0, -99.0};
         double maxADC = -99999;
         int iMax = -1;
         double t0 = -999;
         for (int i = 0; i < 6; i++) {
-            pedSub[i] = adcVals[i] - constants.getPedestal();
+            pedSub[i] = samples[i] - sensor.getPedestal(channel, i);
             if (pedSub[i] > maxADC) {
                 maxADC = pedSub[i];
                 iMax = i;

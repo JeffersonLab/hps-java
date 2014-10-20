@@ -1,7 +1,6 @@
 package org.hps.users.omoreno;
 
 
-//--- java ---//
 import hep.aida.ICloud2D;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -16,16 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
@@ -33,11 +28,19 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
-//--- lcsim ---//
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-//--- hps-java ---//
 
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackerHitUtils;
+
+/**
+ * Analysis driver used to calculate the hit efficiency of the SVT.
+ * 
+ * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ */
 public class SvtHitEfficiency extends Driver {
 
 	private AIDA aida;
@@ -45,6 +48,7 @@ public class SvtHitEfficiency extends Driver {
     private List<IHistogram2D> histos2D = new ArrayList<IHistogram2D>();
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
     private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
+    private List<HpsSiSensor> sensors = null;
     TrackerHitUtils trackerHitUtils = new TrackerHitUtils();
     
     boolean debug = false;
@@ -79,6 +83,7 @@ public class SvtHitEfficiency extends Driver {
     // Constants
     public static final double SENSOR_LENGTH = 98.33; // mm
     public static final double SENSOR_WIDTH = 38.3399; // mm
+    private static final String SUBDETECTOR_NAME = "Tracker";
 
     /**
      * Default Ctor
@@ -102,6 +107,9 @@ public class SvtHitEfficiency extends Driver {
     
     public void detectorChanged(Detector detector){
     	
+    	// Get the list of sensors
+    	sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+    	
         // setup AIDA
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -114,7 +122,7 @@ public class SvtHitEfficiency extends Driver {
         // Create a Map from sensor to bad channels and from bad channels to
         // strip position
         for(ChargeCarrier carrier : ChargeCarrier.values()){
-            for(SiSensor sensor : SvtUtils.getInstance().getSensors()){ 
+            for(SiSensor sensor : sensors){ 
                 if(sensor.hasElectrodesOnSide(carrier)){ 
                     stripPositions.put(sensor, new HashMap<Integer, Hep3Vector>());
                     SiStrips strips = (SiStrips) sensor.getReadoutElectrodes(carrier);     
@@ -182,24 +190,24 @@ public class SvtHitEfficiency extends Driver {
                 title = "Track Position - Layer " + index + " - Difference";
                 cloud2D = aida.cloud2D(title);
                 PlotUtils.setup2DRegion(plotters.get(plotterIndex), title, 1, "x [mm]", "y [mm]", cloud2D, style);
-                sensor = SvtUtils.getInstance().getBottomSensor(layerNumber, 0);
-                title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
+                //sensor = SvtUtils.getInstance().getBottomSensor(layerNumber, 0);
+                //title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
                 histo1D = aida.histogram1D(title, 640, 0, 639);
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 2, "Channel #", histo1D);
-                sensor = SvtUtils.getInstance().getTopSensor(layerNumber, 0);
-                title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
+                //sensor = SvtUtils.getInstance().getTopSensor(layerNumber, 0);
+                //title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
                 histo1D = aida.histogram1D(title, 640, 0, 639);
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 4, "Channel #", histo1D);
                 layerNumber++;
-                sensor = SvtUtils.getInstance().getBottomSensor(layerNumber, 0);
-                title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
+                //sensor = SvtUtils.getInstance().getBottomSensor(layerNumber, 0);
+                //title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
                 histo1D = aida.histogram1D(title, 640, 0, 639);
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 3, "Channel #", histo1D);
-                sensor = SvtUtils.getInstance().getTopSensor(layerNumber, 0);
-                title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
+                //sensor = SvtUtils.getInstance().getTopSensor(layerNumber, 0);
+                //title = SvtUtils.getInstance().getDescription(sensor) + " - Occupancy";
                 histo1D = aida.histogram1D(title, 640, 0, 639);
                 histos1D.add(histo1D);
                 PlotUtils.setup1DRegion(plotters.get(plotterIndex), title, 5, "Channel #", histo1D);
@@ -338,14 +346,14 @@ public class SvtHitEfficiency extends Driver {
     		
     		List<SiSensor> sensors = new ArrayList<SiSensor>();
     		if(TrackUtils.getZ0(track) > 0){
-    			sensors.add(SvtUtils.getInstance().getTopSensor(layer, 0));
-        		sensors.add(SvtUtils.getInstance().getTopSensor(layer+1, 0));
+    			//sensors.add(SvtUtils.getInstance().getTopSensor(layer, 0));
+        		//sensors.add(SvtUtils.getInstance().getTopSensor(layer+1, 0));
     		} else { 
-    			sensors.add(SvtUtils.getInstance().getBottomSensor(layer, 0));
-        		sensors.add(SvtUtils.getInstance().getBottomSensor(layer+1, 0));
+    			//sensors.add(SvtUtils.getInstance().getBottomSensor(layer, 0));
+        		//sensors.add(SvtUtils.getInstance().getBottomSensor(layer+1, 0));
     		}
-    		aida.histogram1D(SvtUtils.getInstance().getDescription(sensors.get(0)) + " - Occupancy").fill(this.findIntersectingChannel(frontTrackPos, sensors.get(0)));
-            aida.histogram1D(SvtUtils.getInstance().getDescription(sensors.get(1)) + " - Occupancy").fill(this.findIntersectingChannel(rearTrackPos, sensors.get(1)));
+    		//aida.histogram1D(SvtUtils.getInstance().getDescription(sensors.get(0)) + " - Occupancy").fill(this.findIntersectingChannel(frontTrackPos, sensors.get(0)));
+            //aida.histogram1D(SvtUtils.getInstance().getDescription(sensors.get(1)) + " - Occupancy").fill(this.findIntersectingChannel(rearTrackPos, sensors.get(1)));
     		
            if(debug)
         	   System.out.println(this.getClass().getSimpleName() + ": Stereo hit was not found.");
@@ -371,13 +379,13 @@ public class SvtHitEfficiency extends Driver {
         
         
         
-        List<SiSensor> sensors = new ArrayList<SiSensor>();
+        List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
         if(TrackUtils.getZ0(track) > 0){
-           sensors.add(SvtUtils.getInstance().getTopSensor(layer, 0));
-           sensors.add(SvtUtils.getInstance().getTopSensor(layer + 1, 0));
+           //sensors.add(SvtUtils.getInstance().getTopSensor(layer, 0));
+           //sensors.add(SvtUtils.getInstance().getTopSensor(layer + 1, 0));
         } else {
-            sensors.add(SvtUtils.getInstance().getBottomSensor(layer, 0));
-            sensors.add(SvtUtils.getInstance().getBottomSensor(layer + 1, 0));
+           //sensors.add(SvtUtils.getInstance().getBottomSensor(layer, 0));
+           //sensors.add(SvtUtils.getInstance().getBottomSensor(layer + 1, 0));
         }
         
         Hep3Vector frontSensorPos = sensors.get(0).getGeometry().getPosition();
@@ -432,7 +440,6 @@ public class SvtHitEfficiency extends Driver {
 			}
 		}
     
-		this.printDebug(SvtUtils.getInstance().getDescription(sensor) + ": Track intersects physical channel " + intersectingChannel);
 		
 		return intersectingChannel;
     }
@@ -440,16 +447,16 @@ public class SvtHitEfficiency extends Driver {
     /**
      *
      */
-    public boolean sensorContainsTrack(Hep3Vector trackPosition, SiSensor sensor){
+    public boolean sensorContainsTrack(Hep3Vector trackPosition, HpsSiSensor sensor){
 
     	
     	if(maskBadChannels){
     		int intersectingChannel = this.findIntersectingChannel(trackPosition, sensor);
     		if(intersectingChannel == 0 || intersectingChannel == 638) return false;
     	    
-    		if(HPSSVTCalibrationConstants.isBadChannel(sensor, intersectingChannel) 
-    				|| HPSSVTCalibrationConstants.isBadChannel(sensor, intersectingChannel+1) 
-    				|| HPSSVTCalibrationConstants.isBadChannel(sensor, intersectingChannel-1)){
+    		if(sensor.isBadChannel(intersectingChannel) 
+    				|| sensor.isBadChannel(intersectingChannel+1) 
+    				|| sensor.isBadChannel(intersectingChannel-1)){
     			this.printDebug("Track intersects a bad channel!");
     			return false;
     		}
@@ -460,10 +467,6 @@ public class SvtHitEfficiency extends Driver {
         Hep3Vector sensorPos = sensor.getGeometry().getPosition();   
         Box sensorSolid = (Box) sensor.getGeometry().getLogicalVolume().getSolid();
         Polygon3D sensorFace = sensorSolid.getFacesNormalTo(new BasicHep3Vector(0, 0, 1)).get(0);
-        if(debug){
-        	System.out.println(this.getClass().getSimpleName() + ": Sensor: " + SvtUtils.getInstance().getDescription(sensor));
-        	System.out.println(this.getClass().getSimpleName() + ": Track Position: " + trackPosition.toString());
-        }
         
         List<Point3D> vertices = new ArrayList<Point3D>();
         for(int index = 0; index < 4; index++){

@@ -1,6 +1,5 @@
 package org.hps.recon.tracking;
 
-//--- hep ---//
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
@@ -13,16 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.BeamlineConstants;
-import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
-//--- org.lcsim ---//
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -35,6 +32,8 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.swim.Helix;
+import org.hps.conditions.deprecated.BeamlineConstants;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 
 /**
  * Assorted helper functions for the track and helix objects in lcsim. Re-use as much of HelixUtils
@@ -338,7 +337,6 @@ public class TrackUtils {
         Box sensorSolid = (Box) sensor.getGeometry().getLogicalVolume().getSolid();
         Polygon3D sensorFace = sensorSolid.getFacesNormalTo(new BasicHep3Vector(0, 0, 1)).get(0);
         if (debug) {
-            System.out.println("sensorContainsTrack:  Sensor: " + SvtUtils.getInstance().getDescription(sensor));
             System.out.println("sensorContainsTrack:  Track Position: " + trackPosition.toString());
         }
 
@@ -543,7 +541,9 @@ public class TrackUtils {
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         for (TrackerHit hit : hitsOnTrack) {
             HelicalTrackHit hth = (HelicalTrackHit) hit;
-            if (SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement())) {
+            //===> if (SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement())) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement());
+            if(sensor.isTopLayer()){
                 n[0] = n[0] + 1;
             } else {
                 n[1] = n[1] + 1;

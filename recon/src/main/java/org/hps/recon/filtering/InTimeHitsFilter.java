@@ -2,10 +2,13 @@ package org.hps.recon.filtering;
 
 import java.util.List;
 
-import org.hps.conditions.deprecated.SvtUtils;
+
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
+
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
@@ -13,9 +16,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
 /**
-
- @author mgraham
- @version $Id:
+ *
+ * @author mgraham
  */
 public class InTimeHitsFilter extends EventReconFilter{
    
@@ -81,13 +83,14 @@ public class InTimeHitsFilter extends EventReconFilter{
     }
 
     private boolean isHitOnTop(RawTrackerHit hit){
-        SiSensor sensor=(SiSensor) hit.getDetectorElement();
+        HpsSiSensor sensor=(HpsSiSensor) hit.getDetectorElement();
         IIdentifier id=hit.getIdentifier();
         SiTrackerIdentifierHelper _sid_helper=(SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
 
         ChargeCarrier carrier=ChargeCarrier.getCarrier(_sid_helper.getSideValue(id));
         SiSensorElectrodes electrodes=((SiSensor) hit.getDetectorElement()).getReadoutElectrodes(carrier);
-        if(!SvtUtils.getInstance().isTopLayer(sensor))
+        //===> if(!SvtUtils.getInstance().isTopLayer(sensor))
+        if(!sensor.isTopLayer())
             return false;
         return true;
     }

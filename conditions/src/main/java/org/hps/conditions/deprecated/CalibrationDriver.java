@@ -23,7 +23,7 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
 
     public CalibrationDriver() {
         add(new EcalConditions());
-        add(new HPSSVTSensorSetup());
+        //add(new HPSSVTSensorSetup());
     }
 
     public void setRunNumber(int runNumber) {
@@ -55,10 +55,10 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
         	EcalConditions.setGainFilename(gainFilename);
         	EcalConditions.loadCalibration();
         }
-        if (fixRunNumber && (!HPSSVTCalibrationConstants.pedestalLoaded() || !HPSSVTCalibrationConstants.tpLoaded())) {
+        /*if (fixRunNumber && (!HPSSVTCalibrationConstants.pedestalLoaded() || !HPSSVTCalibrationConstants.tpLoaded())) {
             System.out.println("Loading calibration for set run: " + runNumber);
             loadCalibsByRun(runNumber);
-        }
+        }*/
     }
 
     @Override
@@ -76,7 +76,7 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
     }
 
     private void loadCalibsByRun(int run) {
-        HPSSVTCalibrationConstants.loadCalibration(run);
+        //HPSSVTCalibrationConstants.loadCalibration(run);
         FieldMap.loadFieldMap(run);
     }
 

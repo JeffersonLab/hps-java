@@ -20,7 +20,7 @@ import org.apache.commons.math.distribution.BinomialDistribution;
 import org.apache.commons.math.distribution.BinomialDistributionImpl;
 import org.apache.commons.math.distribution.NormalDistribution;
 import org.apache.commons.math.distribution.NormalDistributionImpl;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.ClockSingleton;
 //--- hps-java ---//
 import org.hps.recon.tracking.apv25.HPSAPV25.APV25Channel.APV25AnalogPipeline;
@@ -43,8 +43,8 @@ import org.lcsim.util.aida.AIDA;
  * Class used to Readout HPS APV25's
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: HPSSiSensorReadout.java,v 1.12 2013/03/15 21:05:28 meeg Exp $
  */
+// TODO: Sandbox this classes
 public class HPSSiSensorReadout extends Driver {
 
     //
@@ -142,7 +142,7 @@ public class HPSSiSensorReadout extends Driver {
         super.detectorChanged(detector);
 
         // Instantiate all maps
-        for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+        /*for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
 
             sensorToPipelineMap.put(sensor, new HashMap<Integer, APV25AnalogPipeline>());
 
@@ -158,7 +158,7 @@ public class HPSSiSensorReadout extends Driver {
 
             sensorToAnalogDataMap.put(sensor, new HashMap<Integer, double[]>());
             sensorToDigitalDataMap.put(sensor, new HashMap<Integer, double[]>());
-        }
+        }*/
     }
 
     /**
@@ -193,10 +193,10 @@ public class HPSSiSensorReadout extends Driver {
         }
 
         // Loop over all sensors
-        for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+        /*for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
             // Readout the sensors
             readoutSensor(sensor);
-        }
+        }*/
 
         // If a trigger is received readout the APV25 and digitize all hits
         if (HPSAPV25.readoutBit) {

@@ -3,8 +3,8 @@ package org.hps.users.mgraham;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -14,6 +14,8 @@ import org.lcsim.util.Driver;
  * 
  * @author Matt Graham
  */
+// TODO: Check that this Driver works as expected after it was updated to use 
+// 		 the database conditions system.
 public class SVTRawTrackerHitThresholdDriver extends Driver {
 
     private String rawTrackerHitCollectionName = "RawTrackerHitMaker_RawTrackerHits";
@@ -21,7 +23,6 @@ public class SVTRawTrackerHitThresholdDriver extends Driver {
     private String calibFileName = "foobar";
     private String trackerName = "Tracker";
     private Detector detector;
-    private List<SiSensor> sensors;
     private double noiseThreshold = 3;
     private int nhitsAboveNoise = 2;
 
@@ -59,14 +60,12 @@ public class SVTRawTrackerHitThresholdDriver extends Driver {
 
             // Increment strip hit count.
             for (RawTrackerHit hit : rawTrackerHits) {
-                SiSensor sensor = (SiSensor) hit.getDetectorElement();
+                HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
                 int strip = hit.getIdentifierFieldValue("strip");
                 short[] adcVal = hit.getADCValues();
-                double ped = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
-                double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
                 int nAbove = 0;
                 for (int i = 0; i < 6; i++) {
-                    double pedSubNorm = (adcVal[i] - ped) / noise;
+                    double pedSubNorm = (adcVal[i] - sensor.getPedestal(strip, i)) / sensor.getNoise(strip, i);
                     if (pedSubNorm > noiseThreshold)
                         nAbove++;
                 }

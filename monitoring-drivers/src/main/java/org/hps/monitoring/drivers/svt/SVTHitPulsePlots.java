@@ -14,10 +14,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -124,17 +126,19 @@ public class SVTHitPulsePlots extends Driver implements Resettable {
 
     private void fillPlots(RawTrackerHit hit) {
         String sensorName = hit.getDetectorElement().getName();
-        SiSensor sensor = (SiSensor) hit.getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
         int strip = hit.getIdentifierFieldValue("strip");
         short[] adcVal = hit.getADCValues();
-        double ped = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
-        double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
+        //===> double ped = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
+        //===> double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
         for (int i = 0; i < 6; i++) {
-            double pedSub = (adcVal[i] - ped);
+            //===> double pedSub = (adcVal[i] - ped);
+            double pedSub = (adcVal[i] - sensor.getPedestal(strip, i));
             aida.histogram2D(sensorName + "_AdcVsChan").fill(pedSub, strip);
             //only plot hits above threshold...
 //            if (pedSub / noise > 3 && hasAdjacentHit(hit) && noise < 70)
-            if (hasAdjacentHit(hit) && noise < 100) {
+            //===> if (hasAdjacentHit(hit) && noise < 100) {
+            if (hasAdjacentHit(hit) && sensor.getNoise(strip, i) < 100) {
                 aida.profile1D(sensorName + "_pulse").fill(24.0 * i, pedSub);
             }
         }

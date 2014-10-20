@@ -3,16 +3,21 @@ package org.hps.users.omoreno;
 import hep.aida.ICloud2D;
 import hep.aida.IFitResult;
 import hep.aida.IFitter;
-//--- hep ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
 
-import org.hps.conditions.deprecated.SvtUtils;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.util.aida.AIDA;
 
+/**
+ * A set of plotting utilities.
+ * 
+ * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ */
 public class PlotUtils {
 
 	// Default ctor
@@ -87,13 +92,13 @@ public class PlotUtils {
      */
     public static int getPlotterRegion(SiSensor sensor) {
 
-        int layer = SvtUtils.getInstance().getLayerNumber(sensor);
+        int layer = ((HpsSiSensor) sensor).getLayerNumber();  
 
         // Compute the sensor's x and y grid coordinates and then translate to region number.
         int ix = (layer - 1) / 2;
         int iy = 0;
-        if (!SvtUtils.getInstance().isTopLayer(sensor)) {
-            iy += 2;
+        if (!((HpsSiSensor) sensor).isTopLayer()){ 
+        	iy += 2;
         }
         if (layer % 2 == 0) {
             iy += 1;

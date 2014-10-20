@@ -1,7 +1,6 @@
 
 package org.hps.recon.tracking.apv25;
 
-//--- java ---//
 import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_APV25_CHANNELS;
 import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
 import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
@@ -16,9 +15,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.hps.conditions.deprecated.HPSSVTConstants;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.ClockSingleton;
-//--- lcsim ---//
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -30,14 +28,12 @@ import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeDataCollection;
 import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDriver;
 import org.lcsim.util.Driver;
-//--- Constants ---//
-//--- hps-java ---//
 
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: SvtReadout.java,v 1.12 2013/04/25 22:11:14 meeg Exp $
  */
+// TODO: Sandbox this class
 public class SvtReadout extends Driver {
 
     private Set<SvtHalfModule> halfModules = new HashSet<SvtHalfModule>();
@@ -122,9 +118,9 @@ public class SvtReadout extends Driver {
         super.detectorChanged(detector);
         
         // Instantiate all SVT Half modules
-        for(SiSensor sensor : SvtUtils.getInstance().getSensors()){
+        /*for(SiSensor sensor : SvtUtils.getInstance().getSensors()){
             halfModules.add(new SvtHalfModule(sensor));
-        }
+        }*/
         
         // Set the trigger latency
         for(SvtHalfModule halfModule : halfModules){
@@ -256,12 +252,12 @@ public class SvtReadout extends Driver {
                     double charge = pedestalRun ? 0 : electrodeData.getCharge();
                     
                     if(debug){
-                        if(charge > 0){ 
+                        /*if(charge > 0){ 
                         	System.out.println(this.getClass().getSimpleName() 
                         		+ ": Sensor: " + SvtUtils.getInstance().getDescription(halfModule.getSensor()) 
                         		+ ": Injecting charge " + charge + " into channel " + physicalChannel);
                         	sensorToChannel.get(halfModule.getSensor()).add(physicalChannel);
-                        }
+                        }*/
                     }
                     
                     // Inject the charge into the APV25 amplifier chain
@@ -295,9 +291,6 @@ public class SvtReadout extends Driver {
             		if(sensorToChannel.get(halfModule.getSensor()).contains(physicalChannel)){
             			int channel = physicalChannel - TOTAL_STRIPS_PER_SENSOR
                                 + halfModule.getAPV25Number(physicalChannel)*TOTAL_APV25_CHANNELS + (TOTAL_APV25_CHANNELS - 1); 
-            			System.out.println("\nPhysical Channel: " + physicalChannel 
-            					+ " Sensor: " + SvtUtils.getInstance().getDescription(halfModule.getSensor())
-            					+ apv25[halfModule.getAPV25Number(physicalChannel)].getChannel(channel).getPipeline().toString() + "\n");
             		}
             	}
             }

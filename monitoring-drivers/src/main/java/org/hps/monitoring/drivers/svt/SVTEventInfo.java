@@ -12,11 +12,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
@@ -171,7 +172,8 @@ public class SVTEventInfo extends Driver implements Resettable {
 
         ChargeCarrier carrier = ChargeCarrier.getCarrier(_sid_helper.getSideValue(id));
         SiSensorElectrodes electrodes = ((SiSensor) hit.getDetectorElement()).getReadoutElectrodes(carrier);
-        if(!SvtUtils.getInstance().isTopLayer(sensor))
+        //===> if(!SvtUtils.getInstance().isTopLayer(sensor))
+        if(!((HpsSiSensor) sensor).isTopLayer())
             return false;
         return true;
     }

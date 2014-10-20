@@ -98,8 +98,7 @@ public abstract class Viewer extends JFrame {
         // Set the scaling settings.
         ecalPanel.setScaleMinimum(0.00001);
         ecalPanel.setScaleMaximum(3);
-       // ecalPanel.setScalingLogarithmic();
-        ecalPanel.setScalingLinear();
+        ecalPanel.setScalingLogarithmic();
         
         // Disable the crystals in the calorimeter panel along the beam gap.
         for (int i = -23; i < 24; i++) {

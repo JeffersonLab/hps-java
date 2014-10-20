@@ -3,39 +3,49 @@ package org.hps.recon.tracking;
 import java.util.Iterator;
 import java.util.List;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 
 /**
+ * Driver used to filter out RawTrackerHits that have been identified to come
+ * from noisy/dead channels.  
  * 
  * @author Sho Uemura <meeg@slac.stanford.edu>
+ * @version $Id$
+ * 
  */
-// TODO: Add class documentation.
 public class SVTBadChannelFilterDriver extends Driver {
 
+	// RawTrackerHit collection name 
     private String rawTrackerHitCollection = "SVTRawTrackerHits";
 
     @Override
     public void process(EventHeader event) {
+    	
         if (event.hasCollection(RawTrackerHit.class, rawTrackerHitCollection)) {
-            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollection);
-            LCMetaData meta = event.getMetaData(hits);
-            Iterator<RawTrackerHit> i = hits.iterator();
-            while (i.hasNext()) {
-                RawTrackerHit hit = i.next();
+            
+        	// Get the list of raw hits from the event
+        	List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawTrackerHitCollection);
+        	
+            // Get the hits meta data from the event
+        	LCMetaData meta = event.getMetaData(hits);
+            
+        	// Iterate over all raw hits in the event.  If the raw hit is 
+        	// identified to come from a noisy/bad channel, remove it from
+        	// the list of raw hits.
+            Iterator<RawTrackerHit> hitsIterator = hits.iterator();
+            while (hitsIterator.hasNext()) {
+                
+            	RawTrackerHit hit = hitsIterator.next();
                 hit.setMetaData(meta);
                 int strip = hit.getIdentifierFieldValue("strip");
-                SiSensor sensor = (SiSensor) hit.getDetectorElement();
+                HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
 
-                // System.out.format("module %d, layer %d, strip %d\n",
-                // hit.getIdentifierFieldValue("module"), hit.getIdentifierFieldValue("layer"),
-                // hit.getIdentifierFieldValue("strip"));
-                if (HPSSVTCalibrationConstants.isBadChannel(sensor, strip)) {
-                    i.remove();
+                if(sensor.isBadChannel(strip)){
+                	hitsIterator.remove();
                 }
 
                 if (!sensor.getReadout().getHits(RawTrackerHit.class).isEmpty()) {

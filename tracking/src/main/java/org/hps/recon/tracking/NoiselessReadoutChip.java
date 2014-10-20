@@ -1,6 +1,3 @@
-/*
- * Class BasicReadoutChip
- */
 package org.hps.recon.tracking;
 
 import java.util.ArrayList;
@@ -8,8 +5,9 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.ReadoutChip;
@@ -166,7 +164,9 @@ public class NoiselessReadoutChip implements ReadoutChip {
 
         // Loop over the channels contained in the SiElectrodeDataCollection
         for (Integer channel : data.keySet()) {
-            if (dropBadChannels && HPSSVTCalibrationConstants.isBadChannel((SiSensor) electrodes.getDetectorElement(), channel)) {
+        	
+        	if(dropBadChannels && ((HpsSiSensor) electrodes.getDetectorElement()).isBadChannel(channel)){
+            //===> if (dropBadChannels && HPSSVTCalibrationConstants.isBadChannel((SiSensor) electrodes.getDetectorElement(), channel)) {
                 // System.out.format("%d bad\n", channel);
                 continue;
             }

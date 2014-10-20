@@ -1,12 +1,9 @@
 package org.hps.users.omoreno;
 
-//--- java ---//
-//--- aida ---//
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.physics.vec.BasicHep3Vector;
-//--- hep ---//
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -20,10 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.analysis.examples.TrackAnalysis;
-import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.tracking.FindableTrack;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
@@ -38,10 +33,11 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
-//--- lcsim ---//
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-//--- hps-java ---//
+
+import org.hps.analysis.examples.TrackAnalysis;
+import org.hps.recon.tracking.FindableTrack;
 
 /**
  * 
@@ -56,6 +52,7 @@ public class SvtTrackRecoEfficiency extends Driver {
     private List<IHistogram2D> histo2D  = new ArrayList<IHistogram2D>();
     private Map<Integer, List<SimTrackerHit>> topSimTrackerHitsList = new HashMap<Integer, List<SimTrackerHit>>();
     private Map<Integer, List<SimTrackerHit>> bottomSimTrackerHitsList = new HashMap<Integer, List<SimTrackerHit>>();
+    private List<HpsSiSensor> sensors = null;
 
     FindableTrack findable = null;
     TrackAnalysis trkAnalysis = null;
@@ -138,6 +135,8 @@ public class SvtTrackRecoEfficiency extends Driver {
     protected void detectorChanged(Detector detector){
     	super.detectorChanged(detector);
     	
+    	sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
+    	
         // setup AIDA
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -154,7 +153,7 @@ public class SvtTrackRecoEfficiency extends Driver {
         
         // Get the total number of SVT layers
         // TODO: Get the total number of Si planes from the SVT geometry 
-        totalSvtLayers = SvtUtils.getInstance().getSensors().size()/2; 
+        totalSvtLayers = sensors.size()/2; 
         System.out.println("The SVT has a total of " + totalSvtLayers + " layers");
         
         
@@ -215,20 +214,20 @@ public class SvtTrackRecoEfficiency extends Driver {
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
         String volume; 
         for(RawTrackerHit rawHit : rawHits){
-        	if(SvtUtils.getInstance().isTopLayer((SiSensor)rawHit.getDetectorElement())){
+        	HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+        	if(sensor.isTopLayer()){
         		volume = "Top Volume ";
         	} else { 
         		volume = "Bottom Volume ";
         	}
     		this.printDebug(volume + "RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber()
     				+ " Samples: " + samplesToString(rawHit.getADCValues()));
-            ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit(rawHit);
+            ((HpsSiSensor) rawHit.getDetectorElement()).getReadout().addHit(rawHit);
         }
         
         if(event.hasCollection(SiTrackerHit.class, siTrackerHitCollectionName)){
         	List<SiTrackerHit> hitlist = event.get(SiTrackerHit.class, siTrackerHitCollectionName);
         	for(SiTrackerHit siTrackerHit : hitlist){
-        		this.printDebug("Cluster layer: " + SvtUtils.getInstance().getLayerNumber(siTrackerHit.getSensor()));
     			this.printDebug("Cluster is comprised by the following raw hits:");
         		for(RawTrackerHit rawHit : siTrackerHit.getRawHits()){
             		this.printDebug("RawTrackerHit Channel #: " + rawHit.getIdentifierFieldValue("strip") + " Layer Number: " + rawHit.getLayerNumber());
@@ -314,9 +313,9 @@ public class SvtTrackRecoEfficiency extends Driver {
                 boolean[] planesHit = new boolean[totalSvtLayers];
                 
                 // Clear the sensor readout's and then add the SimTrackerHits from  the MC particles to them
-                for(SiSensor sensor : SvtUtils.getInstance().getSensors()) sensor.getReadout().clear();
+                for(HpsSiSensor sensor : sensors) sensor.getReadout().clear();
                 for(SimTrackerHit simHitTrackerHit : simHits){
-                    ((SiSensor) simHitTrackerHit.getDetectorElement()).getReadout().addHit(simHitTrackerHit);
+                    ((HpsSiSensor) simHitTrackerHit.getDetectorElement()).getReadout().addHit(simHitTrackerHit);
                 }
                 
                 // Clear all previously stored simTrackerHits
@@ -327,7 +326,8 @@ public class SvtTrackRecoEfficiency extends Driver {
                 
                 // Determine if the MC particle passed through the top or bottom SVT volume
                 for(SimTrackerHit simHit : simHits){
-                    if(SvtUtils.getInstance().isTopLayer((SiSensor) simHit.getDetectorElement())){
+                	HpsSiSensor sensor = (HpsSiSensor) simHit.getDetectorElement();
+                    if(sensor.isTopLayer()){
                         this.printDebug("MC Particle passed through the top layer");
                         isTopTrack = true;
                         break;
@@ -376,7 +376,8 @@ public class SvtTrackRecoEfficiency extends Driver {
     {
         int volumeIndex = 0;
         for(SimTrackerHit simTrackerHit : simTrackerHits){
-            if(SvtUtils.getInstance().isTopLayer((SiSensor) simTrackerHit.getDetectorElement())) volumeIndex++;
+        	HpsSiSensor sensor = (HpsSiSensor) simTrackerHit.getDetectorElement();
+            if(sensor.isTopLayer()) volumeIndex++;
             else volumeIndex--;
         }
         return Math.abs(volumeIndex) == simTrackerHits.size();

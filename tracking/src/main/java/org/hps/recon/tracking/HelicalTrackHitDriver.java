@@ -8,11 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.StereoPair;
-import org.hps.conditions.deprecated.StereoPair.detectorVolume;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.StereoPair;
+//===> import org.hps.conditions.deprecated.StereoPair.detectorVolume;
+//===> import org.hps.conditions.deprecated.SvtUtils;
+
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
+import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerModule;
 import org.lcsim.event.EventHeader;
@@ -28,19 +30,22 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
+import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
+ * Driver used to create stereo hits from clusters.
+ *
  *
  * @author Mathew Graham <mgraham@slac.stanford.edu>
  * @author Per Hansson <phansson@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: HelicalTrackHitDriver.java,v 1.10 2013/10/17 22:08:33 omoreno
- * Exp $
+ * 
  */
 // TODO: Add class documentation.
+// FIXME: The option to run using the Common geometry should be removed
 public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTrackHitDriver {
 
     private boolean _debug = false;
@@ -48,6 +53,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     // dt cut time in ns
     private String _subdetectorName = "Tracker";
     private final Map<String, String> _stereomap = new HashMap<String, String>();
+    private	List<SvtStereoLayer> stereoLayers = null; 
     private final List<String> _colnames = new ArrayList<String>();
     private boolean _doTransformToTracking = true;
 
@@ -279,21 +285,20 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                     hitsOnSensor.add(strip);
                 }
 
-                for (StereoPair stereoPair : SvtUtils.getInstance().getStereoPairs()) {
+                //===> for (StereoPair stereoPair : SvtUtils.getInstance().getStereoPairs()) {
+                for (SvtStereoLayer stereoLayer : stereoLayers) {
 
                     // Form the stereo hits and add them to our hit list
                     List<HelicalTrackCross> newCrosses;
 
-                    if (stereoPair.getDetectorVolume() == detectorVolume.Top) {
-                        newCrosses = _crosser.MakeHits(striplistmap.get(stereoPair.getAxialSensor()), striplistmap.get(stereoPair.getStereoSensor()));
-                    } else if (stereoPair.getDetectorVolume() == detectorVolume.Bottom) {
-                        newCrosses = _crosser.MakeHits(striplistmap.get(stereoPair.getStereoSensor()), striplistmap.get(stereoPair.getAxialSensor()));
+                    //===> if (stereoPair.getDetectorVolume() == detectorVolume.Top) {
+                    if (stereoLayer.getAxialSensor().isTopLayer()) {
+                        newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getAxialSensor()), striplistmap.get(stereoLayer.getStereoSensor()));
+                    //===> } else if (stereoPair.getDetectorVolume() == detectorVolume.Bottom) {
+                    } else if (stereoLayer.getAxialSensor().isBottomLayer()) {
+                        newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getStereoSensor()), striplistmap.get(stereoLayer.getAxialSensor()));
                     } else {
                         throw new RuntimeException("stereo pair is neither top nor bottom");
-                    }
-
-                    if (_debug) {
-                        System.out.printf("%s: Found %d stereo hits from sensors\n%s: %s : %d hits\n%s: %s with %d hits\n", this.getClass().getSimpleName(), newCrosses.size(), this.getClass().getSimpleName(), stereoPair.getAxialSensor().getName(), striplistmap.get(stereoPair.getAxialSensor()) == null ? 0 : striplistmap.get(stereoPair.getAxialSensor()).size(), this.getClass().getSimpleName(), stereoPair.getStereoSensor().getName(), striplistmap.get(stereoPair.getStereoSensor()) == null ? 0 : striplistmap.get(stereoPair.getStereoSensor()).size());
                     }
 
                     helicalTrackCrosses.addAll(newCrosses);
@@ -360,6 +365,9 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     @Override
     protected void detectorChanged(Detector detector) {
 
+    	// Get the collection of stereo layers from the detector
+    	stereoLayers = ((HpsTracker2) detector.getSubdetector(this._subdetectorName).getDetectorElement()).getStereoPairs();
+    	
         /*
          * Setup default pairing
          */

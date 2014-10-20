@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor; 
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.MCParticle;
@@ -20,7 +21,6 @@ import org.lcsim.event.TrackerHit;
 /**
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: LCIOTrackAnalysis.java,v 1.3 2013/10/24 18:11:43 meeg Exp $
  */
 public class LCIOTrackAnalysis {
 
@@ -73,15 +73,19 @@ public class LCIOTrackAnalysis {
                 int module = -1;
                 List<RawTrackerHit> rawHits = cl.getRawHits();
 //                System.out.println("RawHits: " + rawHits.size());
+                HpsSiSensor sensor = null; 
                 for (RawTrackerHit rawHit : rawHits) {
 //                    System.out.println(rawHit.getCellID());
                     IIdentifier id = new Identifier(rawHit.getCellID());
-                    int newLayer = SvtUtils.getInstance().getHelper().getValue(id, "layer");
+                    //===> int newLayer = SvtUtils.getInstance().getHelper().getValue(id, "layer");
+                    sensor = ((HpsSiSensor) rawHit.getDetectorElement());
+                    int newLayer = sensor.getLayerNumber();
                     if (layer != -1 && layer != newLayer) {
                         System.out.format("TrackerHit has hits from multiple layers: %d and %d\n", layer, newLayer);
                     }
                     layer = newLayer;
-                    int newModule = SvtUtils.getInstance().getHelper().getValue(id, "module");
+                    //===> int newModule = SvtUtils.getInstance().getHelper().getValue(id, "module");
+                    int newModule = sensor.getModuleNumber();
                     if (module != -1 && module != newModule) {
                         System.out.format("TrackerHit has hits from multiple modules: %d and %d\n", module, newModule);
                     }
@@ -98,7 +102,8 @@ public class LCIOTrackAnalysis {
                 _hitLocationPerLayer.put(layer, new BasicHep3Vector(cl.getPosition()));
                 _nhitsNew++;
 
-                boolean isAxial = SvtUtils.getInstance().isAxial(SvtUtils.getInstance().getSensor(module, layer - 1));
+                //===> boolean isAxial = SvtUtils.getInstance().isAxial(SvtUtils.getInstance().getSensor(module, layer - 1));
+                boolean isAxial = sensor.isAxial(); 
                 if (isAxial) {
                     _nAxialhits++;
                 } else {

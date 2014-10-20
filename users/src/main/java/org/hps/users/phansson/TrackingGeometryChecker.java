@@ -3,11 +3,11 @@ package org.hps.users.phansson;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.SvtUtils;
+
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.SimTrackerHit;
@@ -35,15 +35,15 @@ public class TrackingGeometryChecker extends Driver {
 		 // Get all of the sensors composing the SVT and add them to the set of all sensors
         IDetectorElement detectorElement = arg0.getDetectorElement().findDetectorElement("Tracker");
         IIdentifierHelper helper = detectorElement.getIdentifierHelper();
-        List<SiSensor> sensors = new ArrayList<SiSensor>();
-		sensors.addAll(detectorElement.findDescendants(SiSensor.class));
+        List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
+		sensors.addAll(detectorElement.findDescendants(HpsSiSensor.class));
         System.out.printf("%s: Total number of sensors: %d\n",getClass().getSimpleName(), sensors.size());
 
         IIdentifier sensorIdent;
         SiTrackerIdentifierHelper sensorHelper;
         String description;
         // Loop through all of the sensors and fill the maps
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
 
             // Get the sensor identifier
             sensorIdent = sensor.getIdentifier();
@@ -60,7 +60,7 @@ public class TrackingGeometryChecker extends Driver {
             
             System.out.printf("%s: Sensor name %s\n",getClass().getSimpleName(), sensor.getName());
             System.out.printf("%s: Sensor position %s\n",getClass().getSimpleName(), sensor.getGeometry().getPosition().toString());
-            System.out.printf("%s: Sensor is %s %s \n",getClass().getSimpleName(), SvtUtils.getInstance().isTopLayer(sensor)?"top":"bottom", SvtUtils.getInstance().isAxial(sensor)?"axial":"stereo");
+            System.out.printf("%s: Sensor is %s %s \n",getClass().getSimpleName(), sensor.isTopLayer()?"top":"bottom", sensor.isAxial()?"axial":"stereo");
             System.out.printf("%s: layerNumber %d\n",getClass().getSimpleName(), layerNumber);
             System.out.printf("%s: moduleNumber %d\n",getClass().getSimpleName(), moduleNumber);
             System.out.printf("%s: sideNumber %d\n",getClass().getSimpleName(), sideNumber);

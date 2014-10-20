@@ -1,40 +1,51 @@
 package org.hps.evio;
 
-//--- java ---//
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.hps.conditions.deprecated.HPSSVTConstants;
-import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.readout.svt.FpgaData;
-import org.hps.readout.svt.SVTData;
-//--- Coda ---//
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
-//--- org.lcsim ---//
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-//--- hps-java ---//
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
-import org.hps.util.Pair;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
+import org.hps.conditions.deprecated.HPSSVTConstants;
+//import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
+import org.hps.util.Pair;
 
-
-//--- Constants ---//
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
 /**
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: SVTEvioReader.java,v 1.10 2013/07/27 01:52:49 omoreno Exp $
  */
 public class SVTEvioReader extends EvioReader {
 
-    String fpgaDataCollectionName = "FPGAData";
+    
+	// A Map from FPGA and Hybrid daq pair to the corresponding sensor
+    private Map<Pair<Integer /* FPGA */, Integer /* Hybrid */>,
+    			HpsSiSensor /* Sensor*/> daqPairToSensor = new HashMap<Pair<Integer, Integer>, HpsSiSensor>();
+	
+    
+    // Subdetector name
+    private static final String subdetectorName = "Tracker";
+   
+    // Flag indicating whether the DAQ map has been setup 
+    boolean isDaqMapSetup = false; 
+   
+    // Collection names
+	String fpgaDataCollectionName = "FPGAData";
     String readoutName = "TrackerHits";
-
+    
     /**
      *
      */
@@ -46,6 +57,20 @@ public class SVTEvioReader extends EvioReader {
     public void setReadoutName(String readoutName) {
         this.readoutName = readoutName;
     }
+    
+    // TODO: Move this class to the DaqMapping class instead
+    private void setupDaqMap(Subdetector subdetector){
+    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    
+        for(HpsSiSensor sensor : sensors){
+        	// FIXME: For now, use the FEB ID and FEB Hybrid ID.  This will need to be changed to 
+        	//		  use the Fpga and hybrid number once HpsTestRunSensor is ready
+        	Pair<Integer, Integer> daqPair 
+    			= new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
+        	daqPairToSensor.put(daqPair, sensor);
+        }
+        isDaqMapSetup = true; 
+    }
 
     /**
      *
@@ -53,10 +78,15 @@ public class SVTEvioReader extends EvioReader {
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
         // Create DAQ Maps
-        if (!SvtUtils.getInstance().isSetup()) {
-            SvtUtils.getInstance().setup(lcsimEvent.getDetector());
-        }
+        //===> if (!SvtUtils.getInstance().isSetup()) {
+        //===>     SvtUtils.getInstance().setup(lcsimEvent.getDetector());
+        //===> }
 
+    	// TODO: This needs to be done in a smarter way
+    	if(!isDaqMapSetup){
+    		setupDaqMap(lcsimEvent.getDetector().getSubdetector(subdetectorName));
+    	}
+    	
         // Create a list to hold the temperatures 
         List<FpgaData> fpgaDataCollection = new ArrayList<FpgaData>();
 
@@ -149,14 +179,18 @@ public class SVTEvioReader extends EvioReader {
         return foundBank;
     }
 
-    private static RawTrackerHit makeHit(int[] data) {
+    private RawTrackerHit makeHit(int[] data) {
         int hitTime = 0;
         Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(SVTData.getFPGAAddress(data), SVTData.getHybridNumber(data));
-        SiSensor sensor = SvtUtils.getInstance().getSensor(daqPair);
+        HpsSiSensor sensor = daqPairToSensor.get(daqPair);
+        //===> SiSensor sensor = SvtUtils.getInstance().getSensor(daqPair);
 
         int sensorChannel = SVTData.getSensorChannel(data);
-        long cell_id = SvtUtils.makeCellID(sensor, sensorChannel);
+        long cell_id = sensor.makeChannelID(sensorChannel);
+        //===> long cell_id = SvtUtils.makeCellID(sensor, sensorChannel);
+        
 
         return new BaseRawTrackerHit(hitTime, cell_id, SVTData.getAllSamples(data), null, sensor);
     }
+    
 }

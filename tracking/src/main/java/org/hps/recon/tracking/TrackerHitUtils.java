@@ -11,7 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.SvtUtils;
+
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
@@ -20,6 +21,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
@@ -31,7 +33,6 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 /**
  * 
  * @author Per Hansson <phansson@slac.stanford.edu>
- * @version $Id: TrackerHitUtils.java,v 1.4 2013/10/15 00:33:53 phansson Exp $
  */
 // TODO: Add class documentation.
 public class TrackerHitUtils {
@@ -269,7 +270,8 @@ public class TrackerHitUtils {
         IIdentifierDictionary dictionary = helper.getIdentifierDictionary();
 
         // Fill in the layer number
-        id.setValue(dictionary.getFieldIndex("layer"), SvtUtils.getInstance().getLayerNumber(sensor));
+        //===> id.setValue(dictionary.getFieldIndex("layer"), SvtUtils.getInstance().getLayerNumber(sensor));
+        id.setValue(dictionary.getFieldIndex("layer"), ((HpsSiSensor) sensor).getLayerNumber());
 
         // Pack and return the identifier
         return helper.pack(id);

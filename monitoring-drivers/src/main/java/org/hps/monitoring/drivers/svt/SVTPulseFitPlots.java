@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.util.Resettable;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -25,8 +27,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  *
  * @author mgraham
- * @version $Id: SVTHitReconstructionPlots.java,v 1.14 2012/05/18 07:41:49 meeg
- * Exp $
  */
 public class SVTPulseFitPlots extends Driver implements Resettable {
 
@@ -47,7 +47,11 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
     private IHistogram2D[][] shape = new IHistogram2D[2][10];
 //    private IHistogram2D shape;
 
+    private static final String subdetectorName = "Tracker";
+    
     protected void detectorChanged(Detector detector) {
+
+        List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         aida.tree().cd("/");
 
@@ -92,6 +96,26 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
         plotter5.style().zAxisStyle().setVisible(false);
         plotter5.createRegions(4, 5);
 
+        
+        // Setup the occupancy plots.
+        for(HpsSiSensor sensor : sensors){
+        	int module = sensor.getModuleNumber();
+        	int layer = sensor.getLayerNumber(); 
+            int region = computePlotterRegion(layer + 1, module);
+            t0[module][layer] = aida.histogram1D(sensor.getName() + "_timing", 50, -100, 100.0);
+            plotter.region(region).plot(t0[module][layer]);
+            amp[module][layer] = aida.histogram1D(sensor.getName() + "_amplitude", 50, 0, 2000.0);
+            plotter2.region(region).plot(amp[module][layer]);
+            chiprob[module][layer] = aida.histogram1D(sensor.getName() + "_chiprob", 100, 0, 1.0);
+            plotter3.region(region).plot(chiprob[module][layer]);
+            t0a[module][layer] = aida.histogram2D(sensor.getName() + " A vs. T0", 100, -100, 100, 100, 0, 2000);
+            plotter4.region(region).plot(t0a[module][layer]);
+            shape[module][layer] = aida.histogram2D(sensor.getName() + " Shape", 200, -1, 3, 200, -0.5, 2);
+            plotter5.region(region).plot(shape[module][layer]);
+        }
+        
+
+        /* ==> 
         for (int module = 0; module < 2; module++) {
             for (int layer = 0; layer < 10; layer++) {
                 SiSensor sensor = SvtUtils.getInstance().getSensor(module, layer);
@@ -108,7 +132,7 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
                 plotter5.region(region).plot(shape[module][layer]);
 
             }
-        }
+        } ===> */
     }
 
     public SVTPulseFitPlots() {
@@ -126,7 +150,7 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
         ++eventCount;
         List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         for (FittedRawTrackerHit fit : fittedrawHits) {
-            SiSensor sensor = (SiSensor) fit.getRawTrackerHit().getDetectorElement();
+            HpsSiSensor sensor = (HpsSiSensor) fit.getRawTrackerHit().getDetectorElement();
             int strip = fit.getRawTrackerHit().getIdentifierFieldValue("strip");
             int layer = fit.getRawTrackerHit().getIdentifierFieldValue("layer"); // 1-10; axial layers are odd layers; stereo layers are even
             int module = fit.getRawTrackerHit().getIdentifierFieldValue("module"); // 0-1; module number is top or bottom
@@ -138,14 +162,18 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
             aida.histogram1D(sensorName + "_amplitude").fill(fittedAmp);
             aida.histogram1D(sensorName + "_chiprob").fill(fit.getShapeFitParameters().getChiProb());
 
-            double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
-            double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
-            double tp = HPSSVTCalibrationConstants.getTShaping(sensor, strip);
-
+            //===> double noise = HPSSVTCalibrationConstants.getNoise(sensor, strip);
+            //===> double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
+            //===> double tp = HPSSVTCalibrationConstants.getTShaping(sensor, strip);
+            double tp = sensor.getShapeFitParameters(strip)[HpsSiSensor.TP_INDEX];
+            
             t0a[module][layer - 1].fill(fit.getT0(), fit.getAmp());
-            if (fit.getAmp() > 4 * noise) {
+            //===> if (fit.getAmp() > 4 * noise) {
+            if (fit.getAmp() > 4 * sensor.getNoise(strip, 0)) {
                 for (int i = 0; i < fit.getRawTrackerHit().getADCValues().length; i++) {
-                    shape[module][layer - 1].fill((i * HPSSVTConstants.SAMPLING_INTERVAL - fit.getT0()) / tp, (fit.getRawTrackerHit().getADCValues()[i] - pedestal) / fit.getAmp());
+                    //====> shape[module][layer - 1].fill((i * HPSSVTConstants.SAMPLING_INTERVAL - fit.getT0()) / tp, (fit.getRawTrackerHit().getADCValues()[i] - pedestal) / fit.getAmp());
+                    shape[module][layer - 1].fill((i * HPSSVTConstants.SAMPLING_INTERVAL - fit.getT0()) / tp,
+                    		(fit.getRawTrackerHit().getADCValues()[i] - sensor.getPedestal(strip, i)) / fit.getAmp());
 //                    shape.fill((i * HPSSVTConstants.SAMPLE_INTERVAL - hrth.getT0()) / tp, (hrth.getRawTrackerHit().getADCValues()[i] - pedestal) / hrth.getAmp());
                 }
             }

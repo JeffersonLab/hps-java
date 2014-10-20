@@ -15,13 +15,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -33,8 +34,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  *
  * @author mgraham
- * @version $Id: SVTHitReconstructionPlots.java,v 1.14 2012/05/18 07:41:49 meeg
- * Exp $
  */
 public class SVTHitReconstructionPlots extends Driver implements Resettable {
 
@@ -51,12 +50,12 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
     IPlotter plotter4;
     IPlotter plotter5;
     IPlotter plotter6;
-    IHistogram1D nrawPlot[][] = new IHistogram1D[2][10];
+    /*IHistogram1D nrawPlot[][] = new IHistogram1D[2][10];
     IHistogram1D nrecoPlot[][] = new IHistogram1D[2][10];
     IHistogram1D nclustPlot[][] = new IHistogram1D[2][10];
     IHistogram1D clusterSizePlot[][] = new IHistogram1D[2][10];
     IHistogram1D clusterAmpPlot[][] = new IHistogram1D[2][10];
-    IHistogram2D clposVsStrip[][] = new IHistogram2D[2][10];
+    IHistogram2D clposVsStrip[][] = new IHistogram2D[2][10];*/
     private Map<String, Integer> sensorRegionMap;
     private String outputPlots = null;
 
@@ -133,6 +132,21 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         style8.zAxisStyle().setParameter("scale", "log");
         plotter6.createRegions(5, 4);
 
+       
+       // TODO: Check if this block of code is equivalent to the block commented out below
+       for(SiSensor sensor : sensors){
+    	   
+                int region = computePlotterRegion(sensor);
+                plotter1.region(region).plot(aida.histogram1D(sensor.getName() + "_raw_hits", 10, -0.5, 9.5));
+                plotter3.region(region).plot(aida.histogram1D(sensor.getName() + "_reco_hits", 10, -0.5, 9.5));
+                plotter2.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_hits", 10, -0.5, 9.5));
+                plotter4.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_size", 9, 0.5, 9.5));
+                plotter5.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_amp", 50, 0, 4000.0));
+                ((PlotterRegion) plotter5.region(region)).getPlot().getXAxis().setLabel("Cluster amplitude [ADC counts]");
+                plotter6.region(region).plot(aida.histogram2D(sensor.getName() + "_cluster_vs_strip", 128, 0, 640, 100, -50, 50));
+       }
+        
+        /* ===> 
         for (int module = 0; module < 2; module++) {
             for (int layer = 0; layer < 10; layer++) {
                 SiSensor sensor = SvtUtils.getInstance().getSensor(module, layer);
@@ -152,7 +166,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
                 ((PlotterRegion) plotter5.region(region)).getPlot().getXAxis().setLabel("Cluster amplitude [ADC counts]");
                 plotter6.region(region).plot(clposVsStrip[module][layer]);
             }
-        }
+        } ===> */
 
 //        plotter5.region(0).plot(aida.histogram1D("Tracker_TestRunModule_layer6_module0_sensor0" + "_cluster_amp"));
 //        ((PlotterRegion) plotter5.region(0)).getPlot().getXAxis().setLabel("Cluster amplitude [ADC counts]");
@@ -198,7 +212,8 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         for (FittedRawTrackerHit hrth : fittedrawHits) {
             SiSensor sensor = (SiSensor) hrth.getRawTrackerHit().getDetectorElement();
             int layer = hrth.getRawTrackerHit().getLayerNumber();
-            if (!SvtUtils.getInstance().isTopLayer(sensor)) {
+            //===> if (!SvtUtils.getInstance().isTopLayer(sensor)) {
+            if (!((HpsSiSensor) sensor).isTopLayer()) {
                 layersBot[layer - 1]++;
             } else {
                 layersTop[layer - 1]++;

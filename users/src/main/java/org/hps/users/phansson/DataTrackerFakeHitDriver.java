@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
@@ -32,6 +32,7 @@ import org.lcsim.detector.solids.Polygon3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
@@ -278,7 +279,8 @@ public class DataTrackerFakeHitDriver extends Driver {
                     if (debug) {
                         System.out.println(this.getClass().getSimpleName() + ": make a tracker hit and add to this sensor");
                     }
-                    if (SvtUtils.getInstance().isTopLayer(sensor)) {
+                    //===> if (SvtUtils.getInstance().isTopLayer(sensor)) {
+                    if (((HpsSiSensor) sensor).isTopLayer()) {
                         n_hits_top++;
                         isTopTrack = true;
                     } else {

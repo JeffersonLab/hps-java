@@ -1,13 +1,12 @@
 package org.hps.recon.tracking;
 
 import java.util.Collection;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.event.RawTrackerHit;
 
 /**
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
 
@@ -26,13 +25,16 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
         refitThreshold = threshold;
     }
 
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
-        Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, constants);
+    //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+        //===> Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, constants);
+        Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth);
         double singlePulseChiProb = fittedPulses.iterator().next().getChiProb();
         totalFits++;
         if (singlePulseChiProb < refitThreshold) {
             refitAttempts++;
-            Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, constants);
+            //===> Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, constants);
+            Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth);
             double doublePulseChiProb = doublePulse.iterator().next().getChiProb();
             if (doublePulseChiProb > singlePulseChiProb) {
                 refitsAccepted++;
