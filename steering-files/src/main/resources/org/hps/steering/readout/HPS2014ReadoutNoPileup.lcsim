@@ -1,17 +1,17 @@
 <!-- 
   Execute trigger+readout simulation without pileup (event by event) and write the results as an LCIO file.
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: HPS2014ReadoutNoPileup.lcsim,v 1.4 2013/08/07 23:37:30 meeg Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <control>
-        <printInputFiles>true</printInputFiles>
-        <printDriversDetailed>true</printDriversDetailed>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
+        <driver name="ConditionsDriver" />
+        <driver name="SvtSensorSetup" />
         <driver name="EcalEdepToTriggerConverterDriver"/>
         <driver name="EcalReadoutConverterDriver"/>
         <driver name="EcalTriggerClusterer"/>
@@ -24,8 +24,8 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-        </driver>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EcalEdepToTriggerConverterDriver" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>
             <applyBadCrystalMap>false</applyBadCrystalMap>
@@ -50,7 +50,6 @@
             <pairCoincidence>0</pairCoincidence>
             <lcioFile>${outputFile}.slcio</lcioFile>
         </driver>	
-        
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <noPileup>true</noPileup>
         </driver>

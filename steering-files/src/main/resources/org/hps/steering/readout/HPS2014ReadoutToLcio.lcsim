@@ -1,25 +1,24 @@
 <!-- 
   Execute full trigger+readout simulation and write the results as an LCIO file.
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: HPS2014ReadoutToLcio.lcsim,v 1.2 2013/03/01 23:22:24 meeg Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+    </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        
-        <driver name="CalibrationDriver"/>   
+        <driver name="ConditionsDriver"/>   
+        <driver name="SvtSensorSetup" />
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClusterer"/>
         <driver name="EcalTrigger"/>
-        
         <driver name="SimpleSVTReadout"/>
-
         <driver name="TestRunReconToLcio"/>
-
         <driver name="AidaSaveDriver"/>
-
         <driver name="ClockDriver"/>
         <driver name="CleanupDriver"/>
     </execute> 
@@ -28,13 +27,11 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver> 
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
-        </driver>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
-			
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
@@ -44,7 +41,6 @@
 <!--            <fixedGain>0.15</fixedGain>-->
 <!--            <debug>true</debug>-->
         </driver>
-
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
@@ -53,27 +49,22 @@
             <use2014Gain>true</use2014Gain>
 <!--            <debug>true</debug>-->
         </driver>	
-
         <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
             <ecalName>Ecal</ecalName>
             <clusterWindow>1</clusterWindow>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
         </driver>
-
         <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
             <pairCoincidence>2</pairCoincidence>
             <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	
-        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
-        </driver>
-
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout" />
         <driver name="AidaSaveDriver"
                 type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
         </driver>
-
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
