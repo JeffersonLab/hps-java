@@ -12,7 +12,7 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class SvtDaqMapping extends AbstractConditionsObject {
+public class SvtDaqMapping extends AbstractConditionsObject {
 
     public static class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
 
