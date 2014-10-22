@@ -34,7 +34,7 @@ public class SvtDaqMappingTest extends TestCase {
 	DevReadOnlyConfiguration dbConfig = new DevReadOnlyConfiguration();
 	
 	public void setUp(){
-        new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
+        new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 2000);
         conditionsManager = DatabaseConditionsManager.getInstance();
 		
 		

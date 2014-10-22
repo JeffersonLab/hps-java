@@ -15,7 +15,7 @@ import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 public class EcalLedTest extends TestCase {
            
     public void setUp() {
-        new DevReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 0);
+        new DevReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 2000);
     }
     
     public void testEcalLed() {

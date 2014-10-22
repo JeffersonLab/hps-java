@@ -20,7 +20,7 @@ public class ConditionsDevTest extends TestCase {
         manager.setConnectionResource(prop);
         manager.register();
         try {
-            manager.setDetector("HPS-Proposal2014-v8-6pt6", 0);
+            manager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
