@@ -119,7 +119,9 @@
     <modules>
         <module>analysis</module>
         <module>conditions</module>
+<!--        
         <module>datacat</module>
+-->        
         <module>detector-data</module>
         <module>distribution</module>
         <module>ecal-event-display</module>
