@@ -29,13 +29,10 @@ public class SvtDaqMapping extends AbstractConditionsObject {
         public static final String STEREO = "S";
 
         /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) by SVT volume, layer number
-         * and module number.
+         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given {@link HpsSiSensor}
          * 
-         * @param svtHalf Value indicating top or bottom half of detector
-         * @param layerNumber The layer number
-         * @param moduleNumber The module number (needed to identify layer's 4-6)
-         * @return The DAQ pair for the half and layer number or null if does not exist.
+		 * @param  sensor A sensor of type {@link HpsSiSensor}
+		 * @return The DAQ pair associated with the sensor 
          */
         Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
         	
