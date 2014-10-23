@@ -30,6 +30,7 @@
                 <artifactId>freehep-jas-plugin</artifactId>
                 <version>3.1.7</version>
                 <configuration>
+                    <skip>${skipPlugin}</skip>
                     <urls>
                         <property>
                             <name>org.hps:*</name>
