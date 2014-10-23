@@ -14,6 +14,7 @@
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
         <lcsimVersion>3.0.5</lcsimVersion>
         <skipSite>false</skipSite>
+        <skipPlugin>false</skipPlugin>
     </properties>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
@@ -73,9 +74,20 @@
             <version>4.11</version>
         </dependency>
         <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.lcsim</groupId>
             <artifactId>lcsim-distribution</artifactId>
             <version>${lcsimVersion}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jdom</groupId>
+                    <artifactId>jdom</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <!-- DO NOT EDIT THESE DEPENDENCY VERSIONS MANUALLY. -->
@@ -462,4 +474,15 @@
         <system>Jenkins</system>
         <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
     </ciManagement>
+    <profiles>
+        <profile>
+            <id>no-plugin</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <skipPlugin>true</skipPlugin>
+            </properties>
+        </profile>
+    </profiles>
 </project>
