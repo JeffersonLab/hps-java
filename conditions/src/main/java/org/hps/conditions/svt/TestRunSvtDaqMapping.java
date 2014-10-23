@@ -2,6 +2,8 @@ package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.hps.conditions.AbstractConditionsObject;
+import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
@@ -9,28 +11,39 @@ import org.hps.util.Pair;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class TestRunSvtDaqMapping extends SvtDaqMapping {
+public class TestRunSvtDaqMapping extends AbstractConditionsObject {
 
-	public static class SvtDaqMappingCollection extends SvtDaqMapping.SvtDaqMappingCollection {
+	public static class TestRunSvtDaqMappingCollection extends ConditionsObjectCollection<TestRunSvtDaqMapping> {
 	
-		/**
+        /**
+         * Flag values for top or bottom half.
+         */
+        public static final String TOP_HALF = "T";
+        public static final String BOTTOM_HALF = "B";
+        
+        /**
+         * Flag values for axial or stereo sensors 
+         */
+        public static final String AXIAL = "A";
+        public static final String STEREO = "S";
+
+        /**
 		 * Get a test run DAQ pair (FPGA and Hybrid ID) for the given 
 		 * {@linkplain HpsTestRunSiSensor}
 		 * 
 		 * @param  sensor A sensor of type {@link HpsTestRunSiSensor}
 		 * @return The DAQ pair associated with the sensor 
 		 */
-		@Override
 		Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor){
 			
 			String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF; 
-			for(SvtDaqMapping daqMapping : this.getObjects()){
+			for(TestRunSvtDaqMapping daqMapping : this.getObjects()){
 				
 				if(svtHalf.equals(daqMapping.getSvtHalf())
 						&& daqMapping.getLayerNumber() == sensor.getLayerNumber()){
 					
-					return new Pair<Integer, Integer>(((TestRunSvtDaqMapping) daqMapping).getFpgaID(), 
-													  ((TestRunSvtDaqMapping) daqMapping).getHybridID());
+					return new Pair<Integer, Integer>(daqMapping.getFpgaID(), 
+													  daqMapping.getHybridID());
 				}
 			}
 			return null;
@@ -45,10 +58,9 @@ public class TestRunSvtDaqMapping extends SvtDaqMapping {
          * 		   orientation is Axial, an "S" if the orientation is Stereo or
          * 		   null if the daqPair doesn't exist.
          */
-		@Override
         public String getOrientation(Pair<Integer, Integer> daqPair){
         	
-        	for(SvtDaqMapping daqMapping : this.getObjects()){
+        	for(TestRunSvtDaqMapping daqMapping : this.getObjects()){
         		
         		if(daqPair.getFirstElement() == ((TestRunSvtDaqMapping) daqMapping).getFpgaID()
         				&& daqPair.getSecondElement() == ((TestRunSvtDaqMapping) daqMapping).getHybridID()){
@@ -78,7 +90,7 @@ public class TestRunSvtDaqMapping extends SvtDaqMapping {
             buffer.append('\n');
             buffer.append("----------------------");
             buffer.append('\n');
-            for (SvtDaqMapping daqMapping : getObjects()){
+            for (TestRunSvtDaqMapping daqMapping : getObjects()){
             	TestRunSvtDaqMapping testRunDaqMapping = (TestRunSvtDaqMapping) daqMapping; 
             	buffer.append(testRunDaqMapping.getFpgaID());
                 buffer.append("    ");
@@ -104,18 +116,15 @@ public class TestRunSvtDaqMapping extends SvtDaqMapping {
 		return getFieldValue("hybrid");
 	}
 
-	// TODO: Instead of throwing an exception, these classes should be pulled out to
-	//		 a subclass.
-    public int getFebID() { 
-    	throw new UnsupportedOperationException("The test run DAQ map doesn't use FEB ID's.");
+	public String getSvtHalf() {
+        return getFieldValue("svt_half");
+    }
+
+    public int getLayerNumber() {
+        return getFieldValue("layer");
     }
     
-    public int getFebHybridID() { 
-    	throw new UnsupportedOperationException("The test run DAQ map doesn't use FEB Hybrid ID's.");
+    public String getOrientation() { 
+    	return getFieldValue("orientation");
     }
-    
-    public String getSide(){
-    	throw new UnsupportedOperationException("The test run DAQ map doesn't use a side.");
-    }
-	
 }

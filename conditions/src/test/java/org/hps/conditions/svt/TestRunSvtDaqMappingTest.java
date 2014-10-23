@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableMetaData;
 import org.hps.conditions.config.TestRunReadOnlyConfiguration;
-import org.hps.conditions.svt.TestRunSvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
 /**
  * This test checks if the test run SVT DAQ map was loaded with reasonable 
@@ -23,35 +23,50 @@ public class TestRunSvtDaqMappingTest extends TestCase {
 	
 	// Total number of SVT sensors
 	public static final int TOTAL_NUMBER_OF_SENSORS = 20;
-	// Min and max values of front end boad (FEB) hybrid ID's
+	// Min and max values of the FPGA ID's
+	public static final int MIN_FPGA_ID = 0; 
+	public static final int MAX_FPGA_ID = 6; 
+	// Min and max values of Hybrid ID's
 	public static final int MIN_HYBRID_ID = 0; 
 	public static final int MAX_HYBRID_ID = 2; 
+	// Min and max layer number values 
+	public static final int MIN_LAYER_NUMBER = 1; 
+	public static final int MAX_LAYER_NUMBER = 10; 
 	
 	
 	
 	public void setUp(){
-        new TestRunReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 0);
+        new TestRunReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 1351);
         conditionsManager = DatabaseConditionsManager.getInstance();
 	}
 	
 	public void test(){
 		
-		metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
-		SvtDaqMappingCollection daqMappingCollection 
-			= conditionsManager.getConditionsData(SvtDaqMappingCollection.class, metaData.getTableName());
+		metaData = conditionsManager.findTableMetaData(TestRunSvtDaqMappingCollection.class);
+		TestRunSvtDaqMappingCollection daqMappingCollection 
+			= conditionsManager.getConditionsData(TestRunSvtDaqMappingCollection.class, metaData.getTableName());
 
 	
 		int totalSensors = 0; 
-		int fpgaID;
-		int hybridID; 
 		this.printDebug("");
-		for(SvtDaqMapping daqMapping : daqMappingCollection){
+		for(TestRunSvtDaqMapping daqMapping : daqMappingCollection){
 			
-			this.printDebug("Sensor: \n" + ((TestRunSvtDaqMapping) daqMapping).toString());
+			this.printDebug("Sensor: \n" + daqMapping.toString());
+		
+			// Check that the FPGA ID is within the allowable limits
+			int fpgaID = daqMapping.getFpgaID();
+			assertTrue("FPGA ID " + fpgaID + " is out of range!",
+						fpgaID >= MIN_FPGA_ID && fpgaID <= MAX_FPGA_ID);
 			
 			// Check that the Hybrid ID is within the allowable limits
-			hybridID = ((TestRunSvtDaqMapping) daqMapping).getHybridID();
-			assertTrue("Hybrid ID is out of range!.", hybridID >= MIN_HYBRID_ID && hybridID <= MAX_HYBRID_ID);
+			int hybridID = daqMapping.getHybridID();
+			assertTrue("Hybrid ID " + hybridID + " is out of range!",
+						hybridID >= MIN_HYBRID_ID && hybridID <= MAX_HYBRID_ID);
+			
+			// Check that the layer number is within the allowable limits
+			int layerNumber = daqMapping.getLayerNumber();
+			assertTrue("The layer number " + layerNumber + " is out of range!", 
+					layerNumber >= MIN_LAYER_NUMBER && layerNumber <= MAX_LAYER_NUMBER);
 			
 			totalSensors++;
 		}

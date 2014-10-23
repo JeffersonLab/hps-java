@@ -10,6 +10,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
 /**
  * Definitions of converters from the database to SVT specific conditions classes.
@@ -71,4 +72,12 @@ public final class SvtConverterRegistry {
             return SvtT0ShiftCollection.class;
         }
     }
+    
+    public static class TestRunSvtDaqMappingConverter extends ConditionsObjectConverter<TestRunSvtDaqMappingCollection> {
+        public Class getType() {
+            return TestRunSvtDaqMappingCollection.class;
+        }
+    }
+    
+    
 }
