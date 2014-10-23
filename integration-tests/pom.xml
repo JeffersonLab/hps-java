@@ -30,9 +30,7 @@
                         <exclude>org/hps/EtSystemTest.java</exclude>
                         <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                     </excludes>
-                    <!--
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    -->
                     <trimStackTrace>true</trimStackTrace>
                 </configuration>
             </plugin>
