@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.0.6</lcsimVersion>
+        <lcsimVersion>3.0.7-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -305,6 +305,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.17</version>
                 <configuration>
+<!--                
+                    <disableXmlReport>true</disableXmlReport>
+-->                    
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
                     <!-- This allows the cacheDir to be overridden by settings.xml, 
