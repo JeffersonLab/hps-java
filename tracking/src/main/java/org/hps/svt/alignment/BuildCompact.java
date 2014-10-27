@@ -30,7 +30,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang.StringUtils;
 import org.hps.conditions.deprecated.HPSSVTSensorSetup;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
@@ -47,6 +46,7 @@ import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
+import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.util.xml.ElementFactory.ElementCreationException;
 
 
@@ -55,7 +55,6 @@ public class BuildCompact {
 	private static int runNumber = -1; //1351;
 	private static String detectorName = ""; //"HPS-TestRun-v7";
 	private static ConditionsManager conditionsManager = null;
-	private static double corrScaleFactor = -1.;
 	
 	private static Options createCmdLineOpts() {
 		Options options = new Options();
@@ -146,98 +145,6 @@ public class BuildCompact {
 		}		
 		
 	}
-	
-	private static class MilleParameter {
-		private int id;
-		private double value; 
-		private double presigma;
-		private static final Map<Integer,String> dMap;
-		private static final Map<Integer,String> tMap;
-		private static final Map<Integer,String> hMap;
-		static {
-			dMap = new HashMap<Integer,String>();
-			dMap.put(1, "x");dMap.put(2, "y"); dMap.put(3, "z");
-			tMap = new HashMap<Integer,String>();
-			tMap.put(1, "");tMap.put(2, "r");
-			hMap = new HashMap<Integer,String>();
-			hMap.put(1, "t");hMap.put(2, "b");
-			}
-		
-		public MilleParameter(String line) {
-			String[] vals = StringUtils.split(line);// line.split("\\s+");
-			if(vals.length <3) {
-				System.out.println("this line is ill-formatted (" + vals.length + ")");
-				System.out.println(line);
-				System.exit(1);
-			}
-			try {
-			//for(String v : vals) System.out.println("\"" + v + "\"");
-			setId(Integer.parseInt(vals[0]));
-			setValue( corrScaleFactor * Double.parseDouble(vals[1]) );
-			setPresigma(Double.parseDouble(vals[2]));
-			
-			} catch (NumberFormatException e) {
-				System.out.println(vals[0] + " " + vals[1] + " " + vals[2]);
-				throw new RuntimeException("problem parsing string ", e);
-			}
-		}
-		
-		public String getXMLName() {
-			String d = dMap.get(getDim());
-			String t = tMap.get(getType());
-			String h = hMap.get(getHalf());
-			int s = getSensor();
-			return String.format("%s%s%d%s_align", t,d,s,h);
-			
-		}
-
-		private int getDim() {
-			int h = (int) (getHalf() * 1e4);
-			int t = (int) (getType() * 1e3);
-			return (int) Math.floor((id- h -t)/1e2);
-		}
-		
-		private int getSensor() {
-			int h = (int) (getHalf() * 1e4);
-			int t = (int) (getType() * 1e3);
-			int d = (int) (getDim() * 1e2);
-			return (id - h - t -d);
-		}
-
-		public int getType() {
-			int h = (int) (getHalf() * 1e4);
-			return (int) Math.floor((id -h)/1e3);
-		}
-
-		private int getHalf() {
-			return (int)Math.floor(id/1e4);
-		}
-
-		public int getId() {
-			return id;
-		}
-
-		public void setId(int id) {
-			this.id = id;
-		}
-
-		public double getValue() {
-			return value;
-		}
-
-		public void setValue(double value) {
-			this.value = value;
-		}
-
-		public double getPresigma() {
-			return presigma;
-		}
-
-		public void setPresigma(double presigma) {
-			this.presigma = presigma;
-		}
-	}
-
 	
 	public static void main(String[] args) {
 
