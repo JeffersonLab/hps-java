@@ -1,7 +1,9 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
+// TODO: Move all constants to their own class
 import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
@@ -15,24 +17,49 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 public final class SvtConditions extends AbstractSvtConditions {
 
     /** SVT conditions data. */
-    private SvtDaqMappingCollection daqMap = null;
-
-    /**
+    protected SvtDaqMappingCollection daqMap = null;
+    
+    public SvtConditions(){
+    }
+    
+	/**
      * Get the {@link SvtDaqMappingCollection} associated with these conditions.
      * 
      * @return The SVT DAQ map.
      */
-    public SvtDaqMappingCollection getDaqMap() {
+    @Override
+    public SvtDaqMappingCollection getDaqMap(){
         return daqMap;
     }
 
     /**
+     * Get the {@link SvtChannelCollection} for this set of conditions.
+     * 
+     * @return The SVT channel map.
+     */
+    @Override
+    public SvtChannelCollection getChannelMap(){
+        return (SvtChannelCollection) channelMap;
+    }
+    
+	/**
      * Set the {@link SvtDaqMappingCollection} associated with these conditions.
      * 
      * @param daqMap The SVT DAQ map.
+	 * @return 
      */
-    void setDaqMap(SvtDaqMappingCollection daqMap) {
+    public void setDaqMap(SvtDaqMappingCollection daqMap) {
         this.daqMap = daqMap;
+    }
+   
+    
+    /**
+     * Set the channel map of type {@link SvtChannelCollection}.
+     * 
+     *  @param channelMap The SVT channel map.
+     */
+    public void setChannelMap(SvtChannelCollection channelMap){
+    	this.channelMap = channelMap;
     }
 
     /**
@@ -103,7 +130,7 @@ public final class SvtConditions extends AbstractSvtConditions {
         }
         buff.append('\n');
         // Loop over channels.
-        for (SvtChannel channel : channelMap.getObjects()) {
+        for (SvtChannel channel : this.getChannelMap().getObjects()) {
 
             // Get the conditions for the channel.
             ChannelConstants constants = getChannelConstants(channel);
