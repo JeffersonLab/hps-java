@@ -1,12 +1,9 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.TableConstants.SVT_DAQ_MAP;
-
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableMetaData;
-import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
-
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**
  * This class creates an {@link SvtConditions} object from the database, based on the
@@ -17,34 +14,32 @@ import org.lcsim.conditions.ConditionsManager;
  */
 public final class SvtConditionsConverter extends AbstractSvtConditionsConverter<SvtConditions> {
 
-	private TableMetaData metaData = null; 
-	private String tableName = null; 
-
 	public SvtConditionsConverter(){
 		this.conditions = new SvtConditions();
 	}
 	
     /**
-     * Create and return the SVT conditions object.
+     * Create and return an {@link SvtConditions} object 
+     * 
      * @param manager The current conditions manager.
      * @param name The conditions key, which is ignored for now.
      */
+    @Override
     public SvtConditions getData(ConditionsManager manager, String name) {
-    	conditions = super.getData(manager, name);
     	
     	DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
-    	
-    	// Get the table name containing the SVT DAQ map from the database
-        // configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_DAQ_MAP; 
-    	}
-        // Get the DAQ map from the conditions database
-        SvtDaqMappingCollection daqMap = manager.getCachedConditions(SvtDaqMappingCollection.class, tableName).getCachedData();
+
+    	// Get the channel map from the conditions database
+        SvtChannelCollection channels = this.getCollection(SvtChannelCollection.class, dbConditionsManager); 
+
+        // Create the SVT conditions object to use to encapsulate SVT condition collections
+        conditions.setChannelMap(channels);
+       
+    	// Get the DAQ map from the conditions database
+    	SvtDaqMappingCollection daqMap= this.getCollection(SvtDaqMappingCollection.class, dbConditionsManager);
         conditions.setDaqMap(daqMap);
+        
+        conditions = super.getData(manager, name);
         
         return conditions;
     }
@@ -53,6 +48,7 @@ public final class SvtConditionsConverter extends AbstractSvtConditionsConverter
      * Get the type handled by this converter.
      * @return The type handled by this converter.
      */
+    @Override
     public Class<SvtConditions> getType() {
         return SvtConditions.class;
     }
