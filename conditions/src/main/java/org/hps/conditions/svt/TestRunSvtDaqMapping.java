@@ -2,8 +2,7 @@ package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+
 import org.hps.util.Pair;
 
 /**
@@ -11,22 +10,11 @@ import org.hps.util.Pair;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class TestRunSvtDaqMapping extends AbstractConditionsObject {
+public class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
 
-	public static class TestRunSvtDaqMappingCollection extends ConditionsObjectCollection<TestRunSvtDaqMapping> {
+	public static class TestRunSvtDaqMappingCollection 
+	    extends AbstractSvtDaqMappingCollection<TestRunSvtDaqMapping> {
 	
-        /**
-         * Flag values for top or bottom half.
-         */
-        public static final String TOP_HALF = "T";
-        public static final String BOTTOM_HALF = "B";
-        
-        /**
-         * Flag values for axial or stereo sensors 
-         */
-        public static final String AXIAL = "A";
-        public static final String STEREO = "S";
-
         /**
 		 * Get a test run DAQ pair (FPGA and Hybrid ID) for the given 
 		 * {@linkplain HpsTestRunSiSensor}
@@ -34,7 +22,7 @@ public class TestRunSvtDaqMapping extends AbstractConditionsObject {
 		 * @param  sensor A sensor of type {@link HpsTestRunSiSensor}
 		 * @return The DAQ pair associated with the sensor 
 		 */
-		Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor){
+		public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor){
 			
 			String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF; 
 			for(TestRunSvtDaqMapping daqMapping : this.getObjects()){
@@ -115,16 +103,4 @@ public class TestRunSvtDaqMapping extends AbstractConditionsObject {
 	public int getHybridID(){
 		return getFieldValue("hybrid");
 	}
-
-	public String getSvtHalf() {
-        return getFieldValue("svt_half");
-    }
-
-    public int getLayerNumber() {
-        return getFieldValue("layer");
-    }
-    
-    public String getOrientation() { 
-    	return getFieldValue("orientation");
-    }
 }
