@@ -79,36 +79,159 @@
   
   <detectors>
     <detector id="1" name="Tracker" type="HPSTestRunTracker2014" readout="TrackerHits">
-	  
-      <!-- Definition of half module logical volume. -->
-      <half_modules>
-        <half_module name="SvtHalfModuleLayers1-3">
-          <component x="50.0" y="100.0" z="0.0" material="Silicon" sensitive="true" />
-        </half_module>
-      </half_modules>
-      
-      <!-- Alignment of entire tracker box. -->
-      <alignment x="0.0" y="0.0" z="0.0" />
-      <support_plate name="SupportPlateL1-3bot">
-        <position name="ball" x="0.0" y="0.0" z="0.0"/>
-        <position name="vee" x="0.0" y="0.0" z="0.0"/>
-        <position name="flat" x="0.0" y="0.0" z="0.0"/>
-        <alignment x="5.0" y="5.0" z="5.0" rx="0.1" ry="0.1" rz="0.1"/>
-        <modules>
-          <module layer="1" ref="SvtModule">
-            <position name="ball" x="0.0" y="0.0" z="0.0"/>
-        	<position name="vee" x="0.0" y="0.0" z="0.0"/>
-        	<position name="flat" x="0.0" y="0.0" z="0.0"/>
-        	<alignment x="4.0" y="4.0" z="4.0" rx="0.1" ry="0.1" rz="0.1"/>
-        	<half_module type="axial" ref="SvtHalfModuleLayers1-3">
-	        	<position name="ball" x="0.0" y="0.0" z="0.0"/>
-    	    	<position name="vee" x="0.0" y="0.0" z="0.0"/>
-        		<position name="flat" x="0.0" y="0.0" z="0.0"/>
-            	<alignment x="3.0" y="3.0" z="3.0" rx="0.1" ry="0.1" rz="0.1" />
-            </half_module>
-          </module>
-        </modules>
-      </support_plate>
+	   <millepede_constants>
+            <!-- top translations -->
+            <millepede_constant name="11101" value="0.0"/>
+            <millepede_constant name="11102" value="0.0"/>
+            <millepede_constant name="11103" value="0.0"/>
+            <millepede_constant name="11104" value="0.0"/>
+            <millepede_constant name="11105" value="0.0"/>
+            <millepede_constant name="11106" value="0.0"/>
+            <millepede_constant name="11107" value="0.0"/>
+            <millepede_constant name="11108" value="0.0"/>
+            <millepede_constant name="11109" value="0.0"/>
+            <millepede_constant name="11110" value="0.0"/>
+
+            <millepede_constant name="11201" value="0.0"/>
+            <millepede_constant name="11202" value="0.0"/>
+            <millepede_constant name="11203" value="0.0"/>
+            <millepede_constant name="11204" value="0.0"/>
+            <millepede_constant name="11205" value="0.0"/>
+            <millepede_constant name="11206" value="0.0"/>
+            <millepede_constant name="11207" value="0.0"/>
+            <millepede_constant name="11208" value="0.0"/>
+            <millepede_constant name="11209" value="0.0"/>
+            <millepede_constant name="11210" value="0.0"/>
+
+            <millepede_constant name="11301" value="0.0"/>
+            <millepede_constant name="11302" value="0.0"/>
+            <millepede_constant name="11303" value="0.0"/>
+            <millepede_constant name="11304" value="0.0"/>
+            <millepede_constant name="11305" value="0.0"/>
+            <millepede_constant name="11306" value="0.0"/>
+            <millepede_constant name="11307" value="0.0"/>
+            <millepede_constant name="11308" value="0.0"/>
+            <millepede_constant name="11309" value="0.0"/>
+            <millepede_constant name="11310" value="0.0"/>
+            
+            <!-- top rotations -->
+            
+            <millepede_constant name="12101" value="0.0"/>
+            <millepede_constant name="12102" value="0.0"/>
+            <millepede_constant name="12103" value="0.0"/>
+            <millepede_constant name="12104" value="0.0"/>
+            <millepede_constant name="12105" value="0.0"/>
+            <millepede_constant name="12106" value="0.0"/>
+            <millepede_constant name="12107" value="0.0"/>
+            <millepede_constant name="12108" value="0.0"/>
+            <millepede_constant name="12109" value="0.0"/>
+            <millepede_constant name="12110" value="0.0"/>
+
+            <millepede_constant name="12201" value="0.0"/>
+            <millepede_constant name="12202" value="0.0"/>
+            <millepede_constant name="12203" value="0.0"/>
+            <millepede_constant name="12204" value="0.0"/>
+            <millepede_constant name="12205" value="0.0"/>
+            <millepede_constant name="12206" value="0.0"/>
+            <millepede_constant name="12207" value="0.0"/>
+            <millepede_constant name="12208" value="0.0"/>
+            <millepede_constant name="12209" value="0.0"/>
+            <millepede_constant name="12210" value="0.0"/>
+
+            <millepede_constant name="12301" value="0.0"/>
+            <millepede_constant name="12302" value="0.0"/>
+            <millepede_constant name="12303" value="0.0"/>
+            <millepede_constant name="12304" value="0.0"/>
+            <millepede_constant name="12305" value="0.0"/>
+            <millepede_constant name="12306" value="0.0"/>
+            <millepede_constant name="12307" value="0.0"/>
+            <millepede_constant name="12308" value="0.0"/>
+            <millepede_constant name="12309" value="0.0"/>
+            <millepede_constant name="12310" value="0.0"/>
+            
+            <!-- bottom translations -->
+            
+            <millepede_constant name="21101" value="0.0"/>
+            <millepede_constant name="21102" value="0.0"/>
+            <millepede_constant name="21103" value="0.0"/>
+            <millepede_constant name="21104" value="0.0"/>
+            <millepede_constant name="21105" value="0.0"/>
+            <millepede_constant name="21106" value="0.0"/>
+            <millepede_constant name="21107" value="0.0"/>
+            <millepede_constant name="21108" value="0.0"/>
+            <millepede_constant name="21109" value="0.0"/>
+            <millepede_constant name="21110" value="0.0"/>
+
+            <millepede_constant name="21201" value="0.0"/>
+            <millepede_constant name="21202" value="0.0"/>
+            <millepede_constant name="21203" value="0.0"/>
+            <millepede_constant name="21204" value="0.0"/>
+            <millepede_constant name="21205" value="0.0"/>
+            <millepede_constant name="21206" value="0.0"/>
+            <millepede_constant name="21207" value="0.0"/>
+            <millepede_constant name="21208" value="0.0"/>
+            <millepede_constant name="21209" value="0.0"/>
+            <millepede_constant name="21210" value="0.0"/>
+
+            <millepede_constant name="21301" value="0.0"/>
+            <millepede_constant name="21302" value="0.0"/>
+            <millepede_constant name="21303" value="0.0"/>
+            <millepede_constant name="21304" value="0.0"/>
+            <millepede_constant name="21305" value="0.0"/>
+            <millepede_constant name="21306" value="0.0"/>
+            <millepede_constant name="21307" value="0.0"/>
+            <millepede_constant name="21308" value="0.0"/>
+            <millepede_constant name="21309" value="0.0"/>
+            <millepede_constant name="21310" value="0.0"/>
+            
+            <!-- bottom rotations -->
+            
+            <millepede_constant name="22101" value="0.0"/>
+            <millepede_constant name="22102" value="0.0"/>
+            <millepede_constant name="22103" value="0.0"/>
+            <millepede_constant name="22104" value="0.0"/>
+            <millepede_constant name="22105" value="0.0"/>
+            <millepede_constant name="22106" value="0.0"/>
+            <millepede_constant name="22107" value="0.0"/>
+            <millepede_constant name="22108" value="0.0"/>
+            <millepede_constant name="22109" value="0.0"/>
+            <millepede_constant name="22110" value="0.0"/>
+
+            <millepede_constant name="22201" value="0.0"/>
+            <millepede_constant name="22202" value="0.0"/>
+            <millepede_constant name="22203" value="0.0"/>
+            <millepede_constant name="22204" value="0.0"/>
+            <millepede_constant name="22205" value="0.0"/>
+            <millepede_constant name="22206" value="0.0"/>
+            <millepede_constant name="22207" value="0.0"/>
+            <millepede_constant name="22208" value="0.0"/>
+            <millepede_constant name="22209" value="0.0"/>
+            <millepede_constant name="22210" value="0.0"/>
+
+            <millepede_constant name="22301" value="0.0"/>
+            <millepede_constant name="22302" value="0.0"/>
+            <millepede_constant name="22303" value="0.0"/>
+            <millepede_constant name="22304" value="0.0"/>
+            <millepede_constant name="22305" value="0.0"/>
+            <millepede_constant name="22306" value="0.0"/>
+            <millepede_constant name="22307" value="0.0"/>
+            <millepede_constant name="22308" value="0.0"/>
+            <millepede_constant name="22309" value="0.0"/>
+            <millepede_constant name="22310" value="0.0"/>
+            
+            
+            <!-- top support tilt angles -->
+            <millepede_constant name="13100" value="0.0"/>
+            <millepede_constant name="13200" value="0.0"/>
+            <millepede_constant name="13300" value="0.0"/>
+            
+            <!-- bottom support tilt angles -->
+            <millepede_constant name="23100" value="0.0"/>
+            <millepede_constant name="23200" value="0.0"/>
+            <millepede_constant name="23300" value="0.0"/>
+            
+        </millepede_constants>
+     
     </detector>
 
 	<detector id="30" name="TrackerFieldDef" type="HPSTracker2"
