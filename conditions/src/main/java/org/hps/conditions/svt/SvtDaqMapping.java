@@ -2,8 +2,6 @@ package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
@@ -12,29 +10,19 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class SvtDaqMapping extends AbstractConditionsObject {
+public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
-    public static class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
-
-        /**
-         * Flag values for top or bottom half.
-         */
-        public static final String TOP_HALF = "T";
-        public static final String BOTTOM_HALF = "B";
-        
-        /**
-         * Flag values for axial or stereo sensors 
-         */
-        public static final String AXIAL = "A";
-        public static final String STEREO = "S";
+    public static class SvtDaqMappingCollection 
+            extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
 
         /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given {@link HpsSiSensor}
+         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given 
+         * {@link HpsSiSensor}
          * 
 		 * @param  sensor A sensor of type {@link HpsSiSensor}
 		 * @return The DAQ pair associated with the sensor 
          */
-        Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
+        public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
         	
         	String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
         	for (SvtDaqMapping object : this.getObjects()) {
@@ -117,19 +105,7 @@ public class SvtDaqMapping extends AbstractConditionsObject {
     	return getFieldValue("feb_hybrid_id");
     }
     
-    public String getSvtHalf() {
-        return getFieldValue("svt_half");
-    }
-
-    public int getLayerNumber() {
-        return getFieldValue("layer");
-    }
-    
     public String getSide(){
     	return getFieldValue("side");
-    }
-
-    public String getOrientation() { 
-    	return getFieldValue("orientation");
     }
 }
