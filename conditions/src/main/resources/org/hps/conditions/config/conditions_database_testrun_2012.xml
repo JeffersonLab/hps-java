@@ -13,9 +13,7 @@
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtShapeFitParametersConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtT0ShiftConverter"/>
-        <!--          
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
-        -->
 
         <!-- ECal converters -->
         <converter class="org.hps.conditions.ecal.EcalConditionsConverter"/>
@@ -124,8 +122,7 @@
             </fields>        
         </table>
          
-<!--          
-        <table key="svt_bad_channels" name="svt_bad_channels">
+        <table key="test_run_svt_bad_channels" name="test_run_svt_bad_channels">
             <classes>
                 <object class="org.hps.conditions.svt.SvtBadChannel"/>
                 <collection class="org.hps.conditions.svt.SvtBadChannel$SvtBadChannelCollection"/>
@@ -134,9 +131,7 @@
                 <field name="svt_channel_id" />
             </fields>        
         </table>
-        
-
---> 
+       
        <table key="test_run_svt_daq_map" name="test_run_svt_daq_map">
             <classes>
                 <object class="org.hps.conditions.svt.TestRunSvtDaqMapping"/>
