@@ -10,6 +10,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
 /**
@@ -79,5 +80,9 @@ public final class SvtConverterRegistry {
         }
     }
     
-    
+    public static class TestRunSvtChannelConverter extends ConditionsObjectConverter<TestRunSvtChannelCollection> {
+        public Class getType(){
+            return TestRunSvtChannelCollection.class;
+        }
+    }
 }
