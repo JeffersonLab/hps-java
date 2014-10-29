@@ -36,7 +36,7 @@ public class SvtDetectorSetupTest extends TestCase {
 	public static final String SVT_SUBDETECTOR_NAME = "Tracker";
 	
 	public void setUp(){
-	    new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 2000);
+	    new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
 	}
 
     /**
