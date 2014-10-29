@@ -33,6 +33,7 @@ import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.deprecated.HPSSVTSensorSetup;
 import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.jdom.Attribute;
 import org.jdom.DataConversionException;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -53,10 +54,15 @@ import org.lcsim.util.xml.ElementFactory.ElementCreationException;
 
 public class BuildMillepedeCompact {
 
-	private static Options createCmdLineOpts() {
+	private static String detectorName = "Tracker";
+	private static boolean replaceConstant = false;
+
+
+    private static Options createCmdLineOpts() {
 		Options options = new Options();
 		options.addOption(new Option("c",true,"The path to the compact xml file."));
 		options.addOption(new Option("o",true,"The name of the new compact xml file."));
+		options.addOption(new Option("r", false, "Replace correction instead of adding to it."));
 		return options;
 	}
 	
@@ -93,6 +99,10 @@ public class BuildMillepedeCompact {
 		String compactFilenameNew = "compact_new.xml";
 		if(cl.hasOption("o")) {
 			compactFilenameNew = cl.getOptionValue("o");
+		}
+		
+		if(cl.hasOption("r")) {
+		    replaceConstant = true;
 		}
 
 		
@@ -140,23 +150,52 @@ public class BuildMillepedeCompact {
 			throw new RuntimeException("problem reading mille file",e);
 		}
 		
-		Element rootNode = compact_document.getRootElement();
-        
-		for(MilleParameter p : params) {
-		    System.out.println("Update value for " + p.getXMLName());
-            Element node = findNode(rootNode,p.getXMLName());
-            double correction = p.getValue();
-            double oldValue = 0;
-            try {
-                oldValue = node.getAttribute("value").getDoubleValue();
-            } catch (DataConversionException e) {
-                e.printStackTrace();
-            }
-            double newValue = oldValue + correction;
-            System.out.println("old " + oldValue + " correction " + correction + " -> new "  + newValue);
-            node.setAttribute("value", String.format("%.6f",newValue));
-		}		
+		System.out.printf("Found %d millepede parameters\n ", params.size());
 		
+		
+
+		Element rootNode = compact_document.getRootElement();
+		List<Element> detectors = rootNode.getChildren("detectors");
+		for(Element detectorsNode : detectors) {
+		    List<Element> detectorNode = detectorsNode.getChildren("detector");
+		    if(detectorNode!=null) {
+		        System.out.println(detectorNode.size() + " detectors");
+		        for(Element detector : detectorNode) {
+		            if(detector.getAttribute("name")!=null) {
+		                if(detector.getAttributeValue("name").compareTo(detectorName)==0 ) {
+		                    System.out.println("Found " + detectorName);
+		                    for(MilleParameter p : params) {
+		                        Element node = findMillepedeConstantNode(detector,Integer.toString(p.getId()));
+		                        if(node!=null) {
+		                            double correction = p.getValue();
+		                            double oldValue = 0;
+		                            try {
+		                                oldValue = node.getAttribute("value").getDoubleValue();
+		                            } catch (DataConversionException e) {
+		                                e.printStackTrace();
+		                            }
+		                            double newValue;
+		                            if(replaceConstant) {
+		                                newValue = correction;
+		                            } else {
+		                                newValue = oldValue + correction;
+		                            }
+		                            System.out.println("Update " + p.getId() + ": " + oldValue + " (corr. " + correction + ") ->  "  + newValue );
+		                            node.setAttribute("value", String.format("%.6f",newValue));
+		                        } else {
+		                            throw new RuntimeException("no element found for " + p.getId() + " check format of compact file");
+		                        }
+		                    }       
+		                }
+		            } else {
+		                throw new RuntimeException("this detector node element is not formatted correctly");
+		            }
+		        }
+		    } else {
+		        throw new RuntimeException("this detector node element is not formatted correctly");
+		    }
+		}
+
 
 		// Save new XML file
 		
@@ -175,19 +214,25 @@ public class BuildMillepedeCompact {
 		
 	}
 
-	
-	private static Element findNode(Element node, String name) {
-	    List list = node.getChildren();
-	    for(Object o : list) {
-	        Element element = (Element) o;
-	        if(element.getAttributeValue("name").compareTo(name) == 0) {
-	            return element;
-	        } 
-	        return findNode(element,name);
+
+	private static Element findMillepedeConstantNode(Element detector, String name) {
+	    Element element_constants = detector.getChild("millepede_constants");
+	    if(element_constants==null) {
+	        throw new RuntimeException("no alignment constants in this xml file.");
+	    }
+	    List<Element> list = element_constants.getChildren("millepede_constant");
+	    for(Element element : list) {
+	        if(element.getAttribute("name")!=null) {
+	            if(element.getAttributeValue("name").compareTo(name) == 0) {
+	                return element;
+	            } 
+	        } else {
+	            throw new RuntimeException("this element is not formatted correctly");
+	        }
 	    }
 	    return null;
 	}
-	
+
 	
 
 	
