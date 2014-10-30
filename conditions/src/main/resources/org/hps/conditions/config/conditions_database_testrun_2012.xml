@@ -9,10 +9,10 @@
         <converter class="org.hps.conditions.svt.TestRunSvtConditionsConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtChannelConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtDaqMappingConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtT0ShiftConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtCalibrationConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtShapeFitParametersConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtT0ShiftConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
 
         <!-- ECal converters -->
@@ -112,8 +112,8 @@
          
         <table key="test_run_svt_t0_shifts" name="test_run_svt_t0_shifts">
             <classes>
-                <object class="org.hps.conditions.svt.SvtT0Shift"/>
-                <collection class="org.hps.conditions.svt.SvtT0Shift$SvtT0ShiftCollection"/>
+                <object class="org.hps.conditions.svt.TestRunSvtT0Shift"/>
+                <collection class="org.hps.conditions.svt.TestRunSvtT0Shift$TestRunSvtT0ShiftCollection"/>
             </classes>
             <fields>
                 <field name="fpga"        />
