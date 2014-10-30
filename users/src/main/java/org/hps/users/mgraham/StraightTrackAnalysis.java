@@ -1,13 +1,18 @@
 package org.hps.users.mgraham;
 
 import hep.aida.IHistogram1D;
+import java.util.HashMap;
 import java.util.List;
-import org.hps.recon.tracking.nobfield.StraightTrack;
+import java.util.Map;
+import org.hps.analysis.examples.TrackAnalysis;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -23,6 +28,9 @@ public class StraightTrackAnalysis extends Driver {
     private String mcSvtHitsName = "TrackerHits";
     private String rawHitsName = "RawTrackerHitMaker_RawTrackerHits";
     private String clustersName = "StripClusterer_SiTrackerHitStrip1D";
+    private final String helicalTrackMCRelationsCollectionName = "HelicalTrackMCRelations";
+    private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
+    private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String hthName = "HelicalTrackHits";
     private String tracksName = "StraightTracks";
 
@@ -72,16 +80,57 @@ public class StraightTrackAnalysis extends Driver {
         aida.histogram1D("Number of Layers Hit").fill(totLayers);
         List<Track> tracks = event.get(Track.class, tracksName);
         aida.histogram1D("Number of Tracks found").fill(tracks.size());
-        for (Track trk : tracks) {
-            StraightTrack stght = (StraightTrack) trk;
-            aida.histogram1D("x0", 50, -2, 2).fill(stght.getTrackParameters()[0]);
-            aida.histogram1D("y0", 50, -2, 2).fill(stght.getTrackParameters()[2]);
-            aida.histogram1D("xz slope", 50, -0.2, 0.25).fill(stght.getTrackParameters()[1]);
-            aida.histogram1D("yz slope", 50, -0.25, 0.25).fill(stght.getTrackParameters()[3]);
-            aida.histogram1D("track chi2 per ndf", 50, 0, 10).fill(stght.getChi2()/stght.getNDF());
-            aida.histogram1D("track nhits", 50, 0, 10).fill(stght.getTrackerHits().size());
 
+        //make some maps and relation tables        
+        Map<Track, TrackAnalysis> tkanalMap = new HashMap<Track, TrackAnalysis>();
+        RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> mcrelations = event.get(LCRelation.class, helicalTrackMCRelationsCollectionName);
+        for (LCRelation relation : mcrelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                hittomc.add(relation.getFrom(), relation.getTo());
+
+        System.out.println("Size of hittomc collection " + hittomc.size());
+        RelationalTable mcHittomcP = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        //  Get the collections of SimTrackerHits
+        List<List<SimTrackerHit>> simcols = event.get(SimTrackerHit.class);
+        //  Loop over the SimTrackerHits and fill in the relational table
+        for (List<SimTrackerHit> simlist : simcols)
+            for (SimTrackerHit simhit : simlist)
+                if (simhit.getMCParticle() != null)
+                    mcHittomcP.add(simhit, simhit.getMCParticle());
+
+        RelationalTable trktomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                    rawtomc.add(relation.getFrom(), relation.getTo());
         }
+
+        RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> hitrelations = event.get(LCRelation.class, helicalTrackHitRelationsCollectionName);
+        for (LCRelation relation : hitrelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                hittostrip.add(relation.getFrom(), relation.getTo());
+
+        RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> rotaterelations = event.get(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName);
+        for (LCRelation relation : rotaterelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                hittorotated.add(relation.getFrom(), relation.getTo());
+
+        for (Track trk : tracks) {
+//            StraightTrack stght = (StraightTrack) trk;
+            aida.histogram1D("d0", 50, -2, 2).fill(trk.getTrackParameters()[0]);
+            aida.histogram1D("z0", 50, -2, 2).fill(trk.getTrackParameters()[3]);
+            aida.histogram1D("xy slope", 50, -0.2, 0.25).fill(trk.getTrackParameters()[1]);
+            aida.histogram1D("sz slope", 50, -0.25, 0.25).fill(trk.getTrackParameters()[4]);
+            aida.histogram1D("track chi2 per ndf", 50, 0, 2).fill(trk.getChi2() / trk.getNDF());
+            aida.histogram1D("track nhits", 50, 0, 10).fill(trk.getTrackerHits().size());
+            TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc);
+        }
+
     }
 
 }
