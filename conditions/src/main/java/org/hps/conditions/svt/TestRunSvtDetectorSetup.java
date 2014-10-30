@@ -6,10 +6,9 @@ import java.util.List;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
-
-import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
+import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 import org.hps.util.Pair;
 
 /**
@@ -32,7 +31,7 @@ public class TestRunSvtDetectorSetup {
     	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
     	TestRunSvtChannelCollection channelMap = conditions.getChannelMap();
         TestRunSvtDaqMappingCollection daqMap = conditions.getDaqMap();
-        SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
+        TestRunSvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 		
         // Loop over sensors.
         for(HpsSiSensor sensor : sensors){
@@ -100,7 +99,7 @@ public class TestRunSvtDetectorSetup {
             }
             
             // Set the t0 shift for the sensor.
-            SvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
+            TestRunSvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
 	}
