@@ -1,8 +1,5 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
-import org.hps.conditions.ConditionsObjectException;
 import org.hps.util.Pair;
 
 /**
@@ -17,6 +14,13 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
     public static class SvtT0ShiftCollection 
         extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<SvtT0Shift> {
 
+        /**
+         * Get the {@link SvtT0Shift} associated with a given DAQ pair
+         * 
+         * @param DAQ pair for a given sensor
+         * @return The {@link SvtT0Shift} associated with the DAQ pair.  If a t0 shift
+         *         for a given DAQ pair can't be found, it returns null.
+         */
         @Override
         public SvtT0Shift getT0Shift(Pair<Integer, Integer> pair) {
             int febID = pair.getFirstElement();
