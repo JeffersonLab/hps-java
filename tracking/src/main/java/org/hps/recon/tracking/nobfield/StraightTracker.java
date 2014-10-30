@@ -28,14 +28,15 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Tracking algorithm based on forming track seeds from all 3-hit combinations,
- * confirming this tentantive helix by requiring additional hits, and extending
+ * Tracking algorithm based on forming straight track seeds from all 3-hit combinations,
+ * confirming this tentantive track by requiring additional hits, and extending
  * the track to additional layers. The operation of the algorithm is controlled
  * by a list of SeedStrategy that define the tracker layers to be used and the
  * cuts on the tracking algorithm.
  *
- * @author Richard Partridge
- * @version 1.0
+ * @author Mathew Graham <mgraham.slac.stanford.edu>
+ * Copied/Modified from org.lcsim.recon.tracking.SeedTracker
+ * 
  */
 public class StraightTracker extends Driver {
 
@@ -306,8 +307,8 @@ public class StraightTracker extends Driver {
      * is performed.
      */
     public void setTrackCheck(TrackCheck trackCheck) {
-        _finder._trackCheck = trackCheck;
-        _maketracks._trackCheck = trackCheck;
+        _finder.setTrackCheck(trackCheck);
+        _maketracks.setTrackCheck(trackCheck);
     }
 
     /**

@@ -3,7 +3,6 @@ package org.hps.recon.tracking.nobfield;
 import hep.physics.vec.BasicHep3Vector;
 import java.util.List;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.nobfield.StraightTracker;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseTrack;
@@ -15,11 +14,10 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.SeedTrackerDiagnostics;
 import org.lcsim.util.Driver;
 
 /**
- * This class runs the Track Reconstruction for the HPS Test Proposal detector.
- * The tracker digitization must be run in front of it. It is intended to work
- * with the {@link TrackerDigiDriver} digitization Driver.
+ * This class runs the Track Reconstruction 0 B-Field  events.
+ * The tracker digitization must be run in front of it. It is intended to work 
  *
- * @author Matt Graham
+ * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public final class StraightTrackReconDriver extends Driver {
 
@@ -34,7 +32,7 @@ public final class StraightTrackReconDriver extends Driver {
     // Default B-field value.
     private double bfield = 0.5;
     // Tracking strategies resource path.
-    private String strategyResource = "HPS-Full.xml";
+    private String strategyResource = "HPS-Full-StraightTracks.xml";
     // Output track collection.
     private String trackCollectionName = "StraightTracks";
     // HelicalTrackHit input collection.

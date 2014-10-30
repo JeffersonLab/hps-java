@@ -20,9 +20,11 @@ import org.lcsim.recon.tracking.seedtracker.TrackCheck;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
- *
- * @author Richard Partridge
- * @version 1.0
+ * Find straight tracks in 0-bfield
+ * 
+ * copied/modified from org.lcsim.recon.tracking.SeedTrackFinder
+ * @author Mathew Graham
+
  */
 public class StraightTrackFinder {
 
@@ -33,7 +35,7 @@ public class StraightTrackFinder {
     private ISeedTrackerDiagnostics _diag = null;
     private Set<MCParticle> _seededmcp;
     private Set<MCParticle> _confirmedmcp;
-    TrackCheck _trackCheck; // set by SeedTracker
+    private TrackCheck _trackCheck; // set by SeedTracker
     private boolean _debug = false;
    
 
@@ -247,6 +249,9 @@ public class StraightTrackFinder {
     public void setDebug(boolean debug) {
         System.out.println("Setting " + this.getClass().getSimpleName() + " debug to " + debug);
         _debug = debug;
+    }
+    public void setTrackCheck (TrackCheck checker){
+        _trackCheck=checker;
     }
 
 }

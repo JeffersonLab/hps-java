@@ -11,15 +11,11 @@ import java.util.Map;
 import org.hps.recon.tracking.MaterialManager;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.nobfield.StraightTrack2DFitter.FitStatus;
-import org.lcsim.fit.circle.CircleFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.fit.line.SlopeInterceptLineFit;
-import org.lcsim.fit.line.SlopeInterceptLineFitter;
-import org.lcsim.fit.zsegment.ZSegmentFit;
-import org.lcsim.recon.tracking.seedtracker.ConstrainHelix;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.TrackCheck;
@@ -27,8 +23,10 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
  *
- * @author Richard Partridge
- * @version 1.0
+ * @author Mathew Graham <mgraham@slac.stanford.edu>
+ * run the track fitter for tracking in 0 b-field
+ * Modified from HelixTrackFitter
+ *
  */
 public class StraightTrackFitter {
 
@@ -37,10 +35,8 @@ public class StraightTrackFitter {
     private HelicalTrackFit _helix;//still use HelicalTrackFit...
     private MaterialManager _materialmanager;
     //private ConstrainHelix _constrain;
-    private double _bfield = 0.;
-    private CircleFit _circlefit;
+    private double _bfield = 0.;   
     private SlopeInterceptLineFit _linefit;
-    private ZSegmentFit _zsegmentfit;
     private FitStatus _status;
     private ISeedTrackerDiagnostics _diag = null;
     TrackCheck _trackCheck; // set by SeedTracker
@@ -51,10 +47,7 @@ public class StraightTrackFitter {
      */
     public StraightTrackFitter(MaterialManager materialmanager) {
         _materialmanager = materialmanager;
-
         _scattering = new MultipleScattering(_materialmanager);
-
-        //   _constrain = new ConstrainHelix();
     }
 
     //   public boolean FitCandidate(SeedCandidate seed, SeedStrategy strategy) {
@@ -69,11 +62,8 @@ public class StraightTrackFitter {
         if (_bfield != 0.)
             throw new RuntimeException("B Field should be zero for the straight track fitter");
 
-        //  Set the tolerance in the fitter
-        //  _fitter.setTolerance(Math.sqrt(strategy.getMaxChisq()));
         //  Retrieve list of hits to be fit
         List<HelicalTrackHit> hitlist = seed.getHits();
-
         if (_debug) {
             System.out.println(this.getClass().getSimpleName() + ": hitlist size " + hitlist.size() + ":");
             double z_prev = -99999999.9;
@@ -195,18 +185,10 @@ public class StraightTrackFitter {
         return _status;
     }
 
-    public CircleFit getCircleFit() {
-        return _circlefit;
-    }
-
     public SlopeInterceptLineFit getLineFit() {
         return _linefit;
     }
-
-    public ZSegmentFit getZSegmentFit() {
-        return _zsegmentfit;
-    }
-
+  
     public void setBField(double bfield) {
         _bfield = bfield;
         _scattering.setBField(_bfield);
@@ -222,9 +204,9 @@ public class StraightTrackFitter {
     private void SaveFit() {
 
         //  Default to no fit results when circle fit fails
-        _circlefit = null;
+       
         _linefit = null;
-        _zsegmentfit = null;
+       
 
         //  If we have a circle fit, try to save the line fit / zsegment fit results
         if (_status == FitStatus.InconsistentSeed)
@@ -234,7 +216,6 @@ public class StraightTrackFitter {
         if (_status == FitStatus.SZLineFitFailed)
             return;
         //     _linefit = _fitter.getLineFit();
-//        _zsegmentfit = _fitter.getZSegmentFit();
 
         return;
     }
