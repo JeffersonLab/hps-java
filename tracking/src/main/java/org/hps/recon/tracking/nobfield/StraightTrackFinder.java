@@ -1,272 +1,252 @@
+/*
+ * SeedTrackFinder.java
+ *
+ * Created on January 22, 2008, 9:39 AM
+ *
+ */
 package org.hps.recon.tracking.nobfield;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import org.hps.recon.tracking.HitCollectionUtilites;
-import org.hps.recon.tracking.nobfield.TrackCollectionUtilities;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
+import java.util.Set;
+import org.lcsim.event.MCParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.line.SlopeInterceptLineFit;
-import org.lcsim.fit.line.SlopeInterceptLineFitter;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
+import org.lcsim.recon.tracking.seedtracker.HitManager;
+import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
+import org.lcsim.recon.tracking.seedtracker.SeedLayer;
+import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
+import org.lcsim.recon.tracking.seedtracker.TrackCheck;
+import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
  *
- * @author mgraham
+ * @author Richard Partridge
+ * @version 1.0
  */
-public class StraightTrackFinder extends Driver {
+public class StraightTrackFinder {
 
-    // Debug flag.
-    private boolean debug = true;
-    // Tracks found across all events.
-    int ntracks = 0;
-    // Number of events processed.
-    int nevents = 0;
-    // Cache detector object.
-    Detector detector = null;
-    // Tracking strategies resource path.
-    private String strategyResource = "HPS-Test-4pt1.xml";
-    // Output track collection.
-    private String trackCollectionName = "StraightTracks";
-    // HelicalTrackHit input collection.
-    private String stInputCollectionName = "HelicalTrackHits";
-    // Include MS (done by removing XPlanes from the material manager results)
-    private boolean includeMS = true;
-    // number of repetitive fits on confirmed/extended tracks
-    private int _iterativeConfirmed = 3;
-    // use HPS implementation of material manager
-    private boolean _useHPSMaterialManager = true;
-
-    private TrackChecker checkerTrack = new TrackChecker();
-    private HitOnTrackChecker checkerHOT = new HitOnTrackChecker();
-
-    private SlopeInterceptLineFitter _lfitter = new SlopeInterceptLineFitter();
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+    private HitManager _hitmanager;
+    private StraightTrackFitter _helixfitter;
+    private StraightTrackConfirmerExtender _confirmer;
+    private List<SeedCandidate> _trackseeds;
+    private ISeedTrackerDiagnostics _diag = null;
+    private Set<MCParticle> _seededmcp;
+    private Set<MCParticle> _confirmedmcp;
+    TrackCheck _trackCheck; // set by SeedTracker
+    private boolean _debug = false;
+   
 
     /**
-     * Set the tracking strategy resource.
-     *
-     * @param strategyResource The absolute path to the strategy resource in the
-     * hps-java jar.
+     * Creates a new instance of SeedTrackFinder
      */
-    public void setStrategyResource(String strategyResource) {
-        this.strategyResource = strategyResource;
-    }
+    public StraightTrackFinder(HitManager hitmanager, StraightTrackFitter helixfitter) {
 
-    public void setInputHitCollectionName(String inputHitCollectionName) {
-        this.stInputCollectionName = inputHitCollectionName;
-    }
+        //  Save the pointers to the hit manager and helix fitter classes
+        _hitmanager = hitmanager;
+        _helixfitter = helixfitter;
 
-    public void setTrackCollectionName(String trackCollectionName) {
-        this.trackCollectionName = trackCollectionName;
-    }
+        //  Instantiate the Confirmer/Extender and Seed Candidate merging classes
+        _confirmer = new StraightTrackConfirmerExtender(_hitmanager, _helixfitter);
 
-    public void setIncludeMS(boolean incMS) {
-        this.includeMS = incMS;
-    }
+        //  Create a list of track seeds that have been found
+        _trackseeds = new ArrayList<SeedCandidate>();
 
-    /**
-     * Set to enable the use of the HPS material manager implementation
-     *
-     * @param useHPSMaterialManager switch
-     */
-    public void setUseHPSMaterialManager(boolean useHPSMaterialManager) {
-        this._useHPSMaterialManager = useHPSMaterialManager;
-    }
-
-    @Override
-    public void detectorChanged(Detector detector) {
-        // Cache Detector object.
-        this.detector = detector;
-//        initialize();
-        super.detectorChanged(detector);
-    }
-
-    @Override
-    public void process(EventHeader event) {
-        if (!event.hasCollection(HelicalTrackHit.class, stInputCollectionName))
-            return;
-
-        List<HelicalTrackHit> allHits = event.get(HelicalTrackHit.class, stInputCollectionName);
-
-        List<List<HelicalTrackHit>> splitTopBot = HitCollectionUtilites.SplitTopBottomHits(allHits);
-        // will always have top(=0) and bottom(=1) lists (though they may be empty)
-        List<HelicalTrackHit> topHits = splitTopBot.get(0);
-        List<HelicalTrackHit> bottomHits = splitTopBot.get(1);
-        //a simple strategy...eventually implement SeedTracker strategies?
-        int nTotLayers = 6;
-        int nSeed = 3;
-        int nExtra = nTotLayers - nSeed;
-        int[] seedStrategy = {1, 3, 5};
-        int[] extendStrategy = {7, 9, 11};
-        int minHits = 4;
-
-        TrackChecker checkerTrack = new TrackChecker();
-        HitOnTrackChecker checkerHOT = new HitOnTrackChecker();
-
-//        List<StraightTrack> seeds = getSeeds(seedStrategy, topHits);
-        List<StraightTrack> seeds = getSeeds(seedStrategy, allHits);
-        System.out.println("Found " + seeds.size() + " seeds");
-
-        List<StraightTrack> extendedSeeds = new ArrayList<>();
-        for (StraightTrack seed : seeds)
-            extendTrack(extendStrategy, 0, seed, allHits, extendedSeeds);
-//            extendTrack(extendStrategy, 0, seed, topHits, extendedSeeds);
-
-        System.out.println("Prepruning  :Found " + extendedSeeds.size() + " extended seeds");
-
-        //remove tracks with more than m overlaping hits...pick best chi2
-        //...
-        List<StraightTrack> finalTracks = new ArrayList<>();
-        for (StraightTrack track : extendedSeeds) {
-            boolean isbest = TrackCollectionUtilities.pruneTrackList((ArrayList<Track>) (ArrayList) extendedSeeds, track, 1);
-            if (isbest)
-                finalTracks.add(track);
-        }
-
-        System.out.println("Postpruning  :Found " + finalTracks.size() + " extended seeds");
-        event.put(trackCollectionName, finalTracks);
-    }
-
-    public SlopeInterceptLineFit FitToLine(List<HelicalTrackHit> hits, int projection) {
-        SlopeInterceptLineFit _lfit;
-        int npix = hits.size();
-        double[] s = new double[npix];
-        double[] q = new double[npix];
-        double[] dq = new double[npix];
-
-        //  Store the coordinates and errors for the line fit
-        for (int i = 0; i < npix; i++) {
-            HelicalTrackHit hit = hits.get(i);
-            s[i] = hit.z();//probably isn't quite right...track length is not z
-            if (projection == 0) { //do x vs z;
-                q[i] = hit.x();
-                dq[i] = Math.sqrt(hit.getCorrectedCovMatrix().e(0, 0));
-            } else {
-                q[i] = hit.y();
-                dq[i] = Math.sqrt(hit.getCorrectedCovMatrix().e(1, 1));
-            }
-        }
-
-        //  Call the line fitter and check for success
-        boolean success = _lfitter.fit(s, q, dq, npix);
-
-        if (!success)
-            System.out.println("Something is broken in the line fit");
-        //  Save the line fit, chi^2, and DOF
-        _lfit = _lfitter.getFit();
-        return _lfit;
+        //  Create a set of MC Particles that have been seeded, confirmed
+        _seededmcp = new HashSet<MCParticle>();
+        _confirmedmcp = new HashSet<MCParticle>();
 
     }
 
-    private StraightTrack makeTrack(List<HelicalTrackHit> hits, SlopeInterceptLineFit xfit, SlopeInterceptLineFit yfit) {
-        StraightTrack track = new StraightTrack();
-        double[] pars = {-99, -99, -99, -99, -99};//this needs to have 5 fields to implement Track
-        pars[0] = xfit.intercept();
-        pars[1] = xfit.slope();
-        pars[2] = yfit.intercept();
-        pars[3] = yfit.slope();
-        track.setTrackParameters(pars);
-        track.setChi2(xfit.chisquared(), yfit.chisquared());
-        track.setNDF(xfit.ndf()+yfit.ndf());
-        for (TrackerHit hit : hits)
-            track.addHit(hit);        
-        // TODO:  set convariance, 
-        return track;
+    public void setDiagnostic(ISeedTrackerDiagnostics d) {
+
+        //  Setup the diagnostics for this class and the classes used by this class
+        _diag = d;
+        _confirmer.setDiagnostics(_diag);
     }
 
-    private StraightTrack makeTrack(List<HelicalTrackHit> hits) {
-        SlopeInterceptLineFit xfit = FitToLine(hits, 0);
-        SlopeInterceptLineFit yfit = FitToLine(hits, 1);
-        if (debug)
-            System.out.println("xfit = " + xfit.toString());
-        if (debug)
-            System.out.println("yfit = " + yfit.toString());        
-        return makeTrack(hits, xfit, yfit);
-    }
+    public boolean FindTracks(SeedStrategy strategy, double bfield) {
 
-    /*
-     *   Get all seed combinations that make sense (pass checkSeed)
-     *   currently, just assume there are 3 seed layers (don't have to be first 3 though.  
-     */
-    private List<StraightTrack> getSeeds(int[] seedLayers, List<HelicalTrackHit> hits) {
-        List<StraightTrack> seeds = new ArrayList<>();
-        int nseeds = seedLayers.length;
-        if (nseeds == 3)//TODO ... set this up so that this works for arbitrary nseeds...use recursion
-            for (HelicalTrackHit h1 : HitCollectionUtilites.GetSortedHits(hits, seedLayers[0])) {
-                if (debug)
-                    System.out.println(h1.toString());
-                for (HelicalTrackHit h2 : HitCollectionUtilites.GetSortedHits(hits, seedLayers[1])) {
-                    if (debug)
-                        System.out.println(h2.toString());
-                    for (HelicalTrackHit h3 : HitCollectionUtilites.GetSortedHits(hits, seedLayers[2])) {
-                        if (debug)
-                            System.out.println(h3.toString());
-                        //make a 3-hit test track...see if it passes CheckTrack 
-                        List<HelicalTrackHit> testTrack = new ArrayList<HelicalTrackHit>();
-                        testTrack.add(h1);
-                        testTrack.add(h2);
-                        testTrack.add(h3);                       
-                        StraightTrack trk = makeTrack(testTrack);
-                        if (!checkerTrack.checkSeed(trk))
-                            break;
-                        seeds.add(trk);
+        //  Instantiate the fast hit checker
+        //   FastCheck checker = new FastCheck(strategy, bfield, _diag);
+        //   if(_applySectorBinning) checker.setDoSectorBinCheck(_hitmanager.getSectorManager());
+//        SeedSectoring ss = new SeedSectoring(_hitmanager, strategy, bfield, _applySectorBinning);
+        List<SeedLayer> seeds = strategy.getLayers(SeedLayer.SeedType.Seed);
+
+//        List<List<Sector>> sslist = ss.SeedSectors();
+//        if(_debug)
+//            System.out.println(this.getClass().getSimpleName()+": number of SeedSectors="+sslist.size());
+        //  Loop over the valid sector combinations
+        //      for (List<Sector> slist : sslist) {
+            //  Loop over the first seed layer
+        for (HelicalTrackHit hit1 : _hitmanager.getTrackerHits(seeds.get(0)))
+
+            //  Loop over the second seed layer and check that we have a hit pair consistent with our strategy
+            for (HelicalTrackHit hit2 : _hitmanager.getTrackerHits(seeds.get(1))) {
+
+                //  Call _trackCheck if set
+                if (_trackCheck != null) {
+                    SeedCandidate tempseed = new SeedCandidate(strategy, bfield);
+                    tempseed.addHit(hit1);
+                    tempseed.addHit(hit2);
+                    if (!_trackCheck.checkSeed(tempseed))
+                        continue;
+                }
+
+//                    //  Check if the pair of hits is consistent with the current strategy
+//                    if (!checker.TwoPointCircleCheck(hit1, hit2, null)) {
+//                        if (_diag != null) _diag.fireCheckHitPairFailed(hit1, hit2);
+//                        continue;
+//                    }
+                //  Loop over the third seed layer and check that we have a hit triplet consistent with our strategy
+                for (HelicalTrackHit hit3 : _hitmanager.getTrackerHits(seeds.get(2))) {
+                    //  Call _trackCheck if set
+                    if (_trackCheck != null) {
+                        SeedCandidate tempseed2 = new SeedCandidate(strategy, bfield);
+                        tempseed2.addHit(hit1);
+                        tempseed2.addHit(hit3);
+                        if (!_trackCheck.checkSeed(tempseed2))
+                            continue;
+
+                        SeedCandidate tempseed3 = new SeedCandidate(strategy, bfield);
+                        tempseed3.addHit(hit2);
+                        tempseed3.addHit(hit3);
+                        if (!_trackCheck.checkSeed(tempseed3))
+                            continue;
                     }
+
+                    //  Form a seed candidate from the seed hits
+                    SeedCandidate seed = new SeedCandidate(strategy, bfield);
+                    seed.addHit(hit1);
+                    seed.addHit(hit2);
+                    seed.addHit(hit3);
+
+//                        //  Check if the triplet of hits is consistent with the current strategy
+//                        if (!checker.ThreePointHelixCheck(hit1, hit2, hit3)) {
+//
+//                            if (_diag != null) {
+//                                if (seed.isTrueSeed())
+//                                _diag.fireCheckHitTripletFailed(hit1, hit2, hit3);
+//                            }
+//                            continue;
+//                        }
+                        //  Form a seed candidate from the seed hits
+                    //  If it's a true seed, add the MC Particle to those that were seeded
+                    if (_diag != null)
+                        if (seed.isTrueSeed())
+                            _seededmcp.addAll(seed.getMCParticles());
+
+                    if (_debug)
+                        System.out.println(this.getClass().getSimpleName() + ": fit the candidate");
+
+                    //  See if we can fit a helix to this seed candidate
+                    boolean success = _helixfitter.FitCandidate(seed, strategy);
+
+                    if (!success)
+                        continue;
+
+                    if (_debug)
+                        System.out.println(this.getClass().getSimpleName() + ": fit success");
+
+                    //  Save the helix fit
+                    seed.setHelix(_helixfitter.getHelix());
+
+                    // Check the seed - hook for plugging in external constraint
+                    if (_trackCheck != null)
+                        if (!_trackCheck.checkSeed(seed))
+                            continue;
+
+                    //  See if we can confirm this seed candidate
+                    success = _confirmer.Confirm(seed, strategy, bfield);
+                    if (!success)
+                        continue;
+
+                    if (_debug)
+                        System.out.println(this.getClass().getSimpleName() + ": confirmed seed");
+
+                    //  Confirmed a seed - if it's a true seed, add the MC Particle to those that were confirmed
+                    if (_diag != null)
+                        if (seed.isTrueSeed())
+                            _confirmedmcp.addAll(seed.getMCParticles());
+
+                    if (_debug)
+                        System.out.println(this.getClass().getSimpleName() + ": try to extend");
+
+                    //  Try to extend each confirmed seed candidates to make a track candidate
+                    List<SeedCandidate> confirmedlist = _confirmer.getResult();
+                    for (SeedCandidate confirmedseed : confirmedlist)
+
+                        //  See if we can extend this seed candidate
+                        _confirmer.Extend(confirmedseed, strategy, bfield, _trackseeds);
                 }
             }
-        return seeds;
+
+//        //  Done with track finding for this strategy
+//        if (_diag != null)
+//            _diag.fireFinderDone(_trackseeds, _seededmcp);
+        return _trackseeds.size() > 0;
     }
 
-    /*
-     * recursively extend the seeds through all of the extend layers..
-     * ...I think this should work...
+    /**
+     * Return the list of track candidates.
+     *
+     * @return track candidates
      */
-    private void extendTrack(int[] extendLayers, int n, StraightTrack origTrack, List<HelicalTrackHit> hits, List<StraightTrack> trackList) {
-        if (n >= extendLayers.length) {
-            if (debug)
-                System.out.println("Done finding this track through all " + n + " extra layers");
-            trackList.add(origTrack);
-            return;
-        }
+    public List<SeedCandidate> getTrackSeeds() {
+        return _trackseeds;
+    }
 
-        boolean cannotExtendThisLayer = true;
-        if (debug)
-            System.out.println("Extending to layer " + extendLayers[n]);
-        for (HelicalTrackHit h : HitCollectionUtilites.GetSortedHits(hits, extendLayers[n])) {
-            //let's see if this hit makes sense to add to original track
-            if (!checkerHOT.checkNewHit(origTrack, h))
-                continue;
+    /**
+     * Clear the list of track candidates accumulated from previous calls to
+     * SeedTrackFinder (typically done before starting a new event).
+     */
+    public void clearTrackSeedList() {
+        _trackseeds.clear();
+        _seededmcp.clear();
+        _confirmedmcp.clear();
+    }
 
-            List<TrackerHit> origHits = origTrack.getTrackerHits();
-            //make a new list and cast them as HelicalTrackHits (Track only stores TrackerHits)
-            List<HelicalTrackHit> newHits = new ArrayList<>();
-            for (TrackerHit oh : origHits) {
-                HelicalTrackHit hoh = (HelicalTrackHit) oh;
-                System.out.println(hoh.getPosition()[0]);
-                newHits.add(hoh);
-            }
-            //add the new hit to the list & make new track
-            newHits.add(h);
-            StraightTrack newTrack = makeTrack(newHits);
-            //check the new track after we've added this hit
-            if (!checkerTrack.checkTrack(newTrack))
-                continue;
-            cannotExtendThisLayer = false;
-            //extend again to the next layer
-            extendTrack(extendLayers, n + 1, newTrack, hits, trackList);
-        }
+    /**
+     * Set the maximum number of fits for a given seed in a confirm or extend
+     * step.
+     *
+     * @param maxfits maximum number of fits
+     */
+    public void setMaxFit(int maxfits) {
+        _confirmer.setMaxFit(maxfits);
+    }
 
-        //didn't find any hits in this layer that match the track...but let's try the next one
-        if (cannotExtendThisLayer)
-            extendTrack(extendLayers, n + 1, origTrack, hits, trackList);
+    /**
+     * Return the list of MCParticles that formed valid 3-hit seeds.
+     *
+     * @return list of seeded MCParticles
+     */
+    public Set<MCParticle> getSeededMCParticles() {
+        return _seededmcp;
+    }
 
-        return;
+    /**
+     * Return the list of confirmed MCParticles.
+     *
+     * @return confirmed MCParticles
+     */
+    public Set<MCParticle> getConfirmedMCParticles() {
+        return _confirmedmcp;
+    }
+
+    /**
+     * Return the StraightTrackConfirmerExtender
+     *
+     * @return confirmer/extender object
+     *
+     */
+    public StraightTrackConfirmerExtender getConfirmer() {
+        return _confirmer;
+    }
+
+    public void setDebug(boolean debug) {
+        System.out.println("Setting " + this.getClass().getSimpleName() + " debug to " + debug);
+        _debug = debug;
     }
 
 }
