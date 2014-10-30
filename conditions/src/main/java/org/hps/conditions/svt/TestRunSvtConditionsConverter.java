@@ -4,6 +4,7 @@ import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
+import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 
 public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsConverter<TestRunSvtConditions> {
 
@@ -35,6 +36,10 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
         TestRunSvtDaqMappingCollection daqMap = this.getCollection(TestRunSvtDaqMappingCollection.class, dbConditionsManager);
         conditions.setDaqMap(daqMap);
         
+        // Get the collection of T0 shifts from the conditions database
+        TestRunSvtT0ShiftCollection t0Shifts = this.getCollection(TestRunSvtT0ShiftCollection.class, dbConditionsManager);
+        conditions.setT0Shifts(t0Shifts);
+
         conditions = super.getData(manager, name);
 
         return conditions;

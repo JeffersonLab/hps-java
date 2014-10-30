@@ -4,6 +4,7 @@ import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 
 /**
  * This class creates an {@link SvtConditions} object from the database, based on the
@@ -38,6 +39,10 @@ public final class SvtConditionsConverter extends AbstractSvtConditionsConverter
     	// Get the DAQ map from the conditions database
     	SvtDaqMappingCollection daqMap= this.getCollection(SvtDaqMappingCollection.class, dbConditionsManager);
         conditions.setDaqMap(daqMap);
+        
+        // Get the collection of T0 shifts from the conditions database
+        SvtT0ShiftCollection t0Shifts = this.getCollection(SvtT0ShiftCollection.class, dbConditionsManager);
+        conditions.setT0Shifts(t0Shifts);
         
         conditions = super.getData(manager, name);
         
