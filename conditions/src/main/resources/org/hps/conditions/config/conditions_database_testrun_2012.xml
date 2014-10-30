@@ -146,7 +146,7 @@
             </fields>  
         </table>   
         
-        <table key="ecal_bad_channels" name="ecal_bad_channels">
+        <table key="test_run_ecal_bad_channels" name="test_run_ecal_bad_channels">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalBadChannel"/>
                 <collection class="org.hps.conditions.ecal.EcalBadChannel$EcalBadChannelCollection"/>
@@ -156,7 +156,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_gains" name="ecal_gains">
+        <table key="test_run_ecal_gains" name="test_run_ecal_gains">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalGain"/>
                 <collection class="org.hps.conditions.ecal.EcalGain$EcalGainCollection"/>
@@ -167,7 +167,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_calibrations" name="ecal_calibrations">
+        <table key="test_run_ecal_calibrations" name="test_run_ecal_calibrations">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalCalibration"/>
                 <collection class="org.hps.conditions.ecal.EcalCalibration$EcalCalibrationCollection"/>
@@ -179,7 +179,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_channels" name="ecal_channels">
+        <table key="test_run_ecal_channels" name="test_run_ecal_channels">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalChannel"/>
                 <collection class="org.hps.conditions.ecal.EcalChannel$EcalChannelCollection"/>
@@ -194,7 +194,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_time_shifts" name="ecal_time_shifts">
+        <table key="test_run_ecal_time_shifts" name="test_run_ecal_time_shifts">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalTimeShift"/>
                 <collection class="org.hps.conditions.ecal.EcalTimeShift$EcalTimeShiftCollection"/>
