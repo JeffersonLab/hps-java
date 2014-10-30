@@ -3,21 +3,22 @@ package org.hps.conditions.svt;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
+import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
+
 // TODO: Move all constants to their own class
 import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
- * This class contains all test run SVT conditions data by readout channel. {@link SvtChannel}
- * objects from the {@linkSvtChannelMap} should be used to lookup the conditions using the
- * {@link #getChannelConstants(SvtChannel)} method.
+ * This class contains all test run SVT conditions data by readout channel. 
+ * {@link TestRunSvtChannel} objects from the SVT channel map should be used to
+ * lookup the conditions using the {@link #getChannelConstants(TestRunSvtChannel)}
+ * method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class TestRunSvtConditions extends AbstractSvtConditions {
 
-    protected TestRunSvtDaqMappingCollection daqMap = null;
-    
 	/**
      * Get the {@link TestRunSvtDaqMappingCollection} associated with these conditions.
      * 
@@ -25,33 +26,29 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
      */
     @Override
     public TestRunSvtDaqMappingCollection getDaqMap() {
-        return daqMap;
+        return (TestRunSvtDaqMappingCollection) daqMap;
     }
 
+    /**
+     * Get the {@link TestRunSvtChannelCollection} for this set of conditions.
+     * 
+     * @return The SVT channel map.
+     */
     @Override
     public TestRunSvtChannelCollection getChannelMap() {
         return (TestRunSvtChannelCollection) channelMap;
     }
 
     /**
-     * Set the {@link TestRunSvtDaqMappingCollection} associated with these conditions.
+     * Get the {@link TestRunSvtT0ShiftCollection} associated with these conditions.
      * 
-     * @param daqMap The SVT DAQ map.
-	 * @return 
+     * @return The {@link TestRunSvtT0ShiftCollection}
      */
-    public void setDaqMap(TestRunSvtDaqMappingCollection daqMap) {
-        this.daqMap = daqMap;
+    @Override
+    public TestRunSvtT0ShiftCollection getT0Shifts() { 
+    	return (TestRunSvtT0ShiftCollection) t0Shifts;
     }
     
-    /**
-     * Set the channel map of type {@link TestRunSvtChannelCollection}.
-     * 
-     *  @param channelMap The SVT channel map.
-     */
-    public void setChannelMap(TestRunSvtChannelCollection channelMap){
-    	this.channelMap = channelMap;
-    }
-
     /**
      * Convert this object to a human readable string. This method prints a formatted
      * table of channel data independently of how its member objects implement their

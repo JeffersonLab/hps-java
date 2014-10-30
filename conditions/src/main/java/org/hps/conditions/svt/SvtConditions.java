@@ -3,25 +3,23 @@ package org.hps.conditions.svt;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
+import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+
 // TODO: Move all constants to their own class
 import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
- * This class contains all SVT conditions data by readout channel. {@link SvtChannel}
- * objects from the {@linkSvtChannelMap} should be used to lookup the conditions using the
- * {@link #getChannelConstants(SvtChannel)} method.
+ * 
+ * This class contains all test run SVT conditions data by readout channel. 
+ * {@link SvtChannel} objects from the SVT channel map should be used to
+ * lookup the conditions using the {@link #getChannelConstants(SvtChannel)}
+ * method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public final class SvtConditions extends AbstractSvtConditions {
 
-    /** SVT conditions data. */
-    protected SvtDaqMappingCollection daqMap = null;
-    
-    public SvtConditions(){
-    }
-    
 	/**
      * Get the {@link SvtDaqMappingCollection} associated with these conditions.
      * 
@@ -29,7 +27,7 @@ public final class SvtConditions extends AbstractSvtConditions {
      */
     @Override
     public SvtDaqMappingCollection getDaqMap(){
-        return daqMap;
+        return (SvtDaqMappingCollection) daqMap;
     }
 
     /**
@@ -42,25 +40,16 @@ public final class SvtConditions extends AbstractSvtConditions {
         return (SvtChannelCollection) channelMap;
     }
     
-	/**
-     * Set the {@link SvtDaqMappingCollection} associated with these conditions.
-     * 
-     * @param daqMap The SVT DAQ map.
-	 * @return 
-     */
-    public void setDaqMap(SvtDaqMappingCollection daqMap) {
-        this.daqMap = daqMap;
-    }
-   
-    
     /**
-     * Set the channel map of type {@link SvtChannelCollection}.
+     * Get the {@link SvtT0ShiftCollection} associated with these conditions.
      * 
-     *  @param channelMap The SVT channel map.
+     * @return The {@link SvtT0ShiftCollection}
      */
-    public void setChannelMap(SvtChannelCollection channelMap){
-    	this.channelMap = channelMap;
+    @Override
+    public SvtT0ShiftCollection getT0Shifts() { 
+    	return (SvtT0ShiftCollection) t0Shifts;
     }
+    
 
     /**
      * Convert this object to a human readable string. This method prints a formatted
