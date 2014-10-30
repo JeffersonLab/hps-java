@@ -30,16 +30,12 @@ public class TestRunSvtDetectorSetup {
 	
         // Find sensor objects.
     	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
-        System.out.println("Total sensors found: " + sensors.size());
-    	
     	TestRunSvtChannelCollection channelMap = conditions.getChannelMap();
         TestRunSvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 		
         // Loop over sensors.
         for(HpsSiSensor sensor : sensors){
-        	
-        	HpsTestRunSiSensor testRunSensor = (HpsTestRunSiSensor) sensor; 
         	
             // Reset possible existing conditions data on sensor.
             sensor.reset();
@@ -51,10 +47,10 @@ public class TestRunSvtDetectorSetup {
             }
            
             // Set the FPGA ID of the sensor
-            testRunSensor.setFpgaID(daqPair.getFirstElement());
+            ((HpsTestRunSiSensor) sensor).setFpgaID(daqPair.getFirstElement());
         
             // Set the hybrid ID of the sensor
-            testRunSensor.setHybridID(daqPair.getSecondElement());
+            ((HpsTestRunSiSensor) sensor).setHybridID(daqPair.getSecondElement());
             
             // Set the orientation of the sensor
             String orientation = daqMap.getOrientation(daqPair);
@@ -74,7 +70,6 @@ public class TestRunSvtDetectorSetup {
             	// Get conditions data for this channel.
                 ChannelConstants constants = conditions.getChannelConstants(channel);
                 int channelNumber = channel.getChannel();
-            
             
                 //
                 // Set conditions data for this channel on the sensor object:
@@ -105,7 +100,7 @@ public class TestRunSvtDetectorSetup {
             }
             
             // Set the t0 shift for the sensor.
-            SvtT0Shift sensorT0Shift = t0Shifts.find(daqPair).get(0);
+            SvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
 	}

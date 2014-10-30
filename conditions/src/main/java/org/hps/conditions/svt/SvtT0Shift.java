@@ -12,48 +12,39 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class SvtT0Shift extends AbstractConditionsObject {
+public final class SvtT0Shift extends AbstractSvtT0Shift {
 
-    public static class SvtT0ShiftCollection extends ConditionsObjectCollection<SvtT0Shift> {
+    public static class SvtT0ShiftCollection 
+        extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<SvtT0Shift> {
 
-        SvtT0ShiftCollection find(Pair<Integer, Integer> pair) {
-            SvtT0ShiftCollection t0Shifts = new SvtT0ShiftCollection();
+        @Override
+        public SvtT0Shift getT0Shift(Pair<Integer, Integer> pair) {
             int febID = pair.getFirstElement();
             int febHybridID = pair.getSecondElement();
-            for (SvtT0Shift timeShift : getObjects()) {
-                if (timeShift.getFebID() == febID && timeShift.getFebHybridID() == febHybridID) {
-                    try {
-                        t0Shifts.add(timeShift);
-                    } catch (ConditionsObjectException e) {
-                        throw new RuntimeException(e);
-                    }
+            for (SvtT0Shift t0Shift : this.getObjects()) {
+                if (t0Shift.getFebID() == febID && t0Shift.getFebHybridID() == febHybridID) {
+                    return t0Shift;
                 }
             }
-            return t0Shifts;
+            return null;
         }
     }
 
     /**
-     * Get the FPGA number.
-     * @return The FPGA number.
+     * Get the FEB ID.
+     * 
+     * @return The FEB ID.
      */
     int getFebID() {
         return getFieldValue("feb_id");
     }
 
     /**
-     * Get the hybrid number.
-     * @return The hybrid number.
+     * Get the FEB hybrid ID.
+     *
+     * @return The FEB hybrid ID.
      */
     int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
-    }
-
-    /**
-     * Get the time shift.
-     * @return The time shift.
-     */
-    double getT0Shift() {
-        return getFieldValue("t0_shift");
     }
 }
