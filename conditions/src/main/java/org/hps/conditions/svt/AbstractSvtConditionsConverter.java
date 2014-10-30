@@ -2,8 +2,8 @@ package org.hps.conditions.svt;
 
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
+
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableMetaData;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
@@ -32,7 +32,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
     	DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
     
     	// Get the SVT calibrations (baseline, noise) from the conditions database
-        SvtCalibrationCollection calibrations = this.getCollection(SvtCalibrationCollection.class, dbConditionsManager);
+        SvtCalibrationCollection calibrations = dbConditionsManager.getCollection(SvtCalibrationCollection.class);
         for (SvtCalibration calibration : calibrations.getObjects()) {
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
             conditions.getChannelConstants(channel).setCalibration(calibration);
@@ -40,7 +40,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
 
         // Get the Channel pulse fit parameters from the conditions database
         SvtShapeFitParametersCollection shapeFitParametersCollection 
-        	= this.getCollection(SvtShapeFitParametersCollection.class, dbConditionsManager);
+        	= dbConditionsManager.getCollection(SvtShapeFitParametersCollection.class);
         for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection.getObjects()) {
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(shapeFitParameters.getChannelID());
             conditions.getChannelConstants(channel).setShapeFitParameters(shapeFitParameters);
@@ -49,7 +49,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         // Get the bad channels from the conditions database.  If there aren't any bad channels, 
         // notify the user and move on.
         try { 
-        	SvtBadChannelCollection badChannels = this.getCollection(SvtBadChannelCollection.class, dbConditionsManager);
+        	SvtBadChannelCollection badChannels = dbConditionsManager.getCollection(SvtBadChannelCollection.class);
         	for (SvtBadChannel badChannel : badChannels.getObjects()) {
         		AbstractSvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
         		conditions.getChannelConstants(channel).setBadChannel(true);
@@ -59,7 +59,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         }
 
         // Get the gains and offsets from the conditions database
-        SvtGainCollection channelGains = this.getCollection(SvtGainCollection.class, dbConditionsManager);
+        SvtGainCollection channelGains = dbConditionsManager.getCollection(SvtGainCollection.class);
         for (SvtGain channelGain : channelGains.getObjects()) {
             int channelId = channelGain.getChannelID();
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(channelId);
@@ -67,26 +67,5 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         }
 
         return conditions;
-	}
-
-	/**
-	 * Get a given collection of the given type from the conditions database.
-	 * 
-	 * @param type Class type
-	 * @param dbConditionsManager The database conditions manager
-	 * @return A collection of objects of the given type from the conditions database
-	 */
-	protected <U> U getCollection(Class<U> type, DatabaseConditionsManager dbConditionsManager){
-		
-		// Get the table name from the database configuration
-		TableMetaData metaData = dbConditionsManager.findTableMetaData(type);
-		if(metaData == null) 
-			throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
-		String tableName = metaData.getTableName();
-
-		// FIXME: This should be changed to catch a conditions record not found exception instead of 
-		// 		  a runtime exception.
-		U conditionsCollection = dbConditionsManager.getCachedConditions(type, tableName).getCachedData(); 
-		return conditionsCollection; 
 	}
 }

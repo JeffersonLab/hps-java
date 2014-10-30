@@ -31,17 +31,17 @@ public final class SvtConditionsConverter extends AbstractSvtConditionsConverter
     	DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
 
     	// Get the channel map from the conditions database
-        SvtChannelCollection channels = this.getCollection(SvtChannelCollection.class, dbConditionsManager); 
+        SvtChannelCollection channels = dbConditionsManager.getCollection(SvtChannelCollection.class); 
 
         // Create the SVT conditions object to use to encapsulate SVT condition collections
         conditions.setChannelMap(channels);
        
     	// Get the DAQ map from the conditions database
-    	SvtDaqMappingCollection daqMap= this.getCollection(SvtDaqMappingCollection.class, dbConditionsManager);
+    	SvtDaqMappingCollection daqMap= dbConditionsManager.getCollection(SvtDaqMappingCollection.class);
         conditions.setDaqMap(daqMap);
         
         // Get the collection of T0 shifts from the conditions database
-        SvtT0ShiftCollection t0Shifts = this.getCollection(SvtT0ShiftCollection.class, dbConditionsManager);
+        SvtT0ShiftCollection t0Shifts = dbConditionsManager.getCollection(SvtT0ShiftCollection.class);
         conditions.setT0Shifts(t0Shifts);
         
         conditions = super.getData(manager, name);
