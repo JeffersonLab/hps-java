@@ -8,7 +8,6 @@ import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
-import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 
 
 /**
@@ -66,10 +65,6 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(channelGain);
         }
-
-        // Get the collection of T0 shifts from the conditions database
-        SvtT0ShiftCollection t0Shifts = this.getCollection(SvtT0ShiftCollection.class, dbConditionsManager);
-        conditions.setT0Shifts(t0Shifts);
 
         return conditions;
 	}
