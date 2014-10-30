@@ -5,8 +5,7 @@ import java.util.Map;
 
 import org.hps.conditions.svt.AbstractSvtChannel.AbstractSvtChannelCollection;
 import org.hps.conditions.svt.AbstractSvtDaqMapping.AbstractSvtDaqMappingCollection;
-import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
-import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.AbstractSvtT0Shift.AbstractSvtT0ShiftCollection;
 
 /**
  * Abstract class providing some of the common functionality used to define an 
@@ -19,9 +18,10 @@ public abstract class AbstractSvtConditions {
 
     protected Map<AbstractSvtChannel, ChannelConstants> channelData 
         = new HashMap<AbstractSvtChannel, ChannelConstants>(); 
-    protected SvtT0ShiftCollection t0Shifts = null;
+    protected AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts = null;
     protected AbstractSvtChannel.AbstractSvtChannelCollection<? extends AbstractSvtChannel> channelMap = null;
-
+    protected AbstractSvtDaqMapping.AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> daqMap = null;
+    
     
     /**
      * Get the DAQ map associated with these conditions.
@@ -52,28 +52,43 @@ public abstract class AbstractSvtConditions {
     }
 
     /**
-     * Get the {@link SvtChannelCollection} for this set of conditions.
+     * Get the channel map for this set of conditions.
      * 
      * @return The SVT channel map.
      */
     public abstract AbstractSvtChannelCollection<? extends AbstractSvtChannel> getChannelMap();
     
     /**
-     * Get the {@link SvtT0ShiftCollection}.
+     * Get the t0 shifts for this conditions set.
      * 
      * @return The t0 shifts by sensor.
      */
-    public SvtT0ShiftCollection getT0Shifts() {
-        return t0Shifts;
-    
-    }
+    public abstract AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> getT0Shifts();
    
     /**
-     * Set the sensor t0 shifts of type {@link SvtT0ShiftCollection}
+     * Set the DAQ map for this conditions set.
      * 
-     * @param t0Shifts The sensor time shifts collection.
+     * @param daqMap DAQ map for this conditions set.
      */
-    public void setT0Shifts(SvtT0ShiftCollection t0Shifts) {
-        this.t0Shifts = t0Shifts;
+    public void setDaqMap(AbstractSvtDaqMappingCollection<? extends AbstractSvtDaqMapping> daqMap){
+    	this.daqMap = daqMap;
+    }
+    
+    /**
+     * Set the SVT channel map for this conditions set.
+     * 
+     *  @param channelMap The SVT channel map for this conditions set.
+     */
+    public void setChannelMap(AbstractSvtChannelCollection<? extends AbstractSvtChannel> channelMap){
+    	this.channelMap = channelMap;
+    }
+    
+    /**
+     * Set the sensor t0 shifts for this conditions set. 
+     * 
+     * @param t0Shifts for this conditions set.
+     */
+    public void setT0Shifts(AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts){ 
+    	this.t0Shifts = t0Shifts; 
     }
 }
