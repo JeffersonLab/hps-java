@@ -12,9 +12,11 @@ import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollect
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
+import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 
 /**
  * Definitions of converters from the database to SVT specific conditions classes.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -83,6 +85,12 @@ public final class SvtConverterRegistry {
     public static class TestRunSvtChannelConverter extends ConditionsObjectConverter<TestRunSvtChannelCollection> {
         public Class getType(){
             return TestRunSvtChannelCollection.class;
+        }
+    }
+
+    public static class TestRunSvtT0ShiftConverter extends ConditionsObjectConverter<TestRunSvtT0ShiftCollection> {
+        public Class getType() {
+            return TestRunSvtT0ShiftCollection.class;
         }
     }
 }
