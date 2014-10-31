@@ -157,7 +157,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int i = 0; i < hitQueues.length; i++) {
                     if (hitQueues[i] != null) {
                         while (!hitQueues[i].isEmpty() && hitQueues[i].peek().time < ClockSingleton.getTime() - (readoutLatency + pileupCutoff)) {
-                            System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
+                            //System.out.format("Time %f: Dump stale hit with time %f\n",ClockSingleton.getTime(),hitQueues[i].peek().time);
                             hitQueues[i].poll();
                         }
                         if (hitQueues[i].isEmpty()) {
