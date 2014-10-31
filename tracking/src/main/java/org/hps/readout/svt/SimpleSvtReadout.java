@@ -283,15 +283,15 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     private boolean readoutCuts(RawTrackerHit hit) {
         if (enableThresholdCut && !samplesAboveThreshold(hit)) {
-            System.out.println("Failed threshold cut");
+            //System.out.println("Failed threshold cut");
             return false;
         }
         if (enablePileupCut && !pileupCut(hit)) {
-            System.out.println("Failed pileup cut");
+            //System.out.println("Failed pileup cut");
             return false;
         }
         if (dropBadChannels && !badChannelCut(hit)) {
-            System.out.println("Failed bad channel cut");
+            //System.out.println("Failed bad channel cut");
             return false;
         }
         return true;
