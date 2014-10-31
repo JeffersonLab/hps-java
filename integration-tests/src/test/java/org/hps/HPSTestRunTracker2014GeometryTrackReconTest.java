@@ -154,7 +154,7 @@ public class HPSTestRunTracker2014GeometryTrackReconTest extends TestCase {
             System.out.println("  <nparticles / nevents> = " + ((double)nparticles / (double)nevents));
 
             // check that there is one track per event
-            assertTrue((Math.abs((double)ntracks / (double)nevents) - 1) < 0.000001);
+            assertTrue("Failed to find expected number of tracks.",Math.abs(((double)ntracks / (double)nevents) - 1) < 0.000001);
             
             System.out.println("CheckDriver compare to following ...");
             
