@@ -16,100 +16,93 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * @author Kyle McCarty
  */
 public class POccupancyViewer extends PassiveViewer {
-	private static final long serialVersionUID = 3712604287904215617L;
-	// Store the number of hits for each crystal.
-	private long[][] hits;
-	// Store the total number of events read.
-	private long events = 0;
-	// Stores hit objects.
-	protected ArrayList<EcalHit> hitList = new ArrayList<EcalHit>();
-	
-	/**
-	 * <b>POccupancyViewer</b><br/><br/>
-     * <code>public <b>POccupancyViewer</b>(int updateRate, boolean resetAtUpdate)</code><br/><br/>
+    private static final long serialVersionUID = 3712604287904215617L;
+    // Store the number of hits for each crystal.
+    private long[][] hits;
+    // Store the total number of events read.
+    private long events = 0;
+    // Stores hit objects.
+    protected ArrayList<EcalHit> hitList = new ArrayList<EcalHit>();
+    
+    /**
      * Initializes a <code>Viewer</code> window that displays will
      * occupancies from a data stream.
-	 */
-	public POccupancyViewer() {
-		// Set the title and scale.
-		setTitle("HPS Calorimeter Occupancies");
-		ecalPanel.setScaleMaximum(1.0);
-		
-		// Initialize the hit counts array.
-		Dimension ecalSize = ecalPanel.getCrystalBounds();
-		hits = new long[ecalSize.width][ecalSize.height];
-	}
+     */
+    public POccupancyViewer() {
+        // Set the title and scale.
+        setTitle("HPS Calorimeter Occupancies");
+        ecalPanel.setScaleMaximum(1.0);
+        
+        // Initialize the hit counts array.
+        Dimension ecalSize = ecalPanel.getCrystalBounds();
+        hits = new long[ecalSize.width][ecalSize.height];
+    }
     
-	public void addHit(EcalHit hit) {
-		// Get the panel coordinates of the hit.
-		int ix = toPanelX(hit.getX());
-		int iy = toPanelY(hit.getY());
-		
-		// Increment the hit count at the indicated location.
-		hits[ix][iy]++;
-	}
-	
-	/**
-	 * <b>addCluster</b><br/><br/>
-	 * <code>public void <b>addCluster</b>(Cluster cluster)</code><br/><br/>
-	 * Adds a new cluster to the display.<br/><br/>
-	 * <b>Note:</b> This operation is not supported for occupancies.
-	 */
-	public void addCluster(Cluster cluster) { }
-	
-	/**
-	 * <b>removeHit</b><br/><br/>
-	 * <code>public void <b>removeHit</b>(EcalHit hit)</code><br/><br/>
-	 * Removes a hit from the display.
-	 * @param hit - The hit to be removed.
-	 */
-	public void removeHit(EcalHit hit) {
-		// Get the panel coordinates of the hit.
-		int ix = toPanelX(hit.getX());
-		int iy = toPanelY(hit.getY());
-		
-		// Decrement the hit count at the indicated location.
-		hits[ix][iy]--;
-	}
-	
-	public void resetDisplay() { hitList.clear(); }
-	
-	/**
-	 * <b>incrementEventCount</b><br/><br/>
-	 * <code>public void <b>incrementEventCount</b>(int amount)</code><br/><br/>
-	 * Increments the number of events represented by the current data
-	 * set by the indicated amount. Note that this may be negative to
-	 * reduce the number of events.
-	 * @param amount - The number of events to add.
-	 */
-	public void incrementEventCount(int amount) { events += amount; }
-	
-	/**
-	 * <b>updateDisplay</b><br/><br/>
-	 * <code>public void <b>updateDisplay</b>()</code><br/><br/>
-	 * Displays the hits and clusters added by the <code>addHit</code>
-	 * and <code>addCluster</code> methods.
-	 */
-	public void updateDisplay() { 
+    @Override
+    public void addHit(EcalHit hit) {
+        // Get the panel coordinates of the hit.
+        int ix = toPanelX(hit.getX());
+        int iy = toPanelY(hit.getY());
+        
+        // Increment the hit count at the indicated location.
+        hits[ix][iy]++;
+    }
+    
+    /**
+     * Adds a new cluster to the display.<br/><br/>
+     * <b>Note:</b> This operation is not supported for occupancies.
+     */
+    public void addCluster(Cluster cluster) { }
+    
+    /**
+     * Removes a hit from the display.
+     * @param hit - The hit to be removed.
+     */
+    public void removeHit(EcalHit hit) {
+        // Get the panel coordinates of the hit.
+        int ix = toPanelX(hit.getX());
+        int iy = toPanelY(hit.getY());
+        
+        // Decrement the hit count at the indicated location.
+        hits[ix][iy]--;
+    }
+    
+    @Override
+    public void resetDisplay() { hitList.clear(); }
+    
+    /**
+     * Increments the number of events represented by the current data
+     * set by the indicated amount. Note that this may be negative to
+     * reduce the number of events.
+     * @param amount - The number of events to add.
+     */
+    public void incrementEventCount(int amount) { events += amount; }
+    
+    /**
+     * Displays the hits and clusters added by the <code>addHit</code>
+     * and <code>addCluster</code> methods.
+     */
+    @Override
+    public void updateDisplay() { 
         // Build a "hit list" from the occupancies.
         for(int x = 0; x < hits.length; x++) {
-        	for(int y = 0; y < hits[0].length; y++) {
-        		// Don't bother performing calculations or building
-        		// any objects if there are zero hits.
-        		if(hits[x][y] != 0) {
-        			// Define the crystal ID and "energy."
-        			Point cid = new Point(x, y);
-        			double occupancy = ((double) hits[x][y]) / events;
-        			
-        			// Add a "hit" formed from these values.
-        			hitList.add(new EcalHit(cid, occupancy));
-        		}
-        	}
+            for(int y = 0; y < hits[0].length; y++) {
+                // Don't bother performing calculations or building
+                // any objects if there are zero hits.
+                if(hits[x][y] != 0) {
+                    // Define the crystal ID and "energy."
+                    Point cid = new Point(x, y);
+                    double occupancy = ((double) hits[x][y]) / events;
+                    
+                    // Add a "hit" formed from these values.
+                    hitList.add(new EcalHit(cid, occupancy));
+                }
+            }
         }
         
-		// Suppress the calorimeter panel's redrawing.
-		ecalPanel.setSuppressRedraw(true);
-		
+        // Suppress the calorimeter panel's redrawing.
+        ecalPanel.setSuppressRedraw(true);
+        
         // Display the hits.
         for (EcalHit h : hitList) {
             int ix = toPanelX(h.getX());
@@ -123,5 +116,5 @@ public class POccupancyViewer extends PassiveViewer {
         
         // Update the status panel to account for the new event.
         updateStatusPanel();
-	}
+    }
 }

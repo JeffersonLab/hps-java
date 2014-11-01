@@ -11,6 +11,7 @@ import java.awt.event.MouseMotionListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.swing.JFrame;
@@ -30,7 +31,7 @@ public abstract class Viewer extends JFrame {
     // Java-suggested variable.
     private static final long serialVersionUID = -2022819652687941812L;
     // A map of field names to field indices.
-    private final HashMap<String, Integer> fieldMap = new HashMap<String, Integer>();
+    private Map<String, Integer> fieldMap = new HashMap<String, Integer>();
     // A list of crystal listeners attached to the viewer.
     private ArrayList<CrystalListener> listenerList = new ArrayList<CrystalListener>();
     // The default field names.
@@ -41,33 +42,25 @@ public abstract class Viewer extends JFrame {
     private static final int CELL_VALUE = 2;
     
     /**
-     * <b><statusPanel/b><br/><br/>
-     * <code>protected final StatusPanel <b>statusPanel</b></code><br/><br/>
      * The component responsible for displaying status information 
      * about the currently selected crystal.
      */
-    protected final StatusPanel statusPanel;
+    protected final ResizableFieldPanel statusPanel;
     
     /**
-     * <b>ecalPanel</b><br/><br/>
-     * <code>protected final CalorimeterPanel <b>ecalPanel</b></code><br/><br/>
      * The panel displaying the calorimeter crystals and scale.
      */
     protected final CalorimeterPanel ecalPanel = new CalorimeterPanel(46, 11);
-	
+    
     /**
-     * <b>HIGHLIGHT_CLUSTER_COMPONENT</b><br/><br/>
-     * <code>public static final Color <b>HIGHLIGHT_CLUSTER_COMPONENT</b></code><br/><br/>
      * The default color for highlighting cluster components.
      */
-	public static final Color HIGHLIGHT_CLUSTER_COMPONENT = Color.RED;
-	
-	/**
-	 * <b>HIGHLIGHT_CLUSTER_SHARED</b><br/><br/>
-     * <code>public static final Color <b>HIGHLIGHT_CLUSTER_SHARED</b></code><br/><br/>
+    public static final Color HIGHLIGHT_CLUSTER_COMPONENT = Color.RED;
+    
+    /**
      * The default color for highlighting cluster shared hits.
-	 */
-	public static final Color HIGHLIGHT_CLUSTER_SHARED = Color.YELLOW;
+     */
+    public static final Color HIGHLIGHT_CLUSTER_SHARED = Color.YELLOW;
     
     /**
      * Initializes the viewer window and calorimeter panel.
@@ -76,29 +69,20 @@ public abstract class Viewer extends JFrame {
      * @throws NullPointerException Occurs if any of the additional field
      * arguments are <code>null</code>.
      **/
-    public Viewer(String... statusFields) throws NullPointerException {
+    public Viewer() throws NullPointerException {
         // Initialize the underlying JPanel.
         super();
         
-        // Define the status panel fields and map them to indices.
-        String[] fields = new String[statusFields.length + defaultFields.length];
-        for(int i = 0; i < defaultFields.length; i++) {
-        	fields[i] = defaultFields[i];
-        	fieldMap.put(defaultFields[i], i);
-        }
-        for(int i = 0; i < statusFields.length; i++) {
-        	int index = i + defaultFields.length;
-        	fields[index] = statusFields[i];
-        	fieldMap.put(statusFields[i], index);
-        }
-        
         // Generate the status panel.
-        statusPanel = new StatusPanel(fields);
+        statusPanel = new ResizableFieldPanel(100);
+        statusPanel.setBackground(Color.WHITE);
+        
+        // Add the default fields.
+        for(String field : defaultFields) { addStatusField(field); }
         
         // Set the scaling settings.
-        ecalPanel.setScaleMinimum(0.00001);
-        ecalPanel.setScaleMaximum(3);
-       // ecalPanel.setScalingLogarithmic();
+        ecalPanel.setScaleMinimum(0.001);
+        ecalPanel.setScaleMaximum(3.0);
         ecalPanel.setScalingLinear();
         
         // Disable the crystals in the calorimeter panel along the beam gap.
@@ -137,7 +121,28 @@ public abstract class Viewer extends JFrame {
      * @param cl - The listener to add.
      */
     public void addCrystalListener(CrystalListener cl) {
-    	if(cl != null) { listenerList.add(cl); }
+        if(cl != null) { listenerList.add(cl); }
+    }
+    
+    /**
+     * Adds a new field to the status panel.
+     * @param fieldName - The name to display for the field and that
+     * links to the field when calling <code>setStatusField</code>.
+     */
+    protected void addStatusField(String fieldName) {
+        fieldMap.put(fieldName, statusPanel.getFieldCount());
+        statusPanel.addField(fieldName);
+    }
+    
+    /**
+     * Inserts the field at the indicated location on the status panel.
+     * @param index - The index at which to insert the field.
+     * @param fieldName - The name to display for the field and that
+     * links to the field when calling <code>setStatusField</code>.
+     */
+    protected void insertStatusField(int index, String fieldName) {
+        statusPanel.insertField(index, fieldName);
+        fieldMap = statusPanel.getFieldNameIndexMap();
     }
     
     /**
@@ -147,14 +152,14 @@ public abstract class Viewer extends JFrame {
      * @return Returns the coordinate pair in LCSim's coordinate system
      * as an <code>int</code>.
      **/
-	public static final Point toEcalPoint(Point panelPoint) {
-		// Convert the point coordinates.
-		int ix = toEcalX(panelPoint.x);
-		int iy = toEcalY(panelPoint.y);
-		
-		// Return the new point.
-		return new Point(ix, iy);
-	}
+    public static final Point toEcalPoint(Point panelPoint) {
+        // Convert the point coordinates.
+        int ix = toEcalX(panelPoint.x);
+        int iy = toEcalY(panelPoint.y);
+        
+        // Return the new point.
+        return new Point(ix, iy);
+    }
     
     /**
      * Converts the panel x-coordinate to the calorimeter's
@@ -164,8 +169,8 @@ public abstract class Viewer extends JFrame {
      * coordinate system as an <code>int</code>.
      */
     public static final int toEcalX(int panelX) {
-    	if(panelX > 22) { return panelX - 22; }
-    	else { return panelX - 23; }
+        if(panelX > 22) { return panelX - 22; }
+        else { return panelX - 23; }
     }
     
     /**
@@ -184,14 +189,14 @@ public abstract class Viewer extends JFrame {
      * @return Returns the coordinate pair in the calorimeter panel's
      * coordinate system as an <code>int</code>.
      **/
-	public static final Point toPanelPoint(Point ecalPoint) {
-		// Convert the point coordinates.
-		int ix = toPanelX(ecalPoint.x);
-		int iy = toPanelY(ecalPoint.y);
-		
-		// Return the new point.
-		return new Point(ix, iy);
-	}
+    public static final Point toPanelPoint(Point ecalPoint) {
+        // Convert the point coordinates.
+        int ix = toPanelX(ecalPoint.x);
+        int iy = toPanelY(ecalPoint.y);
+        
+        // Return the new point.
+        return new Point(ix, iy);
+    }
     
     /**
      * Converts the LCSim x-coordinate to the calorimeter panel's
@@ -238,7 +243,7 @@ public abstract class Viewer extends JFrame {
      * @param cl - The listener to remove.
      */
     public void removeCrystalListener(CrystalListener cl) {
-    	if(cl != null) { listenerList.remove(cl); }
+        if(cl != null) { listenerList.remove(cl); }
     }
     
     public void setSize(int width, int height) {
@@ -259,44 +264,46 @@ public abstract class Viewer extends JFrame {
      * is provided for argument <code>fieldName</code>.
      */
     public final void setStatusField(String fieldName, String value) throws NoSuchElementException {
-    	// Get the index for the indicated field.
-    	Integer index = fieldMap.get(fieldName);
-    	
-    	// If it is null, the field does not exist.
-    	if(index == null) { throw new NoSuchElementException("Field \"" + fieldName + "\" does not exist."); }
-    	
-    	// Otherwise, set the field.
-    	else { statusPanel.setFieldValue(index, value); }
+        // Get the index for the indicated field.
+        Integer index = fieldMap.get(fieldName);
+        
+        // If it is null, the field does not exist.
+        if(index == null) { throw new NoSuchElementException("Field \"" + fieldName + "\" does not exist."); }
+        
+        // Otherwise, set the field.
+        else { statusPanel.setFieldValue(index, value); }
     }
     
-	/**
-	 * Updates the information on the status panel to match that of
-	 * the calorimeter panel's currently selected crystal.
-	 */
-	protected void updateStatusPanel() {
-		// Get the currently selected crystal.
-		Point crystal = ecalPanel.getSelectedCrystal();
-		
-		// If the crystal is null, there is no selection.
-		if(crystal == null || ecalPanel.isCrystalDisabled(crystal.x, crystal.y)) { statusPanel.clearValues(); }
-		
-		// Otherwise, write the crystal's data to the panel.
-		else {
-			setStatusField(defaultFields[X_INDEX], String.valueOf(toEcalX(crystal.x)));
-			setStatusField(defaultFields[Y_INDEX], String.valueOf(toEcalY(crystal.y)));
-			DecimalFormat formatter = new DecimalFormat("0.####E0");
-			String energy = formatter.format(ecalPanel.getCrystalEnergy(crystal.x, crystal.y));
-			setStatusField(defaultFields[CELL_VALUE], energy);
-		}
-	}
+    /**
+     * Updates the information on the status panel to match that of
+     * the calorimeter panel's currently selected crystal.
+     */
+    protected void updateStatusPanel() {
+        // Get the currently selected crystal.
+        Point crystal = ecalPanel.getSelectedCrystal();
+        
+        // If the crystal is null, there is no selection.
+        if(crystal == null || ecalPanel.isCrystalDisabled(crystal.x, crystal.y)) {
+            statusPanel.clearFields();
+        }
+        
+        // Otherwise, write the crystal's data to the panel.
+        else {
+            setStatusField(defaultFields[X_INDEX], String.valueOf(toEcalX(crystal.x)));
+            setStatusField(defaultFields[Y_INDEX], String.valueOf(toEcalY(crystal.y)));
+            DecimalFormat formatter = new DecimalFormat("0.####E0");
+            String energy = formatter.format(ecalPanel.getCrystalEnergy(crystal.x, crystal.y));
+            setStatusField(defaultFields[CELL_VALUE], energy);
+        }
+    }
     
     /**
      * Handles proper resizing of the window and its components.
      **/
     private void resize() {
-    	// Define the size constants.
-    	int statusHeight = 125;
-    	
+        // Define the size constants.
+        int statusHeight = 125;
+        
         // Size and position the calorimeter display.
         ecalPanel.setLocation(0, 0);
         ecalPanel.setSize(getContentPane().getWidth(), getContentPane().getHeight() - statusHeight);
@@ -312,30 +319,30 @@ public abstract class Viewer extends JFrame {
      * It also triggers crystal click events.
      */
     private class EcalMouseListener implements MouseListener {
-		public void mouseClicked(MouseEvent e) {
-			// If there is a selected crystal, trigger a crystal click event.
-			if(ecalPanel.getSelectedCrystal() != null) {
-				// Get the selected crystal.
-				Point crystal = ecalPanel.getSelectedCrystal();
-				
-				// Construct a crystal event.
-				CrystalEvent ce = new CrystalEvent(Viewer.this, crystal);
-				
-				// Loop through all the crystal listeners and trigger them.
-				for(CrystalListener cl : listenerList) { cl.crystalClicked(ce); }
-			}
-		}
-		
-		public void mouseEntered(MouseEvent e) { }
-		
-		public void mouseExited(MouseEvent e) {
-			ecalPanel.clearSelectedCrystal();
-			statusPanel.clearValues();
-		}
-		
-		public void mousePressed(MouseEvent e) { }
-		
-		public void mouseReleased(MouseEvent e) { }
+        public void mouseClicked(MouseEvent e) {
+            // If there is a selected crystal, trigger a crystal click event.
+            if(ecalPanel.getSelectedCrystal() != null) {
+                // Get the selected crystal.
+                Point crystal = ecalPanel.getSelectedCrystal();
+                
+                // Construct a crystal event.
+                CrystalEvent ce = new CrystalEvent(Viewer.this, crystal);
+                
+                // Loop through all the crystal listeners and trigger them.
+                for(CrystalListener cl : listenerList) { cl.crystalClicked(ce); }
+            }
+        }
+        
+        public void mouseEntered(MouseEvent e) { }
+        
+        public void mouseExited(MouseEvent e) {
+            ecalPanel.clearSelectedCrystal();
+            statusPanel.clearFields();
+        }
+        
+        public void mousePressed(MouseEvent e) { }
+        
+        public void mouseReleased(MouseEvent e) { }
     }
     
     /**
@@ -344,80 +351,80 @@ public abstract class Viewer extends JFrame {
      * mouse moves over the window. Additionally triggers crystal
      * activation and deactivation events.
      */
-    private class EcalMouseMotionListener implements MouseMotionListener {    	
-		public void mouseDragged(MouseEvent arg0) { }
-		
-		public void mouseMoved(MouseEvent e) {
-			// Get the panel coordinates.
-			int x = e.getX();
-			int y = e.getY();
-			
-			// Get the crystal index for these coordinates.
-			Point crystal = ecalPanel.getCrystalID(x, y);
-			
-			// If either of the crystal indices are negative, then
-			// the mouse is not in a crystal and the selection should
-			// be cleared.
-			boolean validCrystal = (crystal != null);
-			
-			// Get the currently selected calorimeter crystal.
-			Point curCrystal = ecalPanel.getSelectedCrystal();
-			
-			// Perform event comparison checks.
-			boolean[] nullCrystal = { !validCrystal, curCrystal == null };
-			boolean[] disabledCrystal = { true, true };
-			if(!nullCrystal[0]) { disabledCrystal[0] = ecalPanel.isCrystalDisabled(crystal); }
-			if(!nullCrystal[1]) { disabledCrystal[1] = ecalPanel.isCrystalDisabled(curCrystal); }
-			boolean sameCrystal = true;
-			if(validCrystal) { sameCrystal = crystal.equals(curCrystal); }
-			
-			// If the crystals are the same, there are no events to throw.
-			if(!sameCrystal) {
-				// If the new crystal is non-null and enabled, throw an event.
-				if(!nullCrystal[0] && !disabledCrystal[0]) { throwActivationEvent(crystal); }
-				
-				// If the old crystal is non-null and enabled, throw an event.
-				if(!nullCrystal[1] && !disabledCrystal[1]) { throwDeactivationEvent(curCrystal); }
-			}
-			
-			// If the crystal is valid, then set the selected crystal
-			// to the current one.
-			if(validCrystal) { ecalPanel.setSelectedCrystal(crystal); }
-			
-			// Otherwise, clear the selection.
-			else { ecalPanel.clearSelectedCrystal(); }
-			
-			// Update the status panel.
-			updateStatusPanel();
-		}
-		
-		/**
-		 * Triggers crystal activation events on all listeners for
-		 * this component.
-		 * @param activatedCrystal - The panel coordinates for the
-		 * activated crystal.
-		 */
-		private void throwActivationEvent(Point activatedCrystal) {
-			// Create a crystal event.
-			CrystalEvent ce = new CrystalEvent(Viewer.this, activatedCrystal);
-			
-			// Throw the event with every listener.
-			for(CrystalListener cl : listenerList) { cl.crystalActivated(ce); }
-		}
-		
-		/**
-		 * Triggers crystal deactivation events on all listeners for
-		 * this component.
-		 * @param deactivatedCrystal - The panel coordinates for the
-		 * deactivated crystal.
-		 */
-		private void throwDeactivationEvent(Point deactivatedCrystal) {
-			// Create a crystal event.
-			CrystalEvent ce = new CrystalEvent(Viewer.this, deactivatedCrystal);
-			
-			// Throw the event with every listener.
-			for(CrystalListener cl : listenerList) { cl.crystalDeactivated(ce); }
-		}
+    private class EcalMouseMotionListener implements MouseMotionListener {        
+        public void mouseDragged(MouseEvent arg0) { }
+        
+        public void mouseMoved(MouseEvent e) {
+            // Get the panel coordinates.
+            int x = e.getX();
+            int y = e.getY();
+            
+            // Get the crystal index for these coordinates.
+            Point crystal = ecalPanel.getCrystalID(x, y);
+            
+            // If either of the crystal indices are negative, then
+            // the mouse is not in a crystal and the selection should
+            // be cleared.
+            boolean validCrystal = (crystal != null);
+            
+            // Get the currently selected calorimeter crystal.
+            Point curCrystal = ecalPanel.getSelectedCrystal();
+            
+            // Perform event comparison checks.
+            boolean[] nullCrystal = { !validCrystal, curCrystal == null };
+            boolean[] disabledCrystal = { true, true };
+            if(!nullCrystal[0]) { disabledCrystal[0] = ecalPanel.isCrystalDisabled(crystal); }
+            if(!nullCrystal[1]) { disabledCrystal[1] = ecalPanel.isCrystalDisabled(curCrystal); }
+            boolean sameCrystal = true;
+            if(validCrystal) { sameCrystal = crystal.equals(curCrystal); }
+            
+            // If the crystals are the same, there are no events to throw.
+            if(!sameCrystal) {
+                // If the new crystal is non-null and enabled, throw an event.
+                if(!nullCrystal[0] && !disabledCrystal[0]) { throwActivationEvent(crystal); }
+                
+                // If the old crystal is non-null and enabled, throw an event.
+                if(!nullCrystal[1] && !disabledCrystal[1]) { throwDeactivationEvent(curCrystal); }
+            }
+            
+            // If the crystal is valid, then set the selected crystal
+            // to the current one.
+            if(validCrystal) { ecalPanel.setSelectedCrystal(crystal); }
+            
+            // Otherwise, clear the selection.
+            else { ecalPanel.clearSelectedCrystal(); }
+            
+            // Update the status panel.
+            updateStatusPanel();
+        }
+        
+        /**
+         * Triggers crystal activation events on all listeners for
+         * this component.
+         * @param activatedCrystal - The panel coordinates for the
+         * activated crystal.
+         */
+        private void throwActivationEvent(Point activatedCrystal) {
+            // Create a crystal event.
+            CrystalEvent ce = new CrystalEvent(Viewer.this, activatedCrystal);
+            
+            // Throw the event with every listener.
+            for(CrystalListener cl : listenerList) { cl.crystalActivated(ce); }
+        }
+        
+        /**
+         * Triggers crystal deactivation events on all listeners for
+         * this component.
+         * @param deactivatedCrystal - The panel coordinates for the
+         * deactivated crystal.
+         */
+        private void throwDeactivationEvent(Point deactivatedCrystal) {
+            // Create a crystal event.
+            CrystalEvent ce = new CrystalEvent(Viewer.this, deactivatedCrystal);
+            
+            // Throw the event with every listener.
+            for(CrystalListener cl : listenerList) { cl.crystalDeactivated(ce); }
+        }
     }
     
     /**
