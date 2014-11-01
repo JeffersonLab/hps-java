@@ -1,17 +1,17 @@
 package org.hps;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.hps.readout.ecal.FADCEcalReadoutDriver;
 import org.hps.users.meeg.FilterMCBunches;
 import org.lcsim.job.JobControlManager;
+import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
@@ -19,22 +19,25 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * Insert empty events into an input MC file using <code>FilterMCBunches</code> 
  * and then run the resulting output through the readout simulation and reconstruction.
  * <p>
- * The original name of the MC input file was:
- * <p>
- * ap075mev_egs_tri_2.2gev_0.00125x0_200na_5e5b_30mr_001_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-Proposal2014-v8-2pt2.slcio
- * <p>
  * See this wiki page:
  * <p>
  * <a href="https://confluence.slac.stanford.edu/display/hpsg/Running+Readout+Simulation">Running Readout Simulation</a>
  * <p>
  * under "Filter and space out events" for details about inserting empty events.
+ * <p>
+ * The test runs the filtering on 10 Aprime events, inserting 250 empty events in between in order to simulate a single readout window.
+ * Then the filtered events are run through the readout simulation to run the triggering algorithms.  The acceptance is approximately 20%
+ * so the 10 input events ends up as 2 events in the recon.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Remove noise from readout simulation Driver and add test assertions.
 public class MCFilteredReconTest extends TestCase {
+        
+    final static String fileLocation = 
+    		"http://www.lcsim.org/test/hps-java/MCFilteredReconTest/ap2.2gev075mev_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-Proposal2014-v7-2pt2.slcio";
     
-    final static String fileLocation = "http://www.lcsim.org/test/hps-java/MCFilteredReconTest.slcio"; 
-    
+    // 250 bunches which is ~250 ns or time of readout window.  
     static final Integer EMPTY_EVENTS = 250;
     
     public void testMCFilteredRecon() throws Exception {
@@ -46,10 +49,7 @@ public class MCFilteredReconTest extends TestCase {
         System.out.println("Downloading MC input file ...");
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileLocation));
-        
-        // Get the number of events in the MC input file.
-        long nMC = countEvents(inputFile);
-        
+                
         // 1) Filter MC events to insert 250 empty events between Aprime events.
         List<String> args = new ArrayList<String>();
         args.add(inputFile.getPath());
@@ -61,22 +61,22 @@ public class MCFilteredReconTest extends TestCase {
         System.out.println("Running FilterMCBunches.main on " + inputFile.getPath() + " with ");
         FilterMCBunches.main(args.toArray(new String[]{}));
         System.out.print("Created filtered MC file " + filteredOutputFile.getPath());
-        
-        // Get number of events in filtered output file.
-        long nFiltered = countEvents(filteredOutputFile);
-        
+                
         // 2) Run readout simulation.
         JobControlManager job = new JobControlManager();        
         File readoutOutputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", readoutOutputFile.getPath());
         job.addInputFile(filteredOutputFile);
         job.setup("/org/hps/steering/readout/HPS2014ReadoutToLcio.lcsim");
+        for (Driver driver : job.getDriverAdapter().getDriver().drivers()) {
+        	if (driver instanceof FADCEcalReadoutDriver) {
+        		// Turn off noise in the readout driver.
+        		((FADCEcalReadoutDriver)driver).setAddNoise(false);
+        	}
+        }
         job.run();                
         System.out.println("Created readout file " + readoutOutputFile.getPath());
-        
-        // Get number of events created by readout simulation.
-        long nReadout = countEvents(new File(readoutOutputFile.getPath() + ".slcio"));
-        
+                
         // 3) Run readout events through reconstruction.
         File reconOutputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_recon");
         job = new JobControlManager();
@@ -85,26 +85,8 @@ public class MCFilteredReconTest extends TestCase {
         job.setup("/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim");
         System.out.println("Running recon on filtered events ...");
         job.run();        
-        long nRecon = job.getLCSimLoop().getTotalSupplied();
         System.out.println("Created recon file " + reconOutputFile.getPath() + ".slcio");
         
-        System.out.println("---------------------------------------------------");
-        System.out.println("Job summary ...");
-        System.out.println("  MC input events: " + nMC);
-        System.out.println("  filtered output events: " + nFiltered);
-        System.out.println("  readout output events: " + nReadout);
-        System.out.println("  recon output events: " + nRecon);
-        System.out.println("  nRecon / nMC = " + (double)nRecon / (double)nMC);
-        System.out.println("---------------------------------------------------");
-        System.out.println();
-        System.out.println("Done!");        
-    }
-    
-    public long countEvents(File file) throws IOException {
-        LCSimLoop loop = new LCSimLoop();
-        loop.setLCIORecordSource(file);
-        loop.loop(-1, null);
-        return loop.getTotalSupplied();
-    }
-
+        System.out.println("Created " + job.getLCSimLoop().getTotalSupplied() + " recon output events.");
+    }    
 }
