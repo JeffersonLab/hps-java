@@ -9,7 +9,8 @@
     
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
+        <driver name="ConditionsDriver" />
+        <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="SVTBadChannelFilterDriver"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -21,6 +22,8 @@
     </execute>
     
     <drivers>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
 
         <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
