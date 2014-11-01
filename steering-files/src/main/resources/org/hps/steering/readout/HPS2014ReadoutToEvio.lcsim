@@ -27,9 +27,6 @@
         </driver> 
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <loadSvtConditions>false</loadSvtConditions>
-        </driver>
         <driver name="TestRunReconToEvio" type="org.hps.evio.TestRunTriggeredReconToEvio">
             <evioOutputFile>${outputFile}.evio</evioOutputFile>
         </driver>
