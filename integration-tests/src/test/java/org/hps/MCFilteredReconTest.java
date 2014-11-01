@@ -88,5 +88,7 @@ public class MCFilteredReconTest extends TestCase {
         System.out.println("Created recon file " + reconOutputFile.getPath() + ".slcio");
         
         System.out.println("Created " + job.getLCSimLoop().getTotalSupplied() + " recon output events.");
+        
+        TestCase.assertEquals("Wrong number of recon events.", 2, job.getLCSimLoop().getTotalSupplied());
     }    
 }
