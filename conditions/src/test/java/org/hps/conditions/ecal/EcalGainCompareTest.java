@@ -34,8 +34,8 @@ public class EcalGainCompareTest extends TestCase {
         calibrationDriver.detectorChanged(conditionsManager.getDetectorObject());
         
         // Fetch conditions from the database.
-        EcalGainCollection gains = conditionsManager.getConditionsData(EcalGainCollection.class, TableConstants.ECAL_GAINS);
-        EcalChannelCollection channels = conditionsManager.getConditionsData(EcalChannelCollection.class, TableConstants.ECAL_CHANNELS);
+        EcalGainCollection gains = conditionsManager.getConditionsData(EcalGainCollection.class, "test_run_ecal_gains");
+        EcalChannelCollection channels = conditionsManager.getConditionsData(EcalChannelCollection.class, "test_run_ecal_channels");
         
         // Loop over the gain values and compare them with each other.
         int nCompared = 0;
