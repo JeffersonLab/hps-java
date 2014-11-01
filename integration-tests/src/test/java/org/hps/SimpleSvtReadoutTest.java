@@ -35,9 +35,7 @@ public class SimpleSvtReadoutTest extends TestCase {
 	
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileUrl));
-	
-        this.printDebug("Running readout simulation on " + inputFile.getPath() + " ...");
-        
+	        
         outputDir.mkdirs();
         if(!outputDir.exists()){ 
         	this.printDebug("Failed to create directory " + outputDir.getPath());
@@ -50,6 +48,7 @@ public class SimpleSvtReadoutTest extends TestCase {
         job.addInputFile(inputFile);
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");
+        job.setNumberOfEvents(10000);
         job.getLCSimLoop().add(checker);
         job.run();
         
