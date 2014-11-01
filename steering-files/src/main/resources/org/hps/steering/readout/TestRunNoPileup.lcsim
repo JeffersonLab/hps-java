@@ -21,7 +21,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>

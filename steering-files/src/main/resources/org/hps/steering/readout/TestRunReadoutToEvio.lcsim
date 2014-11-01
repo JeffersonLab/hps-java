@@ -22,7 +22,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 		
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
