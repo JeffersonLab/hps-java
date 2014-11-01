@@ -197,9 +197,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
                 long channel_id = sensor.makeChannelID(channel);
                 RawTrackerHit hit = new BaseRawTrackerHit(0, channel_id, samples, new ArrayList<SimTrackerHit>(stripHit.simHits), sensor);
-                 System.out.println("Making RTH");
                 if (readoutCuts(hit)) {
-                     System.out.println("RTH passed cuts");
                     hits.add(hit);
                 }
             }
@@ -331,7 +329,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         if (noPileup) {
             return;
         }
-         System.out.println("Got trigger");
+        //System.out.println("Got trigger");
 
         // Create a list to hold the analog data
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
@@ -361,22 +359,17 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         double meanNoise = 0; 
                         for (int sampleN = 0; sampleN < 6; sampleN++) {
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
-                            System.out.println("sampleTime: " + sampleTime);
                             double tp = ((HpsSiSensor) sensor).getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-                            System.out.println("tp: " + tp);
                             double signalAtTime = hit.amplitude * pulseAmplitude(sampleTime - hit.time, tp);
-                            System.out.println("SignalAtTime: " + signalAtTime);
                             totalContrib += signalAtTime;
-                            System.out.println("totalContrib: " + totalContrib);
                             signal[sampleN] += signalAtTime;
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
-                            System.out.format("new value of signal[%d] = %f\n", sampleN, signal[sampleN]);
+                            //System.out.format("new value of signal[%d] = %f\n", sampleN, signal[sampleN]);
                         }
                         meanNoise /= 6;
-                        System.out.println("Mean noise: " + meanNoise);
                         // Compare to the mean noise of the six samples instead
                         if(totalContrib > 4.0*meanNoise){ 
-                        	 System.out.format("adding %d simHits\n", hit.simHits.size());
+                        	 //System.out.format("adding %d simHits\n", hit.simHits.size());
                             simHits.addAll(hit.simHits);
                         }
                     }
@@ -390,7 +383,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 RawTrackerHit hit = new BaseRawTrackerHit(0, channel_id, samples, simHits, sensor);
                 if (readoutCuts(hit)) {
                     hits.add(hit);
-                     System.out.format("simHits: %d\n", simHits.size());
+                    //System.out.format("simHits: %d\n", simHits.size());
                     for (SimTrackerHit simHit : hit.getSimTrackerHits()) {
                         LCRelation hitRelation = new BaseLCRelation(hit, simHit);
                         trueHitRelations.add(hitRelation);
