@@ -22,7 +22,7 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
