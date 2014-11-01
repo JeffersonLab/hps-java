@@ -1,7 +1,6 @@
 <!-- 
   Offline reconstruction for test run (photon) data.
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: TestRunOfflineRecon.lcsim,v 1.13 2013/10/30 16:23:32 phansson Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">

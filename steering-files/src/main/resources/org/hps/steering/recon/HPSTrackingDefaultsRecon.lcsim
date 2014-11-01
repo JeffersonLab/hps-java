@@ -22,46 +22,30 @@
     </execute>
     
     <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <!--            <runNumber>1351</runNumber>    -->
-        </driver>
-
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
-
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver>
-        
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>true</correctT0Shift>
         </driver>
-        
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />        
-
-        <driver name="HelicalTrackHitDriver"
-                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
-        
-        <driver name="TrackerReconDriver"
-                type="org.hps.recon.tracking.TrackerReconDriver">
+        <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
         </driver>
-
-        <driver name="LCIOWriter"
-                type="org.lcsim.util.loop.LCIODriver">
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-         
     </drivers>
 </lcsim>

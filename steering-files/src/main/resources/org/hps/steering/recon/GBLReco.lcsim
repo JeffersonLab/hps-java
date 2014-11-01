@@ -1,15 +1,16 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-    <inputFiles>
-    </inputFiles>
+    
     <control>
         <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
+    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
+        <driver name="ConditionsDriver"/>   
+        <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/> 
         <driver name="BadChannelFilter" />
         <driver name="RawTrackerHitFitterDriver" />
@@ -23,25 +24,21 @@
     </execute>    
 
     <drivers>
-		<driver name="GBLDriver"
-                type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-                <debug>0</debug>
-                <isMC>${isMC}</isMC>
-                <gblFileName>gblinput.txt</gblFileName>
-	</driver>
 
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>100</eventInterval>
+        </driver>        
+
+	   	<driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+            <debug>0</debug>
+            <isMC>${isMC}</isMC>
+            <gblFileName>gblinput.txt</gblFileName>
+    	</driver>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
 
 <!-- Reconstruction drivers below -->
 
-
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-                <runNumber>1351</runNumber>
-        </driver>
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
-        </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">

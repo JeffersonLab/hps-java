@@ -1,8 +1,6 @@
 <!-- 
   Offline reconstruction for 2014 (electron run) data.
-  Updated on 16Oct to include new clustering with corrections. -HS <hvanc001@odu.edu>
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: HPS2014OfflineRecon.lcsim,v 1.7 2013/10/30 16:23:32 phansson Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
@@ -56,7 +54,6 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
-
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
