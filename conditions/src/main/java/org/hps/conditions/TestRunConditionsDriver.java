@@ -14,7 +14,7 @@ public class TestRunConditionsDriver extends AbstractConditionsDriver {
     static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
 
     // Default database connection parameters, which points to the SLAC development database.
-    static final String TEST_RUN_CONNECTION = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
+    static final String TEST_RUN_CONNECTION = "/org/hps/conditions/config/conditions_dev.properties";
 
     // Default constructor used to setup the database connection
     public TestRunConditionsDriver(){
