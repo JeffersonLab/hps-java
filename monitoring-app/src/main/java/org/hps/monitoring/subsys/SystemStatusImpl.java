@@ -52,7 +52,7 @@ public final class SystemStatusImpl implements SystemStatus {
     }
 
     @Override
-    public void setStatus(StatusCode code, String message) {
+    synchronized public void setStatus(StatusCode code, String message) {
         if (isActive()) {
             this.code = code;
             this.message = message;
@@ -74,7 +74,7 @@ public final class SystemStatusImpl implements SystemStatus {
     /**
      * Notify listeners of changes to the system status.
      */
-    void notifyListeners() {
+    synchronized void notifyListeners() {
         for (SystemStatusListener listener : listeners) {
             listener.statusChanged(this);
         }
