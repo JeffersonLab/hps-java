@@ -2,6 +2,7 @@ package org.hps;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
+import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
@@ -26,15 +28,20 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class TestRunReconTest extends TestCase {
 
+    final static String fileLocation = "http://www.lcsim.org/test/hps-java/TestRunEvioToLcioTest.evio"; 
     static String inputFileName = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_001351.evio.0";
     
-    public void testTestRunRecon() {       
+    public void testTestRunRecon() throws Exception {       
         
         // Setup the test output directory.
         new TestOutputFile(getClass().getSimpleName()).mkdirs();
         
+        System.out.println("Caching file...");
+        FileCache cache = new FileCache();
+        File inputFile = cache.getCachedFile(new URL(fileLocation));
+
         // Run TestRunEvioToLcio using the standard org.lcsim steering file.
-        File inputFile = new File(inputFileName);
+        //File inputFile = new File(inputFileName);
         List<String> argList = new ArrayList<String>();
         argList.add("-r");
         argList.add("-x");
