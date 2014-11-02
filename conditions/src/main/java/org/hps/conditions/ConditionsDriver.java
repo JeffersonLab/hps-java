@@ -1,7 +1,12 @@
 package org.hps.conditions;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.geometry.Detector;
 
+import org.hps.conditions.svt.SvtConditions;
+import org.hps.conditions.svt.SvtDetectorSetup;
+
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
  * {@link AbstractConditionsDriver} and specifies the database connection
@@ -28,5 +33,17 @@ public class ConditionsDriver extends AbstractConditionsDriver {
             manager.configure(DB_CONFIG);
             manager.register();
         }
+    }
+
+    /**
+     * Load the {@link SvtConditions} set onto <code>HpsSiSensor</code>.
+     * 
+     * @param detector The detector to update.
+     */
+    @Override
+    protected void loadSvtConditions(Detector detector) {
+        SvtConditions conditions = manager.getCachedConditions(SvtConditions.class, SVT_CONDITIONS).getCachedData();
+        SvtDetectorSetup loader = new SvtDetectorSetup();
+        loader.load(detector.getSubdetector(svtSubdetectorName), conditions);
     }
 }

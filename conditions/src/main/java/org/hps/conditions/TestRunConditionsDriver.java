@@ -1,5 +1,12 @@
 package org.hps.conditions;
 
+import org.lcsim.geometry.Detector;
+
+import org.hps.conditions.svt.TestRunSvtConditions;
+import org.hps.conditions.svt.TestRunSvtDetectorSetup;
+
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of {@link AbstractConditionsDriver}
  * and specifies the database connection parameters and configuration for the
@@ -22,5 +29,17 @@ public class TestRunConditionsDriver extends AbstractConditionsDriver {
         manager.setConnectionResource(TEST_RUN_CONNECTION);
         manager.configure(TEST_RUN_CONFIG);
         manager.register();
+    }
+
+    /**
+     * Load the {@link TestRunSvtConditions} set onto <code>HpsTestRunSiSensor</code>.
+     * 
+     * @param detector The detector to update.
+     */
+    @Override
+    protected void loadSvtConditions(Detector detector) {
+        TestRunSvtConditions conditions = manager.getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();
+        TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
+        loader.load(detector.getSubdetector(svtSubdetectorName), conditions);
     }
 }
