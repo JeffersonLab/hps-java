@@ -26,8 +26,6 @@ import org.jdom.input.SAXBuilder;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
-import org.lcsim.conditions.ConditionsReader;
-import org.lcsim.conditions.readers.BaseClasspathConditionsReader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.loop.DetectorConditionsConverter;
 
@@ -269,6 +267,33 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.fine("new collection ID " + collectionId + " created for table " + tableName);
         return collectionId;
     }
+    
+    /**
+     * This method will return true if the given collection ID already exists in the table.
+     * @param tableName The name of the table.
+     * @param collectionID The collection ID value.
+     * @return True if collection exists.
+     */
+    public boolean collectionExists(String tableName, int collectionID) {
+        String sql = "SELECT * FROM " + tableName + " where collection_id = " + collectionID;
+        ResultSet resultSet = selectQuery(sql);
+        try {
+            resultSet.last();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        int rowCount = 0;
+        try {
+            rowCount = resultSet.getRow();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (rowCount != 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Get the list of table meta data.
@@ -297,6 +322,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param type The collection class.
      * @return The table meta data.
      */
+    // FIXME: This should return a list in case of multiple conditions defined with same type.
     public TableMetaData findTableMetaData(Class type) {
         for (TableMetaData meta : tableMetaData) {
             if (meta.getCollectionClass().equals(type)) {

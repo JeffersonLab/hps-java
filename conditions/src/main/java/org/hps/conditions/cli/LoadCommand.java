@@ -67,7 +67,7 @@ public class LoadCommand extends AbstractCommand {
         int collectionID;
         if (commandLine.getOptionValue("c") != null) {
             collectionID = Integer.parseInt(commandLine.getOptionValue("c"));
-            if (collectionExists(conditionsManager, tableName, collectionID)) {
+            if (conditionsManager.collectionExists(tableName, collectionID)) {
                 throw new IllegalArgumentException("The user supplied collection ID " + collectionID + " already exists in this table.");
             }            
         } else {
@@ -89,7 +89,7 @@ public class LoadCommand extends AbstractCommand {
         File inputFile = new File(fileName);
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(inputFile));           
+            reader = new BufferedReader(new FileReader(inputFile));
             String headerLine = reader.readLine();
             if (headerLine == null) {
                 throw new IllegalArgumentException("The file is empty.");
@@ -118,26 +118,5 @@ public class LoadCommand extends AbstractCommand {
                 }
             }
         }        
-    }
-    
-    boolean collectionExists(DatabaseConditionsManager conditionsManager, String tableName, int collectionID) {
-        String sql = "SELECT * FROM " + tableName + " where collection_id = " + collectionID;
-        ResultSet resultSet = conditionsManager.selectQuery(sql);
-        try {
-            resultSet.last();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        int rowCount = 0;
-        try {
-            rowCount = resultSet.getRow();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (rowCount != 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    }    
 }
