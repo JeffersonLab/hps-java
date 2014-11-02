@@ -1,7 +1,6 @@
 <!-- 
   Execute full trigger+readout simulation and write the results as an LCIO file.
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: HPS2014ReadoutToLcio.lcsim,v 1.2 2013/03/01 23:22:24 meeg Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
@@ -9,7 +8,8 @@
 <!--    
         <driver name="EventMarkerDriver"/>
 -->                
-        <driver name="CalibrationDriver"/>   
+        <driver name="ConditionsDriver"/>   
+        <driver name="SvtSensorSetup" />
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClusterer"/>
@@ -25,10 +25,10 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
--->         
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
-        </driver>
+-->     
+        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
+   
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
