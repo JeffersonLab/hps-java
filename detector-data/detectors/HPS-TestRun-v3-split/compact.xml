@@ -212,7 +212,7 @@
     <detectors>
         <detector id="1" name="Tracker" type="HPSTracker2" readout="TrackerHits" combineHits="true">
             <comment>The Silicon Vertex Tracker</comment>
-            <module name="TestRunModule">
+            <module name="TestRunModule" type="HpsTestRunSiSensor">
                 <box x="moduleLength" y="moduleWidth" />
                 <module_component thickness="0.032*cm" material = "Silicon" sensitive="true">
                     <dimensions x="sensorLength" y="sensorWidth" /> 
