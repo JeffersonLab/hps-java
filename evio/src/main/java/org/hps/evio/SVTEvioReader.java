@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
-
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -28,6 +28,7 @@ import static org.hps.evio.EventConstants.SVT_BANK_TAG;
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
+// TODO: Update this class so it works correctly with the database conditions system
 public class SVTEvioReader extends EvioReader {
 
     
@@ -63,10 +64,8 @@ public class SVTEvioReader extends EvioReader {
     	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
     
         for(HpsSiSensor sensor : sensors){
-        	// FIXME: For now, use the FEB ID and FEB Hybrid ID.  This will need to be changed to 
-        	//		  use the Fpga and hybrid number once HpsTestRunSensor is ready
         	Pair<Integer, Integer> daqPair 
-    			= new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
+    			= new Pair<Integer, Integer>(((HpsTestRunSiSensor) sensor).getFpgaID(), ((HpsTestRunSiSensor) sensor).getHybridID());
         	daqPairToSensor.put(daqPair, sensor);
         }
         isDaqMapSetup = true; 
@@ -181,8 +180,10 @@ public class SVTEvioReader extends EvioReader {
 
     private RawTrackerHit makeHit(int[] data) {
         int hitTime = 0;
+        System.out.println("FPGA: " + SVTData.getFPGAAddress(data) + " Hybrid: " + SVTData.getHybridNumber(data));
         Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(SVTData.getFPGAAddress(data), SVTData.getHybridNumber(data));
         HpsSiSensor sensor = daqPairToSensor.get(daqPair);
+        System.out.println(sensor.toString());
         //===> SiSensor sensor = SvtUtils.getInstance().getSensor(daqPair);
 
         int sensorChannel = SVTData.getSensorChannel(data);

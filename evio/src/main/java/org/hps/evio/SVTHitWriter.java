@@ -9,7 +9,7 @@ import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
-
+import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -17,7 +17,6 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
-
 import org.hps.conditions.deprecated.HPSSVTConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.FpgaData;
@@ -30,6 +29,7 @@ import static org.hps.evio.EventConstants.SVT_BANK_TAG;
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  */
+// TODO: Update this class so it works correctly with the database conditions system
 public class SVTHitWriter implements HitWriter {
 
     boolean debug = false;
@@ -67,11 +67,9 @@ public class SVTHitWriter implements HitWriter {
         Map<Integer, FpgaData> fpgaData = new HashMap<Integer, FpgaData>();
     	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
     
-    	// FIXME: For now, just fill the FPGA numbers list using the sensors. 
-    	//		  This should be moved to the daqMapping class.
     	for(HpsSiSensor sensor : sensors){
-        	if(!fpgaNumbers.contains(sensor.getFebID())){
-        		fpgaNumbers.add(sensor.getFebID());
+        	if(!fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())){
+        		fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
         	}
         }
         //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
@@ -100,11 +98,9 @@ public class SVTHitWriter implements HitWriter {
 
         for (RawTrackerHit hit : hits) {
             //===> int fpgaAddress = SvtUtils.getInstance().getFPGA((SiSensor) hit.getDetectorElement());
-            // FIXME: For now use the FEB ID until HpsTestRunSensor is ready
-        	int fpgaAddress = ((HpsSiSensor) hit.getDetectorElement()).getFebID();
+        	int fpgaAddress = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
             //int hybridNumber = SvtUtils.getInstance().getHybrid((SiSensor) hit.getDetectorElement());
-            // FIXME: For now use the FEB Hybrid ID until HpsTestRunSensor is ready
-            int hybridNumber = ((HpsSiSensor) hit.getDetectorElement()).getFebHybridID();
+            int hybridNumber = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
         	int sensorChannel = hit.getIdentifierFieldValue("strip");
             int apvNumber = SVTData.getAPV(sensorChannel);
             int channelNumber = SVTData.getAPVChannel(sensorChannel);
