@@ -8,7 +8,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.0.3-SNAPSHOT</version>
+        <version>3.1-SNAPSHOT</version>
     </parent>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/tracking/</url>
@@ -45,11 +45,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.freehep</groupId>
-            <artifactId>freehep-jminuit</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

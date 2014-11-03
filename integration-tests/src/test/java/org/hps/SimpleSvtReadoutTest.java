@@ -50,6 +50,7 @@ public class SimpleSvtReadoutTest extends TestCase {
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");
         job.setNumberOfEvents(10000);
         job.getLCSimLoop().add(checker);
+        job.setNumberOfEvents(1000);
         job.run();
         
         this.printDebug("=========== Summary ===========");

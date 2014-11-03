@@ -21,7 +21,8 @@ import org.lcsim.util.aida.AIDA;
  * The code for generating trigger pairs and handling the coincidence
  * window comes from <code>FADCTriggerDriver</code>.
  * 
- * @author Kyle McCarty
+ * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Sho Uemura <meeg@slac.stanford.edu>
  * @see FADCTriggerDriver
  */
 public class FADCPrimaryTriggerDriver extends TriggerDriver {
@@ -46,7 +47,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private int pairCoincidence = 2;                              // Maximum allowed time difference between clusters. (4 ns clock-cycles)
     private double energySlopeParamF = 0.005500;                  // A parameter value used for the energy slope calculation.
     private double originX = 1393.0 * Math.tan(0.03052);          // ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
-    private int backgroundLevel = -1;                            // Automatically sets the cuts to achieve a predetermined background rate.
+    private int backgroundLevel = -1;                             // Automatically sets the cuts to achieve a predetermined background rate.
     
     // ==================================================================
     // ==== Driver Internal Variables ===================================
@@ -94,7 +95,16 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     
-    IHistogram1D hotCrystalEnergy = aida.histogram1D("Trigger Plots :: Hot Crystal Energy Distribution", 176, 0.0, 2.2);
+    // ==================================================================
+    // ==== Hardware Diagnostic Variables ===============================
+    // ==================================================================
+    IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram1D diagHitCount = aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution", 9, 1, 10);
+    IHistogram1D diagTotalEnergy = aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
+    // TODO: Implement cluster latency plot.
+    
+    private boolean verbose = false;
+    
     
     /**
      * Prints out the results of the trigger at the end of the run.
@@ -117,6 +127,19 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
         System.out.printf("%n");
         System.out.printf("\tTrigger Count :: %d%n", numTriggers);
+        
+        // Print the trigger cuts.
+        System.out.printf("%nCut Values:%n");
+        System.out.printf("\tSeed Energy Low        :: %.2f%n", seedEnergyLow);
+        System.out.printf("\tSeed Energy High       :: %.2f%n", seedEnergyHigh);
+        System.out.printf("\tCluster Energy Low     :: %.2f%n", clusterEnergyLow);
+        System.out.printf("\tCluster Energy High    :: %.2f%n", clusterEnergyHigh);
+        System.out.printf("\tCluster Hit Count      :: %d%n", minHitCount);
+        System.out.printf("\tPair Energy Sum Low    :: %.2f%n", energySumLow);
+        System.out.printf("\tPair Energy Sum High   :: %.2f%n", energySumHigh);
+        System.out.printf("\tPair Energy Difference :: %.2f%n", energyDifferenceHigh);
+        System.out.printf("\tPair Energy Slope      :: %.2f%n", energySlopeLow);
+        System.out.printf("\tPair Coplanarity       :: %.2f%n", coplanarityHigh);
         
         // Run the superclass method.
         super.endOfData();
@@ -151,10 +174,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
                 int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
                 
-                // If the cluster is in the "hot" region, write out its
-                // energy to a special plot.
-                if((iy == 1 || iy == -1) && (ix == -1 || ix == 1 || ix == 2)) {
-                    hotCrystalEnergy.fill(clusterEnergy, 1);
+                // VERBOSE :: Note that a cluster is being processed.
+                if(verbose) {
+                	System.out.printf("%nProcessing cluster at (% 2d, % 2d)%n", ix, iy);
                 }
                 
                 // Correct for "hole" on the x-axis for plotting.
@@ -174,8 +196,18 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                     clusterDistribution100.fill(ix, iy, 1);
                 }
                 
+                // Populate the diagnostic plots.
+                diagClusters.fill(ix, iy, 1);
+                diagTotalEnergy.fill(clusterEnergy, 1);
+                diagHitCount.fill(hitCount, 1);
+                
                 // ==== Seed Hit Energy Cut ====================================
                 // =============================================================
+                // VERBOSE :: Print the seed energy comparison check.
+                if(verbose) {
+                	System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n", seedEnergyLow, seedEnergy, seedEnergyHigh, clusterSeedEnergyCut(cluster));
+                }
+                
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
                 
@@ -184,6 +216,11 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 
                 // ==== Cluster Hit Count Cut ==================================
                 // =============================================================
+                // VERBOSE :: Print the hit count comparison check.
+                if(verbose) {
+                	System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n", hitCount, minHitCount, clusterHitCountCut(cluster));
+                }
+                
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
                 
@@ -192,6 +229,11 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 
                 // ==== Cluster Total Energy Cut ===============================
                 // =============================================================
+                // VERBOSE :: Print the cluster energy comparison check.
+                if(verbose) {
+                	System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n", clusterEnergyLow, clusterEnergy, clusterEnergyHigh, clusterTotalEnergyCut(cluster));
+                }
+                
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
                 
@@ -661,7 +703,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     private void setBackgroundCuts(int backgroundLevel) {
         // Make sure that the background level is valid.
-        if(backgroundLevel < 1 || backgroundLevel > 10) {
+        if(backgroundLevel < 0 || backgroundLevel > 10) {
             throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
         }
         
@@ -761,6 +803,17 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             energySlopeLow = 0.5;
             coplanarityHigh = 65;
             minHitCount = 2;
+        } else if(backgroundLevel == 0) {
+        	seedEnergyLow = 0.100;
+            seedEnergyHigh = 6.6;
+            clusterEnergyLow = 0.100;
+            clusterEnergyHigh = 1.500;
+            energySumLow = 0.000;
+            energySumHigh = 1.900;
+            energyDifferenceHigh = 2.200;
+            energySlopeLow = 1.10;
+            coplanarityHigh = 35;
+            minHitCount = 1;
         }
     }
     

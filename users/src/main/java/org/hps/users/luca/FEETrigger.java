@@ -29,8 +29,8 @@ public class FEETrigger extends TriggerDriver {
 	
     // The number of cluster over threshold that must occur in a region
 	// before a trigger occurs.
-	private int zone1Prescaling = 1000;
-	private int zone2Prescaling = 100;
+	private int zone1Prescaling = 50;
+	private int zone2Prescaling = 10;
 	
 	/**
 	 * Sets the energy threshold required for a cluster to be counted.
@@ -91,10 +91,60 @@ public class FEETrigger extends TriggerDriver {
 					// Zone 1 is -13 < ix < -4 and 14 < ix < 21  MISTAKE!!! it's all reversed!! remember!!!
 					// Zone 2 is -20 < ix < -14 and ix > 20
 					// Zone 3 is -23 <= ix < -18
+                                        //V3
+                                        /*
 					if( ix > 18 || ix < -22) { zone3Count++; }
 					if(ix < 19 && ix  > 12 )  { zone2Count++; }
 					if((ix > 4 && ix < 13) || (ix > -23 && ix < -14)) { zone1Count++; }
-				}
+                                        */
+                                        //V2
+                                        /*
+					if( ix > 18 ) { zone3Count++; }
+					if(ix < 19 && ix  > 12 || ix <-20)  { zone2Count++; }
+					if((ix > 4 && ix < 13) || (ix > -21 && ix < -14)) { zone1Count++; }
+                                        */
+                                        
+                                        //v4/*
+                                        /*
+                                        if( ix > 19 || ix < -22) { zone3Count++; }
+					if(ix < 20 && ix  > 12 || ix <-20 && ix > -23)  { zone2Count++; }
+					if((ix > 4 && ix < 13) || (ix > -21 && ix < -14)) { zone1Count++; }
+                                        */
+                                        //V prova
+                                       /* 
+					if( ix != 50 ) { zone2Count++; }
+					*/
+                                        //V6
+                                        /*
+                                        if( ix > 19 || ix < -22) { zone3Count++; }
+					if(ix < 20 && ix  > 8 || ix <-16 && ix > -23)  { zone2Count++; }
+					if((ix > 4 && ix < 9) || (ix > -17 && ix < -14)) { zone1Count++; }
+                                        */
+                                        //V7
+                                        /*
+                                        if( ix > 19 || ix < -22) { zone3Count++; }
+					if(ix < 20 && ix  > 15 )  { zone2Count++; }
+					if((ix > 5 && ix < 16) || (ix > -23 && ix < -14)) { zone1Count++; }
+                                        */
+                                        //V8
+                                        /*
+                                        if( ix > 19 || ix < -17) { zone3Count++; } //x1
+					if(ix < 20 && ix  > 9 )  { zone2Count++; }//x10
+					if((ix > 5 && ix < 10) || (ix > -18 && ix < -14)) { zone1Count++; }    //x50
+                                        }*/
+                                         //V9
+                                        /*
+                                        if( ix > 19 || ix < -21) { zone3Count++; } //x1
+					if(ix < 20 && ix  > 9 || ix > -22 && ix <-17)  { zone2Count++; }//x10
+					if((ix > 5 && ix < 10) || (ix > -18 && ix < -14)) { zone1Count++; }    //x50
+                                        */ 
+                                        //10
+                                        
+                                        if( ix > 19 || ix < -22) { zone3Count++; } //x1
+					if(ix < 20 && ix  > 9 || ix > -22 && ix <-17)  { zone2Count++; }//x10
+					if((ix > 5 && ix < 10) || (ix > -18 && ix < -14)) { zone1Count++; }    //x50
+                                
+                                }
 			}
 		}
 		

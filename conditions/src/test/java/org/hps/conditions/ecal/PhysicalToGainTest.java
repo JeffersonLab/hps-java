@@ -26,8 +26,6 @@ import org.lcsim.util.loop.LCSimLoop;
  * the ECAL.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * 
- * @version $Id$
- * 
  */
 public class PhysicalToGainTest extends TestCase {
 

@@ -6,14 +6,15 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.3-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
     <name>parent</name>
     <description>HPS Java parent POM</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.0.7-SNAPSHOT</lcsimVersion>
+        <lcsimVersion>3.0.8-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
+        <skipPlugin>false</skipPlugin>
     </properties>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/parent/</url>
@@ -72,10 +73,28 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        -->
         <dependency>
             <groupId>org.lcsim</groupId>
             <artifactId>lcsim-distribution</artifactId>
             <version>${lcsimVersion}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jdom</groupId>
+                    <artifactId>jdom</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-math</groupId>
+                    <artifactId>commons-math</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <!-- DO NOT EDIT THESE DEPENDENCY VERSIONS MANUALLY. -->
@@ -84,82 +103,82 @@
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-util</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-detector-data</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-conditions</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-recon</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-readout-sim</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-tracking</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-evio</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-recon</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-analysis</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-drivers</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-monitoring-app</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-users</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-steering-files</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-distribution</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-ecal-event-display</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hps</groupId>
                 <artifactId>hps-record-util</artifactId>
-                <version>3.0.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -200,11 +219,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.16</version>
+                <version>2.17</version>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>2.7</version>
             </plugin>
         </plugins>
     </reporting>
@@ -222,7 +241,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.3</version>
+                    <version>3.4</version>
                     <configuration>
                         <chmod>false</chmod>
                         <skip>${skipSite}</skip>
@@ -266,14 +285,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>1.8.1</version>
+                <version>1.9.2</version>
                 <configuration>
                     <connectionType>connection</connectionType>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.2</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -284,8 +303,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.16</version>
+                <version>2.17</version>
                 <configuration>
+<!--                
+                    <disableXmlReport>true</disableXmlReport>
+-->                    
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
                     <!-- This allows the cacheDir to be overridden by settings.xml, 
@@ -301,7 +323,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.2</version>
+                <version>2.5.1</version>
                 <configuration>
                     <tagBase>svn://svn.freehep.org/hps/java/tags/</tagBase>
                 </configuration>
@@ -309,7 +331,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
                 <executions>
                     <execution>
                         <phase>generate-test-resources</phase>
@@ -328,7 +349,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
+                <version>2.3</version>
             </plugin>
         </plugins>
     </build>
@@ -462,4 +483,15 @@
         <system>Jenkins</system>
         <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
     </ciManagement>
+    <profiles>
+        <profile>
+            <id>no-plugin</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <skipPlugin>true</skipPlugin>
+            </properties>
+        </profile>
+    </profiles>
 </project>

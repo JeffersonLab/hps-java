@@ -7,7 +7,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.0.3-SNAPSHOT</version>
+        <version>3.1-SNAPSHOT</version>
     </parent>
     <scm>
         <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/monitoring-app/</url>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <version>1.4</version>
             <exclusions>
                 <exclusion>  
                     <groupId>jdom</groupId>

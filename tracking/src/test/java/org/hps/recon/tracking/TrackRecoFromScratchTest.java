@@ -16,7 +16,7 @@ import org.lcsim.util.loop.LCSimLoop;
 public class TrackRecoFromScratchTest extends TestCase
 {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java";
-    static final String testFileName = "radmuon_12.lcio-1-1788.slcio";
+    static final String testFileName = "TrackRecoFromScratchTest_radmuon_12.lcio-1-1788.slcio";
     private final int nEvents = 10;
 
     public void testRecon() throws Exception

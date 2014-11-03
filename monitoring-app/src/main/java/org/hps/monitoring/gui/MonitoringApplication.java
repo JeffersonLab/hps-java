@@ -23,6 +23,7 @@ import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
+import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
 
@@ -480,6 +481,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 plotInfoWindow.setCurrentRegion(region);
             }
         });
+        AnalysisFactory.configure();
     }
 
     /**

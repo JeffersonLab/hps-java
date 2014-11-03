@@ -10,7 +10,7 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>parent/pom.xml</relativePath>
-        <version>3.0.3-SNAPSHOT</version>
+        <version>3.1-SNAPSHOT</version>
     </parent>   
     <scm>
         <url>svn://svn.freehep.org/hps/java/trunk/</url>
@@ -38,7 +38,12 @@
                         <generateProjectInfo>true</generateProjectInfo>
                     </configuration>
                 </plugin>
-            </plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-eclipse-plugin</artifactId>
+                    <version>2.9</version>
+                </plugin>
+            </plugins>            
         </pluginManagement>
     </build>
     <reporting>
@@ -72,6 +77,7 @@
                     <aggregate>true</aggregate>
                 </configuration>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-changes-plugin</artifactId>
@@ -91,6 +97,7 @@
                     </reportSet>
                 </reportSets>
             </plugin>
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -119,7 +126,9 @@
     <modules>
         <module>analysis</module>
         <module>conditions</module>
+<!--        
         <module>datacat</module>
+-->        
         <module>detector-data</module>
         <module>distribution</module>
         <module>ecal-event-display</module>

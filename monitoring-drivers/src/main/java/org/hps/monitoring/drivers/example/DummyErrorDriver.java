@@ -15,19 +15,19 @@ public class DummyErrorDriver extends Driver {
     boolean throwStartOfData = false;
     boolean throwDetectorChanged = false;
     
-    public void throwProcess(boolean throwProcess) {
+    public void setThrowProcess(boolean throwProcess) {
         this.throwProcess = throwProcess;
     }
     
-    public void throwEndOfData(boolean throwEndOfData) {
+    public void setThrowEndOfData(boolean throwEndOfData) {
         this.throwEndOfData = throwEndOfData;
     }
     
-    public void throwStartOfData(boolean throwStartOfData) {
+    public void setThrowStartOfData(boolean throwStartOfData) {
         this.throwStartOfData = throwStartOfData;
     }
     
-    public void throwDetectorChanged(boolean throwDetectorChanged) {
+    public void setThrowDetectorChanged(boolean throwDetectorChanged) {
         this.throwDetectorChanged = throwDetectorChanged;
     }
     

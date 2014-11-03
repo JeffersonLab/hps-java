@@ -97,9 +97,6 @@ public class TrackAnalysis {
         _hasLayerOne = false;
         //  Loop over the hits on the track and make sure we have HelicalTrackHits (which contain the MC particle)
         for (TrackerHit hit : trk.getTrackerHits()) {
-            HelicalTrackHit htc = (HelicalTrackHit) hit;
-            if (htc.Detector().equals("BeamSpot"))
-                continue;
 
             //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
             Set<MCParticle> mclist = hittomc.allFrom(hit);
@@ -115,7 +112,7 @@ public class TrackAnalysis {
                 countHit((HelicalTrackCross) hit);
             else if (hit instanceof HelicalTrack2DHit)
                 countHit((HelicalTrack2DHit) hit);
-            else
+            else if (!(hit  instanceof HelicalTrack2DHit )) //probably SOITrackerHit
                 countHit(hit, rthtosimhit, hittostrip, hittorotated);
         }
 

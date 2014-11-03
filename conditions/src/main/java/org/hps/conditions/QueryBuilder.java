@@ -1,16 +1,18 @@
 package org.hps.conditions;
 
+import java.util.List;
+
 /**
  * This is a static utility class for building SQL queries for the conditions system.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-final class QueryBuilder {
+public final class QueryBuilder {
 
     private QueryBuilder() {
     }
 
-    static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
+    public static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         if (fields == null) {
@@ -32,7 +34,7 @@ final class QueryBuilder {
         return buff.toString();
     }
 
-    static String buildUpdate(String tableName, int rowId, String[] fields, Object[] values) {
+    public static String buildUpdate(String tableName, int rowId, String[] fields, Object[] values) {
         if (fields.length != values.length)
             throw new IllegalArgumentException("The field and value arrays are different lengths.");
         StringBuffer buff = new StringBuffer();
@@ -45,7 +47,7 @@ final class QueryBuilder {
         return buff.toString();
     }
 
-    static String buildInsert(String tableName, int collectionId, String[] fields, Object[] values) {
+    public static String buildInsert(String tableName, int collectionId, String[] fields, Object[] values) {
         if (fields.length != values.length)
             throw new IllegalArgumentException("The field and value arrays are different lengths.");
         StringBuffer buff = new StringBuffer();
@@ -60,12 +62,31 @@ final class QueryBuilder {
         buff.append(") ");
         return buff.toString();
     }
+    
+    public static String buildInsert(String tableName, int collectionID, List<String> columnNames, List<List<String>> rows) {
+        StringBuffer buff = new StringBuffer();
+        buff.append("INSERT INTO " + tableName + " ( collection_id");
+        for (String column : columnNames) {
+            buff.append(", " + column);
+        }
+        buff.append(" ) VALUES ");
+        for (List<String> values : rows) {
+            buff.append("( ");
+            buff.append(collectionID);
+            for (String value : values) {
+                buff.append(", '" + value + "'");
+            }
+            buff.append("), ");
+        }        
+        buff.setLength(buff.length() - 2);
+        return buff.toString();
+    }
+    
 
-    static String buildDelete(String tableName, int rowId) {
+    public static String buildDelete(String tableName, int rowId) {
         if (rowId <= 0)
             throw new IllegalArgumentException("Invalid row ID: " + rowId);
         String query = "DELETE FROM " + tableName + " WHERE id = " + rowId;
         return query;
-    }
-
+    }        
 }
