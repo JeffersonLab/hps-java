@@ -1,5 +1,6 @@
 package org.hps.conditions;
 
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.geometry.Detector;
 
 import org.hps.conditions.svt.TestRunSvtConditions;
@@ -25,10 +26,15 @@ public class TestRunConditionsDriver extends AbstractConditionsDriver {
 
     // Default constructor used to setup the database connection
     public TestRunConditionsDriver(){
-        manager = new DatabaseConditionsManager();
-        manager.setConnectionResource(TEST_RUN_CONNECTION);
-        manager.configure(TEST_RUN_CONFIG);
-        manager.register();
+        if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
+            System.out.println(this.getName()+": Found existing DatabaseConditionsManager");
+            manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
+        } else { 
+            manager = new DatabaseConditionsManager();
+            manager.setConnectionResource(TEST_RUN_CONNECTION);
+            manager.configure(TEST_RUN_CONFIG);
+            manager.register();
+        }
     }
 
     /**
