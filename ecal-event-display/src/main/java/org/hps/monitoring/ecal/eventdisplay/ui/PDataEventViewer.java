@@ -89,7 +89,7 @@ public class PDataEventViewer extends PEventViewer {
                 setStatusField(fieldNames[FIELD_SPLITTER], "" + cds.getSplitterNumber());
                 setStatusField(fieldNames[FIELD_HV_GROUP], "" + cds.getHighVoltageGroup());
                 setStatusField(fieldNames[FIELD_JOUT], "" + cds.getJout());
-                setStatusField(fieldNames[FIELD_MB], "" + cds.getMB());
+                setStatusField(fieldNames[FIELD_MB], "" + cds.getMotherboard().toString());
                 setStatusField(fieldNames[FIELD_CHANNEL], "" + cds.getChannel());
                 setStatusField(fieldNames[FIELD_GAIN], "" + cds.getGain());
             }

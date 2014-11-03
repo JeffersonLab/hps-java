@@ -4,7 +4,11 @@ import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -17,7 +21,7 @@ import java.util.Scanner;
  * 
  * @author Kyle McCarty
  */
-public class EcalWiringManager {
+public class EcalWiringManager implements Iterable<CrystalDataSet> {
     // Delimiter class statics.
     public static final int SPACE_DELIMITED = 1;
     public static final int TAB_DELIMITED = 2;
@@ -109,4 +113,35 @@ public class EcalWiringManager {
      * if the crystal index is invalid.
      */
     public CrystalDataSet getCrystalData(Point crystalIndex) { return crystalMap.get(crystalIndex); }
+    
+    /**
+     * Generates a list of all the crystals that match the conditions
+     * set in the argument <code>Comparator</code> object.
+     * @param conditions - An object defining the conditions that denote
+     * a "matched" crystal.
+     * @return Returns <code>Point</code> objects that contain the
+     * LCSim coordinates of all the crystals that produce a result of
+     * <code>true</code> with the method <code>comparator.equals(crystal)
+     * </code>.
+     */
+    public List<Point> getFilteredCrystalList(Comparator<CrystalDataSet> conditions) {
+        // Create a list of crystal indices that match the conditions.
+        List<Point> crystalList = new ArrayList<Point>();
+        
+        // Iterate over the crystal data set entries.
+        for(CrystalDataSet cds : this) {
+            // Check if the crystal data set meets the given conditions.
+            if(conditions.equals(cds)) {
+                crystalList.add(cds.getCrystalIndex());
+            }
+        }
+        
+        // Return the resultant list.
+        return crystalList;
+    }
+    
+    @Override
+    public Iterator<CrystalDataSet> iterator() {
+        return new MapValueIterator<CrystalDataSet>(crystalMap);
+    }
 }

@@ -1,7 +1,14 @@
 package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
+
+import javax.swing.JFrame;
 
 import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalDataSet;
@@ -40,6 +47,10 @@ public class DataFileViewer extends FileViewer {
     private static final int FIELD_CHANNEL = 10;
     private static final int FIELD_GAIN = 11;
     
+    // Filter panel components.
+    private JFrame filterWindow;
+    private CrystalFilterPanel filterPanel;
+    
     /**
      * Initializes a new <code>DataFileViewer</code> that reads from
      * the given event manager for event data and the given hardware
@@ -61,6 +72,48 @@ public class DataFileViewer extends FileViewer {
         for(String fieldName : fieldNames) {
             addStatusField(fieldName);
         }
+        
+        // Instantiate the crystal filter panel.
+        filterPanel = new CrystalFilterPanel(ewm);
+        filterWindow = new JFrame("Event Display Crystal Filter");
+        filterWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        filterWindow.add(filterPanel);
+        filterWindow.pack();
+        filterWindow.setResizable(false);
+        
+        // Add an action listener to note when the filter window applies
+        // a crystal filter.
+        filterPanel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Clear the panel highlighting.
+				ecalPanel.clearHighlight();
+				
+				// If the filter panel is active, highlight the crystals
+				// that passed the filter.
+				if(filterPanel.isActive()) {
+					// Get the list of filtered crystals.
+					List<Point> filterList = filterPanel.getFilteredCrystals();
+					
+					// Highlight each of the filtered crystals.
+					for(Point crystal : filterList) {
+						ecalPanel.setCrystalHighlight(toPanelPoint(crystal), java.awt.Color.WHITE);
+					}
+				}
+			}
+        });
+        
+        // Create a new key listener.
+        addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// Bring up the filter panel when 'f' is pressed.
+				if(e.getKeyCode() == 70) {
+					if(!filterWindow.isVisible()) { filterWindow.setVisible(true); }
+					else { filterWindow.setVisible(false); }
+				}
+			}
+        });
     }
     
     @Override
@@ -90,7 +143,7 @@ public class DataFileViewer extends FileViewer {
                 setStatusField(fieldNames[FIELD_SPLITTER], "" + cds.getSplitterNumber());
                 setStatusField(fieldNames[FIELD_HV_GROUP], "" + cds.getHighVoltageGroup());
                 setStatusField(fieldNames[FIELD_JOUT], "" + cds.getJout());
-                setStatusField(fieldNames[FIELD_MB], "" + cds.getMB());
+                setStatusField(fieldNames[FIELD_MB], "" + cds.getMotherboard().toString());
                 setStatusField(fieldNames[FIELD_CHANNEL], "" + cds.getChannel());
                 setStatusField(fieldNames[FIELD_GAIN], "" + cds.getGain());
             }
