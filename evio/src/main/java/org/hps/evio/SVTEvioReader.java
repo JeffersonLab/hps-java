@@ -9,19 +9,22 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
-import org.lcsim.geometry.Subdetector;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
+import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.deprecated.HPSSVTConstants;
+import org.hps.conditions.svt.TestRunSvtConditions;
+import org.hps.conditions.svt.TestRunSvtDetectorSetup;
 //import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.FpgaData;
 import org.hps.readout.svt.SVTData;
 import org.hps.util.Pair;
 
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
 /**
@@ -61,8 +64,14 @@ public class SVTEvioReader extends EvioReader {
     
     // TODO: Move this class to the DaqMapping class instead
     private void setupDaqMap(Subdetector subdetector){
-    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
-    
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        
+        TestRunSvtConditions conditions = manager.getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();
+        TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
+        loader.load(subdetector, conditions); 
+    	
+        List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    	
         for(HpsSiSensor sensor : sensors){
         	Pair<Integer, Integer> daqPair 
     			= new Pair<Integer, Integer>(((HpsTestRunSiSensor) sensor).getFpgaID(), ((HpsTestRunSiSensor) sensor).getHybridID());
@@ -180,10 +189,8 @@ public class SVTEvioReader extends EvioReader {
 
     private RawTrackerHit makeHit(int[] data) {
         int hitTime = 0;
-        System.out.println("FPGA: " + SVTData.getFPGAAddress(data) + " Hybrid: " + SVTData.getHybridNumber(data));
         Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(SVTData.getFPGAAddress(data), SVTData.getHybridNumber(data));
         HpsSiSensor sensor = daqPairToSensor.get(daqPair);
-        System.out.println(sensor.toString());
         //===> SiSensor sensor = SvtUtils.getInstance().getSensor(daqPair);
 
         int sensorChannel = SVTData.getSensorChannel(data);
