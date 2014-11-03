@@ -5,17 +5,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalConditions;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 import static org.hps.evio.EventConstants.*;
@@ -30,7 +34,29 @@ public class ECalHitWriter implements HitWriter {
     private String hitCollectionName = "EcalReadoutHits";
     private int mode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
 
+    // FIXME: Hard-coded detector names.
+    private static final String subdetectorName = "Ecal";
+    private Subdetector subDetector;
+
+    private static EcalConditions ecalConditions = null;
+
     public ECalHitWriter() {
+    }
+
+    /**
+     * Must be set when an object EcalHitWriter is created.
+     *
+     * @param detector (long)
+     */
+    void setDetector(Detector detector) {
+
+        subDetector = detector.getSubdetector(subdetectorName);
+
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+
+        System.out.println("You are now using the database conditions for ECalHitWriter.java");
     }
 
     public void setHitCollectionName(String hitCollectionName) {
@@ -86,8 +112,8 @@ public class ECalHitWriter implements HitWriter {
         List<Object> topHits = new ArrayList<Object>();
         List<Object> bottomHits = new ArrayList<Object>();
         for (Object hit : rawCalorimeterHits) {
-            Long daqID = EcalConditions.physicalToDaqID(getCellID(hit));
-            int crate = EcalConditions.getCrate(daqID);
+//            Long daqID = EcalConditions.physicalToDaqID(getCellID(hit));
+            int crate = getCrate(getCellID(hit));
             if (crate == ECAL_BOTTOM_BANK_TAG) {
                 bottomHits.add(hit);
             } else {
@@ -163,7 +189,7 @@ public class ECalHitWriter implements HitWriter {
         }
 
         // Get the ID decoder.
-        IDDecoder dec = EcalConditions.getSubdetector().getIDDecoder();
+        IDDecoder dec = subDetector.getIDDecoder();
 
         // Make a hit map; allow for multiple hits in a crystal.
         Map<Long, List<RawCalorimeterHit>> hitMap = new HashMap<Long, List<RawCalorimeterHit>>();
@@ -182,9 +208,9 @@ public class ECalHitWriter implements HitWriter {
             dec.setID(id);
 //			System.out.println(dec.getIDDescription());
 //			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
-            Long daqID = EcalConditions.physicalToDaqID(id);
+//            Long daqID = EcalConditions.physicalToDaqID(id);
 //			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
-            int slot = EcalConditions.getSlot(daqID);
+            int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
             }
@@ -205,7 +231,7 @@ public class ECalHitWriter implements HitWriter {
             data.addN(nhits); // number of channels
             for (Long id : hitIDs) {
                 dec.setID(id);
-                int channel = EcalConditions.getChannel(EcalConditions.physicalToDaqID(id));
+                int channel = getChannel(id);
                 data.addUchar((byte) channel); // channel #
                 List<RawCalorimeterHit> channelHits = hitMap.get(id);
                 data.addN(channelHits.size()); // number of pulses
@@ -216,7 +242,7 @@ public class ECalHitWriter implements HitWriter {
             }
         }
         // New bank for this slot.
-        EvioBank cdataBank = new EvioBank(EventConstants.ECAL_PULSE_BANK_TAG, DataType.COMPOSITE, 0);
+        EvioBank cdataBank = new EvioBank(EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG, DataType.COMPOSITE, 0);
         List<CompositeData> cdataList = new ArrayList<CompositeData>();
 
         // Add CompositeData to bank.
@@ -236,7 +262,7 @@ public class ECalHitWriter implements HitWriter {
         }
 
         // Get the ID decoder.
-        IDDecoder dec = EcalConditions.getSubdetector().getIDDecoder();
+        IDDecoder dec = subDetector.getIDDecoder();
 
         // Make a hit map; allow for multiple hits in a crystal.
         Map<Long, List<RawTrackerHit>> hitMap = new HashMap<Long, List<RawTrackerHit>>();
@@ -255,9 +281,9 @@ public class ECalHitWriter implements HitWriter {
             dec.setID(id);
 //			System.out.println(dec.getIDDescription());
 //			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
-            Long daqID = EcalConditions.physicalToDaqID(id);
+//            Long daqID = EcalConditions.physicalToDaqID(id);
 //			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
-            int slot = EcalConditions.getSlot(daqID);
+            int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
             }
@@ -278,7 +304,7 @@ public class ECalHitWriter implements HitWriter {
             data.addN(nhits); // number of channels
             for (Long id : hitIDs) {
                 dec.setID(id);
-                int channel = EcalConditions.getChannel(EcalConditions.physicalToDaqID(id));
+                int channel = getChannel(id);
                 data.addUchar((byte) channel); // channel #
                 List<RawTrackerHit> channelHits = hitMap.get(id);
                 data.addN(channelHits.size()); // number of pulses
@@ -313,7 +339,7 @@ public class ECalHitWriter implements HitWriter {
         }
 
         // Get the ID decoder.
-        IDDecoder dec = EcalConditions.getSubdetector().getIDDecoder();
+        IDDecoder dec = subDetector.getIDDecoder();
 
         // Make a hit map; allow for multiple hits in a crystal.
         Map<Long, RawTrackerHit> hitMap = new HashMap<Long, RawTrackerHit>();
@@ -328,9 +354,9 @@ public class ECalHitWriter implements HitWriter {
             dec.setID(id);
 //			System.out.println(dec.getIDDescription());
 //			System.out.printf("ix = %d, iy = %d\n", dec.getValue("ix"), dec.getValue("iy"));
-            Long daqID = EcalConditions.physicalToDaqID(id);
+//            Long daqID = EcalConditions.physicalToDaqID(id);
 //			System.out.printf("physicalID %d, daqID %d\n", id, daqID);
-            int slot = EcalConditions.getSlot(daqID);
+            int slot = getSlot(id);
             if (slotMap.get(slot) == null) {
                 slotMap.put(slot, new ArrayList<Long>());
             }
@@ -346,7 +372,6 @@ public class ECalHitWriter implements HitWriter {
 
             // New bank for this slot.
 //            EvioBank slotBank = new EvioBank(EventConstants.ECAL_WINDOW_BANK_TAG, DataType.COMPOSITE, slot);
-
             data.addUchar((byte) slot); // slot #
             data.addUint(0); // trigger #
             data.addUlong(0); // timestamp    		
@@ -355,7 +380,7 @@ public class ECalHitWriter implements HitWriter {
             data.addN(nhits); // number of channels
             for (Long id : hitIDs) {
                 dec.setID(id);
-                int channel = EcalConditions.getChannel(EcalConditions.physicalToDaqID(id));
+                int channel = getChannel(id);
                 data.addUchar((byte) channel); // channel #
                 RawTrackerHit hit = hitMap.get(id);
                 data.addN(hit.getADCValues().length); // number of samples
@@ -382,7 +407,7 @@ public class ECalHitWriter implements HitWriter {
 
     @Override
     public void writeData(EventHeader event, EventHeader toEvent) {
-        String readoutName = EcalConditions.getSubdetector().getReadout().getName();
+        String readoutName = ((org.lcsim.geometry.compact.Subdetector) subDetector).getReadout().getName();
         switch (mode) {
             case EventConstants.ECAL_WINDOW_MODE:
             case EventConstants.ECAL_PULSE_MODE:
@@ -400,5 +425,38 @@ public class ECalHitWriter implements HitWriter {
             default:
                 break;
         }
+    }
+
+    /**
+     * Return crate number from cellID
+     *
+     * @param cellID (long)
+     * @return Crate number (int)
+     */
+    private int getCrate(long cellID) {
+        // Find the ECAL channel and return the crate number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getCrate();
+    }
+
+    /**
+     * Return slot number from cellID
+     *
+     * @param cellID (long)
+     * @return Slot number (int)
+     */
+    private int getSlot(long cellID) {
+        // Find the ECAL channel and return the slot number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getSlot();
+    }
+
+    /**
+     * Return channel number from cellID
+     *
+     * @param cellID (long)
+     * @return Slot number (int)
+     */
+    private int getChannel(long cellID) {
+        // Find the ECAL channel and return the slot number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getChannel();
     }
 }

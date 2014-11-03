@@ -75,7 +75,6 @@ public class ECalUtils {
         }
     }
     
-    
     /*These methods have been added by A. Celentano: they're mostly used in the monitoring drivers related to Ecal:
      * however, instead of keeping them in a class "EcalMonitoringUtils", it seems better to have them here.
      */
@@ -99,6 +98,4 @@ public class ECalUtils {
         }
         return ret;
     }
-    
-    
 }

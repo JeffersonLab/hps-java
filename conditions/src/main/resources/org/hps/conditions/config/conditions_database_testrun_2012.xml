@@ -6,18 +6,14 @@
         <converter class="org.hps.conditions.ConditionsRecordConverter"/>
 
         <!-- SVT converters -->
-        <!--          
-        <converter class="org.hps.conditions.svt.SvtConditionsConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
+        <converter class="org.hps.conditions.svt.TestRunSvtConditionsConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtChannelConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtDaqMappingConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$TestRunSvtT0ShiftConverter"/>
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtCalibrationConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtChannelConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtDaqMappingConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtPulseParametersConverter"/> 
         <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtShapeFitParametersConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtTimeShiftConverter"/>
-        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtT0ShiftConverter"/>
-        -->
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtGainConverter"/>
+        <converter class="org.hps.conditions.svt.SvtConverterRegistry$SvtBadChannelConverter"/>
 
         <!-- ECal converters -->
         <converter class="org.hps.conditions.ecal.EcalConditionsConverter"/>
@@ -33,7 +29,7 @@
 
     <tables>
     
-        <table key="conditions_records" name="conditions_dev">
+        <table key="conditions_records" name="conditions">
             <classes> 
                 <object class="org.hps.conditions.ConditionsRecord"/>
                 <collection class="org.hps.conditions.ConditionsRecord$ConditionsRecordCollection"/>
@@ -54,11 +50,10 @@
             </fields>
         </table>
 
-<!--      
-        <table key="svt_channels" name="svt_channels">
+        <table key="test_run_svt_channels" name="test_run_svt_channels">
             <classes>
-                <object class="org.hps.conditions.svt.SvtChannel"/>
-                <collection class="org.hps.conditions.svt.SvtChannel$SvtChannelCollection"/>
+                <object class="org.hps.conditions.svt.TestRunSvtChannel"/>
+                <collection class="org.hps.conditions.svt.TestRunSvtChannel$TestRunSvtChannelCollection"/>
             </classes>
             <fields>
                 <field name="channel_id" />
@@ -68,7 +63,42 @@
             </fields>
         </table>
     
-        <table key="svt_gains" name="svt_gains">
+        <table key="test_run_svt_calibrations" name="test_run_svt_calibrations">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtCalibration"/>
+                <collection class="org.hps.conditions.svt.SvtCalibration$SvtCalibrationCollection"/>
+            </classes>
+            <fields>
+                <field name="svt_channel_id" />
+                <field name="pedestal_0" />
+                <field name="pedestal_1" />
+                <field name="pedestal_2" />
+                <field name="pedestal_3" />
+                <field name="pedestal_4" />
+                <field name="pedestal_5" />
+                <field name="noise_0" />
+                <field name="noise_1" />
+                <field name="noise_2" />
+                <field name="noise_3" />
+                <field name="noise_4" />
+                <field name="noise_5" />
+            </fields>        
+        </table>
+
+        <table key="test_run_svt_shape_fit_parameters" name="test_run_svt_shape_fit_parameters">
+            <classes>
+                <object class="org.hps.conditions.svt.SvtShapeFitParameters"/>
+                <collection class="org.hps.conditions.svt.SvtShapeFitParameters$SvtShapeFitParametersCollection"/>
+            </classes>
+            <fields>
+                <field name="svt_channel_id"    />
+                <field name="amplitude"         />
+                <field name="t0"                />
+                <field name="tp"                />
+            </fields>        
+        </table>
+
+        <table key="test_run_svt_gains" name="test_run_svt_gains">
             <classes>
                 <object class="org.hps.conditions.svt.SvtGain"/> 
                 <collection class="org.hps.conditions.svt.SvtGain$SvtGainCollection"/>
@@ -78,80 +108,21 @@
                 <field name="gain" />
                 <field name="offset" />
             </fields>
-        </table>        
-        
-        <table key="svt_pulse_parameters" name="svt_pulse_parameters">
+        </table>       
+         
+        <table key="test_run_svt_t0_shifts" name="test_run_svt_t0_shifts">
             <classes>
-                <object class="org.hps.conditions.svt.SvtShapeFitParameters"/>
-                <collection class="org.hps.conditions.svt.SvtShapeFitParameters$SvtShapeFitParametersCollection"/>
+                <object class="org.hps.conditions.svt.TestRunSvtT0Shift"/>
+                <collection class="org.hps.conditions.svt.TestRunSvtT0Shift$TestRunSvtT0ShiftCollection"/>
             </classes>
             <fields>
-                <field name="svt_channel_id" />
-                <field name="amplitude" />
-                <field name="t0" />
-                <field name="tp" />
-            </fields>        
-        </table>
--->        
-
-<!--         
-        <table key="svt_pulse_parameters" name="svt_pulse_parameters">
-            <classes>
-                <object class="org.hps.conditions.svt.SvtPulseParameters"/>
-                <collection class="org.hps.conditions.svt.SvtPulseParameters$SvtPulseParametersCollection"/>
-            </classes>
-            <fields>
-                <field name="svt_channel_id" />
-                <field name="amplitude" />
-                <field name="t0" />
-                <field name="tp" />
-                <field name="chisq" />
-            </fields>        
-        </table>
--->
-        
-<!--          
-        <table key="svt_calibrations" name="svt_calibrations">
-            <classes>
-                <object class="org.hps.conditions.svt.SvtCalibration"/>
-                <collection class="org.hps.conditions.svt.SvtCalibration$SvtCalibrationCollection"/>
-            </classes>
-            <fields>
-                <field name="svt_channel_id" />
-                <field name="noise" />
-                <field name="pedestal" />
-            </fields>        
-        </table>
--->        
-
-<!--                  
-        <table key="svt_t0_shifts" name="svt_t0_shifts">
-            <classes>
-                <object class="org.hps.conditions.svt.SvtT0Shift"/>
-                <collection class="org.hps.conditions.svt.SvtT0Shift$SvtT0ShiftCollection"/>
-            </classes>
-            <fields>
-                <field name="feb_id" />
-                <field name="feb_hybrid_id" />
-                <field name="t0_shift" />
-            </fields>        
-        </table>
-        
-        <table key="svt_time_shifts" name="svt_time_shifts">
-            <classes>
-                <object class="org.hps.conditions.svt.SvtTimeShift"/>
-                <collection class="org.hps.conditions.svt.SvtTimeShift$SvtTimeShiftCollection"/>
-            </classes>
-            <fields>
-                <field name="fpga" />
+                <field name="fpga"        />
                 <field name="hybrid" />
-                <field name="time_shift" />
+                <field name="t0_shift"      />
             </fields>        
         </table>
--->        
-
-<!--          
-        <table key="svt_bad_channels" name="svt_bad_channels">
+         
+        <table key="test_run_svt_bad_channels" name="test_run_svt_bad_channels">
             <classes>
                 <object class="org.hps.conditions.svt.SvtBadChannel"/>
                 <collection class="org.hps.conditions.svt.SvtBadChannel$SvtBadChannelCollection"/>
@@ -160,22 +131,22 @@
                 <field name="svt_channel_id" />
             </fields>        
         </table>
-        
-        <table key="svt_daq_map" name="svt_daq_map">
+       
+       <table key="test_run_svt_daq_map" name="test_run_svt_daq_map">
             <classes>
-                <object class="org.hps.conditions.svt.SvtDaqMapping"/>
-                <collection class="org.hps.conditions.svt.SvtDaqMapping$SvtDaqMappingCollection"/>
+                <object class="org.hps.conditions.svt.TestRunSvtDaqMapping"/>
+                <collection class="org.hps.conditions.svt.TestRunSvtDaqMapping$TestRunSvtDaqMappingCollection"/>
             </classes>
             <fields>
-                <field name="half" />
-                <field name="layer" />
                 <field name="fpga" />
                 <field name="hybrid" />
+                <field name="svt_half" />
+                <field name="layer" />
+                <field name="orientation" />
             </fields>  
-        </table>
--->        
+        </table>   
         
-        <table key="ecal_bad_channels" name="ecal_bad_channels">
+        <table key="test_run_ecal_bad_channels" name="test_run_ecal_bad_channels">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalBadChannel"/>
                 <collection class="org.hps.conditions.ecal.EcalBadChannel$EcalBadChannelCollection"/>
@@ -185,7 +156,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_gains" name="ecal_gains">
+        <table key="test_run_ecal_gains" name="test_run_ecal_gains">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalGain"/>
                 <collection class="org.hps.conditions.ecal.EcalGain$EcalGainCollection"/>
@@ -196,7 +167,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_calibrations" name="ecal_calibrations">
+        <table key="test_run_ecal_calibrations" name="test_run_ecal_calibrations">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalCalibration"/>
                 <collection class="org.hps.conditions.ecal.EcalCalibration$EcalCalibrationCollection"/>
@@ -208,7 +179,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_channels" name="ecal_channels">
+        <table key="test_run_ecal_channels" name="test_run_ecal_channels">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalChannel"/>
                 <collection class="org.hps.conditions.ecal.EcalChannel$EcalChannelCollection"/>
@@ -223,7 +194,7 @@
             </fields>  
         </table>
         
-        <table key="ecal_time_shifts" name="ecal_time_shifts">
+        <table key="test_run_ecal_time_shifts" name="test_run_ecal_time_shifts">
             <classes>
                 <object class="org.hps.conditions.ecal.EcalTimeShift"/>
                 <collection class="org.hps.conditions.ecal.EcalTimeShift$EcalTimeShiftCollection"/>

@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 import org.hps.conditions.deprecated.BeamlineConstants;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.EventQuality;
@@ -36,7 +36,7 @@ import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
@@ -931,10 +931,12 @@ public class ROOTFlatTupleDriver extends Driver {
         if(this._debug) System.out.printf("%s: found %d strips in clollection, asking strips in the %s\n", this.getClass().getSimpleName(),strips.size(),(top?"top":"bottom"));
         for(SiTrackerHitStrip1D strip : strips) {
             IDetectorElement de = strip.getSensor();
-            SiSensor sensor = (SiSensor) de;
+            HpsSiSensor sensor = (HpsSiSensor) de;
             int lyr = _ID.getLayer(de);
-            if(!top && SvtUtils.getInstance().isTopLayer(sensor)) continue;
-            else if (top && !SvtUtils.getInstance().isTopLayer(sensor)) continue;
+            //===> if(!top && SvtUtils.getInstance().isTopLayer(sensor)) continue;
+            if(!top && sensor.isTopLayer()) continue;
+            //else if (top && !SvtUtils.getInstance().isTopLayer(sensor)) continue;
+            else if (top && !sensor.isTopLayer()) continue;
             if(this._debug) System.out.printf("%s: strip \"%s\" at %s is selected\n", this.getClass().getSimpleName(),_ID.getName(de),strip.getPositionAsVector().toString());
             if(!map.containsKey(lyr)) {
                 map.put(lyr, new ArrayList<SiTrackerHitStrip1D>());

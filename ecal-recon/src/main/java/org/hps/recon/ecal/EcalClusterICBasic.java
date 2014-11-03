@@ -188,7 +188,7 @@ public class EcalClusterICBasic extends Driver {
             }
             if (biggestSeed == null) { //if no neighbors had more energy than this hit, this hit is a seed
                 hitToSeed.put(hit, hit);
-                HPSEcalCluster cluster = new HPSEcalCluster(hit);
+                HPSEcalCluster cluster = new HPSEcalCluster(hit.getCellID());
                 clusters.add(cluster);
                 seedToCluster.put(hit, cluster);
             } else {

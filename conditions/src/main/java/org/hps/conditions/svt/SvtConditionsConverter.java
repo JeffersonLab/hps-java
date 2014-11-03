@@ -1,24 +1,10 @@
 package org.hps.conditions.svt;
 
-import static org.hps.conditions.TableConstants.SVT_BAD_CHANNELS;
-import static org.hps.conditions.TableConstants.SVT_CALIBRATIONS;
-import static org.hps.conditions.TableConstants.SVT_CHANNELS;
-import static org.hps.conditions.TableConstants.SVT_DAQ_MAP;
-import static org.hps.conditions.TableConstants.SVT_GAINS;
-import static org.hps.conditions.TableConstants.SVT_PULSE_PARAMETERS;
-import static org.hps.conditions.TableConstants.SVT_TIME_SHIFTS;
-
+import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableMetaData;
-import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
-import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
-import org.hps.conditions.svt.SvtGain.SvtGainCollection;
-import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
-import org.lcsim.conditions.ConditionsConverter;
-import org.lcsim.conditions.ConditionsManager;
 
 /**
  * This class creates an {@link SvtConditions} object from the database, based on the
@@ -27,129 +13,39 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class SvtConditionsConverter implements ConditionsConverter<SvtConditions> {
+public final class SvtConditionsConverter extends AbstractSvtConditionsConverter<SvtConditions> {
 
-	private TableMetaData metaData = null; 
-	private String tableName = null; 
+	public SvtConditionsConverter(){
+		this.conditions = new SvtConditions();
+	}
 	
     /**
-     * Create and return the SVT conditions object.
+     * Create and return an {@link SvtConditions} object 
+     * 
      * @param manager The current conditions manager.
      * @param name The conditions key, which is ignored for now.
      */
+    @Override
     public SvtConditions getData(ConditionsManager manager, String name) {
-    
+    	
     	DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
-    	
-        // Get the table name containing the SVT channel map from the 
-    	// database configuration.  If it doesn't exist, use the default value.
-    	metaData = dbConditionsManager.findTableMetaData(SvtChannelCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_CHANNELS; 
-    	}
-    	// Get the SVT channel map from the conditions database
-    	SvtChannelCollection channels 
-    		= dbConditionsManager.getCachedConditions(SvtChannelCollection.class, tableName).getCachedData();
-        
+
+    	// Get the channel map from the conditions database
+        SvtChannelCollection channels = dbConditionsManager.getCollection(SvtChannelCollection.class); 
+
         // Create the SVT conditions object to use to encapsulate SVT condition collections
-        SvtConditions conditions = new SvtConditions(channels);
-
-        // Get the table name containing the SVT DAQ map from the database
-        // configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_DAQ_MAP; 
-    	}
-        // Get the DAQ map from the conditions database
-        SvtDaqMappingCollection daqMap = manager.getCachedConditions(SvtDaqMappingCollection.class, tableName).getCachedData();
+        conditions.setChannelMap(channels);
+       
+    	// Get the DAQ map from the conditions database
+    	SvtDaqMappingCollection daqMap= dbConditionsManager.getCollection(SvtDaqMappingCollection.class);
         conditions.setDaqMap(daqMap);
-
-        // Get the table name containing the SVT calibrations (baseline, noise)
-        // from the database configuration.  If it doesn't exist, use the 
-        // default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtCalibrationCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_CALIBRATIONS; 
-    	}
-    	// Get the calibrations from the conditions database
-        SvtCalibrationCollection calibrations = manager.getCachedConditions(SvtCalibrationCollection.class, tableName).getCachedData();
-        for (SvtCalibration calibration : calibrations.getObjects()) {
-            SvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
-            conditions.getChannelConstants(channel).setCalibration(calibration);
-        }
-
-        // Get the table name containing the SVT pulse shape parameters from 
-        // the database configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtShapeFitParametersCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_PULSE_PARAMETERS; 
-    	}
-        // Add pulse parameters by channel.
-        SvtShapeFitParametersCollection shapeFitParametersCollection = manager.getCachedConditions(SvtShapeFitParametersCollection.class, tableName).getCachedData();
-        for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection.getObjects()) {
-            SvtChannel channel = conditions.getChannelMap().findChannel(shapeFitParameters.getChannelID());
-            conditions.getChannelConstants(channel).setShapeFitParameters(shapeFitParameters);
-        }
-
-        // Get the table name containing the SVT bad channel map from the 
-        // database configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtBadChannelCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    	}
-    		tableName = SVT_BAD_CHANNELS; 
-    	
-        // Add bad channels.
-        // FIXME: This should be changed to catch a conditions record not found exception instead of 
-    	// 		  a runtime exception.
-    	try { 
-        	SvtBadChannelCollection badChannels = manager.getCachedConditions(SvtBadChannelCollection.class, tableName).getCachedData();
-        	for (SvtBadChannel badChannel : badChannels.getObjects()) {
-        		SvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
-        		conditions.getChannelConstants(channel).setBadChannel(true);
-        	}
-        } catch(RuntimeException e){
-        	e.printStackTrace();
-        }
-
-        // Get the table name containing the SVT gains from the database
-        // configuration.  If it doesn't exist, use the default value.
-        metaData = dbConditionsManager.findTableMetaData(SvtGainCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_GAINS; 
-    	}
         
-        // Add gains by channel.
-        SvtGainCollection gains = manager.getCachedConditions(SvtGainCollection.class, tableName).getCachedData();
-        for (SvtGain object : gains.getObjects()) {
-            int channelId = object.getChannelID();
-            SvtChannel channel = conditions.getChannelMap().findChannel(channelId);
-            conditions.getChannelConstants(channel).setGain(object);
-        }
-
-        // Get the table name containing the SVT t0 shifts. If it doesn't 
-        // exist, use the default value. 
-        metaData = dbConditionsManager.findTableMetaData(SvtT0ShiftCollection.class);
-    	if(metaData != null){
-    		tableName = metaData.getTableName();
-    	} else { 
-    		tableName = SVT_TIME_SHIFTS; 
-    	}	
-        // Set the t0 shifts by sensor.
-        SvtT0ShiftCollection t0Shifts = manager.getCachedConditions(SvtT0ShiftCollection.class, tableName).getCachedData();
-        conditions.setTimeShifts(t0Shifts);
-
+        // Get the collection of T0 shifts from the conditions database
+        SvtT0ShiftCollection t0Shifts = dbConditionsManager.getCollection(SvtT0ShiftCollection.class);
+        conditions.setT0Shifts(t0Shifts);
+        
+        conditions = super.getData(manager, name);
+        
         return conditions;
     }
 
@@ -157,6 +53,7 @@ public final class SvtConditionsConverter implements ConditionsConverter<SvtCond
      * Get the type handled by this converter.
      * @return The type handled by this converter.
      */
+    @Override
     public Class<SvtConditions> getType() {
         return SvtConditions.class;
     }

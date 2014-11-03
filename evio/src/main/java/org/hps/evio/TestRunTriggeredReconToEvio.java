@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.deprecated.CalibrationDriver;
-import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.ReadoutTimestamp;
-import org.hps.readout.ecal.TriggerDriver;
 import org.hps.readout.ecal.TriggerableDriver;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
@@ -16,7 +15,7 @@ import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.event.EventHeader;
-import org.lcsim.util.Driver;
+import org.lcsim.geometry.Detector;
 
 /**
  * This class takes raw data generated from MC and converts it to EVIO. The goal
@@ -27,21 +26,29 @@ import org.lcsim.util.Driver;
  */
 public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 
-    EventWriter writer;
-    String rawCalorimeterHitCollectionName = "EcalReadoutHits";
-    String evioOutputFile = "TestRunData.evio";
-    Queue<QueuedEtEvent> builderQueue = null;
+    private EventWriter writer;
+    private String rawCalorimeterHitCollectionName = "EcalReadoutHits";
+    private String evioOutputFile = "TestRunData.evio";
+    private Queue<QueuedEtEvent> builderQueue = null;
     private int eventsWritten = 0;
     private int eventNum = 0;
-    EcalConditions ecalIDConverter = null;
-    ECalHitWriter ecalWriter = null;
-    SVTHitWriter svtWriter = null;
-    TriggerDataWriter triggerWriter = null;
-    List<HitWriter> writers = null;
+    private ECalHitWriter ecalWriter = null;
+    private SVTHitWriter svtWriter = null;
+    private TriggerDataWriter triggerWriter = null;
+    private List<HitWriter> writers = null;
     private int ecalMode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
+    
+    Detector detector;
 
     public TestRunTriggeredReconToEvio() {
         setTriggerDelay(0);
+    }
+    
+    @Override
+    public void detectorChanged(Detector detector) {    	
+    	ecalWriter.setDetector(detector);
+        if(detector == null) System.out.println("detectorChanged, Detector == null");
+        else System.out.println("detectorChanged, Detector != null");
     }
 
     public void setEcalMode(int ecalMode) {
@@ -75,12 +82,17 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
         }
 
         writePrestartEvent();
+//        this.detector = DatabaseConditionsManager.getInstance().getDetectorObject();
 
         writers = new ArrayList<HitWriter>();
 
         ecalWriter = new ECalHitWriter();
+//        if(detector == null) System.out.println("Detector == null");
+//        else System.out.println("Detector != null");
+        //ecalWriter.setDetector(detector);
         ecalWriter.setMode(ecalMode);
         ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
+//        ecalWriter.setDetector(detector);
         writers.add(ecalWriter);
 
         svtWriter = new SVTHitWriter();
@@ -194,11 +206,11 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 
     private class QueuedEtEvent {
 
-        private EventBuilder builder;
+        private final EventBuilder builder;
         public boolean readSVT = false;
         public boolean readECal = false;
         private boolean[] readData = null;
-        private int eventNum;
+        private final int eventNum;
 
         public QueuedEtEvent(EventBuilder builder, int numData, int eventNum) {
             this.builder = builder;

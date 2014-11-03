@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.EcalConditions;
+//import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -45,7 +45,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
         // Make a dummy event to setup the conditions system.
         EventHeader dummyEvent = new BaseLCSimEvent(0, 0, detectorName);
         detector = dummyEvent.getDetector();
-        EcalConditions.loadDaqMap(detector, "Ecal");
+//        EcalConditions.loadDaqMap(detector, "Ecal");
     }
 
     @Override

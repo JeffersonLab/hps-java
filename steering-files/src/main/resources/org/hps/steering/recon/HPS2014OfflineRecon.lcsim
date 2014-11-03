@@ -1,14 +1,13 @@
 <!-- 
   Offline reconstruction for 2014 (electron run) data.
-  Updated on 16Oct to include new clustering with corrections. -HS <hvanc001@odu.edu>
   @author Sho Uemura <meeg@slac.stanford.edu>
-  @version $Id: HPS2014OfflineRecon.lcsim,v 1.7 2013/10/30 16:23:32 phansson Exp $
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
+        <driver name="ConditionsDriver" />
+        <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
@@ -23,9 +22,8 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <!--            <runNumber>${runNumber}</runNumber>-->
-        </driver>   
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        
@@ -56,7 +54,6 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
-
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>

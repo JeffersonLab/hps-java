@@ -5,10 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FindableTrack;
 import org.hps.recon.tracking.apv25.Apv25Full;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
@@ -16,6 +14,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.util.Driver;
 //--- hps-java ---//
 
+// TODO: Sandbox this class
 public class SimpleSvtTrigger extends Driver {
     
     FindableTrack findable = null;
@@ -133,10 +132,10 @@ public class SimpleSvtTrigger extends Driver {
      */
     private boolean isSameSvtVolume(Set<SimTrackerHit> simTrackerHits){
         int volumeIndex = 0;
-        for(SimTrackerHit simTrackerHit : simTrackerHits){
+        /*for(SimTrackerHit simTrackerHit : simTrackerHits){
             if(SvtUtils.getInstance().isTopLayer((SiSensor) simTrackerHit.getDetectorElement())) volumeIndex++;
             else volumeIndex--;
-        }
+        }*/
         return Math.abs(volumeIndex) == simTrackerHits.size();
     }
     

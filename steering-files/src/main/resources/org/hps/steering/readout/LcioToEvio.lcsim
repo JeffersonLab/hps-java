@@ -4,16 +4,18 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="ConditionsDriver"/>   
+        <driver name="SvtSensorSetup" />
         <driver name="DummyTrigger"/>
         <driver name="TestRunReconToEvio"/>
         <driver name="ClockDriver"/>
     </execute> 
 
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="DummyTrigger" type="org.hps.readout.ecal.DummyTriggerDriver">
             <period>1</period>
             <deadTime>0</deadTime>

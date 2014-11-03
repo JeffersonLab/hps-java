@@ -6,7 +6,6 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.ILogicalVolume;
@@ -78,9 +77,6 @@ public class MaterialSupervisor extends MaterialManager
 
             SiStripPlane plane = new SiStripPlane(module);
 
-            if (DEBUG) {
-                System.out.printf("%s: %5d %32s %15.2fx%.2f %10.2f %10.3f %10s\n", this.getClass().getSimpleName(), plane.getId(), plane.origin().toString(), plane.getUnmeasuredDimension(), plane.getMeasuredDimension(), plane.getThickness(), plane.getThicknessInRL() * 100, SvtUtils.getInstance().isAxial(module) ? "axial" : "stereo");
-            }
             _detectorVolumes.add(plane);
         }
         if (DEBUG) {

@@ -5,10 +5,15 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 //import hep.aida.jfree.plot.style.DefaultHistogram1DStyle;
 
+
+
 import java.util.List;
 
-import org.hps.conditions.deprecated.SvtUtils;
+
+
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.util.Resettable;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -22,7 +27,6 @@ import org.lcsim.util.aida.AIDA;
  * This class can be configured to reset after each event for use as an
  * event display by calling {@link #setSingleEvent(boolean)}.
  * 
- * @version $Id: SVTSimpleEventDisplay.java,v 1.13 2013/11/06 19:19:55 jeremy Exp $
  */
 public class SVTSimpleEventDisplay extends Driver implements Resettable {
 
@@ -52,6 +56,11 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
      * Single event mode setting.
      */
     private boolean singleEvent = true;
+
+    /*
+     * Subdetector Name 
+     */
+    private static final String subdetectorName = "Tracker";
 
     /**
      * Class constructor.
@@ -117,12 +126,14 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
      * Configure this Driver for a new Detector, e.g. setup the plots and show them.
      */
     protected void detectorChanged(Detector detector) {
+        List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement().findDescendants(HpsSiSensor.class);
+
         createPlotterFactory();
         setupRawTrackerHitPlots();
         setupTrackerHitPlots();
         setupHelicalTrackHitPlots();
         setupHitCountPlots();
-        setupOccupancyPlots();
+        setupOccupancyPlots(sensors);
         showPlots();
     }
 
@@ -180,9 +191,22 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
         plotter4.show();
     }
 
-    private void setupOccupancyPlots() {
+    private void setupOccupancyPlots(List<HpsSiSensor> sensors) {
         aida.tree().cd("/");
-        for (int module = 0; module < 2; module++) {
+        
+        for(HpsSiSensor sensor : sensors){
+        	int module = sensor.getModuleNumber();
+        	int layer = sensor.getLayerNumber(); 
+            int region = computePlotterRegion(layer + 1, module);
+            rth[module][layer] = aida.histogram1D(sensor.getName() + " RawTrackerHits", 640, -0.5, 639.5);
+            plotter.region(region).plot(rth[module][layer]);
+            th[module][layer] = aida.histogram1D(sensor.getName() + " TrackerHits", 640, -0.5, 639.5);
+            plotter2.region(region).plot(th[module][layer]);
+            hth[module][layer] = aida.histogram1D(sensor.getName() + " HelicalTrackHits", 640, -0.5, 639.5);
+            plotter3.region(region).plot(hth[module][layer]);
+        }
+  
+        /* ===> for (int module = 0; module < 2; module++) {
             for (int layer = 0; layer < 10; layer++) {
                 int region = computePlotterRegion(layer + 1, module);
                 rth[module][layer] = aida.histogram1D(SvtUtils.getInstance().getSensor(module, layer).getName() + " RawTrackerHits", 640, -0.5, 639.5);
@@ -192,7 +216,7 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
                 hth[module][layer] = aida.histogram1D(SvtUtils.getInstance().getSensor(module, layer).getName() + " HelicalTrackHits", 640, -0.5, 639.5);
                 plotter3.region(region).plot(hth[module][layer]);
             }
-        }
+        } ===> */
     }
 
     /**

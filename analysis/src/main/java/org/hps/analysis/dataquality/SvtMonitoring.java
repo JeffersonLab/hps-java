@@ -7,6 +7,7 @@ import hep.aida.IFitter;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -14,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hps.conditions.deprecated.SvtUtils;
+
 import org.hps.recon.tracking.ShapeFitParameters;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
@@ -40,7 +41,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     private Detector detector = null;
     private IPlotter plotter;
     private final String trackerName = "Tracker";
-    private List<SiSensor> sensors;
+    private List<HpsSiSensor> sensors;
     private Map<String, int[]> occupancyMap;
     private Map<String, Double> avgOccupancyMap;
     private Map<String, String> avgOccupancyNames;
@@ -74,14 +75,14 @@ public class SvtMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
 
         // Make a list of SiSensors in the SVT.
-        sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
+        sensors = this.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Reset the data structure that keeps track of strip occupancies.
         resetOccupancyMap();
 
         // Setup the occupancy plots.
         aida.tree().cd("/");
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
             IHistogram1D occupancyPlot = createSensorPlot(plotDir + "occupancy_", sensor, maxChannels, 0, maxChannels - 1);
             IHistogram1D t0Plot = createSensorPlot(plotDir + "t0Hit_", sensor, 50, -50., 50.);
@@ -114,7 +115,7 @@ public class SvtMonitoring extends DataQualityMonitor {
             for (LCRelation hit : fittedTrackerHits) {
                 RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
                 GenericObject pars = (GenericObject) hit.getTo();
-                String sensorName = getNiceSensorName((SiSensor) rth.getDetectorElement());
+                String sensorName = getNiceSensorName((HpsSiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
                 double t0 = ShapeFitParameters.getT0(pars);
                 double amp = ShapeFitParameters.getAmp(pars);
@@ -130,7 +131,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 //            System.out.println("Found a Si cluster collection");
             List<TrackerHit> siClusters = (List<TrackerHit>) event.get(trackerHitCollectionName);
             for (TrackerHit cluster : siClusters) {
-                String sensorName = getNiceSensorName((SiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
+                String sensorName = getNiceSensorName((HpsSiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement());
                 double t0 = cluster.getTime();
                 double dedx = cluster.getdEdx() * 1e6;
 //                System.out.println("dedx = "+dedx);
@@ -140,7 +141,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         }
     }
 
-    private IHistogram1D getSensorPlot(String prefix, SiSensor sensor) {
+    private IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor) {
         String hname = prefix + getNiceSensorName(sensor);
         return aida.histogram1D(hname);
     }
@@ -149,7 +150,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         return aida.histogram1D(prefix + sensorName);
     }
 
-    private IHistogram1D createSensorPlot(String prefix, SiSensor sensor, int nchan, double min, double max) {
+    private IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max) {
         String hname = prefix + getNiceSensorName(sensor);
         IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
         hist.setTitle(sensor.getName().replaceAll(nameStrip, "")
@@ -168,7 +169,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         sigt0Names = new HashMap<String, String>();
         avgt0Map = new HashMap<String, Double>();
         sigt0Map = new HashMap<String, Double>();
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             occupancyMap.put(sensor.getName(), new int[640]);
             avgOccupancyMap.put(sensor.getName(), -999.);
             String occName = "avgOcc_" + getNiceSensorName(sensor);
@@ -181,7 +182,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         }
     }
 
-    private String getNiceSensorName(SiSensor sensor) {
+    private String getNiceSensorName(HpsSiSensor sensor) {
         return sensor.getName().replaceAll(nameStrip, "")
                 .replace("module", "mod")
                 .replace("layer", "lyr")
@@ -199,7 +200,7 @@ public class SvtMonitoring extends DataQualityMonitor {
     public void fillEndOfRunPlots() {
         // Plot strip occupancies.
         System.out.println("SvtMonitoring::endOfData  filling occupancy plots");
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             Double avg = 0.0;
             //IHistogram1D sensorHist = aida.histogram1D(sensor.getName());
             IHistogram1D sensorHist = getSensorPlot(plotDir + "occupancy_", sensor);
@@ -236,10 +237,11 @@ public class SvtMonitoring extends DataQualityMonitor {
 
         int irTop = 0;
         int irBot = 0;
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             IHistogram1D sensPlot = getSensorPlot(plotDir + "t0Hit_", sensor);
             IFitResult result = fitGaussian(sensPlot, fitter, "range=\"(-8.0,8.0)\"");
-            boolean isTop = SvtUtils.getInstance().isTopLayer(sensor);
+            
+            boolean isTop = sensor.isTopLayer();
             if (isTop) {
                 plotterTop.region(irTop).plot(sensPlot);
                 plotterTop.region(irTop).plot(result.fittedFunction());
@@ -266,7 +268,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     @Override
     public void dumpDQMData() {
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             String name = avgOccupancyNames.get(sensor.getName());
             double occ = avgOccupancyMap.get(sensor.getName());
             checkAndUpdate(name, occ);
@@ -281,7 +283,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMData() {
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             System.out.println(avgOccupancyNames.get(sensor.getName()) + ":  " + avgOccupancyMap.get(sensor.getName()));
             System.out.println(avgt0Names.get(sensor.getName()) + ":  " + avgt0Map.get(sensor.getName()));
             System.out.println(sigt0Names.get(sensor.getName()) + ":  " + sigt0Map.get(sensor.getName()));
@@ -290,7 +292,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     @Override
     public void printDQMStrings() {
-        for (SiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
             System.out.println("ALTER TABLE dqm ADD " + avgOccupancyNames.get(sensor.getName()) + " double;");
             System.out.println("ALTER TABLE dqm ADD " + avgt0Names.get(sensor.getName()) + " double;");
             System.out.println("ALTER TABLE dqm ADD " + sigt0Names.get(sensor.getName()) + " double;");

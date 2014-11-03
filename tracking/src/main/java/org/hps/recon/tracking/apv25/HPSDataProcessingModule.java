@@ -15,7 +15,7 @@ import java.util.Map;
 //--- org.lcsim ---//
 import java.util.Set;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.SVTData;
 import org.lcsim.detector.IReadout;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -30,8 +30,8 @@ import org.lcsim.util.Driver;
 /**
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: HPSDataProcessingModule.java,v 1.3 2013/03/15 21:05:28 meeg Exp $
  */
+// TODO: Sandbox this class
 public class HPSDataProcessingModule extends Driver {
 	
 	// A map relating a sensor to all sample blocks collected from that sensor
@@ -92,10 +92,10 @@ public class HPSDataProcessingModule extends Driver {
 	@Override
 	public void detectorChanged(Detector detector) {
 
-		for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+		/*for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
 			// Map a sensor to its corresponding samples
 			sensorToSamplesMap.put(sensor, new HashMap<Integer, List<Double>>());
-		}
+		}*/
 	}
 
 	/**
@@ -219,10 +219,11 @@ public class HPSDataProcessingModule extends Driver {
 		for (Map.Entry<SiSensor, Map<Integer, List<Double>>> sensor : sensorToSamplesMap.entrySet()) {
 
 			// Get the FPGA number
-			fpgaNumber = SvtUtils.getInstance().getFPGA(sensor.getKey());
+			/* ===> fpgaNumber = SvtUtils.getInstance().getFPGA(sensor.getKey());
 			if(fpgaNumber > SVT_TOTAL_FPGAS || fpgaNumber < 0)
 				throw new RuntimeException("FPGA Number out of range!");
 			if(debug) System.out.println(this.getClass().getSimpleName() + ": FPGA Number: " + fpgaNumber);
+			===> */
 
 			// Clear the temporary list
 			svtFpgaData.clear();
@@ -265,10 +266,11 @@ public class HPSDataProcessingModule extends Driver {
 				rawHits.add(rawHit);
 
 				// Get the hybrid number
-				hybridNumber = SvtUtils.getInstance().getHybrid(sensor.getKey());
-				if(hybridNumber > TOTAL_HYBRIDS_PER_FPGA || hybridNumber < 0)
+				//===> hybridNumber = SvtUtils.getInstance().getHybrid(sensor.getKey());
+				/* ==> if(hybridNumber > TOTAL_HYBRIDS_PER_FPGA || hybridNumber < 0)
 					throw new RuntimeException("Hybrid number is out of range!");
 				//if(debug) System.out.println(this.getClass().getSimpleName() + ": Hybrid Number: " + hybridNumber);
+				===> */
 
 				// Find the APV number. Note that strip numbering is from 639 to 0
 				apvNumber = (TOTAL_APV25_PER_HYBRID - 1) - (int) Math.floor(samples.getKey()/128);
@@ -284,14 +286,14 @@ public class HPSDataProcessingModule extends Driver {
 				//if(debug) System.out.println(this.getClass().getSimpleName() + ": Raw Channel Number: " + rawChannel);
 				
 				// Create an svtData packet
-				SVTData data = new SVTData(hybridNumber, apvNumber, rawChannel, fpgaNumber, adc);
+				/* ===> SVTData data = new SVTData(hybridNumber, apvNumber, rawChannel, fpgaNumber, adc);
 				svtData.add(data);
 				svtFpgaData.add(data);
-				
+				===> */
 				samples.getValue().clear();
 			}
 
-			HPSSVTDataBuffer.addToBuffer(svtFpgaData, fpgaNumber);
+			//===> HPSSVTDataBuffer.addToBuffer(svtFpgaData, fpgaNumber);
 		}
 		if(debug) System.out.println(this.getClass().getName() + ": Total RawTrackerHits before cuts: " + rawHitsNoCuts.size());
 		if(debug) System.out.println(this.getClass().getName() + ": Total RawTrackerHits: " + rawHits.size());

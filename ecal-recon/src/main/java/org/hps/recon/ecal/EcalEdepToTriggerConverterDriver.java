@@ -3,12 +3,18 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.EcalConditions;
+
+//import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.lcsim.conditions.ConditionsManager;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+
 
 /**
  *
@@ -16,22 +22,26 @@ import org.lcsim.util.Driver;
  * phansson Exp $
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
-
-    private String ecalReadoutName = "EcalHits";
+	
+    private EcalConditions ecalConditions = null;
+    
+    private static final boolean isBadChannelLoaded = true;
+	
+    private final String ecalReadoutName = "EcalHits";
     private String inputCollection = "EcalHits";
     private String readoutCollection = "EcalCalHits";
     private String triggerCollection = "EcalTriggerHits";
     private boolean applyBadCrystalMap = true;
     private double tp = 14.0;
-    private double readoutPeriod = 4.0;
-    private int readoutThreshold = 50;
-    private int triggerThreshold = 80;
+    private final double readoutPeriod = 4.0;
+    private final int readoutThreshold = 50;
+    private final int triggerThreshold = 80;
     private int truncateScale = 128;
-    private double pulseIntegral = tp * Math.E / readoutPeriod;
-    private double gainScale = 1.0; //gain miscalibration factor
+    private final double pulseIntegral = tp * Math.E / readoutPeriod;
+    private final double gainScale = 1.0; //gain miscalibration factor
     private double _gain = -1.0; //constant gain, activated if >0
     private boolean addNoise = false;
-    private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
+    private final double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
 
     public EcalEdepToTriggerConverterDriver() {
     }
@@ -77,10 +87,19 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+    	
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+                
+        System.out.println("You are now using the database conditions for EcalEdepToTriggerConverterDriver.");
     }
 
     public boolean isBadCrystal(CalorimeterHit hit) {
-        return EcalConditions.badChannelsLoaded() ? EcalConditions.isBadChannel(hit.getCellID()) : false;
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+    	
+        return isBadChannelLoaded ? channelData.isBadChannel() : false;
     }
 
     @Override
@@ -141,7 +160,8 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 
         int truncatedIntegral = (int) Math.floor(triggerIntegral / truncateScale);
         if (truncatedIntegral > 0) {
-            return new HPSCalorimeterHit(truncatedIntegral, hit.getTime(), hit.getCellID(), 0);
+        	HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hit.getTime(), hit.getCellID(), 0);
+            return h ;
         }
         return null;
     }
@@ -151,8 +171,12 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
             return null;
         }
 
+        
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+        
 //        double integral = hit.getRawEnergy()/ECalUtils.GeV * gainScale;
-        double gain = _gain > 0 ? _gain : EcalConditions.physicalToGain(hit.getCellID());
+        double gain = _gain > 0 ? _gain : channelData.getGain().getGain();
         double integral = amplitude * gain * pulseIntegral * gainScale * ECalUtils.MeV / ECalUtils.GeV;
 
 //        double thresholdCrossingTime = 0 - hit.getTime();
@@ -176,19 +200,23 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 //        System.out.format("dumb: %f, full: %f\n",hit.getRawEnergy() * 1000.0,readoutIntegral * HPSEcalConditions.physicalToGain(id));
 
 //        System.out.format("readout: %f %f\n", amplitude, integral);
-        CalorimeterHit h = new HPSCalorimeterHit(integral, hit.getTime(), hit.getCellID(), 0);
+        HPSCalorimeterHit h = new HPSCalorimeterHit(integral, hit.getTime(), hit.getCellID(), 0);
         return h;
     }
 
     private double hitAmplitude(CalorimeterHit hit) {
         double energyAmplitude = hit.getRawEnergy();
+        
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+        
         if (addNoise) {
             //add preamp noise and photoelectron Poisson noise in quadrature
-            double noise = Math.sqrt(Math.pow(EcalConditions.physicalToNoise(hit.getCellID()) * EcalConditions.physicalToGain(hit.getCellID()) * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+            double noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
             energyAmplitude += RandomGaussian.getGaussian(0, noise);
         }
 
-        double gain = _gain > 0 ? _gain : EcalConditions.physicalToGain(hit.getCellID());
+        double gain = _gain > 0 ? _gain : channelData.getGain().getGain();
 //        System.out.format("amplitude: %f %f %f %f\n", hit.getRawEnergy(), energyAmplitude, gain, (energyAmplitude / ECalUtils.MeV) / (gain * pulseIntegral));
         return (energyAmplitude / ECalUtils.MeV) / (gain * pulseIntegral);
     }
@@ -206,5 +234,14 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
                 return 0.0;
             }
         }
+    }
+    
+    /** 
+     * Convert physical ID to gain value.
+     * @param cellID (long)
+     * @return channel constants (EcalChannelConstants)
+     */
+    private EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }
 }

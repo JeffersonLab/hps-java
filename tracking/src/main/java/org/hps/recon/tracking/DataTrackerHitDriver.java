@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -229,13 +228,6 @@ public class DataTrackerHitDriver extends Driver {
         // event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag,
         // toString());
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
-        if (debug) {
-            for (int mod = 0; mod < 2; mod++) {
-                for (int layer = 0; layer < 10; layer++) {
-                    counts[mod][layer] += SvtUtils.getInstance().getSensor(mod, layer).getReadout().getHits(SiTrackerHit.class).size();
-                }
-            }
-        }
         if (debug) {
             System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
         }

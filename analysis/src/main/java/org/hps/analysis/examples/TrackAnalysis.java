@@ -1,17 +1,5 @@
-/*
- * TrackAnalysis.java
- *
- * Created on October 16, 2008, 6:09 PM
- *
- */
 package org.hps.analysis.examples;
 
-import hep.physics.matrix.BasicMatrix;
-import hep.physics.matrix.SymmetricMatrix;
-import hep.physics.vec.BasicHep3Matrix;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,13 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import hep.physics.matrix.BasicMatrix;
+import hep.physics.matrix.SymmetricMatrix;
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.hps.conditions.deprecated.SvtUtils;
-import static org.hps.recon.tracking.CoordinateTransformations.transformVectorToTracking;
-import org.hps.recon.tracking.TrackerHitUtils;
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor; 
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.MCParticle;
@@ -40,10 +35,15 @@ import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
+//===> import org.hps.conditions.deprecated.SvtUtils;
+import static org.hps.recon.tracking.CoordinateTransformations.transformVectorToTracking;
+import org.hps.recon.tracking.TrackerHitUtils;
+
 /**
  *
  * @author Richard Partridge & Matt Graham
  */
+// TODO: This class needs to be cleaned up
 public class TrackAnalysis {
 
     private enum HelixPar {
@@ -221,11 +221,13 @@ public class TrackAnalysis {
             for (RawTrackerHit rawHit : rawHits) {
 //                    System.out.println(rawHit.getCellID());
                 IIdentifier id = new Identifier(rawHit.getCellID());
-                int newLayer = SvtUtils.getInstance().getHelper().getValue(id, "layer");
+                //===> int newLayer = SvtUtils.getInstance().getHelper().getValue(id, "layer");
+                int newLayer = ((HpsSiSensor) rawHit.getDetectorElement()).getLayerNumber();
                 if (layer != -1 && layer != newLayer)
                     System.out.format("TrackerHit has hits from multiple layers: %d and %d\n", layer, newLayer);
                 layer = newLayer;
-                int newModule = SvtUtils.getInstance().getHelper().getValue(id, "module");
+                //===> int newModule = SvtUtils.getInstance().getHelper().getValue(id, "module");
+                int newModule = ((HpsSiSensor) rawHit.getDetectorElement()).getModuleNumber();
                 if (module != -1 && module != newModule)
                     System.out.format("TrackerHit has hits from multiple modules: %d and %d\n", module, newModule);
                 module = newModule;

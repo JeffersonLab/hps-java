@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.hps.readout.ecal.ReadoutTimestamp;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -112,10 +112,13 @@ public class RawTrackerHitFitterDriver extends Driver {
         // Make a fitted hit from this cluster
         for (RawTrackerHit hit : rawHits) {
             int strip = hit.getIdentifierFieldValue("strip");
-            ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
-            for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
+            HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
+            //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
+            //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
+            for (ShapeFitParameters fit : _shaper.fitShape(hit)) {
                 if (correctT0Shift) {
-                    fit.setT0(fit.getT0() - constants.getT0Shift());
+                    //===> fit.setT0(fit.getT0() - constants.getT0Shift());
+                    fit.setT0(fit.getT0() - sensor.getT0Shift());
                 }
                 if (subtractTOF) {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);

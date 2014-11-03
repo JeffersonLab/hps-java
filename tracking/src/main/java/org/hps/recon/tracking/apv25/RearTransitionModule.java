@@ -1,25 +1,22 @@
 package org.hps.recon.tracking.apv25;
 
-//--- java ---//
-//--- Constants ---//
-import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
+import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 import org.hps.util.RandomGaussian;
-//--- org.lcsim ---//
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
-//--- hps-java ---//
 
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: RearTransitionModule.java,v 1.2 2013/04/25 22:11:14 meeg Exp $
  */
+// TODO: Sandbox this class. 
 public class RearTransitionModule extends Driver {
 
     String apv25AnalogDataCollectionName = "APV25AnalogData";
@@ -116,15 +113,20 @@ public class RearTransitionModule extends Driver {
                     apv25Output[index] *= (HPSSVTConstants.MIP/HPSSVTConstants.MULTIPLEXER_GAIN);
 
                     // Digitize the signal 
+                   
+                    // FIXME: Update to use the new conditions system at some point. 
+                    /* ===> 
                     apv25Output[index] *= HPSSVTCalibrationConstants.getGain(analogDatum.getSensor(), physicalChannel);
 
                     // Add pedestal and noise
                     double pedestal = HPSSVTCalibrationConstants.getPedestal(analogDatum.getSensor(), physicalChannel);
                     double noise = HPSSVTCalibrationConstants.getNoise(analogDatum.getSensor(), physicalChannel);
+                    
                     if(!noiseless)
                         apv25Output[index] += RandomGaussian.getGaussian(pedestal, noise);            
                     else
                         apv25Output[index] += pedestal;
+                    ===> */
                 }
 
                 // Add the digital data to the list

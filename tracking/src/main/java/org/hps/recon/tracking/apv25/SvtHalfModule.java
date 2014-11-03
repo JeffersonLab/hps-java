@@ -1,18 +1,16 @@
 package org.hps.recon.tracking.apv25;
 
-//--- constants ---//
 import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_APV25_PER_HYBRID;
-
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.hps.conditions.deprecated.HPSSVTConstants;
-//--- lcsim ---//
+
 import org.lcsim.detector.tracker.silicon.SiSensor;
 
 /**
  * 
  * @author Omar Moreno
- * @version $Id: SvtHalfModule.java,v 1.7 2013/04/25 22:11:14 meeg Exp $
  */
+// TODO: Sandbox this class. 
 public class SvtHalfModule {
 
     private SiSensor sensor;
@@ -30,13 +28,14 @@ public class SvtHalfModule {
                 int physicalChannel = 639 - (chip*128 + 127 - channel);
                 
                 // Mark all bad channels which were found during QA
-                if(HPSSVTCalibrationConstants.isBadChannel(sensor, physicalChannel)){
+               // FIXME: Update to use the new conditions system at some point. 
+                /* ===> if(HPSSVTCalibrationConstants.isBadChannel(sensor, physicalChannel)){
                     apv25[chip].getChannel(channel).markAsBadChannel();
                 }
 
                 // Set the shaping time
                 double tp = HPSSVTCalibrationConstants.getTShaping(sensor, physicalChannel);
-                apv25[chip].getChannel(channel).setShapingTime(tp);
+                apv25[chip].getChannel(channel).setShapingTime(tp); <=== */
             }
         }
     }

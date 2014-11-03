@@ -31,7 +31,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.deprecated.HPSSVTSensorSetup;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -43,6 +43,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
@@ -362,13 +363,15 @@ public class BuildCompact {
         //System.out.printf("%d sensors\n",sensors.size());
         for (SiSensor module: sensors) {
             // Create DAQ Maps
-            if (!SvtUtils.getInstance().isSetup()) {
+            /* ===> if (!SvtUtils.getInstance().isSetup()) {
                 SvtUtils.getInstance().setup(det);
-            }
-        	boolean isTop = SvtUtils.getInstance().isTopLayer(module);
+            } ===> */
+        	//===> boolean isTop = SvtUtils.getInstance().isTopLayer(module);
+        	boolean isTop = ((HpsSiSensor) module).isTopLayer();
         	int h = par.getHalf();
         	if ((isTop && h == 1) || (!isTop && h == 2)) {
-        		int layer = SvtUtils.getInstance().getLayerNumber(module);
+        		int layer = ((HpsSiSensor) module).getLayerNumber();
+        		//===> int layer = SvtUtils.getInstance().getLayerNumber(module);
         		if (layer == par.getSensor()) {
         			//found match
         			return module;

@@ -15,14 +15,13 @@ import org.lcsim.event.CalorimeterHit;
  * @version $Id: TimeEvolutionEcalReadoutDriver.java,v 1.1 2013/02/25 22:39:26 meeg Exp $
  */
 public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit> {
-
     //buffer for deposited energy
     Map<Long, RingBuffer> eDepMap = null;
     //length of ring buffer (in readout cycles)
     int bufferLength = 20;
     //shaper time constant in ns; negative values generate square pulses of the given width
     double t0 = 18.0;
-
+    
     public TimeEvolutionEcalReadoutDriver() {
 		hitClass = HPSCalorimeterHit.class;
     }
@@ -41,11 +40,8 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorim
         for (Long cellID : eDepMap.keySet()) {
             RingBuffer eDepBuffer = eDepMap.get(cellID);
             if (eDepBuffer.currentValue() > threshold) {
-//                int ix = dec.getValue("ix");
-//                int iy = dec.getValue("iy");
-//                if (iy == 1 && ix == -2)
-//                    System.out.printf("Time %f, output signal %f\n", ClockSingleton.getTime(), eDepBuffer.currentValue());
-                hits.add(new HPSCalorimeterHit(eDepBuffer.currentValue(), readoutTime(), cellID, hitType));
+            	HPSCalorimeterHit h = new HPSCalorimeterHit(eDepBuffer.currentValue(), readoutTime(), cellID, hitType);
+            	hits.add(h);
             }
             eDepBuffer.step();
         }
@@ -55,11 +51,6 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorim
     protected void putHits(List<CalorimeterHit> hits) {
         //fill the readout buffers
         for (CalorimeterHit hit : hits) {
-//            int ix = dec.getValue("ix");
-//            int iy = dec.getValue("iy");
-//            if (iy == 1 && ix == -2)
-//                System.out.printf("Time %f, input hit %f)\n", ClockSingleton.getTime() + hit.getTime(), hit.getRawEnergy());
-
             RingBuffer eDepBuffer = eDepMap.get(hit.getCellID());
             if (eDepBuffer == null) {
                 eDepBuffer = new RingBuffer(bufferLength);

@@ -19,9 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.SvtUtils;
+
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -286,7 +287,9 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         
    
         int layer = strip.layer();
-        int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        //===> int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
+        int side = sensor.isTopLayer() ? 10000 : 20000;
 
         
         if(_DEBUG) {
@@ -388,7 +391,9 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         _error[2] = res_local.get("wreserr");
         
         double vdiffy = res_local.get("vdiffTrky");
-        String side = SvtUtils.getInstance().isTopLayer((SiSensor)((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        String side = sensor.isTopLayer() ? "top" : "bottom";        
+        //===> String side = SvtUtils.getInstance().isTopLayer((SiSensor)((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";
         //Fill residuals vs distrance from center of plane in the v directions
         aida.profile1D("res_u_vs_ydiff_layer_" + strip.layer() + "_" + side).fill(vdiffy,_resid[0]);
 
@@ -493,11 +498,14 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
 
     private void PrintStripResiduals(HelicalTrackStrip strip) {
         
-        String side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";        
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        String side = sensor.isTopLayer() ? "top" : "bottom";        
+        //===> String side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";        
         
         if (_DEBUG) {
             System.out.printf("%s: --- Alignment Results for this Strip ---\n",this.getClass().getSimpleName());            
-            String sensor_type = SvtUtils.getInstance().isAxial((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "axial" : "stereo";
+            //===> String sensor_type = SvtUtils.getInstance().isAxial((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "axial" : "stereo";
+            String sensor_type = sensor.isAxial() ? "axial" : "stereo";
             System.out.printf("%s: Strip layer %4d is %s in %s  at origin %s\n",this.getClass().getSimpleName(), strip.layer(),sensor_type, side, strip.origin().toString());
             System.out.printf("%s: u=%s v=%s w=%s\n",this.getClass().getSimpleName(), strip.u().toString(),strip.v().toString(),strip.w().toString());
             System.out.printf("%s: Residuals (u,v,w) : %5.5e %5.5e %5.5e\n",this.getClass().getSimpleName(), _resid[0], _resid[1], _resid[2]);
@@ -850,7 +858,9 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         Hep3Vector corigin = strip.origin();
         double vmeas = corigin.y(); //THis is wrong
         int layer = strip.layer();
-        int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        int side = sensor.isTopLayer() ? 10000 : 20000;
+        //===> int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
 
         if(_DEBUG) {
             System.out.printf("%s: --- Calculate global derivatives ---\n",this.getClass().getSimpleName());

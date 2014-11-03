@@ -30,12 +30,12 @@ public class TestRunEvioToLcioTest extends TestCase {
         argList.add("-x");
         argList.add("/org/hps/steering/recon/TestRunOfflineRecon.lcsim");
         argList.add("-d");
-        argList.add("HPS-TestRun-v8-5");
-        argList.add("-D");
-        argList.add("runNumber=1351");
+        argList.add("HPS-TestRun-v5");
         argList.add("-D");
         argList.add("outputFile=" + new TestOutputFile("TestRunEvioToLcioTest").getPath());
         argList.add(inputFile.getPath());
+        argList.add("-R");
+        argList.add("1351");
         System.out.println("Running TestRunEvioToLcio.main ...");
         TestRunEvioToLcio.main(argList.toArray(new String[]{}));
     }

@@ -1,26 +1,21 @@
 package org.hps.users.omoreno;
 
-//--- java ---//
-//--- aida ---//
 import hep.aida.IPlotter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.SvtUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-//--- org.lcsim ---//
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-//--- hps-java ---//
 
 /**
- * 
- * @author Omar Moreno
- * @version $Id: SvtHitCorrelations.java,v 1.2 2013/10/25 19:45:01 jeremy Exp $
+ * Driver to find the correlations between stereo hits.
+ *  
+ * @author Omar Moreno <omoreno1@ucsc.edu>
  *
  */
 public class SvtHitCorrelations extends Driver {
@@ -143,29 +138,29 @@ public class SvtHitCorrelations extends Driver {
 		
 		for(RawTrackerHit rawHit1 : rawHits){
 	
-			SiSensor sensor1 = (SiSensor) rawHit1.getDetectorElement();
-			int layer1 = (int) Math.ceil(((double) SvtUtils.getInstance().getLayerNumber(sensor1))/2);
+			HpsSiSensor sensor1 = (HpsSiSensor) rawHit1.getDetectorElement();
+			int layer1 = (int) Math.ceil(((double) sensor1.getLayerNumber())/2);
 			int channel1 = rawHit1.getIdentifierFieldValue("strip");
 			
 			for(RawTrackerHit rawHit2 : rawHits){
 			
-				SiSensor sensor2 = (SiSensor) rawHit2.getDetectorElement();
-				int layer2 = (int) Math.ceil(((double) SvtUtils.getInstance().getLayerNumber(sensor2))/2);
+				HpsSiSensor sensor2 = (HpsSiSensor) rawHit2.getDetectorElement();
+				int layer2 = (int) Math.ceil(((double) sensor2.getLayerNumber())/2);
 				int channel2 = rawHit2.getIdentifierFieldValue("strip");
 			
-				if(SvtUtils.getInstance().isTopLayer(sensor1) && SvtUtils.getInstance().isTopLayer(sensor2)){
-					if(SvtUtils.getInstance().isAxial(sensor1) && SvtUtils.getInstance().isAxial(sensor2) && taa){
+				if(sensor1.isTopLayer() && sensor2.isTopLayer()){
+					if(sensor1.isAxial() && sensor2.isAxial() && taa){
 						String plotName = "Top Channel Correlation: Axial Layer " + layer1 + " vs Axial Layer " + layer2;
 						aida.histogram2D(plotName).fill(channel1, channel2);
-					} else if(SvtUtils.getInstance().isAxial(sensor1) && !SvtUtils.getInstance().isAxial(sensor2) && tas){
+					} else if(sensor1.isAxial() && !sensor2.isAxial() && tas){
 						String plotName = "Top Channel Correlation: Axial Layer " + layer1 + " vs Stereo Layer " + layer2;
 						aida.histogram2D(plotName).fill(channel1, channel2);
 					}
-				} else if(!SvtUtils.getInstance().isTopLayer(sensor1) && !SvtUtils.getInstance().isTopLayer(sensor2) && baa){
-					if(SvtUtils.getInstance().isAxial(sensor1) && SvtUtils.getInstance().isAxial(sensor2)){
+				} else if(!sensor1.isTopLayer() && !sensor2.isTopLayer() && baa){
+					if(sensor1.isAxial() && sensor2.isAxial()){
 						String plotName = "Bottom Channel Correlation: Axial Layer " + layer1 + " vs Axial Layer " + layer2;
 						aida.histogram2D(plotName).fill(channel1, channel2);
-					} else if(SvtUtils.getInstance().isAxial(sensor1) && !SvtUtils.getInstance().isAxial(sensor2) && bas){
+					} else if(sensor1.isAxial() && !sensor2.isAxial() && bas){
 						String plotName = "Bottom Channel Correlation: Axial Layer " + layer1 + " vs Stereo Layer " + layer2;
 						aida.histogram2D(plotName).fill(channel1, channel2);
 					}

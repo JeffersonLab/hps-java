@@ -11,10 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-import org.hps.recon.tracking.ShapeFitParameters;
-import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -26,11 +22,13 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
+
 /**
  * Driver that looks at the performance of the SVT.
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id:$
  */
 public class SvtPerformance extends Driver {
 
@@ -307,7 +305,6 @@ public class SvtPerformance extends Driver {
         int channel, bad_channel;
         int maxClusterChannel = 0;
         int hitsPerCluster = 0;
-        ChannelConstants constants = null;
         double clusterAmplitude, maxClusterAmplitude;
         double noise = 0;
         double trkChiSquared = 0;
@@ -358,8 +355,8 @@ public class SvtPerformance extends Driver {
                         RawTrackerHit rawHit = (RawTrackerHit) rh;
                         channel = rawHit.getIdentifierFieldValue("strip");
                         // Check if the channel neighbors a channel that has been tagged as bad
-                        if (HPSSVTCalibrationConstants.isBadChannel(sensor, channel + 1)
-                                || HPSSVTCalibrationConstants.isBadChannel(sensor, channel - 1)) {
+                        if (sensor.isBadChannel(channel + 1)
+                                || sensor.isBadChannel(channel - 1)) {
                             bad_channel = 1;
                         }
 
@@ -380,8 +377,7 @@ public class SvtPerformance extends Driver {
                             }
                         }
 
-                        constants = HPSSVTCalibrationConstants.getChannelConstants(sensor, channel);
-                        for (ShapeFitParameters fit : shaperFitter.fitShape(rawHit, constants)) {
+                        for (ShapeFitParameters fit : shaperFitter.fitShape(rawHit)) {
                             if (fit.getAmp() > maxClusterAmplitude) {
                                 maxClusterChannel = channel;
                                 maxClusterAmplitude = fit.getAmp();

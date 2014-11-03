@@ -75,7 +75,7 @@ public class GBLOutput {
      * @param bfield magnetic field in Tesla
      */
     GBLOutput(String outputFileName,Hep3Vector bfield) {
-    	System.out.printf("name \"%s\" \n", outputFileName);
+    	//System.out.printf("name \"%s\" \n", outputFileName);
     	if(!outputFileName.equalsIgnoreCase("")) {
     		textFile = new GBLFileIO(outputFileName);
     	}

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -13,9 +13,9 @@ import org.lcsim.util.Driver;
 /**
  * 
  * @author Omar Moreno
- * @version $Id: DataProcessingModule.java,v 1.1 2013/03/15 21:05:28 meeg Exp $
  */
-public abstract class DataProcessingModule extends Driver{
+// TODO: Sandbox this class
+public abstract class DataProcessingModule extends Driver {
 
     Map<SiSensor, SvtDataBlocks> sensorToDataBlocks = new HashMap<SiSensor, SvtDataBlocks>();
 	
@@ -35,12 +35,12 @@ public abstract class DataProcessingModule extends Driver{
     
     protected abstract List<RawTrackerHit> findRawHits();
 	
-    @Override
-    public void detectorChanged(Detector detector){
+
+    /*public void detectorChanged(Detector detector){
         for(SiSensor sensor : SvtUtils.getInstance().getSensors()){
             sensorToDataBlocks.put(sensor, new SvtDataBlocks());
         }
-    }
+    }*/
     
 	@Override
 	public void process(EventHeader event){

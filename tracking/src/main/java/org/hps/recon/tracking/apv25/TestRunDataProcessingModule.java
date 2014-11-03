@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.detector.IReadout;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -16,8 +16,8 @@ import org.lcsim.event.base.BaseRawTrackerHit;
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id: TestRunDataProcessingModule.java,v 1.1 2013/03/15 21:05:28 meeg Exp $
  */
+// TODO: Sandbox this class. 
 public class TestRunDataProcessingModule extends DataProcessingModule {
 
     int nSamplesAboveThreshold = 1;    // Number of samples above noise threshold 
@@ -71,7 +71,8 @@ public class TestRunDataProcessingModule extends DataProcessingModule {
 
             for(int channel = 0; channel < 639; channel++){
             	
-            	if(HPSSVTCalibrationConstants.isBadChannel(sensor.getKey(), channel)) continue;
+                // FIXME: Update to use the new conditions system at some point. 
+            	//===> if(HPSSVTCalibrationConstants.isBadChannel(sensor.getKey(), channel)) continue;
             	
                 short[] samples = blocks.getSamples(channel);  
 
@@ -104,8 +105,11 @@ public class TestRunDataProcessingModule extends DataProcessingModule {
     /**
      * 
      */
+    // FIXME: Update to use the new conditions system at some point. 
     private boolean samplesAboveThreshold(SiSensor sensor, int channel, short[] samples){
-        // Number of samples above threshold
+        
+    	/* ===> 
+    	// Number of samples above threshold
         int nSamplesAboveThreshold = 0;
 
         // Get the pedestal and noise for this channel
@@ -121,6 +125,7 @@ public class TestRunDataProcessingModule extends DataProcessingModule {
 
         // If the prerequisite number of samples are above threshold return true
         if(nSamplesAboveThreshold >= this.nSamplesAboveThreshold ) return true;
+        ===> */
         return false;
     }
 

@@ -15,9 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.deprecated.BeamlineConstants;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.DumbShaperFit;
 import org.hps.recon.tracking.HelixConverter;
@@ -27,6 +27,7 @@ import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.RawTrackerHit;
@@ -615,8 +616,9 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
 //            htc.resetTrackDirection();
             double x = htc.getPosition()[0];
             double y = htc.getPosition()[1];
-            SiSensor sensor = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
-            if (SvtUtils.getInstance().isTopLayer(sensor)) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
+            //===> if (SvtUtils.getInstance().isTopLayer(sensor)) {
+            if (sensor.isTopLayer()) {
                 layersTop[htc.Layer() - 1]++;
                 Hep3Vector sensorPos = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement()).getGeometry().getPosition();
                 if (htc.Layer() == 1) {
@@ -791,10 +793,10 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                     aida.histogram1D(modNum + "Residual Y(mm) Bottom").fill(htcross.getCorrectedPosition().z() - zTr);//these hits should be rotated track hits already
 
                 }
-                SiSensor sensor = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
+                HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
                 double x = htcross.getCorrectedPosition().y();
                 double y = htcross.getCorrectedPosition().z();
-                if (SvtUtils.getInstance().isTopLayer(sensor)) {
+                if (sensor.isTopLayer()) {
                     layersTop[htc.Layer() - 1]++;
                     Hep3Vector sensorPos = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement()).getGeometry().getPosition();
                     if (htc.Layer() == 1) {
@@ -833,8 +835,9 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                 for (HelicalTrackStrip hts : htcross.getStrips()) {
                     double clusterSum = 0;
                     for (RawTrackerHit rawHit : (List<RawTrackerHit>) hts.rawhits()) {
-                        ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) rawHit.getDetectorElement(), rawHit.getIdentifierFieldValue("strip"));
-                        for (ShapeFitParameters fit : _shaper.fitShape(rawHit, constants)) {
+                        //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) rawHit.getDetectorElement(), rawHit.getIdentifierFieldValue("strip"));
+                    	//===>for (ShapeFitParameters fit : _shaper.fitShape(rawHit, constants)) {
+                    	for (ShapeFitParameters fit : _shaper.fitShape(rawHit)) {
                             double amp = fit.getAmp();
                             clusterSum += amp;
                             aida.histogram1D("Amp (HitOnTrack)").fill(amp);

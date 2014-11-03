@@ -2,13 +2,8 @@ package org.hps.conditions.svt;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
-import org.hps.conditions.ConditionsObjectException;
 import org.hps.util.Pair;
 
 /**
@@ -18,38 +13,18 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class SvtChannel extends AbstractConditionsObject {
+public final class SvtChannel extends AbstractSvtChannel {
 
-	public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
-	public static class SvtChannelCollection extends ConditionsObjectCollection<SvtChannel> {
-
-        Map<Integer, SvtChannel> channelMap = new HashMap<Integer, SvtChannel>();
-
-        public void add(SvtChannel channel) {
-            // Add to map.
-            if (channelMap.containsKey(channel.getChannelID())) {
-                throw new IllegalArgumentException("Channel ID already exists: " + channel.getChannelID());
-            }
-            channelMap.put(channel.getChannelID(), channel);
-
-            // Add to collection.
-            try {
-                super.add(channel);
-            } catch (ConditionsObjectException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public SvtChannel findChannel(int channelId) {
-            return channelMap.get(channelId);
-        }
+	public static class SvtChannelCollection 
+	    extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
 
         /**
          * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
          * @param pair The DAQ pair.
          * @return The channels matching the DAQ pair or null if not found.
          */
+	    @Override
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
             List<SvtChannel> channels = new ArrayList<SvtChannel>();
             int febID = pair.getFirstElement();
@@ -61,26 +36,6 @@ public final class SvtChannel extends AbstractConditionsObject {
             }
             return channels;
         }
-
-        /**
-         * Convert this object to a human readable string.
-         * @return This object converted to a string.
-         */
-        public String toString() {
-            StringBuffer buff = new StringBuffer();
-            for (SvtChannel channel : this.getObjects()) {
-                buff.append(channel.toString() + '\n');
-            }
-            return buff.toString();
-        }
-    }
-
-    /**
-     * Get the channel ID.
-     * @return The channel ID.
-     */
-    public int getChannelID() {
-        return getFieldValue("channel_id");
     }
 
     /**
@@ -100,19 +55,14 @@ public final class SvtChannel extends AbstractConditionsObject {
     }
 
     /**
-     * Get the channel number. This is different from the ID.
-     * @return The channel number.
-     */
-    public int getChannel() {
-        return getFieldValue("channel");
-    }
-
-    /**
      * Convert this object to a human readable string.
      * @return This object as a string.
      */
     public String toString() {
-        return "channel_id: " + getChannelID() + ", feb_id: " + getFebID() + ", feb_hybrid_id: " + getFebHybridID() + ", channel: " + getChannel();
+        return "channel_id: " + getChannelID() +
+               ", feb_id: " + getFebID() + 
+               ", feb_hybrid_id: " + getFebHybridID() +
+               ", channel: " + getChannel();
     }
 
     /**
@@ -127,6 +77,9 @@ public final class SvtChannel extends AbstractConditionsObject {
         if (o == this)
             return true;
         SvtChannel channel = (SvtChannel) o;
-        return getChannelID() == channel.getChannelID() && getFebID() == channel.getFebID() && getFebHybridID() == channel.getFebHybridID() && getChannel() == channel.getChannel();
+        return getChannelID() == channel.getChannelID() 
+                && getFebID() == channel.getFebID() 
+                && getFebHybridID() == channel.getFebHybridID() 
+                && getChannel() == channel.getChannel();
     }
 }

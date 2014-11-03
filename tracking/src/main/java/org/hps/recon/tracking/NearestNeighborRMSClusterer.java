@@ -8,13 +8,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.math3.special.Gamma;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.HPSSVTConstants;
+
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.RawTrackerHit;
+
+import org.hps.conditions.deprecated.HPSSVTConstants;
 
 /**
  *
@@ -156,8 +160,15 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
             // Get the signal from the readout chip
             double signal = base_hit.getAmp();
-            double noiseRMS = HPSSVTCalibrationConstants.getNoise((SiSensor) rth.getDetectorElement(), channel_number);
-
+            double noiseRMS = 0; 
+            for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
+            	noiseRMS += ((HpsSiSensor) rth.getDetectorElement()).getNoise(channel_number, sampleN);
+            }
+            noiseRMS = noiseRMS/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
+            
+            //===> double noiseRMS = HPSSVTCalibrationConstants.getNoise((SiSensor) rth.getDetectorElement(), channel_number);
+            
+            
             // Mark this hit as available for clustering if it is above the neighbor threshold
             if (signal / noiseRMS >= _neighbor_threshold && passChisqCut(base_hit)) {
                 clusterableSet.add(channel_number);
@@ -205,7 +216,13 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                 cluster.add(channel_to_hit.get(clustered_cell));
                 FittedRawTrackerHit hit = channel_to_hit.get(clustered_cell);
                 cluster_signal += hit.getAmp();
-                cluster_noise_squared += Math.pow(HPSSVTCalibrationConstants.getNoise((SiSensor) hit.getRawTrackerHit().getDetectorElement(), clustered_cell), 2);
+                double strip_noise = 0; 
+                for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
+                	strip_noise += ((HpsSiSensor) hit.getRawTrackerHit().getDetectorElement()).getNoise(clustered_cell, sampleN);
+                }
+                strip_noise = strip_noise/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
+                cluster_noise_squared += Math.pow(strip_noise, 2); 
+                //===> cluster_noise_squared += Math.pow(HPSSVTCalibrationConstants.getNoise((SiSensor) hit.getRawTrackerHit().getDetectorElement(), clustered_cell), 2);
                 cluster_weighted_time += hit.getT0() * hit.getAmp();
                 // cluster_noise_squared +=0; //need to get the noise from the calib. const. class
                 // Get the neigbor channels

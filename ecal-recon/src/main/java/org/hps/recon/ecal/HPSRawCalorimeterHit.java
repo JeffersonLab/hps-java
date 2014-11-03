@@ -53,6 +53,7 @@ public class HPSRawCalorimeterHit implements RawCalorimeterHit {
 
 	public static class TimeComparator implements Comparator<RawCalorimeterHit> {
 
+        @Override
 		public int compare(RawCalorimeterHit o1, RawCalorimeterHit o2) {
 			return o1.getTimeStamp() - o2.getTimeStamp();
 		}

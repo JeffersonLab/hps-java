@@ -5,19 +5,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.HPSSVTConstants;
-import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.readout.svt.FpgaData;
-import org.hps.readout.svt.SVTData;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
+import org.hps.conditions.deprecated.HPSSVTConstants;
+//===> import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
 
 import static org.hps.evio.EventConstants.SVT_BANK_NUMBER;
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;
@@ -25,16 +28,23 @@ import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 /**
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: SVTHitWriter.java,v 1.5 2013/05/22 18:45:33 jeremy Exp $
  */
+// TODO: Update this class so it works correctly with the database conditions system
 public class SVTHitWriter implements HitWriter {
 
     boolean debug = false;
+    
+    // Subdetector name
+    private static final String subdetectorName = "Tracker";
+
+    // Collection names
     private String hitCollectionName = "SVTRawTrackerHits";
     private String fpgaDataCollectionName = "FPGAData";
     private String relationCollectionName = "SVTTrueHitRelations";
-    String readoutName = "TrackerHits";
-
+    private String readoutName = "TrackerHits";
+    
+    List<Integer> fpgaNumbers = new ArrayList<Integer>(); 
+    
     public SVTHitWriter() {
     }
 
@@ -46,15 +56,24 @@ public class SVTHitWriter implements HitWriter {
     public boolean hasData(EventHeader event) {
         return event.hasCollection(RawTrackerHit.class, hitCollectionName);
     }
-
+    
     //make some dummy FpgaData to use in case there isn't any real FpgaData
-    private static Map<Integer, FpgaData> makeFpgaData() {
+    private Map<Integer, FpgaData> makeFpgaData(Subdetector subdetector) {
         double[] temps = new double[HPSSVTConstants.TOTAL_HYBRIDS_PER_FPGA * HPSSVTConstants.TOTAL_TEMPS_PER_HYBRID];
         for (int i = 0; i < HPSSVTConstants.TOTAL_HYBRIDS_PER_FPGA * HPSSVTConstants.TOTAL_TEMPS_PER_HYBRID; i++) {
             temps[i] = 23.0;
         }
+        
         Map<Integer, FpgaData> fpgaData = new HashMap<Integer, FpgaData>();
-        for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+    
+    	for(HpsSiSensor sensor : sensors){
+        	if(!fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())){
+        		fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
+        	}
+        }
+        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        for (Integer fpgaNumber : fpgaNumbers) {
             fpgaData.put(fpgaNumber, new FpgaData(fpgaNumber, temps, 0));
         }
 
@@ -65,21 +84,24 @@ public class SVTHitWriter implements HitWriter {
     public void writeData(EventHeader event, EventBuilder builder) {
 
         List<RawTrackerHit> hits = event.get(RawTrackerHit.class, hitCollectionName);
-        Map<Integer, FpgaData> fpgaData = makeFpgaData();
+        Map<Integer, FpgaData> fpgaData = makeFpgaData(event.getDetector().getSubdetector(subdetectorName));
 
         System.out.println("Writing " + hits.size() + " SVT hits");
         System.out.println("Writing " + fpgaData.size() + " FPGA data");
 
         Map<Integer, List<int[]>> fpgaHits = new HashMap<Integer, List<int[]>>();
 
-        for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        for (Integer fpgaNumber : fpgaNumbers) {
             fpgaHits.put(fpgaNumber, new ArrayList<int[]>());
         }
 
         for (RawTrackerHit hit : hits) {
-            int fpgaAddress = SvtUtils.getInstance().getFPGA((SiSensor) hit.getDetectorElement());
-            int hybridNumber = SvtUtils.getInstance().getHybrid((SiSensor) hit.getDetectorElement());
-            int sensorChannel = hit.getIdentifierFieldValue("strip");
+            //===> int fpgaAddress = SvtUtils.getInstance().getFPGA((SiSensor) hit.getDetectorElement());
+        	int fpgaAddress = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
+            //int hybridNumber = SvtUtils.getInstance().getHybrid((SiSensor) hit.getDetectorElement());
+            int hybridNumber = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
+        	int sensorChannel = hit.getIdentifierFieldValue("strip");
             int apvNumber = SVTData.getAPV(sensorChannel);
             int channelNumber = SVTData.getAPVChannel(sensorChannel);
 
@@ -93,7 +115,8 @@ public class SVTHitWriter implements HitWriter {
 
         // Iterate over FPGA's 0 - 6
 //        for (int fpgaNumber = 0; fpgaNumber < SVT_TOTAL_NUMBER_FPGAS; fpgaNumber++) {
-        for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        for (Integer fpgaNumber : fpgaNumbers) {
             FpgaData fpgaDatum = fpgaData.get(fpgaNumber);
             int[] header = fpgaDatum.extractData();
 
@@ -150,7 +173,7 @@ public class SVTHitWriter implements HitWriter {
         List<LCRelation> trueHitRelations = event.get(LCRelation.class, relationCollectionName);
         toEvent.put(relationCollectionName, trueHitRelations, LCRelation.class, 0);
 
-        List<FpgaData> fpgaData = new ArrayList(makeFpgaData().values());
+        List<FpgaData> fpgaData = new ArrayList(makeFpgaData(event.getDetector().getSubdetector(subdetectorName)).values());
         System.out.println("Writing " + fpgaData.size() + " FPGA data");
 
         toEvent.put(fpgaDataCollectionName, fpgaData, FpgaData.class, 0);

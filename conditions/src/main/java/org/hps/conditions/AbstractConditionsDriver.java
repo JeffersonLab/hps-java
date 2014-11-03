@@ -1,12 +1,9 @@
 package org.hps.conditions;
 
 import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalDetectorSetup;
-import org.hps.conditions.svt.SvtConditions;
-import org.hps.conditions.svt.SvtDetectorSetup;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
@@ -24,7 +21,7 @@ public abstract class AbstractConditionsDriver extends Driver {
     static DatabaseConditionsManager manager;
 
     private String ecalSubdetectorName = "Ecal";
-    private String svtSubdetectorName = "Tracker";
+    protected String svtSubdetectorName = "Tracker";
     
     boolean loadSvtConditions = true;
     boolean loadEcalConditions = true;
@@ -62,11 +59,7 @@ public abstract class AbstractConditionsDriver extends Driver {
      * Load the SVT conditions onto the <code>Detector</code>.
      * @param detector The detector to update.
      */
-    private void loadSvtConditions(Detector detector) {
-        SvtConditions conditions = manager.getCachedConditions(SvtConditions.class, SVT_CONDITIONS).getCachedData();
-        SvtDetectorSetup loader = new SvtDetectorSetup();
-        loader.load(detector.getSubdetector(svtSubdetectorName), conditions);
-    }
+    protected abstract void loadSvtConditions(Detector detector);
 
     /**
      * Load the ECal conditions onto the <code>Detector</code>.

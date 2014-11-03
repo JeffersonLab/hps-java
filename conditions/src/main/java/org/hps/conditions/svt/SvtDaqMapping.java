@@ -2,8 +2,6 @@ package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
@@ -12,32 +10,19 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class SvtDaqMapping extends AbstractConditionsObject {
+public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
-    public static class SvtDaqMappingCollection extends ConditionsObjectCollection<SvtDaqMapping> {
-
-        /**
-         * Flag values for top or bottom half.
-         */
-        public static final String TOP_HALF = "T";
-        public static final String BOTTOM_HALF = "B";
-        
-        /**
-         * Flag values for axial or stereo sensors 
-         */
-        public static final String AXIAL = "A";
-        public static final String STEREO = "S";
+    public static class SvtDaqMappingCollection 
+            extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
 
         /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) by SVT volume, layer number
-         * and module number.
+         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given 
+         * {@link HpsSiSensor}
          * 
-         * @param svtHalf Value indicating top or bottom half of detector
-         * @param layerNumber The layer number
-         * @param moduleNumber The module number (needed to identify layer's 4-6)
-         * @return The DAQ pair for the half and layer number or null if does not exist.
+		 * @param  sensor A sensor of type {@link HpsSiSensor}
+		 * @return The DAQ pair associated with the sensor 
          */
-        Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
+        public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
         	
         	String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
         	for (SvtDaqMapping object : this.getObjects()) {
@@ -120,19 +105,7 @@ public final class SvtDaqMapping extends AbstractConditionsObject {
     	return getFieldValue("feb_hybrid_id");
     }
     
-    public String getSvtHalf() {
-        return getFieldValue("svt_half");
-    }
-
-    public int getLayerNumber() {
-        return getFieldValue("layer");
-    }
-    
     public String getSide(){
     	return getFieldValue("side");
-    }
-
-    public String getOrientation() { 
-    	return getFieldValue("orientation");
     }
 }

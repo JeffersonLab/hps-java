@@ -28,9 +28,13 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/EtSystemTest.java</exclude>
+                        <exclude>org/hps/ReconClusterICTest.java</exclude>
+                        <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
+                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                        <exclude>org/hps/TestRunReadoutToEvio.java</exclude>
+                        <exclude>org/hps/TestRunReconTest.java</exclude>
                         <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                         <exclude>org/hps/EcalReadoutSimTest.java</exclude>
-                        <exclude>org/hps/ReconClusterICTest.java</exclude>
                     </excludes>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <trimStackTrace>true</trimStackTrace>
@@ -76,6 +80,8 @@
                                 <exclude>org/hps/MockDataReconTest.java</exclude>
                                 <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
                                 <exclude>org/hps/ReconClusterICTest.java</exclude>
+                                <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
+                                <exclude>org/hps/TestRunReadoutToEvio.java</exclude>
                                 <exclude>org/hps/TestRunReconTest.java</exclude>
                                 <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                             </excludes>
@@ -101,6 +107,8 @@
                         <configuration>
                             <excludes>                            
                                 <exclude>org/hps/EcalReadoutSimTest.java</exclude>                                
+								<exclude>org/hps/ReconClusterICTest.java</exclude>
+								<exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>

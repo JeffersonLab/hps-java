@@ -35,6 +35,10 @@ import org.lcsim.lcio.LCIOWriter;
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Update this class so it works correctly with the database conditions system
+// FIXME:  For now, the run number was added to the command line options so the 
+//         correct set of conditions can be loaded. This needs to be changed to 
+//         get the correct run number from the prestart.
 public class TestRunEvioToLcio {
 
     private static final String defaultDetectorName = "";
@@ -57,6 +61,7 @@ public class TestRunEvioToLcio {
         options.addOption(new Option("c", false, "Show run control window"));
         options.addOption(new Option("D", true, "Pass a variable to the steering file"));
         options.addOption(new Option("r", false, "Interpret -x argument as a steering resource instead of a file path"));
+        options.addOption(new Option("R", true, "The run number"));
 
         return options;
     }
@@ -100,7 +105,6 @@ public class TestRunEvioToLcio {
         //if (cl.hasOption("e")) {
         //    System.out.println("Option -e is deprecated; EVIO file name is now a non-option argument");
         //}
-
         // LCIO output file.
         if (cl.hasOption("l")) {
             lcioFileName = cl.getOptionValue("l");
@@ -177,9 +181,15 @@ public class TestRunEvioToLcio {
             }
         }
 
+        int runNumber = 0;
+        if(cl.hasOption("R")){
+            runNumber = Integer.valueOf(cl.getOptionValue("R"));
+        }
+
         jobManager.setup(steeringStream);
         jobManager.configure();
 
+        new org.hps.conditions.config.TestRunReadOnlyConfiguration(false).setup().load(detectorName, runNumber);
         // LCSim event builder.
         LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
         eventBuilder.setDetectorName(detectorName);
@@ -224,7 +234,7 @@ public class TestRunEvioToLcio {
                     if (EventConstants.isPreStartEvent(evioEvent)) {
                         int[] data = evioEvent.getIntData();
                         int seconds = data[0];
-                        int runNumber = data[1];
+                        runNumber = data[1];
 //                        calibListener.prestart(seconds, runNumber);
                     } else if (EventConstants.isEndEvent(evioEvent)) {
                         int[] data = evioEvent.getIntData();

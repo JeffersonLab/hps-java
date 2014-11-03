@@ -26,6 +26,8 @@ import org.lcsim.lcio.LCIOConstants;
  * @version $Id: EcalClusterer.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
 public class EcalClusterer extends Driver {
+	
+	Detector detector = null;
 
     HPSEcal3 ecal;
     String ecalCollectionName;
@@ -77,6 +79,9 @@ public class EcalClusterer extends Driver {
     }
 
     public void detectorChanged(Detector detector) {
+    	
+    	this.detector = detector;
+    	
         // Get the Subdetector.
         ecal = (HPSEcal3) detector.getSubdetector(ecalName);
 
@@ -158,7 +163,8 @@ public class EcalClusterer extends Driver {
             // Did we find a seed?
             if (isSeed) {
                 // Make a cluster from the hit list.
-                HPSEcalCluster cluster = new HPSEcalCluster(hit);
+                HPSEcalCluster cluster = new HPSEcalCluster();
+                cluster.setSeedHit(hit);
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {
                     cluster.addHit(clusHit);

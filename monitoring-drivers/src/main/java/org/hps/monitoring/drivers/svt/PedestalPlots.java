@@ -16,8 +16,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-import org.hps.conditions.deprecated.SvtUtils;
+
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
+//===> import org.hps.conditions.deprecated.SvtUtils;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -28,7 +30,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class PedestalPlots extends Driver {
 
@@ -41,7 +42,9 @@ public class PedestalPlots extends Driver {
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String fitFile = null;
     private boolean plotTimeSeries = false;
-
+    private static final String subdetectorName = "Tracker";
+    
+    
     public void setFitFile(String fitFile) {
         this.fitFile = fitFile;
     }
@@ -61,7 +64,10 @@ public class PedestalPlots extends Driver {
         sumsqs = new HashMap<SiSensor, double[]>();
         plots = new HashMap<SiSensor, IDataPointSet[]>();
 
-        for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+        List<SiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement().findDescendants(SiSensor.class);
+        
+        //===> for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
+        for (SiSensor sensor : sensors) {
             hists.put(sensor, aida.histogram2D(sensor.getName() + " sample 1 vs. ch", 640, -0.5, 639.5, 500, -500.0, 3000.0));
             if (plotTimeSeries) {
                 counts.put(sensor, new int[640]);
@@ -86,9 +92,10 @@ public class PedestalPlots extends Driver {
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
 
             for (RawTrackerHit hit : rawTrackerHits) {
-                SiSensor sensor = (SiSensor) hit.getDetectorElement();
+                HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
                 int strip = hit.getIdentifierFieldValue("strip");
-                double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
+                double pedestal = sensor.getPedestal(strip, 0);
+                //===> double pedestal = HPSSVTCalibrationConstants.getPedestal(sensor, strip);
                 hists.get(sensor).fill(strip, hit.getADCValues()[0] - pedestal);
 
                 if (plotTimeSeries) {

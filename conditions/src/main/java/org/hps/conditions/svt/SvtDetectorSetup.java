@@ -98,7 +98,7 @@ public final class SvtDetectorSetup {
             }
 
             // Set the t0 shift for the sensor.
-            SvtT0Shift sensorT0Shift = t0Shifts.find(daqPair).get(0);
+            SvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
     }

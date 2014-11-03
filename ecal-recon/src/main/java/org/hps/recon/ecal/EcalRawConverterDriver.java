@@ -3,7 +3,10 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.TableConstants;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -20,15 +23,18 @@ import org.lcsim.util.Driver;
  */
 public class EcalRawConverterDriver extends Driver {
 
-    EcalRawConverter converter = null;
-    String rawCollectionName = "EcalReadoutHits";
-    String ecalReadoutName = "EcalHits";
-    String ecalCollectionName = "EcalCalHits";
-    int integralWindow = 35;
-    boolean debug = false;
-    double threshold = Double.NEGATIVE_INFINITY;
-    boolean applyBadCrystalMap = true;
-    boolean dropBadFADC = false;
+    // To import database conditions
+    private EcalConditions ecalConditions = null;
+
+    private EcalRawConverter converter = null;
+    private String rawCollectionName = "EcalReadoutHits";
+    private final String ecalReadoutName = "EcalHits";
+    private String ecalCollectionName = "EcalCalHits";
+    private int integralWindow = 35;
+    private boolean debug = false;
+    private double threshold = Double.NEGATIVE_INFINITY;
+    private boolean applyBadCrystalMap = true;
+    private boolean dropBadFADC = false;
     private boolean runBackwards = false;
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
@@ -94,15 +100,34 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+
+        // set the detector for the converter
+        converter.setDetector(detector);
+
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+
+        System.out.println("You are now using the database conditions for EcalRawConverterDriver.");
     }
 
-    public static boolean isBadCrystal(CalorimeterHit hit) {
-        return EcalConditions.badChannelsLoaded() ? EcalConditions.isBadChannel(hit.getCellID()) : false;
+    /**
+     * @return false if the channel is a good one, true if it is a bad one
+     * @param CalorimeterHit
+     */
+    public boolean isBadCrystal(CalorimeterHit hit) {
+        // Get the channel data.
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+
+        return channelData.isBadChannel();
     }
 
-    public static boolean isBadFADC(CalorimeterHit hit) {
-        long daqID = EcalConditions.physicalToDaqID(hit.getCellID());
-        return (EcalConditions.getCrate(daqID) == 1 && EcalConditions.getSlot(daqID) == 3);
+    /**
+     * @return false if the ADC is a good one, true if it is a bad one
+     * @param CalorimeterHit
+     */
+    public boolean isBadFADC(CalorimeterHit hit) {
+        return (getCrate(hit.getCellID()) == 1 && getSlot(hit.getCellID()) == 3);
     }
 
     private static double getTimestamp(int system, EventHeader event) { //FIXME: copied from org.hps.readout.ecal.ReadoutTimestamp
@@ -136,7 +161,6 @@ public class EcalRawConverterDriver extends Driver {
             timeOffset += ((t0ECal + 250.0) % 500.0) - 250.0;
         }
 
-
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store hit time
         flags += 1 << LCIOConstants.RCHBIT_LONG; //store hit position; this flag has no effect for RawCalorimeterHits
@@ -150,7 +174,11 @@ public class EcalRawConverterDriver extends Driver {
 
                 for (RawTrackerHit hit : hits) {
                     CalorimeterHit newHit = converter.HitDtoA(hit);
-                    if (applyBadCrystalMap && isBadCrystal(newHit)) {
+
+                    // Get the channel data.
+                    EcalChannelConstants channelData = findChannel(newHit.getCellID());
+
+                    if (applyBadCrystalMap && channelData.isBadChannel()) {
                         continue;
                     }
                     if (dropBadFADC && isBadFADC(newHit)) {
@@ -170,6 +198,7 @@ public class EcalRawConverterDriver extends Driver {
                         System.out.format("old hit energy %d\n", hit.getAmplitude());
                     }
                     CalorimeterHit newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
+
                     if (newHit.getRawEnergy() > threshold) {
                         if (applyBadCrystalMap && isBadCrystal(newHit)) {
                             continue;
@@ -205,5 +234,37 @@ public class EcalRawConverterDriver extends Driver {
                 event.put(rawCollectionName, newHits, RawCalorimeterHit.class, flags, ecalReadoutName);
             }
         }
+    }
+
+    /**
+     * Convert physical ID to gain value.
+     *
+     * @param cellID (long)
+     * @return channel constants (EcalChannelConstants)
+     */
+    private EcalChannelConstants findChannel(long cellID) {
+        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+    }
+
+    /**
+     * Return crate number from cellID
+     *
+     * @param cellID (long)
+     * @return Crate number (int)
+     */
+    private int getCrate(long cellID) {
+        // Find the ECAL channel and return the crate number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getCrate();
+    }
+
+    /**
+     * Return slot number from cellID
+     *
+     * @param cellID (long)
+     * @return Slot number (int)
+     */
+    private int getSlot(long cellID) {
+        // Find the ECAL channel and return the slot number.
+        return ecalConditions.getChannelCollection().findGeometric(cellID).getSlot();
     }
 }

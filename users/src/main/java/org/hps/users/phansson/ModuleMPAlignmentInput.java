@@ -18,9 +18,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.SvtUtils;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -255,7 +255,9 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
         
    
         int layer = hit.Layer();
-        int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        //===> int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
+        int side = sensor.isTopLayer() ? 10000 : 20000;
 
         
         if(_DEBUG) {
@@ -380,12 +382,15 @@ public final class ModuleMPAlignmentInput extends MPAlignmentInputCalculator {
    
 
      private void PrintHitResiduals(HelicalTrackHit hit) {
-         HelicalTrackStrip strip = ((HelicalTrackCross) hit).getStrips().get(0);
-         String side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";        
+        HelicalTrackStrip strip = ((HelicalTrackCross) hit).getStrips().get(0);
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        //===> String side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";        
+        String side = sensor.isTopLayer() ? "top" : "bottom";        
         if (_DEBUG) {
             System.out.printf("%s: --- Alignment Results for this helical track hit ---\n",this.getClass().getSimpleName());
             
-            String sensor_type = SvtUtils.getInstance().isAxial((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "axial" : "stereo";
+            //===> String sensor_type = SvtUtils.getInstance().isAxial((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "axial" : "stereo";
+            String sensor_type = sensor.isAxial() ? "axial" : "stereo";
             System.out.printf("%s: Layer %d in %s at position %s\n",this.getClass().getSimpleName(), hit.Layer(),side, hit.getCorrectedPosition().toString());
             System.out.printf("%s: Residuals (x,y,z) : %5.5e %5.5e %5.5e\n",this.getClass().getSimpleName(), _resid[0], _resid[1], _resid[2]);
             System.out.printf("%s: Errors (x,y,z)    : %5.5e %5.5e %5.5e\n",this.getClass().getSimpleName(), _error[0], _error[1], _error[2]);

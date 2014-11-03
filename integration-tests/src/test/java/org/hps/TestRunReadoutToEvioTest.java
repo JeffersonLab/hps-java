@@ -31,7 +31,6 @@ public class TestRunReadoutToEvioTest extends TestCase {
         job.addInputFile(inputFile);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName());
         job.addVariableDefinition("outputFile", outputFile.getPath());
-        job.addVariableDefinition("runNumber", "1351");
         job.setup("/org/hps/steering/readout/TestRunReadoutToEvio.lcsim");
         job.setNumberOfEvents(nEvents);
         job.run();       

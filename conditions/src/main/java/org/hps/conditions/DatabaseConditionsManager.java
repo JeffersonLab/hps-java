@@ -601,6 +601,26 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
         return conditionsSeriesConverter.createSeries(conditionsKey);
     }
+    
+	/**
+	 * Get a given collection of the given type from the conditions database.
+	 * 
+	 * @param type Class type
+	 * @return A collection of objects of the given type from the conditions database
+	 */
+	public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type){
+		
+		// Get the table name from the database configuration
+		TableMetaData metaData = this.findTableMetaData(type);
+		if(metaData == null) 
+			throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
+		String tableName = metaData.getTableName();
+
+		// FIXME: This should be changed to catch a conditions record not found exception instead of 
+		// 		  a runtime exception.
+		CollectionType conditionsCollection = this.getCachedConditions(type, tableName).getCachedData(); 
+		return conditionsCollection; 
+	}
        
     /**
      * Simple utility method to cast the generic <code>ConditionsManager</code> to this class.

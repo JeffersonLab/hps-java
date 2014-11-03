@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
@@ -19,9 +20,12 @@ import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
-import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-import org.hps.conditions.deprecated.HPSSVTConstants;
+//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
+
+import org.hps.conditions.deprecated.HPSSVTConstants;
 
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
@@ -34,13 +38,15 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     private final int nPulses;
     final double[] amplitudes;
     final double[] amplitudeErrors;
-    private ChannelConstants channelConstants;
+    //===> private ChannelConstants channelConstants;
+    HpsSiSensor sensor = null;
     private final double[] sigma = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private final double[] y = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private int firstUsedSample;
     private int nUsedSamples;
     private int firstFittedPulse;
     private int nFittedPulses;
+    private int channel; 
     private boolean debug = false;
     private static final Logger minuitLoggger = Logger.getLogger("org.freehep.math.minuit");
 
@@ -61,17 +67,27 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     }
 
     @Override
-    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
-        return this.fitShape(rth.getADCValues(), constants);
+    //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, ChannelConstants constants) {
+    public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth) {
+        short[] samples = rth.getADCValues();
+        HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
+        int channel = rth.getIdentifierFieldValue("strip");
+        return fitShape(channel, samples, sensor);
+        //===> return this.fitShape(rth.getADCValues(), constants);
     }
 
-    public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
-        channelConstants = constants;
+    public Collection<ShapeFitParameters> fitShape(int channelNumber, short[] samples, HpsSiSensor siSensor) {
+    //===> public Collection<ShapeFitParameters> fitShape(short[] samples, ChannelConstants constants) {
+        // channelConstants = constants;
+    	this.sensor = siSensor;
+    	this.channel = channelNumber;
         double[] signal = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
 
         for (int i = 0; i < samples.length; i++) {
-            signal[i] = samples[i] - constants.getPedestal();
-            sigma[i] = constants.getNoise();
+            //===> signal[i] = samples[i] - constants.getPedestal();
+            signal[i] = samples[i] - sensor.getPedestal(channel, i);
+            //===> sigma[i] = constants.getNoise();
+            sigma[i] = sensor.getNoise(channel, i);
         }
 
 //        if (signal[0]>300.0) {
@@ -155,7 +171,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
                 //subtract first pulse from fit input
                 for (int i = 0; i < samples.length; i++) {
-                    fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), channelConstants);
+                    //===> fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), channelConstants);
+                    fitData[i] -= amplitudes[firstFittedPulse] * getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * i - frontFit.userState().value(0), this.channel, this.sensor);
                 }
 
                 if (debug) {
@@ -298,7 +315,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
         for (int j = 0; j < nUsedSamples; j++) {
             for (int i = 0; i < nFittedPulses; i++) {
-                sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
+                //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
+                sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], this.channel, this.sensor) / sigma[firstUsedSample + j]);
             }
             y_vec.setEntry(j, y[firstUsedSample + j] / sigma[firstUsedSample + j]);
             var_vec.setEntry(j, sigma[firstUsedSample + j] * sigma[firstUsedSample + j]);
@@ -334,11 +352,14 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         return chisq;
     }
 
-    private static double getAmplitude(double time, ChannelConstants channelConstants) {
+    //===> private static double getAmplitude(double time, ChannelConstants channelConstants) {
+    private static double getAmplitude(double time, int channel, HpsSiSensor sensor) {
         if (time < 0) {
             return 0;
         }
-        return (time / channelConstants.getTp()) * Math.exp(1 - time / channelConstants.getTp());
+        double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
+        //===> return (time / channelConstants.getTp()) * Math.exp(1 - time / channelConstants.getTp());
+        return (time / tp) * Math.exp(1 - time / tp);
     }
 
     @Override

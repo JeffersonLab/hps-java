@@ -169,7 +169,7 @@ public class EcalClustererCosmics extends Driver {
             // Did we find a seed?
             if (isSeed) {
                 // Make a cluster from the hit list.
-                HPSEcalCluster cluster = new HPSEcalCluster(hit);
+                HPSEcalCluster cluster = new HPSEcalCluster(hit.getCellID());
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {
                     cluster.addHit(clusHit);

@@ -11,7 +11,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 public class ConditionsTestRunTest extends TestCase {
         
     static String config = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-    static String prop = "/org/hps/conditions/config/conditions_database_testrun_2012_connection.properties";
+    static String prop = "/org/hps/conditions/config/conditions_dev.properties";
     
     public void testConditionsTestRun() {
 
