@@ -3,14 +3,17 @@ package org.hps.monitoring.ecal.eventdisplay.ui;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
-import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalDataSet;
 import org.hps.monitoring.ecal.eventdisplay.util.EcalWiringManager;
 
@@ -61,7 +64,7 @@ public class DataFileViewer extends FileViewer {
      * @throws IOException Occurs if there is an error reading from
      * either data source.
      */
-    public DataFileViewer(EventManager dataSource, String crystalDataFilePath) throws IOException {
+    public DataFileViewer(File dataSource, String crystalDataFilePath) throws IOException {
         // Initialize the super class file.
         super(dataSource);
         
@@ -69,9 +72,7 @@ public class DataFileViewer extends FileViewer {
         ewm = new EcalWiringManager(crystalDataFilePath);
         
         // Add the crystal data fields.
-        for(String fieldName : fieldNames) {
-            addStatusField(fieldName);
-        }
+        for(String fieldName : fieldNames) { addStatusField(fieldName); }
         
         // Instantiate the crystal filter panel.
         filterPanel = new CrystalFilterPanel(ewm);
@@ -81,38 +82,42 @@ public class DataFileViewer extends FileViewer {
         filterWindow.pack();
         filterWindow.setResizable(false);
         
+        // Add a new view menu option to display the filter panel.
+        JMenuItem menuFilter = new JMenuItem("Show Filter", KeyEvent.VK_F);
+        menuFilter.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+        menuFilter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { filterWindow.setVisible(true); }
+        });
+        menu[MENU_VIEW].addSeparator();
+        menu[MENU_VIEW].add(menuFilter);
+        
         // Add an action listener to note when the filter window applies
         // a crystal filter.
         filterPanel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// Clear the panel highlighting.
-				ecalPanel.clearHighlight();
-				
-				// If the filter panel is active, highlight the crystals
-				// that passed the filter.
-				if(filterPanel.isActive()) {
-					// Get the list of filtered crystals.
-					List<Point> filterList = filterPanel.getFilteredCrystals();
-					
-					// Highlight each of the filtered crystals.
-					for(Point crystal : filterList) {
-						ecalPanel.setCrystalHighlight(toPanelPoint(crystal), java.awt.Color.WHITE);
-					}
-				}
-			}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Clear the panel highlighting.
+                ecalPanel.clearHighlight();
+                
+                // If the filter panel is active, highlight the crystals
+                // that passed the filter.
+                if(filterPanel.isActive()) {
+                    // Get the list of filtered crystals.
+                    List<Point> filterList = filterPanel.getFilteredCrystals();
+                    
+                    // Highlight each of the filtered crystals.
+                    for(Point crystal : filterList) {
+                        ecalPanel.setCrystalHighlight(toPanelPoint(crystal), java.awt.Color.WHITE);
+                    }
+                }
+            }
         });
         
-        // Create a new key listener.
-        addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// Bring up the filter panel when 'f' is pressed.
-				if(e.getKeyCode() == 70) {
-					if(!filterWindow.isVisible()) { filterWindow.setVisible(true); }
-					else { filterWindow.setVisible(false); }
-				}
-			}
+        // Kill the filter window on system close.
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) { filterWindow.dispose(); }
         });
     }
     

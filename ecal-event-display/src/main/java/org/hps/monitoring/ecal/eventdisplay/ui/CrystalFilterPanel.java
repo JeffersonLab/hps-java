@@ -253,6 +253,9 @@ public final class CrystalFilterPanel extends JPanel {
                 // Remove the list of filtered crystals.
                 removeFilter();
                 
+                // Disable the remove filter button.
+                buttonRemove.setEnabled(false);
+                
                 // Disable all of the filter check boxes.
                 for(JCheckBox check : checkActive) {
                     check.setSelected(false);

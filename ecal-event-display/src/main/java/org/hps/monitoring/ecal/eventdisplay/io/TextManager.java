@@ -1,5 +1,6 @@
 package org.hps.monitoring.ecal.eventdisplay.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -37,10 +38,10 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * Indicates that the event has ended.
  * 
  * @author Kyle McCarty
- **/
+ */
 public final class TextManager implements EventManager {
     // File reader for reading the input.
-	private AdvancedReader reader;
+    private AdvancedReader reader;
     // List for storing the hits from the current event.
     private ArrayList<EcalHit> hitList = new ArrayList<EcalHit>();
     // List for storing the clusters from the current hit.
@@ -51,34 +52,45 @@ public final class TextManager implements EventManager {
     private int curEvent = 0;
     
     /**
-     * <b>EventManager</b><br/><br/>
-     * <code>public <b>EventManager</b>(String filename)</code><br/><br/>
      * Initializes an event manager that will read from the indicated file.
      * @param filename - The path to the file containing hit information.
-     **/
-    public TextManager(String filename) throws IOException {
-    	reader = new AdvancedReader(filename);
+     */
+    public TextManager(File file) throws IOException {
+        reader = new AdvancedReader(file);
     }
     
+    /**
+     * Initializes an event manager that will read from the indicated file.
+     * @param filename - The path to the file containing hit information.
+     */
+    public TextManager(String filename) throws IOException {
+        reader = new AdvancedReader(filename);
+    }
+    
+    @Override
     public void close() throws IOException {
         reader.close();
         open = false;
     }
     
+    @Override
     public int getEventNumber() {
-    	return curEvent;
+        return curEvent;
     }
     
+    @Override
     public ArrayList<Cluster> getClusters() {
         if (!open) { return null; }
         else { return clusterList; }
     }
     
+    @Override
     public ArrayList<EcalHit> getHits() {
         if (!open) { return null; }
         else { return hitList; }
     }
     
+    @Override
     public boolean nextEvent() throws IOException {
         // We can only read of the reader is open.
         if (!open) { return false; }
@@ -115,12 +127,12 @@ public final class TextManager implements EventManager {
             
             // If this is a cluster, add a new cluster object.
             if (name.compareTo("Cluster") == 0) {
-            	// Get the cluster energy, if it is given.
-            	double clusterEnergy = Double.NaN;
-            	if(st.hasMoreTokens()) { clusterEnergy = Double.parseDouble(st.nextToken()); }
-            	
-            	// Add a new cluster.
-            	clusterList.add(new Cluster(ix, iy, clusterEnergy));
+                // Get the cluster energy, if it is given.
+                double clusterEnergy = Double.NaN;
+                if(st.hasMoreTokens()) { clusterEnergy = Double.parseDouble(st.nextToken()); }
+                
+                // Add a new cluster.
+                clusterList.add(new Cluster(ix, iy, clusterEnergy));
             }
             
             // If this is a calorimeter hit, add a new calorimeter hit object.
@@ -131,24 +143,24 @@ public final class TextManager implements EventManager {
             
             // If this is a cluster component hit, add it to the last cluster.
             else if(name.compareTo("CompHit") == 0) {
-            	// There must be a last cluster to process this hit type.
-            	if(clusterList.size() == 0) {
-            		System.err.println("File Format Error: A cluster component hit was read, but" +
-            				" no cluster has been declared. Terminating.");
-            		System.exit(1);
-            	}
-            	else { clusterList.get(clusterList.size() - 1).addComponentHit(ix, iy); }
+                // There must be a last cluster to process this hit type.
+                if(clusterList.size() == 0) {
+                    System.err.println("File Format Error: A cluster component hit was read, but" +
+                            " no cluster has been declared. Terminating.");
+                    System.exit(1);
+                }
+                else { clusterList.get(clusterList.size() - 1).addComponentHit(ix, iy); }
             }
             
             // If this is a cluster shared hit, add it to the last cluster.
             else if(name.compareTo("SharHit") == 0) {
-            	// There must be a last cluster to process this hit type.
-            	if(clusterList.size() == 0) {
-            		System.err.println("File Format Error: A cluster shared hit was read, but" +
-            				" no cluster has been declared. Terminating.");
-            		System.exit(1);
-            	}
-            	else { clusterList.get(clusterList.size() - 1).addSharedHit(ix, iy); }
+                // There must be a last cluster to process this hit type.
+                if(clusterList.size() == 0) {
+                    System.err.println("File Format Error: A cluster shared hit was read, but" +
+                            " no cluster has been declared. Terminating.");
+                    System.exit(1);
+                }
+                else { clusterList.get(clusterList.size() - 1).addSharedHit(ix, iy); }
             }
             
             // Get the next line.
@@ -159,37 +171,38 @@ public final class TextManager implements EventManager {
         return true;
     }
     
+    @Override
     public boolean previousEvent() throws IOException {
-    	// If we are at the first event, do nothing. There is no
-    	// previous event to display.
-    	if(curEvent == 1) { return false; }
-    	
-    	// Otherwise, loop backward until we find the previous event header.
-    	String curLine;
-    	while(true) {
-    		// Get the previous line.
-    		curLine = reader.readPreviousLine();
-    		
-    		// Otherwise, if it is null, we've reached the start of the file.
-    		if(curLine == null) {
-    			System.err.println("Error: Unexpectedly reached SOF.");
-    			System.exit(1);
-    		}
-    		
-    		// If the previous line is an event, note it.
-    		if(curLine.substring(0, 5).compareTo("Event") == 0) {
-    	        // Get the event number of the current event.
-    	        StringTokenizer et = new StringTokenizer(curLine);
-    	        et.nextToken();
-    	        int readEvent = Integer.parseInt(et.nextToken());
-    	        
-    	        // If the read event number is one back from the current
-    	        // event, jump back a step and read the event.
-    	        if(readEvent == (curEvent - 1)) {
-    	        	reader.readPreviousLine();
-    	        	return nextEvent();
-    	        }
-    		}
-    	}
+        // If we are at the first event, do nothing. There is no
+        // previous event to display.
+        if(curEvent == 1) { return false; }
+        
+        // Otherwise, loop backward until we find the previous event header.
+        String curLine;
+        while(true) {
+            // Get the previous line.
+            curLine = reader.readPreviousLine();
+            
+            // Otherwise, if it is null, we've reached the start of the file.
+            if(curLine == null) {
+                System.err.println("Error: Unexpectedly reached SOF.");
+                System.exit(1);
+            }
+            
+            // If the previous line is an event, note it.
+            if(curLine.substring(0, 5).compareTo("Event") == 0) {
+                // Get the event number of the current event.
+                StringTokenizer et = new StringTokenizer(curLine);
+                et.nextToken();
+                int readEvent = Integer.parseInt(et.nextToken());
+                
+                // If the read event number is one back from the current
+                // event, jump back a step and read the event.
+                if(readEvent == (curEvent - 1)) {
+                    reader.readPreviousLine();
+                    return nextEvent();
+                }
+            }
+        }
     }
 }

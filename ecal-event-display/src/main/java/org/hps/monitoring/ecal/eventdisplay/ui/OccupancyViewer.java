@@ -16,6 +16,7 @@ import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
  * 
  * @author Kyle McCarty
  */
+@Deprecated
 public class OccupancyViewer extends ActiveViewer {
     private static final long serialVersionUID = 3712604287904215617L;
     // The number of events that have been read so far.
