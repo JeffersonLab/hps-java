@@ -99,12 +99,16 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==== Hardware Diagnostic Variables ===============================
     // ==================================================================
     IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram1D diagHitCount = aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution", 9, 1, 10);
-    IHistogram1D diagTotalEnergy = aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
-    // TODO: Implement cluster latency plot.
+    IHistogram1D[] diagHitCount = {
+    			aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 8, 0, 7),
+    			aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 8, 1, 7)
+    		};
+    IHistogram1D[] diagTotalEnergy = {
+    			aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
+    			aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
+    		};
     
     private boolean verbose = false;
-    
     
     /**
      * Prints out the results of the trigger at the end of the run.
@@ -198,8 +202,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 
                 // Populate the diagnostic plots.
                 diagClusters.fill(ix, iy, 1);
-                diagTotalEnergy.fill(clusterEnergy, 1);
-                diagHitCount.fill(hitCount, 1);
+                int plotIndex = iy > 0 ? 0 : 1;
+                diagTotalEnergy[plotIndex].fill(clusterEnergy, 1);
+                diagHitCount[plotIndex].fill(hitCount < 8 ? hitCount : 7, 1);
                 
                 // ==== Seed Hit Energy Cut ====================================
                 // =============================================================
