@@ -75,7 +75,7 @@ public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
             p[i] = y[i] / sensor.getNoise(channel, i);
             //===> a[i] = Math.exp(1 - t[i] / constants.getTp()) / (constants.getTp() * constants.getNoise());
             
-            a[i] = Math.exp(1 - t[i] /tp  / (tp * sensor.getNoise(channel, i)));
+            a[i] = Math.exp(1 - t[i] /tp)  / (tp * sensor.getNoise(channel, i));
         }
 
         double pa, aatt, pat, aat, aa;
