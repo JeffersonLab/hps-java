@@ -62,6 +62,7 @@ public class TestRunEvioToLcio {
         options.addOption(new Option("D", true, "Pass a variable to the steering file"));
         options.addOption(new Option("r", false, "Interpret -x argument as a steering resource instead of a file path"));
         options.addOption(new Option("R", true, "The run number"));
+        options.addOption(new Option("t", false, "Read test run data"));
 
         return options;
     }
@@ -182,16 +183,25 @@ public class TestRunEvioToLcio {
         }
 
         int runNumber = 0;
-        if(cl.hasOption("R")){
+        if (cl.hasOption("R")) {
             runNumber = Integer.valueOf(cl.getOptionValue("R"));
         }
 
         jobManager.setup(steeringStream);
         jobManager.configure();
 
-        new org.hps.conditions.config.TestRunReadOnlyConfiguration(false).setup().load(detectorName, runNumber);
         // LCSim event builder.
-        LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
+        LCSimEventBuilder eventBuilder = null;
+
+        if (cl.hasOption("t")) {
+            new org.hps.conditions.config.TestRunReadOnlyConfiguration(false).setup().load(detectorName, runNumber);
+            eventBuilder = new LCSimTestRunEventBuilder();
+        } else {
+            new org.hps.conditions.config.DevReadOnlyConfiguration().setup().load(detectorName, runNumber);
+            eventBuilder = new LCSimEngRunEventBuilder();
+
+        }
+
         eventBuilder.setDetectorName(detectorName);
 
         for (String evioFileName : cl.getArgs()) {
