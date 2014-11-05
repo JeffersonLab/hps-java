@@ -100,13 +100,13 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
     IHistogram1D[] diagHitCount = {
-    			aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 8, 0, 7),
-    			aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 8, 1, 7)
-    		};
+                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 7, 0, 7),
+                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 7, 0, 7)
+            };
     IHistogram1D[] diagTotalEnergy = {
-    			aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
-    			aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
-    		};
+                aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
+                aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
+            };
     
     private boolean verbose = false;
     
@@ -180,7 +180,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 
                 // VERBOSE :: Note that a cluster is being processed.
                 if(verbose) {
-                	System.out.printf("%nProcessing cluster at (% 2d, % 2d)%n", ix, iy);
+                    System.out.printf("%nProcessing cluster at (% 2d, % 2d)%n", ix, iy);
                 }
                 
                 // Correct for "hole" on the x-axis for plotting.
@@ -210,7 +210,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the seed energy comparison check.
                 if(verbose) {
-                	System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n", seedEnergyLow, seedEnergy, seedEnergyHigh, clusterSeedEnergyCut(cluster));
+                    System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n", seedEnergyLow, seedEnergy, seedEnergyHigh, clusterSeedEnergyCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
@@ -223,7 +223,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the hit count comparison check.
                 if(verbose) {
-                	System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n", hitCount, minHitCount, clusterHitCountCut(cluster));
+                    System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n", hitCount, minHitCount, clusterHitCountCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
@@ -236,7 +236,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the cluster energy comparison check.
                 if(verbose) {
-                	System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n", clusterEnergyLow, clusterEnergy, clusterEnergyHigh, clusterTotalEnergyCut(cluster));
+                    System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n", clusterEnergyLow, clusterEnergy, clusterEnergyHigh, clusterTotalEnergyCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
@@ -809,7 +809,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             coplanarityHigh = 65;
             minHitCount = 2;
         } else if(backgroundLevel == 0) {
-        	seedEnergyLow = 0.100;
+            seedEnergyLow = 0.100;
             seedEnergyHigh = 6.6;
             clusterEnergyLow = 0.100;
             clusterEnergyHigh = 1.500;
