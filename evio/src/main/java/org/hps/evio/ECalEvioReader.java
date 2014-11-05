@@ -46,10 +46,14 @@ public class ECalEvioReader extends EvioReader {
     private static EcalConditions ecalConditions = null;
     private static IIdentifierHelper helper = null;
 
-    public ECalEvioReader() {
+    private int topBankTag, botBankTag;
+
+    public ECalEvioReader(int topBankTag, int botBankTag) {
+        this.topBankTag = topBankTag;
+        this.botBankTag = botBankTag;
         hitCollectionName = "EcalReadoutHits";
 
-        subDetector =  DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
 
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
@@ -62,6 +66,15 @@ public class ECalEvioReader extends EvioReader {
 //        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
     }
 
+    public void setTopBankTag(int topBankTag) {
+        this.topBankTag = topBankTag;
+
+    }
+
+    public void setBotBankTag(int botBankTag) {
+        this.botBankTag = botBankTag;
+    }
+
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
         boolean foundHits = false;
@@ -71,7 +84,13 @@ public class ECalEvioReader extends EvioReader {
         for (BaseStructure bank : event.getChildren()) {
             BaseStructureHeader header = bank.getHeader();
             int crateBankTag = header.getTag();
-            if (crateBankTag == EventConstants.ECAL_TOP_BANK_TAG || crateBankTag == EventConstants.ECAL_BOTTOM_BANK_TAG) {
+            int crate = 0;
+            if (crateBankTag == topBankTag) {
+                crate = 1;
+            } else if (crateBankTag == botBankTag) {
+                crate = 2;
+            }
+            if (crateBankTag == topBankTag||crateBankTag == botBankTag) {
                 foundHits = true;
                 if (bank.getChildCount() > 0) {
                     if (debug) {
@@ -79,39 +98,41 @@ public class ECalEvioReader extends EvioReader {
                     }
                     try {
                         for (BaseStructure slotBank : bank.getChildren()) {
-                            if (slotBank.getHeader().getTag() == EventConstants.TRIGGER_BANK_TAG) {
-                                if (debug) {
-                                    int[] data = slotBank.getIntData();
-                                    for (int i = 0; i < data.length; i++) {
-                                        System.out.format("0x%x\n", data[i]);
-                                    }
-                                }
-                                continue;
-                            }
-                            for (CompositeData cdata : slotBank.getCompositeData()) {
+//                            if (isTriggerBank(slotBank.getHeader().getTag(), lcsimEvent.getRunNumber()) != 0) {
+//                                if (debug) {
+//                                    int[] data = slotBank.getIntData();
+//                                    for (int i = 0; i < data.length; i++) {
+//                                        System.out.format("0x%x\n", data[i]);
+//                                    }
+//                                }
+//                                continue;
+//                            }
+                            if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
+                                for (CompositeData cdata : slotBank.getCompositeData()) {
 //                            CompositeData cdata = slotBank.getCompositeData();
-                                if (slotBank.getHeader().getTag() != bankTag) {
-                                    bankTag = slotBank.getHeader().getTag();
-                                    System.out.printf("ECal format tag: 0x%x\n", bankTag);
-                                }
-                                switch (slotBank.getHeader().getTag()) {
-                                    case EventConstants.ECAL_WINDOW_BANK_TAG:
-                                        hits.addAll(makeWindowHits(cdata, crateBankTag));
-                                        hitClass = RawTrackerHit.class;
-                                        flags = 0;
-                                        break;
-                                    case EventConstants.ECAL_PULSE_BANK_TAG:
-                                        hits.addAll(makePulseHits(cdata, crateBankTag));
-                                        hitClass = RawTrackerHit.class;
-                                        flags = 0;
-                                        break;
-                                    case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
-                                        hits.addAll(makeIntegralHits(cdata, crateBankTag));
-                                        hitClass = BaseRawCalorimeterHit.class;
-                                        flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
-                                        break;
-                                    default:
-                                        throw new RuntimeException("Unsupported ECal format - bank tag " + slotBank.getHeader().getTag());
+                                    if (slotBank.getHeader().getTag() != bankTag) {
+                                        bankTag = slotBank.getHeader().getTag();
+                                        System.out.printf("ECal format tag: 0x%x\n", bankTag);
+                                    }
+                                    switch (slotBank.getHeader().getTag()) {
+                                        case EventConstants.ECAL_WINDOW_BANK_TAG:
+                                            hits.addAll(makeWindowHits(cdata, crate));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        case EventConstants.ECAL_PULSE_BANK_TAG:
+                                            hits.addAll(makePulseHits(cdata, crate));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
+                                            hits.addAll(makeIntegralHits(cdata, crate));
+                                            hitClass = BaseRawCalorimeterHit.class;
+                                            flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
+                                            break;
+                                        default:
+                                            throw new RuntimeException("Unsupported ECal format - bank tag " + slotBank.getHeader().getTag());
+                                    }
                                 }
                             }
                         }
@@ -160,7 +181,9 @@ public class ECalEvioReader extends EvioReader {
                 Long id = daqToGeometryId(crate, slot, channel);
 //                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
 
-                System.out.println("The long id is: " + id);
+                if (debug) {
+                    System.out.println("The long id is: " + id);
+                }
 
                 short[] adcValues = new short[nSamples];
                 for (int i = 0; i < nSamples; i++) {

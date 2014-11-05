@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-//import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -27,16 +25,18 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
     // Names of subdetectors.
 //    private String trackerName;
     // Detector conditions object.
-    private Detector detector;
+    protected Detector detector;
     // Debug flag.
-    private boolean debug = false;
+    protected boolean debug = false;
     ECalEvioReader ecalReader = null;
     SVTEvioReader svtReader = null;
-    private int run = 0; //current run number, taken from prestart and end events
-    private long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
+    protected int run = 0; //current run number, taken from prestart and end events
+    protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
+    protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
+    protected int sspBankTag = 0xe106; //SSP bank's tag
 
     public LCSimTestRunEventBuilder() {
-        ecalReader = new ECalEvioReader();
+        ecalReader = new ECalEvioReader(0x1, 0x2);
         svtReader = new SVTEvioReader();
     }
 
@@ -120,27 +120,16 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
         return (evioEvent.getHeader().getTag() == EventConstants.PHYSICS_EVENT_TAG);
     }
 
-    private EventHeader getEventData(EvioEvent evioEvent) {
+    protected EventHeader getEventData(EvioEvent evioEvent) {
         int[] eventID = null;
         //array of length 3: {event number, trigger code, readout status}
 
-        List<TriggerData> triggerList = new ArrayList<TriggerData>();
+        List<TriggerData> triggerList = getTriggerData(evioEvent);
 
         if (evioEvent.getChildCount() > 0) {
             for (BaseStructure bank : evioEvent.getChildren()) {
                 if (bank.getHeader().getTag() == EventConstants.EVENTID_BANK_TAG) {
                     eventID = bank.getIntData();
-                }
-                if (bank.getHeader().getTag() == EventConstants.ECAL_TOP_BANK_TAG || bank.getHeader().getTag() == EventConstants.ECAL_BOTTOM_BANK_TAG) {
-                    if (bank.getChildCount() > 0) {
-                        for (BaseStructure slotBank : bank.getChildren()) {
-                            if (slotBank.getHeader().getTag() == EventConstants.TRIGGER_BANK_TAG) {
-                                TriggerData triggerData = new TriggerData(slotBank.getIntData());
-                                time = ((long) triggerData.getTime()) * 1000000000;
-                                triggerList.add(triggerData);
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -171,5 +160,31 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
 
         lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);
         return lcsimEvent;
+    }
+
+    protected List<TriggerData> getTriggerData(EvioEvent evioEvent) {
+        List<TriggerData> triggerList = new ArrayList<TriggerData>();
+        if (evioEvent.getChildCount() > 0) {
+            for (BaseStructure bank : evioEvent.getChildren()) {
+                if (bank.getHeader().getTag() == sspCrateBankTag) {
+                    if (bank.getChildCount() > 0) {
+                        for (BaseStructure slotBank : bank.getChildren()) {
+                            if (slotBank.getHeader().getTag() == sspBankTag) {
+//                                TriggerData triggerData = new TriggerData(slotBank.getIntData());
+//                                time = ((long) triggerData.getTime()) * 1000000000;
+                                triggerList.add(makeTriggerData(slotBank.getIntData()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return triggerList;
+    }
+
+    protected TriggerData makeTriggerData(int[] data) {
+        TriggerData triggerData = new TriggerData(data);
+        time = ((long) triggerData.getTime()) * 1000000000;
+        return triggerData;
     }
 }
