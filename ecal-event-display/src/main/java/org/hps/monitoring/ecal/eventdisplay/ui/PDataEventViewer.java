@@ -1,7 +1,17 @@
 package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalDataSet;
 import org.hps.monitoring.ecal.eventdisplay.util.EcalWiringManager;
@@ -39,6 +49,10 @@ public class PDataEventViewer extends PEventViewer {
     private static final int FIELD_CHANNEL = 10;
     private static final int FIELD_GAIN = 11;
     
+    // Filter panel components.
+    private JFrame filterWindow;
+    private CrystalFilterPanel filterPanel;
+    
     /**
      * Initializes a new <code>DataFileViewer</code> that reads from
      * the given event manager for event data and the given hardware
@@ -60,6 +74,59 @@ public class PDataEventViewer extends PEventViewer {
         for(String fieldName : fieldNames) {
             addStatusField(fieldName);
         }
+        
+        // Instantiate the crystal filter panel.
+        filterPanel = new CrystalFilterPanel(ewm);
+        filterWindow = new JFrame("Event Display Crystal Filter");
+        filterWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        filterWindow.add(filterPanel);
+        filterWindow.pack();
+        filterWindow.setResizable(false);
+        
+        // Add a new view menu option to display the filter panel.
+        JMenuItem menuFilter = new JMenuItem("Show Filter", KeyEvent.VK_F);
+        menuFilter.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+        menuFilter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { filterWindow.setVisible(true); }
+        });
+        menu[MENU_VIEW].addSeparator();
+        menu[MENU_VIEW].add(menuFilter);
+        
+        // Add an action listener to note when the filter window applies
+        // a crystal filter.
+        filterPanel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// Suppress panel redrawing until the highlights are set.
+            	ecalPanel.setSuppressRedraw(true);
+            	
+                // Clear the panel highlighting.
+                ecalPanel.clearHighlight();
+                
+                // If the filter panel is active, highlight the crystals
+                // that passed the filter.
+                if(filterPanel.isActive()) {
+                    // Get the list of filtered crystals.
+                    List<Point> filterList = filterPanel.getFilteredCrystals();
+                    
+                    // Highlight each of the filtered crystals.
+                    for(Point crystal : filterList) {
+                        ecalPanel.setCrystalHighlight(toPanelPoint(crystal), java.awt.Color.WHITE);
+                    }
+                }
+                
+                // Redraw the highlights.
+                ecalPanel.setSuppressRedraw(false);
+                ecalPanel.repaint();
+            }
+        });
+        
+        // Kill the filter window on system close.
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) { filterWindow.dispose(); }
+        });
     }
     
     @Override
