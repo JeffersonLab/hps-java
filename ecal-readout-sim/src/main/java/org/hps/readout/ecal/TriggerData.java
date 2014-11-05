@@ -22,7 +22,7 @@ public class TriggerData implements GenericObject {
         this.bank = bank;
     }
 
-    public int getTime() {
+    public long getTime() {
         return getIntVal(TIME);
     }
 
@@ -46,7 +46,7 @@ public class TriggerData implements GenericObject {
         return bank;
     }
 
-    public static int getTime(GenericObject object) {
+    public static long getTime(GenericObject object) {
         return object.getIntVal(TIME);
     }
 
