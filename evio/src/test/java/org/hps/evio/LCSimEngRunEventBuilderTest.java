@@ -32,7 +32,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 		
 		// Configure LCIO writer.
 		new TestOutputFile(getClass().getSimpleName()).mkdirs();
-		File lcioFile = new TestOutputFile(getClass().getSimpleName() + File.separator + getClass().getSimpleName() + "_output");
+		File lcioFile = new TestOutputFile(getClass().getSimpleName() + File.separator + getClass().getSimpleName() + "_output.slcio");
         LCIOWriter writer;
 		try {
             writer = new LCIOWriter(lcioFile);
@@ -42,6 +42,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 		
 		// Create event builder.
 		LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
+		builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
 		
 		// Get remote test file.
 		FileCache cache = new FileCache();
