@@ -31,7 +31,7 @@ import org.hps.monitoring.ecal.eventdisplay.util.SettingsListener;
  */
 public final class CalorimeterPanel extends JPanel {
     // Java-suggested variable.
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
     // The color used for rendering seed hits.
     private Color clusterColor = Color.GREEN;
     // The default color of the calorimeter crystals.
@@ -209,10 +209,28 @@ public final class CalorimeterPanel extends JPanel {
      * clears all highlighting. This <b>does not</b> enable disabled
      * crystals.
      */
-    public void clearCrystals() {
+    public void clearAll() {
         for (int ix = 0; ix < xBoxes; ix++) {
             for (int iy = 0; iy < yBoxes; iy++) {
                 crystal[ix][iy].setState(0.0, false, null);
+                crystal[ix][iy].clearAssociations();
+                extremum[0] = Double.MAX_VALUE;
+                extremum[1] = 0.0;
+            }
+        }
+    }
+    
+    /**
+     * Sets all crystal energies to zero, removes all clusters, and
+     * clears all highlighting associated with an individual crystal.
+     * This <b>does not</b> enable disabled crystals or remove general
+     * highlighting.
+     */
+    public void clearCrystals() {
+        for (int ix = 0; ix < xBoxes; ix++) {
+            for (int iy = 0; iy < yBoxes; iy++) {
+                crystal[ix][iy].setEnergy(0.0);
+                crystal[ix][iy].setClusterCenter(false);
                 crystal[ix][iy].clearAssociations();
                 extremum[0] = Double.MAX_VALUE;
                 extremum[1] = 0.0;

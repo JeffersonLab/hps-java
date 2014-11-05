@@ -47,10 +47,18 @@ public class LCIOManager implements EventManager {
         nextEvent();
     }
     
+    /**
+     * Sets the name of the LCIO collection for cluster objects.
+     * @param clusterCollectionName - The cluster collection name.
+     */
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
     }
     
+    /**
+     * Sets the name of the LCIO collection for hit objects.
+     * @param hitCollectionName
+     */
     public void setHitCollectionName(String hitCollectionName) {
         this.hitCollectionName = hitCollectionName;
     }
@@ -69,6 +77,8 @@ public class LCIOManager implements EventManager {
         else { return -1; }
     }
     
+    // TODO: LCIO files can't actually store an HPSEcalCluster; this
+    // needs to be converted to use regular LCIO clusters instead.
     @Override
     public List<Cluster> getClusters() {
         // If the current event is undefined, return an empty list.
@@ -181,6 +191,8 @@ public class LCIOManager implements EventManager {
         }
     }
     
+    // TODO: LCIO files can't actually store an HPSEcalCluster; this
+    // needs to be converted to use regular LCIO clusters instead.
     public static final Cluster toPanelCluster(HPSEcalCluster lcioCluster) {
         // If the argument is null, return null.
         if(lcioCluster == null) { return null; }
@@ -199,6 +211,8 @@ public class LCIOManager implements EventManager {
         if(lcioHit == null) { return null; }
         
         // Otherwise, get the cluster x/y indices and energy.
+        // TODO: This fails to acquire an IDDecoder; needs to be fixed
+        // before it can be pushed into production.
         int ix = lcioHit.getIdentifierFieldValue("ix");
         int iy = lcioHit.getIdentifierFieldValue("iy");
         double energy = lcioHit.getCorrectedEnergy();

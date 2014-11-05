@@ -97,6 +97,9 @@ public class DataFileViewer extends FileViewer {
         filterPanel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+            	// Suppress panel redrawing until the highlights are set.
+            	ecalPanel.setSuppressRedraw(true);
+            	
                 // Clear the panel highlighting.
                 ecalPanel.clearHighlight();
                 
@@ -111,6 +114,10 @@ public class DataFileViewer extends FileViewer {
                         ecalPanel.setCrystalHighlight(toPanelPoint(crystal), java.awt.Color.WHITE);
                     }
                 }
+                
+                // Redraw the highlights.
+                ecalPanel.setSuppressRedraw(false);
+                ecalPanel.repaint();
             }
         });
         

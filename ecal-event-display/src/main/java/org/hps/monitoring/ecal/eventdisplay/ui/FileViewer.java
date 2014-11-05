@@ -32,7 +32,7 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * @author Kyle McCarty
  */
 public class FileViewer extends Viewer {
-    private static final long serialVersionUID = 17058336873349781L;
+    private static final long serialVersionUID = 3L;
     
     // Gets events from some file.
     protected EventManager em = null;
