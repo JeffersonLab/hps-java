@@ -30,7 +30,8 @@ public class HpsGblRefitterTest extends TestCase
 
         HpsGblRefitter fitter = new HpsGblRefitter();
         fitter.setDebug(false);
-       
+        fitter.setMilleBinaryFileName("milleTest.bin");
+        fitter.setWriteMilleBinary(true);
         loop.add(fitter);
         loop.loop(nEvents);
         loop.dispose();
