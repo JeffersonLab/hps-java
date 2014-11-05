@@ -36,11 +36,6 @@ public class GblTrajectory
         // TODO Auto-generated method stub
     }
 
-    public void milleOut(MilleBinary mille)
-    {
-        // TODO implement binary writeout of millepedeII data
-    }
-
     /**
      * \mainpage General information
      *
@@ -756,30 +751,27 @@ public class GblTrajectory
         return ierr;
     }
 
-    //TODO Implement the millepedeII output
-///// Write trajectory to Millepede-II binary file.
-//void milleOut(MilleBinary &aMille) {
-//	float fValue;
-//	float fErr;
-//	List< int>* indLocal;
-//	List<double>* derLocal;
-//	List<int>* labGlobal;
-//	List<double>* derGlobal;
-//
-//	if (not constructOK)
-//		return;
-//
-////   data: measurements, kinks and external seed
-//	List<GblData>::iterator itData;
-//	for (itData = theData.begin(); itData != theData.end(); ++itData) {
-//		itData->getAllData(fValue, fErr, indLocal, derLocal, labGlobal,
-//				derGlobal);
-//		aMille.addData(fValue, fErr, *indLocal, *derLocal, *labGlobal,
-//				*derGlobal);
-//	}
-//	aMille.writeRecord();
-//}
+
+// Write trajectory to Millepede-II binary file.
+    public void milleOut(MilleBinary aMille)
+    {
+        if (!constructOK) {
+            throw new RuntimeException("GblTrajectory milleOut not properly constructed");
+        }
+//   data: measurements, kinks and external seed
+        for (GblData d : theData) {
+            float[] floats = new float[2]; // fValue , fErr
+            List<Integer> indLocal = new ArrayList<Integer>();
+            List<Double> derLocal = new ArrayList<Double>();
+            List<Integer> labGlobal = new ArrayList<Integer>();
+            List<Double> derGlobal = new ArrayList<Double>();
+            d.getAllData(floats, indLocal, derLocal, labGlobal, derGlobal);
+            aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
+        }
+        aMille.writeRecord();
+    }
 /// Print GblTrajectory
+
     /**
      * \param [in] level print level (0: minimum, >0: more)
      */

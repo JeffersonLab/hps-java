@@ -1,5 +1,6 @@
 package org.hps.recon.tracking.gbl;
 
+import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.List;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -270,27 +271,27 @@ public class GblData
         return theParameters.size();
     }
 
-//
-///// Get all Data for MP-II binary record.
-///**
-// * \param [out] fValue Value
-// * \param [out] fErr Error
-// * \param [out] indLocal List of labels of local parameters
-// * \param [out] derLocal List of derivatives for local parameters
-// * \param [out] labGlobal List of labels of global parameters
-// * \param [out] derGlobal List of derivatives for global parameters
-// */
-//void getAllData(float &fValue, float &fErr,
-//		std::vector<unsigned int>* &indLocal, std::vector<double>* &derLocal,
-//		std::vector<int>* &labGlobal, std::vector<double>* &derGlobal) {
-//	fValue = theValue;
-//	fErr = 1.0 / sqrt(thePrecision);
-//	indLocal = &theParameters;
-//	derLocal = &theDerivatives;
-//	labGlobal = &globalLabels;
-//	derGlobal = &globalDerivatives;
-//}
-//
+
+/// Get all Data for MP-II binary record.
+/**
+ * \param [out] fValue Value
+ * \param [out] fErr Error
+ * \param [out] indLocal List of labels of local parameters
+ * \param [out] derLocal List of derivatives for local parameters
+ * \param [out] labGlobal List of labels of global parameters
+ * \param [out] derGlobal List of derivatives for global parameters
+ */
+void getAllData(float[] floats,
+		List<Integer> indLocal, List<Double> derLocal,
+		List<Integer> labGlobal, List<Double> derGlobal) {
+	floats[0] = (float)theValue;
+	floats[1] = (float) (1.0 / sqrt(thePrecision));
+	indLocal.addAll(theParameters);
+	derLocal.addAll(theDerivatives);
+	labGlobal.addAll(globalLabels);
+	derGlobal.addAll(globalDerivatives);
+}
+
 ///// Get data for residual (and errors).
 ///**
 // * \param [out] aResidual Measurement-Prediction

@@ -123,8 +123,8 @@ public class MilleBinary
      */
         public void writeRecord()
     {
-        int recordLength = _intBuffer.size() * 2;
-        ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2);
+        int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
+        ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2); // writing one extra word per collection
         b.order(ByteOrder.LITTLE_ENDIAN);
         b.putInt(recordLength);
         for (Float f : _floatBuffer) {

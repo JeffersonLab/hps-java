@@ -23,9 +23,9 @@ import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
 /**
- * A Driver which refits tracks using GBL. 
- * Modeled on the hps-dst code written by Per Hansson and Omar Moreno. 
- * Requires the GBL Collections and Relations to be present in the event.
+ * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
+ * by Per Hansson and Omar Moreno. Requires the GBL Collections and Relations to
+ * be present in the event.
  *
  * @author Norman A Graf
  *
@@ -39,9 +39,43 @@ public class HpsGblRefitter extends Driver
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
     private final String gblTrack2StripRelationName = "GBLTrackToStripData";
 
+    private MilleBinary mille;
+    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+    private boolean writeMilleBinary = false;
+
     public void setDebug(boolean debug)
     {
         _debug = debug;
+    }
+
+    public void setMilleBinaryFileName(String filename)
+    {
+        milleBinaryFileName = filename;
+    }
+
+    public void setWriteMilleBinary(boolean writeMillepedeFile)
+    {
+        writeMilleBinary = writeMillepedeFile;
+    }
+
+    public HpsGblRefitter()
+    {
+    }
+
+    @Override
+    protected void startOfData()
+    {
+        if (writeMilleBinary) {
+            mille = new MilleBinary(milleBinaryFileName);
+        }
+    }
+
+    @Override
+    protected void endOfData()
+    {
+        if (writeMilleBinary) {
+            mille.close();
+        }
     }
 
     @Override
@@ -376,7 +410,9 @@ public class HpsGblRefitter extends Driver
         }
 
 //	// write to MP binary file
-//	traj.milleOut(mille);
+        if (writeMilleBinary) {
+            traj.milleOut(mille);
+        }
 //
         return 0;
     }
