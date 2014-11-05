@@ -16,7 +16,7 @@ public class TriggerData implements GenericObject {
     public static final int TIME = 7;
     public static final int TRIG_BANK_SIZE = 8;
     public static final String TRIG_COLLECTION = "TriggerBank";
-    private int[] bank;
+    protected int[] bank;
 
     public TriggerData(int[] bank) {
         this.bank = bank;

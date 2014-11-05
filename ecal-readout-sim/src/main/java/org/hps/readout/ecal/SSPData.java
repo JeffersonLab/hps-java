@@ -27,7 +27,7 @@ public class SSPData extends TriggerData {
     public static final int CLUSTER_TYPE = 0x14;
 
     public static final String TRIG_COLLECTION = "TriggerBank";
-    private int[] bank;
+//    private int[] bank;
 
     private long trigTime;
     private int eventNum;
@@ -113,21 +113,27 @@ public class SSPData extends TriggerData {
         return trigTime;
     }
 
-//    public int getOrTrig() {
-//        return 0;
-//    }
-//
-//    public int getTopTrig() {
-//        return 0;
-//    }
-//
-//    public int getBotTrig() {
-//        return 0;
-//    }
-//
-//    public int getAndTrig() {
-//        return 0;
-//    }
+    @Override
+    public int getOrTrig() {
+        return 0;
+    }
+
+    @Override
+    public int getTopTrig() {
+        return 0;
+    }
+
+    @Override
+    public int getBotTrig() {
+        return 0;
+    }
+
+    @Override
+    public int getAndTrig() {
+        return 0;
+    }
+
+    @Override
     public int[] getBank() {
         return bank;
     }
