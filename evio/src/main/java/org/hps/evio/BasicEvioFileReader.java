@@ -62,17 +62,18 @@ public class BasicEvioFileReader {
         if (bank.getHeader().getDataType() == DataType.COMPOSITE) {
 //            for (CompositeData cdata : bank.getCompositeData()) {
             CompositeData cdatalist[] = bank.getCompositeData();
-            for (CompositeData cdata:cdatalist)
-            switch (bank.getHeader().getTag()) {
-                case 0xe101:
-                    printWindow(cdata, indent + "\t");
-                    break;
-                case 0xe102:
-                    printComposite(cdata, indent + "\t");
-                    break;
-                case 0xe103:
-                    printComposite(cdata, indent + "\t");
-                    break;
+            for (CompositeData cdata : cdatalist) {
+                switch (bank.getHeader().getTag()) {
+                    case 0xe101:
+                        printWindow(cdata, indent + "\t");
+                        break;
+                    case 0xe102:
+                        printComposite(cdata, indent + "\t");
+                        break;
+                    case 0xe103:
+                        printComposite(cdata, indent + "\t");
+                        break;
+                }
             }
 //            }
         }
@@ -92,7 +93,7 @@ public class BasicEvioFileReader {
     }
 
     private static void printWindow(CompositeData cdata, String indent) {
-        while (cdata.index() < cdata.getItems().size()) {
+        while (cdata.index() + 1 < cdata.getItems().size()) {
             System.out.println(indent + "Byte count: " + cdata.getRawBytes().length);
             System.out.println(indent + "Slot: " + cdata.getByte());
             System.out.println(indent + "Trigger: " + cdata.getInt());
