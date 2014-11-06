@@ -38,7 +38,7 @@ public abstract class PassiveViewer extends Viewer {
      * @param min - The lower bound.
      * @param max - The upper bound.
      */
-    public void setScale(int min, int max) {
+    public void setScale(double min, double max) { //A.C. I modified these to double since ecalPanel methods use double
         ecalPanel.setScaleMinimum(min);
         ecalPanel.setScaleMaximum(max);
     }
@@ -48,14 +48,14 @@ public abstract class PassiveViewer extends Viewer {
      * scale.
      * @param max - The upper bound.
      */
-    public void setScaleMaximum(int max) { ecalPanel.setScaleMaximum(max); }
+    public void setScaleMaximum(double max) { ecalPanel.setScaleMaximum(max); } //A.C. I modified these to double since ecalPanel methods use double
     
     /**
      * Sets the lower bound for the calorimeter display's color mapping
      * scale.
      * @param min - The lower bound.
      */
-    public void setScaleMinimum(int min) { ecalPanel.setScaleMinimum(min); }
+    public void setScaleMinimum(double min) { ecalPanel.setScaleMinimum(min); } //A.C. I modified these to double since ecalPanel methods use double
     
     /**
      * Displays the hits and clusters added by the <code>addHit</code>

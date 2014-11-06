@@ -1,0 +1,55 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+    <control>
+        <numberOfEvents>-1</numberOfEvents> 
+        <printInputFiles>true</printInputFiles>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>    
+    <execute>
+        <driver name="EventMarkerDriver"/>
+  <!--      <driver name="ConditionsDriver"/> -->
+        <driver name="CalibrationDriver"/>
+        <driver name="EcalRawConverter"/>     
+        <driver name="EcalChannelsAmplitude"/>     
+ 		
+
+
+<!--        <driver name="RunControlDriver" />-->
+      <driver name="AidaSaveDriver"/>
+      <driver name="CleanupDriver"/>
+    </execute>   
+    
+<!--  Here starts the drivers description -->
+    <drivers>
+       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+
+        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
+        
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+<!--            <threshold>150</threshold>-->
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+<!--            <dropBadFADC>true</dropBadFADC>-->
+        </driver> 
+        
+            
+        <driver name="EcalChannelsAmplitude" type="org.hps.users.celentan.EcalChannelsAmplitude">
+            <inputCollection>EcalCalHits</inputCollection>
+            <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
+            <inputClusterCollection>EcalClusters</inputClusterCollection>
+            <enableAllFadc>true</enableAllFadc>
+            <pedSamples>20</pedSamples>
+            <maxEch>10.0</maxEch>
+            <minEch>-0.01</minEch>
+            <eventRefreshRate>100</eventRefreshRate>
+        </driver>
+      
+         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}</outputFileName>
+        </driver>
+            
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+    </drivers>
+</lcsim>
+    

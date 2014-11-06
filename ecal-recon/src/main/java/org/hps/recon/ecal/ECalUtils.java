@@ -98,4 +98,42 @@ public class ECalUtils {
         }
         return ret;
     }
+    
+
+    /**
+    * This is a very basic method that, given an array with the raw-waveform (in FADC units), returns the amplitude (in mV)
+    * @param data Array with data from FADC, in fadc units
+    * @param lenght The array lenght
+    * @param pedestalSamples How many samples at the beginning of the array to use for the pedestal. Must be < lenght
+    * @return double[], 0 is the amplitude in mV, 1 is the offest in ADC counts, 2 is the RMS in adc counts
+    */
+   public static double[] computeAmplitude(short [] data, int lenght, int pedestalSamples){
+   	double amplitude,pedestal,noise;
+   	pedestal=0;
+   	noise=0;
+   	amplitude=data[0];
+   	double[] ret={0.,0.,0.};
+   	if (pedestalSamples>lenght){
+   		return ret;
+   	}
+   	for (int jj = 0; jj < lenght; jj++){
+   		if (jj<pedestalSamples){
+   			pedestal+=data[jj];
+   			noise+=data[jj]*data[jj];
+   		}
+   		if (data[jj]>amplitude) amplitude=data[jj];
+   	}
+   	pedestal/=pedestalSamples;
+   	noise/=pedestalSamples;
+   	noise=Math.sqrt(noise-pedestal*pedestal);
+   	amplitude-=pedestal;
+   
+   	amplitude*=adcResolution*1000;
+   	ret[0]=amplitude;
+   	ret[1]=pedestal;
+   	ret[2]=noise;
+   	return ret;
+   	
+   }
+    
 }

@@ -6,5 +6,5 @@ package org.hps.users.celentan;
  */
 public class StripChartTest  {
            
-    
+	int dummy;    
 }
