@@ -39,12 +39,9 @@
                 <field name="run_end" />
                 <field name="updated" />
                 <field name="created" />
-                <field name="valid_from" />
-                <field name="valid_to" />
                 <field name="created_by" />
                 <field name="notes" />
                 <field name="name" />
-                <field name="format_version" />
                 <field name="table_name" />
                 <field name="collection_id" />
             </fields>

@@ -65,22 +65,6 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     }
 
     /**
-     * Get the starting valid time.
-     * @return The starting valid time.
-     */
-    public Date getValidFrom() {
-        return getFieldValue("valid_from");
-    }
-
-    /**
-     * Get the ending valid time.
-     * @return The ending valid time.
-     */
-    public Date getValidTo() {
-        return getFieldValue("valid_to");
-    }
-
-    /**
      * Get the name of the user who created this record.
      * @return The name of the person who created the record.
      */
@@ -103,14 +87,6 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      */
     public String getName() {
         return getFieldValue("name");
-    }
-
-    /**
-     * Get the version of the format these conditions are stored in.
-     * @return The conditions version.
-     */
-    public String getFormatVersion() {
-        return getFieldValue("format_version");
     }
 
     /**
@@ -151,11 +127,8 @@ public final class ConditionsRecord extends AbstractConditionsObject {
         buff.append("collectionId: " + getCollectionId() + '\n');
         buff.append("updated: " + getUpdated() + '\n');
         buff.append("created: " + getCreated() + '\n');
-        buff.append("validFrom: " + getValidFrom() + '\n');
-        buff.append("validTo: " + getValidTo() + '\n');
         buff.append("tag: " + getTag() + '\n');
         buff.append("createdBy: " + getCreatedBy() + '\n');
-        buff.append("formatVersion: " + getFormatVersion() + '\n');
         buff.append("notes: " + getNotes() + '\n');
         return buff.toString();
     }
