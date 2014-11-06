@@ -271,42 +271,39 @@ public class GblData
         return theParameters.size();
     }
 
-
 /// Get all Data for MP-II binary record.
-/**
- * \param [out] fValue Value
- * \param [out] fErr Error
- * \param [out] indLocal List of labels of local parameters
- * \param [out] derLocal List of derivatives for local parameters
- * \param [out] labGlobal List of labels of global parameters
- * \param [out] derGlobal List of derivatives for global parameters
- */
-void getAllData(float[] floats,
-		List<Integer> indLocal, List<Double> derLocal,
-		List<Integer> labGlobal, List<Double> derGlobal) {
-	floats[0] = (float)theValue;
-	floats[1] = (float) (1.0 / sqrt(thePrecision));
-	indLocal.addAll(theParameters);
-	derLocal.addAll(theDerivatives);
-	labGlobal.addAll(globalLabels);
-	derGlobal.addAll(globalDerivatives);
-}
+    /**
+     * \param [out] fValue Value \param [out] fErr Error \param [out] indLocal
+     * List of labels of local parameters \param [out] derLocal List of
+     * derivatives for local parameters \param [out] labGlobal List of labels of
+     * global parameters \param [out] derGlobal List of derivatives for global
+     * parameters
+     */
+    void getAllData(float[] floats,
+                    List<Integer> indLocal, List<Double> derLocal,
+                    List<Integer> labGlobal, List<Double> derGlobal)
+    {
+        floats[0] = (float) theValue;
+        floats[1] = (float) (1.0 / sqrt(thePrecision));
+        indLocal.addAll(theParameters);
+        derLocal.addAll(theDerivatives);
+        labGlobal.addAll(globalLabels);
+        derGlobal.addAll(globalDerivatives);
+    }
 
-///// Get data for residual (and errors).
-///**
-// * \param [out] aResidual Measurement-Prediction
-// * \param [out] aVariance Variance (of measurement)
-// * \param [out] aDownWeight Down-weighting factor
-// * \param [out] indLocal List of labels of used (local) fit parameters
-// * \param [out] derLocal List of derivatives for used (local) fit parameters
-// */
-//void getResidual(double &aResidual, double &aVariance,
-//		double &aDownWeight, std::vector<unsigned int>* &indLocal,
-//		std::vector<double>* &derLocal) {
-//	aResidual = theValue - thePrediction;
-//	aVariance = 1.0 / thePrecision;
-//	aDownWeight = theDownWeight;
-//	indLocal = &theParameters;
-//	derLocal = &theDerivatives;
-//}
+/// Get data for residual (and errors).
+    /**
+     * \param [out] aResidual Measurement-Prediction \param [out] aVariance
+     * Variance (of measurement) \param [out] aDownWeight Down-weighting factor
+     * \param [out] indLocal List of labels of used (local) fit parameters
+     * \param [out] derLocal List of derivatives for used (local) fit parameters
+     */
+    void getResidual(double[] doubles, List<Integer> indLocal, List<Double> derLocal)
+    {
+        doubles[0] = theValue - thePrediction; //aResidual
+        doubles[1] = 1.0 / thePrecision; //aVariance
+        doubles[2] = theDownWeight; //aDownWeight
+        indLocal.addAll(theParameters);
+        derLocal.addAll(theDerivatives);
+    }
 }
