@@ -1,6 +1,7 @@
 package org.hps.evio;
 
 import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.conditions.ConditionsReader;
@@ -48,4 +49,8 @@ public class DummyEventBuilder implements LCSimEventBuilder {
     @Override
     public void readEvioEvent(EvioEvent evioEvent) {
     }
+
+	@Override
+	public void conditionsChanged(ConditionsEvent conditionsEvent) {
+	}
 }
