@@ -72,6 +72,10 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
             if (compositeRecord.getEvioEvent() != null) {
                 // Create the EVIO event.
                 EvioEvent evioEvent = compositeRecord.getEvioEvent();
+                
+                // Pre-read the event in the builder to get non-physics event information.
+                builder.readEvioEvent(evioEvent);
+                
                 // Is this a physics EvioEvent?
                 if (EventConstants.isPhysicsEvent(evioEvent)) {
                     // Use the builder to create the LCIO event.
