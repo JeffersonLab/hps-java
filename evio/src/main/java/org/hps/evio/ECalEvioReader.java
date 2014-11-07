@@ -41,7 +41,7 @@ public class ECalEvioReader extends EvioReader {
     private static final String readoutName = "EcalHits";
     private static final String subdetectorName = "Ecal";
 //    private Detector detector;
-    private final Subdetector subDetector;
+    private Subdetector subDetector;
 
     private static EcalConditions ecalConditions = null;
     private static IIdentifierHelper helper = null;
@@ -53,22 +53,13 @@ public class ECalEvioReader extends EvioReader {
         this.botBankTag = botBankTag;
         hitCollectionName = "EcalReadoutHits";
 
-        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
-
-        // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-
-        helper = subDetector.getDetectorElement().getIdentifierHelper();
-
-        System.out.println("You are now using the database conditions for ECalEvioReader.java");
+        //System.out.println("You are now using the database conditions for ECalEvioReader.java");
         // ID helper.
 //        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
     }
 
     public void setTopBankTag(int topBankTag) {
         this.topBankTag = topBankTag;
-
     }
 
     public void setBotBankTag(int botBankTag) {
@@ -306,5 +297,15 @@ public class ECalEvioReader extends EvioReader {
             }
         }
         return hits;
+    }
+    
+    void initialize() {
+        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+        
+        // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+
+        helper = subDetector.getDetectorElement().getIdentifierHelper();
     }
 }

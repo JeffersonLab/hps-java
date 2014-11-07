@@ -5,12 +5,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.readout.ecal.TriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.conditions.ConditionsEvent;
+import org.lcsim.conditions.ConditionsListener;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
-import org.lcsim.geometry.Detector;
 
 /**
  * Build LCSim events from EVIO data.
@@ -20,13 +23,14 @@ import org.lcsim.geometry.Detector;
  * @version $Id: LCSimTestRunEventBuilder.java,v 1.24 2013/03/01 01:30:25 meeg
  * Exp $
  */
-public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
+public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
     // Names of subdetectors.
 //    private String trackerName;
     // Detector conditions object.
-    protected Detector detector;
+	//protected Detector detector;
     // Debug flag.
+	String detectorName = null;
     protected boolean debug = false;
     ECalEvioReader ecalReader = null;
     SVTEvioReader svtReader = null;
@@ -42,10 +46,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
 
     @Override
     public void setDetectorName(String detectorName) {
-        // Make a dummy event to setup the conditions system.
-        EventHeader dummyEvent = new BaseLCSimEvent(0, 0, detectorName);
-        detector = dummyEvent.getDetector();
-//        EcalConditions.loadDaqMap(detector, "Ecal");
+    	this.detectorName = detectorName;
     }
 
     @Override
@@ -156,8 +157,9 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
         }
 
         // Create a new LCSimEvent.
-        EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detector.getDetectorName(), time);
-
+        //EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detector.getDetectorName(), time);
+        EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detectorName, time);
+        
         lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);
         return lcsimEvent;
     }
@@ -187,4 +189,9 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder {
         time = ((long) triggerData.getTime()) * 1000000000;
         return triggerData;
     }
+
+	@Override
+	public void conditionsChanged(ConditionsEvent conditionsEvent) {
+		ecalReader.initialize();
+	}
 }

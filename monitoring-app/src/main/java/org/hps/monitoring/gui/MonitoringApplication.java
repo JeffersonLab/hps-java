@@ -95,6 +95,7 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
@@ -1191,6 +1192,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Set the detector name on the event builder so it can find conditions data.
         eventBuilder.setDetectorName(configurationModel.getDetectorName());
+        
+        ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
 
         log(Level.CONFIG, "Successfully initialized event builder <" + eventBuilderClassName + ">");
     }
