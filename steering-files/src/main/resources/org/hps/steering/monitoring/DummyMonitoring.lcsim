@@ -6,10 +6,11 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="ConditionsDriver"/>
     </execute>        
     <drivers>    
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver"/>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
         </driver>
     </drivers>
