@@ -1,40 +1,24 @@
-
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <control>
-        <numberOfEvents>-1</numberOfEvents> 
-        <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-  <!--      <driver name="ConditionsDriver"/> -->
-        <driver name="CalibrationDriver"/>
-        <driver name="EcalRawConverter"/>     
-        <driver name="EcalLedCommissioning"/>         <!-- Ecal event display -->
-
-
-<!--        <driver name="RunControlDriver" />-->
-        <!--<driver name="AidaSaveDriver"/>-->
+        <driver name="ConditionsDriver"/>
+        <driver name="EcalRawConverter"/>
+        <driver name="EcalLedCommissioning"/>
     </execute>   
-    
-<!--  Here starts the drivers description -->
     <drivers>
-       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-
-     
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
-        
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-<!--            <threshold>150</threshold>-->
-            <applyBadCrystalMap>false</applyBadCrystalMap>
-<!--            <dropBadFADC>true</dropBadFADC>-->
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <connectionFile>jlab_conditions_db.prop</connectionFile>
         </driver>
-        
-       
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+        </driver>
         <driver name="EcalLedCommissioning" type="org.hps.monitoring.ecal.plots.EcalLedCommissioning">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
@@ -42,7 +26,5 @@
             <maxEch>2.0</maxEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        
-        
     </drivers>
 </lcsim>
