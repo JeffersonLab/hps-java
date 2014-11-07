@@ -1,12 +1,13 @@
 package org.hps.conditions;
 
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.geometry.Detector;
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+
+import java.io.File;
 
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDetectorSetup;
-
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.geometry.Detector;
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
  * {@link AbstractConditionsDriver} and specifies the database connection
@@ -22,10 +23,12 @@ public class ConditionsDriver extends AbstractConditionsDriver {
 
     // Default database connection parameters, which points to the SLAC development database.
     static final String DB_CONNECTION = "/org/hps/conditions/config/conditions_dev.properties";
+    
+    File connectionFile;
 
     public ConditionsDriver() {
         if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
-            System.out.println(this.getName()+": Found existing DatabaseConditionsManager");
+        	getLogger().config("ConditionsDriver found existing DatabaseConditionsManager.");
             manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
         } else {
             manager = new DatabaseConditionsManager();
@@ -34,10 +37,15 @@ public class ConditionsDriver extends AbstractConditionsDriver {
             manager.register();
         }
     }
-
+   
+    public void setConnectionFile(String connectionFile) {
+    	getLogger().config("set connectionFile to " + connectionFile);
+    	this.connectionFile = new File(connectionFile);
+    	manager.setConnectionProperties(this.connectionFile);
+    }
+   
     /**
      * Load the {@link SvtConditions} set onto <code>HpsSiSensor</code>.
-     * 
      * @param detector The detector to update.
      */
     @Override
