@@ -14,7 +14,7 @@
             <eventInterval>1</eventInterval>
         </driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <connectionFile>jlab_conditions_db.prop</connectionFile>
+            <connectionResource>/org/hps/conditions/config/jlab_hpsuser.properties</connectionResource>
             <loadSvtConditions>false</loadSvtConditions>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
