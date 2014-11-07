@@ -43,6 +43,11 @@ public class ConditionsDriver extends AbstractConditionsDriver {
     	this.connectionFile = new File(connectionFile);
     	manager.setConnectionProperties(this.connectionFile);
     }
+    
+    public void setConnectionResource(String connectionResource) {
+    	getLogger().config("set connection resource to " + connectionResource);
+    	manager.setConnectionResource(connectionResource);
+    }
    
     /**
      * Load the {@link SvtConditions} set onto <code>HpsSiSensor</code>.
