@@ -2,23 +2,23 @@ package org.hps.evio;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.DaqId;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
-//import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.recon.ecal.FADCGenericHit;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -42,6 +42,9 @@ public class ECalEvioReader extends EvioReader {
     private static final String subdetectorName = "Ecal";
 //    private Detector detector;
     private Subdetector subDetector;
+
+    private static final String genericHitCollectionName = "FADCGenericHits";
+    private List<FADCGenericHit> genericHits;
 
     private static EcalConditions ecalConditions = null;
     private static IIdentifierHelper helper = null;
@@ -70,6 +73,7 @@ public class ECalEvioReader extends EvioReader {
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
+        genericHits = new ArrayList<FADCGenericHit>();
         hitClass = Object.class;
         int flags = 0;
         for (BaseStructure bank : event.getChildren()) {
@@ -81,7 +85,7 @@ public class ECalEvioReader extends EvioReader {
             } else if (crateBankTag == botBankTag) {
                 crate = 2;
             }
-            if (crateBankTag == topBankTag||crateBankTag == botBankTag) {
+            if (crateBankTag == topBankTag || crateBankTag == botBankTag) {
                 foundHits = true;
                 if (bank.getChildCount() > 0) {
                     if (debug) {
@@ -135,6 +139,7 @@ public class ECalEvioReader extends EvioReader {
         }
 //        String readoutName = ;
         lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
+        lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
 //        for (Object hit : hits) {
 //            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
 //        }
@@ -182,6 +187,11 @@ public class ECalEvioReader extends EvioReader {
                 }
                 if (id == null) {
                     System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
+                    int[] data = new int[adcValues.length];
+                    for (int i = 0; i < adcValues.length; i++) {
+                        data[i] = adcValues[i];
+                    }
+                    genericHits.add(new FADCGenericHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, data));
                 } else {
                     hits.add(new BaseRawTrackerHit(
                             0,
@@ -245,6 +255,11 @@ public class ECalEvioReader extends EvioReader {
                     }
                     if (id == null) {
                         System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
+                        int[] data = new int[adcValues.length];
+                        for (int i = 0; i < adcValues.length; i++) {
+                            data[i] = adcValues[i];
+                        }
+                        genericHits.add(new FADCGenericHit(EventConstants.ECAL_PULSE_MODE, crate, slot, channel, data));
                     } else {
                         hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
                     }
@@ -290,6 +305,8 @@ public class ECalEvioReader extends EvioReader {
                     }
                     if (id == null) {
                         System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
+                        int[] data = {pulseIntegral, pulseTime};
+                        genericHits.add(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
                     } else {
                         hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
                     }
@@ -298,10 +315,10 @@ public class ECalEvioReader extends EvioReader {
         }
         return hits;
     }
-    
+
     void initialize() {
         subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
-        
+
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
