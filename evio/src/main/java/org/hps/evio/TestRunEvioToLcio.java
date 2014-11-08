@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -16,10 +15,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.util.RunControlDialog;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
-import org.hps.util.RunControlDialog;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
 
@@ -203,6 +203,7 @@ public class TestRunEvioToLcio {
         }
 
         eventBuilder.setDetectorName(detectorName);
+        ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
 
         for (String evioFileName : cl.getArgs()) {
             // EVIO input file.
