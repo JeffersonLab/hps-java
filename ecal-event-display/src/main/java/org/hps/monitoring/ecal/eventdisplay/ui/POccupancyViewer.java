@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
 
 /**
  * The class <code>POccupancyViewer</code> is an extension of the <code>
@@ -39,6 +41,16 @@ public class POccupancyViewer extends PassiveViewer {
     }
     
     @Override
+    public void addHit(CalorimeterHit lcioHit) {
+        // Get the panel coordinates from the hit.
+        int ix = toPanelX(lcioHit.getIdentifierFieldValue("ix"));
+        int iy = toPanelX(lcioHit.getIdentifierFieldValue("iy"));
+        
+        // Increment the hit count at the indicated location.
+        hits[ix][iy]++;
+    }
+    
+    @Override
     public void addHit(EcalHit hit) {
         // Get the panel coordinates of the hit.
         int ix = toPanelX(hit.getX());
@@ -52,7 +64,15 @@ public class POccupancyViewer extends PassiveViewer {
      * Adds a new cluster to the display.<br/><br/>
      * <b>Note:</b> This operation is not supported for occupancies.
      */
+    @Override
     public void addCluster(Cluster cluster) { }
+    
+    /**
+     * Adds a new cluster to the display.<br/><br/>
+     * <b>Note:</b> This operation is not supported for occupancies.
+     */
+    @Override
+    public void addCluster(HPSEcalCluster cluster) { }
     
     /**
      * Removes a hit from the display.

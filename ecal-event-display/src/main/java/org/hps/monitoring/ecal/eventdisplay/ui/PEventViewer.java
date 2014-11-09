@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import org.hps.monitoring.ecal.eventdisplay.event.Association;
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
 
 /**
  * Class <code>PEventViewer</code> represents a <code>PassiveViewer
@@ -21,10 +23,16 @@ public class PEventViewer extends PassiveViewer {
     protected ArrayList<EcalHit> hitList = new ArrayList<EcalHit>();
     
     @Override
+    public void addHit(CalorimeterHit lcioHit) { hitList.add(toPanelHit(lcioHit)); }
+    
+    @Override
     public void addHit(EcalHit hit) { hitList.add(hit); }
     
     @Override
     public void addCluster(Cluster cluster) { clusterList.add(cluster); }
+    
+    @Override
+    public void addCluster(HPSEcalCluster lcioCluster) { clusterList.add(toPanelCluster(lcioCluster)); }
     
     /**
      * Removes all of the hit data from the viewer.
