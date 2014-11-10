@@ -1708,4 +1708,5 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private static EtConnection fromConfigurationModel(ConfigurationModel config) {
         return EtConnection.createConnection(config.getEtName(), config.getHost(), config.getPort(), config.getBlocking(), config.getQueueSize(), config.getPrescale(), config.getStationName(), config.getStationPosition(), config.getWaitMode(), config.getWaitTime(), config.getChunkSize());
     }
+   
 }
