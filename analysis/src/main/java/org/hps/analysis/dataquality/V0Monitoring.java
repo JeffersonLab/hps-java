@@ -156,10 +156,12 @@ public class V0Monitoring extends DataQualityMonitor {
         plotter.region(1).plot(resVy.fittedFunction());
         plotter.region(2).plot(bsconVz);
         plotter.region(2).plot(resVz.fittedFunction());
+        if(outputPlots){
         try {
-            plotter.writeToFile("vertex.png");
+            plotter.writeToFile(outputPlotDir +"vertex.png");
         } catch (IOException ex) {
             Logger.getLogger(V0Monitoring.class.getName()).log(Level.SEVERE, null, ex);
+        }
         }
 
         monitoredQuantityMap.put(fpQuantNames[0], (double) nTotV0 / nRecoEvents);

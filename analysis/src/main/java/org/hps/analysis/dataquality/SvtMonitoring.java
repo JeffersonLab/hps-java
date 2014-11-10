@@ -208,9 +208,8 @@ public class SvtMonitoring extends DataQualityMonitor {
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
                 double stripOccupancy = (double) strips[i] / (double) (eventCountRaw);
-                if (stripOccupancy != 0) {
+                if (stripOccupancy != 0)
                     sensorHist.fill(i, stripOccupancy);
-                }
                 avg += stripOccupancy;
             }
             //do the end-of-run quantities here too since we've already done the loop.  
@@ -240,7 +239,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         for (HpsSiSensor sensor : sensors) {
             IHistogram1D sensPlot = getSensorPlot(plotDir + "t0Hit_", sensor);
             IFitResult result = fitGaussian(sensPlot, fitter, "range=\"(-8.0,8.0)\"");
-            
+
             boolean isTop = sensor.isTopLayer();
             if (isTop) {
                 plotterTop.region(irTop).plot(sensPlot);
@@ -254,15 +253,17 @@ public class SvtMonitoring extends DataQualityMonitor {
             avgt0Map.put(sensor.getName(), result.fittedParameters()[1]);
             sigt0Map.put(sensor.getName(), result.fittedParameters()[2]);
         }
-        try {
-            plotterTop.writeToFile("t0TopPlots.png");
-        } catch (IOException ex) {
-            Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            plotterBottom.writeToFile("t0BottomPlots.png");
-        } catch (IOException ex) {
-            Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+        if (outputPlots) {
+            try {
+                plotterTop.writeToFile(outputPlotDir + "t0TopPlots.png");
+            } catch (IOException ex) {
+                Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                plotterBottom.writeToFile(outputPlotDir + "t0BottomPlots.png");
+            } catch (IOException ex) {
+                Logger.getLogger(SvtMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
