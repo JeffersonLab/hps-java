@@ -20,7 +20,7 @@ import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ConditionsSeriesConverter {
+class ConditionsSeriesConverter {
 
     DatabaseConditionsManager conditionsManager = null;
     

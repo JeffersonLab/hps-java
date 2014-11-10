@@ -5,7 +5,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
@@ -35,16 +34,13 @@ public class SvtDetectorSetupTest extends TestCase {
 	// SVT Subdetector name
 	public static final String SVT_SUBDETECTOR_NAME = "Tracker";
 	
-	public void setUp(){
-	    new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
-	}
-
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
      */
-    public void test() {
+    public void test() throws Exception {
     	
 		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+		conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
     	
         // Get the detector.
         Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();

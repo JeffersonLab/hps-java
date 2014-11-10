@@ -2,7 +2,6 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtGain;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 
@@ -11,19 +10,12 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
  * {@link org.hps.conditions.svt.SvtGain} type.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * 
  */
-// TODO: Add test of collection operations similar to the one for individual objects.
 public class ConditionsObjectTest extends TestCase {
 
-    DatabaseConditionsManager conditionsManager;
-
-    public void setUp() {
-        new TestRunReadOnlyConfiguration(true);
-        conditionsManager = DatabaseConditionsManager.getInstance();
-    }
-
     public void testBasicOperations() throws ConditionsObjectException {
+    	
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
         // Create a new collection, setting its table meta data and collection ID.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);

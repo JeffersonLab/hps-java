@@ -18,21 +18,15 @@ import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
  */
 public class TestRunConditionsDriver extends AbstractConditionsDriver {
 
-	// Default conditions system XML config, which is for the Test Run 2012 database.
-    static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-
-    // Default database connection parameters, which points to the SLAC development database.
-    static final String TEST_RUN_CONNECTION = "/org/hps/conditions/config/conditions_dev.properties";
-
     // Default constructor used to setup the database connection
-    public TestRunConditionsDriver(){
+    public TestRunConditionsDriver() {
         if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
-            System.out.println(this.getName()+": Found existing DatabaseConditionsManager");
-            manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
+        	//System.out.println(this.getName()+": Found existing DatabaseConditionsManager");
+            //manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
+        	throw new RuntimeException("ConditionsManager was already setup.");
         } else { 
             manager = new DatabaseConditionsManager();
-            manager.setConnectionResource(TEST_RUN_CONNECTION);
-            manager.configure(TEST_RUN_CONFIG);
+            manager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
             manager.register();
         }
     }

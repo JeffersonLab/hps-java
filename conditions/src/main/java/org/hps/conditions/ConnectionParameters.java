@@ -17,14 +17,20 @@ import java.util.Properties;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConnectionParameters.java,v 1.8 2013/10/04 01:54:16 jeremy Exp $
  */
-public final class ConnectionParameters {
+public class ConnectionParameters {
 
-    private String user;
-    private String password;
-    private int port;
-    private String hostname;
-    private String database;
+    protected String user;
+    protected String password;
+    protected int port;
+    protected String hostname;
+    protected String database;
 
+    /**
+     * Protected constructor for sub-classes.
+     */	
+    protected ConnectionParameters() {
+    }
+    
     /**
      * Fully qualified constructor.
      * @param user The user name.
@@ -41,11 +47,11 @@ public final class ConnectionParameters {
         this.port = port;
     }
 
-    /**
+   /**
      * Get Properties object for this connection.
      * @return The Properties for this connection.
      */
-  public  Properties getConnectionProperties() {
+    public Properties getConnectionProperties() {
         Properties p = new Properties();
         p.put("user", user);
         p.put("password", password);

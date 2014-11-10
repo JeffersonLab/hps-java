@@ -3,18 +3,14 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 
 public class TestRunSvtConditionsConverterTest extends TestCase {
-
-    DatabaseConditionsManager conditionsManager;
-   
-	public void setUp(){
-        new TestRunReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 1351);
-        conditionsManager = DatabaseConditionsManager.getInstance();
-	}
-	
-	public void test(){
+   	
+	public void test() throws Exception {
+		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+		conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+		conditionsManager.setDetector("HPS-TestRun-v5", 1351);
+		
         TestRunSvtConditions svtConditions = conditionsManager.getCachedConditions(TestRunSvtConditions.class, "svt_conditions").getCachedData();
         assertNotNull(svtConditions);
         System.out.println("[ " + this.getClass().getSimpleName() + "]: Printing test run SVT conditions.");

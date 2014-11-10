@@ -5,13 +5,13 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
 /**
- * This test loads ECal conditions data onto the detector and checks some of the results
+ * This test loads ECal conditions data onto a Test Run detector and checks some of the results
  * for basic validity.
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalDetectorSetupTest extends TestCase {
@@ -33,19 +33,17 @@ public class EcalDetectorSetupTest extends TestCase {
     // The total number of crystals that should be processed.
     private static final int CRYSTAL_COUNT = 442;
 
-    public void setUp() {
-        new TestRunReadOnlyConfiguration(true);
-    }
-
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
      */
-    public void testLoad() {
+    public void testLoad() throws Exception {
 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+        conditionsManager.setDetector("HPS-TestRun-v5", 1351);
 
         // Get the detector.
-        Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
+        Detector detector = conditionsManager.getDetectorObject();
 
         // Get conditions.
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();

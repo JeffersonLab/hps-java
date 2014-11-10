@@ -4,11 +4,9 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.DatabaseConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.Detector;
-
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 
 /**
  * This test loads {@link TestRunSvtConditions} data onto the detector and then checks that all
@@ -32,17 +30,15 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
 	public static final int MAX_CHANNEL_NUMBER = 639;
 	// SVT Subdetector name
 	public static final String SVT_SUBDETECTOR_NAME = "Tracker";
-	
-	public void setUp(){
-        new TestRunReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 1351);
-	}
-	
+		
     /**
      * Load SVT conditions data onto the detector and perform basic checks afterwards.
      */
-	public void test() { 
+	public void test() throws Exception { 
      
 		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+		conditionsManager.setDetector("HPS-TestRun-v5", 1351);
 	
         // Get the detector.
         Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();

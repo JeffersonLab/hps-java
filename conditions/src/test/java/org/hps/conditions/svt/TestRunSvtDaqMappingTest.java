@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableMetaData;
-import org.hps.conditions.config.TestRunReadOnlyConfiguration;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 
 /**
@@ -16,7 +15,6 @@ import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollectio
 public class TestRunSvtDaqMappingTest extends TestCase {
 
 	TableMetaData metaData = null;
-	DatabaseConditionsManager conditionsManager = null;
 	
 	//--- Constants ---//
 	//-----------------//
@@ -32,20 +30,16 @@ public class TestRunSvtDaqMappingTest extends TestCase {
 	// Min and max layer number values 
 	public static final int MIN_LAYER_NUMBER = 1; 
 	public static final int MAX_LAYER_NUMBER = 10; 
-	
-	
-	
-	public void setUp(){
-        new TestRunReadOnlyConfiguration().setup().load("HPS-TestRun-v5", 1351);
-        conditionsManager = DatabaseConditionsManager.getInstance();
-	}
-	
-	public void test(){
 		
-		metaData = conditionsManager.findTableMetaData(TestRunSvtDaqMappingCollection.class);
-		TestRunSvtDaqMappingCollection daqMappingCollection 
-			= conditionsManager.getConditionsData(TestRunSvtDaqMappingCollection.class, metaData.getTableName());
+	public void test() throws Exception {
+		
+		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+        conditionsManager.setDetector("HPS-TestRun-v5", 1351);
 
+		metaData = conditionsManager.findTableMetaData(TestRunSvtDaqMappingCollection.class);
+		TestRunSvtDaqMappingCollection daqMappingCollection = 
+				conditionsManager.getConditionsData(TestRunSvtDaqMappingCollection.class, metaData.getTableName());
 	
 		int totalSensors = 0; 
 		this.printDebug("");
@@ -75,7 +69,7 @@ public class TestRunSvtDaqMappingTest extends TestCase {
 		assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
 	}
 
-	private void printDebug(String debugMessage){
+	private void printDebug(String debugMessage) {
 		System.out.println("[ " + this.getClass().getSimpleName() + " ]: " + debugMessage);
 	}
 }

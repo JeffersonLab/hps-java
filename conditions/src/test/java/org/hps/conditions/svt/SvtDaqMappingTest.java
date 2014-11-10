@@ -4,21 +4,15 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TableMetaData;
-import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
-
 
 /**
  * This test checks if the SVT DAQ map was loaded with reasonable values and
  * is being read correctly from the conditions database.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$ 
  */
 public class SvtDaqMappingTest extends TestCase {
-
-	TableMetaData metaData = null;
-	DatabaseConditionsManager conditionsManager = null;
 	
 	//--- Constants ---//
 	//-----------------//
@@ -31,18 +25,13 @@ public class SvtDaqMappingTest extends TestCase {
 	
 	//-----------------//
 
-	DevReadOnlyConfiguration dbConfig = new DevReadOnlyConfiguration();
-	
-	public void setUp(){
-        new DevReadOnlyConfiguration().setup().load("HPS-Proposal2014-v7-2pt2", 0);
-        conditionsManager = DatabaseConditionsManager.getInstance();
+
+	public void test() throws Exception {
 		
+		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+		conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
 		
-	}
-	
-	public void test(){
-		
-		metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
+		TableMetaData metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
 		SvtDaqMappingCollection daqMappingCollection 
 			= conditionsManager.getConditionsData(SvtDaqMappingCollection.class, metaData.getTableName());
 		
@@ -65,9 +54,7 @@ public class SvtDaqMappingTest extends TestCase {
 		
 	}
 	
-	private void printDebug(String debugMessage){
+	private void printDebug(String debugMessage) {
 		System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
-	}
-	
-	
+	}	
 }

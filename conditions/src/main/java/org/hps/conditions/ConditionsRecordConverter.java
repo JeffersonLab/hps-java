@@ -11,7 +11,7 @@ import org.lcsim.conditions.ConditionsManager;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy Exp $
  */
-public final class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
+class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
 
     /**
      * Get the ConditionsRecords for a run based on current configuration of the

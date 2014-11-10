@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,23 +53,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected List<TableMetaData> tableMetaData;
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
-    //protected ConditionsReader baseReader;
     protected static Logger logger = null;
-    protected ConnectionParameters connectionParameters;
+    protected ConnectionParameters connectionParameters = new DefaultConnectionParameters();
     protected Connection connection;
-    protected boolean wasConfigured = false;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
-
-    /**
-     * Class constructor.
-     */
-    public DatabaseConditionsManager() {
-        registerConditionsConverter(new DetectorConditionsConverter());
-        //baseReader = new BaseClasspathConditionsReader();
-        setupConnectionFromSystemProperty();
-    }
-
+    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
+    
     /**
      * Simple log formatter for this class.
      */
@@ -79,7 +71,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             return sb.toString();
         }
     }
-
+    
     /**
      * Setup the logger for this class, with initial level of ALL.
      */
@@ -92,6 +84,38 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         handler.setFormatter(new LogFormatter());
         logger.addHandler(handler);
         logger.config("logger initialized with level " + handler.getLevel());
+    }
+    
+    /**
+     * Default connection parameters.
+     */
+    static class DefaultConnectionParameters extends ConnectionParameters {
+    	DefaultConnectionParameters() {
+    		this.port = 3306;
+    		try {
+				if (InetAddress.getLocalHost().getHostName().contains("jlab.org")) {
+					this.hostname = "jmysql.jlab.org";
+					this.database = "hps_conditions";
+				} else {
+					this.hostname = "ppa-jeremym-l.slac.stanford.edu";
+					this.database = "hps_conditions_dev";
+				}
+			} catch (UnknownHostException e) {
+				throw new RuntimeException(e);
+			}
+    		this.user = "hpsuser";
+    		this.password = "darkphoton";
+    	}
+    }
+
+    /**
+     * Class constructor.
+     */
+    public DatabaseConditionsManager() {
+        registerConditionsConverter(new DetectorConditionsConverter());
+        setupConnectionFromSystemProperty();
+        configure(DEFAULT_CONFIG);
+        register();        
     }
 
     /**
@@ -110,11 +134,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Perform default setup if necessary.
         if (!ConditionsManager.isSetup()) {
-            DatabaseConditionsManager manager = new DatabaseConditionsManager();
-            manager.register();
+            new DatabaseConditionsManager();
         }
 
-        // Get the instance of the manager from the conditions system and
+        // Get the instance of the manager from the conditions system and check
         // that the type is valid.
         ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
@@ -127,15 +150,98 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public Connection getConnection() {
         return this.connection;
     }
+    
+    /**
+     * Open the database connection.
+     */
+    public void openConnection() {
+        if (connectionParameters == null) {
+            throw new RuntimeException("The connection parameters are null.");
+        }
+        logger.config("opening connection to " + connectionParameters.getConnectionString());
+        logger.config("host " + connectionParameters.getHostname());
+        logger.config("port " + connectionParameters.getPort());
+        logger.config("user " + connectionParameters.getUser());
+        logger.config("password " + connectionParameters.getPassword());
+        logger.config("database " + connectionParameters.getDatabase());
+        connection = connectionParameters.createConnection();
+        logger.config("created connection " + connectionParameters.getConnectionString());
+        isConnected = true;
+    }
 
     /**
-     * This method catches changes to the detector name and run number. Somewhat
-     * unintuitively, this method is actually called every time an lcsim event is created,
-     * so it has internal logic to figure out if the conditions system actually needs to
-     * be updated.
+     * Close the database connection.
+     */
+    public void closeConnection() {
+        logger.config("closing connection");
+        if (connection != null) {
+            try {
+                if (!connection.isClosed()) {
+                    connection.close();
+                    logger.config("connection closed");
+                } else {
+                    logger.config("connection already closed");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        connection = null;
+        connectionParameters = null;
+        isConnected = false;
+    }
+
+    @Override
+    public void finalize() {
+        if (isConnected())
+            closeConnection();
+    }
+    
+    /**
+     * Get multiple <code>ConditionsObjectCollection</code> objects that may have overlapping time validity information.
+     * @param conditionsKey The conditions key.
+     * @return The <code>ConditionsSeries</code> containing the matching <code>ConditionsObjectCollection</code>. 
+     */
+    public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
+        return conditionsSeriesConverter.createSeries(conditionsKey);
+    }
+    
+	/**
+	 * Get a given collection of the given type from the conditions database.
+	 * @param type Class type
+	 * @return A collection of objects of the given type from the conditions database
+	 */
+	public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type){
+		TableMetaData metaData = this.findTableMetaData(type);
+		if(metaData == null) {
+			throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
+		}
+		String tableName = metaData.getTableName();
+		CollectionType conditionsCollection = this.getCachedConditions(type, tableName).getCachedData(); 
+		return conditionsCollection; 
+	}
+       
+    /**
+     * Simple utility method to cast the generic <code>ConditionsManager</code> to this class.
+     * @param conditionsManager The <code>ConditionsManager</code>.
+     * @return The <code>DatabaseConditionsManager</code> object.
+     */
+    public static DatabaseConditionsManager castFrom(ConditionsManager conditionsManager) {
+        if (conditionsManager instanceof DatabaseConditionsManager) {
+            return (DatabaseConditionsManager) conditionsManager;
+        } else {
+            throw new RuntimeException("The conditionsManager points to an object of the wrong type: " + conditionsManager.getClass().getCanonicalName());
+        }
+    }    
+
+    /**
+     * This method catches changes to the detector name and run number. 
+     * It is actually called every time an lcsim event is created, so it has internal logic 
+     * to figure out if the conditions system actually needs to be updated.
      */
     @Override
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
+    	    	
         // Detector update.
         if (getDetector() == null || !getDetector().equals(detectorName)) {
             logger.config("setting new detector " + detectorName);
@@ -150,7 +256,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Let the super class do whatever it think it needs to do.
         super.setDetector(detectorName, runNumber);        
-        //super.setConditionsReader(this.baseReader, detectorName);
     }
 
     /**
@@ -158,10 +263,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param detectorName the name of the detector
      */
     void setup(String detectorName) {
-        //if (baseReader instanceof BaseClasspathConditionsReader) {
-        //    ((BaseClasspathConditionsReader) baseReader).setResourcePath(detectorName);
-        //    logger.config("set resource path " + detectorName + " on conditions reader");
-        //}
         if (!isConnected())
             openConnection();
         else
@@ -234,18 +335,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.config("setting connection resource " + resource);
         connectionParameters = ConnectionParameters.fromResource(resource);
     }
-
-    /**
-     * Set externally the base ConditionsReader that will be used to find non-database
-     * conditions such as the compact.xml file for the detector.
-     * @param reader The base ConditionsReader.
-     */
-    // FIXME: This doesn't work because the super class has some convoluted logic that always overrides
-    //        whatever is set manually as the conditions reader.
-    //public void setBaseConditionsReader(ConditionsReader baseReader) {
-    //    logger.config("setting conditions reader to " + baseReader.getClass().getCanonicalName());
-    //    this.baseReader = baseReader;
-    //}
 
     /**
      * Get the next collection ID for a database conditions table.
@@ -418,14 +507,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Return if the manager was configured e.g. from an XML configuration file.
-     * @return true if manager was configured
-     */
-    public boolean wasConfigured() {
-        return wasConfigured;
-    }
-
-    /**
      * Get the current run number.
      * @return the current run number
      */
@@ -491,9 +572,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
         // Load the converter classes.
         loadConverters(config);
-
-        // Set configured state to true.
-        wasConfigured = true;
     }
 
     /**
@@ -501,7 +579,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param in The InputStream.
      * @return The XML document.
      */
-    private Document createDocument(InputStream in) {
+    private static Document createDocument(InputStream in) {
         // Create an XML document from an InputStream.
         SAXBuilder builder = new SAXBuilder();
         Document config = null;
@@ -519,12 +597,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private void loadConverters(Document config) {
 
-        // Load the list of converters from the "converters" section of the config
-        // document.
-        (this.new ConditionsConverterLoader()).load(config.getRootElement().getChild("converters"));
+    	if (this.converters != null) {
+            this.converters.clear();
+    	}
+    	
+        // Load the list of converters from the "converters" section of the config document.
+        loadConditionsConverters(config.getRootElement().getChild("converters"));
 
         // Register the list of converters with this manager.
-        // FIXME: Should this happen here or when setup is called on the manager?
         for (ConditionsConverter converter : converters) {
             registerConditionsConverter(converter);
             logger.config("registered converter " + converter.getClass().getSimpleName());
@@ -536,168 +616,85 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param config The XML document.
      */
     private void loadTableMetaData(Document config) {
+    	
+        if (this.tableMetaData != null) {
+        	this.tableMetaData.clear();
+        }
+        	
         // Load table meta data from the "tables" section of the config document.
-        (this.new TableMetaDataLoader()).load(config.getRootElement().getChild("tables"));
+        loadTableMetaData(config.getRootElement().getChild("tables"));
     }
     
     /**
      * Setup the database connection from a file specified by Java system property setting.
      * This is possible overridden by subsequent API calls to {@link #setConnectionProperties(File)} or
-     * {@link #setConnectionResource(String)}, as it is setup in this class's constructor.
+     * {@link #setConnectionResource(String)}, as it is called in the class's constructor.
      */
     private void setupConnectionFromSystemProperty() {
         String systemPropertiesConnectionPath = (String)System.getProperties().get(connectionProperty);
         if (systemPropertiesConnectionPath != null) {
             File f = new File(systemPropertiesConnectionPath);
             if (!f.exists())
-                throw new RuntimeException("Connection properties specified from system property does not exist!");
+                throw new RuntimeException("Connection properties specified from system property does not exist.");
             this.setConnectionProperties(f);
         }
     }
-
-    /**
-     * Open the database connection.
-     */
-    public void openConnection() {
-        if (connectionParameters == null)
-            throw new RuntimeException("The connection parameters were not configured.");
-        connection = connectionParameters.createConnection();
-        logger.config("created connection " + connectionParameters.getConnectionString());
-        isConnected = true;
-    }
-
-    /**
-     * Close the database connection.
-     */
-    public void closeConnection() {
-        logger.config("closing connection");
-        if (connection != null) {
-            try {
-                if (!connection.isClosed()) {
-                    connection.close();
-                    logger.config("connection closed");
-                } else {
-                    logger.config("connection already closed");
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        connection = null;
-        connectionParameters = null;
-    }
-
-    @Override
-    public void finalize() {
-        if (isConnected())
-            closeConnection();
-    }
-    
-    /**
-     * Get multiple <code>ConditionsObjectCollection</code> objects that may have overlapping time validity information.
-     * @param conditionsKey The conditions key.
-     * @return The <code>ConditionsSeries</code> containing the matching <code>ConditionsObjectCollection</code>. 
-     */
-    public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
-        return conditionsSeriesConverter.createSeries(conditionsKey);
-    }
     
 	/**
-	 * Get a given collection of the given type from the conditions database.
-	 * 
-	 * @param type Class type
-	 * @return A collection of objects of the given type from the conditions database
+	 * This method expects an XML element containing child "table" elements.
+	 * @param element
 	 */
-	public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type){
-		
-		// Get the table name from the database configuration
-		TableMetaData metaData = this.findTableMetaData(type);
-		if(metaData == null) 
-			throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
-		String tableName = metaData.getTableName();
+	@SuppressWarnings("unchecked")
+	void loadTableMetaData(Element element) {
 
-		// FIXME: This should be changed to catch a conditions record not found exception instead of 
-		// 		  a runtime exception.
-		CollectionType conditionsCollection = this.getCachedConditions(type, tableName).getCachedData(); 
-		return conditionsCollection; 
+		tableMetaData = new ArrayList<TableMetaData>();
+
+		for (Iterator<?> iterator = element.getChildren("table").iterator(); iterator.hasNext();) {
+			Element tableElement = (Element) iterator.next();
+			String tableName = tableElement.getAttributeValue("name");
+			String key = tableElement.getAttributeValue("key");
+
+			Element classesElement = tableElement.getChild("classes");
+			Element classElement = classesElement.getChild("object");
+			Element collectionElement = classesElement.getChild("collection");
+
+			String className = classElement.getAttributeValue("class");
+			String collectionName = collectionElement.getAttributeValue("class");
+
+			Class<? extends ConditionsObject> objectClass;
+			Class<?> rawObjectClass;
+			try {
+				rawObjectClass = Class.forName(className);
+				if (!ConditionsObject.class.isAssignableFrom(rawObjectClass)) {
+					throw new RuntimeException("The class " + rawObjectClass.getSimpleName() + " does not extend ConditionsObject.");
+				}
+				objectClass = (Class<? extends ConditionsObject>) rawObjectClass;
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+
+			Class<? extends ConditionsObjectCollection<?>> collectionClass;
+			Class<?> rawCollectionClass;
+			try {
+				rawCollectionClass = Class.forName(collectionName);
+				if (!ConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass))
+					throw new RuntimeException("The class " + rawCollectionClass.getSimpleName() + " does not extend ConditionsObjectCollection.");
+				collectionClass = (Class<? extends ConditionsObjectCollection<?>>) rawCollectionClass;
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+
+			TableMetaData tableData = new TableMetaData(key, tableName, objectClass, collectionClass);
+			Element fieldsElement = tableElement.getChild("fields");
+			for (Iterator<?> fieldsIterator = fieldsElement.getChildren("field").iterator(); fieldsIterator.hasNext();) {
+				Element fieldElement = (Element) fieldsIterator.next();
+				String fieldName = fieldElement.getAttributeValue("name");
+				tableData.addField(fieldName);
+			}
+
+			tableMetaData.add(tableData);
+		}
 	}
-       
-    /**
-     * Simple utility method to cast the generic <code>ConditionsManager</code> to this class.
-     * @param conditionsManager The <code>ConditionsManager</code>.
-     * @return The <code>DatabaseConditionsManager</code> object.
-     */
-    public static DatabaseConditionsManager castFrom(ConditionsManager conditionsManager) {
-        if (conditionsManager instanceof DatabaseConditionsManager) {
-            return (DatabaseConditionsManager) conditionsManager;
-        } else {
-            throw new RuntimeException("The conditionsManager points to an object of the wrong type: " + conditionsManager.getClass().getCanonicalName());
-        }
-    }    
-        
-    /**
-     * This class loads an XML configuration of conditions table meta data.
-     * 
-     * @author Jeremy McCormick <jeremym@slac.stanford.edu>
-     */
-    class TableMetaDataLoader {
-
-        /**
-         * This method expects an XML element containing child "table" elements.
-         * @param element
-         */
-        @SuppressWarnings("unchecked")
-        void load(Element element) {
-
-            tableMetaData = new ArrayList<TableMetaData>();
-
-            for (Iterator<?> iterator = element.getChildren("table").iterator(); iterator.hasNext();) {
-                Element tableElement = (Element) iterator.next();
-                String tableName = tableElement.getAttributeValue("name");
-                String key = tableElement.getAttributeValue("key");
-
-                Element classesElement = tableElement.getChild("classes");
-                Element classElement = classesElement.getChild("object");
-                Element collectionElement = classesElement.getChild("collection");
-
-                String className = classElement.getAttributeValue("class");
-                String collectionName = collectionElement.getAttributeValue("class");
-
-                Class<? extends ConditionsObject> objectClass;
-                Class<?> rawObjectClass;
-                try {
-                    rawObjectClass = Class.forName(className);
-                    if (!ConditionsObject.class.isAssignableFrom(rawObjectClass)) {
-                        throw new RuntimeException("The class " + rawObjectClass.getSimpleName() + " does not extend ConditionsObject.");
-                    }
-                    objectClass = (Class<? extends ConditionsObject>) rawObjectClass;
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-
-                Class<? extends ConditionsObjectCollection<?>> collectionClass;
-                Class<?> rawCollectionClass;
-                try {
-                    rawCollectionClass = Class.forName(collectionName);
-                    if (!ConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass))
-                        throw new RuntimeException("The class " + rawCollectionClass.getSimpleName() + " does not extend ConditionsObjectCollection.");
-                    collectionClass = (Class<? extends ConditionsObjectCollection<?>>) rawCollectionClass;
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-
-                TableMetaData tableData = new TableMetaData(key, tableName, objectClass, collectionClass);
-                Element fieldsElement = tableElement.getChild("fields");
-                for (Iterator<?> fieldsIterator = fieldsElement.getChildren("field").iterator(); fieldsIterator.hasNext();) {
-                    Element fieldElement = (Element) fieldsIterator.next();
-                    String fieldName = fieldElement.getAttributeValue("name");
-                    tableData.addField(fieldName);
-                }
-
-                tableMetaData.add(tableData);
-            }
-        }
-    }
 
     /**
      * This class reads in an XML configuration specifying a list of converter classes,
@@ -705,28 +702,24 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * 
      * @author Jeremy McCormick <jeremym@slac.stanford.edu>
      */
-    class ConditionsConverterLoader {
-
-        void load(Element element) {
-            converters = new ArrayList<ConditionsConverter>();
-            for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
-                Element converterElement = (Element) iterator.next();
-                try {
-                    Class converterClass = Class.forName(converterElement.getAttributeValue("class"));
-                    if (ConditionsConverter.class.isAssignableFrom(converterClass)) {
-                        try {
-                            converters.add((ConditionsConverter) converterClass.newInstance());
-                        } catch (InstantiationException | IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else {
-                        throw new RuntimeException("The converter class " + converterClass.getSimpleName() + " does not extend the correct base type.");
-                    }
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
-
+	private void loadConditionsConverters(Element element) {
+		converters = new ArrayList<ConditionsConverter>();
+		for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
+			Element converterElement = (Element) iterator.next();
+			try {
+				Class converterClass = Class.forName(converterElement.getAttributeValue("class"));
+				if (ConditionsConverter.class.isAssignableFrom(converterClass)) {
+					try {
+						converters.add((ConditionsConverter) converterClass.newInstance());
+					} catch (InstantiationException | IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					throw new RuntimeException("The converter class " + converterClass.getSimpleName() + " does not extend the correct base type.");
+				}
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 }

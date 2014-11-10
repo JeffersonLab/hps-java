@@ -62,8 +62,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             // There were multiple records returned.
             if (!allowMultipleCollections())
                 // If there are multiple records returned but this is not allowed by the
-                // converter,
-                // then this is a fatal error.
+                // converter, then this is a fatal error.
                 throw new RuntimeException("Multiple conditions records returned but this is not allowed.");
         } else {
             // There was a single conditions record so the collection information can be
