@@ -27,7 +27,7 @@ public class DataQualityMonitor extends Driver {
     protected boolean printDQMStrings = false;
     protected Map<String, Double> monitoredQuantityMap = new HashMap<>();
 
-    protected boolean outputPlots = true;
+    protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
     
     public void setRecoVersion(String recoVersion) {
