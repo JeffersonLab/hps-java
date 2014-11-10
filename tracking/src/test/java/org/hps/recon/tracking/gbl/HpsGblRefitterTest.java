@@ -2,9 +2,12 @@ package org.hps.recon.tracking.gbl;
 
 import java.io.File;
 import java.net.URL;
+
 import junit.framework.TestCase;
+
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
+import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  *
@@ -21,6 +24,9 @@ public class HpsGblRefitterTest extends TestCase
 
     public void testHpsGblRefitter() throws Exception
     {
+        File outputDir = new TestOutputFile(this.getClass().getSimpleName());
+        outputDir.mkdir();
+        
         File lcioInputFile = null;
         URL testURL = new URL(testURLBase + "/" + testFileName);
         FileCache cache = new FileCache();
@@ -30,7 +36,7 @@ public class HpsGblRefitterTest extends TestCase
 
         HpsGblRefitter fitter = new HpsGblRefitter();
         fitter.setDebug(false);
-        fitter.setMilleBinaryFileName("milleTest.bin");
+        fitter.setMilleBinaryFileName(outputDir.getPath() + File.separator + "milleTest.bin");
         fitter.setWriteMilleBinary(true);
         loop.add(fitter);
         loop.loop(nEvents);
