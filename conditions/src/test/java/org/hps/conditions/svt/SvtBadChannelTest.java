@@ -19,12 +19,14 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class tests that the correct bad channel conditions are found for the test run.
+ * This class tests that the correct bad channel conditions are found for the
+ * test run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SvtBadChannelTest extends TestCase {
 
-    // This test file has a few events from each of the "good runs" of the 2012 Test Run.
+    // This test file has a few events from each of the "good runs" of the 2012
+    // Test Run.
     private static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps/conditions_test.slcio";
 
     // This is the number of bad channels in the QA set across all runs.
@@ -68,7 +70,8 @@ public class SvtBadChannelTest extends TestCase {
     }
 
     /**
-     * This Driver will check the number of bad channels for a run against the answer key.
+     * This Driver will check the number of bad channels for a run against the
+     * answer key.
      * @author Jeremy McCormick <jeremym@slac.stanford.edu>
      */
     class SvtBadChannelChecker extends Driver {
@@ -76,8 +79,8 @@ public class SvtBadChannelTest extends TestCase {
         int _currentRun = -1;
 
         /**
-         * This method will check the number of bad channels against the answer key for
-         * the first event of a new run.
+         * This method will check the number of bad channels against the answer
+         * key for the first event of a new run.
          */
         public void process(EventHeader event) {
             int run = event.getRunNumber();

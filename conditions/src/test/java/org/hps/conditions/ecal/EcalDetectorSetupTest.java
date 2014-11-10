@@ -9,8 +9,8 @@ import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 
 /**
- * This test loads ECal conditions data onto a Test Run detector and checks some of the results
- * for basic validity.
+ * This test loads ECal conditions data onto a Test Run detector and checks some
+ * of the results for basic validity.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -34,7 +34,8 @@ public class EcalDetectorSetupTest extends TestCase {
     private static final int CRYSTAL_COUNT = 442;
 
     /**
-     * Load SVT conditions data onto the detector and perform basic checks afterwards.
+     * Load SVT conditions data onto the detector and perform basic checks
+     * afterwards.
      */
     public void testLoad() throws Exception {
 

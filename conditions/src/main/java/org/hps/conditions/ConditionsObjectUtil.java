@@ -7,12 +7,13 @@ import java.sql.SQLException;
 import org.hps.conditions.ConditionsObject.FieldValueMap;
 
 /**
- * Some static utility methods for <tt>ConditionsObject</tt> and related classes.
+ * Some static utility methods for <tt>ConditionsObject</tt> and related
+ * classes.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 final class ConditionsObjectUtil {
-    
+
     private ConditionsObjectUtil() {
     }
 
@@ -42,8 +43,8 @@ final class ConditionsObjectUtil {
         }
         newObject.setFieldValues(fieldValues);
         return newObject;
-    }    
-    
+    }
+
     static final ConditionsObjectCollection createCollection(TableMetaData tableMetaData) {
         ConditionsObjectCollection collection;
         try {
@@ -53,5 +54,5 @@ final class ConditionsObjectUtil {
         }
         return collection;
     }
-    
+
 }

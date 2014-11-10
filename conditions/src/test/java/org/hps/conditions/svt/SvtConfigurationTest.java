@@ -13,11 +13,11 @@ import org.jdom.JDOMException;
 public class SvtConfigurationTest extends TestCase {
 
     DatabaseConditionsManager manager;
-    
+
     public void testSvtConfiguration() {
-    	DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         SvtConfigurationCollection collection = manager.getCachedConditions(SvtConfigurationCollection.class, TableConstants.SVT_CONFIGURATIONS).getCachedData();
-        
+
         for (SvtConfiguration config : collection) {
             Document doc = null;
             try {
@@ -28,5 +28,5 @@ public class SvtConfigurationTest extends TestCase {
             System.out.println(doc.toString());
         }
     }
-    
+
 }

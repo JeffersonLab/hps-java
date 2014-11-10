@@ -21,19 +21,19 @@ import org.lcsim.util.Driver;
  */
 public class EcalConditions extends Driver {
 
-    //DAQ channel map
+    // DAQ channel map
     private static HashMap<Long, Long> daqToPhysicalMap = new HashMap<Long, Long>();
     private static HashMap<Long, Long> physicalToDaqMap = new HashMap<Long, Long>();
-    //pedestals
+    // pedestals
     private static HashMap<Long, Double> daqToPedestalMap = new HashMap<Long, Double>();
     private static HashMap<Long, Double> daqToNoiseMap = new HashMap<Long, Double>();
-    //set of bad channels to ignore
+    // set of bad channels to ignore
     private static HashSet<Long> badChannelsSet = new HashSet<Long>();
     private static boolean badChannelsLoaded = false;
     private static IIdentifierHelper helper = null;
-    //gain
+    // gain
     private static HashMap<Long, Double> physicalToGainMap = new HashMap<Long, Double>();
-    //subdetector name (for when this is used as a driver)
+    // subdetector name (for when this is used as a driver)
     private String subdetectorName = "Ecal";
     private static Subdetector subdetector;
     private static boolean debug = false;
@@ -72,9 +72,9 @@ public class EcalConditions extends Driver {
         loadPedestals();
         calibrationLoaded = true;
     }
-    
+
     public static void setGainFilename(String name) {
-    	gainFilename = name;
+        gainFilename = name;
     }
 
     public void setSubdetectorName(String subdetectorName) {
@@ -139,7 +139,7 @@ public class EcalConditions extends Driver {
                     daqToPedestalMap.put(daqid, pedestal);
                     daqToNoiseMap.put(daqid, noise);
                     if (debug) {
-                        System.out.printf("Channel %d: pede %.2f noise %.2f (crate %d slot %d channel %d)\n", daqid,pedestal,noise,crate,slot,channel);
+                        System.out.printf("Channel %d: pede %.2f noise %.2f (crate %d slot %d channel %d)\n", daqid, pedestal, noise, crate, slot, channel);
                     }
                 }
             }
@@ -186,7 +186,7 @@ public class EcalConditions extends Driver {
                     expId.setValue(helper.getFieldIndex("iy"), y);
                     badChannelsSet.add(helper.pack(expId).getValue());
                     if (debug) {
-                        System.out.printf("Channel %d is bad (x=%d y=%d)\n", helper.pack(expId).getValue(),x,y);
+                        System.out.printf("Channel %d is bad (x=%d y=%d)\n", helper.pack(expId).getValue(), x, y);
                     }
                 }
             }
@@ -201,9 +201,9 @@ public class EcalConditions extends Driver {
         BufferedReader bufferedReader;
         ConditionsManager conditions = ConditionsManager.defaultInstance();
         try {
-        	bufferedReader = new BufferedReader(conditions.getRawConditions("calibECal/"+EcalConditions.gainFilename).getReader());
+            bufferedReader = new BufferedReader(conditions.getRawConditions("calibECal/" + EcalConditions.gainFilename).getReader());
         } catch (IOException e) {
-            throw new RuntimeException("couldn't get gain file("+gainFilename+") ", e);
+            throw new RuntimeException("couldn't get gain file(" + gainFilename + ") ", e);
         }
 
         String line;
@@ -232,7 +232,7 @@ public class EcalConditions extends Driver {
                     double gain = Double.valueOf(lineTok.nextToken());
                     physicalToGainMap.put(makePhysicalID(x, y), gain);
                     if (debug) {
-                        System.out.printf("Channel %d: gain %.2f (x=%d y=%d)\n", makePhysicalID(x, y),gain,x,y);
+                        System.out.printf("Channel %d: gain %.2f (x=%d y=%d)\n", makePhysicalID(x, y), gain, x, y);
                     }
                 }
             }
@@ -280,7 +280,7 @@ public class EcalConditions extends Driver {
                 } else {
                     int x = Integer.valueOf(lineTok.nextToken());
                     int y = Integer.valueOf(lineTok.nextToken());
-//                    if (x>0 && y>0) x = 24-x;
+                    // if (x>0 && y>0) x = 24-x;
                     expId.setValue(helper.getFieldIndex("ix"), x);
                     expId.setValue(helper.getFieldIndex("iy"), y);
                     int crate = Integer.valueOf(lineTok.nextToken());

@@ -2,17 +2,19 @@ package org.hps.conditions;
 
 /**
  * <p>
- * This is a static set of constants defining default table names and lookup key values
- * for conditions data. The actual table names for the conditions data are defined
- * externally in an XML configuration file read by the {@link DatabaseConditionsManager}.
+ * This is a static set of constants defining default table names and lookup key
+ * values for conditions data. The actual table names for the conditions data
+ * are defined externally in an XML configuration file read by the
+ * {@link DatabaseConditionsManager}.
  * </p>
  * <p>
- * It is possible that the key and table names are defined differently in the XML
- * configuration, e.g. if the name of the key is not exactly the same as the table name,
- * but usually they are the same value.
+ * It is possible that the key and table names are defined differently in the
+ * XML configuration, e.g. if the name of the key is not exactly the same as the
+ * table name, but usually they are the same value.
  * </p>
  */
-// FIXME: This should really be called something like "ConditionsKeys" as the table names
+// FIXME: This should really be called something like "ConditionsKeys" as the
+// table names
 // are found in the XML configuration only.
 public final class TableConstants {
 
@@ -39,19 +41,19 @@ public final class TableConstants {
 
     /** ECAL time shifts. */
     public static final String ECAL_TIME_SHIFTS = "ecal_time_shifts";
-    
+
     /** ECAL LED setup. */
-    public static final String ECAL_LEDS = "ecal_leds";    
+    public static final String ECAL_LEDS = "ecal_leds";
 
     /** Conditions key for combined SVT conditions. */
     public static final String SVT_CONDITIONS = "svt_conditions";
-    
+
     /** Conditions key for SVT alignment data. */
     public static final String SVT_ALIGNMENTS = "svt_alignments";
 
     /** Conditions key for SVT bad channels. */
     public static final String SVT_BAD_CHANNELS = "svt_bad_channels";
-   
+
     /** Table with SVT channel data. */
     public static final String SVT_CHANNELS = "svt_channels";
 
@@ -60,7 +62,7 @@ public final class TableConstants {
 
     /** Conditions key for SVT calibration data. */
     public static final String SVT_CALIBRATIONS = "svt_calibrations";
-    
+
     /** Conditions key for SVT configuration files. */
     public static final String SVT_CONFIGURATIONS = "svt_configurations";
 

@@ -1,8 +1,8 @@
 package org.hps.conditions;
 
 /**
- * This class is a simplistic representation of a packaged identifier for use in the
- * conditions system.
+ * This class is a simplistic representation of a packaged identifier for use in
+ * the conditions system.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * 

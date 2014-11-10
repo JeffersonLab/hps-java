@@ -12,49 +12,47 @@ import org.hps.util.Pair;
  */
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
-    public static class SvtDaqMappingCollection 
-            extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
+    public static class SvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
 
         /**
-         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given 
+         * Get a DAQ pair (FEB ID, FEB Hybrid ID) for the given
          * {@link HpsSiSensor}
          * 
-		 * @param  sensor A sensor of type {@link HpsSiSensor}
-		 * @return The DAQ pair associated with the sensor 
+         * @param sensor A sensor of type {@link HpsSiSensor}
+         * @return The DAQ pair associated with the sensor
          */
         public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
-        	
-        	String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
-        	for (SvtDaqMapping object : this.getObjects()) {
-        		
-        		if(svtHalf.equals(object.getSvtHalf()) 
-        				&& object.getLayerNumber() == sensor.getLayerNumber()
-        				&& object.getSide().equals(sensor.getSide())) {
-                
-        			return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-                } 
+
+            String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
+            for (SvtDaqMapping object : this.getObjects()) {
+
+                if (svtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == sensor.getLayerNumber() && object.getSide().equals(sensor.getSide())) {
+
+                    return new Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
+                }
             }
             return null;
         }
-        
+
         /**
          * Get the orientation of a sensor using the FEB ID and FEB Hybrid ID.
-         * If the FEB ID and FEB Hybrid ID combination is not found, return null.
+         * If the FEB ID and FEB Hybrid ID combination is not found, return
+         * null.
          * 
          * @param daqPair (Pair<FEB ID, FEB Hybrid ID>) for a given sensor
-         * @return If a daqPair is found, return an "A" if the sensor 
-         * 		   orientation is Axial, an "S" if the orientation is Stereo or
-         * 		   null if the daqPair doesn't exist.
+         * @return If a daqPair is found, return an "A" if the sensor
+         *         orientation is Axial, an "S" if the orientation is Stereo or
+         *         null if the daqPair doesn't exist.
          */
-        public String getOrientation(Pair<Integer, Integer> daqPair){
-        	
-        	for(SvtDaqMapping daqMapping : this.getObjects()){
-        		
-        		if(daqPair.getFirstElement() == daqMapping.getFebID() && daqPair.getSecondElement() == daqMapping.getFebHybridID()){
-        			return daqMapping.getOrientation(); 
-        		}
-        	}
-        	return null;
+        public String getOrientation(Pair<Integer, Integer> daqPair) {
+
+            for (SvtDaqMapping daqMapping : this.getObjects()) {
+
+                if (daqPair.getFirstElement() == daqMapping.getFebID() && daqPair.getSecondElement() == daqMapping.getFebHybridID()) {
+                    return daqMapping.getOrientation();
+                }
+            }
+            return null;
         }
 
         /**
@@ -79,9 +77,9 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
             buff.append("----------------------");
             buff.append('\n');
             for (SvtDaqMapping object : getObjects()) {
-            	buff.append(object.getFebID());
+                buff.append(object.getFebID());
                 buff.append("    ");
-            	buff.append(object.getFebHybridID());
+                buff.append(object.getFebHybridID());
                 buff.append("    ");
                 buff.append(object.getSvtHalf());
                 buff.append("    ");
@@ -96,16 +94,16 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
             return buff.toString();
         }
     }
-    
-    public int getFebID() { 
-    	return getFieldValue("feb_id");
+
+    public int getFebID() {
+        return getFieldValue("feb_id");
     }
-    
-    public int getFebHybridID() { 
-    	return getFieldValue("feb_hybrid_id");
+
+    public int getFebHybridID() {
+        return getFieldValue("feb_hybrid_id");
     }
-    
-    public String getSide(){
-    	return getFieldValue("side");
+
+    public String getSide() {
+        return getFieldValue("side");
     }
 }

@@ -6,12 +6,13 @@ import java.util.Map;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 
 /**
- * This class provides access to all ECAL conditions from the database, including gain,
- * pedestal and bad channel settings, per crystal.
+ * This class provides access to all ECAL conditions from the database,
+ * including gain, pedestal and bad channel settings, per crystal.
  * 
  * Unlike most conditions data types, it does not extend
  * {@link org.hps.conditions.ConditionsObject}, because it is a composite object
- * containing data assembled from many other {@link org.hps.conditions.ConditionsObjects}.
+ * containing data assembled from many other
+ * {@link org.hps.conditions.ConditionsObjects}.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -46,12 +47,13 @@ public final class EcalConditions {
     }
 
     /**
-     * Get the conditions constants for a specific channel. These will be created if they
-     * do not exist for the given channel, BUT only channels in the current channel map
-     * are allowed as an argument.
+     * Get the conditions constants for a specific channel. These will be
+     * created if they do not exist for the given channel, BUT only channels in
+     * the current channel map are allowed as an argument.
      * @param channel The ECAL channel.
      * @return The conditions constants for the channel.
-     * @throws IllegalArgumentException if channel does not exist in the channel map.
+     * @throws IllegalArgumentException if channel does not exist in the channel
+     *             map.
      */
     public EcalChannelConstants getChannelConstants(EcalChannel channel) {
         // This channel must come from the map.

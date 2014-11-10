@@ -5,13 +5,14 @@ import java.util.Set;
 
 /**
  * <p>
- * This class provides meta data about a conditions table, including a list of conditions
- * data fields. The list of fields does not include the collection ID or row ID, which are
- * implicitly assumed to exist.
+ * This class provides meta data about a conditions table, including a list of
+ * conditions data fields. The list of fields does not include the collection ID
+ * or row ID, which are implicitly assumed to exist.
  * </p>
  * <p>
- * It also has references to the implementation classes which are used to map the data
- * onto {@link ConditionsObject} and {@link ConditionsObjectCollection}s.
+ * It also has references to the implementation classes which are used to map
+ * the data onto {@link ConditionsObject} and {@link ConditionsObjectCollection}
+ * s.
  * </p>
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -50,7 +51,7 @@ public final class TableMetaData {
      * Get the type of collection this table maps onto.
      * @return
      */
-   public Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
+    public Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
         return collectionClass;
     }
 
@@ -82,8 +83,8 @@ public final class TableMetaData {
     }
 
     /**
-     * Get the key of this conditions type. May be different from table name but is
-     * usually the same.
+     * Get the key of this conditions type. May be different from table name but
+     * is usually the same.
      * @return The key name of the conditions type.
      */
     public String getKey() {

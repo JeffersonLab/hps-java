@@ -73,8 +73,8 @@ public class BeamCurrentTest extends TestCase {
         int currentRun = Integer.MIN_VALUE;
 
         /**
-         * This method will check the beam current against the answer key for the first
-         * event of a new run.
+         * This method will check the beam current against the answer key for
+         * the first event of a new run.
          */
         public void process(EventHeader event) {
             if (currentRun != event.getRunNumber()) {

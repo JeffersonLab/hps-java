@@ -7,24 +7,22 @@ import java.util.List;
 import org.hps.util.Pair;
 
 /**
- * This class represents SVT channel setup information, including FEB ID, 
- * FEB Hybrid ID, and channel numbers.
+ * This class represents SVT channel setup information, including FEB ID, FEB
+ * Hybrid ID, and channel numbers.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public final class SvtChannel extends AbstractSvtChannel {
 
-
-	public static class SvtChannelCollection 
-	    extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
+    public static class SvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
 
         /**
          * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
          * @param pair The DAQ pair.
          * @return The channels matching the DAQ pair or null if not found.
          */
-	    @Override
+        @Override
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
             List<SvtChannel> channels = new ArrayList<SvtChannel>();
             int febID = pair.getFirstElement();
@@ -59,10 +57,7 @@ public final class SvtChannel extends AbstractSvtChannel {
      * @return This object as a string.
      */
     public String toString() {
-        return "channel_id: " + getChannelID() +
-               ", feb_id: " + getFebID() + 
-               ", feb_hybrid_id: " + getFebHybridID() +
-               ", channel: " + getChannel();
+        return "channel_id: " + getChannelID() + ", feb_id: " + getFebID() + ", feb_hybrid_id: " + getFebHybridID() + ", channel: " + getChannel();
     }
 
     /**
@@ -77,9 +72,6 @@ public final class SvtChannel extends AbstractSvtChannel {
         if (o == this)
             return true;
         SvtChannel channel = (SvtChannel) o;
-        return getChannelID() == channel.getChannelID() 
-                && getFebID() == channel.getFebID() 
-                && getFebHybridID() == channel.getFebHybridID() 
-                && getChannel() == channel.getChannel();
+        return getChannelID() == channel.getChannelID() && getFebID() == channel.getFebID() && getFebHybridID() == channel.getFebHybridID() && getChannel() == channel.getChannel();
     }
 }

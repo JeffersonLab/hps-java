@@ -6,18 +6,19 @@ import org.hps.conditions.svt.SvtGain;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 
 /**
- * Test some basic operations of {@link org.hps.conditions.ConditionsObject} using the
- * {@link org.hps.conditions.svt.SvtGain} type.
+ * Test some basic operations of {@link org.hps.conditions.ConditionsObject}
+ * using the {@link org.hps.conditions.svt.SvtGain} type.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsObjectTest extends TestCase {
 
     public void testBasicOperations() throws ConditionsObjectException {
-    	
+
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
-        // Create a new collection, setting its table meta data and collection ID.
+        // Create a new collection, setting its table meta data and collection
+        // ID.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
         int collectionId = conditionsManager.getNextCollectionID(tableMetaData.getTableName());
         SvtGainCollection collection = new SvtGainCollection();

@@ -15,13 +15,15 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class tests that {@link org.lcsim.hps.conditions.TestRunConditionsDriver} works correctly
- * by checking the number of runs it processes.
+ * This class tests that
+ * {@link org.lcsim.hps.conditions.TestRunConditionsDriver} works correctly by
+ * checking the number of runs it processes.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsDriverTest extends TestCase {
 
-    // This test file has a few events from each of the "good runs" of the 2012 Test Run.
+    // This test file has a few events from each of the "good runs" of the 2012
+    // Test Run.
     private static final String fileLocation = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
 
     // Number of runs that should be processed in the job.

@@ -7,14 +7,16 @@ import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
 
 /**
  * <p>
- * This converter creates a <tt>ConditionsSeries</tt> which is a set of <tt>ConditionsObjectCollection</tt>
- * objects with the same type.  This can be used to retrieve sets of conditions that may overlap in 
- * time validity, such as sets of bad channels .
+ * This converter creates a <tt>ConditionsSeries</tt> which is a set of
+ * <tt>ConditionsObjectCollection</tt> objects with the same type. This can be
+ * used to retrieve sets of conditions that may overlap in time validity, such
+ * as sets of bad channels .
  * </p>
  * <p>
- * Since type inference from the target variable is used in the {@link #createSeries(String)} method
- * signature, there only needs to be one of these converters per {@link DatabaseConditionsManager}.
- * The creation of the specific types is also done automatically, so each type of conditions object
+ * Since type inference from the target variable is used in the
+ * {@link #createSeries(String)} method signature, there only needs to be one of
+ * these converters per {@link DatabaseConditionsManager}. The creation of the
+ * specific types is also done automatically, so each type of conditions object
  * does not need its own converter class.
  * </p>
  * 
@@ -23,20 +25,24 @@ import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
 class ConditionsSeriesConverter {
 
     DatabaseConditionsManager conditionsManager = null;
-    
+
     ConditionsSeriesConverter(DatabaseConditionsManager conditionsManager) {
         if (conditionsManager == null)
             throw new RuntimeException("The conditionsManager is null.");
         this.conditionsManager = conditionsManager;
     }
-        
+
     /**
-     * Create a <tt>ConditionsSeries</tt> which is a series of <tt>ConditionsObjectCollections</tt> of the same type,
-     * each of which have their own <tt>ConditionsRecord</tt>.  This should be used for overlapping conditions, such as
-     * sets of bad channels that are combined together as in the test run.
+     * Create a <tt>ConditionsSeries</tt> which is a series of
+     * <tt>ConditionsObjectCollections</tt> of the same type, each of which have
+     * their own <tt>ConditionsRecord</tt>. This should be used for overlapping
+     * conditions, such as sets of bad channels that are combined together as in
+     * the test run.
      * 
-     * @param conditionsKey The name of the conditions key to retrieve from the conditions table.
-     * @return The <tt>ConditionsSeries</tt> matching <tt>conditionsKey</tt> which type inferred from target variable.
+     * @param conditionsKey The name of the conditions key to retrieve from the
+     *            conditions table.
+     * @return The <tt>ConditionsSeries</tt> matching <tt>conditionsKey</tt>
+     *         which type inferred from target variable.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> createSeries(String conditionsKey) {
@@ -48,13 +54,14 @@ class ConditionsSeriesConverter {
 
         ConditionsSeries<CollectionType> series = new ConditionsSeries<CollectionType>();
 
-        // Get the ConditionsRecord with the meta-data, which will use the current run
+        // Get the ConditionsRecord with the meta-data, which will use the
+        // current run
         // number from the manager.
         ConditionsRecordCollection conditionsRecords = conditionsManager.findConditionsRecords(conditionsKey);
 
         // Loop over conditions records. This will usually just be one record.
         for (ConditionsRecord conditionsRecord : conditionsRecords.getObjects()) {
-            
+
             ConditionsObjectCollection collection = ConditionsObjectUtil.createCollection(tableMetaData);
 
             try {
@@ -85,13 +92,13 @@ class ConditionsSeriesConverter {
 
                     // Add new object to collection, which will also assign it a
                     // collection ID if applicable.
-                    collection.add(newObject);                                       
+                    collection.add(newObject);
                 }
             } catch (SQLException | ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }
-            
-            series.addCollection((CollectionType)collection);
+
+            series.addCollection((CollectionType) collection);
         }
 
         // Return new collection.

@@ -3,13 +3,15 @@ package org.hps.conditions;
 import java.util.Date;
 
 /**
- * This class represents a single record from the primary conditions data table, which
- * defines the validity range for a specific collection of conditions objects.
+ * This class represents a single record from the primary conditions data table,
+ * which defines the validity range for a specific collection of conditions
+ * objects.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 // TODO: Check behavior of select, delete, update and insert operations.
-// TODO: Override default behavior of methods in super class that don't make sense.
+// TODO: Override default behavior of methods in super class that don't make
+// sense.
 public final class ConditionsRecord extends AbstractConditionsObject {
 
     /**
@@ -17,15 +19,16 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      */
     public static class ConditionsRecordCollection extends ConditionsObjectCollection<ConditionsRecord> {
         /**
-         * Since ConditionsRecord collections are always "mixed", meaning the collection
-         * ID values are usually all going to be different, the default behavior of the
-         * super class is overridden.
+         * Since ConditionsRecord collections are always "mixed", meaning the
+         * collection ID values are usually all going to be different, the
+         * default behavior of the super class is overridden.
          */
         public void add(ConditionsRecord record) {
             objects.add(record);
         }
 
-        // FIXME: Should probably override more methods here that don't make sense for
+        // FIXME: Should probably override more methods here that don't make
+        // sense for
         // this type!
     }
 
@@ -81,8 +84,9 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     }
 
     /**
-     * Get the name of these conditions, which should be unique by run number. This is
-     * called the "key" in the table meta data to distinguish it from "table name".
+     * Get the name of these conditions, which should be unique by run number.
+     * This is called the "key" in the table meta data to distinguish it from
+     * "table name".
      * @return The name of the conditions.
      */
     public String getName() {
@@ -104,7 +108,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public int getCollectionId() {
         return getFieldValue("collection_id");
     }
-    
+
     /**
      * Get the string tag associated with these conditions.
      * @return The string tag.

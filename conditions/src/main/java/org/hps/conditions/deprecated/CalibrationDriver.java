@@ -15,15 +15,16 @@ import org.lcsim.util.Driver;
  */
 public class CalibrationDriver extends Driver implements ConditionsListener {
 
-    // The test run number of interest.  If it equals -1, the default calibrations
+    // The test run number of interest. If it equals -1, the default
+    // calibrations
     // are loaded
     private static int runNumber = -1;
     private boolean fixRunNumber = false;
-	private String gainFilename = "default.gain";
+    private String gainFilename = "default.gain";
 
     public CalibrationDriver() {
         add(new EcalConditions());
-        //add(new HPSSVTSensorSetup());
+        // add(new HPSSVTSensorSetup());
     }
 
     public void setRunNumber(int runNumber) {
@@ -52,13 +53,15 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
         super.detectorChanged(detector);
 
         if (!EcalConditions.calibrationLoaded()) {
-        	EcalConditions.setGainFilename(gainFilename);
-        	EcalConditions.loadCalibration();
+            EcalConditions.setGainFilename(gainFilename);
+            EcalConditions.loadCalibration();
         }
-        /*if (fixRunNumber && (!HPSSVTCalibrationConstants.pedestalLoaded() || !HPSSVTCalibrationConstants.tpLoaded())) {
-            System.out.println("Loading calibration for set run: " + runNumber);
-            loadCalibsByRun(runNumber);
-        }*/
+        /*
+         * if (fixRunNumber && (!HPSSVTCalibrationConstants.pedestalLoaded() ||
+         * !HPSSVTCalibrationConstants.tpLoaded())) {
+         * System.out.println("Loading calibration for set run: " + runNumber);
+         * loadCalibsByRun(runNumber); }
+         */
     }
 
     @Override
@@ -76,13 +79,14 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
     }
 
     private void loadCalibsByRun(int run) {
-        //HPSSVTCalibrationConstants.loadCalibration(run);
+        // HPSSVTCalibrationConstants.loadCalibration(run);
         FieldMap.loadFieldMap(run);
     }
 
     /**
-     * get specified conditions list, parse as a map of run numbers to calibration file paths; get the appropriate file 
-     * @param calibName 
+     * get specified conditions list, parse as a map of run numbers to
+     * calibration file paths; get the appropriate file
+     * @param calibName
      * @param run
      * @return
      */
@@ -95,7 +99,7 @@ public class CalibrationDriver extends Driver implements ConditionsListener {
         String filePath = null;
         for (Object key : calibSet.keySet()) {
             int keyRun = Integer.parseInt((String) key);
-//            System.out.println("Available calibration for run: " + keyRun);
+            // System.out.println("Available calibration for run: " + keyRun);
             if (keyRun > mostRecentValid && keyRun <= run) {
                 mostRecentValid = keyRun;
                 filePath = calibSet.getString((String) key);

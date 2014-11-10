@@ -10,23 +10,22 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
  * 
- * This class contains all test run SVT conditions data by readout channel. 
- * {@link SvtChannel} objects from the SVT channel map should be used to
- * lookup the conditions using the {@link #getChannelConstants(SvtChannel)}
- * method.
+ * This class contains all test run SVT conditions data by readout channel.
+ * {@link SvtChannel} objects from the SVT channel map should be used to lookup
+ * the conditions using the {@link #getChannelConstants(SvtChannel)} method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public final class SvtConditions extends AbstractSvtConditions {
 
-	/**
+    /**
      * Get the {@link SvtDaqMappingCollection} associated with these conditions.
      * 
      * @return The SVT DAQ map.
      */
     @Override
-    public SvtDaqMappingCollection getDaqMap(){
+    public SvtDaqMappingCollection getDaqMap() {
         return (SvtDaqMappingCollection) daqMap;
     }
 
@@ -36,30 +35,29 @@ public final class SvtConditions extends AbstractSvtConditions {
      * @return The SVT channel map.
      */
     @Override
-    public SvtChannelCollection getChannelMap(){
+    public SvtChannelCollection getChannelMap() {
         return (SvtChannelCollection) channelMap;
     }
-    
+
     /**
      * Get the {@link SvtT0ShiftCollection} associated with these conditions.
      * 
      * @return The {@link SvtT0ShiftCollection}
      */
     @Override
-    public SvtT0ShiftCollection getT0Shifts() { 
-    	return (SvtT0ShiftCollection) t0Shifts;
+    public SvtT0ShiftCollection getT0Shifts() {
+        return (SvtT0ShiftCollection) t0Shifts;
     }
-    
 
     /**
-     * Convert this object to a human readable string. This method prints a formatted
-     * table of channel data independently of how its member objects implement their
-     * string conversion method. For now, it does not print the time shifts by sensor as
-     * all other information is by channel.
+     * Convert this object to a human readable string. This method prints a
+     * formatted table of channel data independently of how its member objects
+     * implement their string conversion method. For now, it does not print the
+     * time shifts by sensor as all other information is by channel.
      * 
-     * @return This object converted to a string, without the DAQ map.
-     * TODO: Make this look more human readable.  At the moment, reading this
-     * 		 requires a huge terminal window.
+     * @return This object converted to a string, without the DAQ map. TODO:
+     *         Make this look more human readable. At the moment, reading this
+     *         requires a huge terminal window.
      */
     public String toString() {
         StringBuffer buff = new StringBuffer();
@@ -131,13 +129,13 @@ public final class SvtConditions extends AbstractSvtConditions {
             buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelID(), channel.getFebID(), channel.getFebHybridID(), channel.getChannel()));
 
             // Calibration.
-            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
-            	buff.append(calibration.getPedestal(sample));
-            	buff.append("      ");
+            for (int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++) {
+                buff.append(calibration.getPedestal(sample));
+                buff.append("      ");
             }
-            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
-            	buff.append(calibration.getNoise(sample));
-            	buff.append("      ");
+            for (int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++) {
+                buff.append(calibration.getNoise(sample));
+                buff.append("      ");
             }
 
             // Gain.

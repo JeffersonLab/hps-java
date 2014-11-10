@@ -18,12 +18,15 @@ import org.hps.conditions.QueryBuilder;
 
 /**
  * <p>
- * This is a sub-command to add conditions data using an input text file.
- * The file should be ASCII text that is tab or space delimited and includes headers with the names of 
- * the database columns.  (These must match exactly!)  The user must supply a table name as the target 
- * for the SQL insert.  An optional collection ID can be supplied, which may not exist already in the table.  
- * Otherwise, the command will fail.  By default, the next collection ID will be found by the conditions manager.
+ * This is a sub-command to add conditions data using an input text file. The
+ * file should be ASCII text that is tab or space delimited and includes headers
+ * with the names of the database columns. (These must match exactly!) The user
+ * must supply a table name as the target for the SQL insert. An optional
+ * collection ID can be supplied, which may not exist already in the table.
+ * Otherwise, the command will fail. By default, the next collection ID will be
+ * found by the conditions manager.
  * <p>
+ * 
  * <pre>
  * java -cp hps-distribution-bin.jar org.hps.conditions.cli.CommandLineTool -p conditions_dev_local.properties \
  *     load -t scratch_svt_gains -f ./scratch_svt_gains.txt -c 1
@@ -32,59 +35,59 @@ import org.hps.conditions.QueryBuilder;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LoadCommand extends AbstractCommand {
-       
+
     LoadCommand() {
         super("load", "Load a set of conditions into the database from a text file");
         this.options.addOption(new Option("t", true, "Set the name of the target table in the database"));
         this.options.addOption(new Option("c", true, "Set the collection ID of this conditions set"));
         this.options.addOption(new Option("f", true, "Set the input data file"));
-    }    
-    
+    }
+
     @Override
     public void execute(String[] arguments) {
-        CommandLine commandLine;        
+        CommandLine commandLine;
         try {
-            commandLine = parser.parse(options,  arguments);
+            commandLine = parser.parse(options, arguments);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        
+
         String fileName = commandLine.getOptionValue("f");
         if (fileName == null) {
             throw new IllegalArgumentException("Missing file argument.");
         }
-        
+
         String tableName = commandLine.getOptionValue("t");
         if (tableName == null) {
             throw new IllegalArgumentException("Missing table name.");
         }
-        
+
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         if (conditionsManager == null) {
             throw new RuntimeException("The DatabaseConditionsManager was not setup properly.");
         }
-        
+
         int collectionID;
         if (commandLine.getOptionValue("c") != null) {
             collectionID = Integer.parseInt(commandLine.getOptionValue("c"));
             if (conditionsManager.collectionExists(tableName, collectionID)) {
                 throw new IllegalArgumentException("The user supplied collection ID " + collectionID + " already exists in this table.");
-            }            
+            }
         } else {
-            collectionID = conditionsManager.getNextCollectionID(tableName); 
+            collectionID = conditionsManager.getNextCollectionID(tableName);
         }
-                                
+
         List<String> columnNames = new ArrayList<String>();
-        List<List<String>> rows = new ArrayList<List<String>>();        
+        List<List<String>> rows = new ArrayList<List<String>>();
         parseFile(fileName, columnNames, rows);
-                        
+
         String insertSql = QueryBuilder.buildInsert(tableName, collectionID, columnNames, rows);
         if (verbose)
             System.out.println(insertSql);
         List<Integer> IDs = conditionsManager.updateQuery(insertSql);
         System.out.println("Inserted " + IDs.size() + " new rows into table " + tableName + " with collection_id " + collectionID);
     }
-    
+
     void parseFile(String fileName, List<String> columnNames, List<List<String>> rows) {
         File inputFile = new File(fileName);
         BufferedReader reader = null;
@@ -117,6 +120,6 @@ public class LoadCommand extends AbstractCommand {
                     e.printStackTrace();
                 }
             }
-        }        
-    }    
+        }
+    }
 }

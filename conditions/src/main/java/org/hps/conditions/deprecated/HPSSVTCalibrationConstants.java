@@ -21,54 +21,55 @@ import org.hps.util.Pair;
 /**
  *
  * @author Mathew Graham <mgraham@slac.stanford.edu> $Id:
- * HPSSVTCalibrationConstants.java,v 1.23 2013/02/25 22:39:26 meeg Exp $
+ *         HPSSVTCalibrationConstants.java,v 1.23 2013/02/25 22:39:26 meeg Exp $
  */
 public class HPSSVTCalibrationConstants {
 
     // TODO: Change all map keys to type SiSensor?
     // TODO: Update everything to make it compatible new version of SVT Utils
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, double[] /*
-             * constants
-             */> noiseMap = new HashMap<Pair<Integer, Integer>, double[]>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, double[] /*
+                                                                 * constants
+                                                                 */> noiseMap = new HashMap<Pair<Integer, Integer>, double[]>();
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, double[] /*
-             * constants
-             */> pedestalMap = new HashMap<Pair<Integer, Integer>, double[]>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, double[] /*
+                                                                 * constants
+                                                                 */> pedestalMap = new HashMap<Pair<Integer, Integer>, double[]>();
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, double[] /*
-             * constants
-             */> tpMap = new HashMap<Pair<Integer, Integer>, double[]>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, double[] /*
+                                                                 * constants
+                                                                 */> tpMap = new HashMap<Pair<Integer, Integer>, double[]>();
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, Set<Integer> /*
-             * Bad channels
-             */> badChannelMap = new HashMap<Pair<Integer, Integer>, Set<Integer>>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, Set<Integer> /*
+                                                                     * Bad
+                                                                     * channels
+                                                                     */> badChannelMap = new HashMap<Pair<Integer, Integer>, Set<Integer>>();
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, List<Double> /*
-             * channels
-             */> gainMap = new HashMap<Pair<Integer, Integer>, List<Double>>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, List<Double> /*
+                                                                     * channels
+                                                                     */> gainMap = new HashMap<Pair<Integer, Integer>, List<Double>>();
     private static Map<Pair<Integer /*
-             * FPGA
-             */, Integer /*
-             * Hybrid
-             */>, List<Double> /*
-             * channels
-             */> offsetMap = new HashMap<Pair<Integer, Integer>, List<Double>>();
+                                     * FPGA
+                                     */, Integer /*
+                                                  * Hybrid
+                                                  */>, List<Double> /*
+                                                                     * channels
+                                                                     */> offsetMap = new HashMap<Pair<Integer, Integer>, List<Double>>();
     private static Map<Pair<Integer, Integer>, Double> t0ShiftMap = new HashMap<Pair<Integer, Integer>, Double>();
     private static boolean pedestalLoaded = false;
     private static boolean tpLoaded = false;
@@ -88,7 +89,7 @@ public class HPSSVTCalibrationConstants {
     }
 
     public static void loadCalibrationConstants(int run) {
-        //write something here to read in constants from calibration file
+        // write something here to read in constants from calibration file
         ConditionsManager conditions = ConditionsManager.defaultInstance();
         String filePath = null;
 
@@ -104,7 +105,6 @@ public class HPSSVTCalibrationConstants {
         } catch (IOException e) {
             throw new RuntimeException("couldn't get baseline file", e);
         }
-
 
         filePath = CalibrationDriver.getCalibForRun("calibSVT/tp", run);
 
@@ -203,7 +203,24 @@ public class HPSSVTCalibrationConstants {
                     int channel = Integer.valueOf(lineTok.nextToken());
                     double amplitude = Double.valueOf(lineTok.nextToken());
                     double t0 = Double.valueOf(lineTok.nextToken());
-                    double tp = Double.valueOf(lineTok.nextToken()) * 24.0 / 25.0; //FIXME: this is a hack to compensate for the calibrations we have that assumed 25 ns APV clock
+                    double tp = Double.valueOf(lineTok.nextToken()) * 24.0 / 25.0; // FIXME:
+                                                                                   // this
+                                                                                   // is
+                                                                                   // a
+                                                                                   // hack
+                                                                                   // to
+                                                                                   // compensate
+                                                                                   // for
+                                                                                   // the
+                                                                                   // calibrations
+                                                                                   // we
+                                                                                   // have
+                                                                                   // that
+                                                                                   // assumed
+                                                                                   // 25
+                                                                                   // ns
+                                                                                   // APV
+                                                                                   // clock
                     double chisq = Double.valueOf(lineTok.nextToken());
 
                     Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(fpga, hybrid);
@@ -261,7 +278,8 @@ public class HPSSVTCalibrationConstants {
             reader = new BufferedReader(conditions.getRawConditions(filePath).getReader());
             loadBadChannels(reader);
         } catch (IOException exception) {
-            // If the file isn't found, continue on with just the QA bad channels
+            // If the file isn't found, continue on with just the QA bad
+            // channels
             System.out.println("File " + filePath + " was not found! Continuing with only QA bad channels");
         }
     }
@@ -460,7 +478,7 @@ public class HPSSVTCalibrationConstants {
      * Checks if a channel has been tagged as bad
      *
      * @param daqPair : a FPGA/Hybrid pair defining which sensor the channels in
-     * located on
+     *            located on
      * @param channel : The channel to be checked
      * @return true if the channel is bad, false otherwise
      */
@@ -477,7 +495,8 @@ public class HPSSVTCalibrationConstants {
         return totalBadChannels;
     }
 
-    //class to hold calibration constants for a channel; leave fields NaN or null if not known
+    // class to hold calibration constants for a channel; leave fields NaN or
+    // null if not known
     public static class ChannelConstants {
 
         private double pedestal = Double.NaN;

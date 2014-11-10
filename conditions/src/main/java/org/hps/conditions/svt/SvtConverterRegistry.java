@@ -15,19 +15,20 @@ import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollectio
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 
 /**
- * Definitions of converters from the database to SVT specific conditions classes.
+ * Definitions of converters from the database to SVT specific conditions
+ * classes.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public final class SvtConverterRegistry {
 
-    public static class SvtAlignmentConverter extends ConditionsObjectConverter<SvtAlignmentCollection> {        
+    public static class SvtAlignmentConverter extends ConditionsObjectConverter<SvtAlignmentCollection> {
         public Class getType() {
             return SvtAlignmentCollection.class;
-        }               
+        }
     }
-    
+
     public static class SvtBadChannelConverter extends ConditionsObjectConverter<SvtBadChannelCollection> {
         public Class getType() {
             return SvtBadChannelCollection.class;
@@ -45,7 +46,7 @@ public final class SvtConverterRegistry {
             return SvtChannelCollection.class;
         }
     }
-    
+
     public static class SvtConfigurationConverter extends ConditionsObjectConverter<SvtConfigurationCollection> {
         public Class getType() {
             return SvtConfigurationCollection.class;
@@ -75,15 +76,15 @@ public final class SvtConverterRegistry {
             return SvtT0ShiftCollection.class;
         }
     }
-    
+
     public static class TestRunSvtDaqMappingConverter extends ConditionsObjectConverter<TestRunSvtDaqMappingCollection> {
         public Class getType() {
             return TestRunSvtDaqMappingCollection.class;
         }
     }
-    
+
     public static class TestRunSvtChannelConverter extends ConditionsObjectConverter<TestRunSvtChannelCollection> {
-        public Class getType(){
+        public Class getType() {
             return TestRunSvtChannelCollection.class;
         }
     }

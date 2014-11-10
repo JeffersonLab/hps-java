@@ -13,38 +13,35 @@ import org.lcsim.conditions.ConditionsManager;
 import org.hps.util.Pair;
 
 /**
-
-@author Mathew Graham <mgraham@slac.stanford.edu> $Id: FieldMap.java,v 1.14
-2012/07/23 23:02:57 mgraham Exp $
+ * @author Mathew Graham <mgraham@slac.stanford.edu> $Id: FieldMap.java,v 1.14
+ *         2012/07/23 23:02:57 mgraham Exp $
  */
 public class FieldMap {
 
     // TODO: Change all pairs such that FPGA is the fist value
     // TODO: Change all map keys to type SiSensor?
 
-	public static Map<Pair<Integer/*
-            zbin
-             */, Integer/*
-            xbin
-             */>, Double/*
-            b_y
-             */> fieldMap = new HashMap<Pair<Integer, Integer>, Double>();
-    ;
     public static Map<Pair<Integer/*
-            zbin
-             */, Integer/*
-            zbin
-             */>, Pair<Double/*
-            zpos
-             */, Double/*
-            xpos
-             */>> fieldBins = new HashMap<Pair<Integer, Integer>, Pair<Double, Double>>();
-    ;
+                                   * zbin
+                                   */, Integer/*
+                                               * xbin
+                                               */>, Double/*
+                                                           * b_y
+                                                           */> fieldMap = new HashMap<Pair<Integer, Integer>, Double>();;
+    public static Map<Pair<Integer/*
+                                   * zbin
+                                   */, Integer/*
+                                               * zbin
+                                               */>, Pair<Double/*
+                                                                * zpos
+                                                                */, Double/*
+                                                                           * xpos
+                                                                           */>> fieldBins = new HashMap<Pair<Integer, Integer>, Pair<Double, Double>>();;
     private static boolean fieldMapLoaded = false;
     private static boolean debug = false;
 
     /**
-    Default Ctor
+     * Default Ctor
      */
     private FieldMap() {
     }
@@ -55,13 +52,15 @@ public class FieldMap {
 
     public static void loadFieldMap(int run) {
         System.out.println("Loading fieldmap for run " + run);
-        //write something here to read in constants from calibration file
+        // write something here to read in constants from calibration file
         ConditionsManager conditions = ConditionsManager.defaultInstance();
 
         String filePath = null;
 
-        //TODO: if we ever have more than one field map, make a list and uncomment this
-//        filePath = HPSCalibrationListener.getCalibForRun("FieldMap/bfieldmap", run);
+        // TODO: if we ever have more than one field map, make a list and
+        // uncomment this
+        // filePath =
+        // HPSCalibrationListener.getCalibForRun("FieldMap/bfieldmap", run);
 
         if (filePath == null) {
             filePath = "FieldMap/bfieldmap.dat";
@@ -73,9 +72,6 @@ public class FieldMap {
         } catch (IOException e) {
             throw new RuntimeException("couldn't get baseline file", e);
         }
-
-
-
 
     }
 
@@ -113,17 +109,20 @@ public class FieldMap {
                     double val = vals.get(i);
                     if (i == 0 && val >= 0) {
                         xval = 0.0;
-                        zval = val * 10.0;//convert from cm to mm
+                        zval = val * 10.0;// convert from cm to mm
                         ix = 0;
                         iz++;
                     } else {
-                        bY = val / 10000.0 * 0.491 / 0.5;//gauss-->tesla  and normalize by our nominal bfield (file is for 0.5T)
+                        bY = val / 10000.0 * 0.491 / 0.5;// gauss-->tesla and
+                                                         // normalize by our
+                                                         // nominal bfield (file
+                                                         // is for 0.5T)
                         bY = Math.abs(bY);
                         Pair zx = new Pair(zval, xval);
                         Pair izix = new Pair(iz, ix);
-//                    System.out.println("Putting B = "+bY+" & (Z,X) = "+zval+","+xval+")");
+                        // System.out.println("Putting B = "+bY+" & (Z,X) = "+zval+","+xval+")");
                         fieldMap.put(izix, bY);
-//                    System.out.println("Making _fieldBins pair = ("+iz+","+ix+")");
+                        // System.out.println("Making _fieldBins pair = ("+iz+","+ix+")");
                         fieldBins.put(izix, zx);
                         xval += 10.0;
                         ix++;
@@ -143,10 +142,10 @@ public class FieldMap {
         List<Double> nums = new ArrayList<Double>();
         while (tok.hasMoreTokens()) {
             String tokVal = tok.nextToken();
-//             System.out.println(tokVal);
+            // System.out.println(tokVal);
             nums.add(Double.valueOf(tokVal).doubleValue());
         }
-//        System.out.println("Returning list");
+        // System.out.println("Returning list");
         return nums;
     }
 
@@ -179,15 +178,15 @@ public class FieldMap {
         return izix;
 
     }
-    
+
     public static void printFieldMap() {
-    	int xval = 0;
+        int xval = 0;
         System.out.printf("---- B-field ----\n");
-        System.out.printf("%5s %5s %10s\n", "z","x","B");
-    	for(int zval=-100;zval< 1400;++zval) {
-    		double bfield = FieldMap.getFieldFromMap((double)zval, (double)xval);
-            System.out.printf("%5d %5d %10.3f\n", zval,xval,bfield);
-    	}
+        System.out.printf("%5s %5s %10s\n", "z", "x", "B");
+        for (int zval = -100; zval < 1400; ++zval) {
+            double bfield = FieldMap.getFieldFromMap((double) zval, (double) xval);
+            System.out.printf("%5d %5d %10.3f\n", zval, xval, bfield);
+        }
     }
-    
+
 }

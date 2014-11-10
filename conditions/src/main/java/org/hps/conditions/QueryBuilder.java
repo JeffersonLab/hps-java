@@ -3,7 +3,8 @@ package org.hps.conditions;
 import java.util.List;
 
 /**
- * This is a static utility class for building SQL queries for the conditions system.
+ * This is a static utility class for building SQL queries for the conditions
+ * system.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -62,7 +63,7 @@ public final class QueryBuilder {
         buff.append(") ");
         return buff.toString();
     }
-    
+
     public static String buildInsert(String tableName, int collectionID, List<String> columnNames, List<List<String>> rows) {
         StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO " + tableName + " ( collection_id");
@@ -77,16 +78,15 @@ public final class QueryBuilder {
                 buff.append(", '" + value + "'");
             }
             buff.append("), ");
-        }        
+        }
         buff.setLength(buff.length() - 2);
         return buff.toString();
     }
-    
 
     public static String buildDelete(String tableName, int rowId) {
         if (rowId <= 0)
             throw new IllegalArgumentException("Invalid row ID: " + rowId);
         String query = "DELETE FROM " + tableName + " WHERE id = " + rowId;
         return query;
-    }        
+    }
 }

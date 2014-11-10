@@ -12,17 +12,17 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 public class EcalConditionsConverterTest extends TestCase {
 
     DatabaseConditionsManager conditionsManager;
-    
-    public void setUp() {                
+
+    public void setUp() {
         conditionsManager = DatabaseConditionsManager.getInstance();
         try {
-			conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
-		} catch (ConditionsNotFoundException e) {
-			throw new RuntimeException(e);
-		}
+            conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void test() {       
+    public void test() {
         // Test that the manager gets ECAL conditions.
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
         assertNotNull(conditions);

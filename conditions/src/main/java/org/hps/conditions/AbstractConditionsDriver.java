@@ -8,10 +8,9 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * This abstract {@link org.lcsim.util.Driver} contains the 
- * general methods used to set up {@link DatabaseConditionsManager} 
- * and load the conditions onto a detector.  The connection
- * parameters are set by subclasses.
+ * This abstract {@link org.lcsim.util.Driver} contains the general methods used
+ * to set up {@link DatabaseConditionsManager} and load the conditions onto a
+ * detector. The connection parameters are set by subclasses.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -22,19 +21,18 @@ public abstract class AbstractConditionsDriver extends Driver {
 
     private String ecalSubdetectorName = "Ecal";
     protected String svtSubdetectorName = "Tracker";
-    
+
     boolean loadSvtConditions = true;
     boolean loadEcalConditions = true;
-
 
     public void setLoadSvtConditions(boolean loadSvtConditions) {
         this.loadSvtConditions = loadSvtConditions;
     }
-    
+
     public void setLoadEcalConditions(boolean loadEcaltConditions) {
         this.loadEcalConditions = loadSvtConditions;
     }
-    
+
     public void setEcalSubdetectorName(String ecalSubdetectorName) {
         this.ecalSubdetectorName = ecalSubdetectorName;
     }
@@ -42,7 +40,7 @@ public abstract class AbstractConditionsDriver extends Driver {
     public void setSvtSubdetectorName(String svtSubdetectorName) {
         this.svtSubdetectorName = svtSubdetectorName;
     }
-       
+
     /**
      * This method updates a new detector with SVT and ECal conditions data.
      */

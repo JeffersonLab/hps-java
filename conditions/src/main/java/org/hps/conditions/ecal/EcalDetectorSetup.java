@@ -9,7 +9,8 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.geometry.Subdetector;
 
 /**
- * Puts {@link EcalConditions} data onto <code>EcalCrystal</code> objects on the detector.
+ * Puts {@link EcalConditions} data onto <code>EcalCrystal</code> objects on the
+ * detector.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class EcalDetectorSetup {
@@ -39,7 +40,8 @@ public final class EcalDetectorSetup {
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {
 
-            // System.out.println(crystal.getName() + " @ " + crystal.getX() + ", " +
+            // System.out.println(crystal.getName() + " @ " + crystal.getX() +
+            // ", " +
             // crystal.getY());
 
             // Reset in case of existing conditions data.

@@ -8,7 +8,8 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 
 /**
- * This is a set of utility methods for the ECAL that use the database conditions system.
+ * This is a set of utility methods for the ECAL that use the database
+ * conditions system.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -25,8 +26,8 @@ public final class EcalConditionsUtil {
     }
 
     /**
-     * Constructor which will find the ECAL conditions from the static conditions manager
-     * instance.
+     * Constructor which will find the ECAL conditions from the static
+     * conditions manager instance.
      */
     public EcalConditionsUtil() {
         conditions = DatabaseConditionsManager.getInstance().getConditionsData(EcalConditions.class, TableConstants.ECAL_CONDITIONS);
@@ -36,7 +37,8 @@ public final class EcalConditionsUtil {
      * Find a channel object from a cell ID, e.g. from Monte Carlo data.
      * @param helper The identifier helper of the hit.
      * @param cellId The cell ID of the hit.
-     * @return The corresponding ECAL channel found from the physical ID information.
+     * @return The corresponding ECAL channel found from the physical ID
+     *         information.
      */
     EcalChannel findChannel(IIdentifierHelper helper, long cellId) {
 

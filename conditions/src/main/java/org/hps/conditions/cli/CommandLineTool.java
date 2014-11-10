@@ -15,17 +15,18 @@ import org.hps.conditions.DatabaseConditionsManager;
 
 /**
  * <p>
- * This class is a command-line tool for performing commands on the conditions database.
- * It has sub-commands much like the cvs or svn clients.  The only current implemented
- * command is 'load' to import text files, but more will be added.
+ * This class is a command-line tool for performing commands on the conditions
+ * database. It has sub-commands much like the cvs or svn clients. The only
+ * current implemented command is 'load' to import text files, but more will be
+ * added.
  * <p>
- * Command line options allow a custom connection properties file or XML configuration
- * to be supplied by the user which will override the default.
+ * Command line options allow a custom connection properties file or XML
+ * configuration to be supplied by the user which will override the default.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CommandLineTool {
-    
+
     Options options = new Options();
     Map<String, AbstractCommand> commands = new HashMap<String, AbstractCommand>();
     PosixParser parser = new PosixParser();
@@ -33,12 +34,12 @@ public class CommandLineTool {
     static final String XML_CONFIG_RESOURCE = "/org/hps/conditions/config/conditions_dev.xml";
     DatabaseConditionsManager conditionsManager;
     boolean verbose = false;
-    
-    public static void main(String[] arguments) {        
+
+    public static void main(String[] arguments) {
         CommandLineTool.create().run(arguments);
     }
-    
-    void run(String[] arguments) {        
+
+    void run(String[] arguments) {
         try {
             if (arguments.length == 0) {
                 printUsage();
@@ -58,11 +59,11 @@ public class CommandLineTool {
                 printUsage();
                 exit(0);
             }
-            
+
             if (commandLine.hasOption("v")) {
                 verbose = true;
             }
-            
+
             setupConditionsManager(commandLine);
 
             String commandName = commandLine.getArgs()[0];
@@ -99,7 +100,7 @@ public class CommandLineTool {
             if (verbose)
                 System.out.println("using connection resource " + CONNECTION_PROPERTIES_RESOURCE);
             conditionsManager.setConnectionResource(CONNECTION_PROPERTIES_RESOURCE);
-        }            
+        }
         if (commandLine.hasOption("x")) {
             File xmlConfigFile = new File(commandLine.getOptionValue("x"));
             conditionsManager.configure(xmlConfigFile);
@@ -109,31 +110,31 @@ public class CommandLineTool {
             if (verbose)
                 System.out.println("using XML config resource " + XML_CONFIG_RESOURCE);
             conditionsManager.configure(XML_CONFIG_RESOURCE);
-        }            
+        }
         conditionsManager.register();
         conditionsManager.openConnection();
     }
-    
+
     void printUsage() {
         HelpFormatter help = new HelpFormatter();
         StringBuffer s = new StringBuffer();
         for (String command : commands.keySet()) {
             s.append(command + '\n');
         }
-        help.printHelp("CommandLineTool", "Commands:\n" + s.toString(), options, "");        
+        help.printHelp("CommandLineTool", "Commands:\n" + s.toString(), options, "");
     }
-    
+
     void exit(int status) {
         System.exit(status);
     }
-    
+
     void registerCommand(AbstractCommand command) {
         if (commands.containsKey(command.getName())) {
             throw new IllegalArgumentException("There is already a command called " + command.getName());
         }
         commands.put(command.getName(), command);
     }
-    
+
     static CommandLineTool create() {
         CommandLineTool cli = new CommandLineTool();
         cli.options.addOption(new Option("h", false, "Print help and exit"));

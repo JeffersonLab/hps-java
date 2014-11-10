@@ -1,8 +1,8 @@
 package org.hps.conditions;
 
 /**
- * Generic Exception type throw by methods of {@link ConditionsObject} or other associated
- * classes such as converters and collections.
+ * Generic Exception type throw by methods of {@link ConditionsObject} or other
+ * associated classes such as converters and collections.
  */
 @SuppressWarnings("serial")
 public final class ConditionsObjectException extends Exception {

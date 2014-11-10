@@ -3,9 +3,9 @@ package org.hps.conditions;
 import java.util.LinkedHashMap;
 
 /**
- * This is an ORM interface for accessing conditions database information by row. It can
- * handle new or existing records. The ID values for new records are -1 which indicates
- * they are not in the database yet.
+ * This is an ORM interface for accessing conditions database information by
+ * row. It can handle new or existing records. The ID values for new records are
+ * -1 which indicates they are not in the database yet.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface ConditionsObject {
@@ -44,7 +44,8 @@ public interface ConditionsObject {
     void insert() throws ConditionsObjectException;
 
     /**
-     * Select data into this object from the database using a SQL SELECT statement.
+     * Select data into this object from the database using a SQL SELECT
+     * statement.
      */
     void select() throws ConditionsObjectException;
 
@@ -55,19 +56,22 @@ public interface ConditionsObject {
     boolean isReadOnly();
 
     /**
-     * Return true if this object is new and hasn't been inserted into the database yet.
+     * Return true if this object is new and hasn't been inserted into the
+     * database yet.
      * @return True if object is new.
      */
     boolean isNew();
 
     /**
-     * Return true if this object's data has been modified without a database update.
+     * Return true if this object's data has been modified without a database
+     * update.
      * @return True if object is dirty.
      */
     boolean isDirty();
 
     /**
-     * Generic set method for field values. This will set the object to the 'dirty' state.
+     * Generic set method for field values. This will set the object to the
+     * 'dirty' state.
      * @param fieldName The name of the field.
      * @param fieldValue The field value.
      */
@@ -75,7 +79,8 @@ public interface ConditionsObject {
 
     /**
      * Set all of the field values on this object.
-     * @param fieldValues The FieldValueMap containing pairs of names and values.
+     * @param fieldValues The FieldValueMap containing pairs of names and
+     *            values.
      */
     void setFieldValues(FieldValueMap fieldValues);
 
@@ -94,35 +99,38 @@ public interface ConditionsObject {
     public <T> T getFieldValue(String field);
 
     /**
-     * Set the ConditionsTableMetaData of this object. This cannot be reset once set.
+     * Set the ConditionsTableMetaData of this object. This cannot be reset once
+     * set.
      * @param tableMetaData The ConditionsTableMetaData.
      * @throws ConditionsObjectException if already set
      */
     void setTableMetaData(TableMetaData tableMetaData) throws ConditionsObjectException;
 
     /**
-     * Set the collection ID of this object. This cannot be reset once set to a valid ID
-     * (e.g. not -1).
+     * Set the collection ID of this object. This cannot be reset once set to a
+     * valid ID (e.g. not -1).
      * @param collectionId The collection ID.
      * @throws ConditionsObjectException if already set
      */
     void setCollectionId(int collectionId) throws ConditionsObjectException;
 
     /**
-     * Set the row ID of this object. This cannot be reset once set to a valid ID (e.g.
-     * not -1).
+     * Set the row ID of this object. This cannot be reset once set to a valid
+     * ID (e.g. not -1).
      * @param rowId The object's row ID.
      * @throws ConditionsObjectException if already set
      */
     public void setRowId(int rowId) throws ConditionsObjectException;
 
     /**
-     * Set the object to read only mode. This cannot be changed back once it is set.
+     * Set the object to read only mode. This cannot be changed back once it is
+     * set.
      */
     void setIsReadOnly();
 
     /**
-     * Simple class extending <code>java.lang.Map</code> that maps field names to values.
+     * Simple class extending <code>java.lang.Map</code> that maps field names
+     * to values.
      */
     public static final class FieldValueMap extends LinkedHashMap<String, Object> {
 

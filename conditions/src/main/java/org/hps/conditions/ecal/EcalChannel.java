@@ -12,16 +12,16 @@ import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 
 /**
- * This class encapsulates all the information about a single ECal channel, corresponding
- * to one physical crystal in the detector.
+ * This class encapsulates all the information about a single ECal channel,
+ * corresponding to one physical crystal in the detector.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class EcalChannel extends AbstractConditionsObject {
 
     /**
-     * The <code>DaqId</code> is the combination of crate, slot and channel that specify
-     * the channel's DAQ configuration.
+     * The <code>DaqId</code> is the combination of crate, slot and channel that
+     * specify the channel's DAQ configuration.
      */
     public static final class DaqId extends AbstractIdentifier {
 
@@ -48,8 +48,8 @@ public final class EcalChannel extends AbstractConditionsObject {
     }
 
     /**
-     * The <code>GeometryId</code> contains the x and y indices of the crystal in the
-     * LCSIM-based geometry representation.
+     * The <code>GeometryId</code> contains the x and y indices of the crystal
+     * in the LCSIM-based geometry representation.
      */
     public static final class GeometryId extends AbstractIdentifier {
 
@@ -82,11 +82,12 @@ public final class EcalChannel extends AbstractConditionsObject {
     }
 
     /**
-     * The <code>ChannelId</code> is a unique number identifying the channel within its
-     * conditions collection. The channels in the database are given sequential channel
-     * IDs from 1 to N in semi-arbitrary order. The channel ID is generally the number
-     * used to connect other conditions objects such as {@link EcalGain} or
-     * {@link EcalCalibration} to the appropriate crystal in the calorimeter.
+     * The <code>ChannelId</code> is a unique number identifying the channel
+     * within its conditions collection. The channels in the database are given
+     * sequential channel IDs from 1 to N in semi-arbitrary order. The channel
+     * ID is generally the number used to connect other conditions objects such
+     * as {@link EcalGain} or {@link EcalCalibration} to the appropriate crystal
+     * in the calorimeter.
      */
     public static final class ChannelId extends AbstractIdentifier {
 
@@ -130,8 +131,9 @@ public final class EcalChannel extends AbstractConditionsObject {
         Map<Long, EcalChannel> channelMap = new HashMap<Long, EcalChannel>();
 
         /**
-         * Add an <code>EcalChannel</code> to the collection and cache its ID information.
-         * The GeometryId must be created later as it requires access to the Detector API.
+         * Add an <code>EcalChannel</code> to the collection and cache its ID
+         * information. The GeometryId must be created later as it requires
+         * access to the Detector API.
          */
         @Override
         public void add(EcalChannel channel) throws ConditionsObjectException {

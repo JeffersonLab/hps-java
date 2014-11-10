@@ -12,7 +12,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.hps.util.Pair;
 
 /**
- * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
+ * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code>
+ * objects.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
@@ -22,13 +23,13 @@ public final class SvtDetectorSetup {
     /**
      * Load conditions data onto a detector object.
      * 
-     * @param  The detector object.
+     * @param The detector object.
      * @param conditions The conditions object.
      */
     public void load(Subdetector subdetector, SvtConditions conditions) {
 
         // Find sensor objects.
-    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+        List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         SvtChannelCollection channelMap = conditions.getChannelMap();
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
@@ -47,16 +48,16 @@ public final class SvtDetectorSetup {
 
             // Set the FEB ID of the sensor
             sensor.setFebID(daqPair.getFirstElement());
-           
+
             // Set the FEB Hybrid ID of the sensor
             sensor.setFebHybridID(daqPair.getSecondElement());
-           
+
             // Set the orientation of the sensor
             String orientation = daqMap.getOrientation(daqPair);
-            if(orientation != null && orientation.contentEquals(SvtDaqMappingCollection.AXIAL)){
-            	sensor.setAxial(true);
-            } else if(orientation != null && orientation.contains(SvtDaqMappingCollection.STEREO)){
-            	sensor.setStereo(true);
+            if (orientation != null && orientation.contentEquals(SvtDaqMappingCollection.AXIAL)) {
+                sensor.setAxial(true);
+            } else if (orientation != null && orientation.contains(SvtDaqMappingCollection.STEREO)) {
+                sensor.setStereo(true);
             }
 
             // Find all the channels for this sensor.
@@ -64,35 +65,35 @@ public final class SvtDetectorSetup {
 
             // Loop over the channels of the sensor.
             for (SvtChannel channel : channels) {
-                
-            	// Get conditions data for this channel.
+
+                // Get conditions data for this channel.
                 ChannelConstants constants = conditions.getChannelConstants(channel);
                 int channelNumber = channel.getChannel();
 
                 //
                 // Set conditions data for this channel on the sensor object:
                 //
-                
+
                 // Check if the channel was flagged as bad
                 if (constants.isBadChannel()) {
                     sensor.setBadChannel(channelNumber);
                 }
-                
-                // Set the pedestal and noise of each of the samples for the 
+
+                // Set the pedestal and noise of each of the samples for the
                 // channel
                 double[] pedestal = new double[6];
                 double[] noise = new double[6];
-                for(int sampleN = 0; sampleN < HpsSiSensor.NUMBER_OF_SAMPLES; sampleN++){
-                	pedestal[sampleN] = constants.getCalibration().getPedestal(sampleN);
-                	noise[sampleN] = constants.getCalibration().getNoise(sampleN);
+                for (int sampleN = 0; sampleN < HpsSiSensor.NUMBER_OF_SAMPLES; sampleN++) {
+                    pedestal[sampleN] = constants.getCalibration().getPedestal(sampleN);
+                    noise[sampleN] = constants.getCalibration().getNoise(sampleN);
                 }
                 sensor.setPedestal(channelNumber, pedestal);
                 sensor.setNoise(channelNumber, noise);
-               
+
                 // Set the gain and offset for the channel
                 sensor.setGain(channelNumber, constants.getGain().getGain());
                 sensor.setOffset(channelNumber, constants.getGain().getOffset());
-               
+
                 // Set the shape fit parameters
                 sensor.setShapeFitParameters(channelNumber, constants.getShapeFitParameters().toArray());
             }

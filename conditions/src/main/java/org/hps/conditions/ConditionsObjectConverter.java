@@ -9,8 +9,8 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * <p>
- * Implementation of default conversion from database tables to a {@link ConditionsObject}
- * class.
+ * Implementation of default conversion from database tables to a
+ * {@link ConditionsObject} class.
  * </p>
  * <p>
  * This class actually returns collections and not individual objects.
@@ -21,16 +21,18 @@ import org.lcsim.conditions.ConditionsManager;
  * @param <T> The type of the returned data which should be a class extending
  *            {@link ConditionsObjectCollection}.
  */
-// FIXME: This class should only allow one collection to be returned and not mix the database records together.
-// TODO: This class can probably be removed in favor of using the ConditionsSeriesConverter in all cases.
+// FIXME: This class should only allow one collection to be returned and not mix
+// the database records together.
+// TODO: This class can probably be removed in favor of using the
+// ConditionsSeriesConverter in all cases.
 public abstract class ConditionsObjectConverter<T> implements ConditionsConverter<T> {
 
     public ConditionsObjectConverter() {
     }
 
     /**
-     * Classes that extend this must define this method to specify what type the converter
-     * is able to handle.
+     * Classes that extend this must define this method to specify what type the
+     * converter is able to handle.
      * @return The Class that this converter handles.
      */
     public abstract Class getType();
@@ -40,7 +42,8 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
 
         // System.out.println("finding conditions for key " + name + " ...");
 
-        // Get the DatabaseConditionsManager which is required for using this converter.
+        // Get the DatabaseConditionsManager which is required for using this
+        // converter.
         DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.castFrom(conditionsManager);
 
         // Get the table meta data from the key given by the caller.
@@ -50,8 +53,9 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
 
         // Create a collection to return.
         ConditionsObjectCollection collection = ConditionsObjectUtil.createCollection(tableMetaData);
-        
-        // Get the ConditionsRecord with the meta-data, which will use the current run
+
+        // Get the ConditionsRecord with the meta-data, which will use the
+        // current run
         // number from the manager.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
 
@@ -61,11 +65,13 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         } else if (conditionsRecords.getObjects().size() > 1) {
             // There were multiple records returned.
             if (!allowMultipleCollections())
-                // If there are multiple records returned but this is not allowed by the
+                // If there are multiple records returned but this is not
+                // allowed by the
                 // converter, then this is a fatal error.
                 throw new RuntimeException("Multiple conditions records returned but this is not allowed.");
         } else {
-            // There was a single conditions record so the collection information can be
+            // There was a single conditions record so the collection
+            // information can be
             // set meaningfully.
             try {
                 collection.setCollectionId(conditionsRecords.get(0).getCollectionId());
@@ -109,7 +115,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         // Return new collection.
         return (T) collection;
     }
-   
+
     public boolean allowMultipleCollections() {
         return true;
     }

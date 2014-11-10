@@ -8,8 +8,7 @@ import hep.physics.matrix.SymmetricMatrix;
 
 /**
  * Class describing the HPS beamspot at the target (Z=0)
- * @author mgraham
- * created on 6/27/2011
+ * @author mgraham created on 6/27/2011
  */
 public class BeamSpot {
 
@@ -27,7 +26,7 @@ public class BeamSpot {
     }
 
     public BeamSpot(double sigX, double sigY) {
-        //  default beamspot position
+        // default beamspot position
         _position[0] = 0;
         _position[1] = 0;
         _angle[0] = 0;
@@ -65,7 +64,7 @@ public class BeamSpot {
 
     public SymmetricMatrix getBeamCovariance() {
         return _beamcov;
-    }  
+    }
 
     public void setBeamPosition(double[] pos) {
         _position = pos;

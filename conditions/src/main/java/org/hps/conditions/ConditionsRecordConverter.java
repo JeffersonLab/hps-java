@@ -9,7 +9,8 @@ import org.lcsim.conditions.ConditionsManager;
 /**
  * Read ConditionsRecord objects from the conditions database.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy Exp $
+ * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy
+ *          Exp $
  */
 class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
 

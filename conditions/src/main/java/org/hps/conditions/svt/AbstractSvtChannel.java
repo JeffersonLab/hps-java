@@ -10,64 +10,62 @@ import org.hps.conditions.ConditionsObjectException;
 import org.hps.util.Pair;
 
 /**
- * This abstract class provides basic setup information for an SVT
- * sensor channel. 
+ * This abstract class provides basic setup information for an SVT sensor
+ * channel.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class AbstractSvtChannel extends AbstractConditionsObject {
 
     // TODO: Put constants into their own class
-	public static final int MAX_NUMBER_OF_SAMPLES = 6;
-    
-	public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> 
-	    extends ConditionsObjectCollection<T> {
-	    
-	    Map<Integer, T> channelMap = new HashMap<Integer, T>();
-	   
-	    /**
-	     * Add a channel of type extending {@link AbstractSvtChannel} to the
-	     * channel map
-	     * 
-	     * @param A channel of a type extending {@link AbstractSvtChannel}
-	     */
-	    public void add(T channel){
-	    
-	        // If it doesn't exist, add the channel to the channel map
-	        if(channelMap.containsKey(channel.getChannelID())){
-                throw new IllegalArgumentException("[ " + this.getClass().getSimpleName() + " ]: Channel ID already exists: "
-                										+ channel.getChannelID());
-	        }
-	        channelMap.put(channel.getChannelID(), channel);
-	    
-	        // Add to the collection
-	        try { 
-	            super.add(channel);
-	        } catch(ConditionsObjectException e){
-	            throw new RuntimeException(e);
-	        }
-	    }
-	   
-	    /**
-	     * Find a channel of type extending {@link AbstractSvtChannel} using the
-	     * channel ID
-	     * 
-	     * @param channelID
-	     * @return An SVT channel of type extending {@link AbstractSvtChannel}
-	     */
-	    public T findChannel(int channelID){
-	        return channelMap.get(channelID);
-	    }
-	    
+    public static final int MAX_NUMBER_OF_SAMPLES = 6;
+
+    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends ConditionsObjectCollection<T> {
+
+        Map<Integer, T> channelMap = new HashMap<Integer, T>();
+
         /**
-         * Find the collection of channels of type extending 
+         * Add a channel of type extending {@link AbstractSvtChannel} to the
+         * channel map
+         * 
+         * @param A channel of a type extending {@link AbstractSvtChannel}
+         */
+        public void add(T channel) {
+
+            // If it doesn't exist, add the channel to the channel map
+            if (channelMap.containsKey(channel.getChannelID())) {
+                throw new IllegalArgumentException("[ " + this.getClass().getSimpleName() + " ]: Channel ID already exists: " + channel.getChannelID());
+            }
+            channelMap.put(channel.getChannelID(), channel);
+
+            // Add to the collection
+            try {
+                super.add(channel);
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Find a channel of type extending {@link AbstractSvtChannel} using the
+         * channel ID
+         * 
+         * @param channelID
+         * @return An SVT channel of type extending {@link AbstractSvtChannel}
+         */
+        public T findChannel(int channelID) {
+            return channelMap.get(channelID);
+        }
+
+        /**
+         * Find the collection of channels of type extending
          * {@link AbstractSvtChannel} that match a DAQ pair.
-         *  
+         * 
          * @param pair The DAQ pair.
          * @return The channels matching the DAQ pair or null if not found.
          */
         public abstract Collection<T> find(Pair<Integer, Integer> pair);
-	
+
         /**
          * Convert this object to a human readable string.
          * 
@@ -80,8 +78,8 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
             }
             return buff.toString();
         }
-	}
-	
+    }
+
     /**
      * Get the channel ID.
      * 
@@ -99,5 +97,5 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
     public int getChannel() {
         return getFieldValue("channel");
     }
-    
+
 }

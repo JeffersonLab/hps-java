@@ -11,11 +11,12 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * This class encapsulates the parameters for connecting to a database, including
- * hostname, port, user and password. It can also create and return a Connection object
- * based on these parameters.
+ * This class encapsulates the parameters for connecting to a database,
+ * including hostname, port, user and password. It can also create and return a
+ * Connection object based on these parameters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConnectionParameters.java,v 1.8 2013/10/04 01:54:16 jeremy Exp $
+ * @version $Id: ConnectionParameters.java,v 1.8 2013/10/04 01:54:16 jeremy Exp
+ *          $
  */
 public class ConnectionParameters {
 
@@ -27,10 +28,10 @@ public class ConnectionParameters {
 
     /**
      * Protected constructor for sub-classes.
-     */	
+     */
     protected ConnectionParameters() {
     }
-    
+
     /**
      * Fully qualified constructor.
      * @param user The user name.
@@ -39,7 +40,7 @@ public class ConnectionParameters {
      * @param port The port number.
      * @param conditionsTable The table containing conditions validity data.
      */
-   public  ConnectionParameters(String user, String password, String database, String hostname, int port) {
+    public ConnectionParameters(String user, String password, String database, String hostname, int port) {
         this.user = user;
         this.password = password;
         this.database = database;
@@ -47,7 +48,7 @@ public class ConnectionParameters {
         this.port = port;
     }
 
-   /**
+    /**
      * Get Properties object for this connection.
      * @return The Properties for this connection.
      */
@@ -105,11 +106,11 @@ public class ConnectionParameters {
     }
 
     /**
-     * Create a database connection from these parameters. The caller becomes the "owner"
-     * and is responsible for closing it when finished.
+     * Create a database connection from these parameters. The caller becomes
+     * the "owner" and is responsible for closing it when finished.
      * @return The Connection object.
      */
-    public Connection createConnection() {               
+    public Connection createConnection() {
         Properties connectionProperties = getConnectionProperties();
         Connection connection = null;
         try {
@@ -137,8 +138,8 @@ public class ConnectionParameters {
     }
 
     /**
-     * Configure the connection parameters from an embedded classpath resource which
-     * should be a properties file.
+     * Configure the connection parameters from an embedded classpath resource
+     * which should be a properties file.
      * @param String The resource path.
      * @return The connection parameters.
      */
@@ -147,7 +148,8 @@ public class ConnectionParameters {
     }
 
     /**
-     * Configure the connection parameters from an <code>InputStream</code> of properties.
+     * Configure the connection parameters from an <code>InputStream</code> of
+     * properties.
      * @param in The InputStream of the properties.
      * @return The connection parameters.
      * @throws RuntimeException if the InputStream is invalid

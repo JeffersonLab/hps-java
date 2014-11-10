@@ -6,6 +6,7 @@ import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDetectorSetup;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.geometry.Detector;
+
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
  * {@link AbstractConditionsDriver} and specifies the database connection
@@ -18,13 +19,13 @@ public class ConditionsDriver extends AbstractConditionsDriver {
 
     public ConditionsDriver() {
         if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
-        	getLogger().config("ConditionsDriver found existing DatabaseConditionsManager.");
+            getLogger().config("ConditionsDriver found existing DatabaseConditionsManager.");
             manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
         } else {
             manager = new DatabaseConditionsManager();
         }
     }
-      
+
     /**
      * Load the {@link SvtConditions} set onto <code>HpsSiSensor</code>.
      * @param detector The detector to update.

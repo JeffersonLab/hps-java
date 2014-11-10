@@ -47,7 +47,7 @@ public final class EcalConverterRegistry {
             return EcalTimeShiftCollection.class;
         }
     }
-    
+
     public static final class EcalLedConverter extends ConditionsObjectConverter<EcalLed> {
         public Class getType() {
             return EcalLedCollection.class;

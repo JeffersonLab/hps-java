@@ -9,18 +9,19 @@ import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
- * This class contains all test run SVT conditions data by readout channel. 
+ * This class contains all test run SVT conditions data by readout channel.
  * {@link TestRunSvtChannel} objects from the SVT channel map should be used to
- * lookup the conditions using the {@link #getChannelConstants(TestRunSvtChannel)}
- * method.
+ * lookup the conditions using the
+ * {@link #getChannelConstants(TestRunSvtChannel)} method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class TestRunSvtConditions extends AbstractSvtConditions {
 
-	/**
-     * Get the {@link TestRunSvtDaqMappingCollection} associated with these conditions.
+    /**
+     * Get the {@link TestRunSvtDaqMappingCollection} associated with these
+     * conditions.
      * 
      * @return The SVT DAQ map.
      */
@@ -40,24 +41,25 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
     }
 
     /**
-     * Get the {@link TestRunSvtT0ShiftCollection} associated with these conditions.
+     * Get the {@link TestRunSvtT0ShiftCollection} associated with these
+     * conditions.
      * 
      * @return The {@link TestRunSvtT0ShiftCollection}
      */
     @Override
-    public TestRunSvtT0ShiftCollection getT0Shifts() { 
-    	return (TestRunSvtT0ShiftCollection) t0Shifts;
+    public TestRunSvtT0ShiftCollection getT0Shifts() {
+        return (TestRunSvtT0ShiftCollection) t0Shifts;
     }
-    
+
     /**
-     * Convert this object to a human readable string. This method prints a formatted
-     * table of channel data independently of how its member objects implement their
-     * string conversion method. For now, it does not print the time shifts by sensor as
-     * all other information is by channel.
+     * Convert this object to a human readable string. This method prints a
+     * formatted table of channel data independently of how its member objects
+     * implement their string conversion method. For now, it does not print the
+     * time shifts by sensor as all other information is by channel.
      * 
-     * @return This object converted to a string, without the DAQ map.
-     * TODO: Make this look more human readable.  At the moment, reading this
-     * 		 requires a huge terminal window.
+     * @return This object converted to a string, without the DAQ map. TODO:
+     *         Make this look more human readable. At the moment, reading this
+     *         requires a huge terminal window.
      */
     public String toString() {
         StringBuffer buff = new StringBuffer();
@@ -120,7 +122,7 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
         for (TestRunSvtChannel channel : this.getChannelMap().getObjects()) {
 
             System.out.println("Channel: " + channel.toString());
-            
+
             // Get the conditions for the channel.
             ChannelConstants constants = getChannelConstants(channel);
             SvtGain gain = constants.getGain();
@@ -131,13 +133,13 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
             buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelID(), channel.getFpgaID(), channel.getHybridID(), channel.getChannel()));
 
             // Calibration.
-            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
-            	buff.append(calibration.getPedestal(sample));
-            	buff.append("      ");
+            for (int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++) {
+                buff.append(calibration.getPedestal(sample));
+                buff.append("      ");
             }
-            for(int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++){
-            	buff.append(calibration.getNoise(sample));
-            	buff.append("      ");
+            for (int sample = 0; sample < MAX_NUMBER_OF_SAMPLES; sample++) {
+                buff.append(calibration.getNoise(sample));
+                buff.append("      ");
             }
 
             // Gain.
@@ -160,6 +162,5 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
 
         return buff.toString();
     }
-
 
 }

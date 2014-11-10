@@ -17,7 +17,7 @@ import org.jdom.output.XMLOutputter;
  * This is a simple class for getting an SVT XML configuration file.
  */
 public class SvtConfiguration extends AbstractConditionsObject {
-            
+
     public static class SvtConfigurationCollection extends ConditionsObjectCollection<SvtConfiguration> {
     }
 
@@ -28,11 +28,12 @@ public class SvtConfiguration extends AbstractConditionsObject {
     public String getFileName() {
         return getFieldValue("filename");
     }
-        
+
     /**
-     * Convert the raw database field value for the configuration into an XML document.
+     * Convert the raw database field value for the configuration into an XML
+     * document.
      * @return The Document created from the raw data.
-     * @throws IOException 
+     * @throws IOException
      * @throws JDOMException
      */
     public Document createDocument() throws IOException, JDOMException {
@@ -42,7 +43,7 @@ public class SvtConfiguration extends AbstractConditionsObject {
         builder.setValidation(false);
         return builder.build(inputStream);
     }
-    
+
     /**
      * Save this configuration to a local file on disk.
      * @param filename The name of the local file.
@@ -56,9 +57,10 @@ public class SvtConfiguration extends AbstractConditionsObject {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * Save this configuration to a local file on disk using its name from the database.
+     * Save this configuration to a local file on disk using its name from the
+     * database.
      */
     public void writeToFile() {
         XMLOutputter out = new XMLOutputter();

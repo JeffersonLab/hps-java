@@ -18,7 +18,7 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
 
     protected ConditionsObjectCollection() {
     }
-        
+
     public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
         this.tableMetaData = tableMetaData;
         this.collectionId = collectionId;
@@ -27,7 +27,7 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
             this.isNew = true;
         }
     }
-    
+
     public ConditionsRecord getConditionsRecord() {
         return conditionsRecord;
     }
@@ -44,8 +44,10 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         return getObjects().contains(object);
     }
 
-    // TODO: Should check here if object has an existing collection ID that is different
-    // from this collection's, in which case this collection becomes "mixed" and it should
+    // TODO: Should check here if object has an existing collection ID that is
+    // different
+    // from this collection's, in which case this collection becomes "mixed" and
+    // it should
     // be
     // flagged as read only.
     public void add(ObjectType object) throws ConditionsObjectException {
@@ -53,7 +55,8 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
             throw new IllegalArgumentException("Collection already contains this object.");
         }
         try {
-            // Only assign a collection ID to the object if this collection has a valid ID
+            // Only assign a collection ID to the object if this collection has
+            // a valid ID
             // and the object does not have one already.
             if (getCollectionId() != -1)
                 object.setCollectionId(getCollectionId());
@@ -85,7 +88,8 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         setIsDirty(false);
     }
 
-    // TODO: This does not need to loop. It should just call delete on the collection ID
+    // TODO: This does not need to loop. It should just call delete on the
+    // collection ID
     // value.
     public void delete() throws ConditionsObjectException {
         if (isReadOnly()) {
@@ -96,7 +100,8 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         }
     }
 
-    // TODO: This should not loop. It should select all the objects with a matching
+    // TODO: This should not loop. It should select all the objects with a
+    // matching
     // collection ID
     // from the database.
     public void select() throws ConditionsObjectException, SQLException {
@@ -105,7 +110,8 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         }
     }
 
-    // TODO: This method needs to get the next collection ID from the conditions manager.
+    // TODO: This method needs to get the next collection ID from the conditions
+    // manager.
     // TODO: This operation should lock the table.
     public void insert() throws ConditionsObjectException, SQLException {
         if (!isNew()) {
@@ -131,7 +137,8 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         this.isDirty = isDirty;
     }
 
-    // TODO: This can probably just check if collection ID is not valid e.g. equals -1.
+    // TODO: This can probably just check if collection ID is not valid e.g.
+    // equals -1.
     public boolean isNew() {
         return isNew;
     }
