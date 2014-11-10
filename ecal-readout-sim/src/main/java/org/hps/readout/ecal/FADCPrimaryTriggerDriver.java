@@ -29,16 +29,16 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     // ==== Trigger Cut Default Parameters ==============================
     // ==================================================================
-    private int minHitCount = 1;                                   // Minimum required cluster hit count threshold. (Hits)            
-    private double seedEnergyHigh = Double.MAX_VALUE;              // Maximum allowed cluster seed energy. (GeV)
-    private double seedEnergyLow = Double.MIN_VALUE;               // Minimum required cluster seed energy. (GeV)
-    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;        // Maximum allowed cluster total energy. (GeV)
-    private double clusterEnergyLow = .1 * ECalUtils.GeV;          // Minimum required cluster total energy. (GeV)
-    private double energySumHigh = 1.9 * ECalUtils.GeV;            // Maximum allowed pair energy sum. (GeV)
-    private double energySumLow = 0.0 * ECalUtils.GeV;             // Minimum required pair energy sum. (GeV)
-    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;     // Maximum allowed pair energy difference. (GeV)
-    private double energySlopeLow = 1.1;                           // Minimum required pair energy slope value.
-    private double coplanarityHigh = 35;                           // Maximum allowed pair coplanarity deviation. (Degrees)
+    private int minHitCount = 1;                                  // Minimum required cluster hit count threshold. (Hits)            
+    private double seedEnergyHigh = Double.MAX_VALUE;             // Maximum allowed cluster seed energy. (GeV)
+    private double seedEnergyLow = Double.MIN_VALUE;              // Minimum required cluster seed energy. (GeV)
+    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;       // Maximum allowed cluster total energy. (GeV)
+    private double clusterEnergyLow = .1 * ECalUtils.GeV;         // Minimum required cluster total energy. (GeV)
+    private double energySumHigh = 1.9 * ECalUtils.GeV;           // Maximum allowed pair energy sum. (GeV)
+    private double energySumLow = 0.0 * ECalUtils.GeV;            // Minimum required pair energy sum. (GeV)
+    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;    // Maximum allowed pair energy difference. (GeV)
+    private double energySlopeLow = 1.1;                          // Minimum required pair energy slope value.
+    private double coplanarityHigh = 35;                          // Maximum allowed pair coplanarity deviation. (Degrees)
     
     // ==================================================================
     // ==== Trigger General Default Parameters ==========================
@@ -63,6 +63,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private int pairEnergyDifferenceCount = 0;                     // Track the pairs which pass the energy difference cut.
     private int pairEnergySlopeCount = 0;                          // Track the pairs which pass the energy slope cut.
     private int pairCoplanarityCount = 0;                          // Track the pairs which pass the coplanarity cut.
+    private boolean verbose = false;                               // Stores whether debug text should be output.
     
     // ==================================================================
     // ==== Trigger Distribution Plots ==================================
@@ -100,15 +101,13 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
     IHistogram1D[] diagHitCount = {
-                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 7, 0, 7),
-                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 7, 0, 7)
+                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 8, 0, 8),
+                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 8, 0, 8)
             };
     IHistogram1D[] diagTotalEnergy = {
                 aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
                 aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
             };
-    
-    private boolean verbose = false;
     
     /**
      * Prints out the results of the trigger at the end of the run.
@@ -266,7 +265,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Sets the trigger cuts automatically to a given background level.
-     * 
      * @param backgroundLevel - The level to which the background should
      * be set. Actual background rates equal about (5 * backgroundLevel) kHz.
      */
@@ -276,7 +274,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Sets the name of the LCIO collection that contains the clusters.
-     * 
      * @param clusterCollectionName - The cluster LCIO collection name.
      */
     public void setClusterCollectionName(String clusterCollectionName) {
@@ -287,7 +284,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the highest allowed energy a cluster may have and still
      * pass the cluster total energy single cluster cut. Value uses
      * units of GeV.
-     *
      * @param clusterEnergyHigh - The parameter value.
      */
     public void setClusterEnergyHigh(double clusterEnergyHigh) {
@@ -298,7 +294,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the lowest allowed energy a cluster may have and still
      * pass the cluster total energy single cluster cut. Value uses
      * units of GeV.
-     *
      * @param clusterEnergyLow - The parameter value.
      */
     public void setClusterEnergyLow(double clusterEnergyLow) {
@@ -309,7 +304,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the maximum deviation from coplanarity that a cluster pair
      * may possess and still pass the coplanarity pair cut. Value uses
      * units of degrees.
-     *
      * @param maxCoplanarityAngle - The parameter value.
      */
     public void setCoplanarityHigh(double coplanarityHigh) {
@@ -320,7 +314,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the highest allowed energy difference a cluster pair may
      * have and still pass the cluster pair energy difference cut.
      * Value uses units of GeV.
-     *
      * @param energyDifferenceHigh - The parameter value.
      */
     public void setEnergyDifferenceHigh(double energyDifferenceHigh) {
@@ -330,7 +323,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Sets the lowest allowed energy slope a cluster pair may
      * have and still pass the cluster pair energy slope cut.
-     *
      * @param energySlopeLow - The parameter value.
      */
     public void setEnergySlopeLow(double energySlopeLow) {
@@ -341,7 +333,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the highest allowed energy a cluster pair may have and
      * still pass the cluster pair energy sum cluster cut. Value uses
      * units of GeV.
-     *
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumHigh(double energySumHigh) {
@@ -352,7 +343,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the lowest allowed energy a cluster pair may have and
      * still pass the cluster pair energy sum cluster cut. Value uses
      * units of GeV.
-     *
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumLow(double energySumLow) {
@@ -362,7 +352,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Sets the minimum number of hits needed for a cluster to pass
      * the hit count single cluster cut.
-     *
      * @param minHitCount - The parameter value.
      */
     public void setMinHitCount(int minHitCount) {
@@ -373,7 +362,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets X coordinate used as the origin for cluster coplanarity and
      * slope calculations. This defaults to the calorimeter mid-plane
      * and is in units of millimeters.
-     *
      * @param originX - The parameter value.
      */
     public void setOriginX(double originX) {
@@ -384,7 +372,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the time range over which cluster pairs will be formed.
      * Value uses units of clock-cycles. Note that the number of
      * clock-cycles used is calculated as (2 * pairCoincidence) + 1.
-     * 
      * @param pairCoincidence - The parameter value.
      */
     public void setPairCoincidence(int pairCoincidence) {
@@ -395,7 +382,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the highest allowed energy a seed hit may have and still
      * pass the seed hit energy single cluster cut. Value uses units
      * of GeV.
-     *
      * @param seedEnergyHigh - The parameter value.
      */
     public void setSeedEnergyHigh(double seedEnergyHigh) {
@@ -406,7 +392,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * Sets the lowest allowed energy a seed hit may have and still
      * pass the seed hit energy single cluster cut. Value uses units
      * of GeV.
-     *
      * @param seedEnergyLow - The parameter value.
      */
     public void setSeedEnergyLow(double seedEnergyLow) {
@@ -448,10 +433,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     }
 
     /**
-     * Get a list of all unique cluster pairs in the event
-     *
-     * @param ecalClusters : List of ECal clusters
-     * @return list of cluster pairs
+     * Get a list of all unique cluster pairs in the event.
+     * @return A <code>List</code> collection of <code>HPSEcalCLuster
+     * </code> objects containing all cluster pairs.
      */
     protected List<HPSEcalCluster[]> getClusterPairsTopBot() {
         // Create a list to store cluster pairs. 
@@ -487,7 +471,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Determines if the event produces a trigger.
-     * 
      * @return Returns <code>true</code> if the event produces a trigger
      * and <code>false</code> if it does not.
      */
@@ -507,7 +490,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks whether the argument cluster possesses the minimum
      * allowed hits.
-     * 
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -519,7 +501,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks whether the argument cluster seed hit falls within the
      * allowed seed hit energy range.
-     * 
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -536,7 +517,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks whether the argument cluster falls within the allowed
      * cluster total energy range.
-     * 
      * @param cluster - The cluster to check.
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
@@ -552,7 +532,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Calculates the distance between two clusters.
-     * 
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the distance between the clusters.
@@ -563,7 +542,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Gets the value used for the cluster total energy cut.
-     * 
      * @param cluster - The cluster from which the value should be
      * derived.
      * @return Returns the cut value.
@@ -574,7 +552,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Gets the value used for the cluster hit count cut.
-     * 
      * @param cluster - The cluster from which the value should be
      * derived.
      * @return Returns the cut value.
@@ -585,7 +562,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Gets the value used for the seed hit energy cut.
-     * 
      * @param cluster - The cluster from which the value should be
      * derived.
      * @return Returns the cut value.
@@ -596,7 +572,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Calculates the value used by the coplanarity cut.
-     * 
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the cut value.
@@ -615,7 +590,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Calculates the value used by the energy difference cut.
-     * 
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the cut value.
@@ -626,7 +600,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Calculates the value used by the energy slope cut.
-     * 
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the cut value.
@@ -645,7 +618,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     
     /**
      * Calculates the value used by the energy sum cut.
-     * 
      * @param clusterPair - The cluster pair from which the value should
      * be calculated.
      * @return Returns the cut value.
@@ -657,7 +629,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks if a cluster pair is coplanar to the beam within a given
      * angle.
-     *
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -669,7 +640,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks if the energy difference between the clusters making up
      * a cluster pair is below an energy difference threshold.
-     *
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -681,8 +651,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Requires that the distance from the beam of the lowest energy
      * cluster in a cluster pair satisfies the following:
-     * E_low + d_b*.0032 GeV/mm < [ Threshold ]
-     *
+     * E_low + d_b * 0.0032 GeV/mm < [ Threshold ]
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
@@ -693,7 +662,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Checks if the sum of the energies of clusters making up a cluster
      * pair is below an energy sum threshold.
-     *
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
@@ -706,125 +674,77 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         return (energySum < energySumHigh) && (energySum > energySumLow);
     }
     
+    /**
+     * Sets the cuts to accept a certain background level. Levels are
+     * defined with an integer between 1 and 10, where each step is
+     * indicative of a hypothetical background rate of approximately
+     * 5 kHz. Thusly, <code>backgroundLevel = 1</code> represents a
+     * hypothetical background rate of approximately 5 kHz, <code>
+     * backgroundLevel = 2</code> represents 10 kHz, and so on. Using
+     * a value of 0 will set the cuts to the original test run values.
+     * @param backgroundLevel - The hypothetical background rate value.
+     * This must be between 1 and 10, or zero for the original test
+     * run cut values.
+     */
     private void setBackgroundCuts(int backgroundLevel) {
         // Make sure that the background level is valid.
         if(backgroundLevel < 0 || backgroundLevel > 10) {
             throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
         }
         
-        // Otherwise, set the trigger cuts. Certain cuts are constant
-        // across all background levels.
-        clusterEnergyLow = 0.000;
-        seedEnergyLow = 0.100;
+        // Some cut values are almost always the same thing. Set those
+        // here and only overwrite if necessary.
+    	seedEnergyLow        = 0.125;
+    	seedEnergyHigh       = 1.300;
+        clusterEnergyLow     = 0.200;
+        clusterEnergyHigh    = 1.700;
+        energySumLow         = 0.500;
+        energySumHigh        = 2.000;
+        energyDifferenceHigh = 1.200;
+        coplanarityHigh      = 30;
+        minHitCount          = 2;
         
         // Set the variable values.
         if(backgroundLevel == 1) {
-            clusterEnergyHigh = 1.700;
-            seedEnergyHigh = 1.300;
-            energySumLow = 0.400;
-            energySumHigh = 2.00;
-            energyDifferenceHigh = 1.500;
-            energySlopeLow = 1.0;
-            coplanarityHigh = 40;
-            minHitCount = 2;
+            energySumLow         = 1.000;
+            energySlopeLow       = 1.2;
+            coplanarityHigh      = 20;
         } else if(backgroundLevel == 2) {
-            clusterEnergyHigh = 1.600;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.300;
-            energySumHigh = 2.00;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.8;
-            coplanarityHigh = 40;
-            minHitCount = 2;
+            energySlopeLow       = 1.0;
+            coplanarityHigh      = 20;
         } else if(backgroundLevel == 3) {
-            clusterEnergyHigh = 1.600;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.200;
-            energySumHigh = 2.000;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.7;
-            coplanarityHigh = 40;
-            minHitCount = 2;
+            energySlopeLow       = 1.0;
         } else if(backgroundLevel == 4) {
-            clusterEnergyHigh = 1.500;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.500;
-            energySumHigh = 1.950;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.6;
-            coplanarityHigh = 40;
-            minHitCount = 2;
+            energySlopeLow       = 0.8;
         } else if(backgroundLevel == 5) {
-            clusterEnergyHigh = 1.500;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.400;
-            energySumHigh = 2.000;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.6;
-            coplanarityHigh = 45;
-            minHitCount = 2;
+            energySlopeLow       = 0.8;
         } else if(backgroundLevel == 6) {
-            clusterEnergyHigh = 1.500;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.200;
-            energySumHigh = 1.950;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.6;
-            coplanarityHigh = 55;
-            minHitCount = 2;
+            energySlopeLow       = 0.6;
         } else if(backgroundLevel == 7) {
-            clusterEnergyHigh = 1.700;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.200;
-            energySumHigh = 2.000;
-            energyDifferenceHigh = 1.500;
-            energySlopeLow = 0.6;
-            coplanarityHigh = 60;
-            minHitCount = 2;
+            energySlopeLow       = 0.6;
         } else if(backgroundLevel == 8) {
-            clusterEnergyHigh = 1.700;
-            seedEnergyHigh = 1.300;
-            energySumLow = 0.200;
-            energySumHigh = 2.000;
-            energyDifferenceHigh = 1.500;
-            energySlopeLow = 0.6;
-            coplanarityHigh = 65;
-            minHitCount = 2;
+            clusterEnergyHigh    = 1.500;
+            energySlopeLow       = 0.4;
         } else if(backgroundLevel == 9) {
-            clusterEnergyHigh = 1.500;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.400;
-            energySumHigh = 1.950;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.5;
-            coplanarityHigh = 60;
-            minHitCount = 2;
+            energySlopeLow       = 0.4;
         } else if(backgroundLevel == 10) {
-            clusterEnergyHigh = 1.500;
-            seedEnergyHigh = 1.200;
-            energySumLow = 0.400;
-            energySumHigh = 2.000;
-            energyDifferenceHigh = 1.400;
-            energySlopeLow = 0.5;
-            coplanarityHigh = 65;
-            minHitCount = 2;
+            energySlopeLow       = 0.4;
         } else if(backgroundLevel == 0) {
-            seedEnergyLow = 0.100;
-            seedEnergyHigh = 6.6;
-            clusterEnergyLow = 0.100;
-            clusterEnergyHigh = 1.500;
-            energySumLow = 0.000;
-            energySumHigh = 1.900;
+            seedEnergyLow        = 0.100;
+            seedEnergyHigh       = 6.600;
+            clusterEnergyLow     = 0.100;
+            clusterEnergyHigh    = 1.500;
+            energySumLow         = 0.000;
+            energySumHigh        = 1.900;
             energyDifferenceHigh = 2.200;
-            energySlopeLow = 1.10;
-            coplanarityHigh = 35;
-            minHitCount = 1;
+            energySlopeLow       = 1.10;
+            coplanarityHigh      = 35;
+            minHitCount          = 1;
         }
     }
     
     /**
      * Tests all of the current cluster pairs for triggers.
-     * 
      * @return Returns <code>true</code> if one of the cluster pairs
      * passes all of the cluster cuts and <code>false</code> otherwise.
      */
@@ -871,7 +791,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            //if(!energyDistanceCut(clusterPair)) { continue pairLoop; }
             if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
@@ -926,7 +845,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     /**
      * Adds clusters from a new event into the top and bottom cluster
      * queues so that they may be formed into pairs.
-     * 
      * @param clusterList - The clusters to add to the queues.
      */
     private void updateClusterQueues(List<HPSEcalCluster> clusterList) {
