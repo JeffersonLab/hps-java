@@ -52,7 +52,7 @@ public class EcalChannelsAmplitude extends Driver{
     private AIDA aida=AIDA.defaultInstance();
     private Detector detector;
   
-    int eventRefreshRate = 1;
+  
     int eventn = 0;
 	int ix,iy,id;
 	int pedSamples=10;
@@ -72,8 +72,7 @@ public class EcalChannelsAmplitude extends Driver{
    
    
     
-    double maxEch = 2500 * ECalUtils.MeV;
-    double minEch = -0.1;
+    
     
     int itmpx,itmpy;
     
@@ -81,18 +80,7 @@ public class EcalChannelsAmplitude extends Driver{
     	
     }
 
-    public void setEnableAllFadc(boolean enableAllFadc){
-        this.enableAllFadc = enableAllFadc;
-    }
-    
-    public void setMaxEch(double maxEch) {
-        this.maxEch = maxEch;
-    }
-    
-    public void setMinEch(double minEch) {
-        this.minEch = minEch;
-    }
-    
+   
     public void setPedSamples(int pedSamples) {
         this.pedSamples = pedSamples;
     }
@@ -109,9 +97,7 @@ public class EcalChannelsAmplitude extends Driver{
         this.clusterCollection = inputClusterCollection;
     }
     
-    public void setEventRefreshRate(int eventRefreshRate) {
-        this.eventRefreshRate = eventRefreshRate;
-    }
+ 
     
     @Override
     public void detectorChanged(Detector detector) {
