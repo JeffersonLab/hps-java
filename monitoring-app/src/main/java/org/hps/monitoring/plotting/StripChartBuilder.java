@@ -16,9 +16,9 @@ import org.jfree.data.time.TimeSeriesCollection;
  */
 public final class StripChartBuilder {
 
-    private StripChartBuilder() {        
+    private StripChartBuilder() {
     }
-    
+
     /**
      * This creates a strip chart that will be updated at fixed intervals from a timer.
      * @param title
@@ -29,22 +29,22 @@ public final class StripChartBuilder {
     public static JFreeChart createDynamicTimeSeriesChart(String title, String yAxisLabel, int size) {
         final DynamicTimeSeriesCollection dataset = new DynamicTimeSeriesCollection(1, size, new Second());
         dataset.setTimeBase(new Second(new Date()));
-        dataset.addSeries(new float[] {}, 0, "Default Dataset"); 
+        dataset.addSeries(new float[] {}, 0, "Default Dataset");
 
         final JFreeChart result = ChartFactory.createTimeSeriesChart(title, "hh:mm:ss", yAxisLabel, dataset, true, true, false);
-        final XYPlot plot = result.getXYPlot();        
-        plot.getDomainAxis().setAutoRange(true);     
-        NumberAxis rangeAxis = (NumberAxis)plot.getRangeAxis();        
+        final XYPlot plot = result.getXYPlot();
+        plot.getDomainAxis().setAutoRange(true);
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setAutoRange(true);
         rangeAxis.setAutoRangeIncludesZero(true);
         return result;
     }
-    
+
     /**
-     * This should be used when the time period for updating is variable. 
+     * This should be used when the time period for updating is variable.
      * 
-     * To update a chart of this type:  
-     *    
+     * To update a chart of this type:
+     * 
      * <code>sensorSeries.add(new Minute(new Date()), newData);</code>
      * 
      * @param title
@@ -52,24 +52,23 @@ public final class StripChartBuilder {
      * @param maxAge
      * @param maxCount
      * @return
-     */    
+     */
     public static JFreeChart createTimeSeriesChart(String title, String yAxisLabel, int maxAge, int maxCount, int rangeSize) {
-        
+
         TimeSeriesCollection dataset = new TimeSeriesCollection();
         TimeSeries timeSeries = new TimeSeries("Default Dataset");
         timeSeries.setMaximumItemAge(maxAge);
         timeSeries.setMaximumItemCount(maxCount);
         dataset.addSeries(timeSeries);
-        
+
         final JFreeChart result = ChartFactory.createTimeSeriesChart(title, "hh:mm:ss", yAxisLabel, dataset, true, true, false);
         final XYPlot plot = result.getXYPlot();
-        plot.getDomainAxis().setAutoRange(true); 
+        plot.getDomainAxis().setAutoRange(true);
         plot.getDomainAxis().setAutoRangeMinimumSize(rangeSize);
-        NumberAxis rangeAxis = (NumberAxis)plot.getRangeAxis();
-        rangeAxis.setAutoRange(true);        
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setAutoRange(true);
         rangeAxis.setAutoRangeIncludesZero(true);
         return result;
     }
-    
-        
+
 }

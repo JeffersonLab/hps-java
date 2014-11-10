@@ -15,12 +15,11 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 
 /**
- * This class implements an AIDA <code>IPlotterFactory</code> for the monitoring application. 
- * It extends the JFree plotter by putting plots into tabs. Each plotter factory 
- * is given its own top-level tab in a root tabbed pane, under which are separate tabs 
- * for each plotter. The root pane is static and shared across all plotter factories. 
- * The top level component is set externally by the MonitoringApplication before any calls 
- * to AIDA are made from Drivers.
+ * This class implements an AIDA <code>IPlotterFactory</code> for the monitoring application. It
+ * extends the JFree plotter by putting plots into tabs. Each plotter factory is given its own
+ * top-level tab in a root tabbed pane, under which are separate tabs for each plotter. The root
+ * pane is static and shared across all plotter factories. The top level component is set externally
+ * by the MonitoringApplication before any calls to AIDA are made from Drivers.
  */
 public class MonitoringPlotFactory extends PlotterFactory {
 
@@ -32,9 +31,9 @@ public class MonitoringPlotFactory extends PlotterFactory {
 
     // Root pane where this factory's top-level tab will be inserted.
     private static JTabbedPane rootPane = null;
-    
+
     private static PlotterRegionListener regionListener;
-    
+
     public static void setPlotterRegionListener(PlotterRegionListener regionListener) {
         MonitoringPlotFactory.regionListener = regionListener;
     }
@@ -43,7 +42,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
      * Class constructor.
      */
     MonitoringPlotFactory() {
-        super();        
+        super();
         setIsEmbedded(true);
         setupRootPane("  ");
         if (regionListener != null)
@@ -65,8 +64,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
 
     private void setupRootPane(String name) {
         // FIXME: Hack to disregard call from an AIDA related class.
-        if (!(new RuntimeException()).getStackTrace()[2].getClassName()
-                .equals("hep.aida.ref.plotter.style.registry.StyleStoreXMLReader")) {
+        if (!(new RuntimeException()).getStackTrace()[2].getClassName().equals("hep.aida.ref.plotter.style.registry.StyleStoreXMLReader")) {
             rootPane.addTab(name, tabs);
             rootPane.setTabComponentAt(rootPane.getTabCount() - 1, new JLabel(name));
         }
@@ -98,25 +96,24 @@ public class MonitoringPlotFactory extends PlotterFactory {
     public static void setRootPane(JTabbedPane rootPane) {
         MonitoringPlotFactory.rootPane = rootPane;
     }
-    
+
     private void setupPlotterTab(String plotterName, IPlotter plotter) {
         JPanel plotterPanel = new JPanel(new BorderLayout());
         plotterPanel.add(PlotterUtilities.componentForPlotter(plotter), BorderLayout.CENTER);
         tabs.addTab(plotterName, plotterPanel);
         tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(plotterName));
-    }    
-    
+    }
+
     private void addChart(JFreeChart chart) {
         ChartPanel panel = new ChartPanel(chart);
         tabs.addTab(chart.getTitle().getText(), panel);
         tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(chart.getTitle().getText()));
     }
-    
+
     /**
-     * Create a strip chart using a JFreeChart implementation.     
-     * It will be automatically updated from a {@link StripChartUpdater}.    
-     * Similar to AIDA plots, the chart will be given a sub-tab in the tab 
-     * of this factory.
+     * Create a strip chart using a JFreeChart implementation. It will be automatically updated from
+     * a {@link StripChartUpdater}. Similar to AIDA plots, the chart will be given a sub-tab in the
+     * tab of this factory.
      * 
      * @param title The title of the chart.
      * @param yAxisLabel The y axis label.
@@ -131,7 +128,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
         updater.setChart(stripChart);
         return updater;
     }
-    
+
     /**
      * Create a strip chart which must be updated manually.
      * @param title The title of the chart.
@@ -146,5 +143,5 @@ public class MonitoringPlotFactory extends PlotterFactory {
         stripChart.getLegend().setVisible(false); /* Legend turned off for now. */
         addChart(stripChart);
         return stripChart;
-    }      
+    }
 }

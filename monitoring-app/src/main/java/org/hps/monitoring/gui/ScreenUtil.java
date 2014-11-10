@@ -33,10 +33,10 @@ class ScreenUtil {
             System.out.println(graphicsDevice.getDisplayMode().getWidth() + " x " + graphicsDevice.getDisplayMode().getHeight());
         }
     }
-    
+
     static void printComponentInfo(Component component) {
         if (component instanceof JFrame) {
-            System.out.println(((JFrame)component).getTitle());
+            System.out.println(((JFrame) component).getTitle());
         } else {
             System.out.println(component);
         }
@@ -44,19 +44,19 @@ class ScreenUtil {
         System.out.println("size: " + component.getSize().getWidth() + " x " + component.getSize().getHeight());
         System.out.println();
     }
-    
+
     static GraphicsDevice getGraphicsDevice(int index) {
         return GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[index];
     }
-    
+
     static Rectangle getScreenBounds(int index) {
         return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds();
     }
-    
+
     static double getBoundsX(int index) {
         return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds().getX();
     }
-    
+
     static double getBoundsY(int index) {
         return ScreenUtil.getGraphicsDevice(index).getDefaultConfiguration().getBounds().getY();
     }

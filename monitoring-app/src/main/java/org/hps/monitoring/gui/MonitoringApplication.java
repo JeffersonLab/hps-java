@@ -104,7 +104,7 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
  */
-// TODO: Move GUI/window functionality to a new class.  (This one is too big!)
+// TODO: Move GUI/window functionality to a new class. (This one is too big!)
 public final class MonitoringApplication extends ApplicationWindow implements ActionListener, SystemStatusListener, PropertyChangeListener {
 
     // Top-level Swing components.
@@ -127,7 +127,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     // Saved references to System.out and System.err in case need to reset.
     private final PrintStream sysOut = System.out;
     private final PrintStream sysErr = System.err;
-    
+
     // Error handling class for the application.
     private ErrorHandler errorHandler;
 
@@ -149,7 +149,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private JTable logTable;
     private static Level DEFAULT_LOG_LEVEL = Level.INFO;
 
-    // Graogucs format for screenshots.  
+    // Graogucs format for screenshots.
     private static final String SCREENSHOT_FORMAT = "png";
 
     // Format of date field for log.
@@ -162,44 +162,45 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private final static int LOG_TABLE_HEIGHT = 270;
     private static final int MAIN_FRAME_HEIGHT = ScreenUtil.getScreenHeight() / 2;
     private static final int MAIN_FRAME_WIDTH = 650;
-    
+
     // Default config which can be overridden by command line argument.
     private static final String DEFAULT_CONFIG_RESOURCE = "/org/hps/monitoring/config/default_config.prop";
-    
-    // The application global Configuration object which is the default configuration unless overridden.
+
+    // The application global Configuration object which is the default configuration unless
+    // overridden.
     private Configuration configuration = new Configuration(DEFAULT_CONFIG_RESOURCE);
-    
+
     // The ConfigurationModel for updating GUI components from the global configuration.
     private ConfigurationModel configurationModel = new ConfigurationModel();
-    
+
     // The RunModel for updating the RunPanel.
     private RunModel runModel = new RunModel();
-    
+
     private FileValidationThread fileValidationThread;
-                   
+
     /**
      * Constructor for the monitoring application.
      */
     public MonitoringApplication() {
-        
+
         super(getApplicationTitle());
-        
+
         // Add the application as a property change listener on the configuration model.
         configurationModel.addPropertyChangeListener(this);
     }
-        
+
     /**
-     * Initialize GUI components and all other necessary objects
-     * to put the application in a usable state.
+     * Initialize GUI components and all other necessary objects to put the application in a usable
+     * state.
      */
     public void initialize() {
-                
+
         // Create and configure the logger.
         setupLogger();
-                
+
         // Setup the error handling class.
         setupErrorHandler();
-        
+
         // Setup an uncaught exception handler.
         setupUncaughtExceptionHandler();
 
@@ -208,47 +209,47 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Create the log table GUI component.
         createLogTable();
-        
+
         // Create settings dialog window.
         createSettingsDialog();
-                
+
         // Setup the application menus.
         createMenuBar();
-                        
+
         // Create the system status window.
         createSystemStatusWindow();
-        
+
         // Configuration of window for showing plots.
         createPlotWindow();
-        
+
         // Setup AIDA.
         setupAida();
-       
+
         // Configure the application's primary JFrame.
         configApplicationFrame();
-        
+
         // Load the current configuration, which will push values into the GUI.
         loadConfiguration();
-        
+
         // Log that the application started successfully.
         log(Level.CONFIG, "Application initialized successfully.");
     }
-    
+
     /**
      * The action handler method for the application.
      * @param e The event to handle.
      */
     public void actionPerformed(ActionEvent e) {
-        
-        //System.out.println("MonitoringApplication. actionPerformed: " + e.getActionCommand());
-        
+
+        // System.out.println("MonitoringApplication. actionPerformed: " + e.getActionCommand());
+
         String cmd = e.getActionCommand();
         if (CONNECT.equals(cmd)) {
             // Run the start session method on a seperate thread.
             new Thread() {
                 public void run() {
                     startSession();
-                }                
+                }
             }.start();
         } else if (DISCONNECT.equals(cmd)) {
             // Run the stop session method on a seperate thread.
@@ -256,7 +257,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 public void run() {
                     stopSession();
                 }
-            }.start();            
+            }.start();
         } else if (SAVE_PLOTS.equals(cmd)) {
             savePlots();
         } else if (CHOOSE_LOG_FILE.equals(cmd)) {
@@ -300,41 +301,41 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             }
         }
     }
-           
+
     /**
      * Set the GUI to visible.
      */
     public void setVisible(boolean visible) {
-        
+
         super.setVisible(true);
-        
+
         this.systemStatusWindow.setVisible(true);
-        
+
         // FIXME: If this is done earlier before app is visible, then the GUI will fail to show!
         this.connectionStatusPanel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
     }
-    
+
     /**
      * Set the Configuration but don't update the ConfigurationModel.
      * @param configuration
      */
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
-    }    
-    
+    }
+
     /**
      * Handle a property change event.
      * @param evt The property change event.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-                       
+
         if (evt.getPropertyName().equals("ancestor"))
-            return;                                          
+            return;
         Object value = evt.getNewValue();
         if (evt.getPropertyName().equals(SAVE_LAYOUT_PROPERTY)) {
             saveLayoutItem.setSelected((Boolean) value);
-        } else if (evt.getPropertyName().equals(MONITORING_APPLICATION_LAYOUT_PROPERTY)){
+        } else if (evt.getPropertyName().equals(MONITORING_APPLICATION_LAYOUT_PROPERTY)) {
             updateWindowConfiguration(new WindowConfiguration((String) value));
         } else if (evt.getPropertyName().equals(ConfigurationModel.SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY)) {
             if (systemStatusWindow != null) {
@@ -349,26 +350,26 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 System.err.println("ERROR: The plotWindow is null!");
             }
         } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
-            
-            //System.out.println("propertyChange - " + evt.getPropertyName());
-            //System.out.println("  value: " + value);
-            
-            if ((Boolean)value == true) {
-                //System.out.println("setting logToFile - " + configurationModel.getLogFileName());
+
+            // System.out.println("propertyChange - " + evt.getPropertyName());
+            // System.out.println("  value: " + value);
+
+            if ((Boolean) value == true) {
+                // System.out.println("setting logToFile - " + configurationModel.getLogFileName());
                 logToFile(new File(configurationModel.getLogFileName()));
             } else {
-                //System.out.println("setting logToTerminal");
+                // System.out.println("setting logToTerminal");
                 logToTerminal();
             }
         }
     }
-    
+
     /**
      * Hook for logging all status changes from the system status monitor.
      */
     @Override
     public void statusChanged(SystemStatus status) {
-        
+
         // Choose the appropriate log level.
         Level level = Level.INFO;
         if (status.getStatusCode().equals(Level.WARNING)) {
@@ -376,97 +377,82 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
             level = Level.SEVERE;
         }
-       
+
         // Log all status changes.
-        log(level, "STATUS, "
-                + "subsys: " + status.getSubsystem() + ", "
-                + "code: " + status.getStatusCode().name() + ", "                 
-                + "descr: " + status.getDescription() + ", "                 
-                + "mesg: " + status.getMessage());
+        log(level, "STATUS, " + "subsys: " + status.getSubsystem() + ", " + "code: " + status.getStatusCode().name() + ", " + "descr: " + status.getDescription() + ", " + "mesg: " + status.getMessage());
     }
-    
+
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         plotWindow.setEnabled(enabled);
         systemStatusWindow.setEnabled(enabled);
-        //settingsDialog.setEnabled(false);
-        
-        //this.setFocusable(enabled);
-        //plotWindow.setFocusable(enabled);
-        //systemStatusWindow.setFocusable(enabled);
-        //settingsDialog.setFocusable(false);
+        // settingsDialog.setEnabled(false);
+
+        // this.setFocusable(enabled);
+        // plotWindow.setFocusable(enabled);
+        // systemStatusWindow.setFocusable(enabled);
+        // settingsDialog.setFocusable(false);
     }
-    
+
     /* -------------------------- private methods ----------------------------- */
-               
+
     /**
      * Setup the error handler.
      */
     private void setupErrorHandler() {
         errorHandler = new ErrorHandler(this, logger);
     }
-    
+
     /**
      * Setup the uncaught exception handler which will trap unhandled errors.
      */
     private void setupUncaughtExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {            
-            public void uncaughtException(Thread thread, Throwable exception) {                               
-                MonitoringApplication.this.errorHandler.setError(exception)
-                   .log()
-                   .printStackTrace()
-                   .showErrorDialog();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread thread, Throwable exception) {
+                MonitoringApplication.this.errorHandler.setError(exception).log().printStackTrace().showErrorDialog();
                 // FIXME: This should probably cause a system.exit after the dialog box is closed!
             }
         });
     }
-     
+
     /**
      * Create the settings dialog GUI component.
      */
     private void createSettingsDialog() {
-        
-        // Create and configure the settings dialog which has sub-panels for application configuration.
+
+        // Create and configure the settings dialog which has sub-panels for application
+        // configuration.
         settingsDialog = new SettingsDialog();
         settingsDialog.getSettingsPanel().addActionListener(this);
         getJobSettingsPanel().addActionListener(this);
         settingsDialog.getSettingsPanel().getDataSourcePanel().addActionListener(this);
-        
+
         // Push the ConfigurationModel to the job settings dialog.
         getJobSettingsPanel().setConfigurationModel(configurationModel);
         getConnectionSettingsPanel().setConfigurationModel(configurationModel);
-        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);               
+        settingsDialog.getSettingsPanel().getDataSourcePanel().setConfigurationModel(configurationModel);
     }
 
     /**
      * Create the plot window.
      */
     private void createPlotWindow() {
-        
+
         // Create the JFrame.
         plotWindow = new PlotWindow();
-        
+
         // Set initial size and position which might be overridden later.
-        plotWindow.setDefaultWindowConfiguration(
-                new WindowConfiguration(
-                        SCREEN_WIDTH - MAIN_FRAME_WIDTH,
-                        SCREEN_HEIGHT,
-                        (int)(ScreenUtil.getBoundsX(0)) + MAIN_FRAME_WIDTH,
-                        plotWindow.getY()
-                ));               
+        plotWindow.setDefaultWindowConfiguration(new WindowConfiguration(SCREEN_WIDTH - MAIN_FRAME_WIDTH, SCREEN_HEIGHT, (int) (ScreenUtil.getBoundsX(0)) + MAIN_FRAME_WIDTH, plotWindow.getY()));
     }
-    
+
     private void createSystemStatusWindow() {
         systemStatusWindow = new SystemStatusWindow();
-        WindowConfiguration wc = new WindowConfiguration(
-                650, /* FIXME: Hard-coded width setting. */
-                ScreenUtil.getScreenHeight() / 2,
-                (int)ScreenUtil.getBoundsX(0),
-                MAIN_FRAME_HEIGHT);
+        WindowConfiguration wc = new WindowConfiguration(650, /* FIXME: Hard-coded width setting. */
+        ScreenUtil.getScreenHeight() / 2, (int) ScreenUtil.getBoundsX(0), MAIN_FRAME_HEIGHT);
         systemStatusWindow.setMinimumSize(new Dimension(wc.width, wc.height));
         systemStatusWindow.setDefaultWindowConfiguration(wc);
     }
-    
+
     /**
      * Configure the AIDA plotting backend.
      */
@@ -475,10 +461,10 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         MonitoringPlotFactory.setRootPane(this.plotWindow.getPlotPane());
         MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
             @Override
-            public void regionSelected(PlotterRegion region) {                
+            public void regionSelected(PlotterRegion region) {
                 if (region == null)
                     throw new RuntimeException("The region arg is null!!!");
-                //System.out.println("MonitoringApplication - regionSelected - " + region.title());
+                // System.out.println("MonitoringApplication - regionSelected - " + region.title());
                 plotInfoWindow.setCurrentRegion(region);
             }
         });
@@ -489,7 +475,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      * Create the main panel.
      */
     private void createMainPanel() {
-        
+
         // Main panel setup.
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
@@ -526,7 +512,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         c.gridy = 2;
         mainPanel.add(runPanel, c);
     }
-    
+
     /**
      * Create the application menu bar and menu items.
      */
@@ -536,73 +522,79 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         JMenu applicationMenu = new JMenu("Application");
         applicationMenu.setMnemonic(KeyEvent.VK_A);
-        menuBar.add(applicationMenu);               
-        
+        menuBar.add(applicationMenu);
+
         JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
         loadConfigItem.addActionListener(this);
         loadConfigItem.setMnemonic(KeyEvent.VK_C);
         loadConfigItem.setActionCommand(SELECT_CONFIG_FILE);
         loadConfigItem.setToolTipText("Load application settings from a properties file");
         applicationMenu.add(loadConfigItem);
-        
+
         JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
         saveConfigItem.addActionListener(this);
         saveConfigItem.setMnemonic(KeyEvent.VK_S);
-        saveConfigItem.setActionCommand(SAVE_CONFIG_FILE);        
+        saveConfigItem.setActionCommand(SAVE_CONFIG_FILE);
         saveConfigItem.setToolTipText("Save settings to a properties file");
         applicationMenu.add(saveConfigItem);
-        
+
         JMenuItem settingsItem = new JMenuItem("Show Settings ...");
         settingsItem.setMnemonic(KeyEvent.VK_P);
         settingsItem.setActionCommand(SHOW_SETTINGS);
         settingsItem.addActionListener(this);
         settingsItem.setToolTipText("Show application settings menu");
         applicationMenu.add(settingsItem);
-       
+
         applicationMenu.addSeparator();
-        
+
         saveLayoutItem = new JCheckBoxMenuItem("Save GUI Layout");
         saveLayoutItem.setActionCommand(SAVE_LAYOUT);
         saveLayoutItem.addActionListener(this);
         saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
-        saveLayoutItem.setSelected(configurationModel.getSaveLayout()); /* Initial setting from config. */
-        saveLayoutItem.addPropertyChangeListener(this); /* Any subsequent changes to model will activate this. */
+        saveLayoutItem.setSelected(configurationModel.getSaveLayout()); /*
+                                                                         * Initial setting from
+                                                                         * config.
+                                                                         */
+        saveLayoutItem.addPropertyChangeListener(this); /*
+                                                         * Any subsequent changes to model will
+                                                         * activate this.
+                                                         */
         applicationMenu.add(saveLayoutItem);
-        
+
         JMenuItem restoreLayoutItem = new JMenuItem("Restore Default GUI Layout");
         restoreLayoutItem.setActionCommand(RESTORE_DEFAULT_GUI_LAYOUT);
         restoreLayoutItem.addActionListener(this);
         restoreLayoutItem.setToolTipText("Restore the GUI windows to their default positions and sizes");
         applicationMenu.add(restoreLayoutItem);
-        
+
         applicationMenu.addSeparator();
-                
+
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.setActionCommand(EXIT);
         exitItem.addActionListener(this);
         exitItem.setToolTipText("Exit from the application");
         applicationMenu.add(exitItem);
-        
+
         JMenu plotsMenu = new JMenu("Plots");
         plotsMenu.setMnemonic(KeyEvent.VK_O);
         menuBar.add(plotsMenu);
-        
+
         JMenuItem aidaAutoSaveItem = new JMenuItem("Set AIDA Auto Save File ...");
         aidaAutoSaveItem.setMnemonic(KeyEvent.VK_A);
         aidaAutoSaveItem.setActionCommand(AIDA_AUTO_SAVE);
         aidaAutoSaveItem.addActionListener(this);
         aidaAutoSaveItem.setToolTipText("Select name of file to auto save AIDA plots at end of job.");
         plotsMenu.add(aidaAutoSaveItem);
-        
+
         savePlotsItem = new JMenuItem("Save Plots to AIDA File...");
         savePlotsItem.setMnemonic(KeyEvent.VK_P);
         savePlotsItem.setActionCommand(SAVE_PLOTS);
         savePlotsItem.addActionListener(this);
         savePlotsItem.setEnabled(false);
         savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
-        plotsMenu.add(savePlotsItem);        
-       
+        plotsMenu.add(savePlotsItem);
+
         JMenu logMenu = new JMenu("Log");
         logMenu.setMnemonic(KeyEvent.VK_L);
         menuBar.add(logMenu);
@@ -622,21 +614,21 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         terminalItem.setEnabled(false);
         terminalItem.setToolTipText("Redirect std out and err back to the terminal.");
         logMenu.add(terminalItem);
-        
+
         JMenuItem saveLogItem = new JMenuItem("Save Log Table to File ...");
         saveLogItem.setMnemonic(KeyEvent.VK_S);
         saveLogItem.setActionCommand(SAVE_LOG_TABLE);
         saveLogItem.addActionListener(this);
         saveLogItem.setToolTipText("Save the log records to a tab delimited text file.");
         logMenu.add(saveLogItem);
-        
+
         JMenuItem clearLogItem = new JMenuItem("Clear Log Table");
         clearLogItem.addActionListener(this);
         clearLogItem.setMnemonic(KeyEvent.VK_C);
         clearLogItem.setActionCommand(CLEAR_LOG_TABLE);
         clearLogItem.setToolTipText("Clear the log table of all messages.");
         logMenu.add(clearLogItem);
-        
+
         JMenu utilMenu = new JMenu("Util");
         plotsMenu.setMnemonic(KeyEvent.VK_U);
         menuBar.add(utilMenu);
@@ -648,7 +640,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         screenshotItem.setToolTipText("Save a full screenshot to a " + SCREENSHOT_FORMAT + " file.");
         utilMenu.add(screenshotItem);
     }
-   
+
     /**
      * Log handler for inserting messages into the log table.
      */
@@ -657,14 +649,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         /**
          * Puts log messages into the log table.
          */
-        public void publish(LogRecord record) {                       
+        public void publish(LogRecord record) {
             // Add the row to the log table.
-            Object[] row = new Object[] { 
-                    dateFormat.format(new Date(record.getMillis())), 
-                    record.getLevel(),
-                    record.getMessage() };
+            Object[] row = new Object[] { dateFormat.format(new Date(record.getMillis())), record.getLevel(), record.getMessage() };
             logTableModel.insertRow(logTable.getRowCount(), row);
-            
+
             // Print all messages to System.out so they show up in the terminal or log file output.
             System.out.println(row[0] + " :: " + row[1] + " :: " + row[2]);
         }
@@ -677,8 +666,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
 
     /**
-     * Creates the log table component, which is a JTable containing messages
-     * from the logger.
+     * Creates the log table component, which is a JTable containing messages from the logger.
      */
     private void createLogTable() {
 
@@ -710,17 +698,17 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         logger.addHandler(logHandler);
         logger.setLevel(Level.ALL);
     }
-   
+
     /**
      * Show the settings window.
      */
     private void showSettingsDialog() {
         settingsDialog.setVisible(true);
     }
-       
+
     /**
-     * Set a new log level for the application.  If the new log level is the same as the old one, 
-     * a new log level will NOT be set.
+     * Set a new log level for the application. If the new log level is the same as the old one, a
+     * new log level will NOT be set.
      */
     private void setLogLevel() {
         Level newLevel = configurationModel.getLogLevel();
@@ -744,27 +732,23 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      * Setup the primary <code>JFrame</code> for the application.
      */
     private void configApplicationFrame() {
-        
-        mainPanel.setOpaque(true);        
+
+        mainPanel.setOpaque(true);
 
         // Configure window size and position.
-        WindowConfiguration wc = new WindowConfiguration(
-                MAIN_FRAME_WIDTH, 
-                MAIN_FRAME_HEIGHT, 
-                (int)ScreenUtil.getBoundsX(0), 
-                getY());
+        WindowConfiguration wc = new WindowConfiguration(MAIN_FRAME_WIDTH, MAIN_FRAME_HEIGHT, (int) ScreenUtil.getBoundsX(0), getY());
         setMinimumSize(new Dimension(wc.width, wc.height));
         setPreferredSize(new Dimension(wc.width, wc.height));
         setDefaultWindowConfiguration(wc);
-        
+
         setResizable(true);
         setContentPane(mainPanel);
         setJMenuBar(menuBar);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                                
-        pack();                                     
+
+        pack();
     }
-               
+
     /**
      * Save all the plots to a file using a <code>JFileChooser</code>.
      */
@@ -777,15 +761,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 AIDA.defaultInstance().saveAs(fileName);
                 logger.log(Level.INFO, "Plots saved to file <" + fileName + ">");
             } catch (IOException e) {
-                errorHandler.setError(e)
-                    .setMessage("Error saving plots to file.")
-                    .printStackTrace()
-                    .log()
-                    .showErrorDialog();
-            } 
+                errorHandler.setError(e).setMessage("Error saving plots to file.").printStackTrace().log().showErrorDialog();
+            }
         }
     }
-   
+
     /**
      * Get the full title of the application.
      * @return The application title.
@@ -843,15 +823,16 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 configurationModel.setLogToFile(false);
-                
-                // FIXME: These should be toggled via a PropertyChangeListener on the ConfigurationModel.
+
+                // FIXME: These should be toggled via a PropertyChangeListener on the
+                // ConfigurationModel.
                 terminalItem.setEnabled(false);
                 logItem.setEnabled(true);
             }
         });
         log(Level.INFO, "Redirected std out and err back to terminal.");
     }
-        
+
     /**
      * Redirect <code>System.out</code> and <code>System.err</code> to a file.
      */
@@ -859,7 +840,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         redirectStdOutAndErrToFile(file);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                // FIXME: These should be toggled via PropertyChangeListener on the ConfigurationModel.
+                // FIXME: These should be toggled via PropertyChangeListener on the
+                // ConfigurationModel.
                 terminalItem.setEnabled(true);
                 logItem.setEnabled(false);
             }
@@ -884,7 +866,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 getConnectionSettingsPanel().enableConnectionPanel(true);
 
                 // Re-enable the getJobPanel().
-                //getJobSettingsPanel().enableJobPanel(true);
+                // getJobSettingsPanel().enableJobPanel(true);
 
                 // Set relevant event panel buttons to disabled.
                 buttonsPanel.enablePauseButton(false);
@@ -897,7 +879,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
 
     /**
-     * Set the GUI to connected state, which will enable/disable appropriate components and menu items.
+     * Set the GUI to connected state, which will enable/disable appropriate components and menu
+     * items.
      */
     private void setConnectedGuiState() {
         SwingUtilities.invokeLater(new Runnable() {
@@ -907,7 +890,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 getConnectionSettingsPanel().enableConnectionPanel(false);
 
                 // Disable getJobPanel().
-                //getJobSettingsPanel().enableJobPanel(false);
+                // getJobSettingsPanel().enableJobPanel(false);
 
                 // Enable or disable appropriate menu items.
                 savePlotsItem.setEnabled(true);
@@ -965,28 +948,24 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             BufferedImage image = robot.createScreenCapture(screenRectangle);
             ImageIO.write(image, SCREENSHOT_FORMAT, new File(fileName));
         } catch (Exception e) {
-            errorHandler.setError(e)
-                .setMessage("Failed to take screenshot.")
-                .printStackTrace()
-                .log()
-                .showErrorDialog();
+            errorHandler.setError(e).setMessage("Failed to take screenshot.").printStackTrace().log().showErrorDialog();
         }
     }
 
     /**
-     * Start a new monitoring session.  This method is executed in a separate thread from the EDT
-     * within {@link #actionPerformed(ActionEvent)} so GUI updates are not blocked while the session 
+     * Start a new monitoring session. This method is executed in a separate thread from the EDT
+     * within {@link #actionPerformed(ActionEvent)} so GUI updates are not blocked while the session
      * is being setup.
      */
     private void startSession() {
 
         log(Level.FINE, "Starting a new monitoring session.");
-        
+
         // Show a modal window that will block the GUI until connected or an error occurs.
         JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Starting new session ...");
-        
+
         try {
-                        
+
             // Reset the plot panel and global AIDA state.
             resetPlots();
 
@@ -997,13 +976,13 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             // Setup the LCSim JobControlManager and event builder.
             setupLCSim();
-            
+
             // Connect to the ET system.
-            connect();                        
-            
+            connect();
+
             // Setup the EventProcessingChain object using the EtConnection.
             setupCompositeLoop();
-            
+
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
 
@@ -1013,27 +992,25 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             log(Level.INFO, "Successfully started the monitoring session.");
 
         } catch (Exception e) {
-            
+
             log(Level.SEVERE, "An error occurred while setting up the session.");
-            
+
             // Log the error that occurred.
-            errorHandler.setError(e)
-                .log()
-                .printStackTrace();
-           
+            errorHandler.setError(e).log().printStackTrace();
+
             // Disconnect from the session.
             disconnect(ConnectionStatus.ERROR);
-            
+
         } finally {
             // Close modal window.
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
         }
     }
-       
+
     /**
      * Start the session watchdog thread, which will kill the session if event processing finishes.
      */
-    private void startSessionWatchdogThread() {        
+    private void startSessionWatchdogThread() {
         sessionWatchdogThread = new SessionWatchdogThread();
         sessionWatchdogThread.start();
     }
@@ -1046,24 +1023,24 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         // Make sure applicable menu items are enabled or disabled.
         // This applies whether or not using an ET server or file source.
         setConnectedGuiState();
-        
+
         // Setup the network connection if using an ET server.
         if (usingEtServer()) {
-                    
+
             setConnectionStatus(ConnectionStatus.CONNECTION_REQUESTED);
 
             // Create a connection to the ET server.
             try {
                 createEtConnection();
                 log(Level.INFO, "Successfully connected to ET system.");
-            } catch (Exception e) {                
+            } catch (Exception e) {
                 throw new IOException(e);
             }
         } else {
             this.setConnectionStatus(ConnectionStatus.CONNECTED);
         }
     }
-       
+
     private ConnectionSettingsPanel getConnectionSettingsPanel() {
         return settingsDialog.getSettingsPanel().getConnectionPanel();
     }
@@ -1071,7 +1048,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private JobSettingsPanel getJobSettingsPanel() {
         return settingsDialog.getSettingsPanel().getJobSettingsPanel();
     }
-    
+
     private void disconnect() {
         disconnect(ConnectionStatus.DISCONNECTING);
     }
@@ -1086,7 +1063,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Cleanup the ET connection.
         cleanupEtConnection();
-        
+
         // Update state of GUI to disconnected.
         setDisconnectedGuiState();
 
@@ -1104,7 +1081,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      * Cleanup the ET connection.
      */
     private void cleanupEtConnection() {
-        if (connection != null) {     
+        if (connection != null) {
             if (connection.getEtSystem().alive()) {
                 log(Level.FINEST, "Cleaning up the ET connection.");
                 connection.cleanup();
@@ -1123,14 +1100,14 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Get steering resource or file as a String parameter.
         String steering = null;
-        SteeringType steeringType = configurationModel.getSteeringType(); 
+        SteeringType steeringType = configurationModel.getSteeringType();
         if (steeringType.equals(SteeringType.FILE))
             try {
                 steering = configurationModel.getSteeringFile().getCanonicalPath();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        else 
+        else
             steering = configurationModel.getSteeringResource();
 
         log(Level.CONFIG, "Set steering to <" + steering + "> with type <" + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + ">");
@@ -1147,15 +1124,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             // Setup the event builder to translate from EVIO to LCIO.
             createEventBuilder();
-            
+
             log(Level.INFO, "LCSim setup was successful.");
 
         } catch (Throwable t) {
             // Catch all errors and rethrow them as RuntimeExceptions.
-            errorHandler.setError(t)
-                .setMessage("Error setting up LCSim.")
-                .printStackTrace()
-                .raiseException();
+            errorHandler.setError(t).setMessage("Error setting up LCSim.").printStackTrace().raiseException();
         }
     }
 
@@ -1192,18 +1166,18 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Set the detector name on the event builder so it can find conditions data.
         eventBuilder.setDetectorName(configurationModel.getDetectorName());
-        
+
         ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
 
         log(Level.CONFIG, "Successfully initialized event builder <" + eventBuilderClassName + ">");
     }
 
     /**
-     * Create a connection to an ET system using current parameters from the GUI. If successful,
-     * the application's ConnectionStatus is changed to CONNECTED.
+     * Create a connection to an ET system using current parameters from the GUI. If successful, the
+     * application's ConnectionStatus is changed to CONNECTED.
      */
     private void createEtConnection() {
-        
+
         // Setup connection to ET system.
         connection = fromConfigurationModel(configurationModel);
 
@@ -1211,17 +1185,14 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             // Set status to connected as there is now a live ET connection.
             setConnectionStatus(ConnectionStatus.CONNECTED);
-            
+
             log(Level.INFO, "Successfully connected to ET system.");
 
         } else {
             // Some error occurred and the connection was not created.
             setConnectionStatus(ConnectionStatus.ERROR);
-            
-            errorHandler.setError(new RuntimeException("Failed to create ET connection."))
-                .log()
-                .printStackTrace()
-                .raiseException();
+
+            errorHandler.setError(new RuntimeException("Failed to create ET connection.")).log().printStackTrace().raiseException();
         }
     }
 
@@ -1248,12 +1219,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                     out.write(buf.toString());
                     out.close();
                     log("Saved log to file <" + logFile.getPath() + ">");
-                } catch (IOException e) {                    
-                    errorHandler.setError(e)
-                        .setMessage("Error saving log to file.")
-                        .log()
-                        .printStackTrace()
-                        .showErrorDialog();
+                } catch (IOException e) {
+                    errorHandler.setError(e).setMessage("Error saving log to file.").log().printStackTrace().showErrorDialog();
                 }
             }
         }
@@ -1266,7 +1233,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         logTableModel.setRowCount(0);
         log(Level.INFO, "Log table was cleared.");
     }
-    
+
     /**
      * Notify event processor to get next set of events, if in pause mode.
      */
@@ -1288,7 +1255,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         buttonsPanel.setPauseModeState(false);
 
         log(Level.FINEST, "Resuming event processing after pause.");
-        
+
         this.setConnectionStatus(ConnectionStatus.CONNECTED);
     }
 
@@ -1296,17 +1263,17 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      * Notify the event processor to start pause mode, which will pause between events.
      */
     private void pauseEventProcessing() {
-       
+
         loop.pause();
 
         // Set GUI state.
         buttonsPanel.setPauseModeState(true);
-        
+
         log(Level.FINEST, "Event processing was paused.");
-        
+
         this.setConnectionStatus(ConnectionStatus.PAUSED);
     }
-    
+
     /**
      * Reset the contents of the default AIDA tree.
      */
@@ -1332,54 +1299,45 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private void log(String m) {
         log(DEFAULT_LOG_LEVEL, m);
     }
-    
+
     /**
      * Configure the event processing chain.
      */
     private void setupCompositeLoop() {
-        
-        CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
-            .setStopOnEndRun(configurationModel.getDisconnectOnEndRun())
-            .setStopOnErrors(configurationModel.getDisconnectOnError())
-            .setDataSourceType(configurationModel.getDataSourceType())
-            .setProcessingStage(configurationModel.getProcessingStage())
-            .setEtConnection(connection)
-            .setFilePath(configurationModel.getDataSourcePath())
-            .setLCSimEventBuilder(eventBuilder)
-            .setDetectorName(configurationModel.getDetectorName());
-               
+
+        CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration().setStopOnEndRun(configurationModel.getDisconnectOnEndRun()).setStopOnErrors(configurationModel.getDisconnectOnError()).setDataSourceType(configurationModel.getDataSourceType()).setProcessingStage(configurationModel.getProcessingStage()).setEtConnection(connection).setFilePath(configurationModel.getDataSourcePath()).setLCSimEventBuilder(eventBuilder).setDetectorName(configurationModel.getDetectorName());
+
         // Add all Drivers from the pre-configured JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
             loopConfig.add(driver);
-        }        
+        }
 
-        
-        // DEBUG: Turn these off while doing other stuff!!!!        
+        // DEBUG: Turn these off while doing other stuff!!!!
         // Using ET server?
         if (usingEtServer()) {
 
             // ET system monitor.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
             loopConfig.add(new EtSystemMonitor());
-            
+
             // ET system strip charts.
             // FIXME: Make whether this is run or not configurable through the JobPanel.
             loopConfig.add(new EtSystemStripCharts());
         }
-              
+
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
-        
-        // Create the CompositeLoop with the configuration.        
+
+        // Create the CompositeLoop with the configuration.
         loop = new CompositeLoop(loopConfig);
-        
+
         // Create the processing thread.
         processingThread = new EventProcessingThread(loop);
-        
+
         // Start the processing thread.
         processingThread.start();
     }
-    
+
     /**
      * True if ET server is being used.
      * @return True if using ET server.
@@ -1387,22 +1345,22 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private boolean usingEtServer() {
         return configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
     }
-           
+
     /**
      * Configure the system status monitor panel for a new job.
      */
     private void setupSystemStatusMonitor() {
-        // Clear the system status monitor table.        
+        // Clear the system status monitor table.
         systemStatusWindow.getTableModel().clear();
-        
+
         // Get the global registry of SystemStatus objects.
         SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
-        
+
         // Process the SystemStatus objects.
         for (SystemStatus systemStatus : registry.getSystemStatuses()) {
             // Add a row to the table for every SystemStatus.
             systemStatusWindow.getTableModel().addSystemStatus(systemStatus);
-            
+
             // Add this class as a listener so all status changes can be logged.
             systemStatus.addListener(this);
         }
@@ -1420,11 +1378,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         if (!plotWindow.isVisible()) {
             // Turn on plot frame if it is off.
             plotWindow.setVisible(true);
-            //plotInfoWindow.setVisible(true);
+            // plotInfoWindow.setVisible(true);
         }
-            
+
         // Reset plots.
-        plotWindow.reset(); 
+        plotWindow.reset();
     }
 
     /**
@@ -1437,11 +1395,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             try {
                 AIDA.defaultInstance().saveAs(configurationModel.getAidaFileName());
             } catch (IOException e) {
-                errorHandler.setError(e)
-                    .setMessage("Error saving AIDA file.")
-                    .log()
-                    .printStackTrace()
-                    .showErrorDialog();
+                errorHandler.setError(e).setMessage("Error saving AIDA file.").log().printStackTrace().showErrorDialog();
             }
         }
     }
@@ -1453,54 +1407,56 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private void stopSession() {
         // Show a modal message window while this method executes.
         JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Disconnecting from session ...");
-        
+
         try {
             // Log message.
             logger.log(Level.FINER, "Stopping the session.");
-            
+
             // Kill the watchdog thread which looks for disconnects, if it is active.
             killSessionWatchdogThread();
-                        
+
             // Automatically write AIDA file from job settings.
             saveAidaFile();
-        
-            // Disconnect from ET system, if using the ET server, and set the proper disconnected GUI state.           
+
+            // Disconnect from ET system, if using the ET server, and set the proper disconnected
+            // GUI state.
             disconnect();
-            
-            // Stop the event processing, which is called after the ET system goes down to avoid hanging in calls to ET system.
+
+            // Stop the event processing, which is called after the ET system goes down to avoid
+            // hanging in calls to ET system.
             stopEventProcessing();
-                
+
             logger.log(Level.INFO, "Session was stopped.");
-            
-        } finally {        
+
+        } finally {
             // Close modal message window.
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
         }
     }
-                                       
+
     /**
-     * Stop the event processing by executing a <code>STOP</code> command on the 
-     * record loop and killing the event processing thread.  This is executed
-     * after the ET system is disconnected so that the event processing does
-     * not potentially hang in a call to <code>EtSystem.getEvents()</code> forever.
+     * Stop the event processing by executing a <code>STOP</code> command on the record loop and
+     * killing the event processing thread. This is executed after the ET system is disconnected so
+     * that the event processing does not potentially hang in a call to
+     * <code>EtSystem.getEvents()</code> forever.
      */
     private void stopEventProcessing() {
 
         // Is the event processing thread not null?
         if (processingThread != null) {
-            
+
             // Is the event processing thread actually still alive?
             if (processingThread.isAlive()) {
-                
+
                 // Request the event processing loop to execute stop.
                 loop.execute(Command.STOP);
-                
+
                 try {
                     // This should always work, because the ET system is disconnected before this.
                     processingThread.join();
                 } catch (InterruptedException e) {
                     // Don't know when this would ever happen.
-                    e.printStackTrace();                   
+                    e.printStackTrace();
                 }
             }
 
@@ -1542,7 +1498,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
     /**
      * Thread to automatically trigger a disconnect when the event processing chain finishes or
-     * throws a fatal error.  This thread joins to the event processing thread and automatically 
+     * throws a fatal error. This thread joins to the event processing thread and automatically
      * requests a disconnect using an ActionEvent when the event processing thread stops.
      */
     private class SessionWatchdogThread extends Thread {
@@ -1553,18 +1509,21 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 // disconnect should occur.
                 processingThread.join();
 
-                // Activate a disconnect using the ActionEvent which is used by the disconnect button.
-                // FIXME: When this happens the event processing object and its thread don't get set to null!
+                // Activate a disconnect using the ActionEvent which is used by the disconnect
+                // button.
+                // FIXME: When this happens the event processing object and its thread don't get set
+                // to null!
                 actionPerformed(new ActionEvent(Thread.currentThread(), 0, DISCONNECT));
 
             } catch (InterruptedException e) {
-                // This probably just means that the disconnect button was pushed, and this thread should
+                // This probably just means that the disconnect button was pushed, and this thread
+                // should
                 // no longer monitor the event processing.
                 e.printStackTrace();
             }
         }
     }
-    
+
     /**
      * Choose an output log file using a <code>JFileChooser</code>.
      */
@@ -1577,7 +1536,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             File file = fc.getSelectedFile();
             if (file.exists()) {
                 throw new RuntimeException("Log file already exists.");
-            } else {                    
+            } else {
                 try {
                     configurationModel.setLogFileName(file.getCanonicalPath());
                     configurationModel.setLogToFile(true);
@@ -1585,15 +1544,15 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                     errorHandler.setError(e).log().printStackTrace().showErrorDialog();
                 }
                 logToFile(file);
-            }            
+            }
         }
-        
+
     }
-    
+
     /**
      * Choose an input configuration file using a <code>JFileChooser</code>.
      */
-    private void chooseConfigurationFile() {    
+    private void chooseConfigurationFile() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Load Settings");
         fc.setCurrentDirectory(new File("."));
@@ -1604,9 +1563,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             Configuration newConfig = new Configuration(f);
             setConfiguration(newConfig);
             loadConfiguration();
-        }        
+        }
     }
-    
+
     /**
      * Save a configuration file using a <code>JFileChooser</code>.
      */
@@ -1617,11 +1576,11 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         int r = fc.showSaveDialog(mainPanel);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");            
+            log(Level.CONFIG, "Saving configuration to file <" + f.getPath() + ">");
             configuration.writeToFile(f);
         }
     }
-    
+
     private void updateLayoutConfiguration() {
         // Should the GUI config be saved?
         if (configurationModel.getSaveLayout()) {
@@ -1632,45 +1591,46 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             clearLayoutConfiguration();
         }
     }
-    
+
     private void saveLayoutConfiguration() {
         configurationModel.setMonitoringApplicationLayout(new WindowConfiguration(this).toString());
         configurationModel.setSystemStatusFrameLayout(new WindowConfiguration(systemStatusWindow).toString());
         configurationModel.setPlotFrameLayout(new WindowConfiguration(plotWindow).toString());
     }
-    
+
     private void clearLayoutConfiguration() {
         configurationModel.remove(ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY);
         configurationModel.remove(ConfigurationModel.SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY);
         configurationModel.remove(ConfigurationModel.PLOT_FRAME_LAYOUT_PROPERTY);
     }
-    
+
     private void setSaveLayout() {
         configurationModel.setSaveLayout(saveLayoutItem.isSelected());
-    }      
-    
+    }
+
     private void restoreDefaultLayout() {
         resetWindowConfiguration();
         plotWindow.resetWindowConfiguration();
         systemStatusWindow.resetWindowConfiguration();
     }
-           
+
     /**
      * Load the current Configuration by updating the ConfigurationModel.
      */
     private void loadConfiguration() {
-        
-        // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
+
+        // Set the Configuration on the ConfigurationModel which will trigger all the
+        // PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
-        
+
         // Log that a new configuration was loaded.
         if (configuration.getFile() != null)
             log(Level.CONFIG, "Loaded configuration from file <" + configuration.getFile().getPath() + ">");
-        else 
+        else
             log(Level.CONFIG, "Loaded configuration from resource <" + configuration.getResourcePath() + ">");
-        
+
     }
-    
+
     /**
      * Load the default configuration file.
      */
@@ -1678,15 +1638,15 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         setConfiguration(new Configuration(DEFAULT_CONFIG_RESOURCE));
         loadConfiguration();
     }
-    
+
     /**
-     * Validate the current file source by throwing an IOException if
-     * there appears to be a problem with it. 
+     * Validate the current file source by throwing an IOException if there appears to be a problem
+     * with it.
      * @throws IOException if there a problem with the current file source.
      */
     private void validateDataFile() throws IOException {
-        DataSourceType dataSourceType = configurationModel.getDataSourceType();        
-        if (dataSourceType.isFile()) {                                         
+        DataSourceType dataSourceType = configurationModel.getDataSourceType();
+        if (dataSourceType.isFile()) {
             try {
                 if (configurationModel.getDataSourcePath() == null)
                     throw new IOException("No data file set.");
@@ -1707,65 +1667,45 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 }
             } catch (IOException e) {
                 throw e;
-            } 
+            }
         } else {
             // This shouldn't really ever happen!
             throw new IOException("No file source was selected.");
         }
     }
-    
+
     /**
-     * This is a thread to validate the current input file.  This must 
-     * be done on a seperate thread, because EVIO files may take a long time
-     * to be completely read in using the EvioReader.  Also, since
-     * the request for file validation comes on the EDT thread, the task 
-     * must be put onto a seperate thread so that actionPerformed() may exit 
-     * and not block the EDT from updating the GUI.        
+     * This is a thread to validate the current input file. This must be done on a seperate thread,
+     * because EVIO files may take a long time to be completely read in using the EvioReader. Also,
+     * since the request for file validation comes on the EDT thread, the task must be put onto a
+     * seperate thread so that actionPerformed() may exit and not block the EDT from updating the
+     * GUI.
      */
-    class FileValidationThread extends Thread {                
+    class FileValidationThread extends Thread {
         boolean isFileValid;
+
         public void run() {
             settingsDialog.setEnabled(false);
-            JDialog dialog = DialogUtil.showStatusDialog(
-                    MonitoringApplication.this,
-                    "Validating data file", 
-                    configurationModel.getDataSourcePath());
-            try {                                
+            JDialog dialog = DialogUtil.showStatusDialog(MonitoringApplication.this, "Validating data file", configurationModel.getDataSourcePath());
+            try {
                 validateDataFile();
-                DialogUtil.showInfoDialog(
-                        MonitoringApplication.this, 
-                        "File is valid", 
-                        configurationModel.getDataSourcePath());
+                DialogUtil.showInfoDialog(MonitoringApplication.this, "File is valid", configurationModel.getDataSourcePath());
             } catch (IOException error) {
-                DialogUtil.showErrorDialog(
-                        MonitoringApplication.this, 
-                        error, 
-                        "Error validating file");
+                DialogUtil.showErrorDialog(MonitoringApplication.this, error, "Error validating file");
             } finally {
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
                 settingsDialog.setEnabled(true);
                 fileValidationThread = null;
-            }            
-        }    
+            }
+        }
     }
-            
+
     /**
      * Create an ET server connection from a <code>ConfigurationModel</code>.
      * @param config The ConfigurationModel with the connection parameters.
      * @return The EtConnection object.
      */
     private static EtConnection fromConfigurationModel(ConfigurationModel config) {
-        return EtConnection.createConnection(
-                config.getEtName(), 
-                config.getHost(), 
-                config.getPort(), 
-                config.getBlocking(), 
-                config.getQueueSize(), 
-                config.getPrescale(), 
-                config.getStationName(), 
-                config.getStationPosition(), 
-                config.getWaitMode(), 
-                config.getWaitTime(), 
-                config.getChunkSize());
-    }                      
+        return EtConnection.createConnection(config.getEtName(), config.getHost(), config.getPort(), config.getBlocking(), config.getQueueSize(), config.getPrescale(), config.getStationName(), config.getStationPosition(), config.getWaitMode(), config.getWaitTime(), config.getChunkSize());
+    }
 }

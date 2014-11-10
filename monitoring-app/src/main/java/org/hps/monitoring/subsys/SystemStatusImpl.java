@@ -16,7 +16,7 @@ public final class SystemStatusImpl implements SystemStatus {
     final String description;
     boolean active = true;
     final boolean clearable;
-    
+
     /**
      * Fully qualified constructor.
      * @param systemName The enum specifiying the system being monitored.
@@ -30,17 +30,17 @@ public final class SystemStatusImpl implements SystemStatus {
         setLastChangedTime();
         SystemStatusRegistry.getSystemStatusRegistery().register(this);
     }
-    
+
     @Override
     public Subsystem getSubsystem() {
         return systemName;
     }
-    
+
     @Override
     public String getDescription() {
         return description;
     }
-    
+
     @Override
     public String getMessage() {
         return message;
@@ -65,7 +65,7 @@ public final class SystemStatusImpl implements SystemStatus {
     public void addListener(SystemStatusListener listener) {
         this.listeners.add(listener);
     }
-    
+
     @Override
     public long getLastChangedMillis() {
         return lastChangedMillis;
@@ -79,22 +79,22 @@ public final class SystemStatusImpl implements SystemStatus {
             listener.statusChanged(this);
         }
     }
-    
+
     private void setLastChangedTime() {
         this.lastChangedMillis = System.currentTimeMillis();
     }
- 
+
     @Override
     public void setActive(boolean masked) {
         this.active = masked;
     }
-    
+
     @Override
     public boolean isActive() {
         return active;
     }
-    
-    @Override 
+
+    @Override
     public boolean isClearable() {
         return clearable;
     }

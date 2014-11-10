@@ -17,38 +17,37 @@ import org.lcsim.util.aida.AIDA;
  * Example Driver for plotting a sub-system's data using a strip chart.
  */
 public class EcalStripChartTestDriver extends Driver {
-           
+
     int eventInterval = 1000;
     static String collectionName = "EcalReadoutHits";
-    
-    MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) 
-            AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECAL System Monitoring");
+
+    MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECAL System Monitoring");
     TimeSeries series;
     JFreeChart stripChart;
     TimerTask updateTask;
     EventHeader currentEvent;
     int hits;
     int events;
-        
-    public void startOfData() { 
-        stripChart = plotFactory.createStripChart(
-                "Average ECAL Hits per " + eventInterval + " Events", 
-                "Hits", 
-                99999999, /* max age */ 
+
+    public void startOfData() {
+        stripChart = plotFactory.createStripChart("Average ECAL Hits per " + eventInterval + " Events", "Hits", 99999999, /*
+                                                                                                                           * max
+                                                                                                                           * age
+                                                                                                                           */
                 1000, /* max count */
                 100000 /* range size */);
-        series = StripChartUtil.getTimeSeries(stripChart);        
+        series = StripChartUtil.getTimeSeries(stripChart);
     }
-    
+
     public void process(EventHeader event) {
         int size = event.get(RawCalorimeterHit.class, collectionName).size();
         ++events;
         hits += size;
         if (event.getEventNumber() % eventInterval == 0) {
-            double averageHits = (double)hits / (double)events;
+            double averageHits = (double) hits / (double) events;
             series.add(new Millisecond(new Date()), averageHits);
             hits = 0;
             events = 0;
-        }                 
+        }
     }
 }

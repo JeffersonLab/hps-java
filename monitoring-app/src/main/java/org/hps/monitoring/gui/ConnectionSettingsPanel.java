@@ -33,13 +33,9 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
     private JComboBox<?> waitModeComboBox;
     private JTextField waitTimeField;
     private JTextField prescaleField;
-    
-    static final String[] waitModes = {
-        Mode.SLEEP.name(),
-        Mode.TIMED.name(),
-        Mode.ASYNC.name()
-    };
-    
+
+    static final String[] waitModes = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
+
     ConfigurationModel configurationModel;
 
     /**
@@ -51,46 +47,46 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
         setLayout(new GridBagLayout());
 
-        etNameField = addField("ET Name", "", 20);        
+        etNameField = addField("ET Name", "", 20);
         etNameField.addPropertyChangeListener("value", this);
-        
+
         hostField = addField("Host", 20);
         hostField.addPropertyChangeListener("value", this);
-        
+
         portField = addField("Port", 5);
         portField.addPropertyChangeListener("value", this);
-        
+
         blockingCheckBox = addCheckBox("Blocking", false, true);
         blockingCheckBox.setActionCommand(BLOCKING_CHANGED);
         blockingCheckBox.addActionListener(this);
-        
-        verboseCheckBox = addCheckBox("Verbose", false, true);        
+
+        verboseCheckBox = addCheckBox("Verbose", false, true);
         verboseCheckBox.setActionCommand(VERBOSE_CHANGED);
         verboseCheckBox.addActionListener(this);
-        
+
         stationNameField = addField("Station Name", 10);
-        stationNameField.addPropertyChangeListener("value", this);        
-        
+        stationNameField.addPropertyChangeListener("value", this);
+
         chunkSizeField = addField("Chunk Size", 3);
         chunkSizeField.addPropertyChangeListener("value", this);
-        
+
         queueSizeField = addField("Queue Size", 3);
         queueSizeField.addPropertyChangeListener("value", this);
-        
+
         stationPositionField = addField("Station Position", 3);
         stationPositionField.addPropertyChangeListener("value", this);
-        
-        waitModeComboBox = addComboBox("Wait Mode", waitModes);        
+
+        waitModeComboBox = addComboBox("Wait Mode", waitModes);
         waitModeComboBox.setActionCommand(WAIT_MODE_CHANGED);
         waitModeComboBox.addActionListener(this);
-        
+
         waitTimeField = addField("Wait Time [microseconds]", 8);
         waitTimeField.addPropertyChangeListener(this);
-        
+
         prescaleField = addField("Prescale", 8);
-        prescaleField.addPropertyChangeListener(this);       
+        prescaleField.addPropertyChangeListener(this);
     }
-      
+
     /**
      * Enable or disable the connection panel GUI elements.
      * @param e Set to true for enabled; false to disable.
@@ -109,16 +105,16 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         waitTimeField.setEnabled(e);
         prescaleField.setEnabled(e);
     }
-             
+
     /**
      * Updates the GUI from changes in the ConfigurationModel.
      */
     public class ConfigurationSettingsChangeListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-                                               
+
             Object value = evt.getNewValue();
-            
+
             if (evt.getPropertyName().equals(ET_NAME_PROPERTY)) {
                 etNameField.setText((String) value);
             } else if (evt.getPropertyName().equals(HOST_PROPERTY)) {
@@ -138,12 +134,12 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
             } else if (evt.getPropertyName().equals(STATION_POSITION_PROPERTY)) {
                 stationPositionField.setText(value.toString());
             } else if (evt.getPropertyName().equals(WAIT_MODE_PROPERTY)) {
-                waitModeComboBox.setSelectedItem(((Mode)value).name());
+                waitModeComboBox.setSelectedItem(((Mode) value).name());
             } else if (evt.getPropertyName().equals(WAIT_TIME_PROPERTY)) {
                 waitTimeField.setText(value.toString());
             } else if (evt.getPropertyName().equals(PRESCALE_PROPERTY)) {
                 prescaleField.setText(value.toString());
-            }                                                                     
+            }
         }
     }
 
@@ -152,12 +148,12 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        
+
         if (evt.getPropertyName().equals("ancestor"))
             return;
-                
+
         Object source = evt.getSource();
-        
+
         if (source.equals(etNameField)) {
             configurationModel.setEtName(etNameField.getText());
         } else if (source.equals(hostField)) {
@@ -176,9 +172,9 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
             configurationModel.setWaitTime(Integer.parseInt(waitTimeField.getText()));
         } else if (source.equals(prescaleField)) {
             configurationModel.setPrescale(Integer.parseInt(prescaleField.getText()));
-        }                     
+        }
     }
-    
+
     /**
      * Used to update the ConfigurationModel from GUI components.
      */
@@ -191,16 +187,16 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         } else if (VERBOSE_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setVerbose(verboseCheckBox.isSelected());
         }
-    }       
+    }
 
     @Override
     public void setConfigurationModel(ConfigurationModel configurationModel) {
         // Set the ConfigurationModel reference.
         this.configurationModel = configurationModel;
-        
+
         // This listener pushes GUI values into the configuration.
         this.configurationModel.addPropertyChangeListener(this);
-        
+
         // This listener updates the GUI from changes in the configuration.
         this.configurationModel.addPropertyChangeListener(new ConfigurationSettingsChangeListener());
     }

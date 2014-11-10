@@ -25,10 +25,10 @@ class ConnectionStatusPanel extends JPanel {
 
     JTextField statusField;
     JTextField dateField;
-    
+
     // Format for date field.
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss");
-    
+
     private static final int PANEL_HEIGHT = 50;
     private static final int PANEL_WIDTH = 400;
 
@@ -36,23 +36,23 @@ class ConnectionStatusPanel extends JPanel {
      * Class constructor.
      */
     ConnectionStatusPanel() {
-        
+
         setMinimumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
-        
+
         setLayout(new GridBagLayout());
-        //setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));        
+        // setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
         Font font = new Font("Arial", Font.PLAIN, 14);
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = c.weighty = 1.0;
-        
+
         // Bottom separator.
         c.gridx = 0;
         c.gridy = 0;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = GridBagConstraints.REMAINDER;
         add(new JSeparator(SwingConstants.HORIZONTAL), c);
-        
+
         // Connection status label.
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -76,7 +76,7 @@ class ConnectionStatusPanel extends JPanel {
         statusField.setFont(font);
         statusField.setMinimumSize(new Dimension(300, 50));
         add(statusField, c);
-        
+
         // The "@" label.
         c.gridx = 2;
         c.gridy = 1;
@@ -85,7 +85,7 @@ class ConnectionStatusPanel extends JPanel {
         c.insets = new Insets(0, 0, 0, 10);
         JLabel atLabel = new JLabel("@");
         add(atLabel, c);
-        
+
         // The date field.
         c = new GridBagConstraints();
         c.gridx = 3;
@@ -98,7 +98,7 @@ class ConnectionStatusPanel extends JPanel {
         dateField.setFont(font);
         dateField.setMinimumSize(new Dimension(200, 50));
         add(dateField, c);
-        
+
         // Bottom separator.
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -106,9 +106,9 @@ class ConnectionStatusPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.insets = new Insets(10, 0, 0, 0);
-        add(new JSeparator(SwingConstants.HORIZONTAL), c);        
-    }       
-         
+        add(new JSeparator(SwingConstants.HORIZONTAL), c);
+    }
+
     void setConnectionStatus(final ConnectionStatus status) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

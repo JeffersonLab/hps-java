@@ -41,7 +41,7 @@ import org.jlab.coda.jevio.EvioEvent;
 class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
-    DatePanel startDateField = new DatePanel("Run Start", "", 16, false); 
+    DatePanel startDateField = new DatePanel("Run Start", "", 16, false);
     DatePanel endDateField = new DatePanel("Run End", "", 16, false);
     FieldPanel lengthField = new FieldPanel("Run Length [sec]", "", 12, false);
     FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
@@ -49,22 +49,21 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
     FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
     FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
-    
+
     Timer timer;
     long jobStartMillis;
-    
+
     RunModel model;
-          
+
     RunPanel(RunModel model) {
         this.model = model;
         this.model.addPropertyChangeListener(this);
-        
+
         setLayout(new FlowLayout(FlowLayout.LEFT));
-        
-        TitledBorder titledBorder = BorderFactory.createTitledBorder(                
-                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");        
-        setBorder(titledBorder);               
-        
+
+        TitledBorder titledBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");
+        setBorder(titledBorder);
+
         add(runNumberField);
         add(startDateField);
         add(endDateField);
@@ -74,93 +73,93 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         add(eventsReceivedField);
         add(dataReceivedField);
         add(eventNumberField);
-        
+
         this.setMinimumSize(new Dimension(0, 190));
     }
-           
+
     void startJobTimer() {
         timer = new Timer("JobTimer");
         jobStartMillis = System.currentTimeMillis();
-        TimerTask updateTimeTask = new TimerTask() {                       
+        TimerTask updateTimeTask = new TimerTask() {
             public void run() {
-                final int elapsedTime = (int)((System.currentTimeMillis() - jobStartMillis) / 1000);
+                final int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / 1000);
                 model.setElapsedTime(elapsedTime);
-            }            
+            }
         };
         timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);
     }
-    
+
     void stopRunTimer() {
         timer.cancel();
         timer.purge();
     }
-             
+
     class RunModelUpdater extends CompositeRecordProcessor {
-       
+
         @Override
         public void startJob() {
             model.reset();
             RunPanel.this.startJobTimer();
         }
-        
+
         @Override
         public void process(CompositeRecord event) {
-            model.incrementEventsReceived();            
+            model.incrementEventsReceived();
             EvioEvent evioEvent = event.getEvioEvent();
             if (event.getEtEvent() != null && event.getEvioEvent() == null) {
                 model.addDataReceived(event.getEtEvent().getData().length);
             } else if (evioEvent != null) {
-                model.addDataReceived((long)evioEvent.getTotalBytes());
+                model.addDataReceived((long) evioEvent.getTotalBytes());
                 model.setEventNumber(evioEvent.getEventNumber());
-                if (EventConstants.isPreStartEvent(evioEvent)) {                    
+                if (EventConstants.isPreStartEvent(evioEvent)) {
                     startRun(evioEvent);
-                } else if (EventConstants.isEndEvent(evioEvent)) {                    
+                } else if (EventConstants.isEndEvent(evioEvent)) {
                     endRun(evioEvent);
-                }        
+                }
             } else if (event.getLcioEvent() != null) {
                 model.setEventNumber(event.getLcioEvent().getEventNumber());
             }
         }
 
-        private void endRun(EvioEvent evioEvent) {            
+        private void endRun(EvioEvent evioEvent) {
             // Get end run data.
             int[] data = evioEvent.getIntData();
             int seconds = data[0];
             int eventCount = data[2];
             long endMillis = ((long) seconds) * 1000;
-            
+
             // Update the GUI.
             model.setEndDate(new Date(endMillis));
-            model.computeRunLength();              
+            model.computeRunLength();
             model.setTotalEvents(eventCount);
         }
 
-        private void startRun(EvioEvent evioEvent) {            
+        private void startRun(EvioEvent evioEvent) {
             // Get start of run data.
             int[] data = evioEvent.getIntData();
             int seconds = data[0];
-            int runNumber = data[1];        
+            int runNumber = data[1];
             long startMillis = ((long) seconds) * 1000;
-            
+
             // Update the GUI.
             model.setRunNumber(runNumber);
             model.setStartDate(new Date(startMillis));
         }
-                
+
         @Override
         public void endJob() {
             RunPanel.this.stopRunTimer();
-        }        
+        }
     }
 
     /**
      * Update the GUI from changes in the underlying RunModel object.
      */
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {        
+    public void propertyChange(PropertyChangeEvent evt) {
         Object value = evt.getNewValue();
-        if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {            
-            this.runNumberField.setValue((Integer) value);            
+        if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
+            this.runNumberField.setValue((Integer) value);
         } else if (START_DATE_PROPERTY.equals(evt.getPropertyName())) {
             if (value != null)
                 this.startDateField.setValue((Date) value);
