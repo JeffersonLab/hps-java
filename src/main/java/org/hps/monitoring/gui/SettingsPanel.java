@@ -22,63 +22,62 @@ class SettingsPanel extends JPanel implements ActionListener {
     ConnectionSettingsPanel connectionPanel = new ConnectionSettingsPanel();
     DataSourcePanel dataSourcePanel = new DataSourcePanel();
     static final String OKAY_COMMAND = "settingsOkay";
-    
+
     JButton defaultsButton;
-    
+
     JDialog parent;
-        
+
     SettingsPanel(JDialog parent) {
 
         this.parent = parent;
 
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        
+
         tabs = new JTabbedPane();
         tabs.addTab("Connection Settings", connectionPanel);
         tabs.addTab("Job Settings", jobPanel);
         tabs.addTab("Data Source", dataSourcePanel);
         add(tabs);
-                
+
         JButton okayButton = new JButton("Okay");
         okayButton.setActionCommand(OKAY_COMMAND);
         okayButton.addActionListener(this);
-        
+
         defaultsButton = new JButton("Defaults");
         defaultsButton.setActionCommand(Commands.LOAD_DEFAULT_CONFIG_FILE);
         defaultsButton.addActionListener(this);
-                
-        add(Box.createRigidArea(new Dimension(1,5)));
+
+        add(Box.createRigidArea(new Dimension(1, 5)));
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
         buttonsPanel.add(defaultsButton);
-        buttonsPanel.setLayout(new FlowLayout());        
+        buttonsPanel.setLayout(new FlowLayout());
         add(buttonsPanel);
-        add(Box.createRigidArea(new Dimension(1,5)));
+        add(Box.createRigidArea(new Dimension(1, 5)));
     }
-            
+
     ConnectionSettingsPanel getConnectionPanel() {
         return connectionPanel;
     }
-    
+
     JobSettingsPanel getJobSettingsPanel() {
         return jobPanel;
     }
-    
+
     DataSourcePanel getDataSourcePanel() {
         return dataSourcePanel;
     }
-                   
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals(OKAY_COMMAND)) {
-            parent.setVisible(false);                
+            parent.setVisible(false);
         }
-    }    
-    
+    }
+
     /**
-     * This method is used to register a listener so that the Monitoring Application 
-     * can reset to the default configuration when the "Defaults" button is pushed from
-     * the settings panel. 
+     * This method is used to register a listener so that the Monitoring Application can reset to
+     * the default configuration when the "Defaults" button is pushed from the settings panel.
      * @param listener
      */
     void addActionListener(ActionListener listener) {

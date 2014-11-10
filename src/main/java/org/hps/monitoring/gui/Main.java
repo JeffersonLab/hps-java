@@ -14,8 +14,7 @@ import org.apache.commons.cli.PosixParser;
 import org.hps.monitoring.gui.model.Configuration;
 
 /**
- * This is the front-end for running the monitoring app via a 
- * {@link #main(String[])} method.
+ * This is the front-end for running the monitoring app via a {@link #main(String[])} method.
  */
 // FIXME: Move to org.hps.monitoring instead of gui package.
 public class Main {
@@ -50,7 +49,7 @@ public class Main {
         // Run the application on the Swing EDT.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-        
+
                 // Create the application class.
                 MonitoringApplication app = new MonitoringApplication();
 
@@ -58,12 +57,12 @@ public class Main {
                 if (cl.hasOption("c")) {
                     app.setConfiguration(new Configuration(new File(cl.getOptionValue("c"))));
                 }
-                
+
                 app.initialize();
-        
+
                 // Set the app to be visible.
                 app.setVisible(true);
             }
         });
-    }    
+    }
 }

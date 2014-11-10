@@ -12,9 +12,9 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 
 /**
- * This is a basic example of monitoring hits using an updateable <code>SystemStatus</code>.
- * It checks from a <code>TimerTask</code> once per second whether <code>RawTrackerHit</code> 
- * objects are being received by the {@link #process(EventHeader)} method.
+ * This is a basic example of monitoring hits using an updateable <code>SystemStatus</code>. It
+ * checks from a <code>TimerTask</code> once per second whether <code>RawTrackerHit</code> objects
+ * are being received by the {@link #process(EventHeader)} method.
  */
 public class BasicHitMonitoringDriver extends Driver {
 
@@ -23,16 +23,16 @@ public class BasicHitMonitoringDriver extends Driver {
     long warningIntervalMillis = 1000;
     Timer timer;
     static final String hitsCollectionName = "SVTRawTrackerHits";
-                
+
     public BasicHitMonitoringDriver() {
         status = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT hits are received.", true);
         status.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
     }
-    
+
     public void setWarningIntervalMillis(long warningIntervalMillis) {
         this.warningIntervalMillis = warningIntervalMillis;
     }
-   
+
     public void startOfData() {
         if (hitsCollectionName == null)
             throw new RuntimeException("The hitsCollectionName was never set.");
@@ -40,6 +40,7 @@ public class BasicHitMonitoringDriver extends Driver {
         timer = new Timer("SVT Hit Monitor");
         TimerTask task = new TimerTask() {
             long startedMillis = 0;
+
             public void run() {
                 if (startedMillis == 0)
                     startedMillis = System.currentTimeMillis();
@@ -57,17 +58,17 @@ public class BasicHitMonitoringDriver extends Driver {
         // Task will run once per second.
         timer.schedule(task, 0, 1000);
     }
-        
+
     public void process(EventHeader event) {
         if (event.hasCollection(RawTrackerHit.class, hitsCollectionName))
             if (event.get(RawTrackerHit.class, hitsCollectionName).size() > 0)
                 hitsReceivedMillis = System.currentTimeMillis();
-    }   
-    
+    }
+
     public void endOfData() {
         timer.cancel();
         timer.purge();
         status.setStatus(StatusCode.OFFLINE, "SVT hit monitor went offline.");
         status.setActive(false);
-    }    
+    }
 }

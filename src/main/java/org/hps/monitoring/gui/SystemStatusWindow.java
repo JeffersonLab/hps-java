@@ -25,20 +25,21 @@ import org.hps.monitoring.gui.model.SystemStatusTableModel;
 import org.hps.monitoring.subsys.StatusCode;
 
 /**
- * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects
- * using a <code>JTable</code>.
+ * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects using
+ * a <code>JTable</code>.
  */
-// TODO: It might be a good idea if there was a second table which logged all status changes as separate
-//       rows so they could be seen in order.
+// TODO: It might be a good idea if there was a second table which logged all status changes as
+// separate
+// rows so they could be seen in order.
 class SystemStatusWindow extends ApplicationWindow {
 
     JTable table;
-        
+
     SystemStatusWindow() {
         super("System Status Monitor");
-        
+
         table = new JTable(new SystemStatusTableModel());
-        
+
         // Rendering of system status cells using different background colors.
         table.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setCellRenderer(new DefaultTableCellRenderer() {
 
@@ -75,7 +76,7 @@ class SystemStatusWindow extends ApplicationWindow {
                 return label;
             }
         });
-        
+
         // Date formatting for last changed.
         table.getColumnModel().getColumn(LAST_CHANGED_COL).setCellRenderer(new DefaultTableCellRenderer() {
 
@@ -89,22 +90,22 @@ class SystemStatusWindow extends ApplicationWindow {
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
-        
+
         // Button for clearing system statuses.
         table.getColumnModel().getColumn(RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
         table.addMouseListener(new JTableButtonMouseListener(table));
         table.getColumn("Clearable").setWidth(0);
         table.getColumn("Clearable").setMinWidth(0);
         table.getColumn("Clearable").setMaxWidth(0);
-        
+
         // Column widths.
         table.getColumnModel().getColumn(ACTIVE_COL).setPreferredWidth(8);
         table.getColumnModel().getColumn(STATUS_COL).setPreferredWidth(10);
         table.getColumnModel().getColumn(SYSTEM_COL).setPreferredWidth(10);
         // TODO: Add default width setting for every column.
-        
+
         table.setAutoCreateRowSorter(true);
-                
+
         // Scroll pane.
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setOpaque(true);
@@ -119,47 +120,46 @@ class SystemStatusWindow extends ApplicationWindow {
     public SystemStatusTableModel getTableModel() {
         return (SystemStatusTableModel) table.getModel();
     }
-    
+
     /**
      * Renders a button if the status is clearable.
      */
     private class ButtonRenderer extends JButton implements TableCellRenderer {
-                
+
         public ButtonRenderer(String label) {
             this.setText(label);
         }
 
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {            
-            boolean clearable = (Boolean)table.getModel().getValueAt(row, CLEARABLE_COL);
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            boolean clearable = (Boolean) table.getModel().getValueAt(row, CLEARABLE_COL);
             if (clearable)
                 return this;
-            else 
+            else
                 return null;
         }
     }
-    
+
     /**
-     * Fires a mouse click event when the clear button is pressed, which in turn
-     * will activate the action event for the button.  The <code>ActionListener</code> 
-     * then sets the <code>StatusCode</code> to <code>CLEARED</code>.
+     * Fires a mouse click event when the clear button is pressed, which in turn will activate the
+     * action event for the button. The <code>ActionListener</code> then sets the
+     * <code>StatusCode</code> to <code>CLEARED</code>.
      */
     private static class JTableButtonMouseListener extends MouseAdapter {
         private final JTable table;
-        
+
         public JTableButtonMouseListener(JTable table) {
             this.table = table;
         }
 
         public void mouseClicked(MouseEvent e) {
             int column = table.getColumnModel().getColumnIndexAtX(e.getX());
-            int row = e.getY() / table.getRowHeight(); 
+            int row = e.getY() / table.getRowHeight();
             if (row < table.getRowCount() && row >= 0 && column < table.getColumnCount() && column >= 0) {
                 Object value = table.getValueAt(row, column);
                 if (value instanceof JButton) {
-                    ((JButton)value).doClick();
+                    ((JButton) value).doClick();
                 }
             }
         }
-    }          
+    }
 }

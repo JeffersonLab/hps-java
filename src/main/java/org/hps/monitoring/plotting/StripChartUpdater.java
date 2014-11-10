@@ -13,14 +13,14 @@ public abstract class StripChartUpdater extends TimerTask {
 
     DynamicTimeSeriesCollection dataset;
     long updateIntervalMillis = 1000;
-    
-    public StripChartUpdater() {        
+
+    public StripChartUpdater() {
     }
-    
+
     public void setChart(JFreeChart chart) {
-        this.dataset = (DynamicTimeSeriesCollection)chart.getXYPlot().getDataset();
+        this.dataset = (DynamicTimeSeriesCollection) chart.getXYPlot().getDataset();
     }
-    
+
     public void setUpdateIntervalMillis(long updateIntervalMillis) {
         this.updateIntervalMillis = updateIntervalMillis;
     }

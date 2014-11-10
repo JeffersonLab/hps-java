@@ -9,8 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 /**
- * This is the panel with buttons for connecting or disconnecting 
- * and controlling the app from pause mode.
+ * This is the panel with buttons for connecting or disconnecting and controlling the app from pause
+ * mode.
  */
 class EventButtonsPanel extends JPanel {
 
@@ -86,7 +86,7 @@ class EventButtonsPanel extends JPanel {
     }
 
     /**
-     * Enable the "next events" button.  
+     * Enable the "next events" button.
      * @param e Set to true to enable; false to disable.
      */
     void enableNextEventsButton(boolean e) {

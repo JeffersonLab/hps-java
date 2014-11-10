@@ -20,18 +20,17 @@ import javax.swing.JTextField;
 import org.hps.monitoring.gui.model.HasConfigurationModel;
 
 /**
- * A <code>JPanel</code> which has a number of fields with the labels
- * in the first column and the components for showing/editing the fields
- * in the second.  It uses <code>GridBagConstraints</code> for layout.
+ * A <code>JPanel</code> which has a number of fields with the labels in the first column and the
+ * components for showing/editing the fields in the second. It uses <code>GridBagConstraints</code>
+ * for layout.
  */
 // TODO: This should use features of JFormattedTextField instead of plain JTextField.
-abstract class AbstractFieldsPanel extends JPanel 
-    implements PropertyChangeListener, HasConfigurationModel, ActionListener {
+abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel, ActionListener {
 
-    private int currY = 0;    
+    private int currY = 0;
     private Insets insets;
     private boolean editable = false;
-    
+
     /**
      * Class constructor.
      * @param insets The insets for the panel.
@@ -41,14 +40,14 @@ abstract class AbstractFieldsPanel extends JPanel
         this.insets = insets;
         this.editable = editable;
     }
-    
+
     /**
      * Class constructor.
      */
     AbstractFieldsPanel() {
         this.insets = new Insets(1, 1, 1, 1);
     }
-    
+
     /**
      * Add a field.
      * @param name The name of the field.
@@ -69,7 +68,7 @@ abstract class AbstractFieldsPanel extends JPanel
     protected final JTextField addField(String name, String value, int size) {
         return addField(name, value, size, this.editable);
     }
-    
+
     /**
      * Add a field.
      * @param name The name of the field.
@@ -84,11 +83,11 @@ abstract class AbstractFieldsPanel extends JPanel
         f.setToolTipText(tooltip);
         return f;
     }
-    
+
     /**
      * Add a field.
      * @param name The name of the field.
-     * @param value The default value of the field. 
+     * @param value The default value of the field.
      * @param size The size of the field.
      * @param editable The editable setting.
      * @return The JTextField component.
@@ -101,25 +100,25 @@ abstract class AbstractFieldsPanel extends JPanel
         c.anchor = GridBagConstraints.WEST;
         JLabel label = new JLabel(name + ":");
         add(label, c);
-        
+
         c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = currY;
         c.insets = insets;
         c.anchor = GridBagConstraints.EAST;
-        //JFormattedTextField field = new JFormattedTextField(value, size);
+        // JFormattedTextField field = new JFormattedTextField(value, size);
         JFormattedTextField field = new JFormattedTextField(value);
         field.setColumns(size);
         field.setHorizontalAlignment(JTextField.RIGHT);
         field.setEditable(editable);
         field.setBackground(Color.WHITE);
         add(field, c);
-        
+
         ++currY;
-        
+
         return field;
     }
-    
+
     /**
      * Add a combo box.
      * @param name The name of the combo box.
@@ -127,9 +126,9 @@ abstract class AbstractFieldsPanel extends JPanel
      * @return The JComboBox component.
      */
     protected final JComboBox addComboBox(String name, String[] values) {
-        
-    	//System.out.println("addComboBox = " + name);
-    	
+
+        // System.out.println("addComboBox = " + name);
+
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = currY;
@@ -145,16 +144,16 @@ abstract class AbstractFieldsPanel extends JPanel
         c.insets = insets;
         c.anchor = GridBagConstraints.EAST;
         JComboBox combo = new JComboBox(values);
-        //System.out.println("combo width = " + combo.getWidth());
-        //System.out.println("combo width = " + combo.getSize().getWidth());
+        // System.out.println("combo width = " + combo.getWidth());
+        // System.out.println("combo width = " + combo.getSize().getWidth());
         combo.setEditable(editable);
         add(combo, c);
-        
+
         ++currY;
-        
+
         return combo;
     }
-    
+
     /**
      * Add a multiline combo box.
      * @param name The name of the combo box.
@@ -162,7 +161,7 @@ abstract class AbstractFieldsPanel extends JPanel
      * @return The JComboBox component.
      */
     protected final JComboBox addComboBoxMultiline(String name, String[] values) {
-        
+
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -173,7 +172,7 @@ abstract class AbstractFieldsPanel extends JPanel
         waitModeLabel.setHorizontalAlignment(JLabel.LEFT);
         add(waitModeLabel, c);
         ++currY;
-        
+
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -181,16 +180,16 @@ abstract class AbstractFieldsPanel extends JPanel
         c.insets = insets;
         c.anchor = GridBagConstraints.WEST;
         JComboBox combo = new JComboBox(values);
-        //System.out.println("combo width = " + combo.getWidth());
-        //System.out.println("combo width = " + combo.getSize().getWidth());
+        // System.out.println("combo width = " + combo.getWidth());
+        // System.out.println("combo width = " + combo.getSize().getWidth());
         combo.setEditable(editable);
         add(combo, c);
-        
+
         ++currY;
-        
+
         return combo;
     }
-    
+
     /**
      * Add a check box.
      * @param name The name of the check box.
@@ -204,7 +203,7 @@ abstract class AbstractFieldsPanel extends JPanel
         c.setToolTipText(tooltip);
         return c;
     }
-    
+
     /**
      * Add a check box.
      * @param name The name of the check box.
@@ -213,7 +212,7 @@ abstract class AbstractFieldsPanel extends JPanel
      * @return The JCheckBox component.
      */
     protected final JCheckBox addCheckBox(String name, boolean selected, boolean enabled) {
-        
+
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = currY;
@@ -221,7 +220,7 @@ abstract class AbstractFieldsPanel extends JPanel
         c.anchor = GridBagConstraints.WEST;
         JLabel label = new JLabel(name + ":");
         add(label, c);
-        
+
         c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = currY;
@@ -231,12 +230,12 @@ abstract class AbstractFieldsPanel extends JPanel
         checkbox.setSelected(selected);
         checkbox.setEnabled(enabled);
         add(checkbox, c);
-        
+
         ++currY;
-        
+
         return checkbox;
     }
-    
+
     protected final JButton addButton(String text) {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -250,10 +249,10 @@ abstract class AbstractFieldsPanel extends JPanel
         ++currY;
         return button;
     }
-        
+
     /**
-     * Add an ActionListener to this component.  By default this does nothing, but 
-     * individual sub-components should attach this to individual components.
+     * Add an ActionListener to this component. By default this does nothing, but individual
+     * sub-components should attach this to individual components.
      * @param listener The AcitonListener to add.
      */
     void addActionListener(ActionListener listener) {
