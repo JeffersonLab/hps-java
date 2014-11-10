@@ -8,24 +8,18 @@
         <driver name="ConditionsDriver"/> 
         <driver name="EcalRawConverter"/>     
         <driver name="EcalEventDisplay"/>         <!-- Ecal event display -->
-
-
-<!--        <driver name="RunControlDriver" />-->
-        <!--<driver name="AidaSaveDriver"/>-->
     </execute>   
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-
-       <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
-  
-        
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <loadSvtConditions>false</loadSvtConditions>
+        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
         </driver>
-        
-          <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+        <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
@@ -35,6 +29,5 @@
             <minEch>-0.01</minEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        
     </drivers>
 </lcsim>
