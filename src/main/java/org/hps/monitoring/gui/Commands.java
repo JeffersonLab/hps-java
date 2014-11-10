@@ -18,6 +18,7 @@ final class Commands {
     static final String DISCONNECT = "disconnect";
     static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
     static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
+    static final String EVENT_BUILDER_CHANGED = "eventBuilderChanged";
     static final String EXIT = "exit";
     static final String LOAD_DEFAULT_CONFIG_FILE = "loadDefaultConfigFile";
     static final String LOG_LEVEL_CHANGED = "logLevelChanged";
@@ -36,7 +37,6 @@ final class Commands {
     static final String SCREENSHOT = "screenshot";
     static final String SELECT_CONFIG_FILE = "selectConfigFile";
     static final String SELECT_LOG_FILE = "logToFile";
-    static final String SET_EVENT_BUILDER = "setEventBuilder";
     static final String SET_STEERING_RESOURCE = "setSteeringResource";
     static final String SHOW_SETTINGS = "showSettings";
     static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
