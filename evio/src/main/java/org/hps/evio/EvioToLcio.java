@@ -36,11 +36,8 @@ import org.lcsim.lcio.LCIOWriter;
  * [lcsimXmlFile]
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * 
- * @deprecated use {@link EvioToLcio instead}
  */
-@Deprecated
-public class TestRunEvioToLcio {
+public class EvioToLcio {
 
 	private static final String defaultDetectorName = "";
 	private static final String defaultSteeringFile = "/org/hps/steering/monitoring/DummyMonitoring.lcsim";
