@@ -16,6 +16,7 @@
 
 <!--        <driver name="RunControlDriver" />-->
       <driver name="AidaSaveDriver"/>
+      <driver name="LCIOWriter"/>
       <driver name="CleanupDriver"/>
     </execute>   
     
@@ -38,17 +39,15 @@
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
-            <enableAllFadc>true</enableAllFadc>
-            <pedSamples>20</pedSamples>
-            <maxEch>10.0</maxEch>
-            <minEch>-0.01</minEch>
-            <eventRefreshRate>100</eventRefreshRate>
+            <pedSamples>20</pedSamples>         
         </driver>
       
          <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}</outputFileName>
         </driver>
-            
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}</outputFilePath>
+        </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>

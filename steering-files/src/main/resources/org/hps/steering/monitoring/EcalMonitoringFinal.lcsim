@@ -9,7 +9,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="ConditionsDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/> 
         <driver name="EcalClusterer"/> 
         <driver name="EcalMonitoringPlots"/>      <!-- General plots -->
@@ -37,12 +36,8 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <conditionsReaderClass>org.hps.conditions.deprecated.TestRunConditionsReader</conditionsReaderClass>
-        </driver>
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
-        
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+              
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
@@ -75,11 +70,14 @@
         <inputCollection>EcalCalHits</inputCollection>
         </driver>
        
-        <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+         <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
-            <maxEch>2.0</maxEch>
+            <enableAllFadc>true</enableAllFadc>
+            <pedSamples>20</pedSamples>
+            <maxEch>10.0</maxEch>
+            <minEch>-0.01</minEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
         

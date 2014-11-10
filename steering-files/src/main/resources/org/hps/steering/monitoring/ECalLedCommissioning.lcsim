@@ -5,26 +5,36 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalLedCommissioning"/>
+        <driver name="ConditionsDriver"/> 
+        <driver name="EcalRawConverter"/>     
+        <driver name="EcalEventDisplay"/>         <!-- Ecal event display -->
+
+
+<!--        <driver name="RunControlDriver" />-->
+        <!--<driver name="AidaSaveDriver"/>-->
     </execute>   
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <loadSvtConditions>false</loadSvtConditions>
-        </driver>
+
+       <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+  
+        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
         </driver>
-        <driver name="EcalLedCommissioning" type="org.hps.monitoring.ecal.plots.EcalLedCommissioning">
+        
+          <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
-            <maxEch>2.0</maxEch>
+            <enableAllFadc>true</enableAllFadc>
+            <pedSamples>20</pedSamples>
+            <maxEch>10.0</maxEch>
+            <minEch>-0.01</minEch>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
+        
     </drivers>
 </lcsim>
