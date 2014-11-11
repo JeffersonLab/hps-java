@@ -4,7 +4,7 @@
 # job settings
 AutoSaveAida=true
 AidaFileName=monitoringPlots.aida
-DetectorName=HPS-TestRun-v5
+DetectorName=HPS-Proposal2014-v8-6pt6
 DisconnectOnError=false
 DisconnectOnEndRun=true
 EventBuilderClassName=org.hps.evio.LCSimEngRunEventBuilder
@@ -34,5 +34,3 @@ StationName=MY_STATION
 Verbose=false
 WaitMode=TIMED
 WaitTime=1000000000
-
-
