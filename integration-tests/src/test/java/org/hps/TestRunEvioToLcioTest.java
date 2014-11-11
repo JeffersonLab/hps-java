@@ -2,8 +2,6 @@ package org.hps;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -20,24 +18,25 @@ public class TestRunEvioToLcioTest extends TestCase {
     final static String fileLocation = "http://www.lcsim.org/test/hps-java/TestRunEvioToLcioTest.evio"; 
     
     public void testTestRunEvioToLcio() throws Exception {
-        
         System.out.println("Caching file...");
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(fileLocation));
-        
-        List<String> argList = new ArrayList<String>();
-        argList.add("-r");                       
-        argList.add("-x");
-        argList.add("/org/hps/steering/recon/TestRunOfflineRecon.lcsim");
-        argList.add("-d");
-        argList.add("HPS-TestRun-v5");
-        argList.add("-D");
-        argList.add("outputFile=" + new TestOutputFile("TestRunEvioToLcioTest").getPath());
-        argList.add(inputFile.getPath());
-        argList.add("-R");
-        argList.add("1351");
+        String args[] = {
+                "-r",                       
+                "-x",
+                "/org/hps/steering/recon/TestRunOfflineRecon.lcsim",
+                "-d",
+                "HPS-TestRun-v5",
+                "-D",
+                "outputFile=" + new TestOutputFile("TestRunEvioToLcioTest").getPath(),
+                inputFile.getPath(),
+                "-R",
+                "1351",
+                "-n",
+                "100"
+        };
         System.out.println("Running TestRunEvioToLcio.main ...");
-        TestRunEvioToLcio.main(argList.toArray(new String[]{}));
+        TestRunEvioToLcio.main(args);
     }
 
 }
