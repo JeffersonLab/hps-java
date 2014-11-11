@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-Proposal2014-v8-2pt2" />
-    <generator name="GeomConverter" version="1.0" file="/Users/mgraham/HPS/hps_trunk/detector-data/detectors/HPS-Proposal2014-v8-4pt4/compact.xml" checksum="1291793530" />
+    <detector name="HPS-Proposal2014-v8-4pt4" />
+    <generator name="GeomConverter" version="1.0" file="/Users/mgraham/HPS/hps_trunk/detector-data/detectors/HPS-Proposal2014-v8-4pt4/compact.xml" checksum="1268883321" />
     <author name="NONE" />
-    <comment>HPS detector for 2014 proposal @ 2.2GeV</comment>
+    <comment>HPS detector for 2014 proposal @ 4.4GeV</comment>
   </header>
   <iddict>
     <idspec name="TrackerHits" length="46">

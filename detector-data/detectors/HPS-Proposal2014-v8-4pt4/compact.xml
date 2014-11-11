@@ -2,8 +2,8 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-Proposal2014-v8-2pt2">
-        <comment>HPS detector for 2014 proposal @ 2.2GeV</comment>
+    <info name="HPS-Proposal2014-v8-4pt4">
+        <comment>HPS detector for 2014 proposal @ 4.4GeV</comment>
     </info>
 
     <define>
