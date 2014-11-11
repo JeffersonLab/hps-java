@@ -59,7 +59,7 @@ public final class TableMetaData {
      * Get the names of the fields. Types are implied from the database tables.
      * @return The names of the fields.
      */
-    String[] getFieldNames() {
+    public String[] getFieldNames() {
         return fieldNames.toArray(new String[] {});
     }
 
