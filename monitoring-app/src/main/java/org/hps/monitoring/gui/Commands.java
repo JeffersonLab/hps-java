@@ -15,6 +15,7 @@ final class Commands {
     static final String CONNECT = "connect";
     static final String CLEAR_LOG_TABLE = "clearLogTable";
     static final String DATA_SOURCE_TYPE_CHANGED = "dataSourceTypeChanged";
+    static final String DETECTOR_NAME_CHANGED = "detectorNameChanged";
     static final String DISCONNECT = "disconnect";
     static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
     static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
