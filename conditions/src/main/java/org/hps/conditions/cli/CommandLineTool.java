@@ -80,6 +80,7 @@ public class CommandLineTool {
             command.execute(commandArguments);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         } finally {
             conditionsManager.closeConnection();
         }
@@ -96,11 +97,7 @@ public class CommandLineTool {
             if (verbose)
                 System.out.println("using connection properties file " + connectionPropertiesFile.getPath());
             conditionsManager.setConnectionProperties(connectionPropertiesFile);
-        } else {
-            if (verbose)
-                System.out.println("using connection resource " + CONNECTION_PROPERTIES_RESOURCE);
-            conditionsManager.setConnectionResource(CONNECTION_PROPERTIES_RESOURCE);
-        }
+        } 
         if (commandLine.hasOption("x")) {
             File xmlConfigFile = new File(commandLine.getOptionValue("x"));
             conditionsManager.configure(xmlConfigFile);
@@ -111,7 +108,6 @@ public class CommandLineTool {
                 System.out.println("using XML config resource " + XML_CONFIG_RESOURCE);
             conditionsManager.configure(XML_CONFIG_RESOURCE);
         }
-        conditionsManager.register();
         conditionsManager.openConnection();
     }
 
@@ -142,6 +138,7 @@ public class CommandLineTool {
         cli.options.addOption(new Option("p", true, "Set the connection properties file"));
         cli.options.addOption(new Option("x", true, "Set the conditions database XML configuration file"));
         cli.registerCommand(new LoadCommand());
+        cli.registerCommand(new PrintCommand());
         return cli;
     }
 
