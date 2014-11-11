@@ -9,9 +9,11 @@
         <driver name="ConditionsDriver"/>
     </execute>        
     <drivers>    
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver"/>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <loadSvtConditions>false</loadSvtConditions>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
     </drivers>
 </lcsim>
