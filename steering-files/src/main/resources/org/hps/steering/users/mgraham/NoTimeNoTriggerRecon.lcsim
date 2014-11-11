@@ -15,9 +15,14 @@
         <driver name="CalibrationDriver"/>
         <driver name="TrackerDigiDriver"/>
         <driver name="HelicalTrackHitDriver"/> 
-        <driver name="TrackerReconDriver"/> 
-        <driver name="StraightTrackFinder"/>
-        <driver name="StraightTrackAnalysis"/>
+        <driver name="AxialTrackReconDriver"/> 
+<!--        <driver name="TrackerReconDriver"/> 
+       <driver name="TrackDataDriver"/>    -->
+<!--       <driver name="StraightTrackReconDriver"/>  -->
+        <driver name="StraightTrackAnalysis"/> 
+        <driver name="SVTMonitoring"/>  
+        <driver name="TrackingMonitoring"/> 
+        <driver name="TrackingResiduals"/>
         <driver name="AidaSaveDriver"/> 
         <driver name="LCIOWriter"/> 
         <driver name="CleanupDriver"/> 
@@ -31,7 +36,7 @@
 
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
     
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
@@ -44,25 +49,62 @@
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
+            <saveAxialHits>true</saveAxialHits>
         </driver>
         
         <driver name="TrackerReconDriver"
                 type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+        </driver>
+
+      <driver name="AxialTrackReconDriver"
+                type="org.hps.recon.tracking.axial.AxialTrackReconDriver">
+            <debug>true</debug>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Axial.xml</strategyResource>
+            <trackCollectionName>StraightTracks</trackCollectionName>
+        </driver>
+
+
+        <driver name="StraightTrackReconDriver"
+                type="org.hps.recon.tracking.straighttracks.StraightTrackReconDriver">
+            <debug>false</debug>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-StraightTracks.xml</strategyResource>
         </driver>
 
          <driver name="StraightTrackAnalysis"
                 type="org.hps.users.mgraham.StraightTrackAnalysis">
-        </driver> 
-    <driver name="StraightTrackFinder"
-                type="org.hps.recon.tracking.nobfield.StraightTrackFinder">
+                <tracksName>StraightTracks</tracksName>
         </driver> 
         <driver name="LCIOWriter"
                 type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
-
+ <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">          
+        </driver> 
+  <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
+             <runNumber>${runNumber}</runNumber>
+            <overwriteDB>false</overwriteDB>
+        </driver>
+       <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
+             <runNumber>${runNumber}</runNumber>
+            <overwriteDB>false</overwriteDB>
+       </driver>
+  <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
+             <runNumber>${runNumber}</runNumber>
+            <overwriteDB>false</overwriteDB>
+       </driver>
+       <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+             <runNumber>${runNumber}</runNumber>
+            <overwriteDB>false</overwriteDB>
+       </driver>
+      <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+       </driver> 
+        <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
+            <overwriteDB>false</overwriteDB>
+            <printDQMStrings>false</printDQMStrings>
+       </driver>     
      <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
                  <outputFileName>./straight-tracks.root</outputFileName>
         </driver>  
