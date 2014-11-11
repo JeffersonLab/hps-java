@@ -11,7 +11,6 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
 
@@ -20,16 +19,9 @@ import org.lcsim.event.base.BaseLCSimEvent;
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: LCSimTestRunEventBuilder.java,v 1.24 2013/03/01 01:30:25 meeg
- * Exp $
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
-    // Names of subdetectors.
-//    private String trackerName;
-    // Detector conditions object.
-	//protected Detector detector;
-    // Debug flag.
 	String detectorName = null;
     protected boolean debug = false;
     ECalEvioReader ecalReader = null;
@@ -157,7 +149,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         }
 
         // Create a new LCSimEvent.
-        //EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detector.getDetectorName(), time);
         EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detectorName, time);
         
         lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);

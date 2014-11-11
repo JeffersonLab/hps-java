@@ -13,8 +13,6 @@ import org.lcsim.event.EventHeader;
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: LCSimTestRunEventBuilder.java,v 1.24 2013/03/01 01:30:25 meeg
- *          Exp $
  */
 public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
