@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-
-import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
@@ -16,11 +13,11 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor; 
+import org.hps.recon.tracking.axial.HelicalTrack2DHit;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.MCParticle;
@@ -29,15 +26,11 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrack2DHit;
-import org.lcsim.fit.helicaltrack.HelicalTrack3DHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import static org.hps.recon.tracking.CoordinateTransformations.transformVectorToTracking;
-import org.hps.recon.tracking.TrackerHitUtils;
 
 /**
  *
@@ -97,7 +90,6 @@ public class TrackAnalysis {
         _hasLayerOne = false;
         //  Loop over the hits on the track and make sure we have HelicalTrackHits (which contain the MC particle)
         for (TrackerHit hit : trk.getTrackerHits()) {
-
             //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
             Set<MCParticle> mclist = hittomc.allFrom(hit);
             for (MCParticle mcp : mclist) {
@@ -107,7 +99,6 @@ public class TrackAnalysis {
                 mchits++;
                 mcmap.put(mcp, mchits);
             }
-
             if (hit instanceof HelicalTrackCross)
                 countHit((HelicalTrackCross) hit);
             else if (hit instanceof HelicalTrack2DHit)

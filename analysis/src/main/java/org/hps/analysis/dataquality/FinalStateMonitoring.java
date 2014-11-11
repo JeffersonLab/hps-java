@@ -40,7 +40,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     String finalStateParticlesColName = "FinalStateParticles";
 
-    String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P","avg_mom_beam_elec","sig_mom_beam_elec"};
+    String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
     //some counters
     int nRecoEvents = 0;
     int nTotEle = 0;
@@ -206,10 +206,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IFitter fitter = fitFactory.createFitter("chi2");
         IHistogram1D beamE = aida.histogram1D(plotDir + "Beam Electrons Pz (GeV)");
         IFitResult result = fitBeamEnergyPeak(beamE, fitter, "range=\"(-10.0,10.0)\"");
-        double[] pars=result.fittedParameters();
-        for (int i = 0; i < 5; i++) {           
+        double[] pars = result.fittedParameters();
+        for (int i = 0; i < 5; i++)
             System.out.println("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
-        }
 
         monitoredQuantityMap.put(fpQuantNames[0], (double) nTotEle / nRecoEvents);
         monitoredQuantityMap.put(fpQuantNames[1], (double) nTotPos / nRecoEvents);
@@ -225,14 +224,15 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IPlotterStyle pstyle = plotter.style();
         pstyle.legendBoxStyle().setVisible(false);
         pstyle.dataStyle().fillStyle().setColor("green");
-        pstyle.dataStyle().lineStyle().setColor("black");        
-        plotter.region(0).plot(beamE);              
+        pstyle.dataStyle().lineStyle().setColor("black");
+        plotter.region(0).plot(beamE);
         plotter.region(0).plot(result.fittedFunction());
-        try {
-            plotter.writeToFile("beamEnergyElectrons.png");
-        } catch (IOException ex) {
-            Logger.getLogger(FinalStateMonitoring.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        if (outputPlots)
+            try {
+                plotter.writeToFile(outputPlotDir + "beamEnergyElectrons.png");
+            } catch (IOException ex) {
+                Logger.getLogger(FinalStateMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+            }
     }
 
     @Override
@@ -243,9 +243,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     IFitResult fitBeamEnergyPeak(IHistogram1D h1d, IFitter fitter, String range) {
 //        return fitter.fit(h1d, "g", range);
-   
+
 //        return fitter.fit(h1d, "g+p1", init, range);
-  double[] init = {20.0, 2.2, 0.12, 10, 0.0};
+        double[] init = {20.0, 2.2, 0.12, 10, 0.0};
 //        double[] init = {20.0, 2.2, 0.1};
         return fitter.fit(h1d, "g+p1", init);
     }
