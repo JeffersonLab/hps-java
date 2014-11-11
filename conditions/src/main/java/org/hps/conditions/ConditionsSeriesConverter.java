@@ -45,14 +45,14 @@ class ConditionsSeriesConverter {
      *         which type inferred from target variable.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> createSeries(String conditionsKey) {
+    public ConditionsSeries createSeries(String conditionsKey) {
 
         // Get the table meta data from the key given by the caller.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(conditionsKey);
         if (tableMetaData == null)
             throw new RuntimeException("Table meta data for " + conditionsKey + " was not found.");
 
-        ConditionsSeries<CollectionType> series = new ConditionsSeries<CollectionType>();
+        ConditionsSeries series = new ConditionsSeries();
 
         // Get the ConditionsRecord with the meta-data, which will use the
         // current run
@@ -98,7 +98,7 @@ class ConditionsSeriesConverter {
                 throw new RuntimeException(e);
             }
 
-            series.addCollection((CollectionType) collection);
+            series.addCollection(collection);
         }
 
         // Return new collection.
