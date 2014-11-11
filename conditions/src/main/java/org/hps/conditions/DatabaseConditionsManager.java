@@ -227,7 +227,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      *         database
      */
     public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
-        TableMetaData metaData = this.findTableMetaData(type);
+        TableMetaData metaData = this.findTableMetaData(type).get(0);
         if (metaData == null) {
             throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
         }
@@ -430,15 +430,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param type The collection class.
      * @return The table meta data.
      */
-    // FIXME: This should return a list in case of multiple conditions defined
-    // with same type.
-    public TableMetaData findTableMetaData(Class type) {
+    public List<TableMetaData> findTableMetaData(Class type) {
+        List<TableMetaData> metaDataList = new ArrayList<TableMetaData>();
         for (TableMetaData meta : tableMetaData) {
             if (meta.getCollectionClass().equals(type)) {
-                return meta;
+                metaDataList.add(meta);
             }
         }
-        return null;
+        return metaDataList;
     }
 
     /**

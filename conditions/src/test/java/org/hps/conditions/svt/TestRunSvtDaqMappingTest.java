@@ -37,7 +37,7 @@ public class TestRunSvtDaqMappingTest extends TestCase {
         conditionsManager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
         conditionsManager.setDetector("HPS-TestRun-v5", 1351);
 
-        metaData = conditionsManager.findTableMetaData(TestRunSvtDaqMappingCollection.class);
+        metaData = conditionsManager.findTableMetaData(TestRunSvtDaqMappingCollection.class).get(0);
         TestRunSvtDaqMappingCollection daqMappingCollection = conditionsManager.getConditionsData(TestRunSvtDaqMappingCollection.class, metaData.getTableName());
 
         int totalSensors = 0;

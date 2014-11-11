@@ -30,7 +30,7 @@ public class SvtDaqMappingTest extends TestCase {
         DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
         conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
 
-        TableMetaData metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class);
+        TableMetaData metaData = conditionsManager.findTableMetaData(SvtDaqMappingCollection.class).get(0);
         SvtDaqMappingCollection daqMappingCollection = conditionsManager.getConditionsData(SvtDaqMappingCollection.class, metaData.getTableName());
 
         int totalSensors = 0;
