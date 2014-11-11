@@ -30,8 +30,6 @@ public class CommandLineTool {
     Options options = new Options();
     Map<String, AbstractCommand> commands = new HashMap<String, AbstractCommand>();
     PosixParser parser = new PosixParser();
-    static final String CONNECTION_PROPERTIES_RESOURCE = "/org/hps/conditions/config/conditions_dev.properties";
-    static final String XML_CONFIG_RESOURCE = "/org/hps/conditions/config/conditions_dev.xml";
     DatabaseConditionsManager conditionsManager;
     boolean verbose = false;
 
@@ -103,11 +101,7 @@ public class CommandLineTool {
             conditionsManager.configure(xmlConfigFile);
             if (verbose)
                 System.out.println("using XML config file " + xmlConfigFile.getPath());
-        } else {
-            if (verbose)
-                System.out.println("using XML config resource " + XML_CONFIG_RESOURCE);
-            conditionsManager.configure(XML_CONFIG_RESOURCE);
-        }
+        } 
         conditionsManager.openConnection();
     }
 

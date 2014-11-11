@@ -13,7 +13,7 @@ import org.apache.commons.cli.PosixParser;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public abstract class AbstractCommand {
+abstract class AbstractCommand {
 
     String name;
     String description;

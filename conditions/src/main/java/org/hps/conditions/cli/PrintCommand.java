@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.apache.commons.cli.Option;
-import org.hps.conditions.ConditionsObject;
 import org.hps.conditions.ConditionsObjectCollection;
 import org.hps.conditions.ConditionsRecord;
 import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
@@ -22,7 +21,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class PrintCommand extends AbstractCommand {
+class PrintCommand extends AbstractCommand {
 
     private static int DEFAULT_RUN_NUMBER = 0;
     private static String DEFAULT_DETECTOR_NAME = "HPS-Proposal2014-v8-6pt6";

@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -34,7 +32,7 @@ import org.hps.conditions.QueryBuilder;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class LoadCommand extends AbstractCommand {
+class LoadCommand extends AbstractCommand {
 
     LoadCommand() {
         super("load", "Load a set of conditions into the database from a text file");
@@ -45,13 +43,8 @@ public class LoadCommand extends AbstractCommand {
 
     @Override
     public void execute(String[] arguments) {
-        CommandLine commandLine;
-        try {
-            commandLine = parser.parse(options, arguments);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-
+        super.execute(arguments);
+        
         String fileName = commandLine.getOptionValue("f");
         if (fileName == null) {
             throw new IllegalArgumentException("Missing file argument.");
