@@ -23,12 +23,10 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class LCSimEngRunEventBuilderTest extends TestCase {
 
 	public void testLCSimEngRunEventBuilder() throws Exception {
-
+	    
 		// Setup database conditions.
 		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
-		conditionsManager.setConnectionResource("/org/hps/conditions/config/conditions_dev.properties");
 		conditionsManager.configure("/org/hps/conditions/config/conditions_dev.xml");
-		conditionsManager.register();
 		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
 
 		// Configure LCIO writer.
@@ -43,6 +41,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 
 		// Create event builder.
 		LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
+		conditionsManager.addConditionsListener(builder);
 		builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
 
 		// Get remote test file.
