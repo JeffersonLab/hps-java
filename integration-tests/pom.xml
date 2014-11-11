@@ -35,8 +35,10 @@
                         <exclude>org/hps/TestRunReconTest.java</exclude>
                         <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                         <exclude>org/hps/EcalReadoutSimTest.java</exclude>
+                        <exclude>org/hps/DataQualityMonitorTest.java</exclude>
+                        <exclude>org/hps/MCFilteredReconTest.java</exclude>
                     </excludes>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+<!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>true</trimStackTrace>
                 </configuration>
             </plugin>
@@ -91,6 +93,7 @@
             </build>
         </profile>                 
         <!-- This profile activates automatically when not running tests on a SLAC Unix system with NFS access. -->
+<!--
         <profile>
             <id>no-slac-nfs</id>
             <activation>
@@ -107,13 +110,14 @@
                         <configuration>
                             <excludes>                            
                                 <exclude>org/hps/EcalReadoutSimTest.java</exclude>                                
-								<exclude>org/hps/ReconClusterICTest.java</exclude>
-								<exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
+                                <exclude>org/hps/ReconClusterICTest.java</exclude>
+				<exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>        
         </profile>  
+-->
     </profiles>    
 </project>
