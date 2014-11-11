@@ -7,8 +7,7 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-  <!--      <driver name="ConditionsDriver"/> -->
-        <driver name="CalibrationDriver"/>
+        <driver name="ConditionsDriver"/>
         <driver name="EcalRawConverter"/>     
         <driver name="Pedestal"/>        
 
@@ -23,8 +22,8 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
-        
+      
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver"/>   
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
