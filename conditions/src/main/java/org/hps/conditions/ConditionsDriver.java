@@ -4,30 +4,28 @@ import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDetectorSetup;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.geometry.Detector;
 
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
- * {@link AbstractConditionsDriver} and specifies the database connection
- * parameters and configuration for the development database.
+ * {@link AbstractConditionsDriver} which creates the default
+ * {@link DatabaseConditionsManager} for using database conditions
+ * at runtime.
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ConditionsDriver extends AbstractConditionsDriver {
 
+    /**
+     * Default constructor which uses super class constructor for initialization.
+     */
     public ConditionsDriver() {
-        if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
-            getLogger().config("ConditionsDriver found existing DatabaseConditionsManager.");
-            manager = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
-        } else {
-            manager = new DatabaseConditionsManager();
-        }
+        super();
     }
 
     /**
-     * Load the {@link SvtConditions} set onto <code>HpsSiSensor</code>.
+     * Load the {@link SvtConditions} set onto the <code>HpsSiSensor</code> objects.
      * @param detector The detector to update.
      */
     @Override

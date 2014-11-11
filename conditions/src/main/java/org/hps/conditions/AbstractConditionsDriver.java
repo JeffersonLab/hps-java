@@ -10,7 +10,7 @@ import org.lcsim.util.Driver;
 /**
  * This abstract {@link org.lcsim.util.Driver} contains the general methods used
  * to set up {@link DatabaseConditionsManager} and load the conditions onto a
- * detector. The connection parameters are set by subclasses.
+ * detector.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -24,6 +24,19 @@ public abstract class AbstractConditionsDriver extends Driver {
 
     boolean loadSvtConditions = true;
     boolean loadEcalConditions = true;
+    
+    protected AbstractConditionsDriver() {
+        /*
+        if (ConditionsManager.defaultInstance() != null) {
+            if (!(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
+                throw new RuntimeException("There is already a ConditionsManager installed and it has the wrong type.");
+            } else {
+                manager = DatabaseConditionsManager.getInstance();
+            }
+        } 
+        */
+        manager = new DatabaseConditionsManager();
+    }
 
     public void setLoadSvtConditions(boolean loadSvtConditions) {
         this.loadSvtConditions = loadSvtConditions;

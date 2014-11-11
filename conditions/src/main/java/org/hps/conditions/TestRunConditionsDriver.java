@@ -1,17 +1,15 @@
 package org.hps.conditions;
 
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.geometry.Detector;
+import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 
 import org.hps.conditions.svt.TestRunSvtConditions;
 import org.hps.conditions.svt.TestRunSvtDetectorSetup;
-
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import org.lcsim.geometry.Detector;
 
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
- * {@link AbstractConditionsDriver} and specifies the database connection
- * parameters and configuration for the test run database.
+ * {@link AbstractConditionsDriver} and specifies the configuration 
+ * for the test run database.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -19,23 +17,15 @@ import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
 public class TestRunConditionsDriver extends AbstractConditionsDriver {
 
     // Default constructor used to setup the database connection
-    public TestRunConditionsDriver() {
-        if (ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager) {
-            // System.out.println(this.getName()+": Found existing DatabaseConditionsManager");
-            // manager = (DatabaseConditionsManager)
-            // ConditionsManager.defaultInstance();
-            throw new RuntimeException("ConditionsManager was already setup.");
-        } else {
-            manager = new DatabaseConditionsManager();
-            manager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-            manager.register();
-        }
+    public TestRunConditionsDriver() {       
+        super();
+        
+        // Override the default configuration with one specific to Test Run conditions.
+        manager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
     }
 
     /**
-     * Load the {@link TestRunSvtConditions} set onto
-     * <code>HpsTestRunSiSensor</code>.
-     * 
+     * Load the {@link TestRunSvtConditions} set onto <code>HpsTestRunSiSensor</code>.
      * @param detector The detector to update.
      */
     @Override
