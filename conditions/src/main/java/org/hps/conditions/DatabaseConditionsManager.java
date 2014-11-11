@@ -85,24 +85,36 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.addHandler(handler);
         logger.config("logger initialized with level " + handler.getLevel());
     }
-
+    
     /**
-     * Default connection parameters.
+     * Default connection parameters which will use the SLAC database by default,
+     * as it is publicly accessible.  If running on the JLAB network, the jmysql
+     * URL will be used instead, as the host computer is most likely on the 
+     * batch farm, in the counting house, etc.
      */
     static class DefaultConnectionParameters extends ConnectionParameters {
         DefaultConnectionParameters() {
+            
+            // This is the default port for MySQL connections.
             this.port = 3306;
+            
+            // By default, connect to the publicly accessible SLAC database.
+            this.hostname = "ppa-jeremym-l.slac.stanford.edu";
+            this.database = "hps_conditions_dev";
+            
             try {
+                // Are we running from inside the JAB network?
                 if (InetAddress.getLocalHost().getHostName().contains("jlab.org")) {
+                    // Override the defaults and use parameters for the JLAB database.
                     this.hostname = "jmysql.jlab.org";
                     this.database = "hps_conditions";
-                } else {
-                    this.hostname = "ppa-jeremym-l.slac.stanford.edu";
-                    this.database = "hps_conditions_dev";
-                }
+                } 
             } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
+                // Something wrong with the user's host name, but just assume we can continue okay.
+                logger.log(Level.WARNING, e.getMessage());
             }
+            
+            // This user name and password are setup for read only access on both databases.
             this.user = "hpsuser";
             this.password = "darkphoton";
         }
@@ -204,7 +216,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return The <code>ConditionsSeries</code> containing the matching
      *         <code>ConditionsObjectCollection</code>.
      */
-    public <CollectionType extends ConditionsObjectCollection> ConditionsSeries<CollectionType> getConditionsSeries(String conditionsKey) {
+    public ConditionsSeries getConditionsSeries(String conditionsKey) {
         return conditionsSeriesConverter.createSeries(conditionsKey);
     }
 
