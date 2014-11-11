@@ -168,11 +168,11 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        sb.append("id: ").append(getRowId()).append('\n');
-        sb.append("collection_id: ").append(getCollectionId()).append('\n');
-        sb.append("read_only: ").append(isReadOnly()).append('\n');
+        sb.append(this.getRowId());
+        sb.append('\t');
         for (String fieldName : getTableMetaData().getFieldNames()) {
-            sb.append(fieldName).append(": ").append(getFieldValue(fieldName).toString()).append('\n');
+            sb.append(getFieldValue(fieldName));
+            sb.append('\t');
         }
         return sb.toString();
     }
