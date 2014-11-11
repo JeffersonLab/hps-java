@@ -25,6 +25,8 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 
+    private boolean _fixTrackMomentum=false;
+    private double _momentum=-99;//dummy
     public MultipleScattering(MaterialManager materialmanager) {
         super(materialmanager);
     }
@@ -32,7 +34,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
     /**
      * Override lcsim version and select material manager depending on object
      * type. This allows to
-     * use a local extension of the material manager in teh lcsim track fitting
+     * use a local extension of the material manager in the lcsim track fitting
      * code.
      *
      * @param helix
@@ -77,9 +79,9 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
             System.out.printf("%s: momentum is p=%f,R=%f,B=%f \n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield);
         }
 //        MG TURN THIS OFF SO IT DOESN'T ABORT STRAIGHT TRACKS
-//        // Check that B Field is set
-//        if (_bfield == 0.)
-//            throw new RuntimeException("B Field must be set before calling FindScatters method");
+        // Check that B Field is set
+        if (_bfield == 0.&&!_fixTrackMomentum)
+            throw new RuntimeException("B Field or fixed momentum must be set before calling FindScatters method");
 
         // Create a new list to contain the mutliple scatters
         // List<ScatterAngle> scatters = new ArrayList<ScatterAngle>();
@@ -122,9 +124,10 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 if (_debug)
                     System.out.printf("%s: material traversed: %f R.L. (%fmm) \n", this.getClass().getSimpleName(), radlen, vol.getMaterialTraversed(dir));
 
-//                double p = helix.p(this._bfield);
-                double p = 1.0; // set default momentum to 1.0
-                if (_bfield != 0)
+                double p; 
+                if (_fixTrackMomentum)
+                    p=_momentum;
+                else
                     p = helix.p(this._bfield);
                 double msangle = this.msangle(p, radlen);
 
@@ -359,6 +362,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
     public MaterialManager getMaterialManager() {
         // Should be safe to cast here
         return (MaterialManager) _materialmanager;
+    }
+    
+    public void fixTrackMomentum(double mom){
+        _fixTrackMomentum=true;
+        _momentum=mom;
     }
 
     /**
