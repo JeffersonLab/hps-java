@@ -53,14 +53,6 @@ public final class SvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Convert this object to a human readable string.
-     * @return This object as a string.
-     */
-    public String toString() {
-        return "channel_id: " + getChannelID() + ", feb_id: " + getFebID() + ", feb_hybrid_id: " + getFebHybridID() + ", channel: " + getChannel();
-    }
-
-    /**
      * Implementation of equals.
      * @return True if the object equals this one; false if not.
      */

@@ -278,12 +278,4 @@ public final class EcalChannel extends AbstractConditionsObject {
         EcalChannel c = (EcalChannel) o;
         return c.getChannelId() == getChannelId() && c.getCrate() == getCrate() && c.getSlot() == getSlot() && c.getChannel() == getChannel() && c.getX() == getX() && c.getY() == getY();
     }
-
-    /**
-     * Implementation of string conversion.
-     * @return The string representation of this channel data.
-     */
-    public String toString() {
-        return "id: " + getChannelId() + ", crate: " + getCrate() + ", slot: " + getSlot() + ", channel: " + getChannel() + ", x: " + getX() + ", y: " + getY();
-    }
 }

@@ -47,14 +47,6 @@ public final class SvtShapeFitParameters extends AbstractConditionsObject {
     }
 
     /**
-     * Convert this object to a human readable string.
-     * @return This object converted to a string.
-     */
-    public String toString() {
-        return "amp: " + getAmplitude() + ", t0: " + getT0() + ", tp: " + getTp();
-    }
-
-    /**
      * Convert this object to an array of doubles.
      * @return This object converted to an array of doubles.
      */

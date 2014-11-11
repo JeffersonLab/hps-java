@@ -35,12 +35,4 @@ public final class SvtGain extends AbstractConditionsObject {
     double getOffset() {
         return getFieldValue(Double.class, "offset");
     }
-
-    /**
-     * Convert this object to a human-readable string.
-     * @return This object converted to a string.
-     */
-    public String toString() {
-        return "" + getGain() + '\t' + getOffset();
-    }
 }

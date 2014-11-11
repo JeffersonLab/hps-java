@@ -43,14 +43,6 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Convert this object to a human readable string.
-     * @return This object as a string.
-     */
-    public String toString() {
-        return "channel_id: " + getChannelID() + ", fpga: " + getFpgaID() + ", hybrid: " + getHybridID() + ", channel: " + getChannel();
-    }
-
-    /**
      * Implementation of equals.
      * @return True if the object equals this one; false if not.
      */
