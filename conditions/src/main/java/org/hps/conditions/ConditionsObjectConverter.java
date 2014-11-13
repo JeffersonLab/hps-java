@@ -42,9 +42,8 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
 
         // System.out.println("finding conditions for key " + name + " ...");
 
-        // Get the DatabaseConditionsManager which is required for using this
-        // converter.
-        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.castFrom(conditionsManager);
+        // Get the DatabaseConditionsManager which is required for using this converter.
+        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
 
         // Get the table meta data from the key given by the caller.
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);

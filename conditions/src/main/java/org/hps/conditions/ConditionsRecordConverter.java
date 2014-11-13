@@ -24,7 +24,7 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
 
-        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.castFrom(manager);
+        DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
 
         if (tableMetaData == null)
