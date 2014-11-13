@@ -16,9 +16,7 @@ import org.hps.conditions.DatabaseConditionsManager;
 /**
  * <p>
  * This class is a command-line tool for performing commands on the conditions
- * database. It has sub-commands much like the cvs or svn clients. The only
- * current implemented command is 'load' to import text files, but more will be
- * added.
+ * database. It has sub-commands much like the cvs or svn clients. 
  * <p>
  * Command line options allow a custom connection properties file or XML
  * configuration to be supplied by the user which will override the default.
@@ -133,6 +131,7 @@ public class CommandLineTool {
         cli.options.addOption(new Option("x", true, "Set the conditions database XML configuration file"));
         cli.registerCommand(new LoadCommand());
         cli.registerCommand(new PrintCommand());
+        cli.registerCommand(new AddCommand());
         return cli;
     }
 
