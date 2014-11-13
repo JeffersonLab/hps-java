@@ -83,6 +83,12 @@ public interface ConditionsObject {
      *            values.
      */
     void setFieldValues(FieldValueMap fieldValues);
+    
+    /**
+     * Get the map of field values.
+     * @return The <code>FieldValueMap</code>.
+     */
+    FieldValueMap getFieldValues();
 
     /**
      * Get a field value, cast to the given class.

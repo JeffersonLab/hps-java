@@ -70,9 +70,10 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
             throw new ConditionsObjectException("There are no field values to insert.");
         if (!hasValidCollection())
             throw new ConditionsObjectException("The object's collection ID is not valid.");
-        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), getCollectionId(), getTableMetaData().getFieldNames(), fieldValues.valuesToArray());
+        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), getCollectionId(), getTableMetaData().getFieldNames(), fieldValues.valuesToArray());        
+        System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
-        if (keys.size() == 0 || keys.size() > 1) {
+        if (keys.size() != 1) {
             throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
         }
         rowId = keys.get(0);
@@ -130,6 +131,10 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
     public <T> T getFieldValue(Class<T> klass, String field) {
         return klass.cast(fieldValues.get(field));
     }
+    
+    public FieldValueMap getFieldValues() {
+        return this.fieldValues;
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T getFieldValue(String field) {
@@ -162,7 +167,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         this.rowId = rowId;
     }
 
-    private boolean hasValidCollection() {
+    boolean hasValidCollection() {
         return collectionId != -1;
     }
 
