@@ -237,20 +237,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Simple utility method to cast the generic <code>ConditionsManager</code>
-     * to this class.
-     * @param conditionsManager The <code>ConditionsManager</code>.
-     * @return The <code>DatabaseConditionsManager</code> object.
-     */
-    public static DatabaseConditionsManager castFrom(ConditionsManager conditionsManager) {
-        if (conditionsManager instanceof DatabaseConditionsManager) {
-            return (DatabaseConditionsManager) conditionsManager;
-        } else {
-            throw new RuntimeException("The conditionsManager points to an object of the wrong type: " + conditionsManager.getClass().getCanonicalName());
-        }
-    }
-
-    /**
      * This method catches changes to the detector name and run number. It is
      * actually called every time an lcsim event is created, so it has internal
      * logic to figure out if the conditions system actually needs to be
@@ -280,10 +266,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param detectorName the name of the detector
      */
     void setup(String detectorName) {
-        if (!isConnected())
+        if (!isConnected()) {
+            // FIXME: Probably opening the connection should happen someplace else than here.
             openConnection();
-        else
+        } else {
             logger.config("using existing connection " + connectionParameters.getConnectionString());
+        }
     }
 
     /**
@@ -515,14 +503,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             }
         }
         return foundConditionsRecords;
-    }
-
-    /**
-     * Return true if the connection parameters are valid, e.g. non-null.
-     * @return true if connection parameters are non-null
-     */
-    public boolean hasConnectionParameters() {
-        return connectionParameters != null;
     }
 
     /**
