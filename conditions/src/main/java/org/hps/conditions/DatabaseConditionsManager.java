@@ -100,14 +100,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             
             // By default, connect to the publicly accessible SLAC database.
             this.hostname = "ppa-jeremym-l.slac.stanford.edu";
-            this.database = "hps_conditions_dev";
+            this.database = "hps_conditions";
             
             try {
                 // Are we running from inside the JAB network?
                 if (InetAddress.getLocalHost().getHostName().contains("jlab.org")) {
                     // Override the defaults and use parameters for the JLAB database.
-                    this.hostname = "jmysql.jlab.org";
-                    this.database = "hps_conditions";
+                    this.hostname = "jmysql.jlab.org";                    
                 } 
             } catch (UnknownHostException e) {
                 // Something wrong with the user's host name, but just assume we can continue okay.
