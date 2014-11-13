@@ -17,7 +17,7 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * This sub-command of the conditions CLI prints conditions table data to
- * the console file or optionally writes it to an output file.
+ * the console or optionally writes it to an output file.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -28,12 +28,13 @@ class PrintCommand extends AbstractCommand {
     
     PrintCommand() {
         super("print", "Print the table data for a conditions set");
-        this.options.addOption(new Option("t", true, "Set the conditions set key"));
+        this.options.addOption(new Option("t", true, "Set the conditions set name"));
         this.options.addOption(new Option("r", true, "Set the run number"));
         this.options.addOption(new Option("d", true, "Set the detector name"));
         this.options.addOption(new Option("f", true, "Write output to a file"));
     }
     
+    @SuppressWarnings("rawtypes")
     void execute(String[] arguments) {
         super.execute(arguments);
         
@@ -100,7 +101,6 @@ class PrintCommand extends AbstractCommand {
         
         for (ConditionsObjectCollection collection : series.getCollections()) {
             for (Object object : collection.getObjects()) {
-                //ConditionsObject conditionsObject = (ConditionsObject) object;
                 ps.print(object.toString());
                 ps.println();
             }
