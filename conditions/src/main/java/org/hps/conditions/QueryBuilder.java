@@ -1,6 +1,10 @@
 package org.hps.conditions;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+
+import org.hps.conditions.ConditionsObject.FieldValueMap;
 
 /**
  * This is a static utility class for building SQL queries for the conditions
@@ -61,6 +65,31 @@ public final class QueryBuilder {
             buff.append(", " + value);
         }
         buff.append(") ");
+        return buff.toString();
+    }
+
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+    
+    public static String buildInsert(String tableName, FieldValueMap fieldValues) {
+        if (fieldValues.size() == 0) {
+            throw new IllegalArgumentException("The FieldValueMap has no values.");
+        }
+        StringBuffer buff = new StringBuffer();
+        buff.append("INSERT INTO " + tableName + " (");
+        for (String fieldName : fieldValues.keySet()) {
+            buff.append(" " + fieldName + ",");
+        }
+        buff.setLength(buff.length() - 1);
+        buff.append(" ) VALUES (");
+        for (Object value : fieldValues.values()) {
+            String insertValue = value.toString();
+            if (value instanceof Date) {
+                insertValue = dateFormat.format((Date) value);
+            }
+            buff.append(" '" + insertValue + "',");
+        }
+        buff.setLength(buff.length() - 1);
+        buff.append(")");
         return buff.toString();
     }
 

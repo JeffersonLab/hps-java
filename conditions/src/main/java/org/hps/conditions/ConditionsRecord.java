@@ -1,6 +1,7 @@
 package org.hps.conditions;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * This class represents a single record from the primary conditions data table,
@@ -9,9 +10,6 @@ import java.util.Date;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: Check behavior of select, delete, update and insert operations.
-// TODO: Override default behavior of methods in super class that don't make
-// sense.
 public final class ConditionsRecord extends AbstractConditionsObject {
 
     /**
@@ -26,13 +24,25 @@ public final class ConditionsRecord extends AbstractConditionsObject {
         public void add(ConditionsRecord record) {
             objects.add(record);
         }
-
-        // FIXME: Should probably override more methods here that don't make
-        // sense for
-        // this type!
     }
 
-    protected ConditionsRecord() {
+    public ConditionsRecord() {
+    }
+    
+    public void insert() throws ConditionsObjectException {
+        if (!isNew())
+            throw new ConditionsObjectException("Record already exists in database and cannot be inserted.");
+        if (isReadOnly())
+            throw new ConditionsObjectException("This object is set to read only mode.");
+        if (fieldValues.size() == 0)
+            throw new ConditionsObjectException("There are no field values to insert.");
+        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), this.getFieldValues());        
+        System.out.println(query);
+        List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
+        if (keys.size() != 1) {
+            throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
+        }
+        rowId = keys.get(0);
     }
 
     /**
