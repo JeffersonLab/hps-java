@@ -19,10 +19,9 @@ import org.lcsim.util.Driver;
  */
 public class EcalMonitoringTestDriver extends Driver {
     
-    static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
-    
-    IHistogram1D nHitsH1D = histogramFactory.createHistogram1D("EcalReadoutHits : Number of Hits", 443, 0, 443.);
-    IHistogram1D adcValuesH1D = histogramFactory.createHistogram1D("EcalReadoutHits : ADC Values", 160, 40, 200.);
+    static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);    
+    IHistogram1D nHitsH1D = histogramFactory.createHistogram1D("EcalReadoutHits : Number of Hits", 443, 0, 443.);   
+    IHistogram1D adcValuesH1D = histogramFactory.createHistogram1D("EcalReadoutHits : ADC Values", 300, 0, 300.);
         
     public void startOfData() {        
         IPlotter plotter = IAnalysisFactory.create().createPlotterFactory("ECAL Test").create("ECAL Test");
