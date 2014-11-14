@@ -5,7 +5,7 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
-import org.hps.evio.TestRunEvioToLcio;
+import org.hps.evio.EvioToLcio;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
@@ -30,13 +30,11 @@ public class TestRunEvioToLcioTest extends TestCase {
                 "-D",
                 "outputFile=" + new TestOutputFile("TestRunEvioToLcioTest").getPath(),
                 inputFile.getPath(),
-                "-R",
-                "1351",
                 "-n",
                 "100"
         };
         System.out.println("Running TestRunEvioToLcio.main ...");
-        TestRunEvioToLcio.main(args);
+        EvioToLcio.main(args);
     }
 
 }

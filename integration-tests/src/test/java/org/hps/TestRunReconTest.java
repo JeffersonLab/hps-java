@@ -8,7 +8,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.evio.TestRunEvioToLcio;
+import org.hps.evio.EvioToLcio;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -49,13 +49,11 @@ public class TestRunReconTest extends TestCase {
         argList.add("-d");
         argList.add("HPS-TestRun-v8-5");
         argList.add("-D");
-        argList.add("runNumber=1351");
-        argList.add("-D");
         File outputFile = new TestOutputFile(getClass().getSimpleName() + File.separator + getClass().getSimpleName() + "_recon");
         argList.add("outputFile=" + outputFile.getPath());
         argList.add(inputFile.getPath());
-        System.out.println("Running TestRunEvioToLcio.main ...");
-        TestRunEvioToLcio.main(argList.toArray(new String[] {}));
+        System.out.println("Running EvioToLcio.main ...");
+        EvioToLcio.main(argList.toArray(new String[] {}));
         
         // Read in the LCIO event file and print out summary information.
         System.out.println("Running ReconCheckDriver on output ...");
