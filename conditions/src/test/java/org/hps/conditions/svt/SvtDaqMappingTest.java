@@ -35,10 +35,10 @@ public class SvtDaqMappingTest extends TestCase {
 
         int totalSensors = 0;
         int febHybridID;
-        this.printDebug("");
+        //this.printDebug("");
         for (SvtDaqMapping daqMapping : daqMappingCollection) {
 
-            this.printDebug("Sensor: \n" + daqMapping.toString());
+            //this.printDebug("Sensor: \n" + daqMapping.toString());
 
             // Check that the FEB Hybrid ID is within the allowable limits
             febHybridID = daqMapping.getFebHybridID();
@@ -47,7 +47,7 @@ public class SvtDaqMappingTest extends TestCase {
             totalSensors++;
         }
 
-        this.printDebug("Total number of sensors found: " + totalSensors);
+        //this.printDebug("Total number of sensors found: " + totalSensors);
         assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
 
     }
