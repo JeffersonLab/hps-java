@@ -26,7 +26,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 	    
 		// Setup database conditions.
 		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
-		conditionsManager.configure("/org/hps/conditions/config/conditions_dev.xml");
+		conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_dev.xml");
 		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
 
 		// Configure LCIO writer.

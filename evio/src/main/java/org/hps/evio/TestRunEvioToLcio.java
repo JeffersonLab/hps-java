@@ -183,7 +183,7 @@ public class TestRunEvioToLcio {
 		DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
 
 		if (cl.hasOption("t")) {
-			manager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+			manager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
 			eventBuilder = new LCSimTestRunEventBuilder();
 		} else {
 			eventBuilder = new LCSimEngRunEventBuilder();

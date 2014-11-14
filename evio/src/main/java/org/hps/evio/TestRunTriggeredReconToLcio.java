@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Queue;
 
 import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.conditions.deprecated.QuietBaseLCSimEvent;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
@@ -28,9 +27,8 @@ import org.lcsim.lcio.LCIOWriter;
  * is to make this look like data which will come off the actual ET ring during
  * the test run.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: TestRunTriggeredReconToLcio.java 779 2014-07-16 16:24:34Z
- * omoreno $
+ * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
@@ -221,7 +219,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     @Override
     protected void processTrigger(EventHeader event) {
-        EventHeader lcsimEvent = new QuietBaseLCSimEvent(DatabaseConditionsManager.getInstance().getRunNumber(), event.getEventNumber(), event.getDetectorName());
+        EventHeader lcsimEvent = new QuietBaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName());
         events.add(lcsimEvent);
         System.out.println("Creating LCIO event " + eventNum);
         if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
