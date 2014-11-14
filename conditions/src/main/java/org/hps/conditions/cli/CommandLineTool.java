@@ -96,7 +96,7 @@ public class CommandLineTool {
         } 
         if (commandLine.hasOption("x")) {
             File xmlConfigFile = new File(commandLine.getOptionValue("x"));
-            conditionsManager.configure(xmlConfigFile);
+            conditionsManager.setXmlConfig(xmlConfigFile);
             if (verbose)
                 System.out.println("using XML config file " + xmlConfigFile.getPath());
         } 
