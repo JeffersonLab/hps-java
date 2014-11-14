@@ -14,6 +14,6 @@ classpath=${project.build.directory}/${project.artifactId}-${project.version}-bi
 
 # Run the file producer, sending any additional arguments to the command.
 #prod="java -classpath $classpath org.hps.evio.EvioFileProducer -e ${eviofile} -f ETBuffer -host localhost -s 10000 -d 100 $@"
-prod="java -classpath $classpath org.hps.record.evio.EvioFileProducer -e ${eviofile} -f ETBuffer -host localhost -s 10000 $@"
+prod="java -classpath $classpath org.hps.record.evio.EvioFileProducer -e ${eviofile} -f ETBuffer -host localhost -s 100000 $@"
 echo $prod
 exec $prod
