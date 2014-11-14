@@ -67,7 +67,7 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <timeCut>true</timeCut>
         </driver>
-        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriverIC">          
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
