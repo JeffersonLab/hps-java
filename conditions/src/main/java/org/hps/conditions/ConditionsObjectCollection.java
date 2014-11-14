@@ -1,14 +1,14 @@
 package org.hps.conditions;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ConditionsObjectCollection<ObjectType extends ConditionsObject> implements Iterable<ObjectType> {
 
-    protected List<ObjectType> objects = new ArrayList<ObjectType>();
+    protected Set<ObjectType> objects = new LinkedHashSet<ObjectType>();
     protected TableMetaData tableMetaData;
     protected int collectionId = -1;
     protected boolean isReadOnly;
@@ -33,11 +33,16 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     }
 
     public ObjectType get(int index) {
-        return objects.get(index);
+        Iterator<ObjectType> iterator = objects.iterator();
+        ObjectType current = iterator.next();
+        for (int i = 0; i < index; i++) {
+            current = iterator.next();
+        }
+        return current;
     }
 
-    public List<ObjectType> getObjects() {
-        return Collections.unmodifiableList(objects);
+    public Set<ObjectType> getObjects() {
+        return Collections.unmodifiableSet(objects);
     }
 
     public boolean contains(Object object) {
@@ -45,18 +50,14 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     }
 
     // TODO: Should check here if object has an existing collection ID that is
-    // different
-    // from this collection's, in which case this collection becomes "mixed" and
-    // it should
-    // be
-    // flagged as read only.
+    // different from this collection's, in which case this collection becomes "mixed" and
+    // it should be flagged as read only.
     public void add(ObjectType object) throws ConditionsObjectException {
         if (objects.contains(object)) {
             throw new IllegalArgumentException("Collection already contains this object.");
         }
         try {
-            // Only assign a collection ID to the object if this collection has
-            // a valid ID
+            // Only assign a collection ID to the object if this collection has a valid ID
             // and the object does not have one already.
             if (getCollectionId() != -1)
                 object.setCollectionId(getCollectionId());
@@ -89,8 +90,7 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     }
 
     // TODO: This does not need to loop. It should just call delete on the
-    // collection ID
-    // value.
+    // collection ID value.
     public void delete() throws ConditionsObjectException {
         if (isReadOnly()) {
             throw new ConditionsObjectException("Collection is read only.");
@@ -101,9 +101,7 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     }
 
     // TODO: This should not loop. It should select all the objects with a
-    // matching
-    // collection ID
-    // from the database.
+    // matching collection ID from the database.
     public void select() throws ConditionsObjectException, SQLException {
         for (ConditionsObject object : objects) {
             object.select();
@@ -137,8 +135,7 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         this.isDirty = isDirty;
     }
 
-    // TODO: This can probably just check if collection ID is not valid e.g.
-    // equals -1.
+    // TODO: This can probably just check if collection ID is not valid e.g. equals -1.
     public boolean isNew() {
         return isNew;
     }
