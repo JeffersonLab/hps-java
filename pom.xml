@@ -124,7 +124,7 @@
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
-            <version>1.4</version>
+            <version>1.5-SNAPSHOT</version>
             <exclusions>
                 <exclusion>  
                     <groupId>jdom</groupId>
