@@ -14,10 +14,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
@@ -29,6 +26,7 @@ import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
+import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.loop.DetectorConditionsConverter;
 
 /**
@@ -48,43 +46,19 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     static String connectionProperty = "org.hps.conditions.connection.file";
-    protected int runNumber = -1;
     protected String detectorName;
     protected List<TableMetaData> tableMetaData;
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
-    protected static Logger logger = null;
+    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
     protected ConnectionParameters connectionParameters = new DefaultConnectionParameters();
     protected Connection connection;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
     protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
-
-    /**
-     * Simple log formatter for this class.
-     */
-    private static final class LogFormatter extends Formatter {
-
-        public String format(LogRecord record) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(record.getLoggerName() + " [ " + record.getLevel() + " ] " + record.getMessage() + '\n');
-            return sb.toString();
-        }
-    }
-
-    /**
-     * Setup the logger for this class, with initial level of ALL.
-     */
-    static {
-        logger = Logger.getLogger(DatabaseConditionsManager.class.getSimpleName());
-        logger.setUseParentHandlers(false);
-        logger.setLevel(Level.ALL);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.ALL);
-        handler.setFormatter(new LogFormatter());
-        logger.addHandler(handler);
-        logger.config("logger initialized with level " + handler.getLevel());
-    }
+    protected boolean isInitialized = false;
+    protected String resourceConfig = null;
+    protected File fileConfig = null;
     
     /**
      * Default connection parameters which will use the SLAC database by default,
@@ -125,7 +99,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
-        configure(DEFAULT_CONFIG);
         register();
     }
 
@@ -148,18 +121,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             new DatabaseConditionsManager();
         }
 
-        // Get the instance of the manager from the conditions system and check
-        // that the type is valid.
+        // Get the instance of the manager from the conditions system and check that the type is valid.
         ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
             throw new RuntimeException("The default ConditionsManager has the wrong type.");
         }
 
         return (DatabaseConditionsManager) manager;
-    }
-
-    public Connection getConnection() {
-        return this.connection;
     }
 
     /**
@@ -173,7 +141,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.config("host " + connectionParameters.getHostname());
         logger.config("port " + connectionParameters.getPort());
         logger.config("user " + connectionParameters.getUser());
-        logger.config("password " + connectionParameters.getPassword());
+        //logger.config("password " + connectionParameters.getPassword());
         logger.config("database " + connectionParameters.getDatabase());
         connection = connectionParameters.createConnection();
         logger.config("created connection " + connectionParameters.getConnectionString());
@@ -184,28 +152,28 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Close the database connection.
      */
     public void closeConnection() {
-        logger.config("closing connection");
+        logger.info("closing connection");
         if (connection != null) {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                    logger.config("connection closed");
                 } else {
-                    logger.config("connection already closed");
+                    logger.config("connection was already closed");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
         connection = null;
-        connectionParameters = null;
         isConnected = false;
+        logger.info("connection closed");
     }
 
     @Override
     public void finalize() {
-        if (isConnected())
+        if (isConnected()) {
             closeConnection();
+        }
     }
 
     /**
@@ -244,38 +212,52 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     @Override
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
 
-        // Detector update.
-        if (getDetector() == null || !getDetector().equals(detectorName)) {
-            logger.config("setting new detector " + detectorName);
-            setup(detectorName);
+        logger.finest("detector " + detectorName + " and run #" + runNumber);
+        
+        if (!isInitialized) {
+            logger.log(Level.CONFIG, "initializing " + getClass().getSimpleName());
+            initialize();
         }
-
-        // Run number update.
-        if (this.runNumber != runNumber) {
-            logger.config("setting new run number " + runNumber);
-            this.runNumber = runNumber;
-        }
-
+        
         // Let the super class do whatever it think it needs to do.
         super.setDetector(detectorName, runNumber);
     }
-
+    
     /**
-     * Perform setup for a new detector description.
-     * @param detectorName the name of the detector
+     * Perform all necessary initialization, including setup of the XML
+     * configuration and opening a connection to the database.
      */
-    void setup(String detectorName) {
+    protected void initialize() {
+        
+        if (resourceConfig == null && fileConfig == null) {
+            this.resourceConfig = DatabaseConditionsManager.DEFAULT_CONFIG;
+        }
+        
+        if (resourceConfig != null && fileConfig != null) {
+            throw new RuntimeException("Both resource and file configuration are set.");
+        }
+                
+        if (this.resourceConfig != null) {
+            this.configure(getClass().getResourceAsStream(this.resourceConfig));
+        } else if (this.fileConfig != null) {
+            try {
+                this.configure(new FileInputStream(fileConfig));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
         if (!isConnected()) {
-            // FIXME: Probably opening the connection should happen someplace else than here.
             openConnection();
         } else {
             logger.config("using existing connection " + connectionParameters.getConnectionString());
         }
+        
+        this.isInitialized = true;
     }
 
     /**
-     * Get the lcsim compact <code>Detector</code> object from the conditions
-     * system.
+     * Get the current lcsim compact <code>Detector</code> object.
      * @return The detector object.
      */
     public Detector getDetectorObject() {
@@ -289,7 +271,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return The conditions or null if does not exist.
      */
     public <T> T getConditionsData(Class<T> type, String name) {
-        logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
+        logger.finest("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
     }
 
@@ -297,28 +279,21 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Configure this object from an XML file.
      * @param file The XML file.
      */
-    public void configure(File file) {
-        logger.config("setting configuration from file " + file.getPath());
-        if (!file.exists()) {
+    public void setXmlConfig(File fileConfig) {       
+        logger.config("setting XML config from file " + fileConfig.getPath());
+        if (!fileConfig.exists()) {
             throw new IllegalArgumentException("Config file does not exist.");
         }
-        try {
-            configure(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        this.fileConfig = fileConfig;        
     }
 
     /**
      * Configure this object from an embedded XML resource.
      * @param resource The embedded XML resource.
      */
-    public void configure(String resource) {
-        logger.config("setting configuration from resource " + resource);
-        InputStream in = getClass().getResourceAsStream(resource);
-        if (in == null)
-            throw new IllegalArgumentException("The resource does not exist.");
-        configure(in);
+    public void setXmlConfig(String resourceConfig) {
+        logger.config("setting XML config from resource " + resourceConfig);
+        this.resourceConfig = resourceConfig;
     }
 
     /**
@@ -326,7 +301,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param file The properties file
      */
     public void setConnectionProperties(File file) {
-        logger.config("setting connection prop file " + file.getPath());
+        logger.config("setting connection properties file " + file.getPath());
         if (!file.exists())
             throw new IllegalArgumentException("The connection properties file does not exist: " + connectionPropertiesFile.getPath());
         connectionParameters = ConnectionParameters.fromProperties(file);
@@ -351,14 +326,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (tableData == null)
             throw new IllegalArgumentException("There is no meta data for table " + tableName);
         ResultSet resultSet = selectQuery("SELECT MAX(collection_id)+1 FROM " + tableName);
-        int collectionId = -1;
+        int collectionId = 1;
         try {
             resultSet.next();
             collectionId = resultSet.getInt(1);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            logger.warning(e.getMessage());
         }
-        logger.fine("new collection ID " + collectionId + " created for table " + tableName);
+        logger.finest("new collection ID " + collectionId + " created for table " + tableName);
         return collectionId;
     }
 
@@ -505,14 +481,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the current run number.
-     * @return the current run number
-     */
-    public int getRunNumber() {
-        return runNumber;
-    }
-
-    /**
      * Close a JDBC <code>Statement</code>.
      * @param statement the Statement to close
      */
@@ -522,7 +490,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 if (!statement.isClosed())
                     statement.close();
                 else
-                    logger.log(Level.WARNING, "Statement is already closed!");
+                    logger.log(Level.WARNING, "Statement is already closed.");
             } catch (SQLException x) {
                 throw new RuntimeException("Failed to close statement.", x);
             }
@@ -530,8 +498,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Close a JDBC <code>ResultSet</code>, or rather the Statement connected to
-     * it.
+     * Close the JDBC the <code>Statement</code> connected to the <code>ResultSet</code>.
      * @param resultSet the ResultSet to close
      */
     static void close(ResultSet resultSet) {
@@ -541,7 +508,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 if (!statement.isClosed())
                     statement.close();
                 else
-                    logger.log(Level.WARNING, "Statement is already closed!");
+                    logger.log(Level.WARNING, "Statement is already closed.");
             } catch (SQLException x) {
                 throw new RuntimeException("Failed to close statement.", x);
             }
@@ -557,8 +524,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Configure this class from an <code>InputStream</code> which should point
-     * to an XML document.
+     * Configure this class from an <code>InputStream</code> which should point to an XML document.
      * @param in the InputStream which should be in XML format
      */
     private void configure(InputStream in) {
@@ -600,8 +566,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.converters.clear();
         }
 
-        // Load the list of converters from the "converters" section of the
-        // config document.
+        // Load the list of converters from the "converters" section of the config document.
         loadConditionsConverters(config.getRootElement().getChild("converters"));
 
         // Register the list of converters with this manager.
@@ -621,8 +586,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.tableMetaData.clear();
         }
 
-        // Load table meta data from the "tables" section of the config
-        // document.
+        // Load table meta data from the "tables" section of the config document.
         loadTableMetaData(config.getRootElement().getChild("tables"));
     }
 
@@ -637,15 +601,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         String systemPropertiesConnectionPath = (String) System.getProperties().get(connectionProperty);
         if (systemPropertiesConnectionPath != null) {
             File f = new File(systemPropertiesConnectionPath);
-            if (!f.exists())
-                throw new RuntimeException("Connection properties specified from system property does not exist.");
+            if (!f.exists()) {
+                throw new RuntimeException("Connection properties file from " + connectionProperty + " does not exist.");
+            }
             this.setConnectionProperties(f);
         }
     }
 
     /**
-     * This method expects an XML element containing child "table" elements.
-     * @param element
+     * Load table meta data from the XML list.
+     * @param element The XML node containing a list of table elements.
      */
     @SuppressWarnings("unchecked")
     void loadTableMetaData(Element element) {
@@ -700,11 +665,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This class reads in an XML configuration specifying a list of converter
-     * classes, e.g. from the config file for the
-     * {@link DatabaseConditionsManager}.
-     * 
-     * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+     * Load conditions converters from the XML list.
+     * @param element The node with a list of child converter elements.
      */
     private void loadConditionsConverters(Element element) {
         converters = new ArrayList<ConditionsConverter>();
