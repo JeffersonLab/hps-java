@@ -8,20 +8,20 @@ import org.lcsim.geometry.Detector;
 
 /**
  * This {@link org.lcsim.util.Driver} is a subclass of
- * {@link AbstractConditionsDriver} and specifies the configuration 
- * for the test run database.
+ * {@link AbstractConditionsDriver} and specifies the XML configuration 
+ * for the Test Run database.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class TestRunConditionsDriver extends AbstractConditionsDriver {
 
-    // Default constructor used to setup the database connection
+    
     public TestRunConditionsDriver() {       
         super();
         
         // Override the default configuration with one specific to Test Run conditions.
-        manager.configure("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
+        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
     }
 
     /**

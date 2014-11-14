@@ -4,6 +4,7 @@ import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
 
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalDetectorSetup;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
@@ -26,16 +27,12 @@ public abstract class AbstractConditionsDriver extends Driver {
     boolean loadEcalConditions = true;
     
     protected AbstractConditionsDriver() {
-        /*
-        if (ConditionsManager.defaultInstance() != null) {
-            if (!(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-                throw new RuntimeException("There is already a ConditionsManager installed and it has the wrong type.");
-            } else {
-                manager = DatabaseConditionsManager.getInstance();
-            }
-        } 
-        */
-        manager = new DatabaseConditionsManager();
+        ConditionsManager currentManager = ConditionsManager.defaultInstance();
+        if (currentManager instanceof DatabaseConditionsManager) {
+            manager = DatabaseConditionsManager.getInstance();
+        } else {        
+            manager = new DatabaseConditionsManager();
+        }        
     }
 
     public void setLoadSvtConditions(boolean loadSvtConditions) {
