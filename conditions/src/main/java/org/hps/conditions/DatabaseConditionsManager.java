@@ -55,7 +55,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected Connection connection;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
-    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
+    static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
+    static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    protected static final int TEST_RUN_MAX_RUN = 1365;
     protected boolean isInitialized = false;
     protected String resourceConfig = null;
     protected File fileConfig = null;
@@ -77,17 +79,17 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.database = "hps_conditions";
             
             try {
-                // Are we running from inside the JAB network?
+                // Are we running inside the JLAB network?
                 if (InetAddress.getLocalHost().getHostName().contains("jlab.org")) {
-                    // Override the defaults and use parameters for the JLAB database.
+                    // Use the JLAB database.
                     this.hostname = "jmysql.jlab.org";                    
                 } 
             } catch (UnknownHostException e) {
-                // Something wrong with the user's host name, but just assume we can continue okay.
-                logger.log(Level.WARNING, e.getMessage());
+                // Something wrong with the user's host name, but try to continue anyways.
+                logger.log(Level.WARNING, e.getMessage(), e);
             }
             
-            // This user name and password are setup for read only access on both databases.
+            // This user name and password are setup for read-only access on both databases.
             this.user = "hpsuser";
             this.password = "darkphoton";
         }
@@ -97,6 +99,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Class constructor.
      */
     public DatabaseConditionsManager() {
+        logger.setLevel(Level.FINE);
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
         register();
@@ -144,7 +147,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         //logger.config("password " + connectionParameters.getPassword());
         logger.config("database " + connectionParameters.getDatabase());
         connection = connectionParameters.createConnection();
-        logger.config("created connection " + connectionParameters.getConnectionString());
+        logger.config("successfuly created connection");
         isConnected = true;
     }
 
@@ -158,7 +161,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 if (!connection.isClosed()) {
                     connection.close();
                 } else {
-                    logger.config("connection was already closed");
+                    logger.info("connection was already closed");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -215,8 +218,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.finest("detector " + detectorName + " and run #" + runNumber);
         
         if (!isInitialized) {
-            logger.log(Level.CONFIG, "initializing " + getClass().getSimpleName());
-            initialize();
+            initialize(runNumber);
         }
         
         // Let the super class do whatever it think it needs to do.
@@ -227,10 +229,22 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Perform all necessary initialization, including setup of the XML
      * configuration and opening a connection to the database.
      */
-    protected void initialize() {
-        
+    protected void initialize(int runNumber) {
+
+        logger.log(Level.CONFIG, "initializing " + getClass().getSimpleName());
+
+        // Did the user not specify a config? 
         if (resourceConfig == null && fileConfig == null) {
-            this.resourceConfig = DatabaseConditionsManager.DEFAULT_CONFIG;
+            // We will try to pick a reasonable config based on the run number...
+            if (runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN) {
+                // This looks like the Test Run so use the custom config for it.
+                this.resourceConfig = DatabaseConditionsManager.TEST_RUN_CONFIG;
+                logger.config("using test run XML config " + this.resourceConfig);
+            } else { 
+                // This is probably the Engineering Run or later so use the default config.
+                this.resourceConfig = DatabaseConditionsManager.DEFAULT_CONFIG;
+                logger.config("using default XML config " + this.resourceConfig);
+            }
         }
         
         if (resourceConfig != null && fileConfig != null) {
@@ -241,7 +255,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.configure(getClass().getResourceAsStream(this.resourceConfig));
         } else if (this.fileConfig != null) {
             try {
-                this.configure(new FileInputStream(fileConfig));
+                this.configure(new FileInputStream(this.fileConfig));
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -254,6 +268,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         
         this.isInitialized = true;
+
+        logger.config(getClass().getSimpleName() + " is initialized");
     }
 
     /**
@@ -271,7 +287,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return The conditions or null if does not exist.
      */
     public <T> T getConditionsData(Class<T> type, String name) {
-        logger.finest("getting conditions " + name + " of type " + type.getSimpleName());
+        logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
     }
 
@@ -334,7 +350,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             e.printStackTrace();
             logger.warning(e.getMessage());
         }
-        logger.finest("new collection ID " + collectionId + " created for table " + tableName);
+        logger.fine("new collection ID " + collectionId + " created for table " + tableName);
         return collectionId;
     }
 
@@ -465,7 +481,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public ConditionsRecordCollection findConditionsRecords(String name) {
         ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, TableConstants.CONDITIONS_RECORD);
-        logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records ...");
+        logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records");
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
         for (ConditionsRecord record : runConditionsRecords.getObjects()) {
             if (record.getName().equals(name)) {
@@ -474,7 +490,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         if (foundConditionsRecords.getObjects().size() > 0) {
             for (ConditionsRecord record : foundConditionsRecords.getObjects()) {
-                logger.fine("found ConditionsRecord with key " + name + " ..." + '\n' + record.toString());
+                logger.fine("found ConditionsRecord with key " + name + '\n' + record.toString());
             }
         }
         return foundConditionsRecords;
@@ -591,11 +607,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Setup the database connection from a file specified by Java system
-     * property setting. This is possible overridden by subsequent API calls to
-     * {@link #setConnectionProperties(File)} or
-     * {@link #setConnectionResource(String)}, as it is called in the class's
-     * constructor.
+     * Setup the database connection from a file specified by a Java system
+     * property setting. This is possibly overridden by subsequent, direct API calls to
+     * {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
      */
     private void setupConnectionFromSystemProperty() {
         String systemPropertiesConnectionPath = (String) System.getProperties().get(connectionProperty);
