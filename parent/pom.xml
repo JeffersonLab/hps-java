@@ -173,6 +173,16 @@
                 <artifactId>hps-record-util</artifactId>
                 <version>3.1-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>org.jlab.coda</groupId>
+                <artifactId>jevio</artifactId>
+                <version>4.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jlab.coda</groupId>
+                <artifactId>et</artifactId>
+            <version>14.1</version>
+        </dependency>
         </dependencies>
     </dependencyManagement>
     <reporting>
@@ -190,6 +200,8 @@
                         <link>http://java.freehep.org/heprep/apidocs/</link>
                         <link>http://www.jdom.org/docs/apidocs/</link>
                         <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
+                        <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
+                        <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
                     </links>
                 </configuration>
             </plugin>
