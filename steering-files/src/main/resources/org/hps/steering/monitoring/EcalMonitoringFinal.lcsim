@@ -36,7 +36,7 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
           <loadSvtConditions>false</loadSvtConditions>
         </driver>
               
