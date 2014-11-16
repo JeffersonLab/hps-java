@@ -20,7 +20,7 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
-//import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.DatabaseConditionsManager;
 
 
 /**
@@ -47,11 +47,11 @@ public class EcalDaqPlots extends Driver {
     
     private EcalConditions conditions;
     private EcalChannel.EcalChannelCollection channels;
-    //private DatabaseConditionsManager manager;
-    private ConditionsManager manager;
+    private DatabaseConditionsManager manager;
+    //private ConditionsManager manager;
     public EcalDaqPlots() {
-    	//manager = DatabaseConditionsManager.getInstance();
-    	manager = ConditionsManager.defaultInstance();
+    	manager = DatabaseConditionsManager.getInstance();
+    	//manager = ConditionsManager.defaultInstance();
     }
 
     public void setSubdetectorName(String subdetectorName) {

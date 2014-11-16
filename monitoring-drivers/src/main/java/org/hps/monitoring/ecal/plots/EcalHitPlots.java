@@ -9,7 +9,7 @@ import hep.aida.IPlotterStyle;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.readout.ecal.TriggerData;
+import org.hps.readout.ecal.SSPData;
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
@@ -196,9 +196,9 @@ public class EcalHitPlots extends Driver implements Resettable{
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             if (!triggerList.isEmpty()) {
-                GenericObject triggerData = triggerList.get(0);
+                GenericObject sspData = triggerList.get(0);
 
-                int orTrig = TriggerData.getOrTrig(triggerData);
+                int orTrig =  SSPData.getOrTrig(sspData);
                 if (orTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & orTrig) != 0) {
@@ -208,7 +208,7 @@ public class EcalHitPlots extends Driver implements Resettable{
                         }
                     }
                 }
-                int topTrig = TriggerData.getTopTrig(triggerData);
+                int topTrig = SSPData.getTopTrig(sspData);
                 if (topTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & topTrig) != 0) {
@@ -218,7 +218,7 @@ public class EcalHitPlots extends Driver implements Resettable{
                         }
                     }
                 }
-                int botTrig = TriggerData.getBotTrig(triggerData);
+                int botTrig = SSPData.getBotTrig(sspData);
                 if (botTrig != 0) {
                     for (int i = 0; i < 32; i++) {
                         if ((1 << (31 - i) & botTrig) != 0) {
