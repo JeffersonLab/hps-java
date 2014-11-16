@@ -37,6 +37,8 @@
         </driver>
 
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
+          <loadSvtConditions>false</loadSvtConditions>
+        </driver>
               
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
