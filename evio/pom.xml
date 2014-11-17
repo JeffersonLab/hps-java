@@ -19,11 +19,14 @@
         <dependency>
             <groupId>org.jlab.coda</groupId>
             <artifactId>jevio</artifactId>
-            <version>4.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-tracking</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-record-util</artifactId>
         </dependency>
     </dependencies>
     <build>
