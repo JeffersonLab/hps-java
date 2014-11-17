@@ -4,8 +4,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="RawTrackerHitSensorSetup"/>
-        <driver name="ConditionsDriver"/>   
+        <driver name="RawTrackerHitSensorSetup"/>   
         <driver name="SvtSensorSetup" />
         <driver name="DummyTrigger"/>
         <driver name="TestRunReconToEvio"/>
@@ -14,7 +13,6 @@
 
     <drivers>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="DummyTrigger" type="org.hps.readout.ecal.DummyTriggerDriver">
             <period>1</period>

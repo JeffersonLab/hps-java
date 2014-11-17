@@ -8,8 +8,7 @@
     </control>    
     
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/>   
+        <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/> 
         <driver name="BadChannelFilter" />

@@ -9,7 +9,6 @@
     
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver" />
         <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="SVTBadChannelFilterDriver"/>
@@ -25,7 +24,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>

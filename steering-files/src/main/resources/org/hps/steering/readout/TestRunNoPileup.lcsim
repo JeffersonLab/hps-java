@@ -5,8 +5,7 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/>   
+        <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
         <driver name="EcalRawConverter"/>
         <driver name="EcalRawConverterDriver"/>
@@ -21,7 +20,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>

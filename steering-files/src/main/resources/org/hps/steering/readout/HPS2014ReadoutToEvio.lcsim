@@ -9,8 +9,7 @@
         <printDriversDetailed>false</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/>   
+        <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -25,7 +24,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="TestRunReconToEvio" type="org.hps.evio.TestRunTriggeredReconToEvio">
             <evioOutputFile>${outputFile}.evio</evioOutputFile>

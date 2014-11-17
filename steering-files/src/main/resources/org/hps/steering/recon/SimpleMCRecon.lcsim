@@ -15,8 +15,6 @@
     <execute>
         <!-- Print out event numbers. -->
         <driver name="EventMarkerDriver"/>
-        <!-- Load the database detector conditions. -->
-        <driver name="ConditionsDriver"/>        
         <!-- Setup the SVT sensors. -->   
         <driver name="SvtSensorSetup" />        
         <!-- Simple tracker hit digi. -->
@@ -38,7 +36,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <debug>false</debug>

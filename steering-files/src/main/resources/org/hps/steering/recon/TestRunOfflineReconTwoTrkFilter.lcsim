@@ -2,7 +2,6 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver" />
         <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -16,7 +15,6 @@
 
     </execute>    
     <drivers>    
-        <driver name="ConditionsDriver" type="org.hps.conditions.TestRunConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
