@@ -50,9 +50,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 
-import org.hps.evio.LCSimEventBuilder;
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.record.LCSimEventBuilder;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -373,7 +373,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
     
     /**
-     * Find all classes that implement {@link org.hps.evio.LCSimEventBuilder} and return
+     * Find all classes that implement {@link org.hps.record.LCSimEventBuilder} and return
      * a list of their canonical names.
      * @return The list of classes implementing LCSimEventBuilder.
      */
