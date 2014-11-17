@@ -3,7 +3,7 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.TableConstants;
+import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
@@ -100,15 +100,13 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-
+               
         // set the detector for the converter
         converter.setDetector(detector);
 
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-
-        System.out.println("You are now using the database conditions for EcalRawConverterDriver.");
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();        
     }
 
     /**

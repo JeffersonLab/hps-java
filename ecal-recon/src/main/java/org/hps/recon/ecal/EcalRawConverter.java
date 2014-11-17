@@ -1,6 +1,6 @@
 package org.hps.recon.ecal;
 
-import org.hps.conditions.TableConstants;
+import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
@@ -147,7 +147,7 @@ public class EcalRawConverter {
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         
-        System.out.println("You are now using the database conditions for EcalRawConverter.");
+        //System.out.println("You are now using the database conditions for EcalRawConverter.");
     }
     
     /** 
