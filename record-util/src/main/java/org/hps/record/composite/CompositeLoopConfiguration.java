@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.freehep.record.source.RecordSource;
-import org.hps.evio.LCSimEventBuilder;
+import org.hps.record.LCSimEventBuilder;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.et.EtConnection;

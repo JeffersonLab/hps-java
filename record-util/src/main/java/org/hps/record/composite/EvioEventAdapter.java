@@ -6,9 +6,10 @@ import java.nio.BufferUnderflowException;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.source.AbstractRecordSource;
 import org.freehep.record.source.NoSuchRecordException;
-import org.hps.evio.EventConstants;
 import org.hps.record.EndRunException;
 import org.hps.record.RecordProcessingException;
+import org.hps.record.evio.EvioEventConstants;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -77,11 +78,11 @@ public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
             setEventNumber(evioEvent);
             
             // Is pre start event?
-            if (EventConstants.isPreStartEvent(evioEvent)) {
+            if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
                 // Activate start of run hook on processors.
                 startRun(evioEvent);
             // Is end run event?
-            } else if (EventConstants.isEndEvent(evioEvent)) {
+            } else if (EvioEventUtilities.isEndEvent(evioEvent)) {
                 // Activate end of run hook on processors.
                 endRun(evioEvent);
                 
@@ -91,7 +92,7 @@ public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
                     throw new EndRunException("EVIO end event received.", evioEvent.getIntData()[1]);
                 }             
             // Is physics event?
-            } else if (EventConstants.isPhysicsEvent(evioEvent)) {
+            } else if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
                 // Process a single physics EvioEvent.
                 process(evioEvent);
             }
@@ -124,7 +125,7 @@ public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
         int eventNumber = -1;
         if (evioEvent.getChildren() != null) {
             for (BaseStructure bank : evioEvent.getChildren()) {
-                if (bank.getHeader().getTag() == EventConstants.EVENTID_BANK_TAG) {
+                if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
                     eventNumber = bank.getIntData()[0];
                     break;
                 }

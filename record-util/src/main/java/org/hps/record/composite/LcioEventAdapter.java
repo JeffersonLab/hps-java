@@ -6,9 +6,9 @@ import org.freehep.record.loop.LoopEvent;
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.source.AbstractRecordSource;
 import org.freehep.record.source.NoSuchRecordException;
-import org.hps.evio.EventConstants;
-import org.hps.evio.LCSimEventBuilder;
+import org.hps.record.LCSimEventBuilder;
 import org.hps.record.RecordProcessingException;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -77,7 +77,7 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
                 builder.readEvioEvent(evioEvent);
                 
                 // Is this a physics EvioEvent?
-                if (EventConstants.isPhysicsEvent(evioEvent)) {
+                if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
                     // Use the builder to create the LCIO event.
                     lcioEvent = builder.makeLCSimEvent(compositeRecord.getEvioEvent());
                 } else {

@@ -203,7 +203,7 @@ public final class EvioFileProducer {
                 while (true) {
 
                     // Get next event.
-                    event = reader.nextEvent();
+                    event = reader.nextEvent();                   
                     ++eventCount;
                     if (eventCount % 1000 == 0) {
                         System.out.println("EvioFileProducer - event <" + eventCount + ">");
@@ -215,6 +215,9 @@ public final class EvioFileProducer {
                     // Try to parse the next event.  
                     try {
                         reader.parseEvent(event);
+                        if (debug) {
+                            System.out.println("event #" + event.getEventNumber() + " is " + event.getTotalBytes() + " bytes");
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("Error making EVIO event with sequence number <" + eventCount + "> in file <" + evioFile.getPath() + ">.");
