@@ -46,7 +46,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.lcsim.job.JobControlManager</mainClass>
+                                    <mainClass>org.hps.job.JobManager</mainClass>
                                 </transformer>
                             </transformers>
                             <artifactSet>
@@ -83,6 +83,10 @@
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-steering-files</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-evio</artifactId>
         </dependency>
     </dependencies>
 </project>
