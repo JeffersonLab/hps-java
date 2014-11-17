@@ -6,10 +6,10 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
@@ -114,7 +114,7 @@ public class HPSTestRunTracker2014GeometryTrackReconTest extends TestCase {
         }
 
         System.out.println("running recon using steering resource " + steeringResource);
-        JobControlManager jobManager = new JobControlManager();
+        JobManager jobManager = new JobManager();
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(mockDataFile);
         jobManager.setup(steeringResource);

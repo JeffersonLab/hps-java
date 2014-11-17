@@ -3,11 +3,11 @@ package org.hps;
 import java.io.File;
 import java.net.URL;
 
-import org.lcsim.job.JobControlManager;
+import junit.framework.TestCase;
+
+import org.hps.job.JobManager;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
-
-import junit.framework.TestCase;
 /**
  * <p>
  * This test runs the readout simulation on MC events without simulated pile-up and writes LCIO.
@@ -34,7 +34,7 @@ public class ReadoutNoPileupTest extends TestCase {
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ReadoutNoPileupTest.slcio"));
         
-        JobControlManager job = new JobControlManager();
+        JobManager job = new JobManager();
         job.addInputFile(inputFile);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", outputFile.getPath());

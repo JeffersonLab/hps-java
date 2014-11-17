@@ -7,9 +7,9 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.hps.job.JobManager;
 import org.hps.readout.ecal.FADCEcalReadoutDriver;
 import org.hps.users.meeg.FilterMCBunches;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
@@ -63,7 +63,7 @@ public class MCFilteredReconTest extends TestCase {
         System.out.print("Created filtered MC file " + filteredOutputFile.getPath());
                 
         // 2) Run readout simulation.
-        JobControlManager job = new JobControlManager();        
+        JobManager job = new JobManager();        
         File readoutOutputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", readoutOutputFile.getPath());
         job.addInputFile(filteredOutputFile);
@@ -79,7 +79,7 @@ public class MCFilteredReconTest extends TestCase {
                 
         // 3) Run readout events through reconstruction.
         File reconOutputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_recon");
-        job = new JobControlManager();
+        job = new JobManager();
         job.addVariableDefinition("outputFile", reconOutputFile.getPath());
         job.addInputFile(new File(readoutOutputFile.getPath() + ".slcio"));
         job.setup("/org/hps/steering/recon/HPS2014OfflineTruthRecon.lcsim");

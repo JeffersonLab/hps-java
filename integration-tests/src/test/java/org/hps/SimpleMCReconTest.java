@@ -6,6 +6,7 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.hps.job.JobManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -13,7 +14,6 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
@@ -31,7 +31,7 @@ public class SimpleMCReconTest extends TestCase {
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/SimpleMCReconTest.slcio"));
 		
         // Run the reconstruction.
-		JobControlManager job = new JobControlManager();
+		JobManager job = new JobManager();
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_recon");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);

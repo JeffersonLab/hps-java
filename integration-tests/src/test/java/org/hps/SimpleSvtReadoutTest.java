@@ -4,13 +4,13 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
+import junit.framework.TestCase;
+
+import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
-
-import junit.framework.TestCase;
 
 
 /**
@@ -44,13 +44,12 @@ public class SimpleSvtReadoutTest extends TestCase {
         
         FinalCheckDriver checker = new FinalCheckDriver();
         
-        JobControlManager job = new JobControlManager();
+        JobManager job = new JobManager();
         job.addInputFile(inputFile);
         job.addVariableDefinition("outputFile", outputFile.getPath());
-        job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");
-        job.setNumberOfEvents(10000);
+        job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");        
         job.getLCSimLoop().add(checker);
-        job.setNumberOfEvents(1000);
+        job.setNumberOfEvents(10000);
         job.run();
         
         this.printDebug("=========== Summary ===========");

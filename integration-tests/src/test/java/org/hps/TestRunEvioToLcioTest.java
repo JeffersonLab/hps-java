@@ -31,7 +31,7 @@ public class TestRunEvioToLcioTest extends TestCase {
                 "outputFile=" + new TestOutputFile("TestRunEvioToLcioTest").getPath(),
                 inputFile.getPath(),
                 "-n",
-                "100"
+                "1000"
         };
         System.out.println("Running TestRunEvioToLcio.main ...");
         EvioToLcio.main(args);

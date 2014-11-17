@@ -3,8 +3,10 @@ package org.hps;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+
 import junit.framework.TestCase;
-import org.lcsim.job.JobControlManager;
+
+import org.hps.job.JobManager;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 
@@ -51,7 +53,7 @@ public class DataQualityMonitorTest extends TestCase {
             throw new RuntimeException(e);
         }
         System.out.println("running recon using steering resource " + steeringResource);
-        JobControlManager jobManager = new JobControlManager();
+        JobManager jobManager = new JobManager();
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(dataFile);
         jobManager.setup(steeringResource);

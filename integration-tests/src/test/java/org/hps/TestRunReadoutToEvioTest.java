@@ -5,7 +5,8 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
-import org.lcsim.job.JobControlManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.job.JobManager;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
@@ -18,7 +19,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class TestRunReadoutToEvioTest extends TestCase {
     
-    static final int nEvents = 100;
+    static final int nEvents = 10000;
     
     public void testTestRunReadoutToEvio() throws Exception {
         
@@ -27,7 +28,10 @@ public class TestRunReadoutToEvioTest extends TestCase {
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/TestRunReadoutToEvioTest.slcio"));
         
-        JobControlManager job = new JobControlManager();
+        JobManager job = new JobManager();
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManager.getInstance().setDetector("HPS-TestRun-v5", 1351);
+        conditionsManager.freeze();
         job.addInputFile(inputFile);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName());
         job.addVariableDefinition("outputFile", outputFile.getPath());
