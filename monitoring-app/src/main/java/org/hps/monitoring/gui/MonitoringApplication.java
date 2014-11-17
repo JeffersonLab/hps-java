@@ -74,7 +74,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import org.freehep.record.loop.RecordLoop.Command;
-import org.hps.evio.LCSimEventBuilder;
+import org.hps.job.JobManager;
 import org.hps.monitoring.enums.ConnectionStatus;
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.Configuration;
@@ -88,6 +88,7 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
+import org.hps.record.LCSimEventBuilder;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
@@ -135,7 +136,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private EtConnection connection;
 
     // Event processing objects.
-    private JobControlManager jobManager;
+    private JobManager jobManager;
     private LCSimEventBuilder eventBuilder;
     private CompositeLoop loop;
     private EventProcessingThread processingThread;
@@ -655,7 +656,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             logTableModel.insertRow(logTable.getRowCount(), row);
 
             // Print all messages to System.out so they show up in the terminal or log file output.
-            System.out.println(row[0] + " :: " + row[1] + " :: " + row[2]);
+            System.out.println(row[0] + " :: " + this.getClass().getSimpleName() + " :: " + row[1] + " :: " + row[2]);
         }
 
         public void close() throws SecurityException {
@@ -1114,7 +1115,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         try {
             // Create job manager and configure.
-            jobManager = new JobControlManager();
+            jobManager = new JobManager();
             jobManager.setPerformDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
                 setupSteeringResource(steering);
