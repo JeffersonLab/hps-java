@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -20,7 +20,6 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*Conditions system imports*/
-import org.hps.conditions.DatabaseConditionsManager;
 
 
 /**
