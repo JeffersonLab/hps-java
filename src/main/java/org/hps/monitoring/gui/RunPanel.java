@@ -23,10 +23,10 @@ import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
-import org.hps.evio.EventConstants;
 import org.hps.monitoring.gui.model.RunModel;
 import org.hps.record.composite.CompositeRecord;
 import org.hps.record.composite.CompositeRecordProcessor;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
@@ -111,9 +111,9 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             } else if (evioEvent != null) {
                 model.addDataReceived((long) evioEvent.getTotalBytes());
                 model.setEventNumber(evioEvent.getEventNumber());
-                if (EventConstants.isPreStartEvent(evioEvent)) {
+                if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
                     startRun(evioEvent);
-                } else if (EventConstants.isEndEvent(evioEvent)) {
+                } else if (EvioEventUtilities.isEndEvent(evioEvent)) {
                     endRun(evioEvent);
                 }
             } else if (event.getLcioEvent() != null) {
