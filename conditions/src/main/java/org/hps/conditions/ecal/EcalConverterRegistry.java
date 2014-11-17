@@ -1,6 +1,6 @@
 package org.hps.conditions.ecal;
 
-import org.hps.conditions.ConditionsObjectConverter;
+import org.hps.conditions.database.ConditionsObjectConverter;
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;

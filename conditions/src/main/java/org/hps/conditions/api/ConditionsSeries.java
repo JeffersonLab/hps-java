@@ -1,4 +1,4 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
 import java.util.ArrayList;
 import java.util.List;

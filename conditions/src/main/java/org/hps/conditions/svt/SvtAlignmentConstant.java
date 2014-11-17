@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 
 /**
  * <p>

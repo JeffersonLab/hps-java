@@ -3,7 +3,7 @@
     <converters>
 
         <!-- ConditionsRecord converter -->
-        <converter class="org.hps.conditions.ConditionsRecordConverter"/>
+        <converter class="org.hps.conditions.database.ConditionsRecordConverter"/>
 
         <!-- SVT converters -->
         <converter class="org.hps.conditions.svt.SvtConditionsConverter"/>
@@ -34,8 +34,8 @@
     
         <table key="conditions_records" name="conditions">
             <classes> 
-                <object class="org.hps.conditions.ConditionsRecord"/>
-                <collection class="org.hps.conditions.ConditionsRecord$ConditionsRecordCollection"/>
+                <object class="org.hps.conditions.api.ConditionsRecord"/>
+                <collection class="org.hps.conditions.api.ConditionsRecord$ConditionsRecordCollection"/>
             </classes>
             <fields>
                 <field name="run_start" />

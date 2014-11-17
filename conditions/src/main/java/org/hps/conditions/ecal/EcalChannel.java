@@ -3,10 +3,10 @@ package org.hps.conditions.ecal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.AbstractIdentifier;
-import org.hps.conditions.ConditionsObjectCollection;
-import org.hps.conditions.ConditionsObjectException;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.AbstractIdentifier;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;

@@ -2,7 +2,7 @@ package org.hps.conditions.svt;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 
 public class TestRunSvtConditionsConverterTest extends TestCase {
 

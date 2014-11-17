@@ -1,7 +1,10 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
 import java.util.Date;
 import java.util.List;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.QueryBuilder;
 
 /**
  * This class represents a single record from the primary conditions data table,

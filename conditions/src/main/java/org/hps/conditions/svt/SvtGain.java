@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 
 /**
  * This class represents gain measurements for a single SVT channel.
@@ -16,7 +16,7 @@ public final class SvtGain extends AbstractConditionsObject {
      * Get the channel ID.
      * @return The channel ID.
      */
-    int getChannelID() {
+    public int getChannelID() {
         return getFieldValue(Integer.class, "svt_channel_id");
     }
 
@@ -24,7 +24,7 @@ public final class SvtGain extends AbstractConditionsObject {
      * Get the gain.
      * @return The gain value.
      */
-    double getGain() {
+    public double getGain() {
         return getFieldValue(Double.class, "gain");
     }
 
@@ -32,7 +32,7 @@ public final class SvtGain extends AbstractConditionsObject {
      * Get the offset.
      * @return The offset value.
      */
-    double getOffset() {
+    public double getOffset() {
         return getFieldValue(Double.class, "offset");
     }
 }

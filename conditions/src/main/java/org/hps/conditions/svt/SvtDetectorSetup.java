@@ -6,10 +6,9 @@ import java.util.List;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.compact.Subdetector;
 import org.hps.util.Pair;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.geometry.compact.Subdetector;
 
 /**
  * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code>

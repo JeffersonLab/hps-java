@@ -1,9 +1,12 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -44,7 +47,7 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
 
         try {
             while (resultSet.next()) {
-                ConditionsObject conditionsRecord = ConditionsObjectUtil.createConditionsObject(resultSet, tableMetaData);
+                ConditionsObject conditionsRecord = ConditionsObjectConverter.createConditionsObject(resultSet, tableMetaData);
                 try {
                     collection.add(conditionsRecord);
                 } catch (ConditionsObjectException e) {

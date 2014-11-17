@@ -1,7 +1,8 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.TableConstants.ECAL_CONDITIONS;
+import static org.hps.conditions.database.TableConstants.ECAL_CONDITIONS;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalDetectorSetup;
 import org.lcsim.conditions.ConditionsManager;

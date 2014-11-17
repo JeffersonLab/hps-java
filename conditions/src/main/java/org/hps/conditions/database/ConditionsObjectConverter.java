@@ -1,9 +1,15 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.FieldValueMap;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 
@@ -51,7 +57,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             throw new RuntimeException("Table meta data for " + name + " was not found.");
 
         // Create a collection to return.
-        ConditionsObjectCollection collection = ConditionsObjectUtil.createCollection(tableMetaData);
+        ConditionsObjectCollection collection = createCollection(tableMetaData);
 
         // Get the ConditionsRecord with the meta-data, which will use the
         // current run
@@ -100,7 +106,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
                 // Loop over rows.
                 while (resultSet.next()) {
                     // Create new ConditionsObject.
-                    ConditionsObject newObject = ConditionsObjectUtil.createConditionsObject(resultSet, tableMetaData);
+                    ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
 
                     // Add new object to collection, which will also assign it a
                     // collection ID if applicable.
@@ -117,5 +123,43 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
 
     public boolean allowMultipleCollections() {
         return true;
+    }
+    
+    static final ConditionsObject createConditionsObject(ResultSet resultSet, TableMetaData tableMetaData) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int rowId = resultSet.getInt(1);
+        int ncols = metaData.getColumnCount();
+        FieldValueMap fieldValues = new FieldValueMap();
+        for (int i = 2; i <= ncols; i++) {
+            fieldValues.put(metaData.getColumnName(i), resultSet.getObject(i));
+        }
+        ConditionsObject newObject = null;
+        try {
+            newObject = tableMetaData.getObjectClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            newObject.setRowId(rowId);
+        } catch (ConditionsObjectException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            newObject.setTableMetaData(tableMetaData);
+        } catch (ConditionsObjectException e) {
+            throw new RuntimeException(e);
+        }
+        newObject.setFieldValues(fieldValues);
+        return newObject;
+    }
+    
+    static final ConditionsObjectCollection<?> createCollection(TableMetaData tableMetaData) {
+        ConditionsObjectCollection<?> collection;
+        try {
+            collection = tableMetaData.getCollectionClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return collection;
     }
 }

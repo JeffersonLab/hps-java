@@ -1,9 +1,14 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseUtilities;
+import org.hps.conditions.database.QueryBuilder;
+import org.hps.conditions.database.TableMetaData;
 
 /**
  * The abstract implementation of {@link ConditionsObject}.
@@ -97,7 +102,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         } catch (SQLException e) {
             throw new ConditionsObjectException(e.getMessage(), this);
         }
-        DatabaseConditionsManager.close(resultSet);
+        DatabaseUtilities.close(resultSet);
         resultSet = null;
     }
 
@@ -181,4 +186,6 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         }
         return sb.toString();
     }
+    
+    
 }

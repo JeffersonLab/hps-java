@@ -1,6 +1,6 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.ConditionsObjectConverter;
+import org.hps.conditions.database.ConditionsObjectConverter;
 import org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentCollection;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;

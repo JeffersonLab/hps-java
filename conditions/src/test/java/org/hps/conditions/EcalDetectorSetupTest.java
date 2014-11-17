@@ -1,10 +1,12 @@
-package org.hps.conditions.ecal;
+package org.hps.conditions;
 
 import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalDetectorSetup;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.geometry.Detector;
 

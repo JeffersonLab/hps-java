@@ -1,4 +1,4 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.io.File;
 import java.io.FileInputStream;

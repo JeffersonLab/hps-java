@@ -1,7 +1,8 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import static org.hps.conditions.database.TableConstants.SVT_CONDITIONS;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDetectorSetup;
 import org.lcsim.geometry.Detector;

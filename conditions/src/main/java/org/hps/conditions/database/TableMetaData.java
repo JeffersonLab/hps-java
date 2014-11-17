@@ -1,7 +1,10 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 
 /**
  * <p>
@@ -43,7 +46,7 @@ public final class TableMetaData {
      * Get the type of object this table maps onto.
      * @return The type of object.
      */
-    Class<? extends ConditionsObject> getObjectClass() {
+    public Class<? extends ConditionsObject> getObjectClass() {
         return objectClass;
     }
 

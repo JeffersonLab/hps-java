@@ -9,8 +9,8 @@ import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
 import org.hps.conditions.TestRunConditionsDriver;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;

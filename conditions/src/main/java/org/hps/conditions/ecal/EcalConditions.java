@@ -10,7 +10,7 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
  * including gain, pedestal and bad channel settings, per crystal.
  * 
  * Unlike most conditions data types, it does not extend
- * {@link org.hps.conditions.ConditionsObject}, because it is a composite object
+ * {@link org.hps.conditions.api.ConditionsObject}, because it is a composite object
  * containing data assembled from many other
  * {@link org.hps.conditions.ConditionsObjects}.
  * 

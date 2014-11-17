@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.lcsim.conditions.ConditionsManager;
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;

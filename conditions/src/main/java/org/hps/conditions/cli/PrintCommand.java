@@ -7,12 +7,12 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.apache.commons.cli.Option;
-import org.hps.conditions.ConditionsObjectCollection;
-import org.hps.conditions.ConditionsRecord;
-import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
-import org.hps.conditions.ConditionsSeries;
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableMetaData;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableMetaData;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**

@@ -1,10 +1,10 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.hps.conditions.ConditionsObject.FieldValueMap;
+import org.hps.conditions.api.FieldValueMap;
 
 /**
  * This is a static utility class for building SQL queries for the conditions

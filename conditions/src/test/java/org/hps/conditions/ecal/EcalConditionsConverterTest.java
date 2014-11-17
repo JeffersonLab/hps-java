@@ -2,7 +2,7 @@ package org.hps.conditions.ecal;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**

@@ -2,11 +2,15 @@ package org.hps.conditions;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.svt.SvtGain;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 
 /**
- * Test some basic operations of {@link org.hps.conditions.ConditionsObject}
+ * Test some basic operations of {@link org.hps.conditions.api.ConditionsObject}
  * using the {@link org.hps.conditions.svt.SvtGain} type.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>

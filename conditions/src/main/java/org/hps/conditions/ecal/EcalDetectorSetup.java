@@ -22,6 +22,8 @@ public final class EcalDetectorSetup {
      */
     public void load(Subdetector subdetector, EcalConditions conditions) {
 
+        System.out.println("EcalDetectorSetup.load");
+        
         // Find EcalCrystal objects.
         List<EcalCrystal> crystals = subdetector.getDetectorElement().findDescendants(EcalCrystal.class);
 
@@ -33,9 +35,13 @@ public final class EcalDetectorSetup {
 
         // Get the full channel map created by the conditions system.
         EcalChannelCollection channelMap = conditions.getChannelCollection();
+        System.out.println("got " + channelMap.getObjects().size() + " channels");
 
         // Build the map of geometry IDs.
+        System.out.println("building geometry map...");
         channelMap.buildGeometryMap(helper, system);
+        System.out.println("geometry map has " + channelMap.geometryMap.size() + " entries");
+        
 
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {

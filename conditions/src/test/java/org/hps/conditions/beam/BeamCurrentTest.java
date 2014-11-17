@@ -1,6 +1,6 @@
 package org.hps.conditions.beam;
 
-import static org.hps.conditions.TableConstants.BEAM_CURRENT;
+import static org.hps.conditions.database.TableConstants.BEAM_CURRENT;
 
 import java.io.File;
 import java.net.URL;

@@ -3,13 +3,13 @@ package org.hps.conditions.svt;
 import java.util.Collection;
 import java.util.List;
 
-import org.lcsim.geometry.compact.Subdetector;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 import org.hps.util.Pair;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.lcsim.geometry.compact.Subdetector;
 
 /**
  * This class puts {@link TestRunSvtConditions} data onto

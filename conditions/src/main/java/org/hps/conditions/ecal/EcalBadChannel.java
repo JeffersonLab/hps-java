@@ -1,7 +1,7 @@
 package org.hps.conditions.ecal;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 
 /**
  * This class represents an ECAL channel that is considered "bad" which means it

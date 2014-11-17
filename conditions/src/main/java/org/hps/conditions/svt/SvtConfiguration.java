@@ -5,8 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;

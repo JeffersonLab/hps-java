@@ -1,4 +1,4 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
 /**
  * This class is a simplistic representation of a packaged identifier for use in

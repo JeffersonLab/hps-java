@@ -2,8 +2,8 @@ package org.hps.conditions.svt;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableMetaData;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**

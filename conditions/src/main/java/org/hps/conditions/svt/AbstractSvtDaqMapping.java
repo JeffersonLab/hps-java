@@ -1,9 +1,8 @@
 package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**

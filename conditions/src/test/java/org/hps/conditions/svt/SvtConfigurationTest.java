@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.svt.SvtConfiguration.SvtConfigurationCollection;
 import org.jdom.Document;
 import org.jdom.JDOMException;

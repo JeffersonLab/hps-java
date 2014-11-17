@@ -1,32 +1,36 @@
-package org.hps.conditions.svt;
+package org.hps.conditions;
 
 import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtConditions;
+import org.hps.conditions.svt.SvtDetectorSetup;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
 /**
- * This test loads {@link TestRunSvtConditions} data onto the detector and then
- * checks that all channels of each sensor have non-zero data values for
- * applicable parameters.
+ * This test loads {@link SvtConditions} data onto the detector and then checks
+ * that all channels of each sensor have non-zero data values for applicable
+ * parameters.
  * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class TestRunSvtDetectorSetupTest extends TestCase {
+// TODO: Update this test with more meaningful test.
+public class SvtDetectorSetupTest extends TestCase {
 
     // --- Constants ---//
     // -----------------//
     // TODO: Move all of these constants to their own class
 
     // Total number of SVT sensors
-    public static final int TOTAL_NUMBER_OF_SENSORS = 20;
+    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
     // Max FEB ID
-    public static final int MAX_FPGA_ID = 6;
+    public static final int MAX_FEB_ID = 9;
     // Max FEB Hybrid ID
-    public static final int MAX_HYBRID_ID = 2;
+    public static final int MAX_FEB_HYBRID_ID = 3;
     // Max channel number
     public static final int MAX_CHANNEL_NUMBER = 639;
     // SVT Subdetector name
@@ -39,21 +43,20 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
     public void test() throws Exception {
 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setDetector("HPS-TestRun-v5", 1351);
+        conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
 
         // Get the detector.
         Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
 
-        // Get all test run SVT conditions.
-        TestRunSvtConditions conditions = conditionsManager.getCachedConditions(TestRunSvtConditions.class, "svt_conditions").getCachedData();
+        // Get all SVT conditions.
+        SvtConditions conditions = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
 
-        // Load the test run SVT conditions onto detector.
-        TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
+        // Load the SVT conditions onto detector.
+        SvtDetectorSetup loader = new SvtDetectorSetup();
         loader.load(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
 
         // Check sensor data.
-        List<HpsTestRunSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsTestRunSiSensor.class);
+        List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Check for correct number of sensors processed.
         this.printDebug("Total number of sensors found: " + sensors.size());
@@ -61,7 +64,7 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
 
         // Loop over sensors.
         int totalSensors = 0;
-        for (HpsTestRunSiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors) {
 
             int nChannels = sensor.getNumberOfChannels();
             assertTrue("The number of channels this sensor has is invalid", nChannels <= MAX_CHANNEL_NUMBER);
@@ -69,11 +72,11 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
             this.printDebug(sensor.toString());
 
             // Check that the FEB ID as within the appropriate range
-            int fpgaID = sensor.getFpgaID();
-            assertTrue("FPGA ID is invalid.  The FPGA ID should be less than " + MAX_FPGA_ID, fpgaID <= MAX_FPGA_ID);
+            int febID = sensor.getFebID();
+            assertTrue("FEB ID is invalid.  The FEB ID should be less than " + MAX_FEB_ID, febID <= MAX_FEB_ID);
 
-            int hybridID = sensor.getHybridID();
-            assertTrue("Hybrid ID is invalid.  The Hybrid ID should be less than " + MAX_HYBRID_ID, hybridID <= MAX_HYBRID_ID);
+            int febHybridID = sensor.getFebHybridID();
+            assertTrue("FEB Hybrid ID is invalid.  The FEB Hybrid ID should be less than " + MAX_FEB_HYBRID_ID, febHybridID <= MAX_FEB_HYBRID_ID);
 
             for (int channel = 0; channel < nChannels; channel++) {
 
@@ -89,11 +92,11 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
 
             }
         }
-        System.out.println("Successfully loaded test run conditions data onto " + totalSensors + " SVT sensors!");
+
+        System.out.println("Successfully loaded conditions data onto " + totalSensors + " SVT sensors!");
     }
 
     private void printDebug(String debugMessage) {
         System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
     }
-
 }

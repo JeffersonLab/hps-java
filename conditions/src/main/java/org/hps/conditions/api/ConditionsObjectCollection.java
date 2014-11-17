@@ -1,10 +1,12 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import org.hps.conditions.database.TableMetaData;
 
 public class ConditionsObjectCollection<ObjectType extends ConditionsObject> implements Iterable<ObjectType> {
 
@@ -163,5 +165,5 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     @Override
     public Iterator<ObjectType> iterator() {
         return objects.iterator();
-    }
+    }       
 }

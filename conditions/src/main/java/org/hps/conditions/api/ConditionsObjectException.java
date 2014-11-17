@@ -1,4 +1,5 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
+
 
 /**
  * Generic Exception type throw by methods of {@link ConditionsObject} or other

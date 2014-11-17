@@ -1,6 +1,6 @@
 package org.hps.conditions;
 
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import static org.hps.conditions.database.TableConstants.SVT_CONDITIONS;
 
 import org.hps.conditions.svt.TestRunSvtConditions;
 import org.hps.conditions.svt.TestRunSvtDetectorSetup;

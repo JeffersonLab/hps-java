@@ -1,13 +1,15 @@
 package org.hps.conditions.svt;
 
-import org.lcsim.conditions.ConditionsConverter;
-import org.lcsim.conditions.ConditionsManager;
+import java.util.logging.Logger;
 
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
 import org.hps.conditions.svt.SvtGain.SvtGainCollection;
 import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
+import org.lcsim.conditions.ConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Abstract class providing some of the common methods used in creating SVT
@@ -20,6 +22,7 @@ import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollect
 public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtConditions> implements ConditionsConverter<T> {
 
     protected T conditions;
+    static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
 
     /**
      * Create and return the SVT conditions object.
@@ -55,7 +58,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
                 conditions.getChannelConstants(channel).setBadChannel(true);
             }
         } catch (RuntimeException e) {
-            System.out.println("[ " + conditions.getClass().getSimpleName() + "]: A set of bad channels were not found!");
+            logger.warning("A set of SVT bad channels was not found.");
         }
 
         // Get the gains and offsets from the conditions database

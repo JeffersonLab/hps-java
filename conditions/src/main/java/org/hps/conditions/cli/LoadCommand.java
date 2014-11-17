@@ -11,8 +11,8 @@ import java.util.StringTokenizer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.QueryBuilder;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.QueryBuilder;
 
 /**
  * <p>

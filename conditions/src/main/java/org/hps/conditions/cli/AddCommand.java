@@ -2,16 +2,16 @@ package org.hps.conditions.cli;
 
 import java.util.Date;
 
-import org.hps.conditions.ConditionsObject.FieldValueMap;
-import org.hps.conditions.ConditionsObjectException;
-import org.hps.conditions.ConditionsRecord;
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableConstants;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.FieldValueMap;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableConstants;
 
 /**
  * This is a command for the conditions CLI that will add a conditions record,
  * making a conditions set with a particular collection ID available by 
- * run number via the {@link org.hps.conditions.DatabaseConditionsManager}.
+ * run number via the {@link org.hps.conditions.database.DatabaseConditionsManager}.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */

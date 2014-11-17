@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.AbstractConditionsObject;
-import org.hps.conditions.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
@@ -30,7 +30,7 @@ public class AbstractSvtT0Shift extends AbstractConditionsObject {
      * 
      * @return The t0 shift.
      */
-    double getT0Shift() {
+    public double getT0Shift() {
         return getFieldValue("t0_shift");
     }
 }

@@ -1,6 +1,6 @@
-package org.hps.conditions;
+package org.hps.conditions.api;
 
-import java.util.LinkedHashMap;
+import org.hps.conditions.database.TableMetaData;
 
 /**
  * This is an ORM interface for accessing conditions database information by
@@ -132,20 +132,5 @@ public interface ConditionsObject {
      * Set the object to read only mode. This cannot be changed back once it is
      * set.
      */
-    void setIsReadOnly();
-
-    /**
-     * Simple class extending <code>java.lang.Map</code> that maps field names
-     * to values.
-     */
-    public static final class FieldValueMap extends LinkedHashMap<String, Object> {
-
-        Object[] valuesToArray() {
-            return values().toArray();
-        }
-
-        String[] fieldsToArray() {
-            return keySet().toArray(new String[] {});
-        }
-    }
+    void setIsReadOnly();   
 }

@@ -1,9 +1,14 @@
-package org.hps.conditions;
+package org.hps.conditions.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
+import org.hps.conditions.api.ConditionsSeries;
 
 /**
  * <p>
@@ -39,8 +44,7 @@ class ConditionsSeriesConverter {
      * conditions, such as sets of bad channels that are combined together as in
      * the test run.
      * 
-     * @param conditionsKey The name of the conditions key to retrieve from the
-     *            conditions table.
+     * @param conditionsKey The name of the conditions key to retrieve from the conditions table.
      * @return The <tt>ConditionsSeries</tt> matching <tt>conditionsKey</tt>
      *         which type inferred from target variable.
      */
@@ -62,7 +66,7 @@ class ConditionsSeriesConverter {
         // Loop over conditions records. This will usually just be one record.
         for (ConditionsRecord conditionsRecord : conditionsRecords.getObjects()) {
 
-            ConditionsObjectCollection collection = ConditionsObjectUtil.createCollection(tableMetaData);
+            ConditionsObjectCollection collection = ConditionsRecordConverter.createCollection(tableMetaData);
 
             try {
                 collection.setCollectionId(conditionsRecord.getCollectionId());
@@ -88,7 +92,7 @@ class ConditionsSeriesConverter {
                 // Loop over rows.
                 while (resultSet.next()) {
                     // Create new ConditionsObject.
-                    ConditionsObject newObject = ConditionsObjectUtil.createConditionsObject(resultSet, tableMetaData);
+                    ConditionsObject newObject = ConditionsRecordConverter.createConditionsObject(resultSet, tableMetaData);
 
                     // Add new object to collection, which will also assign it a
                     // collection ID if applicable.

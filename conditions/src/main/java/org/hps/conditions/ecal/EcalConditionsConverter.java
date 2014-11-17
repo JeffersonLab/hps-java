@@ -1,15 +1,18 @@
 package org.hps.conditions.ecal;
 
+import java.util.logging.Logger;
+
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
-
+import org.lcsim.util.log.LogUtil;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.ChannelId;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
 import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.svt.AbstractSvtConditionsConverter;
 
 /**
  * This class loads all ECal conditions into an {@link EcalConditions} object
@@ -21,6 +24,8 @@ import org.hps.conditions.DatabaseConditionsManager;
  */
 public final class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
 
+    static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
+    
     /**
      * Create ECAL conditions object containing all data for the current run.
      */
@@ -56,7 +61,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
                 conditions.getChannelConstants(channel).setBadChannel(true);
             }
         } catch (RuntimeException e) {
-            System.out.println("[ " + conditions.getClass().getSimpleName() + "]: A set of bad channels were not found!");
+            logger.warning("A set of bad channels were not found.");
         }
 
         // Get the ECal calibrations from the conditions database and add them
