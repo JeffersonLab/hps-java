@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.TableConstants;
+import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;

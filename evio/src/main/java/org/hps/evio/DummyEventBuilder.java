@@ -1,5 +1,6 @@
 package org.hps.evio;
 
+import org.hps.record.LCSimEventBuilder;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsManager;
@@ -11,8 +12,9 @@ import org.lcsim.util.loop.DummyConditionsConverter;
 import org.lcsim.util.loop.DummyDetector;
 
 /**
+ * This is an event builder that does nothing except create empty events.
+ * It uses a "dummy" LCSim detector. 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: DummyEventBuilder.java,v 1.3 2012/09/01 00:15:15 meeg Exp $
  */
 public class DummyEventBuilder implements LCSimEventBuilder {
 
@@ -34,17 +36,10 @@ public class DummyEventBuilder implements LCSimEventBuilder {
     public EventHeader makeLCSimEvent(EvioEvent evioEvent) {
         return new BaseLCSimEvent(0, evioEvent.getHeader().getNumber(), dummyName);
     }
-
+    
     @Override
-    public void setDetectorName(String detectorName) {}
-
-    @Override
-    public void setDebug(boolean debug) {}
-
-	@Override
-	public boolean isPhysicsEvent(EvioEvent evioEvent) {
-		return true;
-	}
+    public void setDetectorName(String detectorName) {
+    }
 
     @Override
     public void readEvioEvent(EvioEvent evioEvent) {

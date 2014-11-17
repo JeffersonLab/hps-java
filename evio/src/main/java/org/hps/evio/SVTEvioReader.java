@@ -15,7 +15,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 import org.hps.conditions.svt.TestRunSvtConditions;
 import org.hps.conditions.svt.TestRunSvtDetectorSetup;
@@ -24,7 +24,7 @@ import org.hps.readout.svt.FpgaData;
 import org.hps.readout.svt.SVTData;
 import org.hps.util.Pair;
 
-import static org.hps.conditions.TableConstants.SVT_CONDITIONS;
+import static org.hps.conditions.database.TableConstants.SVT_CONDITIONS;
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
 /**

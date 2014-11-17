@@ -2,8 +2,9 @@ package org.hps.evio;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.hps.conditions.DatabaseConditionsManager;
-import org.hps.conditions.TableConstants;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.DaqId;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
@@ -18,7 +19,6 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;

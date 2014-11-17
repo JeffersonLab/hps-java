@@ -2,6 +2,7 @@ package org.hps.evio;
 
 import java.io.IOException;
 
+import org.hps.record.evio.EvioEventConstants;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
@@ -90,7 +91,7 @@ public class TestRunReconToEvio extends Driver {
 	}
 
 	private void writeEvioEvent() {
-		EvioBank eventIDBank = new EvioBank(EventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
+		EvioBank eventIDBank = new EvioBank(EvioEventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
 		int[] eventID = new int[3];
 		eventID[0] = eventsWritten;
 		eventID[1] = 0; //trigger type

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.hps.readout.ecal.SSPData;
 import org.hps.readout.ecal.TriggerData;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
@@ -33,7 +34,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
 	@Override
 	public EventHeader makeLCSimEvent(EvioEvent evioEvent) {
-		if (!isPhysicsEvent(evioEvent)) {
+		if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
 			throw new RuntimeException("Not a physics event: event tag " + evioEvent.getHeader().getTag());
 		}
 

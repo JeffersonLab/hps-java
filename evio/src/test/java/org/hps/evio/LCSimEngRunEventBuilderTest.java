@@ -6,7 +6,9 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.LCSimEventBuilder;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
@@ -62,7 +64,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 		while ((evioEvent = reader.nextEvent()) != null) {
 			reader.parseEvent(evioEvent);
 			builder.readEvioEvent(evioEvent);
-			if (EventConstants.isPhysicsEvent(evioEvent)) {
+			if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
 				try {
 					EventHeader lcsimEvent = builder.makeLCSimEvent(evioEvent);
 					System.out.println("created LCSim event #" + lcsimEvent.getEventNumber());

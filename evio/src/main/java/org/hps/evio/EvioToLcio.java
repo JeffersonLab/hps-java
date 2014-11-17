@@ -16,14 +16,15 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.job.JobManager;
+import org.hps.record.LCSimEventBuilder;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.log.LogUtil;
-import org.hps.conditions.DatabaseConditionsManager;
 
 /**
  * <p>
@@ -61,7 +62,7 @@ public class EvioToLcio {
 
     // The default steering resource, which basically does nothing except
     // initialize the conditions system.
-    private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/monitoring/DummyMonitoring.lcsim";
+    private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/EventMarker.lcsim";
 
     // The command line options which will be defined in the constructor.
     Options options = null;
@@ -195,7 +196,7 @@ public class EvioToLcio {
         }
 
         // LCSim job manager.
-        JobControlManager jobManager = new JobControlManager();
+        JobManager jobManager = new JobManager();
         if (cl.hasOption("D")) {
             String[] steeringOptions = cl.getOptionValues("D");
             for (String def : steeringOptions) {
@@ -266,7 +267,7 @@ public class EvioToLcio {
                     }
 
                     // Handlers for different event types.
-                    if (EventConstants.isPreStartEvent(evioEvent)) {
+                    if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
                         
                         int[] data = evioEvent.getIntData();
                         // int seconds = data[0];
@@ -284,13 +285,13 @@ public class EvioToLcio {
                     // Setup state in the LCSimEventBuilder based on the EVIO event.
                     eventBuilder.readEvioEvent(evioEvent);
 
-                    if (EventConstants.isEndEvent(evioEvent)) {
+                    if (EvioEventUtilities.isEndEvent(evioEvent)) {
                         logger.info("got EVIO end event");
                         // int[] data = evioEvent.getIntData();
                         // int seconds = data[0];
                         // int nevents = data[2];
                         // calibListener.endRun(seconds, nevents);
-                    } else if (EventConstants.isPhysicsEvent(evioEvent)) {
+                    } else if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
 
                         logger.finest("got EVIO physics event #" + evioEvent.getEventNumber());
 
@@ -318,6 +319,8 @@ public class EvioToLcio {
                             writer.flush();
                             logger.finest("wrote LCIO event #" + lcioEvent.getEventNumber());
                         }
+                        
+                        nEvents++;
                     }
 
                 } catch (Exception e) {
@@ -327,8 +330,7 @@ public class EvioToLcio {
                     } else {
                         continue;
                     }
-                }
-                nEvents++;
+                }                
             }
             logger.info("Last physics event time: " + time / 1000 + " - " + new Date(time));
             try {
@@ -380,18 +382,18 @@ public class EvioToLcio {
     private LCSimEventBuilder setupEventBuilder(String detectorName, int runNumber) {         
         LCSimEventBuilder eventBuilder = null;
         // Is this run number not part of the Test Run?
-        if (runNumber > EvioToLcio.TEST_RUN_END_RUN) {
-            logger.info("using LCSimEngRunEventBuilder");
-            eventBuilder = new LCSimEngRunEventBuilder();
-            if (detectorName == null) {
-                detectorName = DEFAULT_ENG_RUN_DETECTOR;
-            }            
-        } else {
+        if (runNumber > 0 && runNumber <= EvioToLcio.TEST_RUN_END_RUN) {
             // This looks like a Test Run file.
             logger.info("using LCSimTestRunEventBuilder");
             eventBuilder = new LCSimTestRunEventBuilder();
             if (detectorName == null) {
                 detectorName = DEFAULT_TEST_RUN_DETECTOR;
+            }
+        } else {
+            logger.info("using LCSimEngRunEventBuilder");
+            eventBuilder = new LCSimEngRunEventBuilder();
+            if (detectorName == null) {
+                detectorName = DEFAULT_ENG_RUN_DETECTOR;
             }
         }
         eventBuilder.setDetectorName(detectorName);

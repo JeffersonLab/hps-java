@@ -5,10 +5,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.hps.conditions.DatabaseConditionsManager;
+
 import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerableDriver;
+import org.hps.record.evio.EvioEventConstants;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
@@ -157,7 +158,7 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 
     private void writePrestartEvent() {
         // Make a new EVIO event.
-        EventBuilder builder = new EventBuilder(EventConstants.PRESTART_EVENT_TAG, DataType.UINT32, EventConstants.EVENT_BANK_NUM);
+        EventBuilder builder = new EventBuilder(EvioEventConstants.PRESTART_EVENT_TAG, DataType.UINT32, EventConstants.EVENT_BANK_NUM);
         int[] prestartData = new int[3];
         prestartData[0] = EventConstants.MC_TIME; //Unix time in seconds - this value for MC data
         prestartData[1] = CalibrationDriver.runNumber(); //run number
@@ -182,9 +183,9 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
     @Override
     protected void processTrigger(EventHeader event) {
         // Make a new EVIO event.
-        EventBuilder builder = new EventBuilder(EventConstants.PHYSICS_EVENT_TAG, DataType.BANK, EventConstants.EVENT_BANK_NUM);
+        EventBuilder builder = new EventBuilder(EvioEventConstants.PHYSICS_EVENT_TAG, DataType.BANK, EventConstants.EVENT_BANK_NUM);
         builderQueue.add(new QueuedEtEvent(builder, writers.size(), eventNum));
-        EvioBank eventIDBank = new EvioBank(EventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
+        EvioBank eventIDBank = new EvioBank(EvioEventConstants.EVENTID_BANK_TAG, DataType.UINT32, 0);
         int[] eventID = new int[3];
         eventID[0] = event.getEventNumber();
         eventID[1] = 1; //trigger type
