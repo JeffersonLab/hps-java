@@ -28,15 +28,12 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/EtSystemTest.java</exclude>
-                        <exclude>org/hps/ReconClusterICTest.java</exclude>
+                        <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                         <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
-                        <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
-                        <exclude>org/hps/TestRunReadoutToEvio.java</exclude>
-                        <exclude>org/hps/TestRunReconTest.java</exclude>
-                        <exclude>org/hps/DataQualityMonitorTest.java</exclude>
-                        <exclude>org/hps/EcalReadoutSimTest.java</exclude>
-                        <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                         <exclude>org/hps/MCFilteredReconTest.java</exclude>
+                        <exclude>org/hps/ReadoutToEvioTest.java</exclude>
+                        <exclude>org/hps/ReadoutToLcioTest.java</exclude>
+                        <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>true</trimStackTrace>
@@ -45,7 +42,7 @@
         </plugins>
     </build>
      <profiles>
-        <!-- This profile is for deactivating all integration tests when building everything from trunk. -->
+        <!-- This profile deactivates all tests in this module. -->
         <profile>
             <id>no-integration-tests</id>
             <activation>
@@ -63,6 +60,7 @@
                 </plugins>
             </build>
         </profile> 
+<!--        
         <profile>
             <id>fast-integration-tests</id>
             <activation>
@@ -75,23 +73,20 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <excludes>
-                                <exclude>org/hps/EcalReadoutSimTest.java</exclude>
                                 <exclude>org/hps/EtSystemTest.java</exclude>
+                                <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                                 <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                                 <exclude>org/hps/MCFilteredReconTest.java</exclude>
-                                <exclude>org/hps/MockDataReconTest.java</exclude>
-                                <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
-                                <exclude>org/hps/ReconClusterICTest.java</exclude>
-                                <exclude>org/hps/TestRunEvioToLcioTest.java</exclude>
-                                <exclude>org/hps/TestRunReadoutToEvio.java</exclude>
-                                <exclude>org/hps/TestRunReconTest.java</exclude>
-                                <exclude>org/hps/DataQualityMonitorTest.java</exclude>
+                                <exclude>org/hps/ReadoutToEvioTest.java</exclude>
+                                <exclude>org/hps/ReadoutToLcioTest.java</exclude>
+                                <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>                 
+-->        
         <!-- This profile activates automatically when not running tests on a SLAC Unix system with NFS access. -->
 <!--
         <profile>
@@ -109,9 +104,6 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <excludes>                            
-                                <exclude>org/hps/EcalReadoutSimTest.java</exclude>                                
-                                <exclude>org/hps/ReconClusterICTest.java</exclude>
-				<exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
