@@ -14,4 +14,10 @@ public class JobManager extends JobControlManager {
         JobManager job = new JobManager();
         job.run(args);
     }
+    
+    public boolean run() {
+        boolean result = super.run();
+        DatabaseConditionsManager.getInstance().closeConnection();
+        return result;
+    }
 }
