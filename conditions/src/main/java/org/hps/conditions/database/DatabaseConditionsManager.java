@@ -80,6 +80,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected EcalDetectorSetup ecalLoader = new EcalDetectorSetup();
     protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
     protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
+    protected String tag = null;
     
     /**
      * Default connection parameters which will use the SLAC database by default,
@@ -544,7 +545,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
         for (ConditionsRecord record : runConditionsRecords.getObjects()) {
             if (record.getName().equals(name)) {
-                foundConditionsRecords.add(record);
+                if (tag == null || (tag != null && record.getTag().equals(tag))) {
+                    foundConditionsRecords.add(record);
+                } else {
+                    logger.info("rejected ConditionsRecord " + record.getRowId() + " because of non-matching tag " + record.getTag());
+                }
             }
         }
         if (foundConditionsRecords.getObjects().size() > 0) {
@@ -578,6 +583,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     public void setSvtName(String svtName) {
         this.svtName = svtName;
+    }
+    
+    public void setTag(String tag) {
+        this.tag = tag;
     }
        
     private void setupEcal() {
