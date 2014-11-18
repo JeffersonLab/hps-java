@@ -3,9 +3,11 @@ package org.hps;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.users.jeremym.MockDataChallengeDiagnosticDriver;
 import org.lcsim.event.Cluster;
@@ -92,6 +94,7 @@ public class MockDataReconTest extends TestCase {
 
         System.out.println("running recon using steering resource " + steeringResource);
         JobManager jobManager = new JobManager();
+        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         jobManager.addVariableDefinition("outputFile", outputFile.getPath());
         jobManager.addInputFile(mockDataFile);
         jobManager.setup(steeringResource);

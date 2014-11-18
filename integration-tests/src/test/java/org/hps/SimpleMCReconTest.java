@@ -3,9 +3,11 @@ package org.hps;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -32,6 +34,7 @@ public class SimpleMCReconTest extends TestCase {
 		
         // Run the reconstruction.
 		JobManager job = new JobManager();
+		DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_recon");
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.addInputFile(inputFile);

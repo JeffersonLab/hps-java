@@ -29,7 +29,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class TestRunReconTest extends TestCase {
 
     final static String fileLocation = "http://www.lcsim.org/test/hps-java/TestRunEvioToLcioTest.evio"; 
-    static String inputFileName = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_001351.evio.0";
+    //static String inputFileName = "/nfs/slac/g/hps3/data/testrun/runs/evio/hps_001351.evio.0";
     
     public void testTestRunRecon() throws Exception {       
         
@@ -41,7 +41,6 @@ public class TestRunReconTest extends TestCase {
         File inputFile = cache.getCachedFile(new URL(fileLocation));
 
         // Run TestRunEvioToLcio using the standard org.lcsim steering file.
-        //File inputFile = new File(inputFileName);
         List<String> argList = new ArrayList<String>();
         argList.add("-r");
         argList.add("-x");

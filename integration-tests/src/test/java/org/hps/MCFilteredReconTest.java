@@ -4,9 +4,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.readout.ecal.FADCEcalReadoutDriver;
 import org.hps.users.meeg.FilterMCBunches;
@@ -63,7 +65,8 @@ public class MCFilteredReconTest extends TestCase {
         System.out.print("Created filtered MC file " + filteredOutputFile.getPath());
                 
         // 2) Run readout simulation.
-        JobManager job = new JobManager();        
+        JobManager job = new JobManager();       
+        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         File readoutOutputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName() + "_readout");
         job.addVariableDefinition("outputFile", readoutOutputFile.getPath());
         job.addInputFile(filteredOutputFile);

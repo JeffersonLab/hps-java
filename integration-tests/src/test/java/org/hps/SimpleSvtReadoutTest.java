@@ -3,9 +3,11 @@ package org.hps;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -45,6 +47,7 @@ public class SimpleSvtReadoutTest extends TestCase {
         FinalCheckDriver checker = new FinalCheckDriver();
         
         JobManager job = new JobManager();
+        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         job.addInputFile(inputFile);
         job.addVariableDefinition("outputFile", outputFile.getPath());
         job.setup("/org/hps/steering/readout/HPS2014TruthReadoutToLcio.lcsim");        
