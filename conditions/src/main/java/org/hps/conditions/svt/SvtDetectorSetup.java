@@ -2,6 +2,8 @@ package org.hps.conditions.svt;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
@@ -9,6 +11,7 @@ import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.compact.Subdetector;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code>
@@ -19,6 +22,13 @@ import org.lcsim.geometry.compact.Subdetector;
  */
 public final class SvtDetectorSetup {
 
+    private static Logger logger = LogUtil.create(SvtDetectorSetup.class); 
+    
+    public void setLogLevel(Level level) {
+        logger.setLevel(level);
+        logger.getHandlers()[0].setLevel(level);
+    }
+    
     /**
      * Load conditions data onto a detector object.
      * 
@@ -27,9 +37,13 @@ public final class SvtDetectorSetup {
      */
     public void load(Subdetector subdetector, SvtConditions conditions) {
 
+        logger.info("loading SVT conditions onto subdetector " + subdetector.getName());
+        
         // Find sensor objects.
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+        logger.info("setting up " + sensors.size() + " SVT sensors");
         SvtChannelCollection channelMap = conditions.getChannelMap();
+        logger.info("channel map has " + conditions.getChannelMap().getObjects().size() + " entries");
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 
@@ -101,5 +115,7 @@ public final class SvtDetectorSetup {
             SvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
+        
+        logger.info("loaded default SVT conditions onto subdetector");
     }
 }

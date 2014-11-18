@@ -1,12 +1,15 @@
 package org.hps.conditions.ecal;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.geometry.Subdetector;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Puts {@link EcalConditions} data onto <code>EcalCrystal</code> objects on the
@@ -15,6 +18,13 @@ import org.lcsim.geometry.Subdetector;
  */
 public final class EcalDetectorSetup {
 
+    static Logger logger = LogUtil.create(EcalDetectorSetup.class);
+    
+    public void setLogLevel(Level level) {
+        logger.setLevel(level);
+        logger.getHandlers()[0].setLevel(level);
+    }
+        
     /**
      * Load ECal conditions data onto a full detector object.
      * @param detector The detector object.
@@ -22,7 +32,7 @@ public final class EcalDetectorSetup {
      */
     public void load(Subdetector subdetector, EcalConditions conditions) {
 
-        System.out.println("EcalDetectorSetup.load");
+        logger.info("loading ECAL conditions onto subdetector " + subdetector.getName());
         
         // Find EcalCrystal objects.
         List<EcalCrystal> crystals = subdetector.getDetectorElement().findDescendants(EcalCrystal.class);
@@ -35,20 +45,14 @@ public final class EcalDetectorSetup {
 
         // Get the full channel map created by the conditions system.
         EcalChannelCollection channelMap = conditions.getChannelCollection();
-        System.out.println("got " + channelMap.getObjects().size() + " channels");
 
         // Build the map of geometry IDs.
-        System.out.println("building geometry map...");
+        logger.info("building ECAL geometry channel map");
         channelMap.buildGeometryMap(helper, system);
-        System.out.println("geometry map has " + channelMap.geometryMap.size() + " entries");
-        
+        logger.info("built ECAL geometry channel with " + channelMap.geometryMap.size() + " entries");
 
         // Loop over crystals.
         for (EcalCrystal crystal : crystals) {
-
-            // System.out.println(crystal.getName() + " @ " + crystal.getX() +
-            // ", " +
-            // crystal.getY());
 
             // Reset in case of existing conditions data.
             crystal.resetConditions();
@@ -91,5 +95,7 @@ public final class EcalDetectorSetup {
             // Set time shift.
             crystal.setTimeShift(constants.getTimeShift().getTimeShift());
         }
+        
+        logger.info("done loading ECAL conditions onto subdetector");
     }
 }

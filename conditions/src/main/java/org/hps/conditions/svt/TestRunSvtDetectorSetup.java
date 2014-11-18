@@ -2,6 +2,8 @@ package org.hps.conditions.svt;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
@@ -10,6 +12,7 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.compact.Subdetector;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This class puts {@link TestRunSvtConditions} data onto
@@ -19,6 +22,13 @@ import org.lcsim.geometry.compact.Subdetector;
  */
 public class TestRunSvtDetectorSetup {
 
+    private static Logger logger = LogUtil.create(TestRunSvtDetectorSetup.class);
+    
+    public void setLogLevel(Level level) {
+        logger.setLevel(level);
+        logger.getHandlers()[0].setLevel(level);
+    }
+    
     /**
      * Load conditions data onto a detector object.
      * 
@@ -27,9 +37,14 @@ public class TestRunSvtDetectorSetup {
      */
     public void load(Subdetector subdetector, TestRunSvtConditions conditions) {
 
+        
+        logger.info("loading Test Run SVT conditions onto subdetector " + subdetector.getName());                       
+        
         // Find sensor objects.
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+        logger.info("setting up " + sensors.size() + " SVT sensors");
         TestRunSvtChannelCollection channelMap = conditions.getChannelMap();
+        logger.info("channel map has " + channelMap.getObjects().size() + " entries");
         TestRunSvtDaqMappingCollection daqMap = conditions.getDaqMap();
         TestRunSvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 
@@ -101,5 +116,7 @@ public class TestRunSvtDetectorSetup {
             TestRunSvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
         }
+        
+        logger.info("done loading Test Run SVT conditions onto subdetector");
     }
 }

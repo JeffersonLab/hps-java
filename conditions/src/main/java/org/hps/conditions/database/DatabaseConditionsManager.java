@@ -56,7 +56,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @SuppressWarnings("rawtypes")
-public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
+public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     static String connectionProperty = "org.hps.conditions.connection.file";
     protected String detectorName;
@@ -77,6 +77,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     protected String ecalName = "Ecal";
     protected String svtName = "Tracker";
     protected boolean isFrozen = false;
+    protected EcalDetectorSetup ecalLoader = new EcalDetectorSetup();
+    protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
+    protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
     
     /**
      * Default connection parameters which will use the SLAC database by default,
@@ -522,6 +525,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.config("setting log level to " + level);
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
+        
+        this.ecalLoader.setLogLevel(level);
+        this.svtLoader.setLogLevel(level);
+        this.testRunSvtloader.setLogLevel(level);
     }
 
     /**
@@ -564,26 +571,31 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public boolean isFrozen() {
         return this.isFrozen;
     }
+    
+    public void setEcalName(String ecalName) {
+        this.ecalName = ecalName;
+    }
+    
+    public void setSvtName(String svtName) {
+        this.svtName = svtName;
+    }
        
     private void setupEcal() {
         logger.config("setting up ECAL conditions on detector");
         EcalConditions conditions = getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
-        EcalDetectorSetup loader = new EcalDetectorSetup();
-        loader.load(this.getDetectorObject().getSubdetector(ecalName), conditions);
+        ecalLoader.load(this.getDetectorObject().getSubdetector(ecalName), conditions);
         logger.fine("done setting up ECAL conditions on detector");
     }
     
     private void setupSvt(int runNumber) {
         if (isTestRun(runNumber)) {
             logger.config("loading Test Run SVT detector conditions");
-            TestRunSvtConditions svtConditions = getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();
-            TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
-            loader.load(getDetectorObject().getSubdetector(svtName), svtConditions);
+            TestRunSvtConditions svtConditions = getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();            
+            testRunSvtloader.load(getDetectorObject().getSubdetector(svtName), svtConditions);
         } else {
             logger.config("loading default SVT detector conditions");
             SvtConditions svtConditions = getCachedConditions(SvtConditions.class, SVT_CONDITIONS).getCachedData();
-            SvtDetectorSetup loader = new SvtDetectorSetup();
-            loader.load(getDetectorObject().getSubdetector(svtName), svtConditions);
+            svtLoader.load(getDetectorObject().getSubdetector(svtName), svtConditions);
         }
         logger.config("done loading SVT detector conditions");
     }
@@ -593,7 +605,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Check if connected to the database.
      * @return true if connected
      */
-    private boolean isConnected() {
+    public boolean isConnected() {
         return isConnected;
     }
 
