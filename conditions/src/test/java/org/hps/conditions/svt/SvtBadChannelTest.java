@@ -9,7 +9,6 @@ import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.TestRunConditionsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -56,11 +55,11 @@ public class SvtBadChannelTest extends TestCase {
         File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
 
         // Create the record loop.
+        new DatabaseConditionsManager();
         LCSimLoop loop = new LCSimLoop();
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        loop.add(new TestRunConditionsDriver());
         loop.add(new SvtBadChannelChecker());
 
         DatabaseConditionsManager.getInstance().setLogLevel(Level.OFF);

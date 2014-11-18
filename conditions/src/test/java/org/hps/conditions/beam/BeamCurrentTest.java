@@ -9,8 +9,8 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.TestRunConditionsDriver;
 import org.hps.conditions.beam.BeamCurrent.BeamCurrentCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -48,6 +48,8 @@ public class BeamCurrentTest extends TestCase {
      */
     public void test() throws Exception {
 
+        new DatabaseConditionsManager();
+        
         // Cache file locally from URL.
         FileCache cache = new FileCache();
         File testFile = cache.getCachedFile(new URL(fileLocation));
@@ -57,9 +59,6 @@ public class BeamCurrentTest extends TestCase {
 
         // Configure and run the loop.
         loop.setLCIORecordSource(testFile);
-        TestRunConditionsDriver conditionsDriver = new TestRunConditionsDriver();
-        conditionsDriver.setLoadSvtConditions(false);
-        loop.add(conditionsDriver);
         loop.add(new BeamCurrentChecker());
         loop.loop(-1, null);
     }
