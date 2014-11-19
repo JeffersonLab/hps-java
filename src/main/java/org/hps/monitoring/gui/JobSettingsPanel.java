@@ -137,6 +137,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         detectorNameComboBox.addActionListener(this);
 
         eventBuilderComboBox = addComboBox("LCSim Event Builder", this.findEventBuilderClassNames());
+        eventBuilderComboBox.setSize(24, eventBuilderComboBox.getPreferredSize().height);
         eventBuilderComboBox.setActionCommand(EVENT_BUILDER_CHANGED);
         eventBuilderComboBox.addActionListener(this);
         
