@@ -8,31 +8,29 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="SVTSetupDriver"/>
-         <driver name="EcalRawConverter"/>
+        <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
-         <driver name="SVTOccupancyPlots"/>
+        <driver name="SVTOccupancyPlots"/>
         <driver name="SVTEventPlots"/>   
-       <driver name="SVTPulsePlots"/> 
+        <driver name="SVTPulsePlots"/> 
         <driver name="RawTrackerHitFitterDriver"/>    
-       <driver name="TrackerHitDriver"/>           
-       <driver name="SVTHitRecoPlots"/>  
-       <driver name="HelicalTrackHitDriver"/>
-       <driver name="TrackerReconDriver"/>
-       <driver name="TrackingReconstructionPlots"/>        
+        <driver name="TrackerHitDriver"/>           
+        <driver name="SVTHitRecoPlots"/>  
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackerReconDriver"/>
+        <driver name="TrackingReconstructionPlots"/>        
 <!--       <driver name="SVTHitCorrPlots"/>  --> 
 <!--       <driver name="LCIOWriter"/>  -->  
        <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-          <driver name="EcalRawConverter" 
-                type="org.hps.recon.ecal.EcalRawConverterDriver">
-			<ecalCollectionName>EcalCalHits</ecalCollectionName>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+	    <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
 	</driver>
-        <driver name="EcalClusterer"
-                type="org.hps.recon.ecal.EcalClusterer">
-			<ecalName>Ecal</ecalName>
-			<ecalCollectionName>EcalCalHits</ecalCollectionName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+	    <ecalName>Ecal</ecalName>
+	    <ecalCollectionName>EcalCalHits</ecalCollectionName>
 	</driver>
 
           <driver name="RawTrackerHitFitterDriver"

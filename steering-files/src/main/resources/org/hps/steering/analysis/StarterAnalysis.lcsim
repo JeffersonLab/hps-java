@@ -6,25 +6,17 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver" />
         <driver name="SvtSensorSetup" />
-
         <driver name="StarterAnalysisDriver"/>   
-
         <driver name="AidaSaveDriver"/>
     </execute> 
-
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
-        
-
         <driver name="StarterAnalysisDriver" type="org.hps.analysis.examples.StarterAnalysisDriver">
         </driver>
-
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}</outputFileName>
         </driver>

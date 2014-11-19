@@ -7,7 +7,6 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="CalibrationDriver"/>
         <driver name="EventMarkerDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
@@ -19,10 +18,8 @@
         <driver name="SVTSimpleEventDisplay"/>
         <driver name="SVTEventDisplay"/>
         <driver name="CleanupDriver"/>
-
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
             <singleEvent>true</singleEvent>
         </driver>

@@ -8,7 +8,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
         <driver name="RawTrackerHitFitterDriver"/>
@@ -28,7 +27,6 @@
 
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>

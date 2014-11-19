@@ -2,7 +2,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver" />
-        <driver name="CalibrationDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="SVTPulsePlots"/>
         
@@ -29,9 +28,6 @@
         <driver name="RunControlDriver" type="org.hps.util.RunControlDriver"/>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
-        </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>17</runNumber>    -->
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">

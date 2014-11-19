@@ -1,4 +1,3 @@
-
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
     <control>
@@ -7,7 +6,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalTriggerFilter"/>
         <driver name="EcalClusterer"/>
@@ -25,8 +23,6 @@
         <!--<driver name="AidaSaveDriver"/>-->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalReadoutToTriggerConverterDriver">
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
             <integralWindow>35</integralWindow>

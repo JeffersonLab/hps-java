@@ -17,7 +17,6 @@
         <driver name="TestRunReconToLcio"/>
         <driver name="CleanupDriver"/>
     </execute> 
-
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>

@@ -12,7 +12,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
 <!--        <driver name="EcalRawConverterDriver"/> -->
 <!--        <driver name="EcalTriggerFilter"/> -->
@@ -25,8 +24,6 @@
         
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <readoutCollection>EcalReadoutAnalogHits</readoutCollection>
             <applyBadCrystalMap>false</applyBadCrystalMap>

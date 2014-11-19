@@ -12,7 +12,6 @@
         <driver name="EcalClusterer" />
         <driver name="TwoTrackFilter"/>
         <driver name="CleanupDriver"/>
-
     </execute>    
     <drivers>    
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
@@ -49,6 +48,5 @@
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
     </drivers>
 </lcsim>

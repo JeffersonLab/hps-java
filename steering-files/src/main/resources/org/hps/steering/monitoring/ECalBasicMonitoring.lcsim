@@ -2,7 +2,6 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
         <driver name="EcalMonitoringPlots"/>
@@ -12,7 +11,6 @@
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/> 
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>

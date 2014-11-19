@@ -1,12 +1,10 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-    
     <control>
         <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
-    
     <execute>
         <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
@@ -21,23 +19,18 @@
 	    <driver name="GBLDriver"/> 
         <driver name="CleanupDriver"/>
     </execute>    
-
     <drivers>
-
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
         </driver>        
-
-	   	<driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+	<driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <debug>0</debug>
             <isMC>${isMC}</isMC>
             <gblFileName>gblinput.txt</gblFileName>
     	</driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
-
 <!-- Reconstruction drivers below -->
-
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
@@ -64,8 +57,6 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
-
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
     </drivers>   
 </lcsim>
