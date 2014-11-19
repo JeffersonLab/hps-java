@@ -5,16 +5,12 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/> 
         <driver name="EcalRawConverter"/>     
         <driver name="EcalEventDisplay"/>         <!-- Ecal event display -->
     </execute>   
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
-        </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <loadSvtConditions>false</loadSvtConditions>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
