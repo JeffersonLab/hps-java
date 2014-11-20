@@ -50,7 +50,7 @@
             <clusterWindow>1</clusterWindow>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
         </driver>
-        <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCTriggerDriver">
+        <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
             <pairCoincidence>2</pairCoincidence>

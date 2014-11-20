@@ -41,7 +41,7 @@
             <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
         </driver>
-        <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCTriggerDriver">
+        <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
             <outputFileName>${outputFile}.triggers</outputFileName>
             <deadTime>0</deadTime>
