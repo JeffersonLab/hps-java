@@ -16,6 +16,15 @@ public final class EcalCalibration extends AbstractConditionsObject {
 
     public static class EcalCalibrationCollection extends ConditionsObjectCollection<EcalCalibration> {
     }
+    
+    public EcalCalibration() {
+    }
+    
+    public EcalCalibration(int channelId, double pedestal, double noise) {
+        this.setFieldValue("ecal_channel_id", channelId);
+        this.setFieldValue("pedestal", pedestal);
+        this.setFieldValue("noise", noise);
+    }
 
     /**
      * Get the channel ID.
