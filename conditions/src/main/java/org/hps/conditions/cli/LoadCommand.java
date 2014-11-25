@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.ParseException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.QueryBuilder;
 
@@ -48,6 +46,9 @@ class LoadCommand extends AbstractCommand {
         String fileName = commandLine.getOptionValue("f");
         if (fileName == null) {
             throw new IllegalArgumentException("Missing file argument.");
+        }
+        if (!(new File(fileName)).exists()) {
+            throw new IllegalArgumentException("Input file does not exist: " + fileName);
         }
 
         String tableName = commandLine.getOptionValue("t");
