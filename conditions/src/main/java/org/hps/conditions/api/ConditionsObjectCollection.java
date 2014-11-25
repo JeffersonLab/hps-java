@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
 
 public class ConditionsObjectCollection<ObjectType extends ConditionsObject> implements Iterable<ObjectType> {
@@ -13,25 +14,14 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
     protected Set<ObjectType> objects = new LinkedHashSet<ObjectType>();
     protected TableMetaData tableMetaData;
     protected int collectionId = -1;
-    protected boolean isReadOnly;
-    protected boolean isDirty;
-    protected boolean isNew;
     protected ConditionsRecord conditionsRecord;
 
     protected ConditionsObjectCollection() {
     }
 
-    public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId, boolean isReadOnly) {
+    public ConditionsObjectCollection(TableMetaData tableMetaData, int collectionId) {
         this.tableMetaData = tableMetaData;
         this.collectionId = collectionId;
-        this.isReadOnly = isReadOnly;
-        if (collectionId == -1) {
-            this.isNew = true;
-        }
-    }
-
-    public ConditionsRecord getConditionsRecord() {
-        return conditionsRecord;
     }
 
     public ObjectType get(int index) {
@@ -70,8 +60,6 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         if (object.getTableMetaData() == null && tableMetaData != null)
             object.setTableMetaData(tableMetaData);
         objects.add(object);
-        if (!isNew())
-            setIsDirty(true);
     }
 
     public TableMetaData getTableMetaData() {
@@ -88,82 +76,53 @@ public class ConditionsObjectCollection<ObjectType extends ConditionsObject> imp
         for (ConditionsObject object : objects) {
             object.update();
         }
-        setIsDirty(false);
     }
 
-    // TODO: This does not need to loop. It should just call delete on the
-    // collection ID value.
+    // TODO: This does not need to loop. It should just call delete on the collection ID value.
     public void delete() throws ConditionsObjectException {
-        if (isReadOnly()) {
-            throw new ConditionsObjectException("Collection is read only.");
-        }
+        // TODO: Replace with call to a deleteCollection DatabaseConditionsManager method.
         for (ConditionsObject object : objects) {
             object.delete();
         }
     }
 
-    // TODO: This should not loop. It should select all the objects with a
-    // matching collection ID from the database.
+    // TODO: This should not loop. It should select all the objects with a matching collection ID 
+    //       from the database replacing the current contents of the collection (if any).
     public void select() throws ConditionsObjectException, SQLException {
+        // TODO: Replace with call to a selectCollection DatabaseConditionsManager method.
         for (ConditionsObject object : objects) {
             object.select();
         }
     }
 
-    // TODO: This method needs to get the next collection ID from the conditions
-    // manager.
-    // TODO: This operation should lock the table.
     public void insert() throws ConditionsObjectException, SQLException {
-        if (!isNew()) {
-            throw new ConditionsObjectException("Collection already exists in the database.");
-        }
-        for (ConditionsObject object : objects) {
-            // if (object.isNew()) {
-            object.insert();
-            // }
-        }
-        isNew = false;
-    }
-
-    public boolean isDirty() {
-        return isDirty;
-    }
-
-    public boolean isReadOnly() {
-        return isReadOnly;
-    }
-
-    void setIsDirty(boolean isDirty) {
-        this.isDirty = isDirty;
-    }
-
-    // TODO: This can probably just check if collection ID is not valid e.g. equals -1.
-    public boolean isNew() {
-        return isNew;
+        DatabaseConditionsManager.getInstance().insertCollection(this);
     }
 
     public void setCollectionId(int collectionId) throws ConditionsObjectException {
         if (this.collectionId != -1)
             throw new ConditionsObjectException("The collection ID is already set.");
         this.collectionId = collectionId;
+        for (ConditionsObject object : this.objects) {
+            object.setCollectionId(this.collectionId);
+        }
     }
 
     public void setTableMetaData(TableMetaData tableMetaData) {
         this.tableMetaData = tableMetaData;
     }
 
-    public void setIsReadOnly(boolean isReadOnly) {
-        this.isReadOnly = isReadOnly;
-    }
-
-    public void setConditionsRecord(ConditionsRecord conditionsRecord) throws ConditionsObjectException {
-        if (this.conditionsRecord != null)
-            throw new ConditionsObjectException("The ConditionsRecord is already set on this collection.");
-        this.conditionsRecord = conditionsRecord;
-    }
-
     @Override
     public Iterator<ObjectType> iterator() {
         return objects.iterator();
     }       
+    
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        for (ConditionsObject object : this.getObjects()) {
+            buffer.append(object.toString());
+            buffer.append('\n');
+        }
+        return buffer.toString();
+    }
 }

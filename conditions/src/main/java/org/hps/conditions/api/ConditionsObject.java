@@ -4,10 +4,11 @@ import org.hps.conditions.database.TableMetaData;
 
 /**
  * This is an ORM interface for accessing conditions database information by
- * row. It can handle new or existing records. The ID values for new records are
+ * row. It can handle new or existing records. The row ID values for new records are
  * -1 which indicates they are not in the database yet.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: The collection ID should be a regular field in the FieldValueMap.
 public interface ConditionsObject {
 
     /**
@@ -50,26 +51,6 @@ public interface ConditionsObject {
     void select() throws ConditionsObjectException;
 
     /**
-     * Return true if this object is read-only.
-     * @return True if object is read-only.
-     */
-    boolean isReadOnly();
-
-    /**
-     * Return true if this object is new and hasn't been inserted into the
-     * database yet.
-     * @return True if object is new.
-     */
-    boolean isNew();
-
-    /**
-     * Return true if this object's data has been modified without a database
-     * update.
-     * @return True if object is dirty.
-     */
-    boolean isDirty();
-
-    /**
      * Generic set method for field values. This will set the object to the
      * 'dirty' state.
      * @param fieldName The name of the field.
@@ -95,7 +76,7 @@ public interface ConditionsObject {
      * @param field The field value.
      * @return The field value casted to type T.
      */
-    public <T> T getFieldValue(Class<T> klass, String field);
+    public <T> T getFieldValue(Class<T> type, String field);
 
     /**
      * Get a field value with implicit return type.
@@ -127,10 +108,11 @@ public interface ConditionsObject {
      * @throws ConditionsObjectException if already set
      */
     public void setRowId(int rowId) throws ConditionsObjectException;
-
+    
     /**
-     * Set the object to read only mode. This cannot be changed back once it is
-     * set.
+     * Return true if this object is new, e.g. it does not have a valid row ID.
+     * This means that it does not have a database record in its table.
+     * @return True if record is new.
      */
-    void setIsReadOnly();   
+    public boolean isNew();
 }

@@ -19,8 +19,6 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
     private TableMetaData tableMetaData = null;
     protected int rowId = -1;
     protected int collectionId = -1;
-    protected boolean isDirty = false;
-    protected boolean isReadOnly = false;
     protected FieldValueMap fieldValues;
 
     /**
@@ -42,40 +40,24 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         return collectionId;
     }
 
-    public boolean isReadOnly() {
-        return isReadOnly;
-    }
-
     public boolean isNew() {
         return rowId == -1;
     }
 
-    public boolean isDirty() {
-        return isDirty;
-    }
-
     public void delete() throws ConditionsObjectException {
-        if (isReadOnly()) {
-            throw new ConditionsObjectException("This object is set to read only.");
-        }
-        if (isNew()) {
-            throw new ConditionsObjectException("This object is not in the database and so cannot be deleted.");
-        }
         String query = QueryBuilder.buildDelete(tableMetaData.getTableName(), rowId);
+        // TODO: Replace this with a method that takes a conditions object.
         DatabaseConditionsManager.getInstance().updateQuery(query);
         rowId = -1;
     }
 
     public void insert() throws ConditionsObjectException {
-        if (!isNew())
-            throw new ConditionsObjectException("Record already exists in database and cannot be inserted.");
-        if (isReadOnly())
-            throw new ConditionsObjectException("This object is set to read only mode.");
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        if (!hasValidCollection())
+        if (collectionId == -1)
             throw new ConditionsObjectException("The object's collection ID is not valid.");
-        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), getCollectionId(), getTableMetaData().getFieldNames(), fieldValues.valuesToArray());        
+        // TODO: Replace this with a method that takes a conditions object.
+        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), getCollectionId(), getTableMetaData().getFieldNames(), fieldValues.valuesToArray());
         System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
         if (keys.size() != 1) {
@@ -88,6 +70,7 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         if (isNew()) {
             throw new ConditionsObjectException("Record has not been inserted into the database yet.");
         }
+        // TODO: Replace this with method that takes a conditions object.
         String query = QueryBuilder.buildSelect(getTableMetaData().getTableName(), collectionId, fieldValues.fieldsToArray(), "id ASC");
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         ResultSet resultSet = manager.selectQuery(query);
@@ -107,30 +90,20 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
     }
 
     public void update() throws ConditionsObjectException {
-        if (isReadOnly()) {
-            throw new ConditionsObjectException("This object is set to read only.", this);
-        }
-        if (isNew()) {
-            throw new ConditionsObjectException("Cannot call update on a new record.", this);
-        }
         if (fieldValues.size() == 0) {
             throw new ConditionsObjectException("No field values to update.", this);
         }
+        // TODO: Replace this with method that takes a conditions object.
         String query = QueryBuilder.buildUpdate(tableMetaData.getTableName(), rowId, fieldValues.fieldsToArray(), fieldValues.valuesToArray());
         DatabaseConditionsManager.getInstance().updateQuery(query);
-        setIsDirty(false);
     }
 
     public void setFieldValue(String key, Object value) {
         fieldValues.put(key, value);
-        setIsDirty(true);
     }
 
     public void setFieldValues(FieldValueMap fieldValues) {
         this.fieldValues = fieldValues;
-        if (!isNew()) {
-            setIsDirty(true);
-        }
     }
 
     public <T> T getFieldValue(Class<T> klass, String field) {
@@ -158,22 +131,11 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         this.collectionId = collectionId;
     }
 
-    public void setIsDirty(boolean isDirty) {
-        this.isDirty = isDirty;
-    }
-
-    public void setIsReadOnly() {
-        isReadOnly = true;
-    }
-
     public void setRowId(int rowId) throws ConditionsObjectException {
-        if (this.rowId != -1)
+        if (!isNew()) {
             throw new ConditionsObjectException("The row ID cannot be reassigned on an existing object.");
+        }
         this.rowId = rowId;
-    }
-
-    boolean hasValidCollection() {
-        return collectionId != -1;
     }
 
     public String toString() {
@@ -186,6 +148,4 @@ public abstract class AbstractConditionsObject implements ConditionsObject {
         }
         return sb.toString();
     }
-    
-    
 }
