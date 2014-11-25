@@ -21,8 +21,7 @@ public class ConditionsObjectTest extends TestCase {
 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
-        // Create a new collection, setting its table meta data and collection
-        // ID.
+        // Create a new collection, setting its table meta data and collection ID.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
         int collectionId = conditionsManager.getNextCollectionID(tableMetaData.getTableName());
         SvtGainCollection collection = new SvtGainCollection();
@@ -32,7 +31,6 @@ public class ConditionsObjectTest extends TestCase {
         } catch (ConditionsObjectException e) {
             throw new RuntimeException(e);
         }
-        collection.setIsReadOnly(false);
 
         // Create a dummy conditions object and add to collection.
         SvtGain gain = new SvtGain();
