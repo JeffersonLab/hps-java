@@ -11,22 +11,20 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
 /**
- *
- * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
- * phansson Exp $
+ * This class is used to convert {@link org.lcsim.event.RawCalorimeterHit} objects
+ * to {@link org.lcsim.event.CalorimeterHit} objects with energy information.
+ * It has methods to convert pedestal subtracted ADC counts to energy.  
+ * 
+ * @author Sho Uemura <meeg@slac.stanford.edu>
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalRawConverter {
 
-    private final boolean debug = false;
     private boolean constantGain = false;
     private double gain;
     private boolean use2014Gain = true;
     
-    //get the database condition manager
-    
-//    Detector detector = DatabaseConditionsManager.getInstance().getDetectorObject();
     private EcalConditions ecalConditions = null;
-
 
     public EcalRawConverter() {	
     }
@@ -40,24 +38,13 @@ public class EcalRawConverter {
         this.use2014Gain = use2014Gain;
     }
 
-    private short sumADC(RawTrackerHit hit) {
-        //Sum all pedestal subtracted ADC values 
-        //return scale * (amplitude + 0.5) + pedestal;
-        if (debug) {
-            System.out.println("Summing ADC for hit: " + hit.toString());
-        }
-        
-        // Get the channel data.
-        EcalChannelConstants channelData = findChannel(hit.getCellID());
-        
+    public short sumADC(RawTrackerHit hit) {
+        EcalChannelConstants channelData = findChannel(hit.getCellID());        
         double pedestal = channelData.getCalibration().getPedestal();
         short sum = 0;
         short samples[] = hit.getADCValues();
         for (int isample = 0; isample < samples.length; ++isample) {
             sum += (samples[isample] - pedestal);
-            if (debug) {
-                System.out.println("Sample " + isample + " " + samples[isample] + " pedestal " + pedestal + " (" + sum + ")");
-            }
         }
         return sum;
     }
@@ -66,9 +53,7 @@ public class EcalRawConverter {
         double time = hit.getTime();
         long id = hit.getCellID();
         double rawEnergy = adcToEnergy(sumADC(hit), id);
-        HPSCalorimeterHit h1 = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
-//        double[] pos = hit.getDetectorElement().getGeometry().getPosition().v();
-        //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
+        HPSCalorimeterHit h1 = new HPSCalorimeterHit(rawEnergy, time, id, 0);
         return h1;
     }
 
@@ -82,8 +67,7 @@ public class EcalRawConverter {
         EcalChannelConstants channelData = findChannel(id);
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
         double rawEnergy = adcToEnergy(adcSum, id);
-        HPSCalorimeterHit h2 = new HPSCalorimeterHit(rawEnergy + 0.0000001, time + timeOffset, id, 0);
-        //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
+        HPSCalorimeterHit h2 = new HPSCalorimeterHit(rawEnergy, time + timeOffset, id, 0);
         return h2;
     }
 
@@ -124,30 +108,15 @@ public class EcalRawConverter {
             }
         }
     }
-    /*
-     public static CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double g) {
-     if (hit.getTimeStamp() % 64 != 0) {
-     System.out.println("unexpected timestamp " + hit.getTimeStamp());
-     }
-     double time = hit.getTimeStamp() / 16.0;
-     long id = hit.getCellID();
-     double rawEnergy = g * (hit.getAmplitude() - window * EcalConditions.physicalToPedestal(id)) * ECalUtils.MeV;
-     CalorimeterHit h = new HPSCalorimeterHit(rawEnergy + 0.0000001, time, id, 0);
-     //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
-     return h;
-     }
-     */
+
     /** 
      * Must be set when an object EcalRawConverter is created.
      * @param detector (long)
      */   
-    void setDetector(Detector detector) {
-    	
+    public void setDetector(Detector detector) {
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        
-        //System.out.println("You are now using the database conditions for EcalRawConverter.");
     }
     
     /** 
@@ -155,7 +124,7 @@ public class EcalRawConverter {
      * @param cellID (long)
      * @return channel constants (EcalChannelConstants)
      */
-    private EcalChannelConstants findChannel(long cellID) {
+    public EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }   
 }
