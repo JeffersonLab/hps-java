@@ -165,7 +165,10 @@ public class ConnectionParameters {
         String password = properties.getProperty("password");
         String database = properties.getProperty("database");
         String hostname = properties.getProperty("hostname");
-        int port = Integer.parseInt(properties.getProperty("port"));
+        int port = 3306;
+        if (properties.containsKey("port")) {
+            port = Integer.parseInt(properties.getProperty("port"));
+        }
         return new ConnectionParameters(user, password, database, hostname, port);
     }
 }
