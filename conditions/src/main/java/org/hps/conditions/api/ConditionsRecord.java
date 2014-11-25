@@ -14,7 +14,7 @@ import org.hps.conditions.database.QueryBuilder;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ConditionsRecord extends AbstractConditionsObject {
-
+    
     /**
      * Collection type.
      */
@@ -28,19 +28,31 @@ public final class ConditionsRecord extends AbstractConditionsObject {
             objects.add(record);
         }
     }
+    
+    public ConditionsRecord(int collectionId, int runStart, int runEnd, String name, String tableName, String notes, String tag) {
+        this.setFieldValue("collection_id", collectionId);
+        this.setFieldValue("run_start", runStart);
+        this.setFieldValue("run_end", runEnd);
+        this.setFieldValue("name", name);
+        this.setFieldValue("table_name", tableName);
+        this.setFieldValue("notes", notes);
+        this.setFieldValue("tag", tag);
+        this.setFieldValue("created", new Date());
+        this.setFieldValue("created_by", System.getProperty("user.name"));
+    }
 
     public ConditionsRecord() {
     }
     
+    // TODO: This should be replaced by generic insert method on ConditionsObject (if possible).
     public void insert() throws ConditionsObjectException {
-        if (!isNew())
-            throw new ConditionsObjectException("Record already exists in database and cannot be inserted.");
-        if (isReadOnly())
-            throw new ConditionsObjectException("This object is set to read only mode.");
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), this.getFieldValues());        
-        System.out.println(query);
+        if (getTableMetaData() == null) {
+            throw new ConditionsObjectException("The table meta data is null for ConditionsRecord.");
+        }
+        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), this.getFieldValues());
+        //System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
         if (keys.size() != 1) {
             throw new ConditionsObjectException("SQL insert returned wrong number of keys: " + keys.size());
