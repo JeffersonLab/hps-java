@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="EcalCalibrationsDriver"/>
+        <driver name="AidaSaveDriver"/>
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver"/>
+        <driver name="EcalCalibrationsDriver" type="org.hps.recon.ecal.EcalCalibrationsDriver">
+            <loadCalibrations>true</loadCalibrations>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>EcalCalibrationPlots.aida</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>
