@@ -4,14 +4,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.FieldValueMap;
 
 /**
- * This is a static utility class for building SQL queries for the conditions
- * system.
+ * This is a static utility class for building SQL queries for the conditions system.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Most methods should be converted to use prepared statements, which is more flexible.
 public final class QueryBuilder {
 
     private QueryBuilder() {
@@ -67,6 +68,28 @@ public final class QueryBuilder {
         buff.append(") ");
         return buff.toString();
     }
+    
+    public static String buildPreparedInsert(ConditionsObject object) {
+        if (object.getTableMetaData() == null) {
+            throw new IllegalArgumentException("The ConditionsObject does not have table meta data.");
+        }
+        if (object.getFieldValues().size() == 0) {
+            throw new IllegalArgumentException("The ConditionsObject has no values set.");
+        }
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("INSERT INTO " + object.getTableMetaData().getTableName() + "( collection_id, ");
+        for (String fieldName : object.getFieldValues().keySet()) {            
+            buffer.append(" " + fieldName + ",");
+        }
+        buffer.setLength(buffer.length() - 1);
+        buffer.append(" ) VALUES ( ?,");
+        for (Object value : object.getFieldValues().values()) {
+            buffer.append(" ?,");
+        }
+        buffer.setLength(buffer.length() - 1);
+        buffer.append(")");
+        return buffer.toString();
+    }
 
     static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
     
@@ -84,9 +107,10 @@ public final class QueryBuilder {
         for (Object value : fieldValues.values()) {
             String insertValue = value.toString();
             if (value instanceof Date) {
-                insertValue = dateFormat.format((Date) value);
+                buff.append(" STR_TO_DATE( '" + dateFormat.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ),");
+            } else {
+                buff.append(" '" + insertValue + "',");
             }
-            buff.append(" '" + insertValue + "',");
         }
         buff.setLength(buff.length() - 1);
         buff.append(")");
@@ -117,5 +141,9 @@ public final class QueryBuilder {
             throw new IllegalArgumentException("Invalid row ID: " + rowId);
         String query = "DELETE FROM " + tableName + " WHERE id = " + rowId;
         return query;
+    }
+    
+    public static String formatDate(Date date) {
+        return dateFormat.format(date);
     }
 }
