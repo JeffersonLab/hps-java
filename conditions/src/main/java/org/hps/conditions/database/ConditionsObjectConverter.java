@@ -81,7 +81,6 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             try {
                 collection.setCollectionId(conditionsRecords.get(0).getCollectionId());
                 collection.setTableMetaData(tableMetaData);
-                collection.setConditionsRecord(conditionsRecords.get(0));
             } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }

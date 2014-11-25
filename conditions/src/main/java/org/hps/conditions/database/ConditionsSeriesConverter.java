@@ -70,7 +70,6 @@ class ConditionsSeriesConverter {
 
             try {
                 collection.setCollectionId(conditionsRecord.getCollectionId());
-                collection.setConditionsRecord(conditionsRecords.get(0));
             } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }
