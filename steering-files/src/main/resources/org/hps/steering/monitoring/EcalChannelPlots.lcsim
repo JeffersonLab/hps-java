@@ -1,0 +1,24 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="EcalRawConverterDriver"/>
+        <driver name="EcalChannelADCPlotsDriver"/>
+        <driver name="EcalChannelADCSumPlotsDriver"/>
+        <driver name="EcalChannelEnergyPlotsDriver"/>        
+        <driver name="LCIODriver"/>
+    </execute>        
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+        <driver name="EcalRawConverterDriver" type="org.hps.recon.ecal.EcalRawConverterDriver">        
+        </driver>
+        <driver name="EcalChannelADCPlotsDriver" type="org.hps.monitoring.ecal.plots.EcalChannelADCPlotsDriver"/>
+        <driver name="EcalChannelEnergyPlotsDriver" type="org.hps.monitoring.ecal.plots.EcalChannelEnergyPlotsDriver"/>
+        <driver name="EcalChannelADCSumPlotsDriver" type="org.hps.monitoring.ecal.plots.EcalChannelADCSumPlotsDriver"/>
+        <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>EcalChannelTest</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>
