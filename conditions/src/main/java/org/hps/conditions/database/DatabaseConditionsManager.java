@@ -11,17 +11,21 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
@@ -58,19 +62,21 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 @SuppressWarnings("rawtypes")
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
-    static String connectionProperty = "org.hps.conditions.connection.file";
+    protected static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
+    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
+    protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    protected static final int TEST_RUN_MAX_RUN = 1365;
+
+    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
+    
     protected String detectorName;
     protected List<TableMetaData> tableMetaData;
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
-    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
     protected ConnectionParameters connectionParameters = new DefaultConnectionParameters();
     protected Connection connection;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
-    static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
-    static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-    protected static final int TEST_RUN_MAX_RUN = 1365;
     protected boolean isInitialized = false;
     protected String resourceConfig = null;
     protected File fileConfig = null;
@@ -81,6 +87,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
     protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
     protected String tag = null;
+    //protected boolean dryRun = false;
     
     /**
      * Default connection parameters which will use the SLAC database by default,
@@ -588,7 +595,57 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     public void setTag(String tag) {
         this.tag = tag;
     }
-       
+
+    public <ObjectType extends ConditionsObject> void insertCollection(ConditionsObjectCollection<ObjectType> collection) throws SQLException {
+        if (collection == null) {
+            throw new IllegalArgumentException("The collection is null.");
+        }
+        if (collection.getObjects().size() == 0) {
+            throw new IllegalArgumentException("The collection is empty.");
+        }
+        if (collection.getTableMetaData() == null) {
+            throw new RuntimeException("The collection does not have table meta data.");
+        }
+        TableMetaData tableMetaData = collection.getTableMetaData();
+        if (collection.getCollectionId() == -1) {
+            try {
+                collection.setCollectionId(this.getNextCollectionID(tableMetaData.getTableName()));
+            } catch (ConditionsObjectException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        logger.fine("inserting collection with ID " + collection.getCollectionId() 
+                + " and key " + collection.getTableMetaData().getKey() + " into table " + tableMetaData.getTableName());
+
+        try {
+            connection.setAutoCommit(false);
+            logger.finest("starting insert transaction");
+            String sql = QueryBuilder.buildPreparedInsert(collection.get(0));
+            PreparedStatement preparedStatement = 
+                connection.prepareStatement(sql);
+            logger.finest("using prepared statement: " + sql);
+            logger.finest("preparing updates");
+            for (ConditionsObject object : collection.getObjects()) {
+                preparedStatement.setObject(1, object.getCollectionId());
+                int parameterIndex = 2;
+                for (Entry<String,Object> entry : object.getFieldValues().entrySet()) {
+                    preparedStatement.setObject(parameterIndex, entry.getValue());
+                    ++parameterIndex;
+                }
+                preparedStatement.executeUpdate();
+            }
+            logger.finest("done preparing updates");
+            connection.commit();
+            logger.finest("committed transaction");
+        } catch (Exception e) {
+            logger.warning("rolling back transaction");
+            connection.rollback();
+            logger.warning("transaction was rolled back");
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+           
     private void setupEcal() {
         logger.config("setting up ECAL conditions on detector");
         EcalConditions conditions = getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
@@ -691,11 +748,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
      */
     private void setupConnectionFromSystemProperty() {
-        String systemPropertiesConnectionPath = (String) System.getProperties().get(connectionProperty);
+        String systemPropertiesConnectionPath = (String) System.getProperties().get(CONNECTION_PROPERTY);
         if (systemPropertiesConnectionPath != null) {
             File f = new File(systemPropertiesConnectionPath);
             if (!f.exists()) {
-                throw new RuntimeException("Connection properties file from " + connectionProperty + " does not exist.");
+                throw new RuntimeException("Connection properties file from " + CONNECTION_PROPERTY + " does not exist.");
             }
             this.setConnectionProperties(f);
         }
