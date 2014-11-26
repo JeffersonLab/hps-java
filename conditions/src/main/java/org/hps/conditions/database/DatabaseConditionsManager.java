@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -243,6 +242,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     @Override
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
 
+        if (detectorName == null) {
+            throw new IllegalArgumentException("The detectorName argument is null.");
+        }
+        
         logger.finest("setDetector detector " + detectorName + " and run #" + runNumber);
         
         if (!isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
