@@ -7,6 +7,8 @@
         <driver name="EcalChannelADCSumPlotsDriver"/>
         <driver name="EcalChannelEnergyPlotsDriver"/>        
         <driver name="LCIODriver"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="AidaSaveDriverRoot"/>
     </execute>        
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
@@ -19,6 +21,12 @@
         <driver name="EcalChannelADCSumPlotsDriver" type="org.hps.monitoring.ecal.plots.EcalChannelADCSumPlotsDriver"/>
         <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>EcalChannelTest</outputFilePath>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>EcalChannelPlots.aida</outputFileName>
+        </driver>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>EcalChannelPlots.root</outputFileName>
         </driver>
     </drivers>
 </lcsim>
