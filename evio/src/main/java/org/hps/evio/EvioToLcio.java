@@ -16,12 +16,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.log.LogUtil;
@@ -69,21 +71,27 @@ public class EvioToLcio {
 
     // The class's logger.
     Logger logger = LogUtil.create(EvioToLcio.class);
+    
+    LCSimEventBuilder eventBuilder = null;
+    
+    String detectorName;
 
     /**
      * The default constructor, which defines command line arguments and sets the log level.
      */
     protected EvioToLcio() {
-        logger.config("initializing");
+        logger.config("initializing EVIO to LCIO converter");
         options = new Options();
         options.addOption(new Option("l", true, "The name of the output LCIO file"));
         options.addOption(new Option("d", true, "The name of the detector to use for LCSim conditions"));
+        options.addOption(new Option("R", true, "A run number which will override those found in the input files"));
         options.addOption(new Option("x", true, "The XML steeering file to process the LCIO events"));
         options.addOption(new Option("n", true, "Maximum number of events to process"));
         options.addOption(new Option("D", true, "Pass a variable to the steering file with format -Dname=value"));
         options.addOption(new Option("r", false, "Interpret steering from -x argument as a resource instead of a file"));
         options.addOption(new Option("e", false, "Continue if errors occur during event processing"));
         options.addOption(new Option("L", true, "Set the log level"));
+        options.addOption(new Option("b", false, "Enable headless mode which will not show any plots"));
         logger.setLevel(Level.FINE);
     }
 
@@ -211,20 +219,43 @@ public class EvioToLcio {
                 logger.config("set steering variable: " + key + "=" + value);
             }
         }
+        if (cl.hasOption("b")) {
+            // Enable headless mode so no plots are shown.
+            jobManager.enableHeadlessMode();
+        }
         jobManager.setup(steeringStream);
         jobManager.configure();
         logger.config("LCSim job manager was successfully configured.");
 
         // Name of detector.
-        String detectorName = null;
         if (cl.hasOption("d")) {
             detectorName = cl.getOptionValue("d");
             logger.config("user set detector to " + detectorName);
         }
-
-        // LCSim event builder which will be initialized within the loop based on the run number.
-        LCSimEventBuilder eventBuilder = null;
-
+        
+        Integer runNumber = null;
+        if (cl.hasOption("R")) {
+            runNumber = Integer.parseInt(cl.getOptionValue("R"));
+        }
+        
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        
+        // Is there a user specified run number?
+        if (runNumber != null) {
+            logger.config("user specified to use run number " + runNumber);
+            
+            // Setup the event builder at the beginning of the job with the run number and detector name.
+            this.setupEventBuilder(detectorName, runNumber);
+            try {
+                // Setup the conditions system, which should initialize the event builder via the ConditionsListener callback.
+                conditionsManager.setDetector(detectorName, runNumber);
+            } catch (ConditionsNotFoundException e) {
+                throw new RuntimeException();
+            }            
+            // Freeze the conditions manager so run numbers from data are ignored.
+            conditionsManager.freeze();
+        }
+               
         for (String evioFileName : cl.getArgs()) {
             // EVIO input file.
             File evioFile = new File(evioFileName);
@@ -268,37 +299,46 @@ public class EvioToLcio {
 
                     // Handlers for different event types.
                     if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
-                        
+                                                
+                        // Get the pre start event's int data bank.
                         int[] data = evioEvent.getIntData();
-                        // int seconds = data[0];
-                        int runNumber = data[1];
                         
-                        logger.info("got EVIO pre start event with run #" + runNumber);
+                        // Does the int data bank actually exist?
+                        if (data != null) {
+                                                
+                            // int seconds = data[0];
+                            int preStartRunNumber = data[1];
+                        
+                            logger.info("EVIO pre start event with run #" + preStartRunNumber);
                                                                        
-                        // Has the event builder been initialized?
-                        if (eventBuilder == null) {
-                            // Initialize the event builder.
-                            eventBuilder = setupEventBuilder(detectorName, runNumber);
-                        }
+                            // Is the event builder uninitialized?
+                            if (eventBuilder == null) {
+                                // Initialize the event builder.
+                                setupEventBuilder(detectorName, preStartRunNumber);
+                            }
+                        } else {
+                            // Okay, this is a bank of banks structure that we don't know how to handle yet!
+                            logger.warning("pre start int data was null so no run number was read");                            
+                            // FIXME: Here need to get run number from "bank of banks" structure.
+                        }                        
                     }
 
                     // Setup state in the LCSimEventBuilder based on the EVIO event.
                     eventBuilder.readEvioEvent(evioEvent);
 
                     if (EvioEventUtilities.isEndEvent(evioEvent)) {
-                        logger.info("got EVIO end event");
-                        // int[] data = evioEvent.getIntData();
-                        // int seconds = data[0];
-                        // int nevents = data[2];
-                        // calibListener.endRun(seconds, nevents);
+                        int[] data = evioEvent.getIntData();
+                        int seconds = data[0];
+                        int totalEvents = data[2];
+                        logger.info("got EVIO end event with " + totalEvents + " events and " + seconds + " seconds");
                     } else if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
 
                         logger.finest("got EVIO physics event #" + evioEvent.getEventNumber());
 
                         // Is the event builder initialized?
                         if (eventBuilder == null) {
-                            // This can happen if there are no pre-start events in the EVIO file.
-                            throw new RuntimeException( "The LCSimEventBuilder was never setup.");
+                            // This can happen if there are no pre-start events in the EVIO file and no run number was explicitly given on the command line.
+                            throw new RuntimeException( "The LCSimEventBuilder was never setup.  You may need to manually specify a run number using the -R switch.");
                         }
 
                         EventHeader lcioEvent = eventBuilder.makeLCSimEvent(evioEvent);
@@ -379,26 +419,24 @@ public class EvioToLcio {
      * @param runNumber The run number which determines which event builder to use.
      * @return The LCSimEventBuilder for the Test Run or Engineering Run.
      */
-    private LCSimEventBuilder setupEventBuilder(String detectorName, int runNumber) {         
-        LCSimEventBuilder eventBuilder = null;
+    private void setupEventBuilder(String detectorName, int runNumber) {         
         // Is this run number not part of the Test Run?
         if (runNumber > 0 && runNumber <= EvioToLcio.TEST_RUN_END_RUN) {
             // This looks like a Test Run file.
             logger.info("using LCSimTestRunEventBuilder");
             eventBuilder = new LCSimTestRunEventBuilder();
             if (detectorName == null) {
-                detectorName = DEFAULT_TEST_RUN_DETECTOR;
+                this.detectorName = DEFAULT_TEST_RUN_DETECTOR;
             }
         } else {
             logger.info("using LCSimEngRunEventBuilder");
             eventBuilder = new LCSimEngRunEventBuilder();
             if (detectorName == null) {
-                detectorName = DEFAULT_ENG_RUN_DETECTOR;
+                this.detectorName = DEFAULT_ENG_RUN_DETECTOR;
             }
         }
-        eventBuilder.setDetectorName(detectorName);
+        eventBuilder.setDetectorName(this.detectorName);
         ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
-        logger.config("initialized " + eventBuilder.getClass().getCanonicalName() + " with detector " + detectorName + " and run number " + runNumber);
-        return eventBuilder;
-    }
+        logger.config("initialized " + eventBuilder.getClass().getCanonicalName() + " with detector " + this.detectorName + " and run number " + runNumber);
+    }    
 }
