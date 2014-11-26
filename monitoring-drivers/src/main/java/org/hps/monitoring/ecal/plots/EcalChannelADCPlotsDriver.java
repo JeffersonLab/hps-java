@@ -5,7 +5,6 @@ import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.plotter.style.registry.StyleRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,12 +53,11 @@ public class EcalChannelADCPlotsDriver extends Driver {
             channels.add(channel.getChannel());
         }
                 
-        IPlotterStyle style = StyleRegistry.getStyleRegistry().getStore("DefaultStyleStore").getStyle("DefaultHistogram1DStyle");
-        style.dataStyle().lineStyle().setVisible(false);
-        style.legendBoxStyle().setVisible(false);
-
         for (Integer crate : crates) {
-            IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("ECAL Crate " + crate);
+            IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("ECAL Raw ADC - Crate " + crate);
+            IPlotterStyle style = plotterFactory.createPlotterStyle();
+            style.dataStyle().lineStyle().setVisible(false);
+            style.legendBoxStyle().setVisible(false);
             int plottersIndex = crate - 1;
             plotterLists.add(new ArrayList<IPlotter>());
             List<IPlotter> plotters = plotterLists.get(plottersIndex);
