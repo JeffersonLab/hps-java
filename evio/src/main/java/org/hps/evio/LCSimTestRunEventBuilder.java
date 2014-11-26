@@ -58,15 +58,19 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             logger.info("Sync event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count since last sync " + data[1] + ", event count so far " + data[2] + ", status " + data[3]);
         } else if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
             int[] data = evioEvent.getIntData();
-            int seconds = data[0];
-            time = ((long) seconds) * 1000000000;
-            run = data[1];
-            logger.info("Prestart event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", run " + run + ", run type " + data[2]);
+            if (data != null) {
+                int seconds = data[0];
+                time = ((long) seconds) * 1000000000;
+                run = data[1];
+                logger.info("Prestart event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", run " + run + ", run type " + data[2]);
+            }
         } else if (EvioEventUtilities.isGoEvent(evioEvent)) {
             int[] data = evioEvent.getIntData();
-            int seconds = data[0];
-            time = ((long) seconds) * 1000000000;
-            logger.info("Go event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count so far " + data[2]);
+            if (data != null) {
+                int seconds = data[0];
+                time = ((long) seconds) * 1000000000;
+                logger.info("Go event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count so far " + data[2]);
+            }
         } else if (EvioEventUtilities.isPauseEvent(evioEvent)) {
             int[] data = evioEvent.getIntData();
             int seconds = data[0];
