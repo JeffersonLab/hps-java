@@ -1,8 +1,12 @@
 package org.hps.evio;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
@@ -25,6 +29,7 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.util.log.LogUtil;
 
 /**
  *
@@ -51,11 +56,16 @@ public class ECalEvioReader extends EvioReader {
 
     private int topBankTag, botBankTag;
 
+    private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
+
+    private static Logger logger = LogUtil.create(ECalEvioReader.class);
+
     public ECalEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
         this.botBankTag = botBankTag;
         hitCollectionName = "EcalReadoutHits";
 
+        logger.setLevel(Level.FINE);
         //System.out.println("You are now using the database conditions for ECalEvioReader.java");
         // ID helper.
 //        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
@@ -186,12 +196,11 @@ public class ECalEvioReader extends EvioReader {
                     adcValues[i] = cdata.getShort();
                 }
                 if (id == null) {
-                    System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
                     int[] data = new int[adcValues.length];
                     for (int i = 0; i < adcValues.length; i++) {
                         data[i] = adcValues[i];
                     }
-                    genericHits.add(new FADCGenericHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, data));
+                    processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, data));
                 } else {
                     hits.add(new BaseRawTrackerHit(
                             0,
@@ -254,12 +263,11 @@ public class ECalEvioReader extends EvioReader {
                         adcValues[i] = cdata.getShort();
                     }
                     if (id == null) {
-                        System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
                         int[] data = new int[adcValues.length];
                         for (int i = 0; i < adcValues.length; i++) {
                             data[i] = adcValues[i];
                         }
-                        genericHits.add(new FADCGenericHit(EventConstants.ECAL_PULSE_MODE, crate, slot, channel, data));
+                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_MODE, crate, slot, channel, data));
                     } else {
                         hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
                     }
@@ -304,9 +312,8 @@ public class ECalEvioReader extends EvioReader {
                         System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral);
                     }
                     if (id == null) {
-                        System.out.printf("Crate %d, slot %d, channel %d not found in map\n", crate, slot, channel);
                         int[] data = {pulseIntegral, pulseTime};
-                        genericHits.add(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
+                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
                     } else {
                         hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
                     }
@@ -314,6 +321,24 @@ public class ECalEvioReader extends EvioReader {
             }
         }
         return hits;
+    }
+
+    private void processUnrecognizedChannel(FADCGenericHit hit) {
+        genericHits.add(hit);
+
+        List<Integer> channelAddress = Arrays.asList(hit.getCrate(), hit.getSlot(), hit.getChannel());
+        Integer count = genericHitCount.get(channelAddress);
+        if (count == null) {
+            count = 0;
+        }
+        count++;
+        genericHitCount.put(channelAddress, count);
+
+        if (count < 10) {
+            logger.info(String.format("Crate %d, slot %d, channel %d not found in map\n", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+        } else if (count == 10) {
+            logger.warning(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel\n", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+        }
     }
 
     void initialize() {
