@@ -91,8 +91,7 @@ public final class EvioEventUtilities {
      */
     public static int[] getControlEventData(EvioEvent event) {
         int eventTag = event.getHeader().getTag();
-        System.out.format("event tag %d\n", eventTag);
-        switch (eventTag) {
+        switch (eventTag) { //if the event's not a control event, stop
             case PRESTART_EVENT_TAG:
             case PAUSE_EVENT_TAG:
             case END_EVENT_TAG:
@@ -104,21 +103,15 @@ public final class EvioEventUtilities {
         }
 
         int[] data = event.getIntData();
-        if (data != null) {
-            System.out.format("got data\n");
-
+        if (data != null) { //found the data in the top-level bank
             return data;
-        } else {
-            System.out.format("didn't get data\n");
-
+        } else { //data is not in event bank; look for the data bank whose tag matches the event type
             for (BaseStructure bank : event.getChildren()) {
-                System.out.format("got bank with tag %d\n", bank.getHeader().getTag());
                 if (bank.getHeader().getTag() == eventTag) {
-                    System.out.format("got data from bank\n");
-                    return bank.getIntData();
+                    return bank.getIntData(); //return whatever int data this bank has
                 }
             }
-            return null;
+            return null; //we didn't find the bank; give up
         }
     }
 }
