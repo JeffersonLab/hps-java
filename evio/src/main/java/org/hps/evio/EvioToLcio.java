@@ -301,7 +301,7 @@ public class EvioToLcio {
                     if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
                                                 
                         // Get the pre start event's int data bank.
-                        int[] data = evioEvent.getIntData();
+                        int[] data = EvioEventUtilities.getControlEventData(evioEvent);
                         
                         // Does the int data bank actually exist?
                         if (data != null) {
@@ -327,7 +327,7 @@ public class EvioToLcio {
                     eventBuilder.readEvioEvent(evioEvent);
 
                     if (EvioEventUtilities.isEndEvent(evioEvent)) {
-                        int[] data = evioEvent.getIntData();
+                        int[] data = EvioEventUtilities.getControlEventData(evioEvent);
                         int seconds = data[0];
                         int totalEvents = data[2];
                         logger.info("got EVIO end event with " + totalEvents + " events and " + seconds + " seconds");

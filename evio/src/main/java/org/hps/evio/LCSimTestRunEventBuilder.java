@@ -26,14 +26,14 @@ import org.lcsim.util.log.LogUtil;
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
-	String detectorName = null;
+    String detectorName = null;
     ECalEvioReader ecalReader = null;
     SVTEvioReader svtReader = null;
     protected int run = 0; //current run number, taken from prestart and end events
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
-    protected static Logger logger = LogUtil.create(LCSimTestRunEventBuilder.class); 
+    protected static Logger logger = LogUtil.create(LCSimTestRunEventBuilder.class);
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new ECalEvioReader(0x1, 0x2);
@@ -43,7 +43,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     @Override
     public void setDetectorName(String detectorName) {
-    	this.detectorName = detectorName;
+        this.detectorName = detectorName;
     }
 
     public void setEcalHitCollectionName(String ecalHitCollectionName) {
@@ -53,11 +53,11 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     @Override
     public void readEvioEvent(EvioEvent evioEvent) {
         if (EvioEventUtilities.isSyncEvent(evioEvent)) {
-            int[] data = evioEvent.getIntData();
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             int seconds = data[0];
             logger.info("Sync event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count since last sync " + data[1] + ", event count so far " + data[2] + ", status " + data[3]);
         } else if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
-            int[] data = evioEvent.getIntData();
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             if (data != null) {
                 int seconds = data[0];
                 time = ((long) seconds) * 1000000000;
@@ -65,19 +65,19 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
                 logger.info("Prestart event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", run " + run + ", run type " + data[2]);
             }
         } else if (EvioEventUtilities.isGoEvent(evioEvent)) {
-            int[] data = evioEvent.getIntData();
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             if (data != null) {
                 int seconds = data[0];
                 time = ((long) seconds) * 1000000000;
                 logger.info("Go event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count so far " + data[2]);
             }
         } else if (EvioEventUtilities.isPauseEvent(evioEvent)) {
-            int[] data = evioEvent.getIntData();
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             int seconds = data[0];
             time = ((long) seconds) * 1000000000;
             logger.info("Pause event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count so far " + data[2]);
         } else if (EvioEventUtilities.isEndEvent(evioEvent)) {
-            int[] data = evioEvent.getIntData();
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             int seconds = data[0];
             time = ((long) seconds) * 1000000000;
             run = 0;
@@ -128,7 +128,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         if (eventID == null) {
             logger.warning("No event ID bank found");
             eventID = new int[3];
-        } else {            
+        } else {
             logger.finest("Read EVIO event number " + eventID[0]);
             if (eventID[1] != 1) {
                 logger.warning("Trigger code is usually 1; got " + eventID[1]);
@@ -146,7 +146,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detectorName, time);
-        
+
         lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);
         return lcsimEvent;
     }
@@ -177,8 +177,8 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         return triggerData;
     }
 
-	@Override
-	public void conditionsChanged(ConditionsEvent conditionsEvent) {
-		ecalReader.initialize();
-	}
+    @Override
+    public void conditionsChanged(ConditionsEvent conditionsEvent) {
+        ecalReader.initialize();
+    }
 }
