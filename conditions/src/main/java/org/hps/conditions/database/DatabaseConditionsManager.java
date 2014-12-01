@@ -65,6 +65,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
     protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     protected static final int TEST_RUN_MAX_RUN = 1365;
+    
+    // The default Test Run detector.
+    private static final String DEFAULT_TEST_RUN_DETECTOR = "HPS-TestRun-v8-5";
+
+    // The default Engineering Run detector.
+    private static final String DEFAULT_ENG_RUN_DETECTOR = "HPS-Proposal2014-v8-6pt6";
+
 
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
     
@@ -682,6 +689,14 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public boolean isConnected() {
         return isConnected;
+    }
+    
+    public static String getDefaultTestRunDetectorName() {
+        return DEFAULT_TEST_RUN_DETECTOR;
+    }
+    
+    public static String getDefaultEngRunDetectorName() {
+        return DEFAULT_ENG_RUN_DETECTOR;
     }
 
     /**
