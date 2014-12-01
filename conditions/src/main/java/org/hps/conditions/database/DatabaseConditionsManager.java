@@ -223,6 +223,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return A collection of objects of the given type from the conditions
      *         database
      */
+    // TODO: This should distinguish among multiple conditions sets of the same type by using the one with the most recent date
+    //       in its ConditionsRecord.
     public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
         TableMetaData metaData = this.findTableMetaData(type).get(0);
         if (metaData == null) {
@@ -268,8 +270,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
     }
     
-    public boolean isTestRun(int runNumber) {
+    public static boolean isTestRun(int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
+    }
+    
+    public boolean isTestRun() {
+        return isTestRun(this.getRun());
     }
     
     /**
