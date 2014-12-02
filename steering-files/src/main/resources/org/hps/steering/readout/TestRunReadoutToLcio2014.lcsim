@@ -4,7 +4,9 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
+<!--
         <driver name="ConditionsDriver"/>   
+-->
         <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
         <driver name="BadChannelFilter" />
@@ -19,13 +21,13 @@
         <driver name="CleanupDriver"/>
     </execute> 
     <drivers>
-      <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-      <freeze>true</freeze>
-      <detectorName>HPSTestRunTracker2014-v0</detectorName>
-      <ecalName>Ecal</ecalName>
-      <svtName>Tracker</svtName>
-      <runNumber>1351</runNumber>
-  </driver>
+<!--
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">            
+            <detectorName>HPSTestRunTracker2014-v0</detectorName>
+            <runNumber>1351</runNumber>
+            <freeze>true</freeze>
+        </driver>
+-->
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
