@@ -40,6 +40,8 @@ public class EcalRawModeMipAnalysisDriver extends Driver {
     int nMipEvents = 0;
     HPSEcal3 ecal  = null;
     
+    int minNeighbors = 1;
+    
     public void detectorChanged(Detector detector) {
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();        
         channels = conditions.getChannelCollection();
@@ -51,6 +53,10 @@ public class EcalRawModeMipAnalysisDriver extends Driver {
     
     public void setSigmaThreshold(double sigmaThreshold) {
         this.sigmaThreshold = sigmaThreshold;
+    }
+    
+    public void setMinNeighbors(int minNeighbors) {
+        this.minNeighbors = minNeighbors;
     }
     
     public void process(EventHeader event) {
@@ -108,7 +114,7 @@ public class EcalRawModeMipAnalysisDriver extends Driver {
                 throw new RuntimeException("No crystal geometry object is assigned to hit.");
             }            
             Set<Long> neighborHitIDs = findNeighborHitIDs(hit, mipCandidateHits); 
-            if (neighborHitIDs.size() > 0) {
+            if (neighborHitIDs.size() >= minNeighbors) {
                 hitList.add(hit);
             }
         }
