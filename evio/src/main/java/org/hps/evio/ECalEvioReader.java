@@ -335,9 +335,9 @@ public class ECalEvioReader extends EvioReader {
         genericHitCount.put(channelAddress, count);
 
         if (count < 10) {
-            logger.info(String.format("Crate %d, slot %d, channel %d not found in map\n", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            logger.info(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         } else if (count == 10) {
-            logger.warning(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel\n", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            logger.warning(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         }
     }
 
