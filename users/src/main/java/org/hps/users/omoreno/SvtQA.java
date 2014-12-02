@@ -30,7 +30,6 @@ import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.apv25.SvtReadout;
 
 
 /**
