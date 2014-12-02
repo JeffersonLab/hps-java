@@ -30,8 +30,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.conditions.deprecated.HPSSVTSensorSetup;
-import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.jdom.Attribute;
 import org.jdom.DataConversionException;
