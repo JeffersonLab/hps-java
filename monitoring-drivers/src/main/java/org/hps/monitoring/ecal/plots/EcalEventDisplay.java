@@ -70,8 +70,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 	boolean[] isFirstRaw=new boolean[47*11];
 	
 	
-	boolean enableAllFadc=false; 
-    
+	
 	private PEventViewer viewer; //this is the Kyle event viewer.    
 
     
@@ -84,18 +83,18 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     IPlotterStyle pstyle;
     
     
-    double maxEch = 2500 * ECalUtils.MeV;
-    double minEch = -0.1;
+    double maxEch = 3500 * ECalUtils.MeV;
+    double minEch = 10* ECalUtils.MeV;
     
     int itmpx,itmpy;
+    
+    long thisTime,prevTime;
     
     public EcalEventDisplay() {
     	
     }
 
-    public void setEnableAllFadc(boolean enableAllFadc){
-        this.enableAllFadc = enableAllFadc;
-    }
+   
     
     public void setMaxEch(double maxEch) {
         this.maxEch = maxEch;
@@ -201,6 +200,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
        
         viewer.setVisible(true);
         
+        prevTime=0; //init the time 
+        thisTime=0; //init the time 
     }
 
     @Override
@@ -218,10 +219,12 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
           double[] result;
           
           boolean do_update=false;
-    	  if (++eventn % eventRefreshRate == 0) {
-              do_update=true;
-          }
-    	
+          thisTime=System.currentTimeMillis()/1000;
+          
+          if ((thisTime-prevTime)>eventRefreshRate){
+        	  prevTime=thisTime;
+        	  do_update=true;
+          }   	
     	  if (do_update){
           	viewer.resetDisplay();
     	    viewer.updateDisplay();
@@ -241,20 +244,15 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
                     	channelEnergyPlot.get(ii).fill(hit.getCorrectedEnergy());
                         channelTimePlot.get(ii).fill(hit.getTime());
                         channelTimeVsEnergyPlot.get(ii).fill(hit.getTime(),hit.getCorrectedEnergy());                                    
-                        }
+                    }
                     if ((do_update)){
                     	if ((hitE>minEch)&&(hitE<maxEch)){
                     		viewer.addHit(new EcalHit(column,row, hitE));  //before was in >0 check
                     	}
                     	else if (hitE>maxEch){
                     		viewer.addHit(new EcalHit(column,row, maxEch));  
-                    	}
-                    	
-                   
-                    
-                    	
-                    	
-                    	}
+                    	}                	
+                    }
                  } 
             }
         }
@@ -284,7 +282,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
         		 row=hit.getIdentifierFieldValue("iy");
                  column=hit.getIdentifierFieldValue("ix");
                  if ((row!=0)&&(column!=0)){
-                	 if (!ECalUtils.isInHole(row,column)||(enableAllFadc)){
+                	 if (!ECalUtils.isInHole(row,column)){
                 	 
                 		 ii = ECalUtils.getHistoIDFromRowColumn(row,column);
                 		 if (isFirstRaw[ii]){ //at the very first hit we read for this channel, we need to read the window length and save it
@@ -361,7 +359,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     	itmpy=(int) ecalPoint.getY(); //row
     	
     	if ((itmpx!=0)&&(itmpy!=0))
-    		if (!ECalUtils.isInHole(itmpy,itmpx)||(enableAllFadc)){
+    		if (!ECalUtils.isInHole(itmpy,itmpx)){
     			ix=itmpx;
     			iy=itmpy;
     			id=ECalUtils.getHistoIDFromRowColumn(iy,ix);
