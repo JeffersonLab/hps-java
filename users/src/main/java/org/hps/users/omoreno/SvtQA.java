@@ -756,7 +756,7 @@ public class SvtQA extends Driver {
                     System.out.println("%===================================================================% \n");
                     for(int index = 0; index < 640; index++){
                         // Check is the channel can be considered bad    
-                        this.checkChannel(sensor, index);
+                        //this.checkChannel(sensor, index);
                     }
                     System.out.println("%===================================================================% \n");
                 }
@@ -790,6 +790,7 @@ public class SvtQA extends Driver {
             }
         }
 
+    /*
     public double getOccupancy(HpsSiSensor sensor, int channel){
         if(!enableOccupancy) throw new RuntimeException("Occupancy calculation was not enabled!"); 
         double nEvents = simulation ? SvtReadout.getNumberOfTriggers()  : totalNumberEvents; 
@@ -802,7 +803,7 @@ public class SvtQA extends Driver {
         if(sensor.isBadChannel(channel)) return;
 
         // Find the occupancy of the current channel
-        double currentChannelOccu = this.getOccupancy(sensor, channel);
+        //double currentChannelOccu = this.getOccupancy(sensor, channel);
 
         // If the channel exceeds the maximum allowable occupancy, then it's a bad channel
         if(currentChannelOccu > maxOccupancy){
@@ -837,5 +838,5 @@ public class SvtQA extends Driver {
                 System.out.println("Channel " + channel + ": Channel Variation exceeds maximum -- LVar: " + lOccuDiff + " RVar: " + rOccuDiff);
             }
         }
-    }
+    }*/
 }
