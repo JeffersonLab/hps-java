@@ -62,11 +62,10 @@
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
-            <enableAllFadc>true</enableAllFadc>
             <pedSamples>20</pedSamples>
             <maxEch>10.0</maxEch>
-            <minEch>-0.01</minEch>
-            <eventRefreshRate>100</eventRefreshRate>
+            <minEch>0.005</minEch>
+            <eventRefreshRate>5</eventRefreshRate>
         </driver>
 <!-- Here are commented drivers -->
           <!--<driver name="RunControlDriver" type="org.hps.util.RunControlDriver"> -->
