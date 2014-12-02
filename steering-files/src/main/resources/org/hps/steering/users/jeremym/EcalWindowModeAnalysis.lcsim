@@ -1,0 +1,48 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
+    <execute>
+        <driver name="EventMarkerDriver"/>         
+<!--          
+        <driver name="EcalADCPlotsDriver"/>
+        <driver name="EcalADCSumPlotsDriver"/>
+        <driver name="EcalADCThresholdPlotsDriver"/>        
+-->        
+        <driver name="EcalADCSignalPlotsDriver"/>
+        <driver name="EcalRawConverterDriver"/>
+<!--               
+        <driver name="EcalEnergyPlotsDriver"/>
+-->           
+        <driver name="LCIODriver"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="AidaSaveDriverRoot"/>
+    </execute>        
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>100</eventInterval>
+        </driver>
+<!--          
+        <driver name="EcalADCPlotsDriver" type="org.hps.users.jeremym.EcalADCPlotsDriver"/>
+        <driver name="EcalEnergyPlotsDriver" type="org.hps.users.jeremym.EcalEnergyPlotsDriver"/>
+        <driver name="EcalADCSumPlotsDriver" type="org.hps.users.jeremym.EcalADCSumPlotsDriver"/>
+        <driver name="EcalADCThresholdPlotsDriver" type="org.hps.users.jeremym.EcalADCThresholdPlotsDriver"/>
+-->        
+        <driver name="EcalADCSignalPlotsDriver" type="org.hps.users.jeremym.EcalADCSignalPlotsDriver">
+            <sigmaThreshold>2.5</sigmaThreshold>
+            <outputHitsCollectionName>SelectedEcalReadoutHits</outputHitsCollectionName>            
+        </driver>
+        <driver name="EcalRawConverterDriver" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>SelectedEcalReadoutHits</rawCollectionName>
+            <ecalCollectionName>SelectedEcalCalHits</ecalCollectionName>
+        </driver>
+        <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>SelectedEcalCalHits</outputFilePath>
+            <writeOnlyCollections>SelectedEcalCalHits</writeOnlyCollections>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>EcalChannelPlots.aida</outputFileName>
+        </driver>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>EcalChannelPlots.root</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>
