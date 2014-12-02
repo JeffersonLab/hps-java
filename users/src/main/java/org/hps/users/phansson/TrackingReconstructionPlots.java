@@ -978,7 +978,23 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                 l = Integer.parseInt(str_l);
             }
             else if(name.contains("module") && name.contains("_halfmodule")) {
-                l = HPSTrackerBuilder.getOldGeomDefLayerFromVolumeName(name);
+                int ll = HPSTrackerBuilder.getLayerFromVolumeName(name);
+                boolean isAxial = HPSTrackerBuilder.isAxialFromName(name);
+                boolean isTopLayer = HPSTrackerBuilder.getHalfFromName(name).equals("top") ? true : false;
+                if(isAxial) {
+                    if(isTopLayer) {
+                        l = 2*ll-1;
+                    }
+                    else {
+                        l = 2*ll;
+                    }
+                } else {
+                    if(isTopLayer) {
+                        l = 2*ll;
+                    } else {
+                        l = 2*ll-1;
+                    }
+                }
             } else {
                 throw new RuntimeException("Cannot get layer from name " + name);
             }
