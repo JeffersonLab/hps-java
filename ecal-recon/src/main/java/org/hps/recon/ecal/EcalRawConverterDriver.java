@@ -102,6 +102,7 @@ public class EcalRawConverterDriver extends Driver {
     public void detectorChanged(Detector detector) {
                
         // set the detector for the converter
+        // FIXME: This method doesn't even need the detector object and does not use it.
         converter.setDetector(detector);
 
         // ECAL combined conditions object.
