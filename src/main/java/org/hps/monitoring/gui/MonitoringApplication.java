@@ -552,14 +552,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         saveLayoutItem.setActionCommand(SAVE_LAYOUT);
         saveLayoutItem.addActionListener(this);
         saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
-        saveLayoutItem.setSelected(configurationModel.getSaveLayout()); /*
-                                                                         * Initial setting from
-                                                                         * config.
-                                                                         */
-        saveLayoutItem.addPropertyChangeListener(this); /*
-                                                         * Any subsequent changes to model will
-                                                         * activate this.
-                                                         */
+        saveLayoutItem.setSelected(configurationModel.getSaveLayout());
+        saveLayoutItem.addPropertyChangeListener(this); 
+        
         applicationMenu.add(saveLayoutItem);
 
         JMenuItem restoreLayoutItem = new JMenuItem("Restore Default GUI Layout");
