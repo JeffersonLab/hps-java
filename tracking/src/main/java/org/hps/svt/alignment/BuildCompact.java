@@ -1,9 +1,11 @@
 package org.hps.svt.alignment;
 
 /**
- * Class building a new compact.xml detector based on MillepedeII input corrections
- * @author phansson
- * created on 1/15/2014
+ * Class building a new compact.xml detector based on MillepedeII input
+ * corrections.
+ * 
+ * @author 	Per Ola Hansson Adrian <phansson@slac.stanford.edu>
+ * @date 	January 15, 2014 
  */
 
 import hep.physics.vec.BasicHep3Vector;
@@ -30,9 +32,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.conditions.deprecated.HPSSVTSensorSetup;
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.tracking.SvtSensorSetup;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -222,7 +223,7 @@ public class BuildCompact {
 		
 		
 		// setup sensors
-		HPSSVTSensorSetup sensorSetup = new HPSSVTSensorSetup();
+		SvtSensorSetup sensorSetup = new SvtSensorSetup();
 		sensorSetup.detectorChanged(det);
 		
 		// Loop over all millepede input files and match parameters with detectors
