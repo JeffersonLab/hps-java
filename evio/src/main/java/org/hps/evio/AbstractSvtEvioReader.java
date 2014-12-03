@@ -167,8 +167,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 			// Check that a complete set of samples exist
 			int sampleCount = data.length - this.getDataHeaderLength()
 					- this.getDataTailLength();
-			System.out.println("[ " + this.getClass().getSimpleName()
-					+ " ]: Sample count: " + sampleCount);
+			//System.out.println("[ " + this.getClass().getSimpleName()
+			//		+ " ]: Sample count: " + sampleCount);
 			if (sampleCount % 4 != 0) {
 				throw new RuntimeException("[ "
 						+ this.getClass().getSimpleName()
@@ -176,10 +176,10 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 			}
 
 			// Loop through all of the samples and make hits
-			for (int samplesN = this.getDataHeaderLength(); samplesN < sampleCount; samplesN += 4) {
+			for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
 
 				int[] samples = new int[4];
-				System.arraycopy(data, samplesN, samples, 0, samples.length);
+				System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
 				rawHits.add(this.makeHit(samples));
 			}
 		}
