@@ -140,9 +140,17 @@ public class FEETrigger extends TriggerDriver {
                                         */ 
                                         //10
                                         
+                                        /*
                                         if( ix > 19 || ix < -22) { zone3Count++; } //x1
 					if(ix < 20 && ix  > 9 || ix > -22 && ix <-17)  { zone2Count++; }//x10
 					if((ix > 5 && ix < 10) || (ix > -18 && ix < -14)) { zone1Count++; }    //x50
+                                        */
+                                        
+                                        //V11
+                                        
+                                        if( ix > 19 || ix < -22) { zone3Count++; } //x1
+					if(ix < 20 && ix  > 11 || ix > -22 && ix <-19)  { zone2Count++; }//x10
+					if((ix > 5 && ix < 12) || (ix > -20 && ix < -14)) { zone1Count++; }    //x50
                                 
                                 }
 			}

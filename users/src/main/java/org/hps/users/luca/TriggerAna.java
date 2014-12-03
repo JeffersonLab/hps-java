@@ -106,12 +106,12 @@ public void startOfData(){
     //initialize the writers
     writer=new FileWriter(outputFileName);
     //writer2=new FileWriter(outputFileName2);
-    writer3=new FileWriter(outputFileName3);
+   // writer3=new FileWriter(outputFileName3);
     
     //Clear the files
     writer.write("");
    // writer2.write("");
-    writer3.write("");
+   // writer3.write("");
     
     
     
@@ -129,7 +129,7 @@ public void endOfData(){
 //close the file writer.
     writer.close();
  //   writer2.close();
-    writer3.close();
+    //writer3.close();
     
     }
 catch(IOException e){
@@ -140,7 +140,7 @@ catch(IOException e){
  @Override  
  public void process (EventHeader event){
    
-          if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
+         /* if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
         List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );   
             for(HPSEcalCluster cluster : clusterList){
                 
@@ -154,7 +154,7 @@ catch(IOException e){
             }
           
           }
-           
+         */  
      
      //get the clusters from the event IF they are triggered
     if(TriggerDriver.triggerBit()){

@@ -2,42 +2,23 @@
 package org.hps.users.luca;
 
 //import hep.aida.ITupleColumn.String;
-import java.io.IOException;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.lang.String;
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.ParticleID;
-import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
-import org.lcsim.lcio.LCIOConstants;
-import org.lcsim.util.Driver;
-import java.util.List;
-import org.lcsim.event.Cluster;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.SimCalorimeterHit;
-import org.lcsim.event.SimTrackerHit;
-import org.lcsim.event.Track;
 import org.lcsim.util.Driver;
-import org.lcsim.event.base.CalorimeterHitImpl;
-
+import hep.aida.IHistogram1D;
+import org.lcsim.util.aida.AIDA;
 // the class has to be derived from the driver class
 public class CalibTest extends Driver {
-int counter=0;
-
+//int counter=0;
+AIDA aida = AIDA.defaultInstance();
+IHistogram1D electronEne=aida.histogram1D("Electrons' energy spectrum",300, 0, 3);
+IHistogram1D positronEne=aida.histogram1D("Protons' energy spectrum",300, 0, 3);
   // constructor
-  public CalibTest() {
-  }
+ // public CalibTest() {
+  //}
     
   //  overwrite the process method
   @Override
@@ -50,14 +31,15 @@ int counter=0;
     for (MCParticle particle : mcParticles)
  {
      if(particle.getPDGID()==11)
-     {if(particle.getEnergy()> 2.1){
-         counter++;
-       }
+     {electronEne.fill(particle.getEnergy());
+     }
+     else if(particle.getPDGID()==-11)
+     {positronEne.fill(particle.getEnergy());
      }
      
      //System.out.println(particle.getPDGID());
  } 
-System.out.println("ho contato" + counter + "elettroni. \n");
+//System.out.println("ho contato" + counter + "elettroni. \n");
     /*  try
      {
     FileOutputStream prova = new FileOutputStream("prova.txt");
