@@ -13,7 +13,7 @@ import org.hps.util.Pair;
 import static org.hps.evio.EventConstants.TEST_RUN_SVT_BANK_TAG;
 
 /**
- *	Test run SVT EVIO reader used to convert SVT bank raw integers to LCIO
+ *	Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
  *	objects.
  * 
  * 	@author Omar Moreno <omoreno1@ucsc.edu>
