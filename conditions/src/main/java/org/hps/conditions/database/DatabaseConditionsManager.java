@@ -113,9 +113,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             
             try {
                 // Are we running inside the JLAB network?
-                if (InetAddress.getLocalHost().getHostName().contains("jlab.org")) {
+                if (InetAddress.getLocalHost().getCanonicalHostName().contains("jlab.org")) {
                     // Use the JLAB database.
-                    this.hostname = "jmysql.jlab.org";                    
+                    this.hostname = "jmysql.jlab.org";                                      
+                    logger.config("found JLAB hostname " + InetAddress.getLocalHost().getCanonicalHostName());
                 } 
             } catch (UnknownHostException e) {
                 // Something wrong with the user's host name, but try to continue anyways.
