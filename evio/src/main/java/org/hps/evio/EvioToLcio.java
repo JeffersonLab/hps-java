@@ -75,7 +75,7 @@ public class EvioToLcio {
         options.addOption(new Option("d", true, "The name of the detector to use for LCSim conditions"));
         options.addOption(new Option("R", true, "A run number which will override those found in the input files"));
         options.addOption(new Option("x", true, "The XML steeering file to process the LCIO events"));
-        options.addOption(new Option("n", true, "Maximum number of events to process"));
+        options.addOption(new Option("n", true, "Maximum number of events to process per input file"));
         options.addOption(new Option("D", true, "Pass a variable to the steering file with format -Dname=value"));
         options.addOption(new Option("r", false, "Interpret steering from -x argument as a resource instead of a file"));
         options.addOption(new Option("L", true, "Set the log level (INFO, FINE, FINEST, etc.)"));
