@@ -10,6 +10,7 @@ public final class EventConstants {
     public static final int ECAL_TOP_BANK_TAG = 0x1;
     public static final int ECAL_BOTTOM_BANK_TAG = 0x2;
     public static final int SVT_BANK_TAG = 0x3;
+    public static final int TEST_RUN_SVT_BANK_TAG = 0x3;
     
     // These values are put into the number field of the banks.
     public static final int SVT_BANK_NUMBER = 1;
