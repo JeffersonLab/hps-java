@@ -155,7 +155,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 			// ranges. If not, throw an exception
 			int dataBankTag = dataBank.getHeader().getTag();
 			if (dataBankTag < MIN_DATA_BANK_TAG
-					|| dataBankTag >= this.getMaxDataBankTag()) {
+					|| dataBankTag > this.getMaxDataBankTag()) {
 				throw new RuntimeException("[ "
 						+ this.getClass().getSimpleName()
 						+ " ]: Unexpected data bank tag:  " + dataBankTag);
