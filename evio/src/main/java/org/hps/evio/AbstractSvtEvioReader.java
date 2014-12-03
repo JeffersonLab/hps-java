@@ -75,11 +75,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	abstract protected int getDataTailLength();
 
 	/**
-	 * 
-	 */
-	abstract protected String getDataBankCollectionName();
-
-	/**
 	 *	A method to setup a mapping between a DAQ pair 
 	 *	(FPGA/Hybrid or FEB ID/FEB Hybrid ID) and the corresponding sensor.
 	 *
