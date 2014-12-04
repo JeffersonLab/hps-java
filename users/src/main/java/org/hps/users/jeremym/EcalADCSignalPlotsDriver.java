@@ -1,12 +1,16 @@
 package org.hps.users.jeremym;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
+import hep.aida.IProfile1D;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
@@ -24,24 +28,31 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This Driver will process ECAL raw mode (window) data and extract hits 
  * that look like signal, by requiring a certain number of ADC samples
- * in a row that are above a sigma threshold.
+ * in a row that are above a sigma threshold.  For events with number
+ * of hits greater than a minimum (5 by default), it will convert
+ * the raw data into CalorimeterHits and write them to an output
+ * collection.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalADCSignalPlotsDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;
-
-    Map<EcalChannel, Double[]> channelADCValues = new HashMap<EcalChannel, Double[]>();
-    Map<EcalChannel, Integer> channelEventCounts = new HashMap<EcalChannel, Integer>();
+    
+    Map<EcalChannel, IProfile1D> signalProfiles = new HashMap<EcalChannel, IProfile1D>();
+    Map<EcalChannel, IProfile1D> backgroundProfiles = new HashMap<EcalChannel, IProfile1D>();
+    
     AIDA aida = AIDA.defaultInstance();
     IAnalysisFactory analysisFactory = aida.analysisFactory();
     double sigmaThreshold = 2.5;
-    int minimumSelectedHits = 3;
+    
+    int minimumSelectedSamples = 3;
+    int minimumNumberOfHits = 3;
+    int minNeighbors = 2;
     String outputHitsCollectionName = null;
     String inputHitsCollectionName = "EcalReadoutHits";
     HPSEcal3 ecal = null;
-    String ecalName = "Ecal";
+    static String ecalName = "Ecal";
 
     /**
      * Set the sigma threshold for an ADC value.
@@ -56,8 +67,12 @@ public class EcalADCSignalPlotsDriver extends Driver {
      * saved for the event.
      * @param selectedHits The minimum number of hits above threshold.
      */
-    public void setMinimumHits(int selectedHits) {
-        this.minimumSelectedHits = selectedHits;
+    public void setMinimumSelectedSamples(int minimumSelectedSamples) {
+        this.minimumSelectedSamples = minimumSelectedSamples;
+    }
+    
+    public void setMinimumNumberOfHits(int minimumNumberOfHits) {
+        this.minimumNumberOfHits = minimumNumberOfHits;
     }
     
     public void setOutputHitsCollectionName(String outputHitsCollectionName) {
@@ -68,13 +83,9 @@ public class EcalADCSignalPlotsDriver extends Driver {
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
-        for (EcalChannel channel : conditions.getChannelCollection()) {
-            channelADCValues.put(channel, new Double[100]);
-            channelEventCounts.put(channel, new Integer(0));            
-            Double[] adcValues = channelADCValues.get(channel); 
-            for (int adcSample = 0; adcSample < adcValues.length; adcSample++) {
-                adcValues[adcSample] = new Double(0.0);                
-            }
+        for (EcalChannel channel : conditions.getChannelCollection()) {            
+            signalProfiles.put(channel, aida.profile1D("Average Signal ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
+            backgroundProfiles.put(channel, aida.profile1D("Average Background ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
         }
     }
 
@@ -85,10 +96,6 @@ public class EcalADCSignalPlotsDriver extends Driver {
             for (RawTrackerHit hit : hits) {
                 EcalChannel channel = channels.findGeometric(hit.getCellID());
                 if (channel != null) {
-                    Double[] adcValues = channelADCValues.get(channel);
-                    if (adcValues == null) {
-                        throw new RuntimeException("The ADC values array is null.");
-                    }
                     int nSelectedHits = 0;
                     boolean saveHit = false;
                     EcalChannelConstants channelConstants = conditions.getChannelConstants(channel);
@@ -99,7 +106,7 @@ public class EcalADCSignalPlotsDriver extends Driver {
                         short adcValue = hit.getADCValues()[adcIndex];
                         if (adcValue > threshold) {
                             ++nSelectedHits;
-                            if (nSelectedHits >= minimumSelectedHits) {
+                            if (nSelectedHits >= minimumSelectedSamples) {
                                 saveHit = true;
                                 break adcThresholdLoop;
                             }
@@ -107,41 +114,37 @@ public class EcalADCSignalPlotsDriver extends Driver {
                             nSelectedHits = 0;
                         }                        
                     }
+                    
+                    // Pick the signal or background Profile1D based on the selection.
+                    IProfile1D profile = null;
                     if (saveHit) {
-                        for (int adcIndex = 0; adcIndex < hit.getADCValues().length; adcIndex++) {
-                            adcValues[adcIndex] += hit.getADCValues()[adcIndex];
-                        }
-                        Integer nEvents = channelEventCounts.get(channel);
-                        nEvents += 1;
-                        channelEventCounts.put(channel, nEvents);
-                        
-                        // Add hit to selected hits list.
+                        profile = signalProfiles.get(channel);
                         selectedHitsList.add(hit);
+                    } else {
+                        profile = backgroundProfiles.get(channel);
                     }
+                    
+                    // Fill the Profile1D.
+                    for (int adcIndex = 0; adcIndex < hit.getADCValues().length; adcIndex++) {
+                        profile.fill(adcIndex, hit.getADCValues()[adcIndex]);
+                    }                    
                 } else {
                     System.err.println("EcalChannel not found for cell ID 0x" + String.format("%08d", Long.toHexString(hit.getCellID())));
                 }
             }
-            
-            if (outputHitsCollectionName != null) {
-                // Save selected hits list to event.
-                event.put(outputHitsCollectionName, selectedHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
-            }
+                        
+            if (outputHitsCollectionName != null) {     
+                // Is number of hits above minimum?
+                if (selectedHitsList.size() >= this.minimumNumberOfHits) {
+                    // Save selected hits list to event.
+                    getLogger().info("writing " + selectedHitsList.size() + " hits into " + outputHitsCollectionName);
+                    event.put(outputHitsCollectionName, selectedHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
+                } else {
+                    // Skip this event so LCIODriver does not write this event.
+                    throw new NextEventException();
+                }
+            }                        
         }
     }
 
-    public void endOfData() {
-        for (EcalChannel channel : conditions.getChannelCollection()) {
-            int nEvents = channelEventCounts.get(channel);
-            IHistogram1D channelHistogram = aida.histogram1D("Average Signal ADC Values : " + channel.getChannelId(), 100, 0, 100);
-            Double[] adcValues = channelADCValues.get(channel);
-            for (int adcIndex = 0; adcIndex < adcValues.length; adcIndex++) {
-                // Calculate the average ADC value across number of events processed for this channel.
-                double averageAdcValue = adcValues[adcIndex] / nEvents;
-                
-                // Fill the ADC sample's bin, scaling by the ADC value.
-                channelHistogram.fill(adcIndex, averageAdcValue);
-            }
-        }
-    }
 }
