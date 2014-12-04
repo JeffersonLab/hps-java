@@ -67,6 +67,7 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
 			builder.readEvioEvent(evioEvent);
 			if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
 				EventHeader lcsimEvent = builder.makeLCSimEvent(evioEvent);
+				System.out.println("[ " + this.getClass().getSimpleName() + " ]: Created event number " + lcsimEvent.getEventNumber());
 			}
 		}
 		

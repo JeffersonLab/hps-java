@@ -28,7 +28,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     String detectorName = null;
     ECalEvioReader ecalReader = null;
-    SVTEvioReader svtReader = null;
+    AbstractSvtEvioReader svtReader = null;
     protected int run = 0; //current run number, taken from prestart and end events
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
@@ -37,7 +37,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new ECalEvioReader(0x1, 0x2);
-        svtReader = new SVTEvioReader();
+        svtReader = new TestRunSvtEvioReader();
         logger.setLevel(Level.FINE);
     }
 
