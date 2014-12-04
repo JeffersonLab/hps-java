@@ -9,6 +9,7 @@
 -->        
         <driver name="EcalADCSignalPlotsDriver"/>
         <driver name="EcalRawConverterDriver"/>
+        <driver name="EcalCosmicClusterDriver"/>
 <!--               
         <driver name="EcalEnergyPlotsDriver"/>
 -->           
@@ -18,7 +19,7 @@
     </execute>        
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
 <!--          
         <driver name="EcalADCPlotsDriver" type="org.hps.users.jeremym.EcalADCPlotsDriver"/>
@@ -34,9 +35,10 @@
             <rawCollectionName>SelectedEcalReadoutHits</rawCollectionName>
             <ecalCollectionName>SelectedEcalCalHits</ecalCollectionName>
         </driver>
+        <driver name="EcalCosmicClusterDriver" type="org.hps.users.jeremym.EcalCosmicClusterDriver"/>
         <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>SelectedEcalCalHits</outputFilePath>
-            <writeOnlyCollections>SelectedEcalCalHits</writeOnlyCollections>
+            <outputFilePath>EcalCosmicEvents</outputFilePath>
+            <writeOnlyCollections>SelectedEcalCalHits EcalCosmicClusters</writeOnlyCollections>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>EcalChannelPlots.aida</outputFileName>
