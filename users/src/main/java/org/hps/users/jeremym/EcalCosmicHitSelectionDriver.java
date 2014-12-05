@@ -1,16 +1,9 @@
 package org.hps.users.jeremym;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IProfile1D;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
@@ -34,14 +27,11 @@ import org.lcsim.util.aida.AIDA;
  * collection.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalADCSignalPlotsDriver extends Driver {
+public class EcalCosmicHitSelectionDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;
-    
-    Map<EcalChannel, IProfile1D> signalProfiles = new HashMap<EcalChannel, IProfile1D>();
-    Map<EcalChannel, IProfile1D> backgroundProfiles = new HashMap<EcalChannel, IProfile1D>();
-    
+        
     AIDA aida = AIDA.defaultInstance();
     IAnalysisFactory analysisFactory = aida.analysisFactory();
     double sigmaThreshold = 2.5;
@@ -49,7 +39,7 @@ public class EcalADCSignalPlotsDriver extends Driver {
     int minimumSelectedSamples = 3;
     int minimumNumberOfHits = 3;
     int minNeighbors = 2;
-    String outputHitsCollectionName = null;
+    String outputHitsCollectionName = "EcalCosmicReadoutHits";
     String inputHitsCollectionName = "EcalReadoutHits";
     HPSEcal3 ecal = null;
     static String ecalName = "Ecal";
@@ -83,10 +73,6 @@ public class EcalADCSignalPlotsDriver extends Driver {
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
-        for (EcalChannel channel : conditions.getChannelCollection()) {            
-            signalProfiles.put(channel, aida.profile1D("Average Signal ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
-            backgroundProfiles.put(channel, aida.profile1D("Average Background ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
-        }
     }
 
     public void process(EventHeader event) {
@@ -115,36 +101,24 @@ public class EcalADCSignalPlotsDriver extends Driver {
                         }                        
                     }
                     
-                    // Pick the signal or background Profile1D based on the selection.
-                    IProfile1D profile = null;
                     if (saveHit) {
-                        profile = signalProfiles.get(channel);
+                        // Add hit to output list.
                         selectedHitsList.add(hit);
-                    } else {
-                        profile = backgroundProfiles.get(channel);
-                    }
-                    
-                    // Fill the Profile1D.
-                    for (int adcIndex = 0; adcIndex < hit.getADCValues().length; adcIndex++) {
-                        profile.fill(adcIndex, hit.getADCValues()[adcIndex]);
-                    }                    
+                    }                   
                 } else {
                     System.err.println("EcalChannel not found for cell ID 0x" + String.format("%08d", Long.toHexString(hit.getCellID())));
                 }
             }
-                        
-            if (outputHitsCollectionName != null) {     
-                // Is number of hits above minimum?
-                if (selectedHitsList.size() >= this.minimumNumberOfHits) {
-                    // Save selected hits list to event.
-                    getLogger().info("writing " + selectedHitsList.size() + " hits into " + outputHitsCollectionName);
-                    event.put(outputHitsCollectionName, selectedHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
-                } else {
-                    // Skip this event so LCIODriver does not write this event.
-                    throw new NextEventException();
-                }
-            }                        
+                             
+            // Is number of hits above minimum?
+            if (selectedHitsList.size() >= this.minimumNumberOfHits) {
+                // Save selected hits list to event.
+                //getLogger().info("writing " + selectedHitsList.size() + " hits into " + outputHitsCollectionName);
+                event.put(outputHitsCollectionName, selectedHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
+            } else {
+                // Skip this event so LCIODriver does not write this event.
+                throw new NextEventException();
+            }                                   
         }
     }
-
 }

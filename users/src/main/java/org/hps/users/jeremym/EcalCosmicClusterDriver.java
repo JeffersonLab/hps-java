@@ -26,9 +26,10 @@ import org.lcsim.util.Driver;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim "THammer" Nelson <tknelson@slac.stanford.edu>
  */
+// TODO: Add output collection of RawTrackerHits.
 public class EcalCosmicClusterDriver extends Driver {
 
-    String inputHitCollectionName = "SelectedEcalCalHits";
+    String inputHitCollectionName = "EcalCosmicCalHits";
     String outputClusterCollectionName = "EcalCosmicClusters";
     String ecalName = "Ecal";
     HPSEcal3 ecal = null;
@@ -91,7 +92,7 @@ public class EcalCosmicClusterDriver extends Driver {
             if (clusterCollection.size() > 0) {
                 int flags = 1 << LCIOConstants.CLBIT_HITS;                
                 event.put(outputClusterCollectionName, clusterCollection, Cluster.class, flags);
-                //System.out.println("added cluster to " + outputClusterCollectionName + " with size " + clusterCollection.size());
+                //System.out.println("added " + clusterCollection.size() + " clusters to " + outputClusterCollectionName);
             } else {
                 throw new NextEventException();
             }
