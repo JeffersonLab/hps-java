@@ -31,9 +31,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>org/hps/users/jeremym/MockDataChallengeDiagnosticDriverTest.java</exclude>
-                        <exclude>org/hps/users/ngraf/NearestNeighborClusterDriverTest.java</exclude>
 			<exclude>org/hps/users/holly/ECalClusterICTest.java</exclude>
+                        <exclude>org/hps/users/jeremym/MockDataChallengeDiagnosticDriverTest.java</exclude>
+			<exclude>org/hps/users/jeremym/LandauTest.java</exclude>
+                        <exclude>org/hps/users/ngraf/NearestNeighborClusterDriverTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
