@@ -16,13 +16,14 @@ import java.util.List;
 import java.lang.System;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 
-
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
+import org.hps.monitoring.ecal.eventdisplay.ui.PDataEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
@@ -189,7 +190,29 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
         
         
         System.out.println("Create the event viewer");
-        viewer=new PEventViewer();
+        // Check if the configuration mapping file exists.
+        File config = new File("ecal-mapping-config.csv");
+        
+        // If the file exists, load the viewer that will display it.
+        if(config.exists() && config.canRead()) {
+        	// Account for IO read errors. Only load this version if
+        	// the data file can be read successfully.
+        	try {
+				viewer = new PDataEventViewer(config.getAbsolutePath());
+			}
+        	
+        	// Otherwise, open the regular version.
+        	catch (IOException e) {
+				viewer = new PEventViewer();
+			}
+        }
+        
+        // If the file is not present, then just load the normal version.
+        else {
+        	viewer = new PEventViewer();
+        }
+        
+        // Set the viewer properties.
         viewer.addCrystalListener(this);
         viewer.setScaleMinimum(minEch);
         viewer.setScaleMaximum(maxEch);
