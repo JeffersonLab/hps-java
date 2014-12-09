@@ -33,7 +33,7 @@ import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 public class SVTHitWriter implements HitWriter {
 
     boolean debug = false;
-    
+
     // Subdetector name
     private static final String subdetectorName = "Tracker";
 
@@ -42,9 +42,9 @@ public class SVTHitWriter implements HitWriter {
     private String fpgaDataCollectionName = "FPGAData";
     private String relationCollectionName = "SVTTrueHitRelations";
     private String readoutName = "TrackerHits";
-    
-    List<Integer> fpgaNumbers = new ArrayList<Integer>(); 
-    
+
+    List<Integer> fpgaNumbers = new ArrayList<Integer>();
+
     public SVTHitWriter() {
     }
 
@@ -56,27 +56,26 @@ public class SVTHitWriter implements HitWriter {
     public boolean hasData(EventHeader event) {
         return event.hasCollection(RawTrackerHit.class, hitCollectionName);
     }
-    
+
     //make some dummy FpgaData to use in case there isn't any real FpgaData
     private Map<Integer, FpgaData> makeFpgaData(Subdetector subdetector) {
         double[] temps = new double[HPSSVTConstants.TOTAL_HYBRIDS_PER_FPGA * HPSSVTConstants.TOTAL_TEMPS_PER_HYBRID];
         for (int i = 0; i < HPSSVTConstants.TOTAL_HYBRIDS_PER_FPGA * HPSSVTConstants.TOTAL_TEMPS_PER_HYBRID; i++) {
             temps[i] = 23.0;
         }
-        
+
         Map<Integer, FpgaData> fpgaData = new HashMap<Integer, FpgaData>();
-//    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
-//    
-//    	for(HpsSiSensor sensor : sensors){
-//        	if(!fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())){
-//        		fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
-//        	}
-//        }
-//        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
-//        for (Integer fpgaNumber : fpgaNumbers) {
-//            fpgaData.put(fpgaNumber, new FpgaData(fpgaNumber, temps, 0));
-//        }
-        //FIXME: commented this out for compatibility between new and old data formats/conditions
+        List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+
+        for (HpsSiSensor sensor : sensors) {
+            if (sensor instanceof HpsTestRunSiSensor && !fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())) {
+                fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
+            }
+        }
+        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+        for (Integer fpgaNumber : fpgaNumbers) {
+            fpgaData.put(fpgaNumber, new FpgaData(fpgaNumber, temps, 0));
+        }
 
         return fpgaData;
     }
@@ -99,10 +98,10 @@ public class SVTHitWriter implements HitWriter {
 
         for (RawTrackerHit hit : hits) {
             //===> int fpgaAddress = SvtUtils.getInstance().getFPGA((SiSensor) hit.getDetectorElement());
-        	int fpgaAddress = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
+            int fpgaAddress = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
             //int hybridNumber = SvtUtils.getInstance().getHybrid((SiSensor) hit.getDetectorElement());
             int hybridNumber = ((HpsTestRunSiSensor) hit.getDetectorElement()).getFpgaID();
-        	int sensorChannel = hit.getIdentifierFieldValue("strip");
+            int sensorChannel = hit.getIdentifierFieldValue("strip");
             int apvNumber = SVTData.getAPV(sensorChannel);
             int channelNumber = SVTData.getAPVChannel(sensorChannel);
 
