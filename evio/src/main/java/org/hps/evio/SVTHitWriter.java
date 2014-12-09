@@ -65,17 +65,18 @@ public class SVTHitWriter implements HitWriter {
         }
         
         Map<Integer, FpgaData> fpgaData = new HashMap<Integer, FpgaData>();
-    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
-    
-    	for(HpsSiSensor sensor : sensors){
-        	if(!fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())){
-        		fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
-        	}
-        }
-        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
-        for (Integer fpgaNumber : fpgaNumbers) {
-            fpgaData.put(fpgaNumber, new FpgaData(fpgaNumber, temps, 0));
-        }
+//    	List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+//    
+//    	for(HpsSiSensor sensor : sensors){
+//        	if(!fpgaNumbers.contains(((HpsTestRunSiSensor) sensor).getFpgaID())){
+//        		fpgaNumbers.add(((HpsTestRunSiSensor) sensor).getFpgaID());
+//        	}
+//        }
+//        //===> for (Integer fpgaNumber : SvtUtils.getInstance().getFpgaNumbers()) {
+//        for (Integer fpgaNumber : fpgaNumbers) {
+//            fpgaData.put(fpgaNumber, new FpgaData(fpgaNumber, temps, 0));
+//        }
+        //FIXME: commented this out for compatibility between new and old data formats/conditions
 
         return fpgaData;
     }
