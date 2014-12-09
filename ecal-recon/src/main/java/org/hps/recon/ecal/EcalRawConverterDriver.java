@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -189,15 +190,20 @@ public class EcalRawConverterDriver extends Driver {
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
-            if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
+            if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { //A.C. this is the case of the RAW pulse hits
                 List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
 
                 for (RawCalorimeterHit hit : hits) {
                     if (debug) {
                         System.out.format("old hit energy %d\n", hit.getAmplitude());
                     }
-                    CalorimeterHit newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
-
+                    CalorimeterHit newHit;
+                    if (hit instanceof HPSRawCalorimeterHit){ //A.C. since (maybe) old reconstructed LCIO data have hits with BaseRawCalorimeterHit
+                    	newHit = converter.HitDtoA((HPSRawCalorimeterHit)hit,timeOffset);	
+                    }
+                    else{
+                    	newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
+                    }
                     if (newHit.getRawEnergy() > threshold) {
                         if (applyBadCrystalMap && isBadCrystal(newHit)) {
                             continue;
