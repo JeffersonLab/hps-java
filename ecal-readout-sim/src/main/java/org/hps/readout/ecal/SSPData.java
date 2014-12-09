@@ -138,28 +138,28 @@ public class SSPData extends TriggerData {
         return bank;
     }
 
-    public static long getTime(GenericObject object) {
-        return ((TriggerData) object).getTime();
-    }
-
-    public static int getOrTrig(GenericObject object) {
-        return ((TriggerData) object).getOrTrig();
-    }
-
-    public static int getTopTrig(GenericObject object) {
-        return ((TriggerData) object).getTopTrig();
-    }
-
-    public static int getBotTrig(GenericObject object) {
-        return ((TriggerData) object).getBotTrig();
-    }
-
-    public static int getAndTrig(GenericObject object) {
-        return ((TriggerData) object).getAndTrig();
-    }
-
+//    public static long getTime(GenericObject object) {
+//        return TriggerData.getTime(object);
+//    }
+//
+//    public static int getOrTrig(GenericObject object) {
+//        return TriggerData.getOrTrig(object);
+//    }
+//
+//    public static int getTopTrig(GenericObject object) {
+//        return TriggerData.getTopTrig(object);
+//    }
+//
+//    public static int getBotTrig(GenericObject object) {
+//        return TriggerData.getBotTrig(object);
+//    }
+//
+//    public static int getAndTrig(GenericObject object) {
+//        return TriggerData.getAndTrig(object);
+//    }
+//
     public static int[] getBank(GenericObject object) {
-        int N = ((SSPData) object).bank.length;
+        int N = object.getNInt();
         int[] bank = new int[N];
         for (int i = 0; i < N; i++) {
             bank[i] = object.getIntVal(i);
