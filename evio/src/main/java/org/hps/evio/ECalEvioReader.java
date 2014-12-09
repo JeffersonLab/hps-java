@@ -14,6 +14,7 @@ import org.hps.conditions.ecal.EcalChannel.DaqId;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
+import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
@@ -131,8 +132,13 @@ public class ECalEvioReader extends EvioReader {
                                             flags = 0;
                                             break;
                                         case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
-                                            hits.addAll(makeIntegralHits(cdata, crate));
-                                            hitClass = BaseRawCalorimeterHit.class;
+                                            hits.addAll(makeIntegralHitsMode3(cdata, crate));
+                                            hitClass = HPSRawCalorimeterHit.class;
+                                            flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
+                                            break;
+                                        case EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG:
+                                            hits.addAll(makeIntegralHitsMode7(cdata, crate));
+                                            hitClass = HPSRawCalorimeterHit.class;
                                             flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
                                             break;
                                         default:
@@ -277,8 +283,8 @@ public class ECalEvioReader extends EvioReader {
         return hits;
     }
 
-    private List<BaseRawCalorimeterHit> makeIntegralHits(CompositeData cdata, int crate) {
-        List<BaseRawCalorimeterHit> hits = new ArrayList<BaseRawCalorimeterHit>();
+    private List<HPSRawCalorimeterHit> makeIntegralHitsMode3(CompositeData cdata, int crate) {
+        List<HPSRawCalorimeterHit> hits = new ArrayList<HPSRawCalorimeterHit>();
         if (debug) {
             int n = cdata.getNValues().size();
             for (int i = 0; i < n; i++) {
@@ -315,7 +321,7 @@ public class ECalEvioReader extends EvioReader {
                         int[] data = {pulseIntegral, pulseTime};
                         processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
                     } else {
-                        hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
+                        hits.add(new HPSRawCalorimeterHit(id, pulseIntegral,pulseTime,0,(short)0,(short)0,EventConstants.ECAL_PULSE_INTEGRAL_MODE));
                     }
                 }
             }
@@ -323,6 +329,60 @@ public class ECalEvioReader extends EvioReader {
         return hits;
     }
 
+    
+    
+    private List<HPSRawCalorimeterHit> makeIntegralHitsMode7(CompositeData cdata, int crate) {
+        List<HPSRawCalorimeterHit> hits = new ArrayList<HPSRawCalorimeterHit>();
+        if (debug) {
+            int n = cdata.getNValues().size();
+            for (int i = 0; i < n; i++) {
+                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
+            }
+            int ni = cdata.getItems().size();
+            for (int i = 0; i < ni; i++) {
+                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
+            }
+        }
+        while (cdata.index() + 1 < cdata.getItems().size()) { //the +1 is a hack because sometimes an extra byte gets read (padding)
+            short slot = cdata.getByte();
+            int trigger = cdata.getInt();
+            long timestamp = cdata.getLong();
+            int nchannels = cdata.getNValue();
+            if (debug) {
+                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
+            }
+            for (int j = 0; j < nchannels; j++) {
+                short channel = cdata.getByte();
+                int npulses = cdata.getNValue();
+                if (debug) {
+                    System.out.println("  channel=" + channel + "; npulses=" + npulses);
+                }
+                Long id = daqToGeometryId(crate, slot, channel);
+
+                for (int k = 0; k < npulses; k++) {
+                    short pulseTime = cdata.getShort();
+                    int pulseIntegral = cdata.getInt();
+                    short amplLow = cdata.getShort();
+                    short amplHigh = cdata.getShort();
+                    if (debug) {
+                        System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral);
+                    }
+                    if (id == null) {
+                        int[] data = {pulseIntegral, pulseTime};
+                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE, crate, slot, channel, data));
+                    } else {
+                        hits.add(new HPSRawCalorimeterHit(id, pulseIntegral,pulseTime,0,amplLow,amplHigh,EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE));
+                    }
+                }
+            }
+        }
+        return hits;
+    }
+    
+    
+    
+    
+    
     private void processUnrecognizedChannel(FADCGenericHit hit) {
         genericHits.add(hit);
 
