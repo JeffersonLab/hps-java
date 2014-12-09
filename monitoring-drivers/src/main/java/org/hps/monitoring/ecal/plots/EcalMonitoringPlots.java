@@ -41,7 +41,8 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     IHistogram2D hitCountDrawPlot;
 
     IHistogram2D occupancyDrawPlot;
-    ArrayList<IHistogram1D> occupancyPlots;
+    double[] occupancyFill=new double[11*47];
+    int NoccupancyFill;
 
     IHistogram2D clusterCountFillPlot;
     IHistogram2D clusterCountDrawPlot;
@@ -49,6 +50,8 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     int eventn = 0;
     boolean hide = false;
 
+    long thisTime,prevTime;
+    
     public EcalMonitoringPlots() {
     }
 
@@ -86,11 +89,12 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         clusterCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollection + " : Cluster Center Count", 47, -23.5, 23.5, 11, -5.5, 5.5);
         clusterCountFillPlot = makeCopy(clusterCountDrawPlot);
 
-        occupancyPlots = new ArrayList<IHistogram1D>();
+      
+        NoccupancyFill=1; //to avoid a "NaN" at beginning
         for (int ii = 0; ii < (11 * 47); ii++) {
             int row = ECalUtils.getRowFromHistoID(ii);
             int column = ECalUtils.getColumnFromHistoID(ii);
-            occupancyPlots.add(aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy : " + (row) + " " + (column) + ": " + ii, 101, 0, 1));
+            occupancyFill[ii]=0;
         }
 
         // Create the plotter regions.
@@ -116,6 +120,8 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         if (!hide) {
             plotter.show();
         }
+        prevTime=0; //init the time 
+        thisTime=0; //init the time 
     }
 
     public void process(EventHeader event) {
@@ -141,14 +147,16 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
                 int row = hit.getIdentifierFieldValue("iy");
                 int id = ECalUtils.getHistoIDFromRowColumn(row, column);
                 hitCountFillPlot.fill(column, row);
-                chits[id]++;
-                nhits++;
+                {
+                 chits[id]++;
+                 nhits++;
+                }
             }
         }
 
         if (nhits > 0) {
             for (int ii = 0; ii < (11 * 47); ii++) {
-                occupancyPlots.get(ii).fill(chits[ii] * 1. / (nhits));
+                occupancyFill[ii]+=1.*chits[ii]/nhits;
             }
         }
 
@@ -158,8 +166,16 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
                 clusterCountFillPlot.fill(cluster.getSeedHit().getIdentifierFieldValue("ix"), cluster.getSeedHit().getIdentifierFieldValue("iy"));
             }
         }
-        if (eventRefreshRate > 0 && ++eventn % eventRefreshRate == 0) {
-            redraw();
+       
+        thisTime=System.currentTimeMillis()/1000;
+        
+        if ((thisTime-prevTime)>eventRefreshRate){
+        	prevTime=thisTime;
+        	redraw();
+        	NoccupancyFill=0;
+        }
+        else{
+        	NoccupancyFill++;
         }
     }
 
@@ -177,7 +193,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
 
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
-            occupancyPlots.get(id).reset();
+            occupancyFill[id]=0;
         }
     }
 
@@ -185,16 +201,24 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void redraw() {
         hitCountDrawPlot.reset();
         hitCountDrawPlot.add(hitCountFillPlot);
+     //   plotter.region(0).refresh();
+        
         clusterCountDrawPlot.reset();
         clusterCountDrawPlot.add(clusterCountFillPlot);
+    //    plotter.region(1).refresh();
+        
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
             int row = ECalUtils.getRowFromHistoID(id);
             int column = ECalUtils.getColumnFromHistoID(id);
-            double mean = occupancyPlots.get(id).mean();
+            double mean = occupancyFill[id]/NoccupancyFill;
+            
+            occupancyFill[id]=0;
             if ((row != 0) && (column != 0) && (!ECalUtils.isInHole(row, column)))
+            	System.out.println(column+" "+row+" "+mean+" "+NoccupancyFill);
                 occupancyDrawPlot.fill(column, row, mean);
         }
+        //plotter.region(2).refresh();
     }
 
     private IHistogram2D makeCopy(IHistogram2D hist) {
