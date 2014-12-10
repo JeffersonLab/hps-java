@@ -7,23 +7,24 @@
         <driver name="EcalADCSumPlotsDriver"/>
         <driver name="EcalADCThresholdPlotsDriver"/>        
 -->        
-        <driver name="EcalCosmicHitSelectionDriver"/>
-<!--          
+        <driver name="EcalCosmicHitFitDriver"/>
+<!--
+        <driver name="EcalCosmicHitSelectionDriver"/>                    
         <driver name="EcalADCProfilePlotsDriver"/>
--->        
+-->                
         <driver name="EcalRawConverterDriver"/>
         <driver name="EcalCosmicClusterDriver"/>
-        <driver name="EcalCosmicClusterPlotsDriver"/>
-<!--               
+<!--          
+        <driver name="EcalCosmicClusterPlotsDriver"/>               
         <driver name="EcalEnergyPlotsDriver"/>
--->           
+-->                   
         <driver name="LCIODriver"/>
         <driver name="AidaSaveDriver"/>
         <driver name="AidaSaveDriverRoot"/>
     </execute>        
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>100</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
 <!--          
         <driver name="EcalADCPlotsDriver" type="org.hps.users.jeremym.EcalADCPlotsDriver"/>
@@ -34,6 +35,8 @@
         <driver name="EcalCosmicHitSelectionDriver" type="org.hps.users.jeremym.EcalCosmicHitSelectionDriver">
             <sigmaThreshold>2.5</sigmaThreshold>
             <outputHitsCollectionName>EcalCosmicReadoutHits</outputHitsCollectionName>            
+        </driver>
+        <driver name="EcalCosmicHitFitDriver" type="org.hps.users.jeremym.EcalCosmicHitFitDriver">
         </driver>
 <!--          
         <driver name="EcalADCProfilePlotsDriver" type="org.hps.users.jeremym.EcalADCProfilePlotsDriver">
