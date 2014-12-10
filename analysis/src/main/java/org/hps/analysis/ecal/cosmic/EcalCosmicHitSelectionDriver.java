@@ -1,4 +1,4 @@
-package org.hps.users.jeremym;
+package org.hps.analysis.ecal.cosmic;
 
 import hep.aida.IAnalysisFactory;
 

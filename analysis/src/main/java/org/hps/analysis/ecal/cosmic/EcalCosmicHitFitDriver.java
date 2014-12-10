@@ -1,4 +1,4 @@
-package org.hps.users.jeremym;
+package org.hps.analysis.ecal.cosmic;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IDataPointSet;
@@ -8,7 +8,6 @@ import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
-import hep.aida.ref.fitter.FitResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
