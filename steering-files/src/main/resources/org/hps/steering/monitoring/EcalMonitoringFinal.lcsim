@@ -7,7 +7,7 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver"/>
+        <!-- <driver name="EventMarkerDriver"/> -->
         <driver name="EcalRawConverter"/> 
         <driver name="EcalClusterer"/> 
         <driver name="EcalMonitoringPlots"/>      <!-- General plots -->
