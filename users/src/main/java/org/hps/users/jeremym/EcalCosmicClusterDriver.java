@@ -89,13 +89,13 @@ public class EcalCosmicClusterDriver extends Driver {
                 calCluster.setEnergy(totalEnergy);
                 clusterCollection.add(calCluster);
             }            
-            if (clusterCollection.size() > 0) {
-                int flags = 1 << LCIOConstants.CLBIT_HITS;                
-                event.put(outputClusterCollectionName, clusterCollection, Cluster.class, flags);
-                //System.out.println("added " + clusterCollection.size() + " clusters to " + outputClusterCollectionName);
-            } else {
-                throw new NextEventException();
-            }
+            //if (clusterCollection.size() > 0) {
+            int flags = 1 << LCIOConstants.CLBIT_HITS;                
+            event.put(outputClusterCollectionName, clusterCollection, Cluster.class, flags);
+            //System.out.println("added " + clusterCollection.size() + " clusters to " + outputClusterCollectionName);
+            //} else {
+            //    throw new NextEventException();
+            //}
         }
     }
 

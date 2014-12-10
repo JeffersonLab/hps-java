@@ -42,7 +42,7 @@ public class EcalCosmicHitSelectionDriver extends Driver {
     String outputHitsCollectionName = "EcalCosmicReadoutHits";
     String inputHitsCollectionName = "EcalReadoutHits";
     HPSEcal3 ecal = null;
-    static String ecalName = "Ecal";
+    static String ecalName = "Ecal";   
 
     /**
      * Set the sigma threshold for an ADC value.

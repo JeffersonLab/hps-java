@@ -2,24 +2,24 @@ package org.hps.users.jeremym;
 
 import hep.aida.ref.function.AbstractIFunction;
 
-public class LandauFunction extends AbstractIFunction {
+public class EcalWindowModeFitFunction extends AbstractIFunction {
 
     LandauPdf landauPdf = new LandauPdf();    
       
-    public LandauFunction() {
+    public EcalWindowModeFitFunction() {
         this("");
     }
     
-    public LandauFunction(String title) {
+    public EcalWindowModeFitFunction(String title) {
         super();                
         this.variableNames = new String[] { "x0" };
-        this.parameterNames = new String[] { "mean", "sigma" };        
+        this.parameterNames = new String[] { "mean", "sigma", "norm", "pedestal" };        
         init(title);
     }
             
     @Override
     public double value(double[] v) {
-        return landauPdf.getValue(v[0]);
+        return this.parameter("pedestal") + this.parameter("norm") * landauPdf.getValue(v[0]);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class LandauFunction extends AbstractIFunction {
             landauPdf.setMean(value);
         } else if (key.equals("sigma")) {
             landauPdf.setSigma(value);
-        }        
+        }         
     }
 
     @Override
