@@ -9,8 +9,9 @@ import java.util.Properties;
 
 /**
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object. The
- * accessor methods to get these values are not public, because the {@link ConfigurationModel}
- * should be used instead.
+ * getter and setter methods for these values are not public, because the 
+ * {@link org.hps.monitoring.gui.model.ConfigurationModel} class should be used instead
+ * to get or set application configuration values.
  */
 public final class Configuration {
 
@@ -83,7 +84,11 @@ public final class Configuration {
      * @return The value or null if does not exist.
      */
     String get(String key) {
-        return properties.getProperty(key);
+        if (checkKey(key)) {
+            return properties.getProperty(key);
+        } else {
+            throw new IllegalArgumentException("The key " + key + " does not exist in this configuration with a valid value.");
+        }
     }
 
     /**
@@ -92,7 +97,11 @@ public final class Configuration {
      * @return The value or null if does not exist.
      */
     Boolean getBoolean(String key) {
-        return Boolean.parseBoolean(properties.getProperty(key));
+        if (checkKey(key)) {
+            return Boolean.parseBoolean(properties.getProperty(key));    
+        } else {
+            return null;
+        }        
     }
 
     /**
@@ -101,7 +110,11 @@ public final class Configuration {
      * @return The value or null if does not exist.
      */
     Double getDouble(String key) {
-        return Double.parseDouble(properties.getProperty(key));
+        if (checkKey(key)) {
+            return Double.parseDouble(properties.getProperty(key));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -110,7 +123,11 @@ public final class Configuration {
      * @return The value or null if does not exist.
      */
     Integer getInteger(String key) {
-        return Integer.parseInt(properties.getProperty(key));
+        if (checkKey(key)) {
+            return Integer.parseInt(properties.getProperty(key));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -124,6 +141,15 @@ public final class Configuration {
         } catch (IOException e) {
             throw new RuntimeException("Error saving properties file.", e);
         }
+    }
+    
+    /**
+     * Check if the properties contains the key and if it has a non-null value.
+     * @param key The properties key.
+     * @return True if properties key is valid.
+     */
+    private boolean checkKey(String key) {
+        return hasKey(key) && properties.getProperty(key) != null;
     }
 
     /**

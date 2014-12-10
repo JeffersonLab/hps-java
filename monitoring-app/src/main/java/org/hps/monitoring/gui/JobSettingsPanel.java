@@ -1,26 +1,7 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.Commands.AIDA_AUTO_SAVE_CHANGED;
-import static org.hps.monitoring.gui.Commands.DISCONNECT_ON_END_RUN_CHANGED;
-import static org.hps.monitoring.gui.Commands.DISCONNECT_ON_ERROR_CHANGED;
-import static org.hps.monitoring.gui.Commands.DETECTOR_NAME_CHANGED;
-import static org.hps.monitoring.gui.Commands.EVENT_BUILDER_CHANGED;
-import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.gui.Commands.LOG_TO_FILE_CHANGED;
-import static org.hps.monitoring.gui.Commands.STEERING_RESOURCE_CHANGED;
-import static org.hps.monitoring.gui.Commands.STEERING_TYPE_CHANGED;
-import static org.hps.monitoring.gui.model.ConfigurationModel.AIDA_AUTO_SAVE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.AIDA_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DETECTOR_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DISCONNECT_ON_END_RUN_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DISCONNECT_ON_ERROR_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.EVENT_BUILDER_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_LEVEL_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_FILE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_RESOURCE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.STEERING_TYPE_PROPERTY;
+import static org.hps.monitoring.gui.Commands.*;
+import static org.hps.monitoring.gui.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -65,19 +46,21 @@ import org.reflections.Reflections;
  */
 class JobSettingsPanel extends AbstractFieldsPanel {
 
-    private JTextField aidaSaveFileNameField;
-    private JCheckBox aidaAutoSaveCheckbox;
-    private JCheckBox disconnectOnErrorCheckBox;
-    private JCheckBox disconnectOnEndRunCheckBox;
+    private JComboBox<?> steeringResourcesComboBox;
+    private JTextField steeringFileField;
+    private JComboBox<?> steeringTypeComboBox;
     private JComboBox<String> detectorNameComboBox;
     private JComboBox<String> eventBuilderComboBox;
+    private JTextField userRunNumberField;
+    private JCheckBox freezeConditionsCheckBox;    
+    private JCheckBox disconnectOnErrorCheckBox;
+    private JCheckBox disconnectOnEndRunCheckBox;
+    private JTextField aidaSaveFileNameField;
+    private JCheckBox aidaAutoSaveCheckbox;        
     private JTextField logFileNameField;
     private JComboBox<?> logLevelComboBox;
     private JCheckBox logToFileCheckbox;
-    private JTextField steeringFileField;
-    private JComboBox<?> steeringResourcesComboBox;
-    private JComboBox<?> steeringTypeComboBox;
-
+           
     // The package where steering resources must be located.
     static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
 
@@ -105,6 +88,40 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         super(new Insets(4, 2, 2, 4), true);
         setLayout(new GridBagLayout());
 
+        steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", findSteeringResources(STEERING_PACKAGE));
+        steeringResourcesComboBox.setActionCommand(STEERING_RESOURCE_CHANGED);
+        steeringResourcesComboBox.addActionListener(this);
+        
+        steeringFileField = addField("Steering File", 35);
+        steeringFileField.addPropertyChangeListener("value", this);
+        
+        JButton steeringFileButton = addButton("Select Steering File");
+        steeringFileButton.setActionCommand(Commands.CHOOSE_STEERING_FILE);
+        steeringFileButton.addActionListener(this);
+        
+        steeringTypeComboBox = addComboBox("Steering Type", new String[] { SteeringType.RESOURCE.name(), SteeringType.FILE.name() });
+        steeringTypeComboBox.setActionCommand(STEERING_TYPE_CHANGED);
+        steeringTypeComboBox.addActionListener(this);
+        
+        detectorNameComboBox = addComboBox("Detector Name", this.findDetectorNames());
+        detectorNameComboBox.setActionCommand(DETECTOR_NAME_CHANGED);
+        detectorNameComboBox.addActionListener(this);
+
+        userRunNumberField = addField("User Run Number", "", 10, false);
+        userRunNumberField.addPropertyChangeListener("value", this);
+        userRunNumberField.setActionCommand(USER_RUN_NUMBER_CHANGED);
+        userRunNumberField.setEnabled(true);
+        userRunNumberField.setEditable(true);
+        
+        freezeConditionsCheckBox = addCheckBox("Freeze detector conditions", false, true);
+        freezeConditionsCheckBox.addActionListener(this);
+        freezeConditionsCheckBox.setActionCommand(FREEZE_CONDITIONS_CHANGED);
+        
+        eventBuilderComboBox = addComboBox("LCSim Event Builder", this.findEventBuilderClassNames());
+        eventBuilderComboBox.setSize(24, eventBuilderComboBox.getPreferredSize().height);
+        eventBuilderComboBox.setActionCommand(EVENT_BUILDER_CHANGED);
+        eventBuilderComboBox.addActionListener(this);
+        
         disconnectOnErrorCheckBox = addCheckBox("Disconnect on error", false, true);
         disconnectOnErrorCheckBox.setActionCommand(DISCONNECT_ON_ERROR_CHANGED);
         disconnectOnErrorCheckBox.addActionListener(this);
@@ -116,31 +133,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         logLevelComboBox = addComboBox("Log Level", LOG_LEVELS);
         logLevelComboBox.setActionCommand(Commands.LOG_LEVEL_CHANGED);
         logLevelComboBox.addActionListener(this);
-
-        steeringTypeComboBox = addComboBox("Steering Type", new String[] { SteeringType.RESOURCE.name(), SteeringType.FILE.name() });
-        steeringTypeComboBox.setActionCommand(STEERING_TYPE_CHANGED);
-        steeringTypeComboBox.addActionListener(this);
-
-        steeringFileField = addField("Steering File", 35);
-        steeringFileField.addPropertyChangeListener("value", this);
-
-        JButton steeringFileButton = addButton("Select Steering File");
-        steeringFileButton.setActionCommand(Commands.CHOOSE_STEERING_FILE);
-        steeringFileButton.addActionListener(this);
-
-        steeringResourcesComboBox = addComboBoxMultiline("Steering File Resource", findSteeringResources(STEERING_PACKAGE));
-        steeringResourcesComboBox.setActionCommand(STEERING_RESOURCE_CHANGED);
-        steeringResourcesComboBox.addActionListener(this);
-
-        detectorNameComboBox = addComboBox("Detector Name", this.findDetectorNames());
-        detectorNameComboBox.setActionCommand(DETECTOR_NAME_CHANGED);
-        detectorNameComboBox.addActionListener(this);
-
-        eventBuilderComboBox = addComboBox("LCSim Event Builder", this.findEventBuilderClassNames());
-        eventBuilderComboBox.setSize(24, eventBuilderComboBox.getPreferredSize().height);
-        eventBuilderComboBox.setActionCommand(EVENT_BUILDER_CHANGED);
-        eventBuilderComboBox.addActionListener(this);
-        
+                                            
         logToFileCheckbox = addCheckBox("Log to File", false, false);
         logToFileCheckbox.setEnabled(false);
         logToFileCheckbox.setActionCommand(LOG_TO_FILE_CHANGED);
@@ -154,7 +147,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         aidaAutoSaveCheckbox.setActionCommand(AIDA_AUTO_SAVE_CHANGED);
 
         aidaSaveFileNameField = addField("AIDA Auto Save File Name", "", 30, false);
-        aidaSaveFileNameField.addPropertyChangeListener("value", this);
+        aidaSaveFileNameField.addPropertyChangeListener("value", this);               
     }
 
     @Override
@@ -192,6 +185,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         logFileNameField.addActionListener(listener);
         logToFileCheckbox.addActionListener(listener);
         steeringResourcesComboBox.addActionListener(listener);
+        freezeConditionsCheckBox.addActionListener(listener);
     }
 
     /**
@@ -270,7 +264,13 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             configurationModel.setEventBuilderClassName((String) eventBuilderComboBox.getSelectedItem());
         } else if (DETECTOR_NAME_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setDetectorName((String) detectorNameComboBox.getSelectedItem());
-        } 
+        } else if (FREEZE_CONDITIONS_CHANGED.equals(e.getActionCommand())) {
+            if (configurationModel.hasPropertyValue(USER_RUN_NUMBER_PROPERTY) && configurationModel.getUserRunNumber() != null) {
+                configurationModel.setFreezeConditions(freezeConditionsCheckBox.isSelected());
+            } else {
+                throw new IllegalArgumentException("Conditions system may only be frozen if there is a valid user run number.");
+            }
+        }
     }
 
     /**
@@ -294,6 +294,27 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             configurationModel.setAidaFileName(aidaSaveFileNameField.getText());
         } else if (source == aidaAutoSaveCheckbox) {
             configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
+        } else if (source == userRunNumberField) {
+            // Is run number being reset to null or empty?
+            if (userRunNumberField.getText() == null || userRunNumberField.getText().isEmpty()) {
+                System.out.println("resetting user run number back to null");
+                // Update the model to null user run number and do not freeze the conditions system.
+                configurationModel.setUserRunNumber(null);
+                configurationModel.setFreezeConditions(false);
+            } else {
+                try {
+                    System.out.println("setting new user run number " + evt.getNewValue());
+                    // Parse the run number.  Need to catch errors because it might be an invalid string.
+                    int userRunNumber = Integer.parseInt(userRunNumberField.getText());
+                    configurationModel.setUserRunNumber(userRunNumber);
+                    configurationModel.setFreezeConditions(true);
+                    System.out.println("successfully set run number to userRunNumber");
+                } catch (NumberFormatException e) {
+                    System.out.println("bad number format so ignoring user run number " + evt.getNewValue());
+                    userRunNumberField.setText((String) evt.getOldValue());
+                    throw new IllegalArgumentException("The value " + evt.getNewValue() + " is not a valid run number.");
+                }                            
+            }
         }
     }
 
@@ -332,9 +353,24 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (evt.getPropertyName().equals(STEERING_TYPE_PROPERTY)) {
                 steeringTypeComboBox.setSelectedIndex(((SteeringType) value).ordinal());
             } else if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
-                steeringFileField.setText(((File) value).getPath());
+                if (value != null) {                    
+                    steeringFileField.setText(((File) value).getPath());
+                } else {
+                    // A null value here is actually okay and means this field should be reset to have no value.
+                    steeringFileField.setText(null);
+                }
             } else if (evt.getPropertyName().equals(STEERING_RESOURCE_PROPERTY)) {
                 steeringResourcesComboBox.setSelectedItem(value);
+            } else if (evt.getPropertyName().equals(USER_RUN_NUMBER_PROPERTY)) {
+                if (value != null) {
+                    userRunNumberField.setText(Integer.toString((int)value));
+                } else {
+                    userRunNumberField.setText(null);
+                }
+            } else if (evt.getPropertyName().equals(FREEZE_CONDITIONS_PROPERTY)) {
+                if (value != null) {
+                    freezeConditionsCheckBox.setSelected((Boolean) value);
+                }
             }
         }
     }

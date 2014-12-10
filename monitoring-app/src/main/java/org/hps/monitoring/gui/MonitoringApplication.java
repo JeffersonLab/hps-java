@@ -74,6 +74,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import org.freehep.record.loop.RecordLoop.Command;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.monitoring.enums.ConnectionStatus;
 import org.hps.monitoring.enums.SteeringType;
@@ -335,7 +336,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             return;
         Object value = evt.getNewValue();
         if (evt.getPropertyName().equals(SAVE_LAYOUT_PROPERTY)) {
-            saveLayoutItem.setSelected((Boolean) value);
+            if (value != null) {
+                saveLayoutItem.setSelected((Boolean) value);
+            } 
         } else if (evt.getPropertyName().equals(MONITORING_APPLICATION_LAYOUT_PROPERTY)) {
             updateWindowConfiguration(new WindowConfiguration((String) value));
         } else if (evt.getPropertyName().equals(ConfigurationModel.SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY)) {
@@ -351,15 +354,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 System.err.println("ERROR: The plotWindow is null!");
             }
         } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
-
-            // System.out.println("propertyChange - " + evt.getPropertyName());
-            // System.out.println("  value: " + value);
-
             if ((Boolean) value == true) {
-                // System.out.println("setting logToFile - " + configurationModel.getLogFileName());
                 logToFile(new File(configurationModel.getLogFileName()));
             } else {
-                // System.out.println("setting logToTerminal");
                 logToTerminal();
             }
         }
@@ -552,7 +549,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         saveLayoutItem.setActionCommand(SAVE_LAYOUT);
         saveLayoutItem.addActionListener(this);
         saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
-        saveLayoutItem.setSelected(configurationModel.getSaveLayout());
+        if (configurationModel.hasPropertyValue(ConfigurationModel.SAVE_LAYOUT_PROPERTY)) {
+            saveLayoutItem.setSelected(configurationModel.getSaveLayout());
+        }
         saveLayoutItem.addPropertyChangeListener(this); 
         
         applicationMenu.add(saveLayoutItem);
@@ -651,7 +650,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             logTableModel.insertRow(logTable.getRowCount(), row);
 
             // Print all messages to System.out so they show up in the terminal or log file output.
-            System.out.println(row[0] + " :: " + this.getClass().getSimpleName() + " :: " + row[1] + " :: " + row[2]);
+            System.out.println(row[0] + " :: " + MonitoringApplication.class.getSimpleName() + " :: " + row[1] + " :: " + row[2]);
         }
 
         public void close() throws SecurityException {
@@ -1109,7 +1108,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         log(Level.CONFIG, "Set steering to <" + steering + "> with type <" + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE") + ">");
 
         try {
-            // Create job manager and configure.
+            // Create and the job manager.  The conditions manager is instantiated from this call but not configured.
             jobManager = new JobManager();
             jobManager.setPerformDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
@@ -1120,6 +1119,24 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             // Setup the event builder to translate from EVIO to LCIO.
             createEventBuilder();
+            
+            // Is there a user specified run number from the JobPanel?
+            if (configurationModel.hasPropertyValue(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+                int userRunNumber = configurationModel.getUserRunNumber();
+                String detectorName = configurationModel.getDetectorName();
+                DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+                logger.config("setting user run number " + userRunNumber + " with detector " + detectorName);
+                conditionsManager.setDetector(configurationModel.getDetectorName(), userRunNumber);
+                if (configurationModel.hasPropertyValue(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
+                    // Freeze the conditions system to ignore run numbers from the events.  
+                    logger.config("user configured to freeze conditions system from monitoring app");
+                    conditionsManager.freeze();
+                } else {
+                    // Allow run numbers to be picked up from the events.
+                    logger.config("user run number specified but conditions system is NOT frozen");
+                    conditionsManager.unfreeze();
+                }
+            }
 
             log(Level.INFO, "LCSim setup was successful.");
 
@@ -1161,6 +1178,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         }
 
         // Set the detector name on the event builder so it can find conditions data.
+        // FIXME: This call should be made unnecessary by modifying the EventBuilder API to remove setDetectorName.
         eventBuilder.setDetectorName(configurationModel.getDetectorName());
 
         ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
@@ -1615,8 +1633,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
      */
     private void loadConfiguration() {
 
-        // Set the Configuration on the ConfigurationModel which will trigger all the
-        // PropertyChangelListeners.
+        // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
 
         // Log that a new configuration was loaded.

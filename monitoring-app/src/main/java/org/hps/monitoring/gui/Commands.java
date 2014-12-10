@@ -21,6 +21,7 @@ final class Commands {
     static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
     static final String EVENT_BUILDER_CHANGED = "eventBuilderChanged";
     static final String EXIT = "exit";
+    static final String FREEZE_CONDITIONS_CHANGED = "freezeConditionsChanged";
     static final String LOAD_DEFAULT_CONFIG_FILE = "loadDefaultConfigFile";
     static final String LOG_LEVEL_CHANGED = "logLevelChanged";
     static final String LOG_TO_FILE = "logToFile";
@@ -42,6 +43,7 @@ final class Commands {
     static final String SHOW_SETTINGS = "showSettings";
     static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
     static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";
+    static final String USER_RUN_NUMBER_CHANGED = "userRunNumberChanged";
     static final String VERBOSE_CHANGED = "verboseChanged";
     static final String VALIDATE_DATA_FILE = "validateDataFile";
     static final String WAIT_MODE_CHANGED = "waitModeChanged";
