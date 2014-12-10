@@ -49,7 +49,6 @@
                     </redirectUrls>
                     <includes>
                         <include>org.apache.commons:commons-math3</include>
-                        <include>org.apache.commons:commons-lang3</include>
                         <include>org.hps:hps-analysis</include>
                         <include>org.hps:hps-conditions</include>
                         <include>org.hps:hps-detector-data</include>
