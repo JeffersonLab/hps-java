@@ -1,7 +1,5 @@
 package org.hps.recon.ecal;
 
-import java.util.Comparator;
-import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawCalorimeterHit;
 
 /**
@@ -17,8 +15,6 @@ public class HPSRawCalorimeterHit implements RawCalorimeterHit {
 	int windowSize;
 	int mode; //A.C. this is the field I use, in case of REAL data, to record which FADC mode was used (ECAL_PULSE_INTEGRAL3_MODE or ECAL_PULSE_INTEGRAL7_MODE)
 	short amplLow,amplHigh;
-	
-	CalorimeterHit analogHit = null;
 
 	public HPSRawCalorimeterHit(long cellID, int amplitude, int timeStamp, int windowSize) { //A.C. I do not change this, since I did not write it!
 		this.cellID = cellID;
@@ -71,21 +67,5 @@ public class HPSRawCalorimeterHit implements RawCalorimeterHit {
 	
 	public short getAmplHigh(){
 		return amplHigh;
-	}
-	
-	public CalorimeterHit getAnalogHit() {
-		return analogHit;
-	}
-
-	public void setAnalogHit(CalorimeterHit analogHit) {
-		this.analogHit = analogHit;
-	}
-
-	public static class TimeComparator implements Comparator<RawCalorimeterHit> {
-
-        @Override
-		public int compare(RawCalorimeterHit o1, RawCalorimeterHit o2) {
-			return o1.getTimeStamp() - o2.getTimeStamp();
-		}
 	}
 }

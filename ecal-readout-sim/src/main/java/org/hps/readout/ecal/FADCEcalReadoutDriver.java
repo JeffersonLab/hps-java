@@ -8,6 +8,7 @@ import static org.hps.recon.ecal.ECalUtils.readoutGain;
 import static org.hps.recon.ecal.ECalUtils.riseTime;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,6 @@ import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
@@ -58,7 +58,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     //buffer for timestamps
     private Map<Long, Integer> timeMap = null;
     //queue for hits to be output to clusterer
-    private PriorityQueue<HPSRawCalorimeterHit> outputQueue = null;
+    private PriorityQueue<RawCalorimeterHit> outputQueue = null;
     //length of ring buffer (in readout cycles)
     private int bufferLength = 100;
     //length of readout pipeline (in readout cycles)
@@ -81,7 +81,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private int numSamplesAfter = 30;
 //    private HPSEcalConverter converter = null;
     //output buffer for hits
-    private LinkedList<HPSRawCalorimeterHit> buffer = new LinkedList<HPSRawCalorimeterHit>();
+    private LinkedList<RawCalorimeterHit> buffer = new LinkedList<RawCalorimeterHit>();
     //number of readout periods for which a given hit stays in the buffer
     private int coincidenceWindow = 2;
     //output collection name for hits read out from trigger
@@ -107,7 +107,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     public FADCEcalReadoutDriver() {
         flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store timestamp
-        hitClass = HPSRawCalorimeterHit.class;
+        hitClass = RawCalorimeterHit.class;
         setReadoutPeriod(ecalReadoutPeriod);
 //        converter = new HPSEcalConverter(null);
     }
@@ -269,19 +269,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                         sumMap.put(cellID, sum + pipeline.getValue(0));
                     } else if (timeMap.get(cellID) + delay0 <= readoutCounter) {
 //                        System.out.printf("sum = %f\n", sum);
-                        outputQueue.add(new HPSRawCalorimeterHit(cellID,
+                        outputQueue.add(new BaseRawCalorimeterHit(cellID,
                                 (int) Math.round(sum / scaleFactor),
-                                64 * timeMap.get(cellID),
-                                readoutCounter - timeMap.get(cellID) + 1));
+                                64 * timeMap.get(cellID)));
                         sumMap.remove(cellID);
                     }
                 } else {
                     if (pedestalSubtractedValue < triggerThreshold || timeMap.get(cellID) + delay0 == readoutCounter) {
 //					System.out.printf("sum = %f\n",sum);
-                        outputQueue.add(new HPSRawCalorimeterHit(cellID,
+                        outputQueue.add(new BaseRawCalorimeterHit(cellID,
                                 (int) Math.round((sum + pedestalSubtractedValue) / scaleFactor),
-                                64 * timeMap.get(cellID),
-                                readoutCounter - timeMap.get(cellID) + 1));
+                                64 * timeMap.get(cellID)));
                         sumMap.remove(cellID);
                     } else {
                         sumMap.put(cellID, sum + pedestalSubtractedValue);
@@ -468,7 +466,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         //initialize buffers
         sumMap = new HashMap<Long, Integer>();
         timeMap = new HashMap<Long, Integer>();
-        outputQueue = new PriorityQueue(20, new HPSRawCalorimeterHit.TimeComparator());
+        outputQueue = new PriorityQueue(20, new TimeComparator());
         resetFADCBuffers();
     }
 
@@ -620,4 +618,12 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
     }
     
+    
+	public static class TimeComparator implements Comparator<RawCalorimeterHit> {
+
+        @Override
+		public int compare(RawCalorimeterHit o1, RawCalorimeterHit o2) {
+			return o1.getTimeStamp() - o2.getTimeStamp();
+		}
+	}
 }
