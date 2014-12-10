@@ -7,6 +7,7 @@ import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.FieldValueMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableConstants;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * This is a command for the conditions CLI that will add a conditions record,
@@ -34,6 +35,12 @@ public class AddCommand extends AbstractCommand {
        
     void execute(String[] arguments) {
         super.execute(arguments);
+        
+        try {
+            DatabaseConditionsManager.getInstance().setDetector(DatabaseConditionsManager.getDefaultEngRunDetectorName(), 2000);
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         
         int runStart = Integer.parseInt(commandLine.getOptionValue("r"));
         int runEnd = runStart;
