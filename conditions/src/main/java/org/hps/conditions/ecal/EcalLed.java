@@ -20,7 +20,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the ECAL channel ID.
      * @return The ECAL channel ID.
      */
-    int getEcalChannelId() {
+    public int getEcalChannelId() {
         return getFieldValue("ecal_channel_id");
     }
 
@@ -28,7 +28,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the crate number assigned to this crystal.
      * @return The crate number.
      */
-    int getCrateNumber() {
+    public int getCrateNumber() {
         return getFieldValue("crate");
     }
 
@@ -36,7 +36,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the LED number assigned to this crystal.
      * @return The LED number.
      */
-    int getLedNumber() {
+    public int getLedNumber() {
         return getFieldValue("number");
     }
 
@@ -44,7 +44,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the time delay of this channel.
      * @return The time delay.
      */
-    double getTimeDelay() {
+    public double getTimeDelay() {
         return getFieldValue("time_delay");
     }
 
@@ -52,7 +52,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the amplitude high setting.
      * @return The amplitude high setting.
      */
-    double getAmplitudeHigh() {
+    public double getAmplitudeHigh() {
         return getFieldValue("amplitude_high");
     }
 
@@ -60,7 +60,7 @@ public class EcalLed extends AbstractConditionsObject {
      * Get the amplitude low setting.
      * @return The amplitude low setting.
      */
-    double getAmplitudeLow() {
+    public double getAmplitudeLow() {
         return getFieldValue("amplitude_low");
     }
 }
