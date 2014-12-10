@@ -2,9 +2,9 @@ package org.hps.analysis.ecal.cosmic;
 
 /**
  * <p>
- * Landau Probability Distribution
+ * Landau probability distribution function (PDF) implementation to be used for fitting.
  * <p>
- * Copied from math/mathcore/src/ProbFuncMathCore.cxx::landau_pdf in ROOT (version 5.34.18).
+ * Copied from ROOT class <code>math/mathcore/src/ProbFuncMathCore.cxx::landau_pdf</code> (version 5.34.18).
  */
 public class LandauPdf {
 

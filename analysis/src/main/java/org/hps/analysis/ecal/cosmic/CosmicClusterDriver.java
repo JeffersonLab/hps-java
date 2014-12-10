@@ -21,13 +21,26 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * Cluster input hit list of raw ECAL data for cosmic events.
+ * <p>
+ * This Driver clusters an input list of CalorimeterHits into a cosmic cluster
+ * using an iterative nearest neighbors algorithm.
+ * <p>
+ * There is a set of cuts applied on the initial cluster list that includes the following:
+ * <ul>
+ * <li>must have at least 3 hits total in the cluster</li>
+ * <li>must have at least 3 contiguous hits in the cluster</li>
+ * <li>must have at least three rows of crystals with hits</li>
+ * <li>must have no more than 2 hits in each row of crystals</li>
+ * </ul>
+ * <p>
+ * The new Cluster collection is written to the LCIO event with the default
+ * collection name of "EcalCosmicClusters".  This collection name can be changed
+ * using the {@link #setOutputClusterCollectionName(String)} method.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim "THammer" Nelson <tknelson@slac.stanford.edu>
  */
-// TODO: Add output collection of RawTrackerHits.
-public class EcalCosmicClusterDriver extends Driver {
+public class CosmicClusterDriver extends Driver {
 
     String inputHitCollectionName = "EcalCosmicCalHits";
     String outputClusterCollectionName = "EcalCosmicClusters";
@@ -38,30 +51,60 @@ public class EcalCosmicClusterDriver extends Driver {
     int minimumRows = 3;
     int maximumHitsPerRow = 2;
 
+    /**
+     * Set the name of the ECAL subdetector.
+     * @param ecalName The name of the ECAL subdetector.
+     */
     public void setEcalName(String ecalName) {
         this.ecalName = ecalName;
     }
 
+    /**
+     * Set the name of the input RawTrackerHit collection name.  
+     * By default this is initialized to "EcalCosmicCalHits".
+     * @param inputHitCollectionName The name of the input hit collection.
+     */
     public void setInputHitCollectionName(String inputHitCollectionName) {
         this.inputHitCollectionName = inputHitCollectionName;
     }
 
+    /**
+     * Set the name of the output cluster collection.
+     * By default this is initialized to "EcalCosmicClusters".
+     * @param outputClusterCollectionName The name of the output cluster collection.
+     */
     public void setOutputClusterCollectionName(String outputClusterCollectionName) {
         this.outputClusterCollectionName = outputClusterCollectionName;
     }
 
+    /**
+     * Set the minimum number of hits in the cluster for it to pass selection.
+     * @param minimumClusterSize The minimum number of hits in the cluster.
+     */
     public void setMinimumClusterSize(int minimumClusterSize) {
         this.minimumClusterSize = minimumClusterSize;
     }
     
+    /**
+     * Set the minimum number of rows that must have at least one hit.
+     * @param minimumRows The minimum number of rows that must have at least one hit.
+     */
     public void setMinimumRows(int minimumRows) {
         this.minimumRows = minimumRows;
     }
     
+    /**
+     * Set the maximum number of hits per row.
+     * @param maximumHitsPerRow The maximum number of hits per row.
+     */
     public void setMaximumHitsPerRow(int maximumHitsPerRow) {
         this.maximumHitsPerRow = maximumHitsPerRow;
     }
 
+    /**
+     * Initialize conditions dependent class variables.
+     * @param detector The current Detector object.     
+     */
     public void detectorChanged(Detector detector) {
         ecal = (HPSEcal3) detector.getSubdetector(ecalName);
         if (ecal == null) {
@@ -73,6 +116,10 @@ public class EcalCosmicClusterDriver extends Driver {
         }
     }
 
+    /**
+     * Process the event by making a list of output clusters that pass the basic
+     * selection cuts. 
+     */
     public void process(EventHeader event) {
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {
             List<CalorimeterHit> calHits = event.get(CalorimeterHit.class, inputHitCollectionName);
@@ -89,16 +136,17 @@ public class EcalCosmicClusterDriver extends Driver {
                 calCluster.setEnergy(totalEnergy);
                 clusterCollection.add(calCluster);
             }            
-            //if (clusterCollection.size() > 0) {
             int flags = 1 << LCIOConstants.CLBIT_HITS;                
             event.put(outputClusterCollectionName, clusterCollection, Cluster.class, flags);
-            //System.out.println("added " + clusterCollection.size() + " clusters to " + outputClusterCollectionName);
-            //} else {
-            //    throw new NextEventException();
-            //}
         }
     }
 
+    /**
+     * Given a hit, find its list of neighboring crystals that have hits and return their IDs.
+     * @param hit The input hit.
+     * @param hitMap The hit map with all the collection's hits.
+     * @return The set of neighboring hit IDs.
+     */
     private Set<Long> findNeighborHitIDs(CalorimeterHit hit, Map<Long, CalorimeterHit> hitMap) {
         Set<Long> neigbhors = ecal.getNeighborMap().get(hit.getCellID());
         Set<Long> neighborHitIDs = new HashSet<Long>();
@@ -110,6 +158,11 @@ public class EcalCosmicClusterDriver extends Driver {
         return neighborHitIDs;
     }
 
+    /**
+     * Create a map of ID to hit from a list of hits.
+     * @param hitList The input hit list.
+     * @return The hit map.
+     */
     private Map<Long, CalorimeterHit> createHitMap(List<CalorimeterHit> hitList) {
         Map<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
         for (CalorimeterHit hit : hitList) {
@@ -118,6 +171,14 @@ public class EcalCosmicClusterDriver extends Driver {
         return hitMap;
     }
 
+    /**
+     * This is the primary clustering algorithm which uses a topological, iterative
+     * nearest neighbor algorithm.  It uses each hit as a seed and tries to then
+     * extend the cluster by adding neighboring hits.  Clustered hits are added
+     * to a list which is checked so that they are not reused.
+     * @param hitList The input hit list from the event.
+     * @return A list of calorimeter hits that can be turned into clusters.
+     */
     private List<List<CalorimeterHit>> createClusteredHits(List<CalorimeterHit> hitList) {
         
         // Create empty list of clusters which are just lists of hits.
@@ -168,13 +229,18 @@ public class EcalCosmicClusterDriver extends Driver {
             }
             
             if (clusterHits.size() >= this.minimumClusterSize) {
-                //System.out.println("adding cosmic cluster of size " + clusterHits.size());
                 clusterList.add(clusterHits);
             }
         }
         return clusterList;
     }
     
+    /**
+     * This method takes a list of potential cluster hits and applies selection cuts,
+     * returning a new list that has the hit lists which did not pass the cuts removed.
+     * @param clusteredHitLists The input hit lists. 
+     * @return The hit lists that passed the cuts.
+     */
     List<List<CalorimeterHit>> applyCuts(List<List<CalorimeterHit>> clusteredHitLists) {
         List<List<CalorimeterHit>> selectedHitLists = new ArrayList<List<CalorimeterHit>>();
         for (List<CalorimeterHit> hitList : clusteredHitLists) {            

@@ -23,10 +23,11 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This Driver will create a histogram for every channel in the ECAL and plot its corrected energy.
+ * This Driver will create a histogram for every crystal in the ECAL and plot its corrected energy
+ * for the event.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalEnergyPlotsDriver extends Driver {
+public class CrystalEnergyPlotsDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;

@@ -1,18 +1,11 @@
 package org.hps.analysis.ecal.cosmic;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IFitFactory;
-import hep.aida.IFitResult;
-import hep.aida.IFitter;
-import hep.aida.IFunction;
-import hep.aida.IFunctionFactory;
 import hep.aida.IProfile1D;
-import hep.aida.ref.fitter.FitResult;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
@@ -26,9 +19,10 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
+ * This Driver makes profile plots of the raw mode ADC data.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalADCProfilePlotsDriver extends Driver {
+public class RawModeADCProfileDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;
@@ -45,7 +39,7 @@ public class EcalADCProfilePlotsDriver extends Driver {
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
         for (EcalChannel channel : conditions.getChannelCollection()) {            
-            adcProfiles.put(channel, aida.profile1D(inputHitsCollectionName + "/ : ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
+            adcProfiles.put(channel, aida.profile1D(inputHitsCollectionName + "/ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
         }
     }
 

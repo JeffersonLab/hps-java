@@ -39,7 +39,7 @@ import org.lcsim.util.aida.AIDA;
  * Create ADC value plots from the cosmic clusters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalCosmicClusterPlotsDriver extends Driver {
+public class CosmicClusterPlotsDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;
@@ -167,7 +167,7 @@ public class EcalCosmicClusterPlotsDriver extends Driver {
         buffer.append("ecal_channel_id t0 pulse_width");
         buffer.append('\n');
         
-        AbstractIFunction fitFunction = new EcalWindowModeFitFunction();
+        AbstractIFunction fitFunction = new RawModeSignalFitFunction();
         functionFactory.catalog().add("ecal_fit_function", fitFunction);
         for (Entry<EcalChannel, IProfile1D> entry : this.adcProfiles.entrySet()) {
             doFit(entry.getKey(), entry.getValue());

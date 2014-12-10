@@ -28,16 +28,21 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This Driver will perform a functional fit on ECAL window mode data
+ * <p>
+ * This Driver will perform a function fit on ECAL window mode data
  * to determine the likelihood of a signal being present, e.g. from a cosmic
- * ray MIP signal.  Those hits with a signal significance greater than a settable
- * threshold (by default 4 sigma) will be written into an output collection
- * of selected hits that can be used by other Drivers. 
+ * ray MIP signal.  By default, the mean and sigma are fixed in the fit, and the
+ * pedestal and normalization are allowed to float.  The pedestal can also be 
+ * configured as fixed using the {@link #setFixPedestal(boolean)} method.
+ * <p>
+ * Those hits with a signal significance greater than a settable
+ * threshold (by default set to 4 sigma) will be written into an output collection
+ * of selected hits that can be used by other Drivers.   
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
-public class EcalCosmicHitFitDriver extends Driver {
+public class RawModeSignalFitDriver extends Driver {
 
     // ECAL conditions data.
     EcalConditions conditions = null;
@@ -120,7 +125,8 @@ public class EcalCosmicHitFitDriver extends Driver {
     }
     
     /**
-     * Perform start of job setup using the detector and conditions information.
+     * Initialize conditions dependent class variables.
+     * @param detector The current Detector object.
      */
     public void detectorChanged(Detector detector) {
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
@@ -134,12 +140,13 @@ public class EcalCosmicHitFitDriver extends Driver {
     }
     
     /**
-     * Perform initialization to create the DPS for the ADC values and configure the global fit parameters.
+     * Perform start of job initialize.
+     * The DataPointSet for the ADC values is initialized and global fit parameters are set here.
      */
     public void startOfData() {
         adcDataPointSet = aida.analysisFactory().createDataPointSetFactory(null).create("ADC DataPointSet", 2);
         
-        fitFunction = new EcalWindowModeFitFunction();
+        fitFunction = new RawModeSignalFitFunction();
         fitFunction.setParameter("mean", signalMean);
         fitFunction.setParameter("sigma", signalSigma);
         fitFunction.setParameter("norm", norm);
@@ -153,8 +160,8 @@ public class EcalCosmicHitFitDriver extends Driver {
 
     /**
      * Process the event, performing a signal fit for every raw data hit in the input collection.
-     * Those hits that pass the selection cut are added to a new hits collection that can be converted
-     * to a CalorimeterHit collection and clustered.
+     * The hits that pass the sigma selection cut are added to a new hits collection, which can be
+     * converted to a CalorimeterHit collection and then clustered.
      * @throw NextEventException if there are not enough hits that pass the selection cut.
      */
     public void process(EventHeader event) {
@@ -218,9 +225,9 @@ public class EcalCosmicHitFitDriver extends Driver {
     }
     
     /**
-     * Fit the ADC samples of a hit, returning the signal significance.
-     * @param channel The ECAL channel information.
-     * @param adcDataPointSet The DPS to use for the fit containing all 100 ADC samples.
+     * Fit all of the ADC samples in a hit using a DataPointSet and then return the fit result.
+     * @param channel The ECAL channel conditions information.
+     * @param adcDataPointSet The DataPointSet to use for the fit containing all 100 ADC samples.
      * @return The significance which is the normalization divided by its error.
      */
     IFitResult fitAdcSamples(EcalChannel channel, IDataPointSet adcDataPointSet) {
@@ -229,9 +236,6 @@ public class EcalCosmicHitFitDriver extends Driver {
         IFitResult fitResult = fitter.fit(adcDataPointSet, fitFunction);
         this.signalNormHistograms.get(channel).fill(fitResult.fittedParameter("norm"));
         this.pedestalNormHistograms.get(channel).fill(fitResult.fittedParameter("pedestal"));
-        //double signalSignificance = fitResult.fittedParameter("norm") / fitResult.errors()[2];
-        //this.signalSignificanceHistograms.get(channel).fill(signalSignificance);
-        //return signalSignificance;
         return fitResult;
     }
 }

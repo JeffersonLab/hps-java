@@ -20,14 +20,15 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver will process ECAL raw mode (window) data and extract hits 
- * that look like signal, by requiring a certain number of ADC samples
- * in a row that are above a sigma threshold.  For events with number
- * of hits greater than a minimum (5 by default), it will convert
- * the raw data into CalorimeterHits and write them to an output
- * collection.
+ * that look like signal by using a simple selection cut.  The cut requires 
+ * that a certain number of ADC samples in a row  are above a sigma threshold.  
+ * Then those events that have at least a minimum number of hits that pass 
+ * this cut will be written into a new collection.  If there are not enough
+ * hits to pass this last cut, then the event is automatically skipped. 
+ *   
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class EcalCosmicHitSelectionDriver extends Driver {
+public class RawModeHitSelectionDriver extends Driver {
 
     EcalConditions conditions = null;
     EcalChannelCollection channels = null;
@@ -53,28 +54,45 @@ public class EcalCosmicHitSelectionDriver extends Driver {
     }
 
     /**
-     * Set the number of hits in a row which must be above threshold for the ADC values to be 
-     * saved for the event.
-     * @param selectedHits The minimum number of hits above threshold.
+     * Set the number of ADC samples in a row which must be above the threshold.
+     * @param selectedHits The minimum number of samples above threshold.
      */
     public void setMinimumSelectedSamples(int minimumSelectedSamples) {
         this.minimumSelectedSamples = minimumSelectedSamples;
     }
     
+    /**
+     * Set the minimum number of hits for the event to pass selection cuts.
+     * @param minimumNumberOfHits The minimum number of hits.
+     */
     public void setMinimumNumberOfHits(int minimumNumberOfHits) {
         this.minimumNumberOfHits = minimumNumberOfHits;
     }
     
+    /**
+     * Set the name of the output hits collection.
+     * @param outputHitsCollectionName The output hits collection name.
+     */
     public void setOutputHitsCollectionName(String outputHitsCollectionName) {
         this.outputHitsCollectionName = outputHitsCollectionName;
     }
 
+    /**
+     * Initialize conditions dependent class variables.
+     * @param detector The current Detector object.
+     */
     public void detectorChanged(Detector detector) {
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
     }
 
+    /**
+     * Process the event, performing selection cuts on the collection of RawTrackerHits
+     * that has a hit for every crystal.  Those events that don't have enough hits passing
+     * the cuts are skipped.
+     * @param event The LCIO event.
+     */
     public void process(EventHeader event) {
         if (event.hasCollection(RawTrackerHit.class, inputHitsCollectionName)) {
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputHitsCollectionName);
