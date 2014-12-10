@@ -1,7 +1,6 @@
 package org.hps.monitoring.gui.model;
 
 import java.io.File;
-import java.util.List;
 import java.util.logging.Level;
 
 import org.hps.monitoring.enums.SteeringType;
@@ -16,17 +15,21 @@ import org.jlab.coda.et.enums.Mode;
 // TODO: Should set methods check if new value is equal to old and then ignore if so?
 // FIXME: When the set methods are called, e.g. from GUI updates, this triggers
 // a property change event that pushes the values back to the GUI again.
+// FIXME: Should check if property exists in set methods before retrieving old value for all set methods.
+// FIXME: Should use objects instead of primitive types so that null can be used (e.g. for run number etc.).
+// TODO: How to handle null values?
 public final class ConfigurationModel extends AbstractModel {
 
     Configuration config;
 
-    // Job settings
+    // Job setting properties.
     public static final String AIDA_AUTO_SAVE_PROPERTY = "AidaAutoSave";
     public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
     public static final String DISCONNECT_ON_END_RUN_PROPERTY = "DisconnectOnEndRun";
     public static final String EVENT_BUILDER_PROPERTY = "EventBuilderClassName";
+    public static final String FREEZE_CONDITIONS_PROPERTY = "FreezeConditions";
     public static final String LOG_FILE_NAME_PROPERTY = "LogFileName";
     public static final String LOG_LEVEL_PROPERTY = "LogLevel";
     public static final String LOG_TO_FILE_PROPERTY = "LogToFile";
@@ -37,13 +40,14 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String STEERING_TYPE_PROPERTY = "SteeringType";
     public static final String STEERING_FILE_PROPERTY = "SteeringFile";
     public static final String STEERING_RESOURCE_PROPERTY = "SteeringResource";
+    public static final String USER_RUN_NUMBER_PROPERTY = "UserRunNumber";
 
-    // Data source
+    // Data source properties.
     public static final String DATA_SOURCE_TYPE_PROPERTY = "DataSourceType";
     public static final String DATA_SOURCE_PATH_PROPERTY = "DataSourcePath";
     public static final String PROCESSING_STAGE_PROPERTY = "ProcessingStage";
 
-    // ET connection parameters
+    // ET connection parameters.
     public static final String ET_NAME_PROPERTY = "EtName";
     public static final String HOST_PROPERTY = "Host";
     public static final String PORT_PROPERTY = "Port";
@@ -57,19 +61,50 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
     public static final String PRESCALE_PROPERTY = "Prescale";
 
+    // These key values are primarily used to figure out what properties need to be persisted when
+    // writing to a text file.
     static final String[] CONFIG_PROPERTIES = new String[] {
 
             // Job settings
-            AIDA_AUTO_SAVE_PROPERTY, AIDA_FILE_NAME_PROPERTY, DETECTOR_NAME_PROPERTY, DISCONNECT_ON_ERROR_PROPERTY, DISCONNECT_ON_END_RUN_PROPERTY, EVENT_BUILDER_PROPERTY, LOG_FILE_NAME_PROPERTY, LOG_LEVEL_PROPERTY, LOG_TO_FILE_PROPERTY, STEERING_FILE_PROPERTY, STEERING_RESOURCE_PROPERTY, STEERING_TYPE_PROPERTY,
+            AIDA_AUTO_SAVE_PROPERTY, 
+            AIDA_FILE_NAME_PROPERTY, 
+            DETECTOR_NAME_PROPERTY, 
+            DISCONNECT_ON_ERROR_PROPERTY, 
+            DISCONNECT_ON_END_RUN_PROPERTY, 
+            EVENT_BUILDER_PROPERTY,
+            FREEZE_CONDITIONS_PROPERTY,
+            LOG_FILE_NAME_PROPERTY, 
+            LOG_LEVEL_PROPERTY, 
+            LOG_TO_FILE_PROPERTY, 
+            STEERING_FILE_PROPERTY, 
+            STEERING_RESOURCE_PROPERTY, 
+            STEERING_TYPE_PROPERTY,
+            USER_RUN_NUMBER_PROPERTY,
 
             // Data source
-            DATA_SOURCE_TYPE_PROPERTY, DATA_SOURCE_PATH_PROPERTY, PROCESSING_STAGE_PROPERTY,
+            DATA_SOURCE_TYPE_PROPERTY, 
+            DATA_SOURCE_PATH_PROPERTY, 
+            PROCESSING_STAGE_PROPERTY,
 
             // ET parameters
-            ET_NAME_PROPERTY, HOST_PROPERTY, PORT_PROPERTY, BLOCKING_PROPERTY, VERBOSE_PROPERTY, STATION_NAME_PROPERTY, CHUNK_SIZE_PROPERTY, QUEUE_SIZE_PROPERTY, STATION_POSITION_PROPERTY, WAIT_MODE_PROPERTY, WAIT_TIME_PROPERTY, PRESCALE_PROPERTY,
+            ET_NAME_PROPERTY, 
+            HOST_PROPERTY, 
+            PORT_PROPERTY, 
+            BLOCKING_PROPERTY, 
+            VERBOSE_PROPERTY, 
+            STATION_NAME_PROPERTY, 
+            CHUNK_SIZE_PROPERTY, 
+            QUEUE_SIZE_PROPERTY, 
+            STATION_POSITION_PROPERTY, 
+            WAIT_MODE_PROPERTY, 
+            WAIT_TIME_PROPERTY, 
+            PRESCALE_PROPERTY,
 
             // GUI layout
-            SAVE_LAYOUT_PROPERTY, MONITORING_APPLICATION_LAYOUT_PROPERTY, PLOT_FRAME_LAYOUT_PROPERTY, SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY };
+            SAVE_LAYOUT_PROPERTY, 
+            MONITORING_APPLICATION_LAYOUT_PROPERTY, 
+            PLOT_FRAME_LAYOUT_PROPERTY, 
+            SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY };
 
     String detectorName;
 
@@ -153,7 +188,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(EVENT_BUILDER_PROPERTY, oldValue, getEventBuilderClassName());
     }
 
-    public boolean getLogToFile() {
+    public Boolean getLogToFile() {
         return config.getBoolean(LOG_TO_FILE_PROPERTY);
     }
 
@@ -173,7 +208,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(LOG_FILE_NAME_PROPERTY, oldValue, getLogFileName());
     }
 
-    public boolean getAidaAutoSave() {
+    public Boolean getAidaAutoSave() {
         return config.equals(AIDA_AUTO_SAVE_PROPERTY);
     }
 
@@ -193,7 +228,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(AIDA_FILE_NAME_PROPERTY, oldValue, aidaFileName);
     }
 
-    public boolean getDisconnectOnError() {
+    public Boolean getDisconnectOnError() {
         return config.getBoolean(DISCONNECT_ON_ERROR_PROPERTY);
     }
 
@@ -203,7 +238,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(DISCONNECT_ON_ERROR_PROPERTY, oldValue, getDisconnectOnError());
     }
 
-    public boolean getDisconnectOnEndRun() {
+    public Boolean getDisconnectOnEndRun() {
         return config.getBoolean(DISCONNECT_ON_END_RUN_PROPERTY);
     }
 
@@ -265,7 +300,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(HOST_PROPERTY, oldValue, getHost());
     }
 
-    public int getPort() {
+    public Integer getPort() {
         return config.getInteger(PORT_PROPERTY);
     }
 
@@ -275,7 +310,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(PORT_PROPERTY, oldValue, getPort());
     }
 
-    public boolean getBlocking() {
+    public Boolean getBlocking() {
         return config.getBoolean(BLOCKING_PROPERTY);
     }
 
@@ -285,7 +320,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(BLOCKING_PROPERTY, oldValue, getBlocking());
     }
 
-    public boolean getVerbose() {
+    public Boolean getVerbose() {
         return config.getBoolean(VERBOSE_PROPERTY);
     }
 
@@ -305,7 +340,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(STATION_NAME_PROPERTY, oldValue, getStationName());
     }
 
-    public int getChunkSize() {
+    public Integer getChunkSize() {
         return config.getInteger(CHUNK_SIZE_PROPERTY);
     }
 
@@ -315,7 +350,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(CHUNK_SIZE_PROPERTY, oldValue, getChunkSize());
     }
 
-    public int getQueueSize() {
+    public Integer getQueueSize() {
         return config.getInteger(QUEUE_SIZE_PROPERTY);
     }
 
@@ -325,7 +360,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(QUEUE_SIZE_PROPERTY, oldValue, getQueueSize());
     }
 
-    public int getStationPosition() {
+    public Integer getStationPosition() {
         return config.getInteger(STATION_POSITION_PROPERTY);
     }
 
@@ -345,7 +380,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(WAIT_MODE_PROPERTY, oldValue, getWaitMode());
     }
 
-    public int getWaitTime() {
+    public Integer getWaitTime() {
         return config.getInteger(WAIT_TIME_PROPERTY);
     }
 
@@ -355,7 +390,7 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(WAIT_TIME_PROPERTY, oldValue, getWaitTime());
     }
 
-    public int getPrescale() {
+    public Integer getPrescale() {
         return config.getInteger(PRESCALE_PROPERTY);
     }
 
@@ -364,8 +399,34 @@ public final class ConfigurationModel extends AbstractModel {
         config.set(PRESCALE_PROPERTY, prescale);
         firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
     }
+    
+    public void setUserRunNumber(Integer userRunNumber) {
+        Integer oldValue = null;
+        if (hasPropertyValue(USER_RUN_NUMBER_PROPERTY)) {
+            oldValue = getUserRunNumber();
+        }
+        config.set(USER_RUN_NUMBER_PROPERTY, userRunNumber);
+        firePropertyChange(USER_RUN_NUMBER_PROPERTY, oldValue, getUserRunNumber());
+    }
+    
+    public Integer getUserRunNumber() {
+        return config.getInteger(USER_RUN_NUMBER_PROPERTY);
+    }
+    
+    public void setFreezeConditions(boolean freezeConditions) {
+        Boolean oldValue = null;
+        if (hasPropertyValue(FREEZE_CONDITIONS_PROPERTY)) {
+            oldValue = getFreezeConditions();
+        }
+        config.set(FREEZE_CONDITIONS_PROPERTY, freezeConditions);
+        firePropertyChange(FREEZE_CONDITIONS_PROPERTY, oldValue, freezeConditions);
+    }
+    
+    public Boolean getFreezeConditions() {
+        return config.getBoolean(FREEZE_CONDITIONS_PROPERTY);
+    }
 
-    public boolean getSaveLayout() {
+    public Boolean getSaveLayout() {
         return config.getBoolean(SAVE_LAYOUT_PROPERTY);
     }
 
@@ -412,7 +473,11 @@ public final class ConfigurationModel extends AbstractModel {
             firePropertyChange(property, oldValue, null);
         }
     }
-
+    
+    public boolean hasPropertyValue(String key) {
+        return config.hasKey(key) ? true : false;
+    }
+        
     @Override
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
