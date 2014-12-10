@@ -1,4 +1,4 @@
-package org.hps.users.jeremym;
+package org.hps.analysis.ecal.cosmic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
