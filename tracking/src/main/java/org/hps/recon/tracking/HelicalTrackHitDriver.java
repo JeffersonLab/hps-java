@@ -269,6 +269,9 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 } // End of loop over stereo pairs
             } else {
 
+                if(_debug) 
+                    System.out.printf("%s: Associate  %d strips to their sensors before pairing\n", this.getClass().getSimpleName(), stripmap.size());
+                
                 Map<SiSensor, List<HelicalTrackStrip>> striplistmap = new HashMap<SiSensor, List<HelicalTrackStrip>>();
 
                 for (HelicalTrackStrip strip : stripmap.keySet()) {
@@ -284,20 +287,45 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
                     // Add the strip to the list of strips on this sensor
                     hitsOnSensor.add(strip);
+                    
+                    if(_debug) 
+                        System.out.printf("%s: Adding strip hit with origin %s to sensor %s\n", this.getClass().getSimpleName(), strip.origin().toString(), sensor.getName());
+                
                 }
 
+                    
+                if(_debug) {
+                    System.out.printf("%s: Form stereo hits based on %d stereo layers:\n",this.getClass().getSimpleName(), stereoLayers.size());
+                    System.out.printf("%s: %42s %42s\n",this.getClass().getSimpleName(), "<axial>", "<stereo>");
+                    for (SvtStereoLayer stereoLayer : stereoLayers) {
+                        System.out.printf("%s: %42s %42s\n",this.getClass().getSimpleName(), stereoLayer.getAxialSensor().getName(), stereoLayer.getStereoSensor().getName());
+                    }
+                }
+
+                if(_debug) 
+                    System.out.printf("%s: Create crosses\n", this.getClass().getSimpleName());
+                
                 //===> for (StereoPair stereoPair : SvtUtils.getInstance().getStereoPairs()) {
                 for (SvtStereoLayer stereoLayer : stereoLayers) {
 
+                    if(_debug) 
+                        System.out.printf("%s: axial %s stereo %s \n", this.getClass().getSimpleName(), stereoLayer.getAxialSensor().getName(), stereoLayer.getStereoSensor().getName());
+                    
+                    
                     // Form the stereo hits and add them to our hit list
                     List<HelicalTrackCross> newCrosses;
 
                     //===> if (stereoPair.getDetectorVolume() == detectorVolume.Top) {
-                    if (stereoLayer.getAxialSensor().isTopLayer())
+                    if (stereoLayer.getAxialSensor().isTopLayer()) {
+                        if(_debug) 
+                            System.out.printf("%s: make hits for top\n", this.getClass().getSimpleName());
+                        
                         newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getAxialSensor()), striplistmap.get(stereoLayer.getStereoSensor())); //===> } else if (stereoPair.getDetectorVolume() == detectorVolume.Bottom) {
-                    else if (stereoLayer.getAxialSensor().isBottomLayer())
+                    } else if (stereoLayer.getAxialSensor().isBottomLayer()) {
+                        if(_debug) 
+                            System.out.printf("%s: make hits for bottom\n", this.getClass().getSimpleName());
                         newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getStereoSensor()), striplistmap.get(stereoLayer.getAxialSensor()));
-                    else
+                    } else
                         throw new RuntimeException("stereo pair is neither top nor bottom");
 
                     helicalTrackCrosses.addAll(newCrosses);
