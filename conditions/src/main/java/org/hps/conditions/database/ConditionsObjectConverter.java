@@ -159,11 +159,6 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         } catch (ConditionsObjectException e) {
             throw new RuntimeException(e);
         }
-        try {
-            newObject.setTableMetaData(tableMetaData);
-        } catch (ConditionsObjectException e) {
-            throw new RuntimeException(e);
-        }
         newObject.setFieldValues(fieldValues);
         return newObject;
     }
@@ -180,26 +175,5 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             throw new ConditionsObjectException("Error creating conditions object collection.", e);
         }
         return collection;
-    }
-
-    // This would only work if every collection class had a constructor with the proper arguments.
-    /*
-    static final AbstractConditionsObjectCollection<?> createCollection(ConditionsRecord conditionsRecord, TableMetaData tableMetaData) throws ConditionsObjectException {
-        AbstractConditionsObjectCollection<?> collection;
-        try {
-            collection = tableMetaData.getCollectionClass().newInstance();
-            Class<?> collectionClass = tableMetaData.getCollectionClass();
-            try {
-                Constructor<?> constructor = collectionClass.getDeclaredConstructor(ConditionsRecord.class, TableMetaData.class);
-                collection = (AbstractConditionsObjectCollection) constructor.newInstance(new Object[] { conditionsRecord, tableMetaData } );
-            } catch (NoSuchMethodException | SecurityException | InvocationTargetException e) {
-                e.printStackTrace();
-                throw new ConditionsObjectException("Error creating conditions object collection.", e);
-            }
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        return collection;
-    } 
-    */   
+    }  
 }
