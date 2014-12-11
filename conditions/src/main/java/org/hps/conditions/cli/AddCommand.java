@@ -72,11 +72,11 @@ public class AddCommand extends AbstractCommand {
         int collectionId = Integer.parseInt(commandLine.getOptionValue("c"));
 
         ConditionsRecord conditionsRecord = new ConditionsRecord();
-        try {
-            conditionsRecord.setTableMetaData(DatabaseConditionsManager.getInstance().findTableMetaData(TableConstants.CONDITIONS_RECORD));
-        } catch (ConditionsObjectException e) {
-            throw new RuntimeException("Problem assigning meta data to record.", e);
-        }
+        //try {
+        //    conditionsRecord.setTableMetaData(DatabaseConditionsManager.getInstance().findTableMetaData(TableConstants.CONDITIONS_RECORD));
+        //} catch (ConditionsObjectException e) {
+        //    throw new RuntimeException("Problem assigning meta data to record.", e);
+        //}
         FieldValueMap fieldValues = new FieldValueMap();
         fieldValues.put("run_start", runStart);
         fieldValues.put("run_end", runEnd);
