@@ -40,6 +40,7 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
+import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
@@ -56,20 +57,12 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     //private AIDAFrame topFrame;
     //private AIDAFrame bottomFrame;
     private AIDA aida = AIDA.defaultInstance();
-    private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
-    private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
-    private String trackerHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
-    private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String trackCollectionName = "MatchedTracks";
-    private String trackerName = "Tracker";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
-    private Detector detector = null;
     IDDecoder dec;
-    private int eventCount;
-    private List<SiSensor> sensors;
     private String outputPlots = null;
     IPlotter plotter;
     IPlotter plotter2;
@@ -98,10 +91,10 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     IHistogram1D trkPx;
     IHistogram1D nTracks;
     ShaperFitAlgorithm _shaper = new DumbShaperFit();
+    private boolean shapeFit = false;
 
     @Override
     protected void detectorChanged(Detector detector) {
-        this.detector = detector;
         aida.tree().cd("/");
         //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("HPS Tracking Plots");
@@ -110,8 +103,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         //topFrame.setTitle("Top Tracking Plots");
         //bottomFrame = new AIDAFrame();
         //bottomFrame.setTitle("Bottom Tracking Plots");
-        sensors = detector.getSubdetector(trackerName).getDetectorElement().findDescendants(SiSensor.class);
-
+        
         IAnalysisFactory fac = aida.analysisFactory();
         plotter = fac.createPlotterFactory().create("HPS Tracking Plots");
         plotter.setTitle("Momentum");
@@ -122,7 +114,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         //plotterFrame.addPlotter(plotter);
 
         trkPx = aida.histogram1D("Track Momentum (Px)", 25, -0.25, 0.25);
-        IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 25, -0.1, 0.1);
+        IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D trkPz = aida.histogram1D("Track Momentum (Pz)", 25, 0, 3.5);
         IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 25, 0, 25.0);
 
@@ -143,7 +135,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         //topFrame.addPlotter(top1);
 
         IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 25, -0.25, 0.25);
-        IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 25, -0.1, 0.1);
+        IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D toptrkPz = aida.histogram1D("Top Track Momentum (Pz)", 25, 0, 3.5);
         IHistogram1D toptrkChi2 = aida.histogram1D("Top Track Chi2", 25, 0, 25.0);
 
@@ -163,7 +155,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         //bottomFrame.addPlotter(bot1);
 
         IHistogram1D bottrkPx = aida.histogram1D("Bottom Track Momentum (Px)", 25, -0.25, 0.25);
-        IHistogram1D bottrkPy = aida.histogram1D("Bottom Track Momentum (Py)", 25, -0.1, 0.1);
+        IHistogram1D bottrkPy = aida.histogram1D("Bottom Track Momentum (Py)", 25, -0.5, 0.5);
         IHistogram1D bottrkPz = aida.histogram1D("Bottom Track Momentum (Pz)", 25, 0, 3.5);
         IHistogram1D bottrkChi2 = aida.histogram1D("Bottom Track Chi2", 25, 0, 25.0);
 
@@ -247,7 +239,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style3 = plotter3.style();
         style3.dataStyle().fillStyle().setColor("yellow");
         style3.dataStyle().errorBarStyle().setVisible(false);
-        plotter3.createRegions(5, 2);
+        plotter3.createRegions(6, 2);
 
         double minResidY = -1.5;
         double maxResidY = 1.5;
@@ -270,17 +262,22 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IHistogram1D mod5ResX = aida.histogram1D("Module 5 Residual X(mm)", 25, minResidX, maxResidX);
         IHistogram1D mod5ResY = aida.histogram1D("Module 5 Residual Y(mm)", 25, minResidY, maxResidY);
 
+        IHistogram1D mod6ResX = aida.histogram1D("Module 6 Residual X(mm)", 25, minResidX, maxResidX);
+        IHistogram1D mod6ResY = aida.histogram1D("Module 6 Residual Y(mm)", 25, minResidY, maxResidY);
+
         plotter3.region(0).plot(mod1ResX);
         plotter3.region(2).plot(mod2ResX);
         plotter3.region(4).plot(mod3ResX);
         plotter3.region(6).plot(mod4ResX);
         plotter3.region(8).plot(mod5ResX);
+        plotter3.region(10).plot(mod6ResX);
 
         plotter3.region(1).plot(mod1ResY);
         plotter3.region(3).plot(mod2ResY);
         plotter3.region(5).plot(mod3ResY);
         plotter3.region(7).plot(mod4ResY);
         plotter3.region(9).plot(mod5ResY);
+        plotter3.region(11).plot(mod6ResY);
 
         plotter3_1 = fac.createPlotterFactory().create("HPS Residual Plots (Single hit per layer)");
         plotter3_1.setTitle("Residuals (Top)");
@@ -288,7 +285,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style3_1 = plotter3_1.style();
         style3_1.dataStyle().fillStyle().setColor("yellow");
         style3_1.dataStyle().errorBarStyle().setVisible(false);
-        plotter3_1.createRegions(5, 2);
+        plotter3_1.createRegions(6, 2);
 
         IHistogram1D mod1ResX_Top = aida.histogram1D("Module 1 Residual X(mm) Top", 25, minResidX, maxResidX);
         IHistogram1D mod1ResY_Top = aida.histogram1D("Module 1 Residual Y(mm) Top", 25, minResidY, maxResidY);
@@ -305,17 +302,22 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IHistogram1D mod5ResX_Top = aida.histogram1D("Module 5 Residual X(mm) Top", 25, minResidX, maxResidX);
         IHistogram1D mod5ResY_Top = aida.histogram1D("Module 5 Residual Y(mm) Top", 25, minResidY, maxResidY);
 
+        IHistogram1D mod6ResX_Top = aida.histogram1D("Module 6 Residual X(mm) Top", 25, minResidX, maxResidX);
+        IHistogram1D mod6ResY_Top = aida.histogram1D("Module 6 Residual Y(mm) Top", 25, minResidY, maxResidY);
+
         plotter3_1.region(0).plot(mod1ResX_Top);
         plotter3_1.region(2).plot(mod2ResX_Top);
         plotter3_1.region(4).plot(mod3ResX_Top);
         plotter3_1.region(6).plot(mod4ResX_Top);
         plotter3_1.region(8).plot(mod5ResX_Top);
+        plotter3_1.region(10).plot(mod6ResX_Top);
 
         plotter3_1.region(1).plot(mod1ResY_Top);
         plotter3_1.region(3).plot(mod2ResY_Top);
         plotter3_1.region(5).plot(mod3ResY_Top);
         plotter3_1.region(7).plot(mod4ResY_Top);
         plotter3_1.region(9).plot(mod5ResY_Top);
+        plotter3_1.region(11).plot(mod6ResY_Top);
 
         plotter3_2 = fac.createPlotterFactory().create("HPS Residual Plots (Single strip cluster per layer)");
         plotter3_2.setTitle("Residuals (Bottom)");
@@ -323,7 +325,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style3_2 = plotter3_2.style();
         style3_2.dataStyle().fillStyle().setColor("yellow");
         style3_2.dataStyle().errorBarStyle().setVisible(false);
-        plotter3_2.createRegions(5, 2);
+        plotter3_2.createRegions(6, 2);
 
         IHistogram1D mod1ResX_Bottom = aida.histogram1D("Module 1 Residual X(mm) Bottom", 25, minResidX, maxResidX);
         IHistogram1D mod1ResY_Bottom = aida.histogram1D("Module 1 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
@@ -340,17 +342,22 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         IHistogram1D mod5ResX_Bottom = aida.histogram1D("Module 5 Residual X(mm) Bottom", 25, minResidX, maxResidX);
         IHistogram1D mod5ResY_Bottom = aida.histogram1D("Module 5 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
 
+        IHistogram1D mod6ResX_Bottom = aida.histogram1D("Module 6 Residual X(mm) Bottom", 25, minResidX, maxResidX);
+        IHistogram1D mod6ResY_Bottom = aida.histogram1D("Module 6 Residual Y(mm) Bottom", 25, minResidY, maxResidY);
+
         plotter3_2.region(0).plot(mod1ResX_Bottom);
         plotter3_2.region(2).plot(mod2ResX_Bottom);
         plotter3_2.region(4).plot(mod3ResX_Bottom);
         plotter3_2.region(6).plot(mod4ResX_Bottom);
         plotter3_2.region(8).plot(mod5ResX_Bottom);
+        plotter3_2.region(10).plot(mod6ResX_Bottom);
 
         plotter3_2.region(1).plot(mod1ResY_Bottom);
         plotter3_2.region(3).plot(mod2ResY_Bottom);
         plotter3_2.region(5).plot(mod3ResY_Bottom);
         plotter3_2.region(7).plot(mod4ResY_Bottom);
         plotter3_2.region(9).plot(mod5ResY_Bottom);
+        plotter3_2.region(11).plot(mod6ResY_Bottom);
 
         plotter4 = fac.createPlotterFactory().create("HPS Track and ECal Plots");
         plotter4.setTitle("Track and ECal Correlations");
@@ -572,15 +579,12 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     }
 
     public void setRawTrackerHitCollectionName(String rawTrackerHitCollectionName) {
-        this.rawTrackerHitCollectionName = rawTrackerHitCollectionName;
     }
 
     public void setFittedTrackerHitCollectionName(String fittedTrackerHitCollectionName) {
-        this.fittedTrackerHitCollectionName = fittedTrackerHitCollectionName;
     }
 
     public void setTrackerHitCollectionName(String trackerHitCollectionName) {
-        this.trackerHitCollectionName = trackerHitCollectionName;
     }
 
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
@@ -595,57 +599,28 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     public void process(EventHeader event) {
         aida.tree().cd("/");
         if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName)) {
-//            System.out.println(helicalTrackHitCollectionName + " does not exist; skipping event");
             return;
         }
 
-        List<HelicalTrackHit> rotList = event.get(HelicalTrackHit.class, rotatedTrackHitCollectionName);
-        for (HelicalTrackHit hth : rotList) {
-            HelicalTrackCross htc = (HelicalTrackCross) hth;
-//            System.out.println("TrackingReconstructionPlots::original helical track position = "+hth.getPosition()[0]+","+hth.getPosition()[1]+","+hth.getPosition()[2]);
-//            System.out.println("TrackingReconstructionPlots::corrected helical track position = "+htc.getCorrectedPosition().toString());
-        }
+       
         List<HelicalTrackHit> hthList = event.get(HelicalTrackHit.class, helicalTrackHitCollectionName);
-        int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        
         for (HelicalTrackHit hth : hthList) {
             HelicalTrackCross htc = (HelicalTrackCross) hth;
-//            System.out.println("TrackingReconstructionPlots::original helical track position = "+hth.getPosition()[0]+","+hth.getPosition()[1]+","+hth.getPosition()[2]);
-//            System.out.println("TrackingReconstructionPlots::corrected helical track position = "+htc.getCorrectedPosition().toString());
-            //These Helical Track Hits are in the JLAB frame
-//            htc.resetTrackDirection();
-            double x = htc.getPosition()[0];
-            double y = htc.getPosition()[1];
             HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement());
-            //===> if (SvtUtils.getInstance().isTopLayer(sensor)) {
             if (sensor.isTopLayer()) {
                 layersTop[htc.Layer() - 1]++;
-                Hep3Vector sensorPos = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement()).getGeometry().getPosition();
-                if (htc.Layer() == 1) {
-//                    System.out.println(sensorPos.toString());
-//                    System.out.println("Hit X = " + x + "; Hit Y = " + y);
-//                    aida.histogram2D("Layer 1 HTH Position:  Top").fill(x - sensorPos.x(), y - sensorPos.y());
-                }
-//                if (htc.Layer() == 7)
-//                    aida.histogram2D("Layer 7 HTH Position:  Top").fill(x - sensorPos.x(), y - sensorPos.y());
             } else {
                 layersBot[htc.Layer() - 1]++;
-                Hep3Vector sensorPos = ((SiSensor) ((RawTrackerHit) htc.getRawHits().get(0)).getDetectorElement()).getGeometry().getPosition();
-                if (htc.Layer() == 1) {
-//                    System.out.println(sensorPos.toString());
-//                    System.out.println("Hit X = " + x + "; Hit Y = " + y);
-//                    aida.histogram2D("Layer 1 HTH Position:  Bottom").fill(x - sensorPos.x(), y - sensorPos.y());
-                }
-//                if (htc.Layer() == 7)
-//                    aida.histogram2D("Layer 7 HTH Position:  Bottom").fill(x - sensorPos.x(), y - sensorPos.y());
             }
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 12; i++) {
             aida.profile1D("Number of Stereo Hits per layer in Top Half").fill(i + 1, layersTop[i]);
             aida.profile1D("Number of Stereo Hits per layer in Bottom Half").fill(i + 1, layersBot[i]);
         }
         if (!event.hasCollection(Track.class, trackCollectionName)) {
-//            System.out.println(trackCollectionName + " does not exist; skipping event");
             aida.histogram1D("Number Tracks/Event").fill(0);
             return;
         }
@@ -655,7 +630,6 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         if (event.hasCollection(HPSEcalCluster.class, ecalCollectionName)) {
             List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
             for (HPSEcalCluster cluster : clusters) {
-                //System.out.println("cluser position = ("+cluster.getPosition()[0]+","+cluster.getPosition()[1]+") with energy = "+cluster.getEnergy());
                 if (cluster.getPosition()[1] > 0) {
                     aida.histogram2D("Top ECal Cluster Position").fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 }
@@ -779,6 +753,9 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                 if (layer == 9) {
                     modNum = "Module 5 ";
                 }
+                if (layer == 11) {
+                    modNum = "Module 6 ";
+                }
                 SymmetricMatrix cov = htc.getCorrectedCovMatrix();
 
                 aida.histogram1D(modNum + "Residual X(mm)").fill(htcross.getCorrectedPosition().y() - yTr);//these hits should be rotated track hits already
@@ -831,73 +808,76 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
                  aida.histogram1D("Amp Pz>1000 (HitOnTrack)").fill(amp);
                  }                
                  */
-
-                for (HelicalTrackStrip hts : htcross.getStrips()) {
-                    double clusterSum = 0;
-                    for (RawTrackerHit rawHit : (List<RawTrackerHit>) hts.rawhits()) {
-                        //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) rawHit.getDetectorElement(), rawHit.getIdentifierFieldValue("strip"));
-                    	//===>for (ShapeFitParameters fit : _shaper.fitShape(rawHit, constants)) {
-                    	for (ShapeFitParameters fit : _shaper.fitShape(rawHit)) {
-                            double amp = fit.getAmp();
-                            clusterSum += amp;
-                            aida.histogram1D("Amp (HitOnTrack)").fill(amp);
+                if(isShapeFit()) {
+                    for (HelicalTrackStrip hts : htcross.getStrips()) {
+                        double clusterSum = 0;
+                        for (RawTrackerHit rawHit : (List<RawTrackerHit>) hts.rawhits()) {
+                            //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) rawHit.getDetectorElement(), rawHit.getIdentifierFieldValue("strip"));
+                            //===>for (ShapeFitParameters fit : _shaper.fitShape(rawHit, constants)) {
+                            for (ShapeFitParameters fit : _shaper.fitShape(rawHit)) {
+                                double amp = fit.getAmp();
+                                clusterSum += amp;
+                                aida.histogram1D("Amp (HitOnTrack)").fill(amp);
+                                if (trk.getPX() > 1) {
+                                    aida.histogram1D("Amp Pz>1000 (HitOnTrack)").fill(amp);
+                                }
+                            }
+                            aida.histogram1D("Amp (CluOnTrack)").fill(clusterSum);
                             if (trk.getPX() > 1) {
-                                aida.histogram1D("Amp Pz>1000 (HitOnTrack)").fill(amp);
+                                aida.histogram1D("Amp Pz>1000 (CluOnTrack)").fill(clusterSum);
                             }
                         }
                     }
-                    aida.histogram1D("Amp (CluOnTrack)").fill(clusterSum);
-                    if (trk.getPX() > 1) {
-                        aida.histogram1D("Amp Pz>1000 (CluOnTrack)").fill(clusterSum);
+                }
+            }
+            if(event.hasCollection(HPSEcalCluster.class,ecalCollectionName)) {
+                List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
+
+                HPSEcalCluster clust = findClosestCluster(posAtEcal, clusters);
+
+                //           if (clust != null) {
+                if (clust != null) {
+
+                    posAtEcal = TrackUtils.extrapolateTrack(trk, clust.getPosition()[2]);//.positionAtEcal();
+
+                    aida.histogram2D("Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
+                    aida.histogram1D("Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                    aida.histogram1D("deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
+                    aida.histogram1D("deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
+                    //                if (trk.getPX() > 1.0) {
+                    //                    aida.histogram1D("deltaX (Pz>1)").fill(clust.getPosition()[0] - posAtEcal.y());
+                    //                    aida.histogram1D("deltaY (Pz>1)").fill(clust.getPosition()[1] - posAtEcal.z());
+                    //                }
+                    aida.histogram2D("X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
+                    aida.histogram2D("Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
+                    if (isTop == 0) {
+                        aida.histogram2D("Top Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
+                        //                    aida.histogram2D("Top Energy Vs Momentum").fill(posAtEcal.y(), trk.getPX() * 1000.0);
+                        aida.histogram1D("Top Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                        aida.histogram1D("Top deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
+                        aida.histogram1D("Top deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
+                        aida.histogram2D("Top deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());
+                        aida.histogram2D("Top deltaY vs Y").fill(clust.getPosition()[1], clust.getPosition()[1] - posAtEcal.y());
+                        aida.histogram2D("Top X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
+                        aida.histogram2D("Top Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
+                    } else {
+                        aida.histogram2D("Bottom Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
+                        aida.histogram1D("Bottom Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                        aida.histogram1D("Bottom deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
+                        aida.histogram1D("Bottom deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
+                        aida.histogram2D("Bottom deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());
+                        aida.histogram2D("Bottom deltaY vs Y").fill(clust.getPosition()[1], clust.getPosition()[1] - posAtEcal.y());
+                        aida.histogram2D("Bottom X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
+                        aida.histogram2D("Bottom Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
                     }
+
                 }
             }
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
-            HPSEcalCluster clust = findClosestCluster(posAtEcal, clusters);
-
-            //           if (clust != null) {
-            if (clust != null) {
-
-                posAtEcal = TrackUtils.extrapolateTrack(trk, clust.getPosition()[2]);//.positionAtEcal();
-
-                aida.histogram2D("Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-                aida.histogram1D("Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
-                aida.histogram1D("deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
-                aida.histogram1D("deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
-//                if (trk.getPX() > 1.0) {
-//                    aida.histogram1D("deltaX (Pz>1)").fill(clust.getPosition()[0] - posAtEcal.y());
-//                    aida.histogram1D("deltaY (Pz>1)").fill(clust.getPosition()[1] - posAtEcal.z());
-//                }
-                aida.histogram2D("X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
-                aida.histogram2D("Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
-                if (isTop == 0) {
-                    aida.histogram2D("Top Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-//                    aida.histogram2D("Top Energy Vs Momentum").fill(posAtEcal.y(), trk.getPX() * 1000.0);
-                    aida.histogram1D("Top Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
-                    aida.histogram1D("Top deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
-                    aida.histogram1D("Top deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
-                    aida.histogram2D("Top deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());
-                    aida.histogram2D("Top deltaY vs Y").fill(clust.getPosition()[1], clust.getPosition()[1] - posAtEcal.y());
-                    aida.histogram2D("Top X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
-                    aida.histogram2D("Top Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
-                } else {
-                    aida.histogram2D("Bottom Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-                    aida.histogram1D("Bottom Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
-                    aida.histogram1D("Bottom deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
-                    aida.histogram1D("Bottom deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
-                    aida.histogram2D("Bottom deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());
-                    aida.histogram2D("Bottom deltaY vs Y").fill(clust.getPosition()[1], clust.getPosition()[1] - posAtEcal.y());
-                    aida.histogram2D("Bottom X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
-                    aida.histogram2D("Bottom Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
-                }
-
-            }
-
         }
     }
 
     public int[] getTrackHitsPerLayer(Track trk) {
-        int n[] = {0, 0, 0, 0, 0};
+        int n[] = {0, 0, 0, 0, 0, 0};
         List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
         int layer;
         for (TrackerHit hit : hitsOnTrack) {
@@ -914,7 +894,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
 
     public boolean singleTrackHitPerLayer(Track track) {
         int hitsPerLayer[] = getTrackHitsPerLayer(track);
-        for (int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 6; ++i) {
             if (hitsPerLayer[i] != 1) {
                 return false;
             }
@@ -925,7 +905,7 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     public boolean singleStripClusterPerLayer(int hitsPerLayer[]) {
         //This includes both axial and stereo separately 
         // so for a hit in each double layer we need 10 hits
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 12; ++i) {
             if (hitsPerLayer[i] != 1) {
                 return false;
             }
@@ -934,12 +914,10 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
     }
 
     public int[] getStripClustersPerLayer(List<SiTrackerHitStrip1D> trackerHits, String side) {
-        String si_side;
         String name;
         int l;
-        int i;
-        int n[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        boolean ddd = false;
+        int n[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        boolean ddd = true;
 
         if (ddd) {
             System.out.println("Get # hits per layer on side \"" + side + "\"");
@@ -972,16 +950,40 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
             if (ddd) {
                 System.out.println("sensor name  " + name);
             }
+            
+            if(name.contains("layer") && name.contains("_module")) {
+                //String str_l = name.substring(13);
+                String str_l = name.substring(name.indexOf("layer") + 5, name.indexOf("_module"));
+                l = Integer.parseInt(str_l);
+            }
+            else if(name.contains("module") && name.contains("_halfmodule")) {
+                int ll = HPSTrackerBuilder.getLayerFromVolumeName(name);
+                boolean isAxial = HPSTrackerBuilder.isAxialFromName(name);
+                boolean isTopLayer = HPSTrackerBuilder.getHalfFromName(name).equals("top") ? true : false;
+                if(isAxial) {
+                    if(isTopLayer) {
+                        l = 2*ll-1;
+                    }
+                    else {
+                        l = 2*ll;
+                    }
+                } else {
+                    if(isTopLayer) {
+                        l = 2*ll;
+                    } else {
+                        l = 2*ll-1;
+                    }
+                }
 
-            //String str_l = name.substring(13);
-            String str_l = name.substring(name.indexOf("layer") + 5, name.indexOf("_module"));
-            l = Integer.parseInt(str_l);
-
+            } else {
+                throw new RuntimeException("Cannot get layer from name " + name);
+            }
+            
             if (ddd) {
                 System.out.println("sensor name  " + name + " --> layer " + l);
             }
 
-            if (l < 1 || l > 10) {
+            if (l < 1 || l > 12) {
                 System.out.println("This layer doesn't exist?");
                 throw new RuntimeException("SiSensor name " + name + " is invalid?");
             }
@@ -1047,6 +1049,8 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         aida.histogram1D("Module 4 Residual Y(mm)").reset();
         aida.histogram1D("Module 5 Residual X(mm)").reset();
         aida.histogram1D("Module 5 Residual Y(mm)").reset();
+        aida.histogram1D("Module 6 Residual X(mm)").reset();
+        aida.histogram1D("Module 6 Residual Y(mm)").reset();
         aida.histogram1D("Module 1 Residual X(mm) Top").reset();
         aida.histogram1D("Module 1 Residual Y(mm) Top").reset();
         aida.histogram1D("Module 2 Residual X(mm) Top").reset();
@@ -1057,6 +1061,8 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         aida.histogram1D("Module 4 Residual Y(mm) Top").reset();
         aida.histogram1D("Module 5 Residual X(mm) Top").reset();
         aida.histogram1D("Module 5 Residual Y(mm) Top").reset();
+        aida.histogram1D("Module 6 Residual X(mm) Top").reset();
+        aida.histogram1D("Module 6 Residual Y(mm) Top").reset();
         aida.histogram1D("Module 1 Residual X(mm) Bottom").reset();
         aida.histogram1D("Module 1 Residual Y(mm) Bottom").reset();
         aida.histogram1D("Module 2 Residual X(mm) Bottom").reset();
@@ -1067,6 +1073,8 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         aida.histogram1D("Module 4 Residual Y(mm) Bottom").reset();
         aida.histogram1D("Module 5 Residual X(mm) Bottom").reset();
         aida.histogram1D("Module 5 Residual Y(mm) Bottom").reset();
+        aida.histogram1D("Module 6 Residual X(mm) Bottom").reset();
+        aida.histogram1D("Module 6 Residual Y(mm) Bottom").reset();
 
         aida.histogram2D("Energy Vs Momentum").reset();
         aida.histogram1D("Energy Over Momentum").reset();
@@ -1080,5 +1088,13 @@ public class TrackingReconstructionPlots extends Driver implements Resettable {
         aida.histogram1D("omega ").reset();
         aida.histogram1D("tan(lambda) ").reset();
         aida.histogram1D("z0 ").reset();
+    }
+
+    public boolean isShapeFit() {
+        return shapeFit;
+    }
+
+    public void setShapeFit(boolean shapeFit) {
+        this.shapeFit = shapeFit;
     }
 }
