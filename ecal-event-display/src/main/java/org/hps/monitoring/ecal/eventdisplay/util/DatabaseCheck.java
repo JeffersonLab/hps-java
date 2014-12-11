@@ -38,8 +38,10 @@ public class DatabaseCheck {
 		EcalWiringManager manager = new EcalWiringManager(filepath);
 		
 		// Initialize the database.
+		int runNumber = 2000;
+		String detectorName = "HPS-Proposal2014-v7-2pt2";
 		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-		conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 2000);
+		conditionsManager.setDetector(detectorName, runNumber);
 		
 		// Get ECAL conditions.
 		EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
@@ -106,6 +108,15 @@ public class DatabaseCheck {
 				pointFailSet.add(crystal);
 			}
 			
+			System.out.printf("\tLED Crate   [ %3d ] vs [ %3d ] ... ", led.getCrateNumber(), crate);
+			if(led.getCrateNumber() == crate) {
+				System.out.printf("[ Success ]%n");
+			} else {
+				System.out.printf("[ Failure ]%n");
+				idFailSet.add(channel.getChannelId());
+				pointFailSet.add(crystal);
+			}
+			
 			System.out.println();
 			System.out.println();
 		}
@@ -118,6 +129,13 @@ public class DatabaseCheck {
 		if(pointFailSet.isEmpty()) {
 			System.out.println("\tNone!");
 		}
+		
+		// Indicate the database connection settings.
+		System.out.println("\n");
+		System.out.printf("Detector           :: %s%n", detectorName);
+		System.out.printf("Run Number         :: %d%n", runNumber);
+		System.out.printf("Channel Collection :: %d%n", channels.getCollectionId());
+		System.out.printf("LED Collection     :: %d%n", leds.getCollectionId());
 	}
 	
 }
