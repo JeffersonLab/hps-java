@@ -12,6 +12,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * <p>
@@ -101,7 +102,20 @@ public class CommandLineTool {
             if (verbose)
                 System.out.println("using XML config file " + xmlConfigFile.getPath());
         }         
-        conditionsManager.openConnection();
+        
+        String detectorName = DatabaseConditionsManager.getDefaultEngRunDetectorName();
+        if (commandLine.hasOption("d")) {
+            detectorName = commandLine.getOptionValue("d");
+        }
+        int runNumber = 2000;
+        if (commandLine.hasOption("r")) {
+            runNumber = Integer.parseInt(commandLine.getOptionValue("r"));
+        }
+        try {
+            DatabaseConditionsManager.getInstance().setDetector(detectorName, runNumber);
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     void printUsage() {
@@ -130,6 +144,8 @@ public class CommandLineTool {
         cli.options.addOption(new Option("v", false, "Enable verbose terminal output"));
         cli.options.addOption(new Option("p", true, "Set the connection properties file"));
         cli.options.addOption(new Option("x", true, "Set the conditions database XML configuration file"));
+        cli.options.addOption(new Option("d", true, "Set the detector name"));
+        cli.options.addOption(new Option("r", true, "Set the run number"));
         cli.registerCommand(new LoadCommand());
         cli.registerCommand(new PrintCommand());
         cli.registerCommand(new AddCommand());

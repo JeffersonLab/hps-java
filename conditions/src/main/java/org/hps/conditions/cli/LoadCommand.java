@@ -57,9 +57,6 @@ class LoadCommand extends AbstractCommand {
         }
 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        if (conditionsManager == null) {
-            throw new RuntimeException("The DatabaseConditionsManager was not setup properly.");
-        }
 
         int collectionID;
         if (commandLine.getOptionValue("c") != null) {

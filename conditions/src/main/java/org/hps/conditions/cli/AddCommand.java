@@ -35,13 +35,7 @@ public class AddCommand extends AbstractCommand {
        
     void execute(String[] arguments) {
         super.execute(arguments);
-        
-        try {
-            DatabaseConditionsManager.getInstance().setDetector(DatabaseConditionsManager.getDefaultEngRunDetectorName(), 2000);
-        } catch (ConditionsNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        
+                
         int runStart = Integer.parseInt(commandLine.getOptionValue("r"));
         int runEnd = runStart;
         if (commandLine.hasOption("e")) {
@@ -72,11 +66,6 @@ public class AddCommand extends AbstractCommand {
         int collectionId = Integer.parseInt(commandLine.getOptionValue("c"));
 
         ConditionsRecord conditionsRecord = new ConditionsRecord();
-        //try {
-        //    conditionsRecord.setTableMetaData(DatabaseConditionsManager.getInstance().findTableMetaData(TableConstants.CONDITIONS_RECORD));
-        //} catch (ConditionsObjectException e) {
-        //    throw new RuntimeException("Problem assigning meta data to record.", e);
-        //}
         FieldValueMap fieldValues = new FieldValueMap();
         fieldValues.put("run_start", runStart);
         fieldValues.put("run_end", runEnd);
