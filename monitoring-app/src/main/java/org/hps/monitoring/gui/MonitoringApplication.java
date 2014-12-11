@@ -60,6 +60,7 @@ import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -69,6 +70,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
@@ -98,7 +100,6 @@ import org.hps.record.et.EtConnection;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.job.JobControlManager;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -982,7 +983,10 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             setupSystemStatusMonitor();
 
             // Start thread which will trigger a disconnect if the event processing finishes.
-            startSessionWatchdogThread();
+            startSessionWatchdogThread();            
+
+            // Apparently, the visible plots won't draw without this!  (Unless the user clicks directly on the tab.)
+            plotWindow.getPlotPane().requestFocusInWindow();            
 
             log(Level.INFO, "Successfully started the monitoring session.");
 
@@ -1596,13 +1600,15 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
 
     private void updateLayoutConfiguration() {
-        // Should the GUI config be saved?
-        if (configurationModel.getSaveLayout()) {
-            // Push the current GUI settings into the configuration.
-            saveLayoutConfiguration();
-        } else {
-            // Remove any GUI settings from the configuration.
+        if (configurationModel.hasPropertyValue(SAVE_LAYOUT_PROPERTY)) {
+            // Should the GUI config be saved?
+            if (configurationModel.getSaveLayout()) {
+                // Push the current GUI settings into the configuration.
+                saveLayoutConfiguration();
+            } else {
+                // Remove any GUI settings from the configuration.
             clearLayoutConfiguration();
+        }
         }
     }
 
