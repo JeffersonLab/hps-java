@@ -39,7 +39,7 @@ public abstract class AbstractSvtConditions {
      */
     public ChannelConstants getChannelConstants(AbstractSvtChannel channel) {
         // This channel must come from the map.
-        if (!channelMap.getObjects().contains(channel)) {
+        if (!channelMap.contains(channel)) {
             System.err.println("[ " + this.getClass().getSimpleName() + " ]: Channel not found in map => " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }

@@ -1,7 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * A conditions class for representing the setup of the LED system in the ECAL
@@ -13,7 +13,7 @@ public class EcalLed extends AbstractConditionsObject {
     /**
      * Generic collection class for these objects.
      */
-    public static class EcalLedCollection extends ConditionsObjectCollection<EcalLed> {
+    public static class EcalLedCollection extends AbstractConditionsObjectCollection<EcalLed> {
     }
 
     /**

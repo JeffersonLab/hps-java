@@ -109,7 +109,7 @@ public final class EcalConditions {
         buff.append('\n');
 
         // Loop over all channels.
-        for (EcalChannel channel : channelMap.getObjects()) {
+        for (EcalChannel channel : channelMap) {
 
             EcalChannelConstants constants = getChannelConstants(channel);
 

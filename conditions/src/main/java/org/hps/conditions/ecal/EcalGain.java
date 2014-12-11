@@ -1,7 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * A simplistic representation of gain values from the ECal conditions database.
@@ -10,7 +10,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public final class EcalGain extends AbstractConditionsObject {
 
-    public static class EcalGainCollection extends ConditionsObjectCollection<EcalGain> {
+    public static class EcalGainCollection extends AbstractConditionsObjectCollection<EcalGain> {
     }
 
     /**

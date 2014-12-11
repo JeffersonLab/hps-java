@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -59,21 +59,18 @@ class ConditionsSeriesConverter {
         ConditionsSeries series = new ConditionsSeries();
 
         // Get the ConditionsRecord with the meta-data, which will use the
-        // current run
-        // number from the manager.
+        // current run number from the manager.
         ConditionsRecordCollection conditionsRecords = conditionsManager.findConditionsRecords(conditionsKey);
 
         // Loop over conditions records. This will usually just be one record.
-        for (ConditionsRecord conditionsRecord : conditionsRecords.getObjects()) {
+        for (ConditionsRecord conditionsRecord : conditionsRecords) {
 
-            ConditionsObjectCollection collection = ConditionsRecordConverter.createCollection(tableMetaData);
-
+            AbstractConditionsObjectCollection collection;
             try {
-                collection.setCollectionId(conditionsRecord.getCollectionId());
+                collection = ConditionsRecordConverter.createCollection(conditionsRecord, tableMetaData);
             } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }
-            collection.setTableMetaData(tableMetaData);
 
             // Get the table name.
             String tableName = conditionsRecord.getTableName();
@@ -97,7 +94,7 @@ class ConditionsSeriesConverter {
                     // collection ID if applicable.
                     collection.add(newObject);
                 }
-            } catch (SQLException | ConditionsObjectException e) {
+            } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
 

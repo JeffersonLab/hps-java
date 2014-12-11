@@ -24,7 +24,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
         public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
 
             String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
-            for (SvtDaqMapping object : this.getObjects()) {
+            for (SvtDaqMapping object : this) {
 
                 if (svtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == sensor.getLayerNumber() && object.getSide().equals(sensor.getSide())) {
 
@@ -46,7 +46,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
          */
         public String getOrientation(Pair<Integer, Integer> daqPair) {
 
-            for (SvtDaqMapping daqMapping : this.getObjects()) {
+            for (SvtDaqMapping daqMapping : this) {
 
                 if (daqPair.getFirstElement() == daqMapping.getFebID() && daqPair.getSecondElement() == daqMapping.getFebHybridID()) {
                     return daqMapping.getOrientation();
@@ -76,7 +76,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
             buff.append('\n');
             buff.append("----------------------");
             buff.append('\n');
-            for (SvtDaqMapping object : getObjects()) {
+            for (SvtDaqMapping object : this) {
                 buff.append(object.getFebID());
                 buff.append("    ");
                 buff.append(object.getFebHybridID());

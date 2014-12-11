@@ -25,7 +25,7 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
             int fpgaID = pair.getFirstElement();
             int hybridID = pair.getSecondElement();
-            for (TestRunSvtT0Shift t0Shift : this.getObjects()) {
+            for (TestRunSvtT0Shift t0Shift : this) {
                 if (t0Shift.getFpgaID() == fpgaID && t0Shift.getHybridID() == hybridID) {
                     return t0Shift;
                 }

@@ -7,7 +7,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.apache.commons.cli.Option;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -99,8 +99,8 @@ class PrintCommand extends AbstractCommand {
         }
         ps.println();
         
-        for (ConditionsObjectCollection collection : series.getCollections()) {
-            for (Object object : collection.getObjects()) {
+        for (AbstractConditionsObjectCollection collection : series.getCollections()) {
+            for (Object object : collection) {
                 ps.print(object.toString());
                 ps.println();
             }

@@ -2,7 +2,7 @@ package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
@@ -13,7 +13,7 @@ import org.hps.util.Pair;
  */
 public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
 
-    public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends ConditionsObjectCollection<T> {
+    public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends AbstractConditionsObjectCollection<T> {
 
         /**
          * Flag values for top or bottom half.

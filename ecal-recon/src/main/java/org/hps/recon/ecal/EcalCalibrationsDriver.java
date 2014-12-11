@@ -127,7 +127,7 @@ public class EcalCalibrationsDriver extends Driver {
         ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         
         // Create a histogram for every ECAL channel.
-        for (EcalChannel channel : ecalConditions.getChannelCollection().getObjects()) {
+        for (EcalChannel channel : ecalConditions.getChannelCollection()) {
             aida.histogram1D("ECAL Channel " + channel.getChannelId(), 300, 0, 300.);
         }
     }
@@ -178,7 +178,7 @@ public class EcalCalibrationsDriver extends Driver {
         calibrations.setTableMetaData(tableMetaData);
         
         // Loop over all ECAL channels.
-        for (EcalChannel channel : ecalConditions.getChannelCollection().getObjects()) {
+        for (EcalChannel channel : ecalConditions.getChannelCollection()) {
             
             // Get the histogram with ADC distribution for this channel. 
             IHistogram1D histogram = aida.histogram1D("ECAL Channel " + channel.getChannelId());
@@ -205,12 +205,7 @@ public class EcalCalibrationsDriver extends Driver {
             
             // Create a new calibration object and add it to the collection, using mean for pedestal
             // and sigma for noise.
-            EcalCalibration calibration = new EcalCalibration(channelId, mean, sigma);
-            try {
-                calibrations.add(calibration);
-            } catch (ConditionsObjectException e) {
-                throw new RuntimeException(e);
-            }
+            calibrations.add(new EcalCalibration(channelId, mean, sigma));
         } 
         
         // Get the list of field names for the header.

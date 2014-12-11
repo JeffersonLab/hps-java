@@ -24,7 +24,7 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
         public SvtT0Shift getT0Shift(Pair<Integer, Integer> pair) {
             int febID = pair.getFirstElement();
             int febHybridID = pair.getSecondElement();
-            for (SvtT0Shift t0Shift : this.getObjects()) {
+            for (SvtT0Shift t0Shift : this) {
                 if (t0Shift.getFebID() == febID && t0Shift.getFebHybridID() == febHybridID) {
                     return t0Shift;
                 }

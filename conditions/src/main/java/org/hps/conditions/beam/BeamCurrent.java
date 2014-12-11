@@ -1,7 +1,7 @@
 package org.hps.conditions.beam;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * This class is a simple data holder for the integrated beam current condition.
@@ -9,7 +9,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public final class BeamCurrent extends AbstractConditionsObject {
 
-    public static class BeamCurrentCollection extends ConditionsObjectCollection<BeamCurrent> {
+    public static class BeamCurrentCollection extends AbstractConditionsObjectCollection<BeamCurrent> {
     }
 
     /**

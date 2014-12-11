@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractIdentifier;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -123,7 +123,7 @@ public final class EcalChannel extends AbstractConditionsObject {
     /**
      * A collection of {@link EcalChannel} objects.
      */
-    public static class EcalChannelCollection extends ConditionsObjectCollection<EcalChannel> {
+    public static class EcalChannelCollection extends AbstractConditionsObjectCollection<EcalChannel> {
 
         // Identifier maps for fast lookup.
         Map<Long, EcalChannel> daqMap = new HashMap<Long, EcalChannel>();
@@ -136,7 +136,7 @@ public final class EcalChannel extends AbstractConditionsObject {
          * access to the Detector API.
          */
         @Override
-        public void add(EcalChannel channel) throws ConditionsObjectException {
+        public boolean add(EcalChannel channel)  {
             super.add(channel);
             DaqId daqId = channel.createDaqId();
             if (daqId.isValid())
@@ -144,6 +144,7 @@ public final class EcalChannel extends AbstractConditionsObject {
             ChannelId channelId = channel.createChannelId();
             if (channelId.isValid())
                 channelMap.put(channelId.encode(), channel);
+            return true;
         }
 
         /**
@@ -152,7 +153,7 @@ public final class EcalChannel extends AbstractConditionsObject {
          * @param system The system ID of the subdetector.
          */
         void buildGeometryMap(IIdentifierHelper helper, int system) {
-            for (EcalChannel channel : this.objects) {
+            for (EcalChannel channel : this) {
                 GeometryId geometryId = channel.createGeometryId(helper, system);
                 geometryMap.put(geometryId.encode(), channel);
             }

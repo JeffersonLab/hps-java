@@ -1,7 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * This class is a simplistic representation of ECal pedestal and noise values
@@ -14,7 +14,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public final class EcalCalibration extends AbstractConditionsObject {
 
-    public static class EcalCalibrationCollection extends ConditionsObjectCollection<EcalCalibration> {
+    public static class EcalCalibrationCollection extends AbstractConditionsObjectCollection<EcalCalibration> {
     }
     
     public EcalCalibration() {

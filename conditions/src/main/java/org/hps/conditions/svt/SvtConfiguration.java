@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -18,7 +18,7 @@ import org.jdom.output.XMLOutputter;
  */
 public class SvtConfiguration extends AbstractConditionsObject {
 
-    public static class SvtConfigurationCollection extends ConditionsObjectCollection<SvtConfiguration> {
+    public static class SvtConfigurationCollection extends AbstractConditionsObjectCollection<SvtConfiguration> {
     }
 
     /**

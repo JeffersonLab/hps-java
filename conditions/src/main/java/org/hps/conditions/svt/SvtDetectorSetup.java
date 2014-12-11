@@ -43,7 +43,7 @@ public final class SvtDetectorSetup {
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         logger.info("setting up " + sensors.size() + " SVT sensors");
         SvtChannelCollection channelMap = conditions.getChannelMap();
-        logger.info("channel map has " + conditions.getChannelMap().getObjects().size() + " entries");
+        logger.info("channel map has " + conditions.getChannelMap().size() + " entries");
         SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 

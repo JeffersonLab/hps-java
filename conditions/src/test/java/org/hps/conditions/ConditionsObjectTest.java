@@ -15,6 +15,7 @@ import org.hps.conditions.svt.SvtGain.SvtGainCollection;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// FIXME: This test is berken.  It should probably be removed.
 public class ConditionsObjectTest extends TestCase {
 
     public void testBasicOperations() throws ConditionsObjectException {
@@ -25,7 +26,8 @@ public class ConditionsObjectTest extends TestCase {
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(TableConstants.SVT_GAINS);
         int collectionId = conditionsManager.getNextCollectionID(tableMetaData.getTableName());
         SvtGainCollection collection = new SvtGainCollection();
-        collection.setTableMetaData(tableMetaData);
+        // FIXME: This can't be done through a setter anymore!
+        //collection.setTableMetaData(tableMetaData);
         try {
             collection.setCollectionId(collectionId);
         } catch (ConditionsObjectException e) {

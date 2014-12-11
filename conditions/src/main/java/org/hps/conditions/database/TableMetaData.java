@@ -4,7 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * <p>
@@ -14,7 +14,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  * </p>
  * <p>
  * It also has references to the implementation classes which are used to map
- * the data onto {@link ConditionsObject} and {@link ConditionsObjectCollection}
+ * the data onto {@link ConditionsObject} and {@link AbstractConditionsObjectCollection}
  * s.
  * </p>
  * 
@@ -26,7 +26,7 @@ public final class TableMetaData {
     String tableName;
     String key;
     Class<? extends ConditionsObject> objectClass;
-    Class<? extends ConditionsObjectCollection<?>> collectionClass;
+    Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
     Set<String> fieldNames = new LinkedHashSet<String>();
 
     /**
@@ -35,7 +35,7 @@ public final class TableMetaData {
      * @param objectClass The type of object for the data mapping.
      * @param collectionClass The type of collection for the data mapping.
      */
-    TableMetaData(String key, String tableName, Class<? extends ConditionsObject> objectClass, Class<? extends ConditionsObjectCollection<?>> collectionClass) {
+    public TableMetaData(String key, String tableName, Class<? extends ConditionsObject> objectClass, Class<? extends AbstractConditionsObjectCollection<?>> collectionClass) {
         this.key = key;
         this.tableName = tableName;
         this.objectClass = objectClass;
@@ -54,7 +54,7 @@ public final class TableMetaData {
      * Get the type of collection this table maps onto.
      * @return
      */
-    public Class<? extends ConditionsObjectCollection<?>> getCollectionClass() {
+    public Class<? extends AbstractConditionsObjectCollection<?>> getCollectionClass() {
         return collectionClass;
     }
 

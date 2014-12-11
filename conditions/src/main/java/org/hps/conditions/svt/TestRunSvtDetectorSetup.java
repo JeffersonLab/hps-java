@@ -44,7 +44,7 @@ public class TestRunSvtDetectorSetup {
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         logger.info("setting up " + sensors.size() + " SVT sensors");
         TestRunSvtChannelCollection channelMap = conditions.getChannelMap();
-        logger.info("channel map has " + channelMap.getObjects().size() + " entries");
+        logger.info("channel map has " + channelMap.size() + " entries");
         TestRunSvtDaqMappingCollection daqMap = conditions.getDaqMap();
         TestRunSvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
 

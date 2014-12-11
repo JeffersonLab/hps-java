@@ -1,5 +1,8 @@
 package org.hps.conditions.api;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -18,14 +21,64 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     /**
      * Collection type.
      */
-    public static class ConditionsRecordCollection extends ConditionsObjectCollection<ConditionsRecord> {
-        /**
-         * Since ConditionsRecord collections are always "mixed", meaning the
-         * collection ID values are usually all going to be different, the
-         * default behavior of the super class is overridden.
-         */
-        public void add(ConditionsRecord record) {
-            objects.add(record);
+    public static class ConditionsRecordCollection extends AbstractConditionsObjectCollection<ConditionsRecord> {
+        
+        public List<ConditionsRecord> sortedByUpdated() {
+            List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
+            Collections.sort(list, new UpdatedComparator());
+            return list;
+        }
+        
+        public List<ConditionsRecord> sortedByCreated() {
+            List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
+            Collections.sort(list, new CreatedComparator());
+            return list;
+        }
+        
+        public List<ConditionsRecord> sortedByRunStart() {
+            List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
+            Collections.sort(list, new RunStartComparator());
+            return list;
+        }
+        
+        private static class RunStartComparator implements Comparator<ConditionsRecord> {
+            @Override
+            public int compare(ConditionsRecord c1, ConditionsRecord c2) {
+                if (c1.getRunStart() < c2.getRunStart()) {
+                    return -1;
+                } else if (c1.getRunStart() > c2.getRunStart()) {
+                    return 1;
+                } 
+                return 0;
+            }
+        }
+        
+        private static class UpdatedComparator implements Comparator<ConditionsRecord> {
+            @Override
+            public int compare(ConditionsRecord c1, ConditionsRecord c2) {
+                Date date1 = c1.getUpdated();
+                Date date2 = c2.getUpdated();                
+                if (date1.before(date2)) {
+                    return -1;
+                } else if (date1.after(date2)) {
+                    return 1;
+                }
+                return 0;                
+            }            
+        }
+        
+        private static class CreatedComparator implements Comparator<ConditionsRecord> {
+            @Override
+            public int compare(ConditionsRecord c1, ConditionsRecord c2) {
+                Date date1 = c1.getCreated();
+                Date date2 = c2.getCreated();                
+                if (date1.before(date2)) {
+                    return -1;
+                } else if (date1.after(date2)) {
+                    return 1;
+                }
+                return 0;                
+            }            
         }
     }
     

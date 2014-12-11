@@ -13,13 +13,13 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 public class ConditionsSeries {
 
-    List<ConditionsObjectCollection> collections = new ArrayList<ConditionsObjectCollection>();
+    List<AbstractConditionsObjectCollection> collections = new ArrayList<AbstractConditionsObjectCollection>();
 
-    public ConditionsObjectCollection getCollection(int series) {
+    public AbstractConditionsObjectCollection getCollection(int series) {
         return collections.get(series);
     }
 
-    public int addCollection(ConditionsObjectCollection collection) {
+    public int addCollection(AbstractConditionsObjectCollection collection) {
         if (collections.contains(collection))
             throw new IllegalArgumentException("The collection is already registered with this object.");
         collections.add(collection);
@@ -30,15 +30,15 @@ public class ConditionsSeries {
         return collections.size();
     }
 
-    public ConditionsObjectCollection findCollection(ConditionsRecord record) {
-        for (ConditionsObjectCollection collection : collections) {
+    public AbstractConditionsObjectCollection findCollection(ConditionsRecord record) {
+        for (AbstractConditionsObjectCollection collection : collections) {
             if (collection.conditionsRecord == record)
                 return collection;
         }
         return null;
     }
     
-    public List<ConditionsObjectCollection> getCollections() {
+    public List<AbstractConditionsObjectCollection> getCollections() {
         return collections;
     }
 }

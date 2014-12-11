@@ -1,11 +1,15 @@
 package org.hps.conditions.database;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -17,36 +21,41 @@ import org.lcsim.conditions.ConditionsManager;
  * <p>
  * Implementation of default conversion from database tables to a
  * {@link ConditionsObject} class.
- * </p>
  * <p>
  * This class actually returns collections and not individual objects.
- * </p>
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * 
- * @param <T> The type of the returned data which should be a class extending
- *            {@link ConditionsObjectCollection}.
+ * @param <T> The type of the returned data which should be a class extending {@link AbstractConditionsObjectCollection}.
  */
-// FIXME: This class should only allow one collection to be returned and not mix
-// the database records together.
-// TODO: This class can probably be removed in favor of using the
-// ConditionsSeriesConverter in all cases.
 public abstract class ConditionsObjectConverter<T> implements ConditionsConverter<T> {
 
+    // This is the strategy used for disambiguating multiple overlapping conditions sets.
+    enum MultipleRecordsStrategy {
+        LAST_UPDATED,
+        LAST_CREATED,
+        LATEST_RUN_START,
+        COMBINE,
+        ERROR
+    }
+    
+    MultipleRecordsStrategy multiStrat = MultipleRecordsStrategy.LAST_UPDATED;
+    
     public ConditionsObjectConverter() {
+    }
+    
+    public void setMultipleRecordsStrategy(MultipleRecordsStrategy multiStrat) {
+        this.multiStrat = multiStrat;
     }
 
     /**
-     * Classes that extend this must define this method to specify what type the
-     * converter is able to handle.
+     * Child classes must extend this method to specify what type the converter handles.
      * @return The Class that this converter handles.
      */
-    public abstract Class getType();
+    public abstract Class<T> getType();
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public T getData(ConditionsManager conditionsManager, String name) {
-
-        // System.out.println("finding conditions for key " + name + " ...");
 
         // Get the DatabaseConditionsManager which is required for using this converter.
         DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
@@ -56,39 +65,52 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         if (tableMetaData == null)
             throw new RuntimeException("Table meta data for " + name + " was not found.");
 
-        // Create a collection to return.
-        ConditionsObjectCollection collection = createCollection(tableMetaData);
-
-        // Get the ConditionsRecord with the meta-data, which will use the
-        // current run
-        // number from the manager.
+        // Get the ConditionsRecordCollection with the run number assignments.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
-
-        if (conditionsRecords.getObjects().size() == 0) {
-            // There were no records returned, which is a fatal error.
-            throw new RuntimeException("No conditions found with key: " + name);
-        } else if (conditionsRecords.getObjects().size() > 1) {
-            // There were multiple records returned.
-            if (!allowMultipleCollections())
-                // If there are multiple records returned but this is not
-                // allowed by the
-                // converter, then this is a fatal error.
-                throw new RuntimeException("Multiple conditions records returned but this is not allowed.");
+        
+        // By default use all conditions records, which works if there is a single one, or if the COMBINE strategy is being used.
+        List<ConditionsRecord> filteredList = new ArrayList<ConditionsRecord>(conditionsRecords); 
+        
+        // Now we need to determine which ConditionsRecord objects to use according to configuration.
+        if (conditionsRecords.size() == 0) {
+            // No conditions records were found, and this is an error.
+            throw new RuntimeException("No conditions were found with key " + name);
         } else {
-            // There was a single conditions record so the collection
-            // information can be
-            // set meaningfully.
-            try {
-                collection.setCollectionId(conditionsRecords.get(0).getCollectionId());
-                collection.setTableMetaData(tableMetaData);
-            } catch (ConditionsObjectException e) {
-                throw new RuntimeException(e);
+            /*
+             * Figure out which disambiguation strategy to use.
+             */
+            if (multiStrat.equals(MultipleRecordsStrategy.LAST_UPDATED)) {
+                // Use the conditions set with the latest updated date.
+                filteredList = conditionsRecords.sortedByUpdated();
+            } else if (multiStrat.equals(MultipleRecordsStrategy.LAST_CREATED)){
+                // Use the conditions set with the latest created date.
+                filteredList = conditionsRecords.sortedByCreated();                
+            } else if (multiStrat.equals(MultipleRecordsStrategy.LATEST_RUN_START)) {
+                // Use the conditions set with the greatest run start value.
+                filteredList = conditionsRecords.sortedByRunStart();
+            } else if (multiStrat.equals(MultipleRecordsStrategy.ERROR)) {            
+                // The converter has been configured to throw an error when this happens!
+                throw new RuntimeException("Multiple ConditionsRecord object found for conditions key " + name);
+            }           
+        }             
+        
+        // Create a collection of objects to to return.        
+        AbstractConditionsObjectCollection collection = null;
+        
+        try {
+            ConditionsRecord conditionsRecord = null;
+            if (filteredList.size() == 1) {
+                // If there is a single ConditionsRecord, then it can be assigned to the collection.
+                conditionsRecord = filteredList.get(0);
             }
+            collection = createCollection(conditionsRecord, tableMetaData);
+        } catch (ConditionsObjectException e) {
+            throw new RuntimeException(e);
         }
-
-        // Loop over conditions records. This will usually just be one record.
-        for (ConditionsRecord conditionsRecord : conditionsRecords.getObjects()) {
-
+   
+        // Loop over all records, which could just be a single one.
+        for (ConditionsRecord conditionsRecord : filteredList) {
+        
             // Get the table name.
             String tableName = conditionsRecord.getTableName();
 
@@ -98,30 +120,24 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             // Build a select query.
             String query = QueryBuilder.buildSelect(tableName, collectionId, tableMetaData.getFieldNames(), "id ASC");
 
-            // Query the database.
+            // Query the database to get the conditions collection's rows.
             ResultSet resultSet = databaseConditionsManager.selectQuery(query);
 
             try {
-                // Loop over rows.
+                // Loop over the rows.
                 while (resultSet.next()) {
-                    // Create new ConditionsObject.
+                    // Create a new ConditionsObject from this row.
                     ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
 
-                    // Add new object to collection, which will also assign it a
-                    // collection ID if applicable.
+                    // Add the object to the collection.
                     collection.add(newObject);
                 }
-            } catch (SQLException | ConditionsObjectException e) {
+            } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
-
-        // Return new collection.
+        
         return (T) collection;
-    }
-
-    public boolean allowMultipleCollections() {
-        return true;
     }
     
     static final ConditionsObject createConditionsObject(ResultSet resultSet, TableMetaData tableMetaData) throws SQLException {
@@ -152,13 +168,38 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         return newObject;
     }
     
-    static final ConditionsObjectCollection<?> createCollection(TableMetaData tableMetaData) {
-        ConditionsObjectCollection<?> collection;
+    static final AbstractConditionsObjectCollection<?> createCollection(ConditionsRecord conditionsRecord, TableMetaData tableMetaData) throws ConditionsObjectException {
+        AbstractConditionsObjectCollection<?> collection;
         try {
             collection = tableMetaData.getCollectionClass().newInstance();
+            if (conditionsRecord != null) {
+                collection.setConditionsRecord(conditionsRecord);
+                collection.setTableMetaData(tableMetaData);
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConditionsObjectException("Error creating conditions object collection.", e);
+        }
+        return collection;
+    }
+
+    // This would only work if every collection class had a constructor with the proper arguments.
+    /*
+    static final AbstractConditionsObjectCollection<?> createCollection(ConditionsRecord conditionsRecord, TableMetaData tableMetaData) throws ConditionsObjectException {
+        AbstractConditionsObjectCollection<?> collection;
+        try {
+            collection = tableMetaData.getCollectionClass().newInstance();
+            Class<?> collectionClass = tableMetaData.getCollectionClass();
+            try {
+                Constructor<?> constructor = collectionClass.getDeclaredConstructor(ConditionsRecord.class, TableMetaData.class);
+                collection = (AbstractConditionsObjectCollection) constructor.newInstance(new Object[] { conditionsRecord, tableMetaData } );
+            } catch (NoSuchMethodException | SecurityException | InvocationTargetException e) {
+                e.printStackTrace();
+                throw new ConditionsObjectException("Error creating conditions object collection.", e);
+            }
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
         return collection;
-    }
+    } 
+    */   
 }

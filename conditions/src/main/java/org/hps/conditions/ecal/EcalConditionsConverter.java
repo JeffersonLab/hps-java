@@ -46,7 +46,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
         // Get the ECal gains from the conditions database and add them to the
         // conditions set
         EcalGainCollection gains = dbConditionsManager.getCollection(EcalGainCollection.class);
-        for (EcalGain gain : gains.getObjects()) {
+        for (EcalGain gain : gains) {
             ChannelId channelId = new ChannelId(new int[] { gain.getChannelId() });
             EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(gain);
@@ -55,7 +55,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
         // Get the ECal bad channels and add them to the conditions set
         try {
             EcalBadChannelCollection badChannels = dbConditionsManager.getCollection(EcalBadChannelCollection.class);
-            for (EcalBadChannel badChannel : badChannels.getObjects()) {
+            for (EcalBadChannel badChannel : badChannels) {
                 ChannelId channelId = new ChannelId(new int[] { badChannel.getChannelId() });
                 EcalChannel channel = channels.findChannel(channelId);
                 conditions.getChannelConstants(channel).setBadChannel(true);
@@ -67,7 +67,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
         // Get the ECal calibrations from the conditions database and add them
         // to the conditions set.
         EcalCalibrationCollection calibrations = dbConditionsManager.getCollection(EcalCalibrationCollection.class);
-        for (EcalCalibration calibration : calibrations.getObjects()) {
+        for (EcalCalibration calibration : calibrations) {
             ChannelId channelId = new ChannelId(new int[] { calibration.getChannelId() });
             EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setCalibration(calibration);
@@ -76,7 +76,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
         // Get the ECal time shifts from the conditions database and add them to
         // the conditions set.
         EcalTimeShiftCollection timeShifts = dbConditionsManager.getCollection(EcalTimeShiftCollection.class);
-        for (EcalTimeShift timeShift : timeShifts.getObjects()) {
+        for (EcalTimeShift timeShift : timeShifts) {
             ChannelId channelId = new ChannelId(new int[] { timeShift.getChannelId() });
             EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setTimeShift(timeShift);

@@ -119,7 +119,7 @@ public class TestRunSvtConditions extends AbstractSvtConditions {
         }
         buff.append('\n');
         // Loop over channels.
-        for (TestRunSvtChannel channel : this.getChannelMap().getObjects()) {
+        for (TestRunSvtChannel channel : this.getChannelMap()) {
 
             System.out.println("Channel: " + channel.toString());
 

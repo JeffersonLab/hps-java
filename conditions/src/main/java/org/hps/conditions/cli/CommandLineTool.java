@@ -23,6 +23,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Add detector name and run number as arguments on the basic tool rather than sub-commands.
 public class CommandLineTool {
 
     Options options = new Options();
@@ -99,7 +100,7 @@ public class CommandLineTool {
             conditionsManager.setXmlConfig(xmlConfigFile);
             if (verbose)
                 System.out.println("using XML config file " + xmlConfigFile.getPath());
-        } 
+        }         
         conditionsManager.openConnection();
     }
 

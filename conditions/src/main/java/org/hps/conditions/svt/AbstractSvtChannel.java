@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.util.Pair;
 
 /**
- * This abstract class provides basic setup information for an SVT sensor
- * channel.
+ * This abstract class provides basic setup information for an SVT sensor channel.
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
@@ -20,7 +18,7 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
     // TODO: Put constants into their own class
     public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
-    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends ConditionsObjectCollection<T> {
+    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends AbstractConditionsObjectCollection<T> {
 
         Map<Integer, T> channelMap = new HashMap<Integer, T>();
 
@@ -30,7 +28,7 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
          * 
          * @param A channel of a type extending {@link AbstractSvtChannel}
          */
-        public void add(T channel) {
+        public boolean add(T channel) {
 
             // If it doesn't exist, add the channel to the channel map
             if (channelMap.containsKey(channel.getChannelID())) {
@@ -39,11 +37,7 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
             channelMap.put(channel.getChannelID(), channel);
 
             // Add to the collection
-            try {
-                super.add(channel);
-            } catch (ConditionsObjectException e) {
-                throw new RuntimeException(e);
-            }
+            return super.add(channel);                                  
         }
 
         /**
@@ -73,7 +67,7 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
          */
         public String toString() {
             StringBuffer buff = new StringBuffer();
-            for (T channel : this.getObjects()) {
+            for (T channel : this) {
                 buff.append(channel.toString() + '\n');
             }
             return buff.toString();

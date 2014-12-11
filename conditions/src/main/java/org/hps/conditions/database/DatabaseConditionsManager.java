@@ -22,8 +22,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -133,7 +133,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Class constructor.
      */
     public DatabaseConditionsManager() {
-        logger.setLevel(Level.FINE);
+        logger.setLevel(Level.FINER);
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
         register();
@@ -179,7 +179,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.config("host " + connectionParameters.getHostname());
         logger.config("port " + connectionParameters.getPort());
         logger.config("user " + connectionParameters.getUser());
-        //logger.config("password " + connectionParameters.getPassword());
         logger.config("database " + connectionParameters.getDatabase());
         connection = connectionParameters.createConnection();
         logger.config("successfuly created connection");
@@ -233,7 +232,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     // TODO: This should distinguish among multiple conditions sets of the same type by using the one with the most recent date
     //       in its ConditionsRecord.
-    public <CollectionType extends ConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
+    public <CollectionType extends AbstractConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
         TableMetaData metaData = this.findTableMetaData(type).get(0);
         if (metaData == null) {
             throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
@@ -264,12 +263,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
             if (!this.isFrozen) {
                 if (!detectorName.equals(this.getDetector())) {
-                    logger.fine("detector name is different");
+                    logger.finest("detector name is different");
                 }
                 if (runNumber != this.getRun()) {
-                    logger.fine("run number is different");
+                    logger.finest("run number is different");
                 }            
-                logger.fine("setDetector with new detector " + detectorName + " and run #" + runNumber);
+                logger.info("setDetector with new detector " + detectorName + " and run #" + runNumber);
                 logger.fine("old detector " + this.getDetector() + " and run #" + this.getRun());
                 initialize(detectorName, runNumber);
             } else {
@@ -292,7 +291,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     protected void initialize(String detectorName, int runNumber) throws ConditionsNotFoundException {
 
-        logger.log(Level.CONFIG, "initializing " + getClass().getSimpleName() + " with detector " + detectorName + " and run number " + runNumber);
+        logger.config("initializing " + getClass().getSimpleName() + " with detector " + detectorName + " and run number " + runNumber);
 
         // Did the user not specify a config?
         if (resourceConfig == null && fileConfig == null) {
@@ -565,9 +564,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public ConditionsRecordCollection findConditionsRecords(String name) {
         ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, TableConstants.CONDITIONS_RECORD);
-        logger.fine("searching for condition " + name + " in " + runConditionsRecords.getObjects().size() + " records");
+        logger.fine("searching for condition " + name + " in " + runConditionsRecords.size() + " records");
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
-        for (ConditionsRecord record : runConditionsRecords.getObjects()) {
+        for (ConditionsRecord record : runConditionsRecords) {
             if (record.getName().equals(name)) {
                 if (tag == null || (tag != null && record.getTag().equals(tag))) {
                     foundConditionsRecords.add(record);
@@ -576,8 +575,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 }
             }
         }
-        if (foundConditionsRecords.getObjects().size() > 0) {
-            for (ConditionsRecord record : foundConditionsRecords.getObjects()) {
+        if (foundConditionsRecords.size() > 0) {
+            for (ConditionsRecord record : foundConditionsRecords) {
                 logger.fine("found ConditionsRecord with key " + name + '\n' + record.toString());
             }
         }
@@ -613,11 +612,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         this.tag = tag;
     }
 
-    public <ObjectType extends ConditionsObject> void insertCollection(ConditionsObjectCollection<ObjectType> collection) throws SQLException {
+    public <ObjectType extends ConditionsObject> void insertCollection(AbstractConditionsObjectCollection<ObjectType> collection) throws SQLException {
         if (collection == null) {
             throw new IllegalArgumentException("The collection is null.");
         }
-        if (collection.getObjects().size() == 0) {
+        if (collection.size() == 0) {
             throw new IllegalArgumentException("The collection is empty.");
         }
         if (collection.getTableMetaData() == null) {
@@ -631,18 +630,18 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 throw new RuntimeException(e);
             }
         }
-        logger.fine("inserting collection with ID " + collection.getCollectionId() 
+        logger.info("inserting collection with ID " + collection.getCollectionId() 
                 + " and key " + collection.getTableMetaData().getKey() + " into table " + tableMetaData.getTableName());
 
         try {
             connection.setAutoCommit(false);
             logger.finest("starting insert transaction");
-            String sql = QueryBuilder.buildPreparedInsert(collection.get(0));
+            String sql = QueryBuilder.buildPreparedInsert(collection.iterator().next());
             PreparedStatement preparedStatement = 
                 connection.prepareStatement(sql);
             logger.finest("using prepared statement: " + sql);
             logger.finest("preparing updates");
-            for (ConditionsObject object : collection.getObjects()) {
+            for (ConditionsObject object : collection) {
                 preparedStatement.setObject(1, object.getCollectionId());
                 int parameterIndex = 2;
                 for (Entry<String,Object> entry : object.getFieldValues().entrySet()) {
@@ -662,7 +661,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             connection.setAutoCommit(true);
         }
     }
-           
+                      
     private void setupEcal() {
         logger.config("setting up ECAL conditions on detector");
         EcalConditions conditions = getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
@@ -683,7 +682,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.config("done loading SVT detector conditions");
     }
     
-
     /**
      * Check if connected to the database.
      * @return true if connected
@@ -816,13 +814,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 throw new RuntimeException(e);
             }
 
-            Class<? extends ConditionsObjectCollection<?>> collectionClass;
+            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
             Class<?> rawCollectionClass;
             try {
                 rawCollectionClass = Class.forName(collectionName);
-                if (!ConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass))
+                if (!AbstractConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass))
                     throw new RuntimeException("The class " + rawCollectionClass.getSimpleName() + " does not extend ConditionsObjectCollection.");
-                collectionClass = (Class<? extends ConditionsObjectCollection<?>>) rawCollectionClass;
+                collectionClass = (Class<? extends AbstractConditionsObjectCollection<?>>) rawCollectionClass;
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }

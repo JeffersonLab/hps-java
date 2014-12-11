@@ -117,7 +117,7 @@ public final class SvtConditions extends AbstractSvtConditions {
         }
         buff.append('\n');
         // Loop over channels.
-        for (SvtChannel channel : this.getChannelMap().getObjects()) {
+        for (SvtChannel channel : this.getChannelMap()) {
 
             // Get the conditions for the channel.
             ChannelConstants constants = getChannelConstants(channel);

@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
@@ -13,7 +13,7 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
  */
 public final class SvtCalibration extends AbstractConditionsObject {
 
-    public static class SvtCalibrationCollection extends ConditionsObjectCollection<SvtCalibration> {
+    public static class SvtCalibrationCollection extends AbstractConditionsObjectCollection<SvtCalibration> {
     }
 
     /**

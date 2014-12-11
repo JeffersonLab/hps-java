@@ -27,7 +27,7 @@ public final class SvtChannel extends AbstractSvtChannel {
             List<SvtChannel> channels = new ArrayList<SvtChannel>();
             int febID = pair.getFirstElement();
             int febHybridID = pair.getSecondElement();
-            for (SvtChannel channel : this.getObjects()) {
+            for (SvtChannel channel : this) {
                 if (channel.getFebID() == febID && channel.getFebHybridID() == febHybridID) {
                     channels.add(channel);
                 }

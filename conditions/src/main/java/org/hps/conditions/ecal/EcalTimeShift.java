@@ -1,7 +1,7 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * This class represents a time shift calibration value for an ECAL channel.
@@ -12,7 +12,7 @@ public final class EcalTimeShift extends AbstractConditionsObject {
     /**
      * A collection of {@link EcalTimeShift} objects.
      */
-    public static class EcalTimeShiftCollection extends ConditionsObjectCollection<EcalTimeShift> {
+    public static class EcalTimeShiftCollection extends AbstractConditionsObjectCollection<EcalTimeShift> {
     }
 
     /**

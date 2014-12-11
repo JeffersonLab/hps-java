@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * This class represents gain measurements for a single SVT channel.
@@ -9,7 +9,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public final class SvtGain extends AbstractConditionsObject {
 
-    public static class SvtGainCollection extends ConditionsObjectCollection<SvtGain> {
+    public static class SvtGainCollection extends AbstractConditionsObjectCollection<SvtGain> {
     }
 
     /**

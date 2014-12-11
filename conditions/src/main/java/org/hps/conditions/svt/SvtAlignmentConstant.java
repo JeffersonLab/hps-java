@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * <p>
@@ -20,7 +20,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public class SvtAlignmentConstant extends AbstractConditionsObject {
 
-    public static class SvtAlignmentCollection extends ConditionsObjectCollection<SvtAlignmentConstant> {
+    public static class SvtAlignmentCollection extends AbstractConditionsObjectCollection<SvtAlignmentConstant> {
     }
 
     /** Top or bottom half. */

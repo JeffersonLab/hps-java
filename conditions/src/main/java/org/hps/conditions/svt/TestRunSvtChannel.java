@@ -15,7 +15,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
             List<TestRunSvtChannel> channels = new ArrayList<TestRunSvtChannel>();
             int fpga = pair.getFirstElement();
             int hybrid = pair.getSecondElement();
-            for (TestRunSvtChannel channel : this.getObjects()) {
+            for (TestRunSvtChannel channel : this) {
                 if (channel.getFpgaID() == fpga && channel.getHybridID() == hybrid) {
                     channels.add(channel);
                 }

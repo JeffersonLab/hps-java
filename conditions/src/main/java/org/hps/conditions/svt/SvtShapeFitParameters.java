@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 /**
  * This class encapsulates the shape fit parameters for an SVT channel.
@@ -11,7 +11,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  */
 public final class SvtShapeFitParameters extends AbstractConditionsObject {
 
-    public static class SvtShapeFitParametersCollection extends ConditionsObjectCollection<SvtShapeFitParameters> {
+    public static class SvtShapeFitParametersCollection extends AbstractConditionsObjectCollection<SvtShapeFitParameters> {
     }
 
     /**

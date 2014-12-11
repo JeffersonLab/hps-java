@@ -36,14 +36,14 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         // Get the SVT calibrations (baseline, noise) from the conditions
         // database
         SvtCalibrationCollection calibrations = dbConditionsManager.getCollection(SvtCalibrationCollection.class);
-        for (SvtCalibration calibration : calibrations.getObjects()) {
+        for (SvtCalibration calibration : calibrations) {
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }
 
         // Get the Channel pulse fit parameters from the conditions database
         SvtShapeFitParametersCollection shapeFitParametersCollection = dbConditionsManager.getCollection(SvtShapeFitParametersCollection.class);
-        for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection.getObjects()) {
+        for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection) {
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(shapeFitParameters.getChannelID());
             conditions.getChannelConstants(channel).setShapeFitParameters(shapeFitParameters);
         }
@@ -53,7 +53,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         // notify the user and move on.
         try {
             SvtBadChannelCollection badChannels = dbConditionsManager.getCollection(SvtBadChannelCollection.class);
-            for (SvtBadChannel badChannel : badChannels.getObjects()) {
+            for (SvtBadChannel badChannel : badChannels) {
                 AbstractSvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
                 conditions.getChannelConstants(channel).setBadChannel(true);
             }
@@ -63,7 +63,7 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
 
         // Get the gains and offsets from the conditions database
         SvtGainCollection channelGains = dbConditionsManager.getCollection(SvtGainCollection.class);
-        for (SvtGain channelGain : channelGains.getObjects()) {
+        for (SvtGain channelGain : channelGains) {
             int channelId = channelGain.getChannelID();
             AbstractSvtChannel channel = conditions.getChannelMap().findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(channelGain);

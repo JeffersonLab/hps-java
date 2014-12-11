@@ -24,7 +24,7 @@ public class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
         public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
 
             String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
-            for (TestRunSvtDaqMapping daqMapping : this.getObjects()) {
+            for (TestRunSvtDaqMapping daqMapping : this) {
 
                 if (svtHalf.equals(daqMapping.getSvtHalf()) && daqMapping.getLayerNumber() == sensor.getLayerNumber()) {
 
@@ -45,7 +45,7 @@ public class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
          */
         public String getOrientation(Pair<Integer, Integer> daqPair) {
 
-            for (TestRunSvtDaqMapping daqMapping : this.getObjects()) {
+            for (TestRunSvtDaqMapping daqMapping : this) {
 
                 if (daqPair.getFirstElement() == ((TestRunSvtDaqMapping) daqMapping).getFpgaID() && daqPair.getSecondElement() == ((TestRunSvtDaqMapping) daqMapping).getHybridID()) {
                     return daqMapping.getOrientation();
@@ -73,7 +73,7 @@ public class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
             buffer.append('\n');
             buffer.append("----------------------");
             buffer.append('\n');
-            for (TestRunSvtDaqMapping daqMapping : getObjects()) {
+            for (TestRunSvtDaqMapping daqMapping : this) {
                 TestRunSvtDaqMapping testRunDaqMapping = (TestRunSvtDaqMapping) daqMapping;
                 buffer.append(testRunDaqMapping.getFpgaID());
                 buffer.append("    ");

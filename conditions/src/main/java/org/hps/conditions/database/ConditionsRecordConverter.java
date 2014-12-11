@@ -3,17 +3,14 @@ package org.hps.conditions.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Read ConditionsRecord objects from the conditions database.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConditionsRecordConverter.java,v 1.5 2013/10/15 23:24:47 jeremy
- *          Exp $
  */
 class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
 
@@ -38,7 +35,7 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
         ResultSet resultSet = databaseConditionsManager.selectQuery(query);
 
         // Create a collection to return.
-        ConditionsObjectCollection collection;
+        AbstractConditionsObjectCollection collection;
         try {
             collection = tableMetaData.getCollectionClass().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -48,11 +45,7 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
         try {
             while (resultSet.next()) {
                 ConditionsObject conditionsRecord = ConditionsObjectConverter.createConditionsObject(resultSet, tableMetaData);
-                try {
-                    collection.add(conditionsRecord);
-                } catch (ConditionsObjectException e) {
-                    throw new RuntimeException(e);
-                }
+                collection.add(conditionsRecord);
             }
         } catch (SQLException x) {
             throw new RuntimeException("Database error", x);
@@ -68,9 +61,5 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
      */
     public Class<ConditionsRecordCollection> getType() {
         return ConditionsRecordCollection.class;
-    }
-
-    public boolean allowMultipleCollections() {
-        return true;
     }
 }

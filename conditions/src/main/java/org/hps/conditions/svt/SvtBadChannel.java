@@ -1,11 +1,11 @@
 package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.AbstractConditionsObjectCollection;
 
 public final class SvtBadChannel extends AbstractConditionsObject {
 
-    public static class SvtBadChannelCollection extends ConditionsObjectCollection<SvtBadChannel> {
+    public static class SvtBadChannelCollection extends AbstractConditionsObjectCollection<SvtBadChannel> {
     }
 
     public int getChannelId() {
