@@ -401,6 +401,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new IllegalArgumentException("The connection properties file does not exist: " + connectionPropertiesFile.getPath());
         connectionParameters = ConnectionParameters.fromProperties(file);
     }
+    
+    public void setConnectionParameters(ConnectionParameters connectionParameters) {
+        this.connectionParameters = connectionParameters;
+    }
 
     /**
      * Set the connection parameters from an embedded resource.
@@ -416,6 +420,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
+    // TODO: If there are no records in the table, this method should simply return 1.  (for first collection)
     public int getNextCollectionID(String tableName) {
         TableMetaData tableData = findTableMetaData(tableName);
         if (tableData == null)
@@ -612,17 +617,26 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         this.tag = tag;
     }
 
-    public <ObjectType extends ConditionsObject> void insertCollection(AbstractConditionsObjectCollection<ObjectType> collection) throws SQLException {
+    public <ObjectType extends ConditionsObject> void insertCollection(AbstractConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
         if (collection == null) {
             throw new IllegalArgumentException("The collection is null.");
         }
         if (collection.size() == 0) {
             throw new IllegalArgumentException("The collection is empty.");
         }
-        if (collection.getTableMetaData() == null) {
-            throw new RuntimeException("The collection does not have table meta data.");
-        }
+
         TableMetaData tableMetaData = collection.getTableMetaData();
+        if (tableMetaData == null) {            
+            List<TableMetaData> tableMetaDataList = this.findTableMetaData(collection.getClass()); 
+            if (tableMetaDataList.size() == 0) {
+                throw new ConditionsObjectException("The conditions object collection is missing table meta data and none could be found by the conditions manager.");
+            } else {
+                // Use a default meta data object from the manager.
+                tableMetaData = tableMetaDataList.get(0);
+                collection.setTableMetaData(tableMetaData);
+                logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());
+            }
+        }
         if (collection.getCollectionId() == -1) {
             try {
                 collection.setCollectionId(this.getNextCollectionID(tableMetaData.getTableName()));
@@ -636,13 +650,14 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         try {
             connection.setAutoCommit(false);
             logger.finest("starting insert transaction");
-            String sql = QueryBuilder.buildPreparedInsert(collection.iterator().next());
+            String sql = QueryBuilder.buildPreparedInsert(tableMetaData.getTableName(), collection.iterator().next());
             PreparedStatement preparedStatement = 
                 connection.prepareStatement(sql);
             logger.finest("using prepared statement: " + sql);
             logger.finest("preparing updates");
+            int collectionId = collection.getCollectionId();
             for (ConditionsObject object : collection) {
-                preparedStatement.setObject(1, object.getCollectionId());
+                preparedStatement.setObject(1, collectionId);
                 int parameterIndex = 2;
                 for (Entry<String,Object> entry : object.getFieldValues().entrySet()) {
                     preparedStatement.setObject(parameterIndex, entry.getValue());
@@ -654,6 +669,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             connection.commit();
             logger.finest("committed transaction");
         } catch (Exception e) {
+            e.printStackTrace();
+            logger.warning(e.getMessage());
             logger.warning("rolling back transaction");
             connection.rollback();
             logger.warning("transaction was rolled back");
@@ -696,6 +713,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     public static String getDefaultEngRunDetectorName() {
         return DEFAULT_ENG_RUN_DETECTOR;
+    }
+    
+    public void addTableMetaData(TableMetaData tableMetaData) {
+        this.tableMetaData.add(tableMetaData);
     }
 
     /**
