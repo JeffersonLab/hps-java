@@ -20,6 +20,8 @@ import java.util.Properties;
  */
 public class ConnectionParameters {
 
+    public static final int DEFAULT_PORT = 3306;
+    
     protected String user;
     protected String password;
     protected int port;
@@ -165,7 +167,7 @@ public class ConnectionParameters {
         String password = properties.getProperty("password");
         String database = properties.getProperty("database");
         String hostname = properties.getProperty("hostname");
-        int port = 3306;
+        int port = DEFAULT_PORT;
         if (properties.containsKey("port")) {
             port = Integer.parseInt(properties.getProperty("port"));
         }
