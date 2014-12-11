@@ -27,6 +27,7 @@
                         <exclude>org/hps/conditions/svt/SvtDetectorSetupTest.java</exclude> 
                         <exclude>org/hps/conditions/svt/SvtConfigurationTest.java</exclude>
                         <exclude>org/hps/conditions/ConditionsSeriesConverterTest.java</exclude>
+                        <exclude>org/hps/conditions/api/AbstractConditionsObjectCollectionTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
