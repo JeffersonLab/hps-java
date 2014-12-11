@@ -31,6 +31,7 @@
                         <exclude>org/hps/EtSystemTest.java</exclude>
                         <exclude>org/hps/DataQualityMonitorTest.java</exclude>
                         <exclude>org/hps/HPSTestRunTracker2014GeometryTrackReconTest.java</exclude>
+                        <exclude>org/hps/HPSTracker2014GeometryTrackReconTest.java</exclude>
                         <exclude>org/hps/MCFilteredReconTest.java</exclude>
                         <exclude>org/hps/ReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutToLcioTest.java</exclude>

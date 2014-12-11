@@ -20,18 +20,18 @@ import org.lcsim.util.loop.LCSimLoop;
  * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
-public class HPSTestRunTracker2014GeometryTrackReconTest extends TestCase {
+public class HPSTracker2014GeometryTrackReconTest extends TestCase {
 
-    static final String fileLocationBottom = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-bottom.slcio";
-    static final String fileLocationTop = "http://www.lcsim.org/test/hps-java/HPSTestRunTracker2014GeometryTrackerRecon-top.slcio";
-   
-    static final String className = HPSTestRunTracker2014GeometryTrackReconTest.class.getSimpleName();
+    static final String fileLocationBottom = "http://www.lcsim.org/test/hps-java/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTracker2014-v0-bot-50k.slcio";
+    static final String fileLocationTop = "http://www.lcsim.org/test/hps-java/mu-_10GeV_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPSTracker2014-v0-top-50k.slcio";
+    
+    static final String className = HPSTracker2014GeometryTrackReconTest.class.getSimpleName();
     static final File outputDir = new File("./target/test-output/" + className);
     static final File outputFile = new File(outputDir.getAbsolutePath() + File.separator + className);
     static final File reconFile = new File(outputFile.getAbsolutePath() + ".slcio");
     static final File aidaFile = new File(outputFile.getAbsolutePath() + ".aida");    
 
-    static final String steeringResource = "/org/hps/steering/test/HPSTestRunTrackingDefaults.lcsim";
+    static final String steeringResource = "/org/hps/steering/test//HPSTrackingDefaults.lcsim";
     
     static final int expectedTracks = 50;
    
