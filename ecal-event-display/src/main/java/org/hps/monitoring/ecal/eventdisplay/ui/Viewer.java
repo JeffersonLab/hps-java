@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -635,18 +636,28 @@ public abstract class Viewer extends JFrame {
         // Paint the content pane to image.
         getContentPane().paint(screenshot.getGraphics());
         
-        // Get the lowest available file name.
-        int fileNum = 0;
-        File imageFile = new File("screenshot_" + fileNum + ".png");
-        while(imageFile.exists()) {
-            fileNum++;
-            imageFile = new File("screenshot_" + fileNum + ".png");
+        JFileChooser chooser = new JFileChooser();
+        if(chooser.showSaveDialog(this) == JFileChooser.CANCEL_OPTION) {
+        	return;
         }
+        
+        // Parse the file name and make sure that it ends in .PNG.
+        String filepath = chooser.getSelectedFile().getAbsolutePath();
+        int index = filepath.lastIndexOf('.');
+        if(index == -1) { filepath = filepath + ".png"; }
+        else {
+        	if(filepath.substring(index + 1).compareTo("png") != 0) {
+        		filepath = filepath.substring(0, index) + ".png";
+        	}
+        }
+        
+        // Get the lowest available file name.
+        File imageFile = new File(filepath);
         
         // Save the image to a PNG file.
         try { ImageIO.write(screenshot, "PNG", imageFile); }
         catch(IOException ioe) {
-            System.err.println("Error saving file \"screenshot.png\".");
+            System.err.println("Error saving file \"" + imageFile.getName() + "\".");
         }
         System.out.println("Screenshot saved to: " + imageFile.getAbsolutePath());
     }
