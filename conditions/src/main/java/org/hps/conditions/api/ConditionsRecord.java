@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.QueryBuilder;
+import org.hps.conditions.database.TableMetaData;
 
 /**
  * This class represents a single record from the primary conditions data table,
@@ -19,7 +20,7 @@ import org.hps.conditions.database.QueryBuilder;
 public final class ConditionsRecord extends AbstractConditionsObject {
     
     /**
-     * Collection type.
+     * The concrete collection implementation including sorting utilities.
      */
     public static class ConditionsRecordCollection extends AbstractConditionsObjectCollection<ConditionsRecord> {
         
@@ -101,10 +102,8 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public void insert() throws ConditionsObjectException {
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        if (getTableMetaData() == null) {
-            throw new ConditionsObjectException("The table meta data is null for ConditionsRecord.");
-        }
-        String query = QueryBuilder.buildInsert(getTableMetaData().getTableName(), this.getFieldValues());
+        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(ConditionsRecord.class).get(0);
+        String query = QueryBuilder.buildInsert(tableMetaData.getTableName(), this.getFieldValues());
         //System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
         if (keys.size() != 1) {
