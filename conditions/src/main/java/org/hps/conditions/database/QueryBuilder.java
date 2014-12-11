@@ -69,15 +69,12 @@ public final class QueryBuilder {
         return buff.toString();
     }
     
-    public static String buildPreparedInsert(ConditionsObject object) {
-        if (object.getTableMetaData() == null) {
-            throw new IllegalArgumentException("The ConditionsObject does not have table meta data.");
-        }
+    public static String buildPreparedInsert(String tableName, ConditionsObject object) {
         if (object.getFieldValues().size() == 0) {
             throw new IllegalArgumentException("The ConditionsObject has no values set.");
         }
         StringBuffer buffer = new StringBuffer();
-        buffer.append("INSERT INTO " + object.getTableMetaData().getTableName() + "( collection_id, ");
+        buffer.append("INSERT INTO " + tableName + "( collection_id, ");
         for (String fieldName : object.getFieldValues().keySet()) {            
             buffer.append(" " + fieldName + ",");
         }
