@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.util.Resettable;
@@ -42,7 +43,6 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
     private String trackerHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String trackerName = "Tracker";
-    private int eventCount;
     private List<SiSensor> sensors;
     IPlotter plotter1;
     IPlotter plotter2;
@@ -74,6 +74,9 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
             int region = computePlotterRegion(sensor);
             sensorRegionMap.put(sensor.getName(), region);
         }
+        int nregionx = (int) Math.floor(((double)sensorRegionMap.size())/2.0);
+        int nregiony = (int) Math.ceil(((double)sensorRegionMap.size())/2.0);
+        
 
         IAnalysisFactory fac = aida.analysisFactory();
 
@@ -83,7 +86,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style3 = plotter1.style();
         style3.dataStyle().fillStyle().setColor("yellow");
         style3.dataStyle().errorBarStyle().setVisible(false);
-        plotter1.createRegions(5, 4);
+        plotter1.createRegions(nregionx, nregiony);
 
         plotter3 = fac.createPlotterFactory().create("HPS SVT Reco Hit Plots");
         plotter3.setTitle("Reco Hits");
@@ -91,7 +94,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style4 = plotter3.style();
         style4.dataStyle().fillStyle().setColor("yellow");
         style4.dataStyle().errorBarStyle().setVisible(false);
-        plotter3.createRegions(5, 4);
+        plotter3.createRegions(nregionx, nregiony);
 
 
         plotter2 = fac.createPlotterFactory().create("HPS SVT Cluster Hit Plots");
@@ -100,7 +103,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style44 = plotter2.style();
         style44.dataStyle().fillStyle().setColor("yellow");
         style44.dataStyle().errorBarStyle().setVisible(false);
-        plotter2.createRegions(5, 4);
+        plotter2.createRegions(nregionx, nregiony);
 
         plotter4 = fac.createPlotterFactory().create("HPS SVT Cluster Size Plots");
         plotter4.setTitle("Cluster Size");
@@ -108,7 +111,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style6 = plotter4.style();
         style6.dataStyle().fillStyle().setColor("green");
         style6.dataStyle().errorBarStyle().setVisible(false);
-        plotter4.createRegions(5, 4);
+        plotter4.createRegions(nregionx, nregiony);
 
 
         plotter5 = fac.createPlotterFactory().create("HPS SVT Cluster Amp Plots");
@@ -117,7 +120,7 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         IPlotterStyle style7 = plotter5.style();
         style7.dataStyle().fillStyle().setColor("green");
         style7.dataStyle().errorBarStyle().setVisible(false);
-        plotter5.createRegions(5, 4);
+        plotter5.createRegions(nregionx, nregiony);
 //        plotter5.createRegion();
 
         plotter6 = fac.createPlotterFactory().create("HPS SVT Cluster Position Vs Channel");
@@ -130,13 +133,16 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
         plotter6.style().setParameter("hist2DStyle", "colorMap");
         style8.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         style8.zAxisStyle().setParameter("scale", "log");
-        plotter6.createRegions(5, 4);
+        plotter6.createRegions(nregionx, nregiony);
 
        
        // TODO: Check if this block of code is equivalent to the block commented out below
        for(SiSensor sensor : sensors){
     	   
                 int region = computePlotterRegion(sensor);
+                if(region >= plotter1.numberOfRegions()) {
+                    throw new RuntimeException("not enough regions! (" + region + "/"+ plotter1.numberOfRegions()+ ")");
+                }
                 plotter1.region(region).plot(aida.histogram1D(sensor.getName() + "_raw_hits", 10, -0.5, 9.5));
                 plotter3.region(region).plot(aida.histogram1D(sensor.getName() + "_reco_hits", 10, -0.5, 9.5));
                 plotter2.region(region).plot(aida.histogram1D(sensor.getName() + "_cluster_hits", 10, -0.5, 9.5));
@@ -204,7 +210,6 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
             return;
         }
 
-        ++eventCount;
         List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, trackerHitCollectionName);
         int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
