@@ -8,47 +8,19 @@ import org.hps.conditions.database.TableMetaData;
  * -1 which indicates they are not in the database yet.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: The collection ID should be a regular field in the FieldValueMap.
 public interface ConditionsObject {
 
     /**
      * Get the database table meta data associated to this object.
      * @return The database table meta data associated to this object.
      */
-    TableMetaData getTableMetaData();
+    //TableMetaData getTableMetaData();
 
     /**
      * Get the row ID of this object.
      * @return The database row ID.
      */
     int getRowId();
-
-    /**
-     * Get the collection ID of this object identifying its unique collection.
-     * @return The collection ID.
-     */
-    int getCollectionId();
-
-    /**
-     * Update this row in the database using a SQL UPDATE statement.
-     */
-    void update() throws ConditionsObjectException;
-
-    /**
-     * Delete this object's row in the database using a SQL DELETE statement.
-     */
-    void delete() throws ConditionsObjectException;
-
-    /**
-     * Insert this object into the database using a SQL INSERT statement.
-     */
-    void insert() throws ConditionsObjectException;
-
-    /**
-     * Select data into this object from the database using a SQL SELECT
-     * statement.
-     */
-    void select() throws ConditionsObjectException;
 
     /**
      * Generic set method for field values. This will set the object to the
@@ -84,22 +56,6 @@ public interface ConditionsObject {
      * @return The field value cast to type.
      */
     public <T> T getFieldValue(String field);
-
-    /**
-     * Set the ConditionsTableMetaData of this object. This cannot be reset once
-     * set.
-     * @param tableMetaData The ConditionsTableMetaData.
-     * @throws ConditionsObjectException if already set
-     */
-    void setTableMetaData(TableMetaData tableMetaData) throws ConditionsObjectException;
-
-    /**
-     * Set the collection ID of this object. This cannot be reset once set to a
-     * valid ID (e.g. not -1).
-     * @param collectionId The collection ID.
-     * @throws ConditionsObjectException if already set
-     */
-    void setCollectionId(int collectionId) throws ConditionsObjectException;
 
     /**
      * Set the row ID of this object. This cannot be reset once set to a valid
