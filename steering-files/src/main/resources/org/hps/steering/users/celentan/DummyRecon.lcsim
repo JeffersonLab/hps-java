@@ -10,8 +10,6 @@
         <driver name="ConditionsDriver"/> 
         <driver name="EcalRawConverter"/>     
         <driver name="EcalChannelsAmplitude"/>     
- 		
-
 
 <!--        <driver name="RunControlDriver" />-->
       <driver name="AidaSaveDriver"/>

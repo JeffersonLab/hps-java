@@ -45,11 +45,13 @@
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>         
-            <eventRefreshRate>100</eventRefreshRate>
+            <eventRefreshRate>5</eventRefreshRate>
+            <accumulateHits>false</accumulateHits>
         </driver>
         <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
+            <inputCollection>EcalCalHits</inputCollection>        
             <maxE>2.0</maxE>
-            <logScale>true</logScale>
+            <logScale>false</logScale>  
         </driver>
         <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
             <maxE>2.0</maxE>
