@@ -9,6 +9,7 @@ import hep.aida.IPlotterStyle;
 import java.util.List;
 
 import org.hps.readout.ecal.TriggerData;
+import org.hps.readout.ecal.SSPData;
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
@@ -52,11 +53,10 @@ public class EcalHitPlots extends Driver implements Resettable{
     IHistogram2D occupancyPlot;
    
   
-   
+    IPlotterFactory plotterFactory;
   
     int eventn = 0;
-    int eventRefreshRate = 1;
-    int dummy = 0;
+
     double maxE = 5000 * ECalUtils.MeV;
     
     boolean logScale = false;
@@ -71,7 +71,6 @@ public class EcalHitPlots extends Driver implements Resettable{
     }
     
 
-    
     public void setLogScale(boolean logScale) {
         this.logScale = logScale;
     }
@@ -81,7 +80,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         
         System.out.println("Detector changed called: "+ detector.getClass().getName());
         aida.tree().cd("/");
-        IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
+        plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
        
         
@@ -94,13 +93,13 @@ public class EcalHitPlots extends Driver implements Resettable{
         botTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Bottom", 100, 0, 100 * 4.0);
         orTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Or", 100, 0, 100 * 4.0);
 
-        topTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Top", 32, 0, 32);
-        botTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Bottom", 32, 0, 32);
-        orTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Or", 32, 0, 32);
+        topTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Top", 1024, 0, 4096);
+        botTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Bottom", 1024, 0, 4096);
+        orTrigTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Trigger Time, Or", 1024, 0, 4096);
 
-        topTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 32, 0, 32);
-        botTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 32, 0, 32);
-        orTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 32, 0, 32);
+        topTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 512, 0, 4096);
+        botTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 512, 0, 4096);
+        orTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 512, 0, 4096);
 
         hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 1000, -0.1, maxE);
         hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
@@ -110,73 +109,68 @@ public class EcalHitPlots extends Driver implements Resettable{
         // Setup the plotter.
         plotter = plotterFactory.create("Hit Counts");
         plotter.setTitle("Hit Counts");
-        plotter.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());      
+        IPlotterStyle pstyle=this.createDefaultStyle();       
+        pstyle.setParameter("hist2DStyle", "colorMap");
+        pstyle.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+        pstyle.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
+        
         
         // Create the plotter regions.
         plotter.createRegions(2,2);
         plotter.region(0).plot(hitNumberPlot);
-        plotter.region(1).plot(hitTimePlot);
-        plotter.region(3).plot(hitCountPlot);
-        IPlotterStyle style = plotter.region(2).style();
-        style.setParameter("hist2DStyle", "colorMap");
-        style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        style.dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
-        if (logScale){
-        	plotter.region(0).style().zAxisStyle().setParameter("scale", "log");
-        }
-        else plotter.region(0).style().zAxisStyle().setParameter("scale", "lin");
+        plotter.region(1).plot(hitTimePlot,pstyle);
+        plotter.region(2).plot(occupancyPlot,pstyle);
+        plotter.region(3).plot(hitCountPlot,pstyle);
+      
         
-        plotter.region(2).plot(occupancyPlot);
-        plotter.region(2).style().zAxisStyle().setParameter("scale","lin");
+     
+        if (logScale){
+        	 pstyle.zAxisStyle().setParameter("scale", "log");
+        }
+        else pstyle.zAxisStyle().setParameter("scale", "lin");
+        plotter.region(0).plot(hitNumberPlot,pstyle);
+        
         
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
         plotter2.setTitle("Hit Energies");
-        plotter2.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter2.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
+        pstyle.zAxisStyle().setParameter("scale", "lin");
         
         if (logScale) {
-            plotter2.style().yAxisStyle().setParameter("scale", "log");
+        	 pstyle.yAxisStyle().setParameter("scale", "log");
         }
-
+        else  pstyle.yAxisStyle().setParameter("scale", "lin");
         // Create the plotter regions.
         plotter2.createRegions(1, 2);
-        plotter2.region(0).plot(hitEnergyPlot);
-        plotter2.region(1).plot(hitMaxEnergyPlot); 
+        plotter2.region(0).plot(hitEnergyPlot,pstyle);
+        plotter2.region(1).plot(hitMaxEnergyPlot,pstyle); 
                
         plotter3 = plotterFactory.create("Hit Times");
         plotter3.setTitle("Hit Times");
-        plotter3.style().dataStyle().errorBarStyle().setVisible(false);
-        plotter3.style().dataStyle().fillStyle().setParameter("showZeroHeightBins",Boolean.FALSE.toString());
         plotter3.createRegions(3, 3);      
-        plotter3.region(0).plot(topTimePlot);
-        plotter3.region(1).plot(botTimePlot);
-        plotter3.region(2).plot(orTimePlot);
-        plotter3.region(3).plot(topTrigTimePlot);
-        plotter3.region(4).plot(botTrigTimePlot);
-        plotter3.region(5).plot(orTrigTimePlot);
-        for (int i = 0; i < 6; i++) {
-            if (plotter3.region(i).style() != null) {
-            	if (logScale){
-                  plotter3.region(i).style().yAxisStyle().setParameter("scale", "log");
-                }
-            	else plotter3.region(i).style().yAxisStyle().setParameter("scale", "lin");
-            } 	
+        
+        if (logScale) {
+       	 pstyle.yAxisStyle().setParameter("scale", "log");
+       }
+       else  pstyle.yAxisStyle().setParameter("scale", "lin");
+        
+        plotter3.region(0).plot(topTimePlot,pstyle);
+        plotter3.region(1).plot(botTimePlot,pstyle);
+        plotter3.region(2).plot(orTimePlot,pstyle);
+        plotter3.region(3).plot(topTrigTimePlot,pstyle);
+        plotter3.region(4).plot(botTrigTimePlot,pstyle);
+        plotter3.region(5).plot(orTrigTimePlot,pstyle);
+        
+        pstyle.yAxisStyle().setParameter("scale", "lin");
+        if (logScale){
+        	 pstyle.zAxisStyle().setParameter("scale", "log");
         }
-        plotter3.region(6).plot(topTimePlot2D);
-        plotter3.region(7).plot(botTimePlot2D);
-        plotter3.region(8).plot(orTimePlot2D);
-        for (int i = 6; i < 9; i++) {
-            if (plotter3.region(i).style() != null) {
-                plotter3.region(i).style().setParameter("hist2DStyle", "colorMap");
-                plotter3.region(i).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-                if (logScale){
-                    plotter3.region(i).style().zAxisStyle().setParameter("scale","log");
-                }
-                else plotter3.region(i).style().zAxisStyle().setParameter("scale","lin");
-            }
-        }
+        else pstyle.zAxisStyle().setParameter("scale", "lin");
+      
+        plotter3.region(6).plot(topTimePlot2D,pstyle);
+        plotter3.region(7).plot(botTimePlot2D,pstyle);
+        plotter3.region(8).plot(orTimePlot2D,pstyle);
+       
         
         if (!hide) {
             plotter.show();
@@ -189,46 +183,27 @@ public class EcalHitPlots extends Driver implements Resettable{
     public void process(EventHeader event) {
         
         
-//        int orTrigTime = -1;
-//        int topTrigTime = -1;
-//        int botTrigTime = -1;
-//        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-//            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-//            if (!triggerList.isEmpty()) {
-//                GenericObject triggerData = triggerList.get(0);
-//
-//                int orTrig = TriggerData.getOrTrig(triggerData);
-//                if (orTrig != 0) {
-//                    for (int i = 0; i < 32; i++) {
-//                        if ((1 << (31 - i) & orTrig) != 0) {
-//                            orTrigTime = i;
-//                            orTrigTimePlot.fill(i);
-//                            break;
-//                        }
-//                    }
-//                }
-//                int topTrig = TriggerData.getTopTrig(triggerData);
-//                if (topTrig != 0) {
-//                    for (int i = 0; i < 32; i++) {
-//                        if ((1 << (31 - i) & topTrig) != 0) {
-//                            topTrigTime = i;
-//                            topTrigTimePlot.fill(i);
-//                            break;
-//                        }
-//                    }
-//                }
-//                int botTrig = TriggerData.getBotTrig(triggerData);
-//                if (botTrig != 0) {
-//                    for (int i = 0; i < 32; i++) {
-//                        if ((1 << (31 - i) & botTrig) != 0) {
-//                            botTrigTime = i;
-//                            botTrigTimePlot.fill(i);
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        int orTrigTime=4097;
+        int topTrigTime=4097;
+        int botTrigTime=4097;
+        
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            if (!triggerList.isEmpty()) {
+                GenericObject triggerData = triggerList.get(0);
+
+                if (triggerData instanceof SSPData){ 
+                	orTrigTime=((SSPData)triggerData).getOrTrig();
+                	topTrigTime=((SSPData)triggerData).getTopTrig();
+                	botTrigTime =((SSPData)triggerData).getBotTrig(); 
+                    
+                	orTrigTimePlot.fill(orTrigTime);
+                    topTrigTimePlot.fill(topTrigTime);
+                	botTrigTimePlot.fill(botTrigTime);
+                	
+                }             
+            }//end if triggerList isEmpty
+        }
 
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
@@ -241,19 +216,11 @@ public class EcalHitPlots extends Driver implements Resettable{
             double botTime = Double.POSITIVE_INFINITY;
             double orTime = Double.POSITIVE_INFINITY;
             for (CalorimeterHit hit : hits) {
-                if (hit.getIdentifierFieldValue("iy") > 0) {
-      //              topX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-      //              topY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);
-                } else {
-       //             botX.fill(hit.getIdentifierFieldValue("ix"),hit.getPosition()[0]);
-       //             botY.fill(hit.getIdentifierFieldValue("iy"),hit.getPosition()[1]);                    
-                }
+
                
                 hitEnergyPlot.fill(hit.getRawEnergy());
                 hitTimePlot.fill(hit.getTime());
-            
-                
-           
+               
                 
                 if (hit.getTime() < orTime) {
                     orTime = hit.getTime();
@@ -268,18 +235,19 @@ public class EcalHitPlots extends Driver implements Resettable{
                     maxEnergy = hit.getRawEnergy();
                 }
             }
-//            if (orTime != Double.POSITIVE_INFINITY) {
-//                orTimePlot.fill(orTime);
-//                orTimePlot2D.fill(orTime, orTrigTime);
-//            }
-//            if (topTime != Double.POSITIVE_INFINITY) {
-//                topTimePlot.fill(topTime);
-//                topTimePlot2D.fill(topTime, topTrigTime);
-//            }
-//            if (botTime != Double.POSITIVE_INFINITY) {
-//                botTimePlot.fill(botTime);
-//                botTimePlot2D.fill(botTime, botTrigTime);
-//            }
+            
+            if (orTime != Double.POSITIVE_INFINITY) {
+                orTimePlot.fill(orTime);
+                orTimePlot2D.fill(orTime, orTrigTime);
+            }
+            if (topTime != Double.POSITIVE_INFINITY) {
+                topTimePlot.fill(topTime);
+                topTimePlot2D.fill(topTime, topTrigTime);
+            }
+            if (botTime != Double.POSITIVE_INFINITY) {
+                botTimePlot.fill(botTime);
+                botTimePlot2D.fill(botTime, botTrigTime);
+            }
             hitMaxEnergyPlot.fill(maxEnergy);
         
             for (int i = 0; i < hits.size(); i++) {
@@ -299,10 +267,7 @@ public class EcalHitPlots extends Driver implements Resettable{
             }
         } else {
             hitCountPlot.fill(0);
-        }
-        
-       
-        
+        }         
     }
 
     @Override
@@ -317,6 +282,56 @@ public class EcalHitPlots extends Driver implements Resettable{
     public void endOfData() {
         //plotterFrame.dispose();
     }
+    
+    
+    
+    
+    /**
+	 * Initializes the default style for plots.
+	 * @return Returns an <code>IPlotterStyle</code> object that
+	 * represents the default style for plots.
+	 */
+	public IPlotterStyle createDefaultStyle() {
+		IPlotterStyle pstyle = plotterFactory.createPlotterStyle();
+		// Set the appearance of the axes.
+		pstyle.xAxisStyle().labelStyle().setBold(true);
+		pstyle.yAxisStyle().labelStyle().setBold(true);
+		pstyle.xAxisStyle().tickLabelStyle().setBold(true);
+		pstyle.yAxisStyle().tickLabelStyle().setBold(true);
+		pstyle.xAxisStyle().lineStyle().setColor("black");
+		pstyle.yAxisStyle().lineStyle().setColor("black");
+		pstyle.xAxisStyle().lineStyle().setThickness(2);
+		pstyle.yAxisStyle().lineStyle().setThickness(2);
+		
+		// Set color settings.
+		pstyle.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+		pstyle.dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
+		pstyle.dataStyle().errorBarStyle().setVisible(false);
+		pstyle.setParameter("hist2DStyle", "colorMap");
+		
+		// Force auto range to zero.
+		pstyle.yAxisStyle().setParameter("allowZeroSuppression", "false");
+		pstyle.xAxisStyle().setParameter("allowZeroSuppression", "false");
+		
+		// Set the title style.
+		pstyle.titleStyle().textStyle().setFontSize(20);
+		
+		// Draw caps on error bars.
+		pstyle.dataStyle().errorBarStyle().setParameter("errorBarDecoration", (new Float(1.0f)).toString());
+		
+		// Turn off grid lines until explicitly enabled.
+		pstyle.gridStyle().setVisible(false);
+		
+		// Return the style.
+		return pstyle;
+	}
+    
+    
+    
+    
+    
+    
+    
 }
 
    

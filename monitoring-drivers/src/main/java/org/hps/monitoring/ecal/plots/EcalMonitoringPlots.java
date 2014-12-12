@@ -49,7 +49,7 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     int eventRefreshRate = 1;
     int eventn = 0;
     boolean hide = false;
-
+    boolean accumulateHits = false;
     long thisTime,prevTime;
     
     public EcalMonitoringPlots() {
@@ -67,6 +67,9 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         this.hide = hide;
     }
 
+    public void setAccumulateHits(boolean accumulateHits) {
+        this.accumulateHits = accumulateHits;
+    }
     /**
      * Set the refresh rate for histograms in this driver
      * @param eventRefreshRate: the refresh rate, defined as number of events to accumulate before
@@ -83,8 +86,12 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
         plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots").create("HPS ECal Monitoring Plots");
         // Setup plots.
         aida.tree().cd("/");
-        hitCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count", 47, -23.5, 23.5, 11, -5.5, 5.5);
-        hitCountFillPlot = makeCopy(hitCountDrawPlot);
+        String hitCountDrawPlotTitle;
+       if (accumulateHits)  hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Count (accumulated)";
+       else hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Count (refreshed)";
+       
+    	   hitCountDrawPlot = aida.histogram2D(hitCountDrawPlotTitle, 47, -23.5, 23.5, 11, -5.5, 5.5);
+       hitCountFillPlot = makeCopy(hitCountDrawPlot);
         occupancyDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy", 47, -23.5, 23.5, 11, -5.5, 5.5);
         clusterCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollection + " : Cluster Center Count", 47, -23.5, 23.5, 11, -5.5, 5.5);
         clusterCountFillPlot = makeCopy(clusterCountDrawPlot);
@@ -201,11 +208,18 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void redraw() {
         hitCountDrawPlot.reset();
         hitCountDrawPlot.add(hitCountFillPlot);
-     //   plotter.region(0).refresh();
+        plotter.region(0).clear();
+        plotter.region(0).plot(hitCountDrawPlot);
+        plotter.region(0).refresh();
         
+        if (!accumulateHits){
+        	hitCountFillPlot.reset();
+        }
         clusterCountDrawPlot.reset();
         clusterCountDrawPlot.add(clusterCountFillPlot);
-    //    plotter.region(1).refresh();
+        plotter.region(1).clear();
+        plotter.region(1).plot(clusterCountDrawPlot);
+        plotter.region(1).refresh();
         
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
@@ -215,10 +229,11 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
             
             occupancyFill[id]=0;
             if ((row != 0) && (column != 0) && (!ECalUtils.isInHole(row, column)))
-            	System.out.println(column+" "+row+" "+mean+" "+NoccupancyFill);
                 occupancyDrawPlot.fill(column, row, mean);
         }
-        //plotter.region(2).refresh();
+        plotter.region(2).clear();
+        plotter.region(2).plot(occupancyDrawPlot);
+        plotter.region(2).refresh();
     }
 
     private IHistogram2D makeCopy(IHistogram2D hist) {
