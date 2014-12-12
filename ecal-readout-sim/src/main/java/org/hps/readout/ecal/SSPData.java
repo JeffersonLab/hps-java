@@ -26,20 +26,31 @@ public class SSPData extends TriggerData {
     public static final int TRIG_TYPE = 0x15;
     public static final int CLUSTER_TYPE = 0x14;
 
+    public static final int TRIG_TYPE_COSMIC_TOP = 0x0;
+    public static final int TRIG_TYPE_COSMIC_BOT = 0x1;
+    public static final int TRIG_TYPE_SINGLES0_TOP = 0x2;
+    public static final int TRIG_TYPE_SINGLES0_BOT = 0x3;
+    public static final int TRIG_TYPE_SINGLES1_TOP = 0x4;
+    public static final int TRIG_TYPE_SINGLES1_BOT = 0x5;
+    public static final int TRIG_TYPE_PAIR0 = 0x6;
+    public static final int TRIG_TYPE_PAIR1 = 0x7;
+    
+    
+    
+    
     public static final String TRIG_COLLECTION = "TriggerBank";
-//    private int[] bank;
+
 
     private long trigTime;
     private int eventNum;
 
-    private int trigType;
-    private int trigTypeData;
-    private int trigTypeTime;
+
 
     private int nCluster, nClusterTop, nClusterBottom;
 
     private List<Integer> clusterX, clusterY, clusterE, clusterT, clusterNhits;
-
+    private List<Integer> trigType,trigTypeData,trigTypeTime; //SSP can report more than 1 trigger type (if the event satisfies more than 1 trigger equation)
+    
     public SSPData(int[] bank) {
         super(bank);
 
@@ -49,9 +60,13 @@ public class SSPData extends TriggerData {
         clusterT = new ArrayList<Integer>();
         clusterNhits = new ArrayList<Integer>();
 
+        trigType = new ArrayList<Integer>();
+        trigTypeData = new ArrayList<Integer>();
+        trigTypeTime = new ArrayList<Integer>();
+      
         trigTime = 0;
-        trigType = -1;
-        trigTypeData = 0;
+        
+        
 
         nCluster = nClusterTop = nClusterBottom = 0;
 
@@ -59,10 +74,9 @@ public class SSPData extends TriggerData {
         this.decodeTriggerBank();
 
     }
-
     private void decodeTriggerBank() {
-        /*A. Celentano: decode here the trigger bank*/
-        /*We do not need to handle block header, block trayler since these are disentagled in the secondary CODA readout list*/
+        /*A. C.: decode here the trigger bank*/
+        /*We do not need to handle block header, block trailer since these are disentagled in the secondary CODA readout list*/
         int this_word;
         int this_clusterX, this_clusterY, this_clusterE, this_clusterT, this_clusterNhits;
 
@@ -76,10 +90,10 @@ public class SSPData extends TriggerData {
             else if (((this_word >> 27) & (0x1f)) == TRIG_TIME) {
                 trigTime = (bank[ii + 1] << 24) | (this_word & 0xffffff);
             } //trigger type
-            else if (((this_word >> 27) & (0x1f)) == TRIG_TYPE) {
-                trigType = (this_word >> 23) & 0xf; //this is the trigbit, from 0 to 7
-                trigTypeData = (this_word >> 16) & 0x7f;
-                trigTypeTime = (this_word >> 16) & 0x3ff;
+            else if (((this_word >> 27) & (0x1f)) == TRIG_TYPE) {         
+                trigType.add((this_word >> 23) & 0xf); //this is the trigbit, from 0 to 7
+                trigTypeData.add((this_word >> 16) & 0x7f);
+                trigTypeTime.add((this_word) & 0x3ff);
             } //cluster 
             else if (((this_word >> 27) & (0x1f)) == CLUSTER_TYPE) {
                 this_clusterNhits = (this_word >> 23) & 0xf;
@@ -100,12 +114,13 @@ public class SSPData extends TriggerData {
                 clusterX.add(this_clusterX);
 
                 this_clusterT = (bank[ii + 1]) & 0x3ff;
-                clusterT.add(this_clusterT);
+                clusterT.add(this_clusterT*4); //*4 since the time is reported in 4 ns ticks
 
                 nCluster++;
             }
-
         }
+        
+        
     }
 
     @Override
@@ -114,18 +129,48 @@ public class SSPData extends TriggerData {
     }
 
     @Override
+    /*
+     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) (any crate)
+     * Returns in ns.
+     */ 
     public int getOrTrig() {
-        return 0;
+        int TopTime = this.getTopTrig();
+        int BotTime = this.getBotTrig();
+        
+        if (TopTime<=BotTime) return TopTime;
+        else return BotTime;
+
     }
 
+    /*
+     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) from TOP crate 
+     * Returns in ns.
+     */ 
     @Override
     public int getTopTrig() {
-        return 0;
+       int TopTime=1025; //time is 10 bits, so is always smaller than 1024.
+       for (int ii = 0; ii < trigType.size(); ii++){
+    	   if  (((trigType.get(ii)==TRIG_TYPE_SINGLES0_TOP)||(trigType.get(ii)==TRIG_TYPE_SINGLES1_TOP))&&(trigTypeTime.get(ii)<TopTime)){
+    		   TopTime=trigTypeTime.get(ii);
+    	   }
+       }
+       return TopTime*4;
     }
 
+
+    /*
+     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) from BOT crate 
+     * Returns in ns.
+     */ 
     @Override
-    public int getBotTrig() {
-        return 0;
+    public int getBotTrig(){
+        int BotTime=1025; //time is 10 bits, so is always smaller than 1024.
+        for (int ii = 0; ii < trigType.size(); ii++){
+     	   if  (((trigType.get(ii)==TRIG_TYPE_SINGLES0_BOT)||(trigType.get(ii)==TRIG_TYPE_SINGLES1_BOT))&&(trigTypeTime.get(ii)<BotTime)){
+     		   BotTime=trigTypeTime.get(ii);
+     	   }
+        }
+        return BotTime*4;
     }
 
     @Override
