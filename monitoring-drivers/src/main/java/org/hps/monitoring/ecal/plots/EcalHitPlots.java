@@ -189,46 +189,46 @@ public class EcalHitPlots extends Driver implements Resettable{
     public void process(EventHeader event) {
         
         
-        int orTrigTime = -1;
-        int topTrigTime = -1;
-        int botTrigTime = -1;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            if (!triggerList.isEmpty()) {
-                GenericObject triggerData = triggerList.get(0);
-
-                int orTrig = TriggerData.getOrTrig(triggerData);
-                if (orTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & orTrig) != 0) {
-                            orTrigTime = i;
-                            orTrigTimePlot.fill(i);
-                            break;
-                        }
-                    }
-                }
-                int topTrig = TriggerData.getTopTrig(triggerData);
-                if (topTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & topTrig) != 0) {
-                            topTrigTime = i;
-                            topTrigTimePlot.fill(i);
-                            break;
-                        }
-                    }
-                }
-                int botTrig = TriggerData.getBotTrig(triggerData);
-                if (botTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & botTrig) != 0) {
-                            botTrigTime = i;
-                            botTrigTimePlot.fill(i);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+//        int orTrigTime = -1;
+//        int topTrigTime = -1;
+//        int botTrigTime = -1;
+//        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+//            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+//            if (!triggerList.isEmpty()) {
+//                GenericObject triggerData = triggerList.get(0);
+//
+//                int orTrig = TriggerData.getOrTrig(triggerData);
+//                if (orTrig != 0) {
+//                    for (int i = 0; i < 32; i++) {
+//                        if ((1 << (31 - i) & orTrig) != 0) {
+//                            orTrigTime = i;
+//                            orTrigTimePlot.fill(i);
+//                            break;
+//                        }
+//                    }
+//                }
+//                int topTrig = TriggerData.getTopTrig(triggerData);
+//                if (topTrig != 0) {
+//                    for (int i = 0; i < 32; i++) {
+//                        if ((1 << (31 - i) & topTrig) != 0) {
+//                            topTrigTime = i;
+//                            topTrigTimePlot.fill(i);
+//                            break;
+//                        }
+//                    }
+//                }
+//                int botTrig = TriggerData.getBotTrig(triggerData);
+//                if (botTrig != 0) {
+//                    for (int i = 0; i < 32; i++) {
+//                        if ((1 << (31 - i) & botTrig) != 0) {
+//                            botTrigTime = i;
+//                            botTrigTimePlot.fill(i);
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputCollection);
@@ -268,18 +268,18 @@ public class EcalHitPlots extends Driver implements Resettable{
                     maxEnergy = hit.getRawEnergy();
                 }
             }
-            if (orTime != Double.POSITIVE_INFINITY) {
-                orTimePlot.fill(orTime);
-                orTimePlot2D.fill(orTime, orTrigTime);
-            }
-            if (topTime != Double.POSITIVE_INFINITY) {
-                topTimePlot.fill(topTime);
-                topTimePlot2D.fill(topTime, topTrigTime);
-            }
-            if (botTime != Double.POSITIVE_INFINITY) {
-                botTimePlot.fill(botTime);
-                botTimePlot2D.fill(botTime, botTrigTime);
-            }
+//            if (orTime != Double.POSITIVE_INFINITY) {
+//                orTimePlot.fill(orTime);
+//                orTimePlot2D.fill(orTime, orTrigTime);
+//            }
+//            if (topTime != Double.POSITIVE_INFINITY) {
+//                topTimePlot.fill(topTime);
+//                topTimePlot2D.fill(topTime, topTrigTime);
+//            }
+//            if (botTime != Double.POSITIVE_INFINITY) {
+//                botTimePlot.fill(botTime);
+//                botTimePlot2D.fill(botTime, botTrigTime);
+//            }
             hitMaxEnergyPlot.fill(maxEnergy);
         
             for (int i = 0; i < hits.size(); i++) {
