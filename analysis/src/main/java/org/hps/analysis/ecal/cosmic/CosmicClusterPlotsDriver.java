@@ -6,6 +6,7 @@ import hep.aida.IFitResult;
 import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
+import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
@@ -41,8 +42,9 @@ import org.lcsim.util.aida.AIDA;
  */
 public class CosmicClusterPlotsDriver extends Driver {
 
-    EcalConditions conditions = null;
-    EcalChannelCollection channels = null;
+    EcalConditions conditions;
+    EcalChannelCollection channels;
+    
     IProfile1D combinedSignalProfile;
     Map<EcalChannel, IProfile1D> adcProfiles = new HashMap<EcalChannel, IProfile1D>();
     AIDA aida = AIDA.defaultInstance();
@@ -50,6 +52,16 @@ public class CosmicClusterPlotsDriver extends Driver {
     IFunctionFactory functionFactory = aida.analysisFactory().createFunctionFactory(null);
     IFitFactory fitFactory = aida.analysisFactory().createFitFactory();
     IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory();
+    IFitter channelFitter = fitFactory.createFitter();
+    IFunction channelFitFunction = new MoyalFitFunction();
+    IFitResult combinedFitResult;
+    double combinedMpv;
+    double combinedWidth;    
+    IHistogram1D fitMpvH1D;
+    IHistogram1D fitWidthH1D;
+    IHistogram1D fitMpvPullH1D;
+    IHistogram1D fitWidthPullH1D;
+    
     String inputClusterCollectionName = "EcalCosmicClusters";
     String rawHitsCollectionName = "EcalCosmicReadoutHits";
     boolean doFits = true;
@@ -83,14 +95,28 @@ public class CosmicClusterPlotsDriver extends Driver {
     }
     
     public void startOfData() {
-        combinedSignalProfile = aida.profile1D(inputClusterCollectionName + "/Combined Signal Profile", 100, 0., 100.);
+        // Setup combined signal fit profile.
+        combinedSignalProfile = aida.profile1D(inputClusterCollectionName + "/Combined Signal Profile", 100, -0.5, 99.5);
+        
+        // Set channel fit global parameters.
+        channelFitFunction.setParameter("mpv", 48);
+        channelFitFunction.setParameter("width", 2);
+        channelFitFunction.setParameter("norm", 60.0);        
+        //channelFitter.fitParameterSettings("mpv").setFixed(true);
+        //channelFitter.fitParameterSettings("width").setFixed(true);
+        
+        fitMpvH1D = aida.histogram1D(inputClusterCollectionName + "/Fit MPV", 100, 40., 50.);
+        fitWidthH1D = aida.histogram1D(inputClusterCollectionName + "/Fit Width", 100, 1., 3.);
+        
+        fitMpvPullH1D = aida.histogram1D(inputClusterCollectionName + "/Fit MPV Pull", 200, -10., 10.);
+        fitWidthPullH1D = aida.histogram1D(inputClusterCollectionName + "/Fit Width Pull", 200, -10., 10.);
     }
 
     public void detectorChanged(Detector detector) {
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
         for (EcalChannel channel : conditions.getChannelCollection()) {
-            IProfile1D profile = aida.profile1D(inputClusterCollectionName + "/ADC Values : Channel " + String.format("%03d", channel.getChannelId()), 100, 0, 100);
+            IProfile1D profile = aida.profile1D(inputClusterCollectionName + "/ADC Values : Channel " + String.format("%03d", channel.getChannelId()), 100, -0.5, 99.5);
             profile.annotation().addItem("xAxisLabel", "ADC Sample");
             profile.annotation().addItem("yAxisLabel", "Counts");
             adcProfiles.put(channel, profile);
@@ -167,24 +193,26 @@ public class CosmicClusterPlotsDriver extends Driver {
         buffer.append("ecal_channel_id t0 pulse_width");
         buffer.append('\n');
         
-        AbstractIFunction fitFunction = new RawModeSignalFitFunction();
-        functionFactory.catalog().add("ecal_fit_function", fitFunction);
-        for (Entry<EcalChannel, IProfile1D> entry : this.adcProfiles.entrySet()) {
-            doFit(entry.getKey(), entry.getValue());
-        }                
+        // Do combined fit and set class variables so they are available in channel fit method.
+        combinedFitResult = fitCombinedSignalProfile(this.combinedSignalProfile);
+        combinedMpv = combinedFitResult.fittedFunction().parameter("mpv");
+        combinedWidth = combinedFitResult.fittedFunction().parameter("width");
         
-        fitCombinedSignalProfile(this.combinedSignalProfile);
+        for (Entry<EcalChannel, IProfile1D> entry : this.adcProfiles.entrySet()) {
+            fitChannelProfile(entry.getKey(), entry.getValue());
+        }                                
     }
     
-    public void fitCombinedSignalProfile(IProfile1D combinedSignalProfile) {
-        IFunction function = functionFactory.createFunctionByName("ecal_fit_function", "ecal_fit_function");
-        function.setParameter("mean", 46);
-        function.setParameter("sigma", 2);
-        function.setParameter("pedestal", 100);
-        function.setParameter("norm", 60.0);
+    public IFitResult fitCombinedSignalProfile(IProfile1D combinedSignalProfile) {
+        
+        IFunction combinedFitFunction = new MoyalFitFunction();
+        combinedFitFunction.setParameter("mpv", 46);
+        combinedFitFunction.setParameter("width", 2);
+        combinedFitFunction.setParameter("pedestal", 100);
+        combinedFitFunction.setParameter("norm", 60.0);
                                
         IFitter fitter = fitFactory.createFitter();                       
-        IFitResult fitResult = fitter.fit(combinedSignalProfile, function);        
+        IFitResult fitResult = fitter.fit(combinedSignalProfile, combinedFitFunction);        
         
         if (printFitResults) {
             System.out.println();
@@ -204,6 +232,7 @@ public class CosmicClusterPlotsDriver extends Driver {
         plotStyle.statisticsBoxStyle().setVisible(true);
         
         plotter.createRegion();
+        plotStyle.dataStyle().errorBarStyle().setVisible(false);
         plotter.region(0).plot(combinedSignalProfile, plotStyle);
         plotter.region(0).plot(fitResult.fittedFunction(), functionStyle);
         try {
@@ -212,27 +241,33 @@ public class CosmicClusterPlotsDriver extends Driver {
             throw new RuntimeException(e);
         }        
                 
-        buffer.append("Combined Signal Profile " + fitResult.fittedFunction().parameter("mean") + " " + fitResult.fittedFunction().parameter("sigma"));
+        buffer.append("Combined Signal Profile " + fitResult.fittedFunction().parameter("mpv") + " " + fitResult.fittedFunction().parameter("width"));
         buffer.append('\n');
+        
+        return fitResult;
     }
     
-    public void doFit(EcalChannel channel, IProfile1D profile) {
+    public void fitChannelProfile(EcalChannel channel, IProfile1D profile) {
         
-        IFunction function = functionFactory.createFunctionByName("ecal_fit_function", "ecal_fit_function");
-        function.setParameter("mean", 48);
-        function.setParameter("sigma", 2);
-        function.setParameter("pedestal", conditions.getChannelConstants(channel).getCalibration().getPedestal());
-        function.setParameter("norm", 60.0);
+        if (profile.entries() == 0) {
+            System.err.println("No data for channel " + channel.getChannelId() + " so fit is skipped!");
+            return;
+        }
+        
+        channelFitFunction.setParameter("pedestal", conditions.getChannelConstants(channel).getCalibration().getPedestal());        
                                
-        IFitter fitter = fitFactory.createFitter();                       
-        IFitResult fitResult = fitter.fit(profile, function);        
+        channelFitter = fitFactory.createFitter();                       
+        IFitResult fitResult = channelFitter.fit(profile, channelFitFunction);        
         
         if (printFitResults) {
-            System.out.println();
             System.out.println("Printing fit result for channel " + channel.getChannelId());
             ((FitResult)fitResult).printResult();
-            System.out.println();
         }
+        
+        fitMpvH1D.fill(fitResult.fittedFunction().parameter("mpv"));
+        fitWidthH1D.fill(fitResult.fittedFunction().parameter("width"));        
+        fitMpvPullH1D.fill((fitResult.fittedFunction().parameter("mpv") - this.combinedMpv) / fitResult.errors()[0]);
+        fitWidthPullH1D.fill((fitResult.fittedFunction().parameter("width") - this.combinedWidth) / fitResult.errors()[1]);
                        
         IPlotter plotter = plotterFactory.create();
         IPlotterStyle functionStyle = plotterFactory.createPlotterStyle();
@@ -253,7 +288,7 @@ public class CosmicClusterPlotsDriver extends Driver {
             throw new RuntimeException(e);
         }        
                 
-        buffer.append(channel.getChannelId() + " " + fitResult.fittedFunction().parameter("mean") + " " + fitResult.fittedFunction().parameter("sigma"));
-        buffer.append('\n');        
+        buffer.append(channel.getChannelId() + " " + fitResult.fittedFunction().parameter("mpv") + " " + fitResult.fittedFunction().parameter("width"));
+        buffer.append('\n');
     }
 }

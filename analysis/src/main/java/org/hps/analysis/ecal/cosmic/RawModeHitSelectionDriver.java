@@ -30,21 +30,21 @@ import org.lcsim.util.aida.AIDA;
  */
 public class RawModeHitSelectionDriver extends Driver {
 
-    EcalConditions conditions = null;
-    EcalChannelCollection channels = null;
-        
+    EcalConditions conditions;
+    EcalChannelCollection channels;
+    
+    HPSEcal3 ecal;
+    static String ecalName = "Ecal";
+    
     AIDA aida = AIDA.defaultInstance();
     IAnalysisFactory analysisFactory = aida.analysisFactory();
-    double sigmaThreshold = 2.5;
     
+    double sigmaThreshold = 2.5;
     int minimumSelectedSamples = 3;
     int minimumNumberOfHits = 3;
-    int minNeighbors = 2;
     String outputHitsCollectionName = "EcalCosmicReadoutHits";
     String inputHitsCollectionName = "EcalReadoutHits";
-    HPSEcal3 ecal = null;
-    static String ecalName = "Ecal";   
-
+           
     /**
      * Set the sigma threshold for an ADC value.
      * @param sigmaThreshold The sigma threshold.

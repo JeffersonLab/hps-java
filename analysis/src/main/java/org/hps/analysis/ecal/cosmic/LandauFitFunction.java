@@ -20,7 +20,7 @@ import hep.aida.ref.function.AbstractIFunction;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
-public class RawModeSignalFitFunction extends AbstractIFunction {
+public class LandauFitFunction extends AbstractIFunction {
 
     // This is the backing function used to get the Landau PDF values.
     LandauPdf landauPdf = new LandauPdf();    
@@ -28,7 +28,7 @@ public class RawModeSignalFitFunction extends AbstractIFunction {
     /**
      * No argument constructor.
      */
-    public RawModeSignalFitFunction() {
+    public LandauFitFunction() {
         this("");
     }
     
@@ -37,7 +37,7 @@ public class RawModeSignalFitFunction extends AbstractIFunction {
      * The no arg constructor uses this one.
      * @param title The title of the function.
      */
-    public RawModeSignalFitFunction(String title) {
+    public LandauFitFunction(String title) {
         super();                
         this.variableNames = new String[] { "x0" };
         this.parameterNames = new String[] { "mean", "sigma", "norm", "pedestal" };        

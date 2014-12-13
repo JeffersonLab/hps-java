@@ -8,6 +8,7 @@ import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
+import hep.aida.ref.fitter.FitResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -146,13 +147,13 @@ public class RawModeSignalFitDriver extends Driver {
     public void startOfData() {
         adcDataPointSet = aida.analysisFactory().createDataPointSetFactory(null).create("ADC DataPointSet", 2);
         
-        fitFunction = new RawModeSignalFitFunction();
-        fitFunction.setParameter("mean", signalMean);
-        fitFunction.setParameter("sigma", signalSigma);
-        fitFunction.setParameter("norm", norm);
+        fitFunction = new MoyalFitFunction();        
+        fitFunction.setParameter("mpv", signalMean);
+        fitFunction.setParameter("width", signalSigma);
+        fitFunction.setParameter("norm", norm);                
         
-        fitter.fitParameterSettings("mean").setFixed(true);
-        fitter.fitParameterSettings("sigma").setFixed(true);
+        fitter.fitParameterSettings("mpv").setFixed(true);
+        fitter.fitParameterSettings("width").setFixed(true);
         if (fixPedestal) {
             fitter.fitParameterSettings("pedestal").setFixed(true);
         }
@@ -195,6 +196,8 @@ public class RawModeSignalFitDriver extends Driver {
                     
                     // Fit the ADC signal.
                     IFitResult fitResult = fitAdcSamples(channel, adcDataPointSet);
+                                        
+                    ((FitResult)fitResult).printResult();
                      
                     // Calculate the signal significance which is norm over error.
                     double signalSignificance = fitResult.fittedParameter("norm") / fitResult.errors()[2];
@@ -238,4 +241,6 @@ public class RawModeSignalFitDriver extends Driver {
         this.pedestalNormHistograms.get(channel).fill(fitResult.fittedParameter("pedestal"));
         return fitResult;
     }
+    
+    
 }

@@ -39,7 +39,8 @@ public class RawModeADCProfileDriver extends Driver {
         conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
         channels = conditions.getChannelCollection();
         for (EcalChannel channel : conditions.getChannelCollection()) {            
-            adcProfiles.put(channel, aida.profile1D(inputHitsCollectionName + "/ADC Values : " + String.format("%03d", channel.getChannelId()), 100, 0, 100));
+            // Create ADC profile histogram, assuming ADC sample values of 0 to 99, with profile range -0.5 to 99.5, so bins are centered.
+            adcProfiles.put(channel, aida.profile1D(inputHitsCollectionName + "/ADC Values : " + String.format("%03d", channel.getChannelId()), 100, -0.5, 99.5));
         }
     }
 

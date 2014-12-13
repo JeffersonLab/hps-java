@@ -45,8 +45,8 @@ public class CosmicClusterDriver extends Driver {
     String inputHitCollectionName = "EcalCosmicCalHits";
     String outputClusterCollectionName = "EcalCosmicClusters";
     String ecalName = "Ecal";
-    HPSEcal3 ecal = null;
-    IIdentifierHelper helper = null;
+    HPSEcal3 ecal;
+    IIdentifierHelper helper;
     int minimumClusterSize = 3;
     int minimumRows = 3;
     int maximumHitsPerRow = 2;
