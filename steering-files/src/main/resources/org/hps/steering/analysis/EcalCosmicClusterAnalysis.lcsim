@@ -1,0 +1,43 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
+    <execute>
+        <driver name="EventMarkerDriver"/>     
+        <!-- Simple selection cut on raw data. -->            
+        <driver name="RawModeHitSelectionDriver"/>
+        <!-- Convert to CalorimeterHit collection. -->
+        <driver name="EcalRawConverterDriver"/>
+        <!-- Create MIP clusters from selected hits. -->
+        <driver name="CosmicClusterDriver"/>
+        <!-- Create profiles and fits from cluster data. -->
+        <driver name="CosmicClusterPlotsDriver"/>                   
+        <driver name="LCIODriver"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="AidaSaveDriverRoot"/>
+    </execute>        
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>500</eventInterval>
+        </driver>        
+        <driver name="RawModeHitSelectionDriver" type="org.hps.analysis.ecal.cosmic.RawModeHitSelectionDriver">
+        </driver>
+        <driver name="EcalRawConverterDriver" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalCosmicReadoutHits</rawCollectionName>
+            <ecalCollectionName>EcalCosmicCalHits</ecalCollectionName>
+        </driver>
+        <driver name="CosmicClusterDriver" type="org.hps.analysis.ecal.cosmic.CosmicClusterDriver"/>
+        <driver name="CosmicClusterPlotsDriver" type="org.hps.analysis.ecal.cosmic.CosmicClusterPlotsDriver">
+            <printFitResults>true</printFitResults>
+            <writePulseShapeParameters>true</writePulseShapeParameters>
+        </driver>
+        <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFileName}</outputFilePath>              
+            <writeOnlyCollections>EcalCosmicCalHits EcalCosmicClusters</writeOnlyCollections>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFileName}.aida</outputFileName>
+        </driver>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFileName}.root</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>
