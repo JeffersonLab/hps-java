@@ -14,7 +14,7 @@
         <driver name="EcalHitPlots"/>             <!-- Single hit distributions -->
         <driver name="EcalClusterPlots"/>         <!-- Clusters distributions -->
         <driver name="EcalDaqPlots"/>              <!-- DAQ Plots -->
-        <driver name="EcalEventDisplay"/>         <!-- Ecal event display -->
+        <driver name="EcalEventDisplay"/>          <!-- Ecal event display -->
 <!--    <driver name="EcalWindowPlots"/>        -->
 
 <!--   <driver name="EcalEvsX"/>    -->           
@@ -35,10 +35,11 @@
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
+           <use2014Gain>false</use2014Gain> 
 <!--            <dropBadFADC>true</dropBadFADC>-->
         </driver>
-  <!--    <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">-->
-          <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">
+     <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer"> 
+<!--          <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">  -->
 <!--            <clusterWindow>32.0</clusterWindow>-->
                 <ecalName>Ecal</ecalName>
                 <ecalCollectionName>EcalCalHits</ecalCollectionName>
