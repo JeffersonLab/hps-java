@@ -2,17 +2,20 @@ package org.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.HPSRawCalorimeterHit;
+import org.hps.recon.ecal.HPSRawCalorimeterHit.Mode7Data;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -31,6 +34,10 @@ public class EcalRawConverterDriver extends Driver {
     private String rawCollectionName = "EcalReadoutHits";
     private final String ecalReadoutName = "EcalHits";
     private String ecalCollectionName = "EcalCalHits";
+
+    private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
+//    private static final String extraDataCollectionName = "EcalReadoutExtraData";
+
     private int integralWindow = 35;
     private boolean debug = false;
     private double threshold = Double.NEGATIVE_INFINITY;
@@ -101,14 +108,14 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-               
+
         // set the detector for the converter
         // FIXME: This method doesn't even need the detector object and does not use it.
         converter.setDetector(detector);
 
         // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();        
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
     }
 
     /**
@@ -191,30 +198,50 @@ public class EcalRawConverterDriver extends Driver {
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
             if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { //A.C. this is the case of the RAW pulse hits
-                List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
-
-                for (RawCalorimeterHit hit : hits) {
-                    if (debug) {
-                        System.out.format("old hit energy %d\n", hit.getAmplitude());
-                    }
-                    CalorimeterHit newHit;
-                    if (hit instanceof HPSRawCalorimeterHit){ //A.C. since (maybe) old reconstructed LCIO data have hits with BaseRawCalorimeterHit
-                    	newHit = converter.HitDtoA((HPSRawCalorimeterHit)hit,timeOffset);	
-                    }
-                    else{
-                    	newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
-                    }
-                    if (newHit.getRawEnergy() > threshold) {
-                        if (applyBadCrystalMap && isBadCrystal(newHit)) {
-                            continue;
-                        }
-                        if (dropBadFADC && isBadFADC(newHit)) {
-                            continue;
-                        }
+                if (event.hasCollection(LCRelation.class, extraDataRelationsName)) { // extra information available from mode 7 readout
+                    List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
+                    for (LCRelation rel : extraDataRelations) {
+                        RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
                         if (debug) {
-                            System.out.format("new hit energy %f\n", newHit.getRawEnergy());
+                            System.out.format("old hit energy %d\n", hit.getAmplitude());
                         }
-                        newHits.add(newHit);
+                        GenericObject extraData = (GenericObject) rel.getTo();
+                        CalorimeterHit newHit;
+                        newHit = converter.HitDtoA(hit, extraData, integralWindow, timeOffset);
+                        if (newHit.getRawEnergy() > threshold) {
+                            if (applyBadCrystalMap && isBadCrystal(newHit)) {
+                                continue;
+                            }
+                            if (dropBadFADC && isBadFADC(newHit)) {
+                                continue;
+                            }
+                            if (debug) {
+                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
+                            }
+                            newHits.add(newHit);
+                        }
+
+                    }
+                } else {
+                    List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
+                    for (RawCalorimeterHit hit : hits) {
+                        if (debug) {
+                            System.out.format("old hit energy %d\n", hit.getAmplitude());
+                        }
+                        CalorimeterHit newHit;
+                        newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
+                        if (newHit.getRawEnergy() > threshold) {
+                            if (applyBadCrystalMap && isBadCrystal(newHit)) {
+                                continue;
+                            }
+                            if (dropBadFADC && isBadFADC(newHit)) {
+                                continue;
+                            }
+                            if (debug) {
+                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
+                            }
+                            newHits.add(newHit);
+                        }
                     }
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);

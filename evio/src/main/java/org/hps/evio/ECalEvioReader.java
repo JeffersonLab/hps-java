@@ -14,7 +14,8 @@ import org.hps.conditions.ecal.EcalChannel.DaqId;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
-import org.hps.recon.ecal.HPSRawCalorimeterHit;
+import org.hps.recon.ecal.HitExtraData.Mode7Data;
+import org.hps.recon.ecal.HitExtraData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
@@ -24,9 +25,11 @@ import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
@@ -53,6 +56,12 @@ public class ECalEvioReader extends EvioReader {
     private static final String genericHitCollectionName = "FADCGenericHits";
     private List<FADCGenericHit> genericHits;
 
+    private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
+    private List<LCRelation> extraDataRelations;
+
+    private static final String extraDataCollectionName = "EcalReadoutExtraData";
+    private List<HitExtraData> extraDataList;
+
     private static EcalConditions ecalConditions = null;
     private static IIdentifierHelper helper = null;
 
@@ -60,7 +69,7 @@ public class ECalEvioReader extends EvioReader {
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
-    private static Logger logger = LogUtil.create(ECalEvioReader.class);
+    private static final Logger logger = LogUtil.create(ECalEvioReader.class);
 
     public ECalEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
@@ -86,6 +95,8 @@ public class ECalEvioReader extends EvioReader {
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
         genericHits = new ArrayList<FADCGenericHit>();
+        extraDataList = new ArrayList<HitExtraData>();
+        extraDataRelations = new ArrayList<LCRelation>();
         hitClass = Object.class;
         int flags = 0;
         for (BaseStructure bank : event.getChildren()) {
@@ -139,7 +150,7 @@ public class ECalEvioReader extends EvioReader {
                                             break;
                                         case EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG:
                                             hits.addAll(makeIntegralHitsMode7(cdata, crate));
-                                            hitClass = HPSRawCalorimeterHit.class;
+                                            hitClass = RawCalorimeterHit.class;
                                             flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
                                             break;
                                         default:
@@ -157,6 +168,10 @@ public class ECalEvioReader extends EvioReader {
 //        String readoutName = ;
         lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
         lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
+        if (!extraDataList.isEmpty()) {
+            lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
+            lcsimEvent.put(extraDataRelationsName, extraDataRelations, LCRelation.class, 0);
+        }
 //        for (Object hit : hits) {
 //            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
 //        }
@@ -322,7 +337,7 @@ public class ECalEvioReader extends EvioReader {
                         int[] data = {pulseIntegral, pulseTime};
                         processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
                     } else {
-                        hits.add(new BaseRawCalorimeterHit(id, pulseIntegral,pulseTime));
+                        hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
                     }
                 }
             }
@@ -330,10 +345,8 @@ public class ECalEvioReader extends EvioReader {
         return hits;
     }
 
-    
-    
-    private List<HPSRawCalorimeterHit> makeIntegralHitsMode7(CompositeData cdata, int crate) {
-        List<HPSRawCalorimeterHit> hits = new ArrayList<HPSRawCalorimeterHit>();
+    private List<RawCalorimeterHit> makeIntegralHitsMode7(CompositeData cdata, int crate) {
+        List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
         if (debug) {
             int n = cdata.getNValues().size();
             for (int i = 0; i < n; i++) {
@@ -372,18 +385,18 @@ public class ECalEvioReader extends EvioReader {
                         int[] data = {pulseIntegral, pulseTime, amplLow, amplHigh};
                         processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE, crate, slot, channel, data));
                     } else {
-                        hits.add(new HPSRawCalorimeterHit(id, pulseIntegral,pulseTime,0,amplLow,amplHigh,EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE));
+                        RawCalorimeterHit hit = new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime);
+                        hits.add(hit);
+                        Mode7Data extraData = new Mode7Data(amplLow, amplHigh);
+                        extraDataList.add(extraData);
+                        extraDataRelations.add(new BaseLCRelation(hit, extraData));
                     }
                 }
             }
         }
         return hits;
     }
-    
-    
-    
-    
-    
+
     private void processUnrecognizedChannel(FADCGenericHit hit) {
         genericHits.add(hit);
 
