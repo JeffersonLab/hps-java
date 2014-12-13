@@ -62,8 +62,9 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 	
 	// Channel plot lists.
 	private ArrayList<IHistogram1D> channelEnergyPlot;
+	private ArrayList<IHistogram1D> clusterEnergyPlot;
 	private ArrayList<IHistogram1D> channelTimePlot;
-	private ArrayList<IHistogram1D> channelRawWaveform;
+	//private ArrayList<IHistogram1D> channelRawWaveform;
 	private ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
 	
 	// Internal variables.
@@ -80,11 +81,13 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 	
 	// Plot style and title variables.
 	private static final String NO_TITLE = "";
-	private static final String SIGNAL_TIME_TITLE = "Time (ns)";
+	//private static final String SIGNAL_TIME_TITLE = "Time (ns)";
 	private static final String HIT_TIME_TITLE = "Hit Time (ns)";
 	private static final String SIGNAL_DATA_STYLE_COLOR = "orange";
+	//private static final String RAW_WAVEFORM_TITLE = "Raw Waveform";
 	private static final String HIT_ENERGY_TITLE = "Hit Energy (GeV)";
-	private static final String SIGNAL_AMPLITUDE_TITLE = "Signal Amplitude (mV)";
+	private static final String CLUSTER_ENERGY_TITLE = "Cluster Energy (GeV)";
+	//private static final String SIGNAL_AMPLITUDE_TITLE = "Signal Amplitude (mV)";
 	
 	/**
 	 * Sets the upper bound of the energy scales used by the driver.
@@ -153,14 +156,15 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 		aida.tree().cd("/");
 		
 		// Store histograms for the crystals.
-		channelEnergyPlot = new ArrayList<IHistogram1D>();
-		channelTimePlot = new ArrayList<IHistogram1D>();
-		channelRawWaveform = new ArrayList<IHistogram1D>();
-		channelTimeVsEnergyPlot = new ArrayList<IHistogram2D>();
+		channelEnergyPlot = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+		channelTimePlot = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+		//channelRawWaveform = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+		clusterEnergyPlot = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+		channelTimeVsEnergyPlot = new ArrayList<IHistogram2D>(NUM_CHANNELS);
 		
 		// Create the histograms for single channel energy and time
 		// distribution.
-		for(int ii = 0; ii < (47 * 11); ii++) {
+		for(int ii = 0; ii < NUM_CHANNELS; ii++) {
 			// The above instruction is a terrible hack, just to fill
 			// the arrayList with all the elements. They'll be initialized
 			// properly during the event readout, Since we want to account
@@ -173,15 +177,18 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 			// Initialize the histograms for the current crystal channel.
 			channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : "
 						+ inputCollection + " : Hit Energy : " + column + " " + row
-						+ ": " + ii, 100, -0.2, maxEch));  
+						+ ": " + ii, 100, -0.2, maxEch));
 			channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : "
 						+ inputCollection + " : Hit Time : " + column + " " + row + ": "
 						+ ii, 100, 0, 400));     
 			channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName()
 					+ " : " + inputCollection + " : Hit Time Vs Energy : " + column
 					+ " " + row + ": " + ii, 100, 0, 400, 100, -0.2, maxEch));              
-			channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : "
-					+ inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii));
+			//channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : "
+			//		+ inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii));
+			clusterEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : "
+					+ inputCollection + " : Cluster Energy : " + column + " " + row
+					+ ": " + ii, 100, -0.2, maxEch));
 			
 			// Note that no raw waveform has yet been read for this
 			// crystal/channel.
@@ -213,14 +220,22 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 		pstyle.yAxisStyle().setLabel(HIT_ENERGY_TITLE);
 		plotter.region(2).plot(channelTimeVsEnergyPlot.get(0), pstyle);
 		
+		// Define the fourth plot region; this encompasses the cluster
+		// energy for each channel.
+		pstyle.xAxisStyle().setLabel(CLUSTER_ENERGY_TITLE);
+		pstyle.yAxisStyle().setLabel(NO_TITLE);
+		plotter.region(3).plot(clusterEnergyPlot.get(0), pstyle);
+		
+		/**
 		// Define the fourth plot region; this encompasses the raw
 		// wave form plots.
-		pstyle.xAxisStyle().setLabel(HIT_ENERGY_TITLE);
+		pstyle.xAxisStyle().setLabel(RAW_WAVEFORM_TITLE);
 		pstyle.yAxisStyle().setLabel(NO_TITLE);
 		pstyle.dataStyle().fillStyle().setColor(SIGNAL_DATA_STYLE_COLOR);
 		pstyle.dataStyle().markerStyle().setColor(SIGNAL_DATA_STYLE_COLOR);
 		pstyle.dataStyle().errorBarStyle().setVisible(false);
 		plotter.region(3).plot(channelRawWaveform.get(0), pstyle);
+		**/
 		
 		// Display the plot region.
 		plotter.show();
@@ -322,10 +337,24 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 			// Iterate over the clusters and add them to the event
 			// display if appropriate.
 			for (HPSEcalCluster cluster : clusters) {
+				// Get the ix and iy indices for the seed.
+				int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+				int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+				
+				// Get the histogram index for the hit.
+				int id = ECalUtils.getHistoIDFromRowColumn(iy, ix);
+				
+				// Add the cluster energy to the plot.
+				if(cluster.getEnergy() > 0.0) {
+					clusterEnergyPlot.get(id).fill(cluster.getEnergy());
+				}
+				
+				// If an update is needed, add the cluster to the viewer.
 				if(update) { viewer.addCluster(cluster); }
 			}
 		}
 		
+		/**
 		// Plot the raw waveform only if raw tracker hit exist in the
 		// event.
 		if (event.hasCollection(RawTrackerHit.class, inputCollectionRaw)){
@@ -377,6 +406,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 				}
 			}
 		}
+		**/
 		
 		// Update the single event display.
 		if(update) { viewer.updateDisplay(); }
@@ -422,8 +452,14 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 				pstyle.xAxisStyle().setLabel(HIT_TIME_TITLE);
 				pstyle.yAxisStyle().setLabel(HIT_ENERGY_TITLE);
 				plotter.region(2).plot(channelTimeVsEnergyPlot.get(id), pstyle);
-				plotter.region(3).clear();
 				
+				// Process and plot the region 3 plot.
+				plotter.region(3).clear();
+				pstyle.xAxisStyle().setLabel(CLUSTER_ENERGY_TITLE);
+				pstyle.yAxisStyle().setLabel(NO_TITLE);
+				plotter.region(3).plot(clusterEnergyPlot.get(id), pstyle);
+				
+				/**
 				// Process and plot the region 3 plot.
 				if(!isFirstRaw[id]) {
 					pstyle.yAxisStyle().setLabel(SIGNAL_AMPLITUDE_TITLE);
@@ -437,6 +473,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 					pstyle.yAxisStyle().setLabel("");
 				}
 				plotter.region(3).plot(channelRawWaveform.get(id), pstyle);
+				**/
 		}
 	}
 	
