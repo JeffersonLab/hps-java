@@ -66,7 +66,7 @@
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
             <pedSamples>20</pedSamples>
-            <maxEch>10.0</maxEch>
+            <maxEch>2.0</maxEch>
             <minEch>0.005</minEch>
             <eventRefreshRate>5</eventRefreshRate>
         </driver>

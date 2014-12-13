@@ -48,7 +48,7 @@ public class EcalClusterPlots extends Driver implements Resettable {
     String inputCollection = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
 
-    IPlotter plotter1, plotter2, plotter3, plotter4;
+    IPlotter plotter1, plotter2, plotter3, plotter4, plotter5;
     IHistogram1D clusterCountPlot;
     IHistogram1D clusterSizePlot;
     IHistogram1D clusterEnergyPlot;
@@ -56,6 +56,12 @@ public class EcalClusterPlots extends Driver implements Resettable {
     IHistogram1D clusterTimes;
     IHistogram1D clusterTimeSigma;
     IHistogram2D edgePlot;
+    //mg...12/13/2014
+    IHistogram1D  twoclusterTotEnergy;
+    IHistogram1D  twoclusterEnergyDiff;
+    IHistogram1D  twoclusterEnergyMeanYPos;
+    IHistogram1D  twoclusterEnergyMeanXPos;    
+    //
     int eventn = 0;
     double maxE = 5000 * ECalUtils.MeV;
     boolean logScale = false;
@@ -85,7 +91,12 @@ public class EcalClusterPlots extends Driver implements Resettable {
         edgePlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Cluster center from hits", 93, -23.25, 23.25, 21, -5.25, 5.25);
         clusterTimes = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Mean", 400, 0, 4.0 * 100);
         clusterTimeSigma = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Time Sigma", 100, 0, 40);
-
+        //mg..12/13/2014
+        twoclusterTotEnergy=aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Two Cluster Energy Sum",100,0,maxE);
+        twoclusterEnergyDiff=aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Two Cluster Energy Diff",100,0,maxE/2);
+        twoclusterEnergyMeanYPos=aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Two Cluster Energy Weighted Y",100,-100,100);
+        twoclusterEnergyMeanXPos=aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Two Cluster Energy Weighted X",100,-250,250);
+        
         // Setup the plotter factory.
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Cluster Plots");
 
@@ -130,11 +141,23 @@ public class EcalClusterPlots extends Driver implements Resettable {
         plotter4.createRegion();
         plotter4.region(0).plot(edgePlot);
 
+         // Create the plotter regions.
+        plotter5 = plotterFactory.create("Two Clusters");
+        plotter5.setTitle("Two Clusters");
+        plotter5.style().dataStyle().errorBarStyle().setVisible(false);
+        plotter5.style().dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
+        plotter5.createRegions(2, 2);
+        plotter5.region(0).plot(twoclusterTotEnergy);
+        plotter5.region(1).plot(twoclusterEnergyDiff);
+        plotter5.region(2).plot(twoclusterEnergyMeanXPos);
+        plotter5.region(3).plot(twoclusterEnergyMeanYPos);
+        
         if (!hide) {
             plotter1.show();
             plotter2.show();
             plotter3.show();
             plotter4.show();
+            plotter5.show();
         }
     }
 
@@ -203,6 +226,19 @@ public class EcalClusterPlots extends Driver implements Resettable {
         }
         if (maxEnergy > 0)
             clusterMaxEnergyPlot.fill(maxEnergy);
+        //make some interesting 2-cluster plots
+        if(clusters.size()==2){
+            BaseCluster cl1=clusters.get(0);
+            BaseCluster cl2=clusters.get(1);
+            double[] p1=cl1.getPosition();
+            double[] p2=cl2.getPosition();
+            double e1=cl1.getEnergy();
+            double e2=cl2.getEnergy();
+            twoclusterTotEnergy.fill(e1+e2);
+            twoclusterEnergyDiff.fill(Math.abs(e1-e2));            
+            twoclusterEnergyMeanXPos.fill((e1*p1[0]+e2*p2[0])/(e1+e2));
+            twoclusterEnergyMeanYPos.fill((e1*p1[1]+e2*p2[1])/(e1+e2));
+        }
     }
 
     @Override
