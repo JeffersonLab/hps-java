@@ -68,7 +68,7 @@
             <pedSamples>20</pedSamples>
             <maxEch>2.0</maxEch>
             <minEch>0.005</minEch>
-            <eventRefreshRate>5</eventRefreshRate>
+            <eventRefreshRate>1</eventRefreshRate>
         </driver>
 <!-- Here are commented drivers -->
           <!--<driver name="RunControlDriver" type="org.hps.util.RunControlDriver"> -->
