@@ -49,8 +49,8 @@ public class EcalHitPlots extends Driver implements Resettable{
     IHistogram1D topTrigTimePlot, botTrigTimePlot, orTrigTimePlot;
     IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
    // IHistogram2D topX, botX, topY, botY;
-    IHistogram2D hitNumberPlot;
-    IHistogram2D occupancyPlot;
+//    IHistogram2D hitNumberPlot;
+//    IHistogram2D occupancyPlot;
    
   
     IPlotterFactory plotterFactory;
@@ -87,8 +87,8 @@ public class EcalHitPlots extends Driver implements Resettable{
         // Setup plots.
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event", 10, -0.5, 9.5);
         hitTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time", 100, 0 * 4.0, 100 * 4.0);
-        hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
-        occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
+      //  hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count");        
+      //  occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
         topTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Top", 100, 0, 100 * 4.0);
         botTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Bottom", 100, 0, 100 * 4.0);
         orTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Or", 100, 0, 100 * 4.0);
@@ -101,8 +101,8 @@ public class EcalHitPlots extends Driver implements Resettable{
         botTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 512, 0, 4096);
         orTimePlot2D = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 512, 0, 4096);
 
-        hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 1000, -0.1, maxE);
-        hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 1000, -0.1, maxE);
+        hitEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Energy", 100, -0.1, maxE);
+        hitMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Maximum Hit Energy In Event", 100, -0.1, maxE);
 
         
     
@@ -117,9 +117,9 @@ public class EcalHitPlots extends Driver implements Resettable{
         
         // Create the plotter regions.
         plotter.createRegions(2,2);
-        plotter.region(0).plot(hitNumberPlot);
+//        plotter.region(0).plot(hitNumberPlot);
         plotter.region(1).plot(hitTimePlot,pstyle);
-        plotter.region(2).plot(occupancyPlot,pstyle);
+//        plotter.region(2).plot(occupancyPlot,pstyle);
         plotter.region(3).plot(hitCountPlot,pstyle);
       
         
@@ -128,7 +128,7 @@ public class EcalHitPlots extends Driver implements Resettable{
         	 pstyle.zAxisStyle().setParameter("scale", "log");
         }
         else pstyle.zAxisStyle().setParameter("scale", "lin");
-        plotter.region(0).plot(hitNumberPlot,pstyle);
+//        plotter.region(0).plot(hitNumberPlot,pstyle);
         
         
         // Setup the plotter.
@@ -191,7 +191,7 @@ public class EcalHitPlots extends Driver implements Resettable{
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             if (!triggerList.isEmpty()) {
                 GenericObject triggerData = triggerList.get(0);
-
+/*  mgraham12/14/2014 ...comment this out for now as it seems to through a null pointer
                 if (triggerData instanceof SSPData){ 
                 	orTrigTime=((SSPData)triggerData).getOrTrig();
                 	topTrigTime=((SSPData)triggerData).getTopTrig();
@@ -201,7 +201,8 @@ public class EcalHitPlots extends Driver implements Resettable{
                     topTrigTimePlot.fill(topTrigTime);
                 	botTrigTimePlot.fill(botTrigTime);
                 	
-                }             
+                }       
+                */
             }//end if triggerList isEmpty
         }
 
