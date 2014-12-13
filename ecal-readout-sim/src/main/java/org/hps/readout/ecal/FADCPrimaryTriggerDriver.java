@@ -688,7 +688,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     private void setBackgroundCuts(int backgroundLevel) {
         // Make sure that the background level is valid.
-        if(backgroundLevel < 0 || backgroundLevel > 10) {
+        if(backgroundLevel < -1 || backgroundLevel > 10) {
             throw new RuntimeException(String.format("Trigger cuts are undefined for background level %d.", backgroundLevel));
         }
         
@@ -739,6 +739,17 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             energyDifferenceHigh = 2.200;
             energySlopeLow       = 1.10;
             coplanarityHigh      = 35;
+            minHitCount          = 1;
+        } else if(backgroundLevel == -1) {
+            seedEnergyLow        = 0.050;
+            seedEnergyHigh       = 6.600;
+            clusterEnergyLow     = 0.010;
+            clusterEnergyHigh    = 6.600;
+            energySumLow         = 0.000;
+            energySumHigh        = 13.200;
+            energyDifferenceHigh = 6.600;
+            energySlopeLow       = 0.00;
+            coplanarityHigh      = 360;
             minHitCount          = 1;
         }
     }
