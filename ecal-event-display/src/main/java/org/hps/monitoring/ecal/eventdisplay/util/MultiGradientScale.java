@@ -47,6 +47,10 @@ public final class MultiGradientScale extends ColorScale {
         if (linear) { sValue = value; }
         else { sValue = Math.log10(scale * value); }
         
+        if(value < 1 && (Double.isNaN(sValue) || Double.isInfinite(sValue))) {
+        	return scaleList.get(0).getColor(0.0);
+        }
+        
         // Otherwise, determine which scale should get the value.
         for (GradientScale s : scaleList) {
             if (sValue < s.getMaximum()) {

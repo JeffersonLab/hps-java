@@ -44,8 +44,8 @@ public class DatabaseCheck {
 		conditionsManager.setDetector(detectorName, runNumber);
 		
 		// Get ECAL conditions.
-		EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-		 
+		EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData(); 
+		
 		// Get the list of EcalChannel objects.
 		EcalChannelCollection channels = ecalConditions.getChannelCollection();
 		EcalLedCollection leds = conditionsManager.getConditionsData(EcalLedCollection.class, TableConstants.ECAL_LEDS);
@@ -137,5 +137,4 @@ public class DatabaseCheck {
 		System.out.printf("Channel Collection :: %d%n", channels.getCollectionId());
 		System.out.printf("LED Collection     :: %d%n", leds.getCollectionId());
 	}
-	
 }
