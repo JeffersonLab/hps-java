@@ -658,7 +658,17 @@ public class EcalClusterIC extends Driver {
                                         
                     //Input both raw and corrected cluster energies
             		if (seedEnergyCorr.values().size() > 0){
-            			cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
+            			//The following line is correct (corrected energy for electron):
+//            			cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
+            			 
+            			/*TODO:
+            			 * Correct function in recon particle driver to include recalculation
+            			 * of energy corrections if electron also.
+            			 */
+            			//The following line is being used to play nice with online monitoring
+            			// which is using the raw energy.
+            			cluster.setEnergy(seedEnergyTot.get(entry2.getKey()));
+            			
             			cluster.setRawEnergy(seedEnergyTot.get(entry2.getKey()));
             			}
 
