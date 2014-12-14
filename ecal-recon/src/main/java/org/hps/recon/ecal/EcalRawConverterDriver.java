@@ -34,7 +34,7 @@ public class EcalRawConverterDriver extends Driver {
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 //    private static final String extraDataCollectionName = "EcalReadoutExtraData";
 
-    private int integralWindow = 35;
+    private int integralWindow = 30; //A.C. on 12/14/2014 8:44 after discussion with Nathan.
     private boolean debug = false;
     private double threshold = Double.NEGATIVE_INFINITY;
     private boolean applyBadCrystalMap = true;
