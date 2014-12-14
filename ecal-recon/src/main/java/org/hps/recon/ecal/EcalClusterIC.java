@@ -52,7 +52,7 @@ public class EcalClusterIC extends Driver {
     // Name of the calorimeter detector object.
     String ecalName = "Ecal";
     // LCIO cluster collection name to which to write.
-    String clusterCollectionName = "EcalClusters";
+    String clusterCollectionName = "EcalClustersIC";
     // Collection name for rejected hits
     String rejectedHitName = "RejectedHits";
     // File path to which to write event display output.
