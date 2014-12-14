@@ -5,7 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,15 +77,16 @@ public class EvioToLcio {
     protected EvioToLcio() {
         logger.config("initializing EVIO to LCIO converter");
         options = new Options();
-        options.addOption(new Option("l", true, "The name of the output LCIO file"));
-        options.addOption(new Option("d", true, "The name of the detector to use for LCSim conditions"));
-        options.addOption(new Option("R", true, "A run number which will override those found in the input files"));
-        options.addOption(new Option("x", true, "The XML steeering file to process the LCIO events"));
-        options.addOption(new Option("n", true, "Maximum number of events to process per input file"));
-        options.addOption(new Option("D", true, "Pass a variable to the steering file with format -Dname=value"));
-        options.addOption(new Option("r", false, "Interpret steering from -x argument as a resource instead of a file"));
-        options.addOption(new Option("L", true, "Set the log level (INFO, FINE, FINEST, etc.)"));
-        options.addOption(new Option("b", false, "Enable headless mode which will suppress showing of AIDA plots"));
+        options.addOption(new Option("f", true, "path to a text file containing a list of EVIO files to process"));
+        options.addOption(new Option("L", true, "log level (INFO, FINE, FINEST, etc.)"));
+        options.addOption(new Option("x", true, "XML steeering file for processing LCIO events"));
+        options.addOption(new Option("r", false, "interpret steering from -x argument as a resource instead of a file"));
+        options.addOption(new Option("D", true, "pass a variable to the steering file with format -Dname=value"));
+        options.addOption(new Option("l", true, "path of output LCIO file"));
+        options.addOption(new Option("d", true, "name of the detector to use for LCSim conditions"));
+        options.addOption(new Option("R", true, "fixed run number which will override run numbers of input files"));        
+        options.addOption(new Option("n", true, "maximum number of events to process in the job"));                      
+        options.addOption(new Option("b", false, "enable headless mode which will not show plots OR allow writing them to graphics files"));        
         logger.setLevel(Level.FINE);
     }
 
@@ -116,21 +123,47 @@ public class EvioToLcio {
         } catch (ParseException e) {
             throw new RuntimeException("Problem parsing command line options.", e);
         }
-
-        // Is the extra argument list empty?
-        if (cl.getArgs().length == 0) {
-            logger.severe("No EVIO file names were given on the command line.");
-            // User didn't supply any EVIO files so exit.
-            printUsage();
-        }
-
+       
         // Set log level.
         if (cl.hasOption("L")) {
             Level level = Level.parse(cl.getOptionValue("L").toUpperCase());
             logger.config("setting log level to " + level);
             logger.setLevel(level);
         }
-
+        
+        // Add all extra arguments to the EVIO file list.
+        List<String> evioFileList = new ArrayList<String>(Arrays.asList(cl.getArgs()));
+        
+        if (cl.hasOption("f")) {
+            // Add additional EVIO files to process from text file.
+            File file = new File(cl.getOptionValue("f"));
+            if (!file.exists()) {
+                throw new RuntimeException("The file " + file.getPath() + " does not exist.");
+            }
+            Path filePath = file.toPath();
+            List<String> lines = null;
+            try {
+                lines = Files.readAllLines(filePath, Charset.defaultCharset());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            for (String line : lines) {
+                File evioFile = new File(line);
+                if (evioFile.exists()) {
+                    evioFileList.add(evioFile.getPath());
+                } else {
+                    throw new RuntimeException("The EVIO file " + line + " does not exist.");
+                }
+            }
+        }
+         
+        // Is the EVIO file list empty?
+        if (evioFileList.isEmpty()) {  
+            // There weren't any EVIO files provided on the command line so exit.
+            logger.severe("No EVIO files were provided with command line arguments or -f option.");
+            printUsage();
+        }
+        
         String lcioFileName = null;
         LCIOWriter writer = null;
         InputStream steeringStream = null;
@@ -242,16 +275,26 @@ public class EvioToLcio {
             logger.config("Conditions system will be frozen to use specified run number and detector!");
             conditionsManager.freeze();
         }
-
+               
+        // Print out the EVIO file list before the job starts.
+        StringBuffer buff = new StringBuffer();
+        buff.append("The job will include the following EVIO files ...");
+        buff.append('\n');
+        for (String evioFileName : evioFileList) {
+            buff.append(evioFileName);
+            buff.append('\n');
+        }        
+        logger.config(buff.toString());
+                
         // Loop over the input EVIO files.
-        for (String evioFileName : cl.getArgs()) {
+        for (String evioFileName : evioFileList) {
             
             // Get the next EVIO input file.
             File evioFile = new File(evioFileName);
             if (!evioFile.exists()) {
                 throw new RuntimeException("EVIO file " + evioFile.getPath() + " does not exist.");
             }
-            logger.info("Opening EVIO file " + evioFileName + " for reading.");
+            logger.info("Opening EVIO file " + evioFileName + " ...");
 
             // Open the EVIO reader.
             EvioReader reader = null;
