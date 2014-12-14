@@ -1,0 +1,53 @@
+<!-- 
+  Offline reconstruction for 2014 engineering run (ECal only) data.
+  @author Matt Graham <mgraham@slac.stanford.edu>
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>              
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <driver name="EcalHitPlots"/>             <!-- Single hit distributions -->
+        <driver name="EcalClusterPlots"/>         <!-- Clusters distributions -->
+        <driver name="LCIOWriter"/>
+        <driver name="AidaSaveDriver"/>  
+        <driver name="CleanupDriver"/>
+   </execute>    
+    <drivers>    
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>        
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+        </driver>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <addEMin>0.01</addEMin>
+<!--            <timeCut>true</timeCut>  -->
+        </driver>
+     <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
+            <inputCollection>EcalCalHits</inputCollection>        
+            <maxE>2.0</maxE>
+            <logScale>false</logScale>  
+            <hide>true</hide>
+        </driver>
+        <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
+            <maxE>2.0</maxE>
+            <logScale>false</logScale>
+            <hide>true</hide>            
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>triggerEPlots.root</outputFileName>
+        </driver> 
+
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+    </drivers>
+</lcsim>
