@@ -16,7 +16,7 @@ public class EcalConditionsConverterTest extends TestCase {
     public void setUp() {
         conditionsManager = DatabaseConditionsManager.getInstance();
         try {
-            conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
+            conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 2000);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
