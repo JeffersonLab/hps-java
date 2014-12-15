@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
+import org.hps.conditions.api.FieldValueMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.database.TableMetaData;
@@ -57,6 +58,15 @@ public class EcalCalibrationsDriver extends Driver {
     File outputFile = null;
     Set<Integer> runs = new HashSet<Integer>();
     static DecimalFormat decimalFormat = new DecimalFormat("#.####");
+    String inputHitsCollectionName = "EcalReadoutHits";
+    
+    /**
+     * Set the RawTrackerHit collection of hits to be used for the calibration.
+     * @param inputHitsCollectionName The name of the input hits collection.
+     */
+    public void setInputHitsCollectionName(String inputHitsCollectionName) {
+        this.inputHitsCollectionName = inputHitsCollectionName;
+    }
     
     /**
      * Set whether to automatically load the conditions into the database.
@@ -113,8 +123,10 @@ public class EcalCalibrationsDriver extends Driver {
      * Check that the run numbers are valid.
      */
     public void startOfData() {
-        if (runEnd < runStart) {
-            throw new IllegalArgumentException("The runEnd must be >= runStart.");
+        if (runStart != null && runEnd != null) {
+            if (runEnd < runStart) {
+                throw new IllegalArgumentException("The runEnd must be >= runStart.");
+            }
         }
     }
         
@@ -138,8 +150,8 @@ public class EcalCalibrationsDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         runs.add(event.getRunNumber());
-        if (event.hasCollection(RawTrackerHit.class, "EcalReadoutHits")) {
-            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, "EcalReadoutHits");
+        if (event.hasCollection(RawTrackerHit.class, inputHitsCollectionName)) {
+            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputHitsCollectionName);
             for (RawTrackerHit hit : hits) {
                 EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
                 if (channel != null) {
@@ -149,6 +161,9 @@ public class EcalCalibrationsDriver extends Driver {
                     }
                 }
             }
+        } else {
+            // If the input collection does not exist in the event, this is considered a fatal error.
+            throw new RuntimeException("The collection " + this.inputHitsCollectionName + " does not exist in the event.");
         }
     }
     
@@ -240,9 +255,18 @@ public class EcalCalibrationsDriver extends Driver {
     private void writeToFile(EcalCalibrationCollection calibrations, String fieldNames) {
         FileWriter writer = null;
         try {
-            writer = new FileWriter(outputFile);
-            writer.write(fieldNames);
-            writer.write(calibrations.toString());
+            writer = new FileWriter(outputFile); 
+            StringBuffer buff = new StringBuffer(fieldNames);
+            buff.append('\n');
+            for (EcalCalibration calibration : calibrations) {
+                FieldValueMap fieldValues = calibration.getFieldValues();
+                for (String field : fieldValues.keySet()) {
+                    buff.append(fieldValues.get(field) + " ");
+                }
+                buff.setLength(buff.length() - 1);
+                buff.append('\n');
+            }            
+            writer.write(buff.toString());
         } catch (IOException e) {
             throw new RuntimeException("There was a problem writing to the output file.", e);
         } finally {
