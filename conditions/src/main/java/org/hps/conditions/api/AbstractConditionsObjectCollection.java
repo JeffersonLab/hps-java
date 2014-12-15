@@ -168,7 +168,7 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
      * @return The object at the index.
      * @throws IndexOutOfBoundsException If the index value is invalid.
      */
-    ObjectType get(int index) {
+    public ObjectType get(int index) {
         if (index + 1 > this.size() || index < 0) {
             throw new IndexOutOfBoundsException("The index is out of bounds: " + index);
         }
@@ -183,10 +183,10 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
     }
     
     /**
-     * Sort in place and replace the contents with the sorted list.
+     * Sort the collection in place.
      * @param comparator The comparator to use for sorting.
      */
-    void sort(Comparator<ObjectType> comparator) {
+    public void sort(Comparator<ObjectType> comparator) {
         List<ObjectType> objects = new ArrayList<ObjectType>(this);
         Collections.sort(objects, comparator);
         clear();
@@ -194,11 +194,11 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
     }
     
     /**
-     * Get a sorted list of the objects.  
+     * Get a sorted list of the objects, leaving original collection in place.  
      * @param comparator The comparator to use for the sort.
      * @return A sorted list of the objects.
      */
-    List<ObjectType> sorted(Comparator<ObjectType> comparator) {
+    public List<ObjectType> sorted(Comparator<ObjectType> comparator) {
         List<ObjectType> objects = new ArrayList<ObjectType>(this);
         Collections.sort(objects, comparator);
         return objects;
