@@ -227,7 +227,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
+                if(!SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh)) {
+                	continue clusterLoop;
+                }
+                //if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterSeedEnergyCount++;
@@ -240,7 +243,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
+                if(!SSPTriggerLogic.clusterHitCountCut(cluster, minHitCount)) {
+                	continue clusterLoop;
+                }
+                //if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterHitCountCount++;
@@ -253,7 +259,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
+                if(!SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh)) {
+                	continue clusterLoop;
+                }
+                //if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterTotalEnergyCount++;
@@ -523,6 +532,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
+    @Deprecated
     private boolean clusterHitCountCut(HPSEcalCluster cluster) {
         return (getValueClusterHitCount(cluster) >= minHitCount);
     }
@@ -534,6 +544,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
+    @Deprecated
     private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
         // Get the cluster seed energy.
         double energy = getValueClusterSeedEnergy(cluster);
@@ -550,6 +561,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
+    @Deprecated
     private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
         // Get the total cluster energy.
         double energy = getValueClusterTotalEnergy(cluster);
@@ -565,6 +577,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the distance between the clusters.
      */
+    @Deprecated
     private double getClusterDistance(HPSEcalCluster cluster) {
         return Math.hypot(cluster.getSeedHit().getPosition()[0] - originX, cluster.getSeedHit().getPosition()[1]);
     }
@@ -575,6 +588,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueClusterTotalEnergy(HPSEcalCluster cluster) {
         return cluster.getEnergy();
     }
@@ -585,6 +599,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
+    @Deprecated
     private int getValueClusterHitCount(HPSEcalCluster cluster) {
         return cluster.getCalorimeterHits().size();
     }
@@ -595,6 +610,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueClusterSeedEnergy(HPSEcalCluster cluster) {
         return cluster.getSeedHit().getCorrectedEnergy();
     }
@@ -605,6 +621,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueCoplanarity(HPSEcalCluster[] clusterPair) {
         // Get the cluster angles.
         double[] clusterAngle = new double[2];
@@ -623,6 +640,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueEnergyDifference(HPSEcalCluster[] clusterPair) {
         return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
     }
@@ -633,6 +651,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueEnergySlope(HPSEcalCluster[] clusterPair) {
         // E + R*F
         // Get the low energy cluster energy.
@@ -651,6 +670,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
+    @Deprecated
     private double getValueEnergySum(HPSEcalCluster[] clusterPair) {
         return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
     }
@@ -662,6 +682,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
+    @Deprecated
     private boolean pairCoplanarityCut(HPSEcalCluster[] clusterPair) {
         return (getValueCoplanarity(clusterPair) < coplanarityHigh);
     }
@@ -673,6 +694,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
+    @Deprecated
     private boolean pairEnergyDifferenceCut(HPSEcalCluster[] clusterPair) {
         return (getValueEnergyDifference(clusterPair) < energyDifferenceHigh);
     }
@@ -684,6 +706,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
+    @Deprecated
     private boolean pairEnergySlopeCut(HPSEcalCluster[] clusterPair) {
         return (getValueEnergySlope(clusterPair) > energySlopeLow);
     }
@@ -695,6 +718,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
+    @Deprecated
     private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
         // Get the energy sum value.
         double energySum = getValueEnergySum(clusterPair);
@@ -801,10 +825,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             allPairs++;
             
             // Get the plot values for the pair cuts.
-            double energySum = getValueEnergySum(clusterPair);
-            double energyDifference = getValueEnergyDifference(clusterPair);
-            double energySlope = getValueEnergySlope(clusterPair);
-            double coplanarity = getValueCoplanarity(clusterPair);
+            double energySum = SSPTriggerLogic.getValueEnergySum(clusterPair);
+            double energyDifference = SSPTriggerLogic.getValueEnergyDifference(clusterPair);
+            double energySlope = SSPTriggerLogic.getValueEnergySlope(clusterPair, energySlopeParamF, originX);
+            double coplanarity = SSPTriggerLogic.getValueCoplanarity(clusterPair, originX);
             
             // Fill the general plots.
             pairEnergySum.fill(energySum, 1);
@@ -815,7 +839,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Sum Cut ====================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
+            if(!SSPTriggerLogic.pairEnergySumCut(clusterPair, energySumLow, energySumHigh)) {
+            	continue pairLoop;
+            }
+            //if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairEnergySumCount++;
@@ -823,7 +850,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Difference Cut =============================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!pairEnergyDifferenceCut(clusterPair)) { continue pairLoop; }
+            if(!SSPTriggerLogic.pairEnergyDifferenceCut(clusterPair, energyDifferenceHigh)) {
+            	continue pairLoop;
+            }
             
             // Otherwise, note that it passed the cut.
             pairEnergyDifferenceCount++;
@@ -831,7 +860,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
+            if(!SSPTriggerLogic.pairEnergySlopeCut(clusterPair, energySlopeLow, energySlopeParamF, originX)) {
+            	continue pairLoop;
+            }
+            //if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairEnergySlopeCount++;
@@ -839,7 +871,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Coplanarity Cut ===================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
+            if(!SSPTriggerLogic.pairCoplanarityCut(clusterPair, coplanarityHigh, originX)) {
+            	continue pairLoop;
+            }
+            //if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairCoplanarityCount++;
