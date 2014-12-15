@@ -1,12 +1,15 @@
 package org.hps.conditions.ecal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractIdentifier;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
-import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.AbstractIdentifier;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -106,6 +109,20 @@ public final class EcalChannel extends AbstractConditionsObject {
         public boolean isValid() {
             return id != -1;
         }
+    }
+    
+    private static final class ChannelIdComparator implements Comparator<EcalChannel> {
+        
+        public int compare(EcalChannel c1, EcalChannel c2) {
+            if (c1.getChannelId() < c2.getChannelId()) {
+                return -1;
+            } else if (c1.getChannelId() > c2.getChannelId()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        
     }
 
     DaqId createDaqId() {
@@ -211,6 +228,16 @@ public final class EcalChannel extends AbstractConditionsObject {
          */
         public EcalChannel findDaq(long id) {
             return daqMap.get(id);
+        }
+        
+        /**
+         * Get a list of channels sorted by channel ID.
+         * @return A list of channels sorted by channel ID.
+         */
+        public List<EcalChannel> sortedByChannelId() {
+            List<EcalChannel> channelList = new ArrayList<EcalChannel>(this);
+            Collections.sort(channelList, new ChannelIdComparator());
+            return channelList;
         }
     }
 
