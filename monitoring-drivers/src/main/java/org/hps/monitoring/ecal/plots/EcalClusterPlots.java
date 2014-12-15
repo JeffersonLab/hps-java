@@ -253,4 +253,9 @@ public class EcalClusterPlots extends Driver implements Resettable {
     public void endOfData() {
         //plotterFrame.dispose();
     }
+
+    public void setHide(boolean hide)
+    {
+        this.hide=hide;
+    }
 }
