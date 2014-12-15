@@ -283,9 +283,12 @@ public class EcalHitPlots extends Driver implements Resettable{
     public void endOfData() {
         //plotterFrame.dispose();
     }
-    
-    
-    
+
+    public void setHide(boolean hide)
+    {
+        this.hide=hide;
+    }
+        
     
     /**
 	 * Initializes the default style for plots.
