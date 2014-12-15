@@ -9,11 +9,29 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
+/**
+ * Class <code>GTPOnlineClusterer</code> is an implementation of the
+ * GTP clustering algorithm for EVIO readout data for use in either
+ * online reconstruction/diagnostics or for general analysis of EVIO
+ * readout data.<br/>
+ * <br/>
+ * <font color=red><b>WARNING:</b></font> This code is under construction
+ * and does not currently function. It will crash the simulation with a
+ * <code>RuntimeException</code> if any cluster is formed! 
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class GTPOnlineClusterer extends Driver {
-	private String hitCollectionName = "EcalCalHits";
 	private int eventNum = 0;
+	
+	// The size of the temporal window in nanoseconds. By default,
+	// this is 1 clock-cycle before and 3 clock-cycles after.
 	private double timeBefore = 4;
 	private double timeAfter = 12;
+	
+	// The LCIO collection name for hits. This defaults to the collection
+	// name used by the EVIO to LCIO converter.
+	private String hitCollectionName = "EcalCalHits";
 	
 	public void process(EventHeader event) {
 		// Increment the event number.
@@ -119,6 +137,17 @@ public class GTPOnlineClusterer extends Driver {
 		System.out.println();
 	}
 	
+	/**
+	 * Checks whether the hit <code>hit</code> keeps the hit <code>seed
+	 * </code> from meeting the criteria for being a seed hit. Note that
+	 * this does not check to see if the two hits are within the valid
+	 * spatiotemporal window of one another.
+	 * @param seed - The potential seed hit.
+	 * @param hit - The hit to compare with the seed.
+	 * @return Returns <code>true</code> if either the two hits are the
+	 * same hit or if the hit does not invalidate the potential seed.
+	 * Returns <code>false</code> otherwise.
+	 */
 	private boolean isValidSeed(CalorimeterHit seed, CalorimeterHit hit) {
 		// Get the hit and seed energies.
 		double henergy = hit.getCorrectedEnergy();
@@ -166,6 +195,18 @@ public class GTPOnlineClusterer extends Driver {
 		else { return false; }
 	}
 	
+	/**
+	 * Checks whether the hit <code>hit</code> falls within the spatial
+	 * window of the hit <code>Seed</code>. This is defined as within
+	 * 1 index of the seed's x-index and similarly for the seed's
+	 * y-index. 
+	 * @param seed - The seed hit.
+	 * @param hit - The comparison hit.
+	 * @return Returns <code>true</code> if either both hits are the
+	 * the same hit or if the comparison hit is within 1 index of the
+	 * seed's x-index and within 1 index of the seed's y-index. Returns
+	 * <code>false</code> otherwise.
+	 */
 	private boolean withinSpatialWindow(CalorimeterHit seed, CalorimeterHit hit) {
 		// Get the x-indices of each hit.
 		int six = seed.getIdentifierFieldValue("ix");
@@ -187,6 +228,15 @@ public class GTPOnlineClusterer extends Driver {
 		return false;
 	}
 	
+	/**
+	 * Checks whether the hit <code>hit</code> is within the temporal
+	 * window of the hit <code>seed</code>.
+	 * @param seed - The seed hit.
+	 * @param hit - The comparison hit.
+	 * @return Returns <code>true</code> if the comparison hit is within
+	 * the temporal window of the seed hit and <code>false</code>
+	 * otherwise.
+	 */
 	private boolean withinTimeWindow(CalorimeterHit seed, CalorimeterHit hit) {
 		// Get the hit time and seed time.
 		double hitTime = hit.getTime();
@@ -218,14 +268,30 @@ public class GTPOnlineClusterer extends Driver {
 		System.out.printf("\tTime Window After  :: %.0f ns%n", timeAfter);
 	}
 	
+	/**
+	 * Sets the name of the input LCIO hit collection. 
+	 * @param hitCollectionName - The collection name.
+	 */
 	public void setHitCollectionName(String hitCollectionName) {
 		this.hitCollectionName = hitCollectionName;
 	}
 	
+	/**
+	 * Sets the number of clock-cycles to include in the clustering
+	 * window before the seed hit. One clock-cycle is four nanoseconds.
+	 * @param cyclesBefore - The length of the clustering window before
+	 * the seed hit in clock cycles.
+	 */
 	public void setWindowBefore(int cyclesBefore) {
 		timeBefore = cyclesBefore * 4;
 	}
 	
+	/**
+	 * Sets the number of clock-cycles to include in the clustering
+	 * window after the seed hit. One clock-cycle is four nanoseconds.
+	 * @param cyclesAfter - The length of the clustering window after
+	 * the seed hit in clock cycles.
+	 */
 	public void setWindowAfter(int cyclesAfter) {
 		timeAfter = cyclesAfter * 4;
 	}
