@@ -1,7 +1,12 @@
 package org.hps.conditions.api;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
@@ -12,7 +17,7 @@ import org.hps.conditions.database.TableMetaData;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @param <ObjectType> The concrete type of the collection class.
  */
-public class AbstractConditionsObjectCollection<ObjectType extends ConditionsObject> extends LinkedHashSet<ObjectType> {
+public abstract class AbstractConditionsObjectCollection<ObjectType extends ConditionsObject> extends LinkedHashSet<ObjectType> {
 
     protected TableMetaData tableMetaData = null;
     protected int collectionId = -1;
@@ -122,7 +127,7 @@ public class AbstractConditionsObjectCollection<ObjectType extends ConditionsObj
         
     public void insert() throws ConditionsObjectException, SQLException {
         
-        // TODO: First check here if conditions record and/or collection ID is assigned, 
+        // TODO: First check here if conditions record and/or collection ID is assigned already, 
         //       in which case an error should be thrown as this is not a new collection.
         
         DatabaseConditionsManager.getInstance().insertCollection(this);
@@ -148,7 +153,7 @@ public class AbstractConditionsObjectCollection<ObjectType extends ConditionsObj
      * Convert object to string.
      */
     public String toString() {
-        // TODO: Should print out column headers here.
+        // TODO: Should print out column headers here if available from meta data.
         StringBuffer buffer = new StringBuffer();
         for (ConditionsObject object : this) {
             buffer.append(object.toString());
@@ -156,4 +161,46 @@ public class AbstractConditionsObjectCollection<ObjectType extends ConditionsObj
         }
         return buffer.toString();
     }       
+    
+    /**
+     * Get an object by index.
+     * @param index The index in the set.
+     * @return The object at the index.
+     * @throws IndexOutOfBoundsException If the index value is invalid.
+     */
+    ObjectType get(int index) {
+        if (index + 1 > this.size() || index < 0) {
+            throw new IndexOutOfBoundsException("The index is out of bounds: " + index);
+        }
+        int current = 0;
+        Iterator<ObjectType> iterator = this.iterator();
+        ObjectType object = iterator.next();
+        while (current != index && iterator.hasNext()) {
+            object = iterator.next();
+            current++;
+        }
+        return object;
+    }
+    
+    /**
+     * Sort in place and replace the contents with the sorted list.
+     * @param comparator The comparator to use for sorting.
+     */
+    void sort(Comparator<ObjectType> comparator) {
+        List<ObjectType> objects = new ArrayList<ObjectType>(this);
+        Collections.sort(objects, comparator);
+        clear();
+        addAll(objects);
+    }
+    
+    /**
+     * Get a sorted list of the objects.  
+     * @param comparator The comparator to use for the sort.
+     * @return A sorted list of the objects.
+     */
+    List<ObjectType> sorted(Comparator<ObjectType> comparator) {
+        List<ObjectType> objects = new ArrayList<ObjectType>(this);
+        Collections.sort(objects, comparator);
+        return objects;
+    }
 }
