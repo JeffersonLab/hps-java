@@ -26,6 +26,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                     <excludes>
                         <exclude>org/hps/EcalReadoutSimTest.java</exclude>
                         <exclude>org/hps/EtSystemTest.java</exclude>
@@ -36,9 +38,10 @@
                         <exclude>org/hps/ReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutToLcioTest.java</exclude>
                         <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
+                        <exclude>org/hps/ReconClusterICTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
-                    <trimStackTrace>true</trimStackTrace>
+                    <trimStackTrace>false</trimStackTrace>
                 </configuration>
             </plugin>
         </plugins>
