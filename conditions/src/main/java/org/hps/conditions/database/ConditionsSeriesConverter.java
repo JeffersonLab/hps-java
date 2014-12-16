@@ -98,7 +98,7 @@ class ConditionsSeriesConverter {
                 throw new RuntimeException(e);
             }
 
-            series.addCollection(collection);
+            series.add(collection);
         }
 
         // Return new collection.
