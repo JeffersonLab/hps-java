@@ -194,13 +194,11 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
     }
     
     /**
-     * Get a sorted list of the objects, leaving original collection in place.  
+     * Get a sorted list of the objects, leaving original collection in place.
      * @param comparator The comparator to use for the sort.
      * @return A sorted list of the objects.
      */
-    public List<ObjectType> sorted(Comparator<ObjectType> comparator) {
-        List<ObjectType> objects = new ArrayList<ObjectType>(this);
-        Collections.sort(objects, comparator);
-        return objects;
+    public AbstractConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator) {
+        throw new UnsupportedOperationException("This method is not implemented.");
     }
 }
