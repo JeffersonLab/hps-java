@@ -264,9 +264,12 @@ public abstract class ReconParticleDriver extends Driver {
 
                 if (matchedCluster instanceof HPSEcalClusterIC) {
                     int pid = particle.getParticleIDUsed().getPDG();
-                    if (pid != 11) {
+                    if (pid == -11) {
                         ((HPSEcalClusterIC) matchedCluster).setParticleID(pid);
                     }// End of cluster position/energy corrections. 
+                    else if (pid == 11) {
+                        ((HPSEcalClusterIC) matchedCluster).setParticleID(pid);
+                    }
                 }
 
                 // Update the reconstructed particle with the data from
