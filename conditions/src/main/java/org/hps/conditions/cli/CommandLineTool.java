@@ -89,7 +89,7 @@ public class CommandLineTool {
         if (verbose)
             conditionsManager.setLogLevel(Level.ALL);
         else
-            conditionsManager.setLogLevel(Level.WARNING);
+            conditionsManager.setLogLevel(Level.INFO);
         if (commandLine.hasOption("p")) {
             File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
             if (verbose)
