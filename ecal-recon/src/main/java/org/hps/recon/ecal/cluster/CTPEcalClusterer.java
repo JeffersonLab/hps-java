@@ -10,14 +10,16 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import org.hps.recon.ecal.HPSCalorimeterHit;
+import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
-import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.util.Driver;
+import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.util.Driver;
 
 /**
  * Creates clusters from CalorimeterHits in the HPSEcal detector.

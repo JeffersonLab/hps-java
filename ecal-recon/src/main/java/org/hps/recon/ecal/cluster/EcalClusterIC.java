@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
