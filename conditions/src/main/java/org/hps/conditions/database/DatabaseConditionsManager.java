@@ -72,7 +72,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     // The default Engineering Run detector.
     private static final String DEFAULT_ENG_RUN_DETECTOR = "HPS-Proposal2014-v8-6pt6";
 
-
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
     
     protected String detectorName;
@@ -335,7 +334,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         try {
             setupEcal();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error loading ECAL conditions onto detector.", e);
+            e.printStackTrace();
+            logger.log(Level.WARNING, "Error loading ECAL conditions onto detector.", e);
         }
         
         // Load conditions onto the SVT subdetector object.
@@ -343,7 +343,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             setupSvt(runNumber);
         } catch (Exception e) {
             e.printStackTrace();
-            logger.log(Level.SEVERE,  "Error loading SVT conditions onto detector.", e);
+            logger.log(Level.WARNING, "Error loading SVT conditions onto detector.", e);
         }                       
                        
         this.isInitialized = true;
@@ -588,6 +588,15 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         return foundConditionsRecords;
     }
     
+    public ConditionsRecordCollection getConditionsRecords() {
+        ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
+        for (TableMetaData tableMetaData : this.getTableMetaDataList()) {
+            ConditionsRecordCollection foundConditionsRecords = findConditionsRecords(tableMetaData.getKey());
+            conditionsRecords.addAll(foundConditionsRecords); 
+        }        
+        return conditionsRecords;
+    }
+    
     public void freeze() {
         if (this.getDetector() != null && this.getRun() != -1) {
             this.isFrozen = true;
@@ -717,6 +726,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     public void addTableMetaData(TableMetaData tableMetaData) {
         this.tableMetaData.add(tableMetaData);
+    }
+    
+    public Logger getLogger() {
+        return logger;
     }
 
     /**
