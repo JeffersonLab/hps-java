@@ -8,12 +8,7 @@
         <driver name="EventMarkerDriver"/>              
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-<!--        <driver name="EcalClustererIC" /> -->
-        <driver name="EcalHitPlots"/>             <!-- Single hit distributions -->
-        <driver name="EcalClusterPlots"/>         <!-- Clusters distributions -->
-<!--      <driver name="EcalClusterPlotsIC"/>   -->       <!-- Clusters distributions with IC clusters-->
         <driver name="LCIOWriter"/> 
-        <driver name="AidaSaveDriver"/>  
         <driver name="CleanupDriver"/>
    </execute>    
     <drivers>    
@@ -41,28 +36,6 @@
             <seedEnergyThreshold>0.100</seedEnergyThreshold>        
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>        
         </driver>
-
-     <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
-            <inputCollection>EcalCalHits</inputCollection>        
-            <maxE>2.0</maxE>
-            <logScale>false</logScale>  
-            <hide>true</hide>
-        </driver>
-        <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
-            <maxE>2.0</maxE>
-            <logScale>false</logScale>
-            <hide>true</hide>                        
-        </driver>
-        <driver name="EcalClusterPlotsIC" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
-            <maxE>2.0</maxE>
-            <logScale>false</logScale>
-            <hide>true</hide>
-            <inputCollection>EcalClustersIC</inputCollection>
-        </driver>
-
-        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>ecalplots.root</outputFileName>
-        </driver> 
 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
