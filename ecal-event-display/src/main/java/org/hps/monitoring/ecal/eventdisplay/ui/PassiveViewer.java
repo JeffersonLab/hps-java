@@ -3,6 +3,7 @@ package org.hps.monitoring.ecal.eventdisplay.ui;
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.lcsim.event.CalorimeterHit;
 
 /**
@@ -87,14 +88,44 @@ public abstract class PassiveViewer extends Viewer {
         // Generate a new cluster.
         Cluster panelCluster = new Cluster(ix, iy, energy);
         
-        // Add any component hits to the cluster.
-        for(CalorimeterHit lcioHit : lcioCluster.getCalorimeterHits()) {
-            // Get the position of the calorimeter hit.
-            int hix = lcioHit.getIdentifierFieldValue("ix");
-            int hiy = lcioHit.getIdentifierFieldValue("iy");
-            
-            // Add the hit to the cluster.
-            panelCluster.addComponentHit(hix, hiy);
+        // If this is an IC cluster, cast it so that shared hits can
+        // be properly displayed.
+        if(lcioCluster instanceof HPSEcalClusterIC) {
+        	// Cast the cluster object.
+        	HPSEcalClusterIC icCluster = (HPSEcalClusterIC) lcioCluster;
+        	
+	        // Add any component hits to the cluster.
+	        for(CalorimeterHit lcioHit : icCluster.getUniqueHits()) {
+	            // Get the position of the calorimeter hit.
+	            int hix = lcioHit.getIdentifierFieldValue("ix");
+	            int hiy = lcioHit.getIdentifierFieldValue("iy");
+	            
+	            // Add the hit to the cluster.
+	            panelCluster.addComponentHit(hix, hiy);
+	        }
+	        
+	        // Add any shared hits to the cluster.
+	        for(CalorimeterHit lcioHit : icCluster.getSharedHits()) {
+	            // Get the position of the calorimeter hit.
+	            int hix = lcioHit.getIdentifierFieldValue("ix");
+	            int hiy = lcioHit.getIdentifierFieldValue("iy");
+	            
+	            // Add the hit to the cluster.
+	            panelCluster.addSharedHit(hix, hiy);
+	        }
+        }
+        
+        // Otherwise, it just has component hits.
+        else {
+	        // Add any component hits to the cluster.
+	        for(CalorimeterHit lcioHit : lcioCluster.getCalorimeterHits()) {
+	            // Get the position of the calorimeter hit.
+	            int hix = lcioHit.getIdentifierFieldValue("ix");
+	            int hiy = lcioHit.getIdentifierFieldValue("iy");
+	            
+	            // Add the hit to the cluster.
+	            panelCluster.addComponentHit(hix, hiy);
+	        }
         }
         
         // Return the cluster.
