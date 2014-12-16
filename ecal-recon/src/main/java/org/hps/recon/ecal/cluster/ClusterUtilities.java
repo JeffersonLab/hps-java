@@ -1,5 +1,6 @@
 package org.hps.recon.ecal.cluster;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,13 +8,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
+/**
+ * This is a set of simple clustering utility methods.
+ */
 public final class ClusterUtilities {
     
     private ClusterUtilities() {        
     }
 
+    /**
+     * Create a map of IDs to their hits.
+     */
     public static Map<Long, CalorimeterHit> createHitMap(List<CalorimeterHit> hits) {
         Map<Long, CalorimeterHit> hitMap = new LinkedHashMap<Long, CalorimeterHit>();
         for (CalorimeterHit hit : hits) {
@@ -23,7 +32,7 @@ public final class ClusterUtilities {
     }
     
     /**
-     * Given a hit, find its list of neighboring crystals that have hits and return their IDs.
+     * Given a hit, find the list of neighboring crystal IDs that also have hits.
      * @param hit The input hit.
      * @param hitMap The hit map with all the collection's hits.
      * @return The set of neighboring hit IDs.
@@ -38,4 +47,30 @@ public final class ClusterUtilities {
         }
         return neighborHitIDs;
     }
+    
+    /**
+     * Create a basic cluster from a list of hits.
+     * @param clusterHits The list of hits.
+     * @return The basic cluster.
+     */
+    protected static Cluster createBasicCluster(List<CalorimeterHit> clusterHits) {
+        BaseCluster cluster = new BaseCluster();
+        double totalEnergy = 0;
+        for (CalorimeterHit clusterHit : clusterHits) {
+            cluster.addHit(clusterHit);
+            totalEnergy += clusterHit.getCorrectedEnergy();
+        }
+        cluster.setEnergy(totalEnergy);        
+        return cluster;
+    }
+    
+    /**
+     * Compare CalorimeterHit objects by their energy.
+     */
+    public static class HitEnergyComparator implements Comparator<CalorimeterHit> {
+        @Override
+        public int compare(CalorimeterHit o1, CalorimeterHit o2) {
+            return Double.compare(o1.getCorrectedEnergy(), o2.getCorrectedEnergy());
+        }
+    }    
 }

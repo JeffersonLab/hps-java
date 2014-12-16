@@ -9,36 +9,35 @@ import org.hps.recon.ecal.ECalUtils;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
+import org.lcsim.event.EventHeader;
 
 /**
- * This Driver creates clusters from the CalorimeterHits of an
- * {@link org.lcsim.geometry.subdetectur.HPSEcal3} detector.
- *
- * The clustering algorithm is from pages 83 and 84 of the HPS Proposal.
+ * <p>
+ * This Driver creates clusters from a CalorimeterHit input collection.
+ * <p>
+ * The clustering algorithm is implemented according to the description in pages 83 and 84 of the 
+ * <a href="https://confluence.slac.stanford.edu/download/attachments/86676777/HPSProposal-FINAL_Rev2.pdf">HPS Proposal document</a>.
+ * <p>
+ * This is a simple algorithm that is obsolete!  The current IC or hardware algorithm clustering algorithms should generally be used instead.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
 public class LegacyClusterer extends AbstractClusterer {
-        
-    // Minimum E for cluster seed.
-    double minimumClusterSeedEnergy = 0.05 * ECalUtils.GeV;
-
-    // Minimum E to add hit to cluster.
-    double minimumHitEnergy = 0.03 * ECalUtils.GeV;
-     
-    void setMinimumClusterSeedEnergy(double minimumClusterSeedEnergy) {
-        this.minimumClusterSeedEnergy = minimumClusterSeedEnergy;
-    }
-
-    void setMinimumHitEnergy(double minimumHitEnergy) {
-        this.minimumHitEnergy = minimumHitEnergy;
-        if (minimumClusterSeedEnergy < minimumHitEnergy) {
-            minimumClusterSeedEnergy = minimumHitEnergy;
-        }
+    
+    double minClusterSeedEnergy;
+    double minHitEnergy;
+    
+    LegacyClusterer() {
+        super(new String[] { "minClusterSeedEnergy", "minHitEnergy" }, new double[] { 0.05 * ECalUtils.GeV, 0.03 * ECalUtils.GeV });
     }
     
-    public List<Cluster> createClusters(List<CalorimeterHit> hits) {
+    public void initialize() {
+        minClusterSeedEnergy = this.getCut("minClusterSeedEnergy");
+        minHitEnergy = this.getCut("minHitEnergy");
+    }
+                 
+    public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
 
         Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hits);
         
@@ -48,7 +47,7 @@ public class LegacyClusterer extends AbstractClusterer {
         // Loop over ECal hits to find cluster seeds.
         for (CalorimeterHit hit : hitMap.values()) {
             // Cut on min seed E.
-            if (hit.getRawEnergy() < minimumClusterSeedEnergy) {
+            if (hit.getRawEnergy() < minClusterSeedEnergy) {
                 continue;
             }
 
@@ -74,7 +73,7 @@ public class LegacyClusterer extends AbstractClusterer {
                     }
 
                     // Add to cluster if above min E.
-                    if (neighborHit.getRawEnergy() >= minimumHitEnergy) {
+                    if (neighborHit.getRawEnergy() >= minHitEnergy) {
                         neighborHits.add(neighborHit);
                     }
                 }
