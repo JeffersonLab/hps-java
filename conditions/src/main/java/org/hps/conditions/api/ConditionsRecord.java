@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.QueryBuilder;
@@ -20,26 +22,72 @@ import org.hps.conditions.database.TableMetaData;
 public final class ConditionsRecord extends AbstractConditionsObject {
     
     /**
-     * The concrete collection implementation including sorting utilities.
+     * The concrete collection implementation, including sorting utilities.
      */
     public static class ConditionsRecordCollection extends AbstractConditionsObjectCollection<ConditionsRecord> {
         
-        public List<ConditionsRecord> sortedByUpdated() {
+        /**
+         * Sort using a comparator and leave the original collection unchanged.
+         * @param comparator
+         * @return
+         */
+        public ConditionsRecordCollection sorted(Comparator<ConditionsRecord> comparator) {
             List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
-            Collections.sort(list, new UpdatedComparator());
-            return list;
+            Collections.sort(list, comparator);
+            ConditionsRecordCollection collection = new ConditionsRecordCollection();
+            collection.addAll(list);
+            return collection;
         }
         
-        public List<ConditionsRecord> sortedByCreated() {
-            List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
-            Collections.sort(list, new CreatedComparator());
-            return list;
+        public ConditionsRecordCollection sortedByUpdated() {
+            return sorted(new UpdatedComparator());
         }
         
-        public List<ConditionsRecord> sortedByRunStart() {
+        public ConditionsRecordCollection sortedByCreated() {
+            return sorted(new CreatedComparator());
+        }
+        
+        public ConditionsRecordCollection sortedByRunStart() {
+            return sorted(new RunStartComparator());
+        }
+        
+        public ConditionsRecordCollection sortedByKey() {
+            return sorted(new KeyComparator());
+        }
+        
+        /**
+         * Sort the collection in place.
+         * @param comparator
+         */
+        public void sort(Comparator<ConditionsRecord> comparator) {
             List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
-            Collections.sort(list, new RunStartComparator());
-            return list;
+            Collections.sort(list, comparator);
+            this.clear();
+            this.addAll(list);
+        }
+        
+        public void sortByUpdated() {
+            this.sort(new UpdatedComparator());
+        }
+        
+        public void sortByCreated() {
+            sort(new CreatedComparator());
+        }
+        
+        public void sortByRunStart() {
+            sort(new RunStartComparator());
+        }
+        
+        public void sortByKey() {
+            sort(new KeyComparator());
+        }               
+        
+        public Set<String> getConditionsKeys() {
+            Set<String> conditionsKeys = new HashSet<String>();
+            for (ConditionsRecord record : this) {
+                conditionsKeys.add(record.getName());
+            }
+            return conditionsKeys;
         }
         
         private static class RunStartComparator implements Comparator<ConditionsRecord> {
@@ -80,6 +128,13 @@ public final class ConditionsRecord extends AbstractConditionsObject {
                 }
                 return 0;                
             }            
+        }
+        
+        private static class KeyComparator implements Comparator<ConditionsRecord> {
+            @Override
+            public int compare(ConditionsRecord c1, ConditionsRecord c2) {
+                return c1.getName().compareTo(c2.getName());
+            }
         }
     }
     
