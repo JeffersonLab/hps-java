@@ -19,9 +19,20 @@ public class AbstractConditionsObjectCollectionTest extends TestCase {
         conditionsManager.setConnectionParameters(connection);
         conditionsManager.setDetector(DatabaseConditionsManager.getDefaultEngRunDetectorName(), 2000);
         conditionsManager.addTableMetaData(tableMetaData);
-                        
+        
         DummyCollection collection = new DummyCollection();
-        collection.add(new DummyObject(42));
+        DummyObject[] objects = new DummyObject[] {
+                new DummyObject(24),
+                new DummyObject(42),
+                new DummyObject(64)
+        };
+        collection.add(objects[0]);
+        collection.add(objects[1]);
+        collection.add(objects[2]);
+      
+        assertEquals("Wrong object from index.", objects[0], collection.get(0));
+        assertEquals("Wrong object from index.", objects[1], collection.get(1));
+        assertEquals("Wrong object from index.", objects[2], collection.get(2));
         
         // Test inserting the collection into the database.
         try {
@@ -31,6 +42,8 @@ public class AbstractConditionsObjectCollectionTest extends TestCase {
         }
                                 
         // TODO: test select into the collection
+        collection.setCollectionId(1);
+        collection.select();
         
         // TODO: test update records from the collection to db
         
@@ -45,8 +58,7 @@ public class AbstractConditionsObjectCollectionTest extends TestCase {
         
         public void getDummyValue() {
             this.getFieldValue("dummy_value");
-        }
-        
+        }        
     }
     
     static class DummyCollection extends AbstractConditionsObjectCollection<DummyObject> {        
