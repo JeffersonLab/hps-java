@@ -153,11 +153,9 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         Map<Track, TrackAnalysis> tkanalMap = new HashMap<Track, TrackAnalysis>();
         RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> mcrelations = event.get(LCRelation.class, trackHitMCRelationsCollectionName);
-        System.out.println(this.getClass().getSimpleName() + ": number of MC relations = " + mcrelations.size());
         for (LCRelation relation : mcrelations)
             if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                 hittomc.add(relation.getFrom(), relation.getTo());
-        System.out.println(this.getClass().getSimpleName() + ": number of hittomc relations = " + hittomc.size());
         RelationalTable mcHittomcP = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         //  Get the collections of SimTrackerHits
         List<List<SimTrackerHit>> simcols = event.get(SimTrackerHit.class);
@@ -214,13 +212,11 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         FindableTrack findable = new FindableTrack(event);
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
-        System.out.println(this.getClass().getSimpleName() + ": nTracks = " + tracks.size());
         for (Track trk : tracks) {
             TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc, rawtomc, hittostrip, hittorotated);
             tkanalMap.put(trk, tkanal);
             MCParticle mcp = tkanal.getMCParticleNew();
             if (mcp != null) {//  Create a map between the tracks found and the assigned MC particle            
-                System.out.println(this.getClass().getSimpleName() + ": found MCP match");
                 trktomc.add(trk, tkanal.getMCParticleNew());
             }
         }
@@ -242,7 +238,6 @@ public class TrackMCEfficiency extends DataQualityMonitor {
             double eta = -Math.log(Math.tan(Math.atan2(pt, pz) / 2));
             double phi = Math.atan2(px, pz);
             //  Find the number of layers hit by this mc particle
-            System.out.println("MC pt=" + pt);
             int nhits = findable.LayersHit(mcp);
             boolean isFindable = findable.InnerTrackerIsFindable(mcp, nlayers - 2);
 
@@ -364,30 +359,30 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 if (hit.Layer() == layer)
                     hasThisLayer = true;
             if (!hasThisLayer) {
-                System.out.println("Missing reconstructed hit in layer = " + layer);
+//                System.out.println("Missing reconstructed hit in layer = " + layer);
                 boolean hasFitHitSL1 = false;
                 boolean hasFitHitSL2 = false;
                 FittedRawTrackerHit fitSL1 = null;
                 FittedRawTrackerHit fitSL2 = null;
-                System.out.println("fitted hit list size = " + fitlist.size());
+//                System.out.println("fitted hit list size = " + fitlist.size());
                 for (FittedRawTrackerHit fit : fitlist) {
-                    System.out.println("fitted hit layer number = " + fit.getRawTrackerHit().getLayerNumber());
+//                    System.out.println("fitted hit layer number = " + fit.getRawTrackerHit().getLayerNumber());
                     if (fit.getRawTrackerHit().getLayerNumber() == layer) {
                         hasFitHitSL1 = true;
                         fitSL1 = fit;
-                        System.out.println("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiProb() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
+//                        System.out.println("Found a hit in SL1 with t0 = " + fitSL1.getT0() + "; amp = " + fitSL1.getAmp() + "; chi^2 = " + fitSL1.getShapeFitParameters().getChiProb() + "; strip = " + fitSL1.getRawTrackerHit().getCellID());
                     }
                     if (fit.getRawTrackerHit().getLayerNumber() == layer + 1) {
                         hasFitHitSL2 = true;
                         fitSL2 = fit;
-                        System.out.println("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiProb() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
+//                        System.out.println("Found a hit in SL2 with t0 = " + fitSL2.getT0() + "; amp = " + fitSL2.getAmp() + "; chi^2 = " + fitSL2.getShapeFitParameters().getChiProb() + "; strip = " + fitSL2.getRawTrackerHit().getCellID());
 
                     }
                 }
-                if (!hasFitHitSL1)
-                    System.out.println("MISSING a hit in SL1!!!");
-                if (!hasFitHitSL2)
-                    System.out.println("MISSING a hit in SL2!!!");
+//                if (!hasFitHitSL1)
+//                    System.out.println("MISSING a hit in SL1!!!");
+//                if (!hasFitHitSL2)
+//                    System.out.println("MISSING a hit in SL2!!!");
 
                 return false;
             }
