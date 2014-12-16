@@ -287,7 +287,7 @@ public class EvioToLcio {
         logger.config(buff.toString());
                 
         // Loop over the input EVIO files.
-        for (String evioFileName : evioFileList) {
+        fileLoop: for (String evioFileName : evioFileList) {
             
             // Get the next EVIO input file.
             File evioFile = new File(evioFileName);
@@ -307,15 +307,14 @@ public class EvioToLcio {
             boolean firstEvent = true;
             long time = 0; // in ms
 
-            // Loop over EVIO events, build LCSim events, process them, and then
-            // write events to disk.
-            fileLoop: while (maxEvents == 0 || nEvents < maxEvents) {
+            // Loop over EVIO events, build LCSim events, process them, and then write events to disk.
+            readLoop: while (maxEvents == 0 || nEvents < maxEvents) {
                 EvioEvent evioEvent = null;
                 try {
-                    eventLoop: while (evioEvent == null) {
+                    while (evioEvent == null) {
                         evioEvent = reader.nextEvent();
                         if (evioEvent == null) {
-                            break fileLoop;
+                            break readLoop;
                         }
                         reader.parseEvent(evioEvent);
                     }
@@ -397,32 +396,30 @@ public class EvioToLcio {
                     logger.log(Level.SEVERE, "Error in LCIO event processing.", e);
                     throw new RuntimeException(e);
                 }
-            }
+            }            
             logger.info("Last physics event time: " + time / 1000 + " - " + new Date(time));
-            logger.fine("closing EVIO reader");
             try {
                 reader.close();
+                logger.fine("EVIO reader closed.");
             } catch (IOException e) {
                 logger.warning(e.getMessage());
                 e.printStackTrace();
             }
-            logger.fine("EVIO reader closed");
+            
+            if (nEvents >= maxEvents) {
+                logger.info("user maxEvents " + maxEvents + " was reached");
+                break fileLoop;
+            }
         }
-        logger.info("no more data");
-
-        logger.info("executing jobManager.finish");
-        jobManager.finish();
-        logger.info("jobManager is done");
-
+        jobManager.finish();        
         if (writer != null) {
-            logger.info("closing LCIO writer");
             try {
                 writer.close();
+                logger.info("LCIO output writer closed okay.");
             } catch (IOException e) {
                 logger.warning(e.getMessage());
                 e.printStackTrace();
-            }
-            logger.info("LCIO writer closed");
+            }            
         }
 
         logger.info("Job finished successfully!");
