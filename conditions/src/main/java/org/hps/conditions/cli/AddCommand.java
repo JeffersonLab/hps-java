@@ -5,9 +5,6 @@ import java.util.Date;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.FieldValueMap;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * This is a command for the conditions CLI that will add a conditions record,
