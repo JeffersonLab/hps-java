@@ -49,14 +49,14 @@ import org.lcsim.util.log.LogUtil;
  * <p>
  * This class attempts to automatically configure itself for Test Run or Engineering Run 
  * based on the run numbers in the EVIO file. It will use an appropriate default detector 
- * unless one is given on the command line, and it will also use the correct event builder. 
- * However, it will NOT correctly handle a mixed list of EVIO files from both runs, so
- * don't do this!
+ * unless one is given on the command line, and it will also use the correct event builder.
+ * It will not handle jobs correctly with files from both the Test and Engineering Run
+ * so don't do this!
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class EvioToLcio {
-
 
     // The default steering resource, which basically does nothing except print event numbers.
     private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/EventMarker.lcsim";
@@ -107,7 +107,7 @@ public class EvioToLcio {
      */
     public void run(String[] args) {
 
-        int maxEvents = 0;
+        int maxEvents = -1;
         int nEvents = 0;
 
         // Set up command line parsing.
@@ -201,8 +201,11 @@ public class EvioToLcio {
         }
 
         // Get the max number of events to process.
-        if (cl.hasOption("n")) {
+        if (cl.hasOption("n")) {            
             maxEvents = Integer.valueOf(cl.getOptionValue("n"));
+            if (maxEvents <= 0) {
+                throw new IllegalArgumentException("Value of -n option is invalid: " + maxEvents);
+            }
             logger.config("set max events to " + maxEvents);
         }
 
@@ -308,7 +311,7 @@ public class EvioToLcio {
             long time = 0; // in ms
 
             // Loop over EVIO events, build LCSim events, process them, and then write events to disk.
-            readLoop: while (maxEvents == 0 || nEvents < maxEvents) {
+            readLoop: while (maxEvents == -1 || nEvents < maxEvents) {
                 EvioEvent evioEvent = null;
                 try {
                     while (evioEvent == null) {
@@ -406,8 +409,8 @@ public class EvioToLcio {
                 e.printStackTrace();
             }
             
-            if (nEvents >= maxEvents) {
-                logger.info("user maxEvents " + maxEvents + " was reached");
+            if (maxEvents != -1 && nEvents < maxEvents) {
+                logger.info("maxEvents " + maxEvents + " was reached");
                 break fileLoop;
             }
         }
