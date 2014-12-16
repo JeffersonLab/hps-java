@@ -17,6 +17,7 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
     private double[] rawPosition = new double[3];
     private ArrayList<CalorimeterHit> allHitList = new ArrayList<CalorimeterHit>();
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>();
+    protected double uncorrected_energy;
     
     // Variables for electron energy corrections
     static final double ELECTRON_ENERGY_A = -0.0027;
@@ -84,6 +85,24 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
     }
     
     /**
+     * Sets the uncorrected cluster energy. External calculation in clustering due to inclusion
+     * of shared hit distributed energies.
+     */
+    public void setUncorrectedEnergy(double uncorrectedE)
+    {
+    	uncorrected_energy = uncorrectedE;
+    }
+    
+    /**
+     * Returns the uncorrected energy of a cluster as set by cluster.
+     */
+    public double getUncorrectedEnergy()
+    {
+    	return this.uncorrected_energy;
+    }
+    
+    
+    /**
      * Gets the cluster hits that are not shared with other clusters.
      * @return Returns the clusters as a <code>List</code> object
      * containing <code>CalorimeterHit</code> objects.
@@ -107,12 +126,6 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
         return this.rawPosition;
     }
     
-    /**
-     * Do an external calculation of the raw energy and set it. Includes shared hit distribution.
-     */
-    public void setRawEnergy(double rawEnergy){
-        raw_energy = rawEnergy;
-    }
     
     /**
      * Inputs the corrected position of the cluster, see HPS Note 2014-001.
@@ -209,7 +222,7 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
     }
     
     private void recalculateForParticleID(int pid) {
-        double rawE = getRawEnergy();
+        double rawE = getEnergy();
         double corrE = enCorrection(pid, rawE);
         setEnergy(corrE);
         double rawP[] = getPosition();

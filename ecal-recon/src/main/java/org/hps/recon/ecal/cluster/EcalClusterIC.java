@@ -30,13 +30,17 @@ import org.lcsim.util.Driver;
  * This Driver creates clusters from the CalorimeterHits of an
  * {@link org.lcsim.geometry.subdetectur.HPSEcal3} detector.
  * 
- * This clustering logic is based on that from the CLAS-Note-2005-001. 
+ * This clustering logic is based on that from the CLAS-Note-2005-001.The analysis 
+ * and position corrections are described here:
+ * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
+ * 
  * This sorts hits from highest to lowest energy and build clusters around 
  * each local maximum/seed hit. Common hits are distributed between clusters 
  * when minimum between two clusters. There is a threshold cut for minimum
  * hit energy, minimum cluster energy, and minimum seed hit energy. There is 
  * also a timing threshold with respect to the seed hit. All of these parameters
- * are tunable and should be refined with more analysis. 
+ * are tunable and should be refined with more analysis. Energy corrections
+ * are applied separately.
  *
  *
  * @author Holly Szumila-Vance <hvanc001@odu.edu>
@@ -79,37 +83,24 @@ public class EcalClusterIC extends Driver {
     double minTime = 0.0;
     // Maximum time cut window range. Units in ns.
     double timeWindow = 20.0;
-    // Variables for electron energy corrections
-    static final double ELECTRON_ENERGY_A = -0.0027;
-    static final double ELECTRON_ENERGY_B = -0.06;
-    static final double ELECTRON_ENERGY_C = 0.95;
-    // Variables for positron energy corrections
-    static final double POSITRON_ENERGY_A = -0.0096;
-    static final double POSITRON_ENERGY_B = -0.042;
-    static final double POSITRON_ENERGY_C = 0.94;
-    // Variables for photon energy corrections
-    static final double PHOTON_ENERGY_A = 0.0015;
-    static final double PHOTON_ENERGY_B = -0.047;
-    static final double PHOTON_ENERGY_C = 0.94;
     // Variables for electron position corrections
     static final double ELECTRON_POS_A = 0.0066;
-	static final double ELECTRON_POS_B = -0.03;
-	static final double ELECTRON_POS_C = 0.028;
-	static final double ELECTRON_POS_D = -0.45;
-	static final double ELECTRON_POS_E = 0.465;
+    static final double ELECTRON_POS_B = -0.03;
+    static final double ELECTRON_POS_C = 0.028;
+    static final double ELECTRON_POS_D = -0.45;
+    static final double ELECTRON_POS_E = 0.465;
     // Variables for positron position corrections
-	static final double POSITRON_POS_A = 0.0072;
-	static final double POSITRON_POS_B = -0.031;
-	static final double POSITRON_POS_C = 0.007;
-	static final double POSITRON_POS_D = 0.342;
-	static final double POSITRON_POS_E = 0.108;
+    static final double POSITRON_POS_A = 0.0072;
+    static final double POSITRON_POS_B = -0.031;
+    static final double POSITRON_POS_C = 0.007;
+    static final double POSITRON_POS_D = 0.342;
+    static final double POSITRON_POS_E = 0.108;
     // Variables for photon position corrections
-	static final double PHOTON_POS_A = 0.005;
-	static final double PHOTON_POS_B = -0.032;
-	static final double PHOTON_POS_C = 0.011;
-	static final double PHOTON_POS_D = -0.037;
-	static final double PHOTON_POS_E = 0.294;
-	
+    static final double PHOTON_POS_A = 0.005;
+    static final double PHOTON_POS_B = -0.032;
+    static final double PHOTON_POS_C = 0.011;
+    static final double PHOTON_POS_D = -0.037;
+    static final double PHOTON_POS_E = 0.294;
     
        
     public void setClusterCollectionName(String clusterCollectionName) {
@@ -511,23 +502,6 @@ public class EcalClusterIC extends Driver {
         	seedEnergyTot.put(seedA, currEnergyA);
         	seedEnergyTot.put(seedB, currEnergyB);       	
         }
-        
-        
-        // Make mapping to contain clusters with corrected energy.
-        Map<CalorimeterHit, Double> seedEnergyCorr = new HashMap<CalorimeterHit, Double>();
-        
-        // Energy Corrections as per HPS Note 2014-001
-            // Iterate through known clusters with energies and apply correction.
-            for (Map.Entry<CalorimeterHit, Double> entryC : seedEnergyTot.entrySet()) {
-                double rawEnergy = entryC.getValue();
-                
-                // Energy correction for initial guess of electron:
-                int pdg = 11;
-                double corrEnergy = enCorrection(pdg, rawEnergy);
-
-                seedEnergyCorr.put(entryC.getKey(), corrEnergy);    
-            }// end of energy corrections
-        
                 
         // Cluster Position as per HPS Note 2014-001
         // Create map with seed as key to position/centroid value
@@ -625,7 +599,7 @@ public class EcalClusterIC extends Driver {
             // Loop over seeds
             for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
                 if (entry2.getKey() == entry2.getValue()){
-                	if(seedEnergyCorr.get(entry2.getKey())<clusterEnergyThreshold) 
+                	if(seedEnergyTot.get(entry2.getKey())<clusterEnergyThreshold) 
                 	{	
                 		//Not clustered for not passing cuts
                 		rejectedHitList.add(entry2.getKey()); 
@@ -655,10 +629,10 @@ public class EcalClusterIC extends Driver {
                         }
                     }
                                         
-                    //Input both raw and corrected cluster energies
-            		if (seedEnergyCorr.values().size() > 0){
-            			cluster.setEnergy(seedEnergyCorr.get(entry2.getKey()));
-            			cluster.setRawEnergy(seedEnergyTot.get(entry2.getKey()));
+                    //Input uncorrected cluster energies
+            		if (seedEnergyTot.values().size() > 0){
+            			cluster.setEnergy(seedEnergyTot.get(entry2.getKey()));
+            			cluster.setUncorrectedEnergy(seedEnergyTot.get(entry2.getKey()));
             			}
 
             		//Input both uncorrected and corrected cluster positions. 
@@ -788,34 +762,7 @@ public class EcalClusterIC extends Driver {
      * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
      * @return Corrected Energy
      */    
-    public double enCorrection(int pdg, double rawEnergy){
-  	   if (pdg == 11) { // Particle is electron  		   
-  		   return energyCorrection(rawEnergy, ELECTRON_ENERGY_A, ELECTRON_ENERGY_B, ELECTRON_ENERGY_C);   
-  	   }
-  	   else if (pdg == -11) { //Particle is positron
-		   return energyCorrection(rawEnergy, POSITRON_ENERGY_A, POSITRON_ENERGY_B, POSITRON_ENERGY_C);   
-  	   }
-  	   else if (pdg == 22) { //Particle is photon
-		   return energyCorrection(rawEnergy, PHOTON_ENERGY_A, PHOTON_ENERGY_B, PHOTON_ENERGY_C);   
-  	   }
-  	   else { //Unknown 
-  		   double corrEnergy = rawEnergy;
-  		   return corrEnergy;}
-  	   
-     }   
-    
-    /**
-     * Calculates the energy correction to a cluster given the variables from the fit as per
-     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-     * @param rawEnergy Raw energy of the cluster
-     * @param A,B,C from fitting in note
-     * @return Corrected Energy
-     */   
-    public double energyCorrection(double rawEnergy, double varA, double varB, double varC){
-    	double corrEnergy = rawEnergy / (varA * rawEnergy + varB / (Math.sqrt(rawEnergy)) + varC);
-    	return corrEnergy;
-    }
-       
+
     
     /**
      * Calculates position correction based on cluster raw energy, x calculated position, 
