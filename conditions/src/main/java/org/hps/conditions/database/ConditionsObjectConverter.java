@@ -69,25 +69,23 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
         
         // By default use all conditions records, which works if there is a single one, or if the COMBINE strategy is being used.
-        List<ConditionsRecord> filteredList = new ArrayList<ConditionsRecord>(conditionsRecords); 
+        ConditionsRecordCollection filteredConditionsRecords = new ConditionsRecordCollection();
+        filteredConditionsRecords.addAll(conditionsRecords);
         
         // Now we need to determine which ConditionsRecord objects to use according to configuration.
         if (conditionsRecords.size() == 0) {
-            // No conditions records were found, and this is an error.
+            // No conditions records were found for the key.
             throw new RuntimeException("No conditions were found with key " + name);
-        } else {
-            /*
-             * Figure out which disambiguation strategy to use.
-             */
+        } else {           
             if (multiStrat.equals(MultipleRecordsStrategy.LAST_UPDATED)) {
                 // Use the conditions set with the latest updated date.
-                filteredList = conditionsRecords.sortedByUpdated();
+                filteredConditionsRecords = conditionsRecords.sortedByUpdated();
             } else if (multiStrat.equals(MultipleRecordsStrategy.LAST_CREATED)){
                 // Use the conditions set with the latest created date.
-                filteredList = conditionsRecords.sortedByCreated();                
+                filteredConditionsRecords = conditionsRecords.sortedByCreated();                
             } else if (multiStrat.equals(MultipleRecordsStrategy.LATEST_RUN_START)) {
                 // Use the conditions set with the greatest run start value.
-                filteredList = conditionsRecords.sortedByRunStart();
+                filteredConditionsRecords = conditionsRecords.sortedByRunStart();
             } else if (multiStrat.equals(MultipleRecordsStrategy.ERROR)) {            
                 // The converter has been configured to throw an error when this happens!
                 throw new RuntimeException("Multiple ConditionsRecord object found for conditions key " + name);
@@ -99,9 +97,9 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         
         try {
             ConditionsRecord conditionsRecord = null;
-            if (filteredList.size() == 1) {
+            if (filteredConditionsRecords.size() == 1) {
                 // If there is a single ConditionsRecord, then it can be assigned to the collection.
-                conditionsRecord = filteredList.get(0);
+                conditionsRecord = filteredConditionsRecords.get(0);
             }
             collection = createCollection(conditionsRecord, tableMetaData);
         } catch (ConditionsObjectException e) {
@@ -109,7 +107,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         }
    
         // Loop over all records, which could just be a single one.
-        for (ConditionsRecord conditionsRecord : filteredList) {
+        for (ConditionsRecord conditionsRecord : filteredConditionsRecords) {
         
             // Get the table name.
             String tableName = conditionsRecord.getTableName();
@@ -170,6 +168,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             if (conditionsRecord != null) {
                 collection.setConditionsRecord(conditionsRecord);
                 collection.setTableMetaData(tableMetaData);
+                collection.setCollectionId(conditionsRecord.getCollectionId());
             }
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ConditionsObjectException("Error creating conditions object collection.", e);
