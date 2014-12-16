@@ -40,6 +40,7 @@ import org.lcsim.util.aida.AIDA;
  * Create ADC value plots from the cosmic clusters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Add Driver argument to specify where fit files will go (which can use the outputFileName arg in steering file).
 public class CosmicClusterPlotsDriver extends Driver {
 
     EcalConditions conditions;
@@ -62,6 +63,7 @@ public class CosmicClusterPlotsDriver extends Driver {
     IHistogram1D fitMpvPullH1D;
     IHistogram1D fitWidthPullH1D;
     
+    String fitDirectory = "fits";
     String inputClusterCollectionName = "EcalCosmicClusters";
     String rawHitsCollectionName = "EcalCosmicReadoutHits";
     boolean doFits = true;
@@ -72,6 +74,10 @@ public class CosmicClusterPlotsDriver extends Driver {
 
     public void setDoFits(boolean doFits) {
         this.doFits = doFits;
+    }
+    
+    public void setFitDirectory(String fitDirectory) {
+        this.fitDirectory = fitDirectory;
     }
     
     public void setWritePulseShapeParameters(boolean writePulseShapeParameters) {
@@ -186,7 +192,7 @@ public class CosmicClusterPlotsDriver extends Driver {
     }
 
     private void doFits() {
-        File plotDir = new File("fits");
+        File plotDir = new File(fitDirectory);
         plotDir.mkdir();
         
         buffer = new StringBuffer();
@@ -236,7 +242,7 @@ public class CosmicClusterPlotsDriver extends Driver {
         plotter.region(0).plot(combinedSignalProfile, plotStyle);
         plotter.region(0).plot(fitResult.fittedFunction(), functionStyle);
         try {
-            plotter.writeToFile("fits" + File.separator + "CombinedSignalProfileFit.png");
+            plotter.writeToFile(fitDirectory + File.separator + "CombinedSignalProfileFit.png");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }        
@@ -266,8 +272,8 @@ public class CosmicClusterPlotsDriver extends Driver {
         
         fitMpvH1D.fill(fitResult.fittedFunction().parameter("mpv"));
         fitWidthH1D.fill(fitResult.fittedFunction().parameter("width"));        
-        fitMpvPullH1D.fill((fitResult.fittedFunction().parameter("mpv") - this.combinedMpv) / fitResult.errors()[0]);
-        fitWidthPullH1D.fill((fitResult.fittedFunction().parameter("width") - this.combinedWidth) / fitResult.errors()[1]);
+        fitMpvPullH1D.fill((fitResult.fittedFunction().parameter("mpv") - this.combinedMpv) / fitResult.errors()[2]);
+        fitWidthPullH1D.fill((fitResult.fittedFunction().parameter("width") - this.combinedWidth) / fitResult.errors()[3]);
                        
         IPlotter plotter = plotterFactory.create();
         IPlotterStyle functionStyle = plotterFactory.createPlotterStyle();
@@ -283,7 +289,7 @@ public class CosmicClusterPlotsDriver extends Driver {
         plotter.region(0).plot(profile, plotStyle);
         plotter.region(0).plot(fitResult.fittedFunction(), functionStyle);
         try {
-            plotter.writeToFile("fits" + File.separator + "EcalChannel" + String.format("%03d", channel.getChannelId()) + "Fit.png");
+            plotter.writeToFile(fitDirectory + File.separator + "EcalChannel" + String.format("%03d", channel.getChannelId()) + "Fit.png");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }        

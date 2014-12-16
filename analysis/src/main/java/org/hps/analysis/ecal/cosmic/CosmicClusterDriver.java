@@ -60,7 +60,7 @@ public class CosmicClusterDriver extends Driver {
     }
 
     /**
-     * Set the name of the input RawTrackerHit collection name.  
+     * Set the name of the input CalorimeterHit collection name.  
      * By default this is initialized to "EcalCosmicCalHits".
      * @param inputHitCollectionName The name of the input hit collection.
      */
@@ -147,7 +147,7 @@ public class CosmicClusterDriver extends Driver {
      * @param hitMap The hit map with all the collection's hits.
      * @return The set of neighboring hit IDs.
      */
-    private Set<Long> findNeighborHitIDs(CalorimeterHit hit, Map<Long, CalorimeterHit> hitMap) {
+    protected Set<Long> findNeighborHitIDs(CalorimeterHit hit, Map<Long, CalorimeterHit> hitMap) {
         Set<Long> neigbhors = ecal.getNeighborMap().get(hit.getCellID());
         Set<Long> neighborHitIDs = new HashSet<Long>();
         for (long neighborID : neigbhors) {
@@ -163,7 +163,7 @@ public class CosmicClusterDriver extends Driver {
      * @param hitList The input hit list.
      * @return The hit map.
      */
-    private Map<Long, CalorimeterHit> createHitMap(List<CalorimeterHit> hitList) {
+    protected Map<Long, CalorimeterHit> createHitMap(List<CalorimeterHit> hitList) {
         Map<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
         for (CalorimeterHit hit : hitList) {
             hitMap.put(hit.getCellID(), hit);
@@ -179,7 +179,7 @@ public class CosmicClusterDriver extends Driver {
      * @param hitList The input hit list from the event.
      * @return A list of calorimeter hits that can be turned into clusters.
      */
-    private List<List<CalorimeterHit>> createClusteredHits(List<CalorimeterHit> hitList) {
+    protected List<List<CalorimeterHit>> createClusteredHits(List<CalorimeterHit> hitList) {
         
         // Create empty list of clusters which are just lists of hits.
         List<List<CalorimeterHit>> clusterList = new ArrayList<List<CalorimeterHit>>();
@@ -241,7 +241,7 @@ public class CosmicClusterDriver extends Driver {
      * @param clusteredHitLists The input hit lists. 
      * @return The hit lists that passed the cuts.
      */
-    List<List<CalorimeterHit>> applyCuts(List<List<CalorimeterHit>> clusteredHitLists) {
+    protected List<List<CalorimeterHit>> applyCuts(List<List<CalorimeterHit>> clusteredHitLists) {
         List<List<CalorimeterHit>> selectedHitLists = new ArrayList<List<CalorimeterHit>>();
         for (List<CalorimeterHit> hitList : clusteredHitLists) {            
             Map<Integer, Set<CalorimeterHit>> rowMap = new HashMap<Integer, Set<CalorimeterHit>>();            

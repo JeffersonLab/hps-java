@@ -19,7 +19,7 @@ public class MoyalFitFunction extends AbstractIFunction {
     public MoyalFitFunction(String title) {
         super();                
         this.variableNames = new String[] { "x0" };
-        this.parameterNames = new String[] { "mpv", "width", "norm", "pedestal" };
+        this.parameterNames = new String[] { "pedestal", "norm", "mpv", "width" };
         init(title);
     }
     

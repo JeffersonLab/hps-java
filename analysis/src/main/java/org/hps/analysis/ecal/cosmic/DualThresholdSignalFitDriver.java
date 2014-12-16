@@ -43,7 +43,7 @@ import org.lcsim.util.aida.AIDA;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
-public class RawModeSignalFitDriver extends Driver {
+public class DualThresholdSignalFitDriver extends Driver {
 
     // ECAL conditions data.
     EcalConditions conditions = null;
@@ -85,7 +85,13 @@ public class RawModeSignalFitDriver extends Driver {
     boolean printFits = false;
     
     // This is the required significance for signal hits (4 sigma default).
-    static double signalSignificanceThreshold = 4.0;
+    //static double signalSignificanceThreshold = 4.0;
+    
+    double tightSignificanceThreshold = 3.0;
+    double looseSignificanceThreshold = 2.0;
+    
+    String tightOutputHitsCollectionName = "Tight" + outputHitsCollectionName;
+    String looseOutputHitsCollectionName = "Loose" + outputHitsCollectionName;
     
     // Global fit parameters for Moyal distribution.
     static double signalMean = 45.698; 
@@ -93,6 +99,14 @@ public class RawModeSignalFitDriver extends Driver {
     
     // The initial value of the function normalization, which is not fixed in the fit.
     static double norm = 60.0;
+    
+    public void setTightSignificanceThreshold(double tightSignificanceThreshold) {
+        this.tightSignificanceThreshold = tightSignificanceThreshold; 
+    }
+    
+    public void setLooseSignificanceThreshold(double looseSignificanceThreshold) {
+        this.looseSignificanceThreshold = looseSignificanceThreshold; 
+    }
     
     public void printFits(boolean printFits) {
         this.printFits = printFits;
@@ -113,7 +127,7 @@ public class RawModeSignalFitDriver extends Driver {
     public void setInputHitsCollectionName(String inputHitsCollectionName) {
         this.inputHitsCollectionName = inputHitsCollectionName;
     }
-    
+        
     /**
      * Set the minimum number of required hits to continue processing this event.
      * By default this is 3 hits.
@@ -174,7 +188,10 @@ public class RawModeSignalFitDriver extends Driver {
     public void process(EventHeader event) {
         if (event.hasCollection(RawTrackerHit.class, inputHitsCollectionName)) {
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputHitsCollectionName);
-            List<RawTrackerHit> selectedHitsList = new ArrayList<RawTrackerHit>();
+            //List<RawTrackerHit> selectedHitsList = new ArrayList<RawTrackerHit>();
+            List<RawTrackerHit> looseHitsList = new ArrayList<RawTrackerHit>();
+            List<RawTrackerHit> tightHitsList = new ArrayList<RawTrackerHit>();
+            
             for (RawTrackerHit hit : hits) {
                 EcalChannel channel = channels.findGeometric(hit.getCellID());
                 if (channel != null) {
@@ -214,24 +231,33 @@ public class RawModeSignalFitDriver extends Driver {
                     this.signalSignificanceHistograms.get(channel).fill(signalSignificance);                    
                                         
                     // Is the significance over the threshold?
-                    if (signalSignificance >= signalSignificanceThreshold) {
+                    if (signalSignificance >= this.looseSignificanceThreshold) {
                         //System.out.println(fitResult.fittedParameter("norm") + " " + fitResult.errors()[1] + " " + signalSignificance);
                         // Add the hit to the output list.
-                        selectedHitsList.add(hit);
+                        looseHitsList.add(hit);
+                        if (signalSignificance >= this.tightSignificanceThreshold) {
+                            tightHitsList.add(hit);
+                        }
                     }                   
                 } else {                    
                     throw new RuntimeException("EcalChannel not found for cell ID 0x" + String.format("%08d", Long.toHexString(hit.getCellID())));
                 }
-            }            
-            
-            // Is the hit list greater than the minimum hits?
-            if (selectedHitsList.size() >= minimumHits) {
-                // Write the hits to a new collection of selected hits.
-                event.put(outputHitsCollectionName, selectedHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
-            } else {
-                // Discontinue processing this event because there aren't enough hits for clustering.
-                throw new NextEventException();
             }
+            
+            // Is there at least one tight hit and at least 3 loose hits?
+            if (!tightHitsList.isEmpty() && looseHitsList.size() >= this.minimumHits) {
+                
+                // Write loose hits list.
+                event.put(tightOutputHitsCollectionName, tightHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
+                event.getMetaData(tightHitsList).setSubset(true);
+                    
+                // Write tight hits list.
+                event.put(looseOutputHitsCollectionName, looseHitsList, RawTrackerHit.class, event.getMetaData(hits).getFlags(), ecal.getReadout().getName());
+                event.getMetaData(looseHitsList).setSubset(true);
+                
+            } else {
+                throw new NextEventException();
+            }            
         }
     }
     
