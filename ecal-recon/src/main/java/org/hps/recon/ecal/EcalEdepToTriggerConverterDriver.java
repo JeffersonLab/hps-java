@@ -3,18 +3,17 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-
-//import org.hps.conditions.deprecated.EcalConditions;
-
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.hps.util.RandomGaussian;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+//import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.database.TableConstants;
 
 
 /**
@@ -160,9 +159,8 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 //        System.out.format("trigger: %f %f\n", amplitude, triggerIntegral);
 
         int truncatedIntegral = (int) Math.floor(triggerIntegral / truncateScale);
-        if (truncatedIntegral > 0) {
-        	HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hit.getTime(), hit.getCellID(), 0);
-            return h ;
+        if (truncatedIntegral > 0) {        	
+        	return CalorimeterHitUtilities.create(truncatedIntegral, hit.getTime(), hit.getCellID());
         }
         return null;
     }
@@ -201,8 +199,7 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
 //        System.out.format("dumb: %f, full: %f\n",hit.getRawEnergy() * 1000.0,readoutIntegral * HPSEcalConditions.physicalToGain(id));
 
 //        System.out.format("readout: %f %f\n", amplitude, integral);
-        HPSCalorimeterHit h = new HPSCalorimeterHit(integral, hit.getTime(), hit.getCellID(), 0);
-        return h;
+        return CalorimeterHitUtilities.create(integral, hit.getTime(), hit.getCellID());
     }
 
     private double hitAmplitude(CalorimeterHit hit) {

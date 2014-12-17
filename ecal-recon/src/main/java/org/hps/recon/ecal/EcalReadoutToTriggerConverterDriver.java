@@ -185,10 +185,7 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
         if (truncatedIntegral <= 0) {
             truncatedIntegral = 0;
         }
-        HPSCalorimeterHit h = new HPSCalorimeterHit(truncatedIntegral, hitTime, id, 0);
-//        CalorimeterHit h = new HPSRawCalorimeterHit(triggerIntegral + 0.0000001, hit.getPosition(), hitTime, id, 0);
-        //+0.0000001 is a horrible hack to ensure rawEnergy!=BaseCalorimeterHit.UNSET_CORRECTED_ENERGY
-        return h;
+        return CalorimeterHitUtilities.create(truncatedIntegral, hitTime, id);
     }
 
     private double pulseAmplitude(double time) {

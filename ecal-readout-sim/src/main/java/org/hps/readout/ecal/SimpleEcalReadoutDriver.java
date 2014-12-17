@@ -4,29 +4,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.base.BaseCalorimeterHit;
 
 /**
  * Performs readout of ECal hits. No time evolution - this just integrates all
  * hits in a cycle.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: SimpleEcalReadoutDriver.java,v 1.1 2013/02/25 22:39:26 meeg Exp
- * $
  */
-public class SimpleEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit> {
+public class SimpleEcalReadoutDriver extends EcalReadoutDriver<CalorimeterHit> {
 
     //buffer for deposited energy
 
     Map<Long, Double> eDepMap = null;
 
     public SimpleEcalReadoutDriver() {
-        hitClass = HPSCalorimeterHit.class;
+        hitClass = CalorimeterHit.class;
     }
 
     @Override
-    protected void readHits(List<HPSCalorimeterHit> hits) {
+    protected void readHits(List<CalorimeterHit> hits) {
         for (Long cellID : eDepMap.keySet()) {
 //            int ix = dec.getValue("ix");
 //            int iy = dec.getValue("iy");
@@ -35,7 +33,8 @@ public class SimpleEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit
 //            if (iy == 1 && ix*side >= -10 && ix*side <= -2)
 //                continue;
             if (eDepMap.get(cellID) > threshold) {
-                HPSCalorimeterHit h = new HPSCalorimeterHit(eDepMap.get(cellID), readoutTime(), cellID, hitType);
+                //HPSCalorimeterHit h = new HPSCalorimeterHit(eDepMap.get(cellID), readoutTime(), cellID, hitType);                
+                CalorimeterHit h = new BaseCalorimeterHit(eDepMap.get(cellID), eDepMap.get(cellID), 0, readoutTime(), cellID, null, hitType, null);                
                 hits.add(h);
             }
         }

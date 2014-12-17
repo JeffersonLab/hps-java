@@ -34,7 +34,7 @@ public class EcalMonitoringTestDriver extends Driver {
     public void process(EventHeader event) {               
         if (event.hasCollection(RawTrackerHit.class, "EcalReadoutHits")) {
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, "EcalReadoutHits");
-            System.out.println("EcalReadoutHits has " + hits.size() + " hits");
+            //System.out.println("EcalReadoutHits has " + hits.size() + " hits");
             nHitsH1D.fill(hits.size());
             for (RawTrackerHit hit : hits) {
                 for (short adcValue : hit.getADCValues()) {

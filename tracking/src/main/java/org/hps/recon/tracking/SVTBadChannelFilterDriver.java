@@ -40,7 +40,7 @@ public class SVTBadChannelFilterDriver extends Driver {
             while (hitsIterator.hasNext()) {
                 
             	RawTrackerHit hit = hitsIterator.next();
-                hit.setMetaData(meta);
+                //hit.setMetaData(meta);
                 int strip = hit.getIdentifierFieldValue("strip");
                 HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
 

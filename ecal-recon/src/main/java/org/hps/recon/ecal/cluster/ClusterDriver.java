@@ -3,6 +3,7 @@ package org.hps.recon.ecal.cluster;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -27,8 +28,9 @@ import org.lcsim.util.log.BasicFormatter;
  */
 public class ClusterDriver extends Driver {
     
-    protected String ecalName = "Ecal";
+    protected String ecalName = "Ecal";    
     protected HPSEcal3 ecal;
+    protected IIdentifierHelper helper;
     protected String outputClusterCollectionName = "EcalClusters";
     protected String inputHitCollectionName = "EcalCalHits";
     protected Clusterer clusterer;
@@ -159,6 +161,7 @@ public class ClusterDriver extends Driver {
             throw new RuntimeException("Ther subdetector " + ecalName + " does not have the right type.");
         }
         ecal = (HPSEcal3) subdetector;
+        helper = ecal.getDetectorElement().getIdentifierHelper();
     }
     
     /**

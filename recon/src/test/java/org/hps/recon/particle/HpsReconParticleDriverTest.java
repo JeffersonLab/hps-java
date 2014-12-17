@@ -71,11 +71,11 @@ public class HpsReconParticleDriverTest extends TestCase {
    		// above.  Since the properties of a cluster cannot be modified 
    		// directly via setter methods, first create a CalorimeterHit and
    		// then use that to create a cluster.
-   		Hep3Vector topHitPosition = new BasicHep3Vector(190.27, 69.729, 1422.8);
-   		BaseCalorimeterHit topHit 
-   			= new BaseCalorimeterHit(.4600, .4600, 0, 0, 0, topHitPosition, 0);
+   		//Hep3Vector topHitPosition = new BasicHep3Vector(190.27, 69.729, 1422.8);
+   		//BaseCalorimeterHit topHit 
+   		//	= new BaseCalorimeterHit(.4600, .4600, 0, 0, 0, topHitPosition, 0);
    		
-   		System.out.println("\n[ Calorimeter Hit ] Top: \n" + topHit.toString());
+   		//System.out.println("\n[ Calorimeter Hit ] Top: \n" + topHit.toString());
    		
    		Cluster topCluster = new BaseCluster();
    		//((BaseCluster) topCluster).addHit(topHit);
@@ -86,11 +86,11 @@ public class HpsReconParticleDriverTest extends TestCase {
    											   + topCluster.getPosition()[1] + ", " 
    											   + topCluster.getPosition()[2] + " ]");
    		
-   		Hep3Vector bottomHitPosition = new BasicHep3Vector(-148.46, -39.27, 1430.5);
-   		BaseCalorimeterHit bottomHit 
-   			= new BaseCalorimeterHit(1.1420, 1.1420, 0, 0, 0, bottomHitPosition, 0);
+   		//Hep3Vector bottomHitPosition = new BasicHep3Vector(-148.46, -39.27, 1430.5);
+   		//BaseCalorimeterHit bottomHit 
+   		//	= new BaseCalorimeterHit(1.1420, 1.1420, 0, 0, 0, bottomHitPosition, 0);
 
-   		System.out.println("\n[ Calorimeter Hit ] Bottom:\n " + bottomHit.toString());
+   		//System.out.println("\n[ Calorimeter Hit ] Bottom:\n " + bottomHit.toString());
    		
    		Cluster bottomCluster = new BaseCluster();
    		//((BaseCluster) bottomCluster).addHit(bottomHit);

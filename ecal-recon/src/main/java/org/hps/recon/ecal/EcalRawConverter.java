@@ -3,12 +3,12 @@ package org.hps.recon.ecal;
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.HitExtraData.Mode7Data;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
@@ -57,8 +57,7 @@ public class EcalRawConverter {
         double time = hit.getTime();
         long id = hit.getCellID();
         double rawEnergy = adcToEnergy(sumADC(hit), id);
-        HPSCalorimeterHit h1 = new HPSCalorimeterHit(rawEnergy, time, id, 0);
-        return h1;
+        return CalorimeterHitUtilities.create(rawEnergy, time, id);
     }
 
     public CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double timeOffset) {
@@ -71,8 +70,8 @@ public class EcalRawConverter {
         EcalChannelConstants channelData = findChannel(id);
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
         double rawEnergy = adcToEnergy(adcSum, id);
-        HPSCalorimeterHit h2 = new HPSCalorimeterHit(rawEnergy, time + timeOffset, id, 0);
-        return h2;
+        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
+        //return h2;
     }
 
     public CalorimeterHit HitDtoA(RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
@@ -83,9 +82,10 @@ public class EcalRawConverter {
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
 //        double adcSum = hit.getAmplitude() - window * Mode7Data.getAmplLow(mode7Data);                              //A.C. is this the proper way to pedestal subtract in mode 7?
 
-        double rawEnergy = adcToEnergy(adcSum, id);
-        HPSCalorimeterHit h2 = new HPSCalorimeterHit(rawEnergy, time + timeOffset, id, 0);
-        return h2;
+        double rawEnergy = adcToEnergy(adcSum, id);        
+        return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
+                       
+        //return h2;
     }
 
     public RawCalorimeterHit HitAtoD(CalorimeterHit hit, int window) {
@@ -145,5 +145,5 @@ public class EcalRawConverter {
      */
     public EcalChannelConstants findChannel(long cellID) {
         return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
-    }
+    }    
 }

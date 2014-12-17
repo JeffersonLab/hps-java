@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
 
@@ -14,7 +15,7 @@ import org.lcsim.event.CalorimeterHit;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: TimeEvolutionEcalReadoutDriver.java,v 1.1 2013/02/25 22:39:26 meeg Exp $
  */
-public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorimeterHit> {
+public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<CalorimeterHit> {
     //buffer for deposited energy
     Map<Long, RingBuffer> eDepMap = null;
     //length of ring buffer (in readout cycles)
@@ -23,7 +24,7 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorim
     double t0 = 18.0;
     
     public TimeEvolutionEcalReadoutDriver() {
-		hitClass = HPSCalorimeterHit.class;
+		hitClass = CalorimeterHit.class;
     }
 
     public void setT0(double t0) {
@@ -36,12 +37,11 @@ public class TimeEvolutionEcalReadoutDriver extends EcalReadoutDriver<HPSCalorim
     }
 
     @Override
-    protected void readHits(List<HPSCalorimeterHit> hits) {
+    protected void readHits(List<CalorimeterHit> hits) {
         for (Long cellID : eDepMap.keySet()) {
             RingBuffer eDepBuffer = eDepMap.get(cellID);
-            if (eDepBuffer.currentValue() > threshold) {
-            	HPSCalorimeterHit h = new HPSCalorimeterHit(eDepBuffer.currentValue(), readoutTime(), cellID, hitType);
-            	hits.add(h);
+            if (eDepBuffer.currentValue() > threshold) {            	            	            	
+            	hits.add(CalorimeterHitUtilities.create(eDepBuffer.currentValue(), readoutTime(), cellID, hitType));
             }
             eDepBuffer.step();
         }

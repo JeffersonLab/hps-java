@@ -7,8 +7,8 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
@@ -49,8 +49,7 @@ public class HPSEcalClusterIC extends BaseCluster {
             if (hit == null) {
                 throw new RuntimeException("HPSEcalCluster has no hits");
             }
-            seedHit = new HPSCalorimeterHit(0.0, 0.0, cellID, hit.getType());
-            seedHit.setMetaData(hit.getMetaData());
+            seedHit = CalorimeterHitUtilities.create(0.0, 0.0, cellID, hit.getType(), hit.getMetaData());           
         }
         return seedHit;
     }

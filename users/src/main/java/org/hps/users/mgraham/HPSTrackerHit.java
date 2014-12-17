@@ -20,7 +20,7 @@ public class HPSTrackerHit extends BaseRawTrackerHit{
     		int time,
     		short[] adcValues, double t0, double Amp) {
     	this.cellId = id;
-    	this.compactId = new Identifier(id);
+    	this.packedID = new Identifier(id);
     	this.time = time;
     	this.adcValues = adcValues;
         this.t0=t0;
@@ -30,7 +30,7 @@ public class HPSTrackerHit extends BaseRawTrackerHit{
       public HPSTrackerHit(
     		RawTrackerHit rth, double t0, double Amp) {
     	this.cellId = rth.getCellID();
-    	this.compactId = new Identifier(rth.getCellID());
+    	this.packedID = new Identifier(rth.getCellID());
     	this.time = rth.getTime();
     	this.adcValues = rth.getADCValues();
         this.t0=t0;

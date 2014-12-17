@@ -63,9 +63,7 @@ public class HPSEcalCluster extends BaseCluster {
             if (hit == null) {
                 throw new RuntimeException("HPSEcalCluster has no hits");
             }
-            seedHit = new HPSCalorimeterHit(0.0, 0.0, cellID, hit.getType());
-//            seedHit.setDetector(detector);
-            seedHit.setMetaData(hit.getMetaData());
+            seedHit = CalorimeterHitUtilities.create(0.0, 0.0, cellID, hit.getType(), hit.getMetaData());
         }
         return seedHit;
     }

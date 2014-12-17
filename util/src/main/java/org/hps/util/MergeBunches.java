@@ -332,8 +332,7 @@ public class MergeBunches extends Driver {
                     }
                     // need to set time to 0 so it is recalculated from the timeList
                     SimCalorimeterHit mergedHit = new BaseSimCalorimeterHit(oldHit.getCellID(),
-                            rawEnergy, 0., mcpList, eneList, timeList, pdgList);
-                    mergedHit.setMetaData(collection);
+                            rawEnergy, 0., mcpList, eneList, timeList, pdgList, collection);
                     // replace old hit with merged hit
                     signalCaloHits.remove(oldHit);
                     signalCaloHits.add(mergedHit);
@@ -393,9 +392,7 @@ public class MergeBunches extends Driver {
                 pdgs[i] = hit.getPDG(i);
         }
 
-        BaseSimCalorimeterHit copyHit = new BaseSimCalorimeterHit(id, rawEnergy, time, mcparts, energies, times, pdgs);
-
-        copyHit.setMetaData(meta);
+        BaseSimCalorimeterHit copyHit = new BaseSimCalorimeterHit(id, rawEnergy, time, mcparts, energies, times, pdgs, meta);
 
         return copyHit;
     }

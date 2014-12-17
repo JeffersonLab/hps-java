@@ -106,7 +106,7 @@ public class EventDisplayOutputDriver extends Driver {
 	                // Process the clusters.
 	                for (HPSEcalCluster cluster : clusters) {
 	                    // Get the seed hit for the cluster.
-	                    HPSCalorimeterHit seedHit = (HPSCalorimeterHit)cluster.getSeedHit();
+	                    CalorimeterHit seedHit = (CalorimeterHit)cluster.getSeedHit();
 	                    int ix = seedHit.getIdentifierFieldValue("ix");
 	                    int iy = seedHit.getIdentifierFieldValue("iy");
 	                    double time = seedHit.getTime();

@@ -87,7 +87,7 @@ public class ClasInnerCalClusterDriver extends ClusterDriver {
             }
             int flag = 1 << LCIOConstants.CLBIT_HITS;
             this.getLogger().finer("writing rejected hit list " + rejectedHitCollectionName + " with " + rejectedHitList.size() + " hits");
-            event.put(rejectedHitCollectionName, rejectedHitList, CalorimeterHit.class, flag);
+            event.put(rejectedHitCollectionName, rejectedHitList, CalorimeterHit.class, flag, ecal.getReadout().getName());
             // Flag the collection as a subset, because other collection's objects are being used.
             event.getMetaData(rejectedHitList).setSubset(true);
             // Are we writing this collection to the output LCIO file?

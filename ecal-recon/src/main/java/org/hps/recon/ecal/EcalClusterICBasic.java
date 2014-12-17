@@ -151,7 +151,7 @@ public class EcalClusterICBasic extends Driver {
         }
         
         //sort the list, highest energy first
-        Collections.sort(sortedHitList, Collections.reverseOrder(new EnergyComparator()));
+        Collections.sort(sortedHitList, Collections.reverseOrder(new CalorimeterHit.CorrectedEnergyComparator()));
 
         //map from seed hit to cluster
         Map<CalorimeterHit, HPSEcalCluster> seedToCluster = new HashMap<CalorimeterHit, HPSEcalCluster>();

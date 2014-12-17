@@ -90,7 +90,6 @@ public class EcalTriggerFilterDriver extends Driver {
             for (CalorimeterHit hit : hits) {
                 CalorimeterHit newHit = filterHit(hit);
                 if (newHit != null) {
-                    newHit.setMetaData(hit.getMetaData());
                     if (newHit.getIdentifierFieldValue("iy") > 0) {
                         topHits.add(newHit);
                     } else {
@@ -136,9 +135,8 @@ public class EcalTriggerFilterDriver extends Driver {
         // Creating the new channel from cell id, ix and iy, then reading its ID       
         long newID = geomId.encode();
 
-        //make new hit; set position to null so it gets recalculated
-        HPSCalorimeterHit h = new HPSCalorimeterHit(hit.getRawEnergy(), hit.getTime() + delay * 4, newID, hit.getType());
-        return h;
+        //make new hit; set position to null so it gets recalculated                       
+        return CalorimeterHitUtilities.create(hit.getRawEnergy(), hit.getTime() + delay * 4, newID, hit.getType(), hit.getMetaData());
     }
 
     /**

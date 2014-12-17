@@ -6,9 +6,10 @@ import java.util.List;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
+import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.util.Driver;
 
 /**
  *
@@ -86,8 +87,8 @@ public class EcalConverterDriver extends Driver {
     }
 
     private CalorimeterHit HitDtoA(RawCalorimeterHit hit) {
-    	HPSCalorimeterHit h = new HPSCalorimeterHit(DtoA(hit.getAmplitude(), hit.getCellID()), period * hit.getTimeStamp() + dt, hit.getCellID(), 0);
-    	return h;
+    	double energy = DtoA(hit.getAmplitude(), hit.getCellID());
+    	return CalorimeterHitUtilities.create(energy, period * hit.getTimeStamp() + dt, hit.getCellID());
     }
 
 //    private RawCalorimeterHit HitAtoD(CalorimeterHit hit) {

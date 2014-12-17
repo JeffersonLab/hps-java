@@ -12,12 +12,13 @@ import java.util.Set;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
-import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.lcsim.util.Driver;
+import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.util.Driver;
 
 /**
  * Creates clusters from CalorimeterHits in the HPSEcal detector.
@@ -351,9 +352,8 @@ public class CTPEcalClusterer extends Driver {
                 }
                 
                 // Generate a new cluster seed hit from the above results.
-                HPSCalorimeterHit seedHit = new HPSCalorimeterHit(0.0, clusterTime, possibleCluster, hits.get(0).getType());               
-                seedHit.setMetaData(hits.get(0).getMetaData());
-                
+                CalorimeterHit seedHit = (BaseCalorimeterHit)CalorimeterHitUtilities.create(0.0, clusterTime, possibleCluster, hits.get(0).getMetaData());
+                                
                 // Generate a new cluster from the seed hit.
                 HPSEcalCluster cluster = new HPSEcalCluster();
                 cluster.setSeedHit(seedHit);
