@@ -238,7 +238,7 @@ public class HPSEcalPlotsDriver extends Driver {
             double e = clus.getEnergy();
             clusEPlot.fill(e);
             clusE += e;
-            HPSCalorimeterHit seedHit = (HPSCalorimeterHit) clus.getSeedHit();
+            CalorimeterHit seedHit = (CalorimeterHit) clus.getSeedHit();
             //double maxe = 0;
             for (CalorimeterHit hit : clus.getCalorimeterHits()) {
                 if (hitClusMap.containsKey(hit)) {
