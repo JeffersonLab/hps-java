@@ -24,11 +24,11 @@ public class ClasInnerCalClustererTest extends TestCase {
         
         LCSimLoop loop = new LCSimLoop();       
         loop.setLCIORecordSource(new FileCache().getCachedFile(new URL(fileLocation)));        
-        ClusterDriver clusterDriver = new ClusterDriver();
+        ClasInnerCalClusterDriver clusterDriver = new ClasInnerCalClusterDriver();
         clusterDriver.getLogger().setLevel(Level.ALL);
-        clusterDriver.setClusterer("ClasInnerCalClusterer");
         clusterDriver.setInputHitCollectionName("EcalHits");
         clusterDriver.setOutputClusterCollectionName(getClass().getSimpleName() + "Clusters");
+        clusterDriver.setRejectedHitCollectionName("RejectedHits");
         clusterDriver.setRaiseErrorNoHitCollection(true);
         loop.add(clusterDriver);        
         loop.loop(100);
