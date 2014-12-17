@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hps.recon.ecal.CalorimeterHitUtilities;
-import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
 
 /**
