@@ -295,10 +295,8 @@
       <rotation name="support_plate_bottom_L46_rotation" x="0.0" y="-0.0" z="3.1111093540316292" unit="radian" />
       <position name="support_plate_top_L46_position" x="0.14255566889328364" y="-354.53517226223204" z="65.573" unit="mm" />
       <rotation name="support_plate_top_L46_rotation" x="3.141592653589793" y="-0.0" z="0.030483299558163937" unit="radian" />
-      <position name="module_L1b_position" x="-41.44910721432356" y="241.3620664158523" z="-21.25" unit="mm" />
-      <rotation name="module_L1b_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.192150000000025" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_position" x="-47.920818151170714" y="236.97025050299882" z="-24.08080000000001" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
       <position name="module_L1b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -309,8 +307,8 @@
       <rotation name="module_L1b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.141349999999976" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_position" x="-48.366253990406236" y="245.2940303888063" z="-20.2628632749804" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
       <position name="module_L1b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L1b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -321,10 +319,8 @@
       <rotation name="module_L1b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L1b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_position" x="-41.93231528664265" y="257.2041430441198" z="21.25" unit="mm" />
-      <rotation name="module_L1t_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.166749999999977" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_position" x="-48.65884621753108" y="261.1680495816533" z="24.08080000000001" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
       <position name="module_L1t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L1t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -335,8 +331,8 @@
       <rotation name="module_L1t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L1t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.1667500000000235" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_position" x="-48.59623701217009" y="252.83259489929478" z="20.2628632749804" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
       <position name="module_L1t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L1t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -347,10 +343,8 @@
       <rotation name="module_L1t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L1t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_position" x="-38.39554200582731" y="141.4086985910638" z="-22.75" unit="mm" />
-      <rotation name="module_L2b_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.192150000000025" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_position" x="-44.86725294267446" y="137.01688267821032" z="-25.58080000000001" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
       <position name="module_L2b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L2b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -361,8 +355,8 @@
       <rotation name="module_L2b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L2b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.141349999999976" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_position" x="-45.31268878190998" y="145.3406625640178" z="-21.7628632749804" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
       <position name="module_L2b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L2b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -373,10 +367,8 @@
       <rotation name="module_L2b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L2b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_position" x="-38.889454404246976" y="157.25044877697238" z="22.75" unit="mm" />
-      <rotation name="module_L2t_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.166749999999977" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_position" x="-45.615985335135406" y="161.21435531450592" z="25.58080000000001" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
       <position name="module_L2t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L2t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -387,8 +379,8 @@
       <rotation name="module_L2t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L2t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.1667500000000235" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_position" x="-45.55337612977442" y="152.87890063214735" z="21.7628632749804" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
       <position name="module_L2t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L2t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -399,10 +391,8 @@
       <rotation name="module_L2t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L2t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_position" x="-35.34197679733106" y="41.45533076627533" z="-24.25" unit="mm" />
-      <rotation name="module_L3b_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
-      <position name="module_L3b_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.192150000000025" unit="mm" />
-      <rotation name="module_L3b_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_position" x="-41.81368773417821" y="37.06351485342184" z="-27.08080000000001" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
       <position name="module_L3b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -413,8 +403,8 @@
       <rotation name="module_L3b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.141349999999976" unit="mm" />
-      <rotation name="module_L3b_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_position" x="-42.25912357341373" y="45.38729473922934" z="-23.2628632749804" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -425,10 +415,8 @@
       <rotation name="module_L3b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_position" x="-35.84659352185133" y="57.29675450982493" z="24.25" unit="mm" />
-      <rotation name="module_L3t_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
-      <position name="module_L3t_halfmodule_axial_position" x="2.8308000000000106" y="-6.602800000000002" z="4.166749999999977" unit="mm" />
-      <rotation name="module_L3t_halfmodule_axial_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_position" x="-42.57312445273976" y="61.26066104735845" z="27.08080000000001" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
       <position name="module_L3t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -439,8 +427,8 @@
       <rotation name="module_L3t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_halfmodule_stereo_position" x="-0.987136725019603" y="-6.793856076189698" z="-4.1667500000000235" unit="mm" />
-      <rotation name="module_L3t_halfmodule_stereo_rotation" x="3.141592653589793" y="-1.2185286661460185E-16" z="-3.0415926535897935" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_position" x="-42.51051524737878" y="52.9252063649999" z="23.2628632749804" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -451,204 +439,192 @@
       <rotation name="module_L3t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_position" x="-5.856999999999999" y="-157.776" z="-23.155" unit="mm" />
-      <rotation name="module_L4b_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L4b_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L4b_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_position" x="-58.06333635270259" y="-160.76556382579167" z="-26.66020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L4b_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_position" x="44.65731952466942" y="-157.63332905130306" z="-26.66020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L4b_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_position" x="-56.39021715639193" y="-155.63218466631625" z="-29.20020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L4b_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_position" x="44.45171194517056" y="-152.55723742848411" z="-24.1456" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_position" x="-6.341000000000008" y="-141.909" z="23.155" unit="mm" />
-      <rotation name="module_L4t_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L4t_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L4t_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_position" x="-58.632493501786584" y="-142.10586186175038" z="26.66020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L4t_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_position" x="44.088162375585455" y="-138.97362708726178" z="26.66020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L4t_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_position" x="-56.64971194517055" y="-147.1277625715159" z="29.20020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L4t_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_position" x="44.192217156391905" y="-144.05281533368375" z="24.1456" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5b_position" x="0.2387157540423459" y="-357.6830840401759" z="-26.155" unit="mm" />
-      <rotation name="module_L5b_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L5b_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L5b_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_hole_position" x="-51.96762059866025" y="-360.6726478659676" z="-29.66020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L5b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5b_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L5b_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_slot_position" x="50.753035278711764" y="-357.5404130914789" z="-29.66020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L5b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5b_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L5b_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_hole_position" x="-50.29450140234958" y="-355.5392687064921" z="-32.20020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5b_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L5b_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_slot_position" x="50.5474276992129" y="-352.46432146866" z="-27.1456" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5t_position" x="-0.24528424595766296" y="-341.81608404017584" z="26.155" unit="mm" />
-      <rotation name="module_L5t_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L5t_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L5t_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_hole_position" x="-52.53677774774424" y="-342.01294590192623" z="29.66020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L5t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5t_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L5t_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_slot_position" x="50.1838781296278" y="-338.8807111274376" z="29.66020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L5t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5t_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L5t_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_hole_position" x="-50.553996191128206" y="-347.03484661169176" z="32.20020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L5t_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L5t_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_slot_position" x="50.28793291043425" y="-343.9598993738596" z="27.1456" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_position" x="6.334431508084663" y="-557.5901680803516" z="-29.155" unit="mm" />
-      <rotation name="module_L6b_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L6b_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L6b_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_hole_position" x="-45.87190484461793" y="-560.5797319061433" z="-32.66020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L6b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3970000000000056" unit="mm" />
-      <rotation name="module_L6b_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_slot_position" x="56.84875103275408" y="-557.4474971316547" z="-32.66020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L6b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L6b_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_hole_position" x="-44.198785648307265" y="-555.4463527466678" z="-35.20020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6829999999999945" unit="mm" />
-      <rotation name="module_L6b_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_slot_position" x="56.64314345325522" y="-552.3714055088358" z="-30.1456" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_position" x="5.850431508084682" y="-541.7231680803518" z="29.155" unit="mm" />
-      <rotation name="module_L6t_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.5707963267948966" unit="radian" />
-      <position name="module_L6t_halfmodule_axial_hole_position" x="3.505200000000009" y="-52.27319999999999" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L6t_halfmodule_axial_hole_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_hole_position" x="-46.441061993701894" y="-541.9200299421022" z="32.66020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L6t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_axial_slot_position" x="3.505200000000009" y="50.49520000000001" z="1.3969999999999985" unit="mm" />
-      <rotation name="module_L6t_halfmodule_axial_slot_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_slot_position" x="56.279593883670145" y="-538.7877951676136" z="32.66020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
       <position name="module_L6t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_stereo_hole_position" x="6.045200000000008" y="-50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L6t_halfmodule_stereo_hole_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_hole_position" x="-44.45828043708586" y="-546.9419306518677" z="35.20020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.32" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_stereo_slot_position" x="0.9906000000000006" y="50.4444" z="-3.6830000000000016" unit="mm" />
-      <rotation name="module_L6t_halfmodule_stereo_slot_rotation" x="3.141592653589793" y="-1.2231163095402815E-16" z="-3.0915926535897933" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_slot_position" x="56.383648664476596" y="-543.8669834140355" z="30.1456" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -1816,7 +1792,6 @@
       <box name="support_plate_top_L13Box" x="234.95" y="406.4" z="9.524999999999999" />
       <box name="support_plate_bottom_L46Box" x="342.9" y="533.4" z="12.7" />
       <box name="support_plate_top_L46Box" x="342.9" y="533.4" z="12.7" />
-      <box name="module_L1bBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L1b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L1b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L1b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1829,7 +1804,6 @@
       <box name="module_L1b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L1b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L1b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L1tBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L1t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L1t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L1t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1842,7 +1816,6 @@
       <box name="module_L1t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L1t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L1t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L2bBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L2b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L2b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L2b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1855,7 +1828,6 @@
       <box name="module_L2b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L2b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L2b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L2tBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L2t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L2t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L2t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1868,7 +1840,6 @@
       <box name="module_L2t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L2t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L2t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L3bBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L3b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L3b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L3b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1881,7 +1852,6 @@
       <box name="module_L3b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L3b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L3b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L3tBox" x="77.21600000000001" y="213.2" z="13.969999999999999" />
       <box name="module_L3t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
       <box name="module_L3t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L3t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1894,7 +1864,6 @@
       <box name="module_L3t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
       <box name="module_L3t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
       <box name="module_L3t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
-      <box name="module_L4bBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L4b_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L4b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L4b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1911,7 +1880,6 @@
       <box name="module_L4b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L4b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
       <box name="module_L4b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.32" />
-      <box name="module_L4tBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L4t_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L4t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L4t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1928,7 +1896,6 @@
       <box name="module_L4t_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L4t_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
       <box name="module_L4t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.32" />
-      <box name="module_L5bBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L5b_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L5b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L5b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1945,7 +1912,6 @@
       <box name="module_L5b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L5b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
       <box name="module_L5b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.32" />
-      <box name="module_L5tBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L5t_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L5t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L5t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1962,7 +1928,6 @@
       <box name="module_L5t_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L5t_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
       <box name="module_L5t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.32" />
-      <box name="module_L6bBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L6b_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L6b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L6b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -1979,7 +1944,6 @@
       <box name="module_L6b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L6b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
       <box name="module_L6b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.32" />
-      <box name="module_L6tBox" x="77.21600000000001" y="311.15" z="13.969999999999999" />
       <box name="module_L6t_halfmodule_axial_holeBox" x="45.34" y="100.5" z="0.8200000000000001" />
       <box name="module_L6t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L6t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -2568,29 +2532,6 @@
         </physvol>
         <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L1bBox" />
-        <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
       <volume name="module_L1t_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
         <solidref ref="module_L1t_halfmodule_axial_sensor_activeBox" />
@@ -2712,29 +2653,6 @@
           <physvolid field_name="component" value="3" />
         </physvol>
         <visref ref="HalfModuleVis" />
-      </volume>
-      <volume name="module_L1t_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L1tBox" />
-        <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
       </volume>
       <volume name="module_L2b_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
@@ -2858,29 +2776,6 @@
         </physvol>
         <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L2b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2bBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="4" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="3" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
       <volume name="module_L2t_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
         <solidref ref="module_L2t_halfmodule_axial_sensor_activeBox" />
@@ -3002,29 +2897,6 @@
           <physvolid field_name="component" value="3" />
         </physvol>
         <visref ref="HalfModuleVis" />
-      </volume>
-      <volume name="module_L2t_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2tBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="3" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="4" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
       </volume>
       <volume name="module_L3b_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
@@ -3148,29 +3020,6 @@
         </physvol>
         <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L3b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L3bBox" />
-        <physvol>
-          <volumeref ref="module_L3b_halfmodule_axial_volume" />
-          <positionref ref="module_L3b_halfmodule_axial_position" />
-          <rotationref ref="module_L3b_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="6" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L3b_halfmodule_stereo_volume" />
-          <positionref ref="module_L3b_halfmodule_stereo_position" />
-          <rotationref ref="module_L3b_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="5" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
       <volume name="module_L3t_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
         <solidref ref="module_L3t_halfmodule_axial_sensor_activeBox" />
@@ -3292,29 +3141,6 @@
           <physvolid field_name="component" value="3" />
         </physvol>
         <visref ref="HalfModuleVis" />
-      </volume>
-      <volume name="module_L3t_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L3tBox" />
-        <physvol>
-          <volumeref ref="module_L3t_halfmodule_axial_volume" />
-          <positionref ref="module_L3t_halfmodule_axial_position" />
-          <rotationref ref="module_L3t_halfmodule_axial_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="5" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L3t_halfmodule_stereo_volume" />
-          <positionref ref="module_L3t_halfmodule_stereo_position" />
-          <rotationref ref="module_L3t_halfmodule_stereo_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="6" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
       </volume>
       <volume name="module_L4b_halfmodule_axial_hole_sensor_active_volume">
         <materialref ref="Silicon" />
@@ -3469,47 +3295,6 @@
           <positionref ref="module_L4b_halfmodule_stereo_slot_lamination_position" />
           <rotationref ref="module_L4b_halfmodule_stereo_slot_lamination_rotation" />
           <physvolid field_name="component" value="2" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L4b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L4bBox" />
-        <physvol>
-          <volumeref ref="module_L4b_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L4b_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L4b_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="8" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4b_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L4b_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L4b_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="8" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4b_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L4b_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L4b_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="7" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4b_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L4b_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L4b_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="7" />
-          <physvolid field_name="module" value="3" />
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
@@ -3669,47 +3454,6 @@
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
-      <volume name="module_L4t_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L4tBox" />
-        <physvol>
-          <volumeref ref="module_L4t_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L4t_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L4t_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="7" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4t_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L4t_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L4t_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="7" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4t_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L4t_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L4t_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="8" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4t_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L4t_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L4t_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="8" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
       <volume name="module_L5b_halfmodule_axial_hole_sensor_active_volume">
         <materialref ref="Silicon" />
         <solidref ref="module_L5b_halfmodule_axial_hole_sensor_activeBox" />
@@ -3863,47 +3607,6 @@
           <positionref ref="module_L5b_halfmodule_stereo_slot_lamination_position" />
           <rotationref ref="module_L5b_halfmodule_stereo_slot_lamination_rotation" />
           <physvolid field_name="component" value="2" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L5b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L5bBox" />
-        <physvol>
-          <volumeref ref="module_L5b_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L5b_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L5b_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="10" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5b_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L5b_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L5b_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="10" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5b_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L5b_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L5b_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="9" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5b_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L5b_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L5b_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="9" />
-          <physvolid field_name="module" value="3" />
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
@@ -4063,47 +3766,6 @@
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
-      <volume name="module_L5t_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L5tBox" />
-        <physvol>
-          <volumeref ref="module_L5t_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L5t_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L5t_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="9" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5t_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L5t_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L5t_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="9" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5t_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L5t_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L5t_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="10" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5t_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L5t_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L5t_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="10" />
-          <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
       <volume name="module_L6b_halfmodule_axial_hole_sensor_active_volume">
         <materialref ref="Silicon" />
         <solidref ref="module_L6b_halfmodule_axial_hole_sensor_activeBox" />
@@ -4257,47 +3919,6 @@
           <positionref ref="module_L6b_halfmodule_stereo_slot_lamination_position" />
           <rotationref ref="module_L6b_halfmodule_stereo_slot_lamination_rotation" />
           <physvolid field_name="component" value="2" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L6b_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L6bBox" />
-        <physvol>
-          <volumeref ref="module_L6b_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L6b_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L6b_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="12" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L6b_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L6b_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L6b_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="12" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L6b_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L6b_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L6b_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="11" />
-          <physvolid field_name="module" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L6b_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L6b_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L6b_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="11" />
-          <physvolid field_name="module" value="3" />
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
@@ -4457,9 +4078,322 @@
         </physvol>
         <visref ref="ModuleVis" />
       </volume>
-      <volume name="module_L6t_volume">
+      <volume name="base_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L6tBox" />
+        <solidref ref="baseBox" />
+        <physvol>
+          <volumeref ref="base_plate_volume" />
+          <positionref ref="base_plate_position" />
+          <rotationref ref="base_plate_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_bottom_L13_volume" />
+          <positionref ref="support_plate_bottom_L13_position" />
+          <rotationref ref="support_plate_bottom_L13_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_top_L13_volume" />
+          <positionref ref="support_plate_top_L13_position" />
+          <rotationref ref="support_plate_top_L13_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_bottom_L46_volume" />
+          <positionref ref="support_plate_bottom_L46_position" />
+          <rotationref ref="support_plate_bottom_L46_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_top_L46_volume" />
+          <positionref ref="support_plate_top_L46_position" />
+          <rotationref ref="support_plate_top_L46_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="4" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="3" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="3" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="4" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="6" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="5" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="5" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="6" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
         <physvol>
           <volumeref ref="module_L6t_halfmodule_axial_hole_volume" />
           <positionref ref="module_L6t_halfmodule_axial_hole_position" />
@@ -4495,96 +4429,6 @@
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="12" />
           <physvolid field_name="module" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="base_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="baseBox" />
-        <physvol>
-          <volumeref ref="base_plate_volume" />
-          <positionref ref="base_plate_position" />
-          <rotationref ref="base_plate_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="support_plate_bottom_L13_volume" />
-          <positionref ref="support_plate_bottom_L13_position" />
-          <rotationref ref="support_plate_bottom_L13_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="support_plate_top_L13_volume" />
-          <positionref ref="support_plate_top_L13_position" />
-          <rotationref ref="support_plate_top_L13_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="support_plate_bottom_L46_volume" />
-          <positionref ref="support_plate_bottom_L46_position" />
-          <rotationref ref="support_plate_bottom_L46_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="support_plate_top_L46_volume" />
-          <positionref ref="support_plate_top_L46_position" />
-          <rotationref ref="support_plate_top_L46_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1b_volume" />
-          <positionref ref="module_L1b_position" />
-          <rotationref ref="module_L1b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1t_volume" />
-          <positionref ref="module_L1t_position" />
-          <rotationref ref="module_L1t_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2b_volume" />
-          <positionref ref="module_L2b_position" />
-          <rotationref ref="module_L2b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2t_volume" />
-          <positionref ref="module_L2t_position" />
-          <rotationref ref="module_L2t_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L3b_volume" />
-          <positionref ref="module_L3b_position" />
-          <rotationref ref="module_L3b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L3t_volume" />
-          <positionref ref="module_L3t_position" />
-          <rotationref ref="module_L3t_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4b_volume" />
-          <positionref ref="module_L4b_position" />
-          <rotationref ref="module_L4b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L4t_volume" />
-          <positionref ref="module_L4t_position" />
-          <rotationref ref="module_L4t_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5b_volume" />
-          <positionref ref="module_L5b_position" />
-          <rotationref ref="module_L5b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L5t_volume" />
-          <positionref ref="module_L5t_position" />
-          <rotationref ref="module_L5t_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L6b_volume" />
-          <positionref ref="module_L6b_position" />
-          <rotationref ref="module_L6b_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L6t_volume" />
-          <positionref ref="module_L6t_position" />
-          <rotationref ref="module_L6t_rotation" />
         </physvol>
       </volume>
       <volume name="chamber_volume">
