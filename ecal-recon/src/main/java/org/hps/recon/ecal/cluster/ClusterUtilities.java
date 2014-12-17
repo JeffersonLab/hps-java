@@ -22,6 +22,7 @@ public final class ClusterUtilities {
 
     /**
      * Create a map of IDs to their hits.
+     * @return The hit map.
      */
     public static Map<Long, CalorimeterHit> createHitMap(List<CalorimeterHit> hits) {
         Map<Long, CalorimeterHit> hitMap = new LinkedHashMap<Long, CalorimeterHit>();
@@ -49,11 +50,11 @@ public final class ClusterUtilities {
     }
     
     /**
-     * Create a basic cluster from a list of hits.
+     * Create a basic cluster object from a list of hits.
      * @param clusterHits The list of hits.
      * @return The basic cluster.
      */
-    protected static Cluster createBasicCluster(List<CalorimeterHit> clusterHits) {
+    public static Cluster createBasicCluster(List<CalorimeterHit> clusterHits) {
         BaseCluster cluster = new BaseCluster();
         double totalEnergy = 0;
         for (CalorimeterHit clusterHit : clusterHits) {
@@ -65,7 +66,7 @@ public final class ClusterUtilities {
     }
     
     /**
-     * Compare CalorimeterHit objects by their energy.
+     * Compare CalorimeterHit objects by their energy using default double comparison strategy.
      */
     public static class HitEnergyComparator implements Comparator<CalorimeterHit> {
         @Override
