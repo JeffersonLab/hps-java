@@ -40,63 +40,118 @@ public class ClusterDriver extends Driver {
     protected double[] cuts;
     protected Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
     
-    protected ClusterDriver() {
+    /**
+     * No arg constructor.
+     */
+    public ClusterDriver() {
         logger.config("initializing");
     }
     
+    /**
+     * Set the name of the ECAL in the detector framework.
+     * This is kind of dangerous, so set this argument at your own peril!
+     * @param ecalName The name of the ECAL.
+     */
     public void setEcalName(String ecalName) {
         this.ecalName = ecalName;
     }
     
+    /**
+     * Set the name of the output Cluster collection.
+     * @param outputClusterCollectionName The name of the output Cluster collection.
+     */
     public void setOutputClusterCollectionName(String outputClusterCollectionName) {        
         this.outputClusterCollectionName = outputClusterCollectionName;
         this.getLogger().config("outputClusterCollectionName = " + this.outputClusterCollectionName);
     }
     
+    /**
+     * Set the name of the input CalorimeterHit collection to use for clustering.
+     * @param inputHitcollectionName The name of the input hit collection.
+     */
     public void setInputHitCollectionName(String inputHitCollectionName) {
         this.inputHitCollectionName = inputHitCollectionName;
         this.getLogger().config("inputClusterCollectionName = " + this.inputHitCollectionName);
     }
     
+    /**
+     * True to raise a <code>NextEventException</code> if no Clusters are created by the Clusterer.
+     * @param skipNoClusterEvents True to skip events with no clusters.
+     */
     public void setSkipNoClusterEvents(boolean skipNoClusterEvents) {
         this.skipNoClusterEvents = skipNoClusterEvents;       
         this.getLogger().config("skipNoClusterEvents = " + this.skipNoClusterEvents);
     }
     
+    /**
+     * True to write the Cluster collection to the output LCIO file.
+     * @param writeClusterCollection True to write the Cluster to the event; false to mark as transient.
+     */
     public void setWriteClusterCollection(boolean writeClusterCollection) {
         this.writeClusterCollection = writeClusterCollection;
         this.getLogger().config("writeClusterCollection = " + this.writeClusterCollection);
     }
     
+    /**
+     * True to raise an exception if the input hit collection is not found in the event.
+     * @param raiseErrorNoHitCollection True to raise an exception if hit collection is not in event.
+     */
     public void setRaiseErrorNoHitCollection(boolean raiseErrorNoHitCollection) {
         this.raiseErrorNoHitCollection = raiseErrorNoHitCollection;
     }
     
+    /**
+     * True to store hit references into the output clusters.
+     * This will set <code>LCIOConstants.CLBIT_HITS</code> on the collection flags.
+     * @param storeHits True to store hits.
+     */
     public void setStoreHits(boolean storeHits) {
         this.storeHits = storeHits;
     }
     
+    /**
+     * Set the Clusterer by name.  
+     * This will use a factory method which first tries to use some hard-coded names from 
+     * the cluster package.  As a last resort, it will interpret the name as a canonical 
+     * class name and try to instantiate it using the Class API.
+     * @param The name or canonical class name of the Clusterer.
+     */
     public void setClusterer(String name) {
         clusterer = ClustererFactory.create(name);
         this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
+    /**
+     * Set the Clusterer which implements the clustering algorithm.
+     * @param clusterer The Clusterer.
+     */
     public void setClusterer(Clusterer clusterer) {
         this.clusterer = clusterer;
         this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
+    /**
+     * Set whether an empty collection should be created if there are no clusters made by the Clusterer.
+     * @param createEmptyClusterCollection True to write an empty collection to the event.
+     */
     public void setCreateEmptyClusterCollection(boolean createEmptyClusterCollection) {
         this.createEmptyClusterCollection = createEmptyClusterCollection;
     }
     
+    /**
+     * Set the numerical cuts of the Clusterer.
+     * @param cuts The numerical cuts.
+     */
     public void setCuts(double[] cuts) {
         this.cuts = cuts;
     }
     
+    /**
+     * Setup conditions specific configuration.
+     */
     public void detectorChanged(Detector detector) {
         logger.finer("detectorChanged - " + detector.getDetectorName());
-        Subdetector subdetector = detector.getSubdetector(ecalName);
+        Subdetector subdetector = detector.getSubdetector("Ecal");
         if (subdetector == null) {
             throw new RuntimeException("There is no subdetector called " + ecalName + " in the detector.");
         }
@@ -106,6 +161,9 @@ public class ClusterDriver extends Driver {
         ecal = (HPSEcal3) subdetector;
     }
     
+    /**
+     * Perform start of job initialization.
+     */
     public void startOfData() {
         logger.finer("startOfData");
         if (this.clusterer == null) {
@@ -162,7 +220,21 @@ public class ClusterDriver extends Driver {
         }
     }
     
+    /**
+     * Get the logger for this Driver.
+     * @return The logger.
+     */
     public Logger getLogger() {
        return logger;
+    }
+    
+    /**
+     * Get a Clusterer using type inference for the concrete type.
+     * @return The Clusterer object.
+     */
+    @SuppressWarnings("unchecked")
+    <ClustererType extends Clusterer> ClustererType getClusterer() {
+        // Return the Clusterer casting to the right type, which should always work because ClustererType must extend Clusterer.
+        return (ClustererType) clusterer;
     }
 }
