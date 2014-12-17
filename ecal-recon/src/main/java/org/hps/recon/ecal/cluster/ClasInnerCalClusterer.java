@@ -87,6 +87,8 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
     static final double PHOTON_POS_C = 0.011;
     static final double PHOTON_POS_D = -0.037;
     static final double PHOTON_POS_E = 0.294;
+    
+    List<CalorimeterHit> currentRejectedHitList;
 
     public ClasInnerCalClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow", "timeCut" }, new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. });
@@ -113,8 +115,8 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
         // Create a list to store the newly created clusters in.
         ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
 
-        // Create a list to store the rejected hits in.
-        ArrayList<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
+        // Reset the reference to the rejected hit list.
+        currentRejectedHitList = new ArrayList<CalorimeterHit>();
 
         // Sort the list of hits by energy.
         Collections.sort(hitList, ENERGY_COMP);
@@ -124,7 +126,7 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
         filterLoop: for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or outside of time window, kill it.
             if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (timeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
-                rejectedHitList.add(hitList.get(index));
+                currentRejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
 
@@ -193,7 +195,7 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
             // remove from hit list and do not cluster.
             else if (isSeed && hit.getCorrectedEnergy() < seedEnergyThreshold) {
                 hitList.remove(ii);
-                rejectedHitList.add(hit);
+                currentRejectedHitList.add(hit);
                 ii--;
             }
 
@@ -478,7 +480,7 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
                 if (entry2.getKey() == entry2.getValue()) {
                     if (seedEnergyTot.get(entry2.getKey()) < clusterEnergyThreshold) {
                         // Not clustered for not passing cuts
-                        rejectedHitList.add(entry2.getKey());
+                        currentRejectedHitList.add(entry2.getKey());
                     }
 
                     else {
@@ -488,8 +490,8 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
                         // Loop over hits belonging to seeds
                         for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
                             if (entry3.getValue() == entry2.getValue()) {
-                                if (rejectedHitList.contains(entry2.getValue())) {
-                                    rejectedHitList.add(entry3.getKey());
+                                if (currentRejectedHitList.contains(entry2.getValue())) {
+                                    currentRejectedHitList.add(entry3.getKey());
                                 } else {
                                     // Add hit to cluster
                                     cluster.addHit(entry3.getKey());
@@ -521,6 +523,14 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
 
         } // End event output loop.
         return clusterList;
+    }
+    
+    /**
+     * Get the list of rejected hits that was made from processing the last event.
+     * @return The list of rejected hit.
+     */
+    public List<CalorimeterHit> getRejectedHitList() {
+        return this.currentRejectedHitList;
     }
 
     /**
