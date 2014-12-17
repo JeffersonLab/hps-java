@@ -17,7 +17,6 @@ import java.util.Set;
 
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
