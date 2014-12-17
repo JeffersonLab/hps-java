@@ -68,7 +68,7 @@ public class SimpleClasInnerCalClusterer extends AbstractClusterer {
         }
 
         // sort the list, highest energy first
-        Collections.sort(sortedHitList, Collections.reverseOrder(new CalorimeterHit.CalorimeterHitEnergyComparator()));
+        Collections.sort(sortedHitList, Collections.reverseOrder(new CalorimeterHit.CorrectedEnergyComparator()));
 
         // map from seed hit to cluster
         Map<CalorimeterHit, HPSEcalCluster> seedToCluster = new HashMap<CalorimeterHit, HPSEcalCluster>();
