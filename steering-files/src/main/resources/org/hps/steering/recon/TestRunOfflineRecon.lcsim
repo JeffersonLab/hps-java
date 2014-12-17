@@ -23,7 +23,7 @@
     <drivers>    
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>100</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
