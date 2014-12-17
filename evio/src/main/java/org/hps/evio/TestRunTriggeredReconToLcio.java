@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Queue;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.deprecated.QuietBaseLCSimEvent;
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerableDriver;
@@ -19,6 +18,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOWriter;
 
@@ -219,7 +219,8 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     @Override
     protected void processTrigger(EventHeader event) {
-        EventHeader lcsimEvent = new QuietBaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName());
+        // Create an LCSim event and pass a flag so that conditions updates are disabled. --JM
+        EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(), event.getEventNumber(), event.getDetectorName(), System.currentTimeMillis() * 1000000, false);
         events.add(lcsimEvent);
         System.out.println("Creating LCIO event " + eventNum);
         if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
