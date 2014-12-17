@@ -13,14 +13,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.lcsim.conditions.ConditionsManager;
-//import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.HasMetaData;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.Hit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.util.BaseIDDecoder;
@@ -148,12 +147,14 @@ public class QuietBaseLCSimEvent extends BaseEvent implements EventHeader {
     }
 
     private void setCollectionMetaData(List collection, Class type, LCMetaData meta) {
-        // System.out.println("setCollectionMetaData");
         // Set MetaData on collection objects.
-        if (HasMetaData.class.isAssignableFrom(type)) {
+        if (Hit.class.isAssignableFrom(type)) {
             for (Object o : collection) {
-                if (o instanceof HasMetaData) {
-                    ((HasMetaData) o).setMetaData(meta);
+                if (o instanceof Hit) {
+                    Hit hit = (Hit) o;
+                    if (hit.getMetaData() == null) {
+                       hit.setMetaData(meta);
+                    }
                 }
             }
         }
