@@ -78,10 +78,12 @@ public class ClusterDriver extends Driver {
     
     public void setClusterer(String name) {
         clusterer = ClustererFactory.create(name);
+        this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
     public void setClusterer(Clusterer clusterer) {
         this.clusterer = clusterer;
+        this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
     public void setCreateEmptyClusterCollection(boolean createEmptyClusterCollection) {
@@ -93,7 +95,7 @@ public class ClusterDriver extends Driver {
     }
     
     public void detectorChanged(Detector detector) {
-        logger.fine("detectorChanged");
+        logger.finer("detectorChanged - " + detector.getDetectorName());
         Subdetector subdetector = detector.getSubdetector(ecalName);
         if (subdetector == null) {
             throw new RuntimeException("There is no subdetector called " + ecalName + " in the detector.");
@@ -105,7 +107,7 @@ public class ClusterDriver extends Driver {
     }
     
     public void startOfData() {
-        logger.fine("startOfData");
+        logger.finer("startOfData");
         if (this.clusterer == null) {
             throw new RuntimeException("The clusterer was never initialized.");
         }
