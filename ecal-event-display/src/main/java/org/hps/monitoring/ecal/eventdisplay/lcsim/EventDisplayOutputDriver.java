@@ -8,7 +8,6 @@ import java.util.List;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.ecal.HPSCalorimeterHit;
 import org.lcsim.util.Driver;
 
 /**
