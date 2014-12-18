@@ -49,7 +49,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private String clusterCollectionName = "EcalClusters";        // Name for the LCIO cluster collection.
     private int pairCoincidence = 2;                              // Maximum allowed time difference between clusters. (4 ns clock-cycles)
     private double energySlopeParamF = 0.005500;                  // A parameter value used for the energy slope calculation.
-    private double originX = 1393.0 * Math.tan(0.03052);          // ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
     private int backgroundLevel = -1;                             // Automatically sets the cuts to achieve a predetermined background rate.
     
     // ==================================================================
@@ -223,14 +222,15 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the seed energy comparison check.
                 if(verbose) {
-                    System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n", seedEnergyLow, seedEnergy, seedEnergyHigh, clusterSeedEnergyCut(cluster));
+                    System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n",
+                    		seedEnergyLow, seedEnergy, seedEnergyHigh,
+                    		SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh)) {
                 	continue clusterLoop;
                 }
-                //if(!clusterSeedEnergyCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterSeedEnergyCount++;
@@ -239,14 +239,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the hit count comparison check.
                 if(verbose) {
-                    System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n", hitCount, minHitCount, clusterHitCountCut(cluster));
+                    System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n",
+                    		hitCount, minHitCount, SSPTriggerLogic.clusterHitCountCut(cluster, minHitCount));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!SSPTriggerLogic.clusterHitCountCut(cluster, minHitCount)) {
                 	continue clusterLoop;
                 }
-                //if(!clusterHitCountCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterHitCountCount++;
@@ -255,14 +255,15 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the cluster energy comparison check.
                 if(verbose) {
-                    System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n", clusterEnergyLow, clusterEnergy, clusterEnergyHigh, clusterTotalEnergyCut(cluster));
+                    System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n",
+                    		clusterEnergyLow, clusterEnergy, clusterEnergyHigh,
+                    		SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
                 if(!SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh)) {
                 	continue clusterLoop;
                 }
-                //if(!clusterTotalEnergyCut(cluster)) { continue clusterLoop; }
                 
                 // Otherwise, note that it passed the cut.
                 clusterTotalEnergyCount++;
@@ -379,16 +380,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     public void setMinHitCount(int minHitCount) {
         this.minHitCount = minHitCount;
-    }
-    
-    /**
-     * Sets X coordinate used as the origin for cluster coplanarity and
-     * slope calculations. This defaults to the calorimeter mid-plane
-     * and is in units of millimeters.
-     * @param originX - The parameter value.
-     */
-    public void setOriginX(double originX) {
-        this.originX = originX;
     }
     
     /**
@@ -526,208 +517,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     }
     
     /**
-     * Checks whether the argument cluster possesses the minimum
-     * allowed hits.
-     * @param cluster - The cluster to check.
-     * @return Returns <code>true</code> if the cluster passes the cut
-     * and <code>false</code> if the cluster does not.
-     */
-    @Deprecated
-    private boolean clusterHitCountCut(HPSEcalCluster cluster) {
-        return (getValueClusterHitCount(cluster) >= minHitCount);
-    }
-    
-    /**
-     * Checks whether the argument cluster seed hit falls within the
-     * allowed seed hit energy range.
-     * @param cluster - The cluster to check.
-     * @return Returns <code>true</code> if the cluster passes the cut
-     * and <code>false</code> if the cluster does not.
-     */
-    @Deprecated
-    private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
-        // Get the cluster seed energy.
-        double energy = getValueClusterSeedEnergy(cluster);
-        
-        // Check that it is above the minimum threshold and below the
-        // maximum threshold.
-        return (energy < seedEnergyHigh) && (energy > seedEnergyLow);
-    }
-    
-    /**
-     * Checks whether the argument cluster falls within the allowed
-     * cluster total energy range.
-     * @param cluster - The cluster to check.
-     * @return Returns <code>true</code> if the cluster passes the cut
-     * and <code>false</code> if the cluster does not.
-     */
-    @Deprecated
-    private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
-        // Get the total cluster energy.
-        double energy = getValueClusterTotalEnergy(cluster);
-        
-        // Check that it is above the minimum threshold and below the
-        // maximum threshold.
-        return (energy < clusterEnergyHigh) && (energy > clusterEnergyLow);
-    }
-    
-    /**
-     * Calculates the distance between two clusters.
-     * @param clusterPair - The cluster pair from which the value should
-     * be calculated.
-     * @return Returns the distance between the clusters.
-     */
-    @Deprecated
-    private double getClusterDistance(HPSEcalCluster cluster) {
-        return Math.hypot(cluster.getSeedHit().getPosition()[0] - originX, cluster.getSeedHit().getPosition()[1]);
-    }
-    
-    /**
-     * Gets the value used for the cluster total energy cut.
-     * @param cluster - The cluster from which the value should be
-     * derived.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueClusterTotalEnergy(HPSEcalCluster cluster) {
-        return cluster.getEnergy();
-    }
-    
-    /**
-     * Gets the value used for the cluster hit count cut.
-     * @param cluster - The cluster from which the value should be
-     * derived.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private int getValueClusterHitCount(HPSEcalCluster cluster) {
-        return cluster.getCalorimeterHits().size();
-    }
-    
-    /**
-     * Gets the value used for the seed hit energy cut.
-     * @param cluster - The cluster from which the value should be
-     * derived.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueClusterSeedEnergy(HPSEcalCluster cluster) {
-        return cluster.getSeedHit().getCorrectedEnergy();
-    }
-    
-    /**
-     * Calculates the value used by the coplanarity cut.
-     * @param clusterPair - The cluster pair from which the value should
-     * be calculated.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueCoplanarity(HPSEcalCluster[] clusterPair) {
-        // Get the cluster angles.
-        double[] clusterAngle = new double[2];
-        for(int i = 0; i < 2; i++) {
-            double position[] = clusterPair[i].getSeedHit().getPosition();
-            clusterAngle[i] = (Math.toDegrees(Math.atan2(position[1], position[0] - originX)) + 180.0) % 180.0;
-        }
-        
-        // Calculate the coplanarity cut value.
-        return Math.abs(clusterAngle[1] - clusterAngle[0]);
-    }
-    
-    /**
-     * Calculates the value used by the energy difference cut.
-     * @param clusterPair - The cluster pair from which the value should
-     * be calculated.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueEnergyDifference(HPSEcalCluster[] clusterPair) {
-        return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
-    }
-    
-    /**
-     * Calculates the value used by the energy slope cut.
-     * @param clusterPair - The cluster pair from which the value should
-     * be calculated.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueEnergySlope(HPSEcalCluster[] clusterPair) {
-        // E + R*F
-        // Get the low energy cluster energy.
-        double slopeParamE = clusterPair[1].getEnergy();
-        
-        // Get the low energy cluster radial distance.
-        double slopeParamR = getClusterDistance(clusterPair[1]);
-        
-        // Calculate the energy slope.
-        return slopeParamE + slopeParamR * energySlopeParamF;
-    }
-    
-    /**
-     * Calculates the value used by the energy sum cut.
-     * @param clusterPair - The cluster pair from which the value should
-     * be calculated.
-     * @return Returns the cut value.
-     */
-    @Deprecated
-    private double getValueEnergySum(HPSEcalCluster[] clusterPair) {
-        return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
-    }
-    
-    /**
-     * Checks if a cluster pair is coplanar to the beam within a given
-     * angle.
-     * @param clusterPair - The cluster pair to check.
-     * @return Returns <code>true</code> if the cluster pair passes
-     * the cut and <code>false</code> if it does not.
-     */
-    @Deprecated
-    private boolean pairCoplanarityCut(HPSEcalCluster[] clusterPair) {
-        return (getValueCoplanarity(clusterPair) < coplanarityHigh);
-    }
-    
-    /**
-     * Checks if the energy difference between the clusters making up
-     * a cluster pair is below an energy difference threshold.
-     * @param clusterPair - The cluster pair to check.
-     * @return Returns <code>true</code> if the cluster pair passes
-     * the cut and <code>false</code> if it does not.
-     */
-    @Deprecated
-    private boolean pairEnergyDifferenceCut(HPSEcalCluster[] clusterPair) {
-        return (getValueEnergyDifference(clusterPair) < energyDifferenceHigh);
-    }
-    
-    /**
-     * Requires that the distance from the beam of the lowest energy
-     * cluster in a cluster pair satisfies the following:
-     * E_low + d_b * 0.0032 GeV/mm < [ Threshold ]
-     * @param clusterPair : pair of clusters
-     * @return true if pair is found, false otherwise
-     */
-    @Deprecated
-    private boolean pairEnergySlopeCut(HPSEcalCluster[] clusterPair) {
-        return (getValueEnergySlope(clusterPair) > energySlopeLow);
-    }
-    
-    /**
-     * Checks if the sum of the energies of clusters making up a cluster
-     * pair is below an energy sum threshold.
-     * @param clusterPair - The cluster pair to check.
-     * @return Returns <code>true</code> if the cluster pair passes
-     * the cut and <code>false</code> if it does not.
-     */
-    @Deprecated
-    private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
-        // Get the energy sum value.
-        double energySum = getValueEnergySum(clusterPair);
-        
-        // Check that it is within the allowed range.
-        return (energySum < energySumHigh) && (energySum > energySumLow);
-    }
-    
-    /**
      * Sets the cuts to accept a certain background level. Levels are
      * defined with an integer between 1 and 10, where each step is
      * indicative of a hypothetical background rate of approximately
@@ -827,8 +616,8 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // Get the plot values for the pair cuts.
             double energySum = SSPTriggerLogic.getValueEnergySum(clusterPair);
             double energyDifference = SSPTriggerLogic.getValueEnergyDifference(clusterPair);
-            double energySlope = SSPTriggerLogic.getValueEnergySlope(clusterPair, energySlopeParamF, originX);
-            double coplanarity = SSPTriggerLogic.getValueCoplanarity(clusterPair, originX);
+            double energySlope = SSPTriggerLogic.getValueEnergySlope(clusterPair, energySlopeParamF);
+            double coplanarity = SSPTriggerLogic.getValueCoplanarity(clusterPair);
             
             // Fill the general plots.
             pairEnergySum.fill(energySum, 1);
@@ -860,7 +649,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairEnergySlopeCut(clusterPair, energySlopeLow, energySlopeParamF, originX)) {
+            if(!SSPTriggerLogic.pairEnergySlopeCut(clusterPair, energySlopeLow, energySlopeParamF)) {
             	continue pairLoop;
             }
             //if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
@@ -871,7 +660,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Coplanarity Cut ===================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairCoplanarityCut(clusterPair, coplanarityHigh, originX)) {
+            if(!SSPTriggerLogic.pairCoplanarityCut(clusterPair, coplanarityHigh)) {
             	continue pairLoop;
             }
             //if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
