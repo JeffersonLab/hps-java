@@ -140,7 +140,7 @@ public class EcalMonitoring extends DataQualityMonitor {
                 energyVsX.fill(cluster.getEnergy(), Math.abs(cluster.getPosition()[0]));
                 energyVsY.fill(cluster.getEnergy(), Math.abs(cluster.getPosition()[1]));
             }
-            if (Math.abs(iy) > 2) {
+            if (Math.abs(iy) > 2&&cluster.getCalorimeterHits().size()>1) {
                 fidcnt++;
                 fiducialClusterSizePlot.fill(cluster.getCalorimeterHits().size());
                 fiducialClusterEnergyPlot.fill(cluster.getEnergy());
