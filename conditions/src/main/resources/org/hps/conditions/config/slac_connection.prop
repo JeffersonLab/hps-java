@@ -1,0 +1,4 @@
+hostname = mysql-node03.slac.stanford.edu
+user = rd_hps_cond_ro
+password = 2jumpinphotons.
+database = rd_hps_cond

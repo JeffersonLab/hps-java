@@ -78,7 +78,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected List<TableMetaData> tableMetaData;
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
-    protected ConnectionParameters connectionParameters = new DefaultConnectionParameters();
+    protected ConnectionParameters connectionParameters;
+    //= new DefaultConnectionParameters();
     protected Connection connection;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
@@ -92,42 +93,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
     protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
     protected String tag = null;
-    //protected boolean dryRun = false;
-    
-    /**
-     * Default connection parameters which will use the SLAC database by default,
-     * as it is publicly accessible.  If running on the JLAB network, the jmysql
-     * URL will be used instead, as the host computer is most likely on the 
-     * batch farm, in the counting house, etc.
-     */
-    static class DefaultConnectionParameters extends ConnectionParameters {
-        DefaultConnectionParameters() {
-            
-            // This is the default port for MySQL connections.
-            this.port = 3306;
-            
-            // By default, connect to the publicly accessible SLAC database.
-            this.hostname = "ppa-jeremym-l.slac.stanford.edu";
-            this.database = "hps_conditions";
-            
-            try {
-                // Are we running inside the JLAB network?
-                if (InetAddress.getLocalHost().getCanonicalHostName().contains("jlab.org")) {
-                    // Use the JLAB database.
-                    this.hostname = "jmysql.jlab.org";                                      
-                    logger.config("found JLAB hostname " + InetAddress.getLocalHost().getCanonicalHostName());
-                } 
-            } catch (UnknownHostException e) {
-                // Something wrong with the user's host name, but try to continue anyways.
-                logger.log(Level.WARNING, e.getMessage(), e);
-            }
-            
-            // This user name and password are setup for read-only access on both databases.
-            this.user = "hpsuser";
-            this.password = "darkphoton";
-        }
-    }
-
+        
     /**
      * Class constructor.
      */
@@ -171,8 +137,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Open the database connection.
      */
     public void openConnection() {
+        // Do the connection parameters need to be figured out automatically?
         if (connectionParameters == null) {
-            throw new RuntimeException("The connection parameters are null.");
+            // Setup the default read-only connection, which will choose a SLAC or JLab database.
+            connectionParameters = ConnectionParameters.fromResource(chooseConnectionPropertiesResource());
         }
         logger.config("opening connection to " + connectionParameters.getConnectionString());
         logger.config("host " + connectionParameters.getHostname());
@@ -730,6 +698,22 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     public Logger getLogger() {
         return logger;
+    }
+        
+    private String chooseConnectionPropertiesResource() {
+        String connectionName = "slac";
+        try {
+            // Are we running inside the JLAB network?
+            if (InetAddress.getLocalHost().getCanonicalHostName().contains("jlab.org")) {
+                connectionName = "jlab";
+                logger.config("found JLAB hostname " + InetAddress.getLocalHost().getCanonicalHostName());
+            } 
+        } catch (UnknownHostException e) {
+            // Something wrong with the user's host name, but we will try to continue anyways.
+            logger.log(Level.WARNING, e.getMessage(), e);
+        }
+        logger.config("connection " + connectionName + " will be used");
+        return "/org/hps/conditions/config/" + connectionName + "_connection.prop";
     }
 
     /**

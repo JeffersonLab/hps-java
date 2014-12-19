@@ -1,0 +1,4 @@
+hostname = jmysql.jlab.org
+user = hpsuser
+password = darkphoton
+database = hps_conditions
