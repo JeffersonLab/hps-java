@@ -18,6 +18,10 @@ public class TriggerData implements GenericObject {
     public static final String TRIG_COLLECTION = "TriggerBank";
     protected int[] bank;
 
+    protected TriggerData() {
+        this.bank = null;
+    }
+
     public TriggerData(int[] bank) {
         this.bank = bank;
     }
