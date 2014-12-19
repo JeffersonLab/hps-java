@@ -59,6 +59,18 @@ public class EcalMonitoring extends DataQualityMonitor {
     double maxE = 2.5;
     private final String plotHitsDir = "EcalHits/";
     private final String plotClustersDir = "EcalClusters/";
+    
+    public void setReadoutHitCollectionName(String readoutHitCollectionName) {
+        this.readoutHitCollectionName = readoutHitCollectionName;
+    }
+    
+    public void setCalibratedHitCollectionName(String calibratedHitCollectionName) {
+        this.calibratedHitCollectionName = calibratedHitCollectionName;
+    }
+    
+    public void setClusterCollectionName(String clusterCollectionName) {
+        this.clusterCollectionName = clusterCollectionName;
+    }
 
     protected void detectorChanged(Detector detector) {
         System.out.println("EcalMonitoring::detectorChanged  Setting up the plotter");
