@@ -703,14 +703,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     private String chooseConnectionPropertiesResource() {
         String connectionName = "slac";
         try {
-            // Are we running inside the JLAB network?
-            if (InetAddress.getLocalHost().getCanonicalHostName().contains("jlab.org")) {
+            // Is the JLAB database reachable?
+            if (InetAddress.getByName("jmysql.jlab.org").isReachable(5000)) {
+                logger.config("jmysql.jlab.org is reachable");
                 connectionName = "jlab";
-                logger.config("found JLAB hostname " + InetAddress.getLocalHost().getCanonicalHostName());
             } 
         } catch (UnknownHostException e) {
             // Something wrong with the user's host name, but we will try to continue anyways.
             logger.log(Level.WARNING, e.getMessage(), e);
+        } catch (IOException e) {
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e);            
         }
         logger.config("connection " + connectionName + " will be used");
         return "/org/hps/conditions/config/" + connectionName + "_connection.prop";
