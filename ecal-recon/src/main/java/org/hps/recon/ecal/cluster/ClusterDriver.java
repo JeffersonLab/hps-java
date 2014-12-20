@@ -3,26 +3,29 @@ package org.hps.recon.ecal.cluster;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
-import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.log.BasicFormatter;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * <p>
  * This is a basic Driver that creates ECAL <code>Cluster</code> collections 
  * through the {@link Clusterer} interface.
  * <p>
- * A specific clustering engine can be created with the {@link #setClusterer(String)} method
+ * A specific clustering engine can be created with the {@link #setClustererName(String)} method
  * which will use a factory to create it by name.  The cuts of the {@link Clusterer}
  * can be set generically with the {@link #setCuts(double[])} method.  
+ * 
+ * @see Clusterer
+ * @see org.lcsim.event.Cluster
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -30,7 +33,7 @@ public class ClusterDriver extends Driver {
     
     protected String ecalName = "Ecal";    
     protected HPSEcal3 ecal;
-    protected IIdentifierHelper helper;
+    protected NeighborMap neighborMap;
     protected String outputClusterCollectionName = "EcalClusters";
     protected String inputHitCollectionName = "EcalCalHits";
     protected Clusterer clusterer;
@@ -39,8 +42,8 @@ public class ClusterDriver extends Driver {
     protected boolean skipNoClusterEvents = false;
     protected boolean writeClusterCollection = true;
     protected boolean storeHits = true;
-    protected double[] cuts;
-    protected Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
+    protected double[] cutValues;
+    protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
     
     /**
      * No arg constructor.
@@ -118,7 +121,7 @@ public class ClusterDriver extends Driver {
      * class name and try to instantiate it using the Class API.
      * @param The name or canonical class name of the Clusterer.
      */
-    public void setClusterer(String name) {
+    public void setClustererName(String name) {
         clusterer = ClustererFactory.create(name);
         this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
@@ -145,7 +148,7 @@ public class ClusterDriver extends Driver {
      * @param cuts The numerical cuts.
      */
     public void setCuts(double[] cuts) {
-        this.cuts = cuts;
+        this.cutValues = cuts;
     }
     
     /**
@@ -161,7 +164,7 @@ public class ClusterDriver extends Driver {
             throw new RuntimeException("Ther subdetector " + ecalName + " does not have the right type.");
         }
         ecal = (HPSEcal3) subdetector;
-        helper = ecal.getDetectorElement().getIdentifierHelper();
+        neighborMap = ecal.getNeighborMap();
     }
     
     /**
@@ -172,13 +175,14 @@ public class ClusterDriver extends Driver {
         if (this.clusterer == null) {
             throw new RuntimeException("The clusterer was never initialized.");
         }
-        if (this.cuts != null) {
+        if (this.cutValues != null) {
             logger.config("setting cuts on clusterer");
-            this.clusterer.setCuts(cuts);
-            for (int cutIndex = 0; cutIndex < clusterer.getCuts().length; cutIndex++) {
-                logger.config("  " + this.clusterer.getCutNames()[cutIndex] + " = " + this.clusterer.getCut(cutIndex));
-            }            
+            this.clusterer.getCuts().setValues(cutValues);
         } 
+        logger.config("Clusterer has the following cuts ...");
+        for (int cutIndex = 0; cutIndex < clusterer.getCuts().getValues().length; cutIndex++) {
+            logger.config("  " + this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
+        }            
         logger.config("initializing clusterer");
         this.clusterer.initialize();
     }
@@ -190,13 +194,13 @@ public class ClusterDriver extends Driver {
         this.getLogger().fine("processing event #" + event.getEventNumber());
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
-            this.getLogger().fine("Input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits.");
+            logger.fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
             List<Cluster> clusters = clusterer.createClusters(event, hits);
             if (clusters == null) {
-                throw new RuntimeException("The clusterer returned null from its createClusters method.");
+                throw new RuntimeException("The clusterer returned a null list from its createClusters method.");
             }
             if (clusters.isEmpty() && this.skipNoClusterEvents) {
-                logger.finer("Skipping event with no clusters.");
+                logger.finer("skipping event with no clusters");
                 throw new NextEventException();
             }
             if (event.hasCollection(Cluster.class, this.outputClusterCollectionName)) {
@@ -237,7 +241,7 @@ public class ClusterDriver extends Driver {
      */
     @SuppressWarnings("unchecked")
     <ClustererType extends Clusterer> ClustererType getClusterer() {
-        // Return the Clusterer casting to the right type, which should always work because ClustererType must extend Clusterer.
+        // Return the Clusterer and cast it to the type provided by the caller.
         return (ClustererType) clusterer;
     }
 }

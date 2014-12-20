@@ -37,15 +37,15 @@ public class SimpleClasInnerCalClusterer extends AbstractClusterer {
      * Initialize the algorithm with default cuts.
      */
     public SimpleClasInnerCalClusterer() {
-        super(new String[] { "minEnergy", "minTime", "timeWindow", "timeCut" }, new double[] { 0., 0.001, 0.0, 20.0 });
+        super(new String[] { "minEnergy", "minTime", "timeWindow", "timeCut" }, new double[] { 0.001, 0.0, 20.0, 0. });
     }
 
     public void initialize() {
         // Setup class variables from cuts.
-        timeCut = (this.getCut("timeCut") == 1.0);
-        minEnergy = this.getCut("minEnergy");
-        minTime = this.getCut("minTime");
-        timeWindow = this.getCut("timeWindow");
+        timeCut = (getCuts().getValue("timeCut") == 1.0);
+        minEnergy = getCuts().getValue("minEnergy");
+        minTime = getCuts().getValue("minTime");
+        timeWindow = getCuts().getValue("timeWindow");
     }
 
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitCollection) {

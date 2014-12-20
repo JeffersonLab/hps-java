@@ -1,18 +1,24 @@
 package org.hps.recon.ecal.cluster;
 
-import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
  * <p>
- * This is a convenience class for creating different kinds of clustering algorithms via their name.
+ * This is a convenience class for creating specific clustering algorithms via their name
+ * in the package <code>org.hps.recon.ecal.cluster</code>.  They must implement the {@link Clusterer} 
+ * interface.
  * <p>
- * The currently available types include:
- * <ul>
- * <li>{@link LegacyClusterer}</li>
- * <li>{@link SimpleClasInnerCalClusterer}</li>
- * <li>{@link ClasInnerCalClusterer</li>
- * </ul>
+ * If the name does not match one in the clustering package, the factory will attempt to create
+ * a new class instance, assuming that the string is a canonical class name.  It then checks if 
+ * this class implements the {@link Clusterer} interface and will throw an error if it does not.
+ * 
+ * @see Clusterer
+ * @see ClasInnerCalClusterer
+ * @see DualThresholdCosmicClusterer
+ * @see LegacyClusterer 
+ * @see NearestNeighborClusterer
+ * @see SimpleClasInnerCalClusterer
+ * @see SimpleCosmicClusterer
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -34,30 +40,36 @@ public final class ClustererFactory {
     public static Clusterer create(String name, double[] cuts) {
         Clusterer clusterer;
         if (LegacyClusterer.class.getSimpleName().equals(name)) {
-            // Test Run legacy clusterer.
             clusterer = new LegacyClusterer();
         } else if (SimpleClasInnerCalClusterer.class.getSimpleName().equals(name)) {
-            // Simple IC clusterer.
             clusterer = new SimpleClasInnerCalClusterer();
         } else if (ClasInnerCalClusterer.class.getSimpleName().equals(name)) {
-            // Full IC algorithm.
             clusterer = new ClasInnerCalClusterer();
+        } else if (NearestNeighborClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new NearestNeighborClusterer();
+        } else if (DualThresholdCosmicClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new DualThresholdCosmicClusterer();
+        } else if (SimpleCosmicClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new SimpleCosmicClusterer();
         } else {
-            // Try to instantiate the class from the name argument, assuming it is a canonical class name.
+            // Try to instantiate a Clusterer object from the name argument, assuming it is a canonical class name.
             try {
                 clusterer = fromCanonicalClassName(name);
+                if (!clusterer.getClass().isAssignableFrom(Clusterer.class)) {
+                    throw new IllegalArgumentException("The clsas " + name + " does not implement the Clusterer interface.");
+                }
             } catch (Exception e) {
                 // Okay nothing worked, so we have a problem!
                 throw new IllegalArgumentException("Unknown Clusterer type " + name + " cannot be instantiated.", e);
             }
         }
-        // Add the Clusterer as a conditions listener so it can set itself up via the conditions system.
-        if (clusterer instanceof ConditionsListener) {
-            ConditionsManager.defaultInstance().addConditionsListener((ConditionsListener) clusterer);
-        }
+        
+        // Register the Clusterer for notification when conditions change.
+        ConditionsManager.defaultInstance().addConditionsListener(clusterer);        
+        
         // Set cuts if they were provided.
         if (cuts != null) {
-            clusterer.setCuts(cuts);
+            clusterer.getCuts().setValues(cuts);
         }
         return clusterer;
     }

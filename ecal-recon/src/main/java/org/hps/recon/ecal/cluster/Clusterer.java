@@ -10,6 +10,11 @@ import org.lcsim.event.EventHeader;
 /**
  * This is an interface for creating clusters and providing cut values
  * to the clustering algorithms in a generic fashion.
+ * 
+ * @see org.lcsim.event.Cluster
+ * @see org.lcsim.event.CalorimeterHit
+ * @see org.lcsim.event.EventHeader
+ * @see NumericalCuts
  */
 public interface Clusterer extends ConditionsListener {
 
@@ -22,65 +27,28 @@ public interface Clusterer extends ConditionsListener {
     List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits);
     
     /**
-     * Perform start of job intialization on this object.
+     * <p>
+     * Perform start of job initialization on this object.
+     * <p>
+     * This method would typically be used to cache cluster cut values
+     * from the {@link NumericalCuts} into instance variables for
+     * convenience and runtime performance purposes.  If the cuts 
+     * have certain constraints on their reasonable values for the
+     * algorithm, then this method should throw an <code>IllegalArgumentException</code> 
+     * if the parameter value is invalid.
+     * <p>
+     * The Detector object from LCSim is not available yet when this
+     * method is typically called, so the conditions system should not
+     * be used.  Instead, the inherited callback method 
+     * {@link #conditionsChanged(org.lcsim.conditions.ConditionsEvent)}
+     * can be used to configure the class depending on the available
+     * conditions when they are available.
      */
     void initialize();
     
     /**
-     * Get the list of numerical cuts.
-     * @return The list of numerical cuts.
+     * Get numerical cut settings.
+     * @return The numerical cut settings.
      */
-    double[] getCuts();
-    
-    /**
-     * Get the default cut values.
-     * @return The default cut values.
-     */
-    double[] getDefaultCuts();
-    
-    /**
-     * True if algorithm is using its default cuts.
-     * @return True if using the default cuts.
-     */
-    boolean isDefaultCuts();
-    
-    /**
-     * Set numerical cuts array.
-     * @param cuts The numerical cuts.
-     */
-    void setCuts(double[] cuts);
-                 
-    /**
-     * Get a cut value by its index.
-     * @param index The index of the cut.
-     * @return The cut value at index.
-     */
-    double getCut(int index);
-    
-    /**
-     * Get a cut value by name.
-     * @param name The name of the cut.
-     * @return The named cut.
-     */
-    double getCut(String name);
-    
-    /**
-     * Set a cut value by name.
-     * @param name The name of the cut.
-     * @param value The value of the cut.
-     */
-    void setCut(String name, double value);
-    
-    /**
-     * Set a cut value by index.
-     * @param index The index of the cut.
-     * @param value The value of the cut.
-     */
-    void setCut(int index, double value);
-    
-    /**
-     * Get the names of the cuts.
-     * @return The names of the cuts.
-     */
-    String[] getCutNames();       
+    NumericalCuts getCuts();
 }

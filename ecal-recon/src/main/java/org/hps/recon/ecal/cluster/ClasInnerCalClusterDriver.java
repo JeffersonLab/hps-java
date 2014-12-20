@@ -11,6 +11,8 @@ import org.lcsim.lcio.LCIOConstants;
  * {@link ClasInnerCalClusterer}.  It currently implements optional
  * writing of a rejected hit list to the LCSim event.
  * 
+ * @see ClasInnerCalClusterer
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ClasInnerCalClusterDriver extends ClusterDriver {
@@ -30,7 +32,7 @@ public class ClasInnerCalClusterDriver extends ClusterDriver {
     public void startOfData() {
         if (clusterer == null) {
             // Setup the Clusterer if it wasn't already initialized by a Driver argument.
-            this.setClusterer("ClasInnerCalClusterer");
+            this.setClustererName("ClasInnerCalClusterer");
         } else {
             // Does the Clusterer have the right type if there was a custom inialization parameter?
             if (!(clusterer instanceof ClasInnerCalClusterer)) {

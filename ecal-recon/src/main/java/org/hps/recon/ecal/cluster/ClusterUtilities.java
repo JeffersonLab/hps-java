@@ -1,5 +1,7 @@
 package org.hps.recon.ecal.cluster;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -13,7 +15,10 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
- * This is a set of simple clustering utility methods.
+ * This is a set of simple utility methods for clustering algorithms.
+ * 
+ * @see org.lcsim.event.Cluster
+ * @see org.lcsim.event.base.BaseCluster
  */
 public final class ClusterUtilities {
     
@@ -64,14 +69,52 @@ public final class ClusterUtilities {
         cluster.setEnergy(totalEnergy);        
         return cluster;
     }
+     
+    /**
+     * Compute the raw energy of a cluster which is just the 
+     * sum of all its hit energies.
+     * @param cluster The input cluster.
+     * @return The total raw energy.
+     */
+    public static double computeRawEnergy(Cluster cluster) {
+        double uncorrectedEnergy = 0;
+        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            uncorrectedEnergy += hit.getCorrectedEnergy();
+        }
+        return uncorrectedEnergy;
+    }
     
     /**
-     * Compare CalorimeterHit objects by their energy using default double comparison strategy.
+     * Find the hit with the highest energy value.
+     * @param cluster The input cluster.
+     * @return The hit with the highest energy value.
      */
-    public static class HitEnergyComparator implements Comparator<CalorimeterHit> {
-        @Override
-        public int compare(CalorimeterHit o1, CalorimeterHit o2) {
-            return Double.compare(o1.getCorrectedEnergy(), o2.getCorrectedEnergy());
+    public static CalorimeterHit getHighestEnergyHit(Cluster cluster) {
+        double maxEnergy = Double.MIN_VALUE;
+        CalorimeterHit highestEnergyHit = null;
+        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            if (hit.getCorrectedEnergy() > maxEnergy) {
+                highestEnergyHit = hit;
+            }
         }
-    }    
+        return highestEnergyHit;
+    }
+    
+    /**
+     * Sort the hits in the cluster using a <code>Comparator</code>.
+     * This method will not change the hits in place.  It returns a new list.
+     * @param cluster The input cluster.
+     * @param comparator The Comparator to use for sorting.
+     * @param reverseOrder True to use reverse rather than default ordering.
+     * @return The sorted list of hits.     
+     */
+    public static List<CalorimeterHit> sortedHits(Cluster cluster, Comparator<CalorimeterHit> comparator, boolean reverseOrder) {
+        List<CalorimeterHit> sortedHits = new ArrayList<CalorimeterHit>(cluster.getCalorimeterHits());
+        Comparator<CalorimeterHit>sortComparator = comparator;
+        if (reverseOrder) {
+            sortComparator = Collections.reverseOrder(comparator);
+        }
+        Collections.sort(sortedHits, sortComparator);
+        return sortedHits;
+    }
 }

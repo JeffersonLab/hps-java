@@ -17,8 +17,6 @@ import org.lcsim.event.EventHeader;
  * <p>
  * The clustering algorithm is implemented according to the description in pages 83 and 84 of the 
  * <a href="https://confluence.slac.stanford.edu/download/attachments/86676777/HPSProposal-FINAL_Rev2.pdf">HPS Proposal document</a>.
- * <p>
- * This is a simple algorithm that is obsolete!  The current IC or hardware algorithm clustering algorithms should generally be used instead.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
@@ -33,8 +31,8 @@ public class LegacyClusterer extends AbstractClusterer {
     }
     
     public void initialize() {
-        minClusterSeedEnergy = this.getCut("minClusterSeedEnergy");
-        minHitEnergy = this.getCut("minHitEnergy");
+        minClusterSeedEnergy = getCuts().getValue("minClusterSeedEnergy");
+        minHitEnergy = getCuts().getValue("minHitEnergy");
     }
                  
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
