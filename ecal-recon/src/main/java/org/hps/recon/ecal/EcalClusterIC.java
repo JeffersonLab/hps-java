@@ -10,12 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
@@ -84,24 +82,6 @@ public class EcalClusterIC extends Driver {
     double minTime = 0.0;
     // Maximum time cut window range. Units in ns.
     double timeWindow = 20.0;
-    // Variables for electron position corrections
-    static final double ELECTRON_POS_A = 0.0066;
-    static final double ELECTRON_POS_B = -0.03;
-    static final double ELECTRON_POS_C = 0.028;
-    static final double ELECTRON_POS_D = -0.45;
-    static final double ELECTRON_POS_E = 0.465;
-    // Variables for positron position corrections
-    static final double POSITRON_POS_A = 0.0072;
-    static final double POSITRON_POS_B = -0.031;
-    static final double POSITRON_POS_C = 0.007;
-    static final double POSITRON_POS_D = 0.342;
-    static final double POSITRON_POS_E = 0.108;
-    // Variables for photon position corrections
-    static final double PHOTON_POS_A = 0.005;
-    static final double PHOTON_POS_B = -0.032;
-    static final double PHOTON_POS_C = 0.011;
-    static final double PHOTON_POS_D = -0.037;
-    static final double PHOTON_POS_E = 0.294;
     
        
     public void setClusterCollectionName(String clusterCollectionName) {
@@ -573,19 +553,6 @@ public class EcalClusterIC extends Driver {
 			Point hitIndex = new Point(ix, iy);
             rawPosition[2] = correctedPositionMap.get(hitIndex)[2];
             
-            
-            
-            // Apply position correction factors:
-            // Position correction for electron:
-            int pdg = 11;
-            double xCorr = posCorrection(pdg, xCl*10.0, seedEnergyTot.get(seedP));
-           
-            double[] corrPosition = new double[3];
-            corrPosition[0] = xCorr*10.0;//mm
-            corrPosition[1] = yCl*10.0;//mm
-            corrPosition[2] = correctedPositionMap.get(hitIndex)[2];
-                        
-            corrSeedPosition.put(seedP, corrPosition);
             rawSeedPosition.put(seedP, rawPosition);
 
         	
@@ -623,12 +590,14 @@ public class EcalClusterIC extends Driver {
                 			}
                 		}
                 		
-                    for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
-                        if (entry4.getValue().contains(entry2.getKey())) {                       	
-                        	// Add shared hits for energy distribution between clusters
-                            cluster.addSharedHit(entry4.getKey()); 
-                        }
-                    }
+                		for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
+                			if (entry4.getValue().contains(entry2.getKey())) {                       	
+                				// Add shared hits for energy distribution between clusters
+                				cluster.addSharedHit(entry4.getKey()); 
+                				//fixes bug for SIO Writer?
+                            	cluster.addHit(entry4.getKey()); 
+                			}
+                		}
                                         
                     //Input uncorrected cluster energies
             		if (seedEnergyTot.values().size() > 0){
@@ -636,8 +605,7 @@ public class EcalClusterIC extends Driver {
             			cluster.setUncorrectedEnergy(seedEnergyTot.get(entry2.getKey()));
             			}
 
-            		//Input both uncorrected and corrected cluster positions. 
-            		cluster.setCorrPosition(corrSeedPosition.get(entry2.getKey()));
+            		//Input uncorrected cluster positions. 
             		cluster.setRawPosition(rawSeedPosition.get(entry2.getKey()));
                   
                     
@@ -756,62 +724,8 @@ public class EcalClusterIC extends Driver {
     	}
     	return isSeed;	
     }
-    /**
-     * Calculates energy correction based on cluster raw energy and particle type as per 
-     *<a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-     * @param pdg Particle id as per PDG
-     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
-     * @return Corrected Energy
-     */    
-
-    
-    /**
-     * Calculates position correction based on cluster raw energy, x calculated position, 
-     * and particle type as per 
-     * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-     * @param pdg Particle id as per PDG
-     * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
-     * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
-     * @return Corrected x position
-     */
-    public double posCorrection(int pdg, double xPos, double rawEnergy){
-    	double xCl = xPos/10.0;//convert to mm
-    	if (pdg == 11) { //Particle is electron    	
-    		double xCorr = positionCorrection(xCl, rawEnergy, ELECTRON_POS_A, ELECTRON_POS_B, ELECTRON_POS_C, ELECTRON_POS_D, ELECTRON_POS_E);
-    		return xCorr*10.0;
-    	}
-    	else if (pdg == -11) {// Particle is positron   	
-    		double xCorr = positionCorrection(xCl, rawEnergy, POSITRON_POS_A, POSITRON_POS_B, POSITRON_POS_C, POSITRON_POS_D, POSITRON_POS_E);
-    		return xCorr*10.0;
-    	}
-    	else if (pdg == 22) {// Particle is photon  	
-    		double xCorr = positionCorrection(xCl, rawEnergy, PHOTON_POS_A, PHOTON_POS_B, PHOTON_POS_C, PHOTON_POS_D, PHOTON_POS_E);
-    		return xCorr*10.0;
-    	}
-    	else { //Unknown 
-    		double xCorr = xCl;
-    		return xCorr*10.0;}
-    	}
-    
-    
-   /**
-    * Calculates the position correction in cm using the raw energy and variables associated with the fit
-    * of the particle as described in  
-    * <a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-    * @param xCl
-    * @param rawEnergy
-    * @param varA
-    * @param varB
-    * @param varC
-    * @param varD
-    * @param varE
-    * @return
-    */    
-    public double positionCorrection(double xCl, double rawEnergy, double varA, double varB, double varC, double varD, double varE){
-    	double xCorr = xCl-(varA/Math.sqrt(rawEnergy) + varB )*xCl-
-				(varC*rawEnergy + varD/Math.sqrt(rawEnergy) + varE);
-    	return xCorr;
-    }
    
+    
+
     	
  }    
