@@ -59,17 +59,17 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
         setSeedHit(seedHit);
     }
     
-    public void addHit(CalorimeterHit hit) {
-        super.addHit(hit);
-        allHitList.add(hit);
-    }
+//    public void addHit(CalorimeterHit hit) {
+//        super.addHit(hit);
+//        allHitList.add(hit);
+//    }
     
     /**
      * Input shared hits between two clusters. 
      */
     public void addSharedHit(CalorimeterHit sharedHit) {
         sharedHitList.add(sharedHit);
-        allHitList.add(sharedHit);
+//        allHitList.add(sharedHit);
     }
     /**
      * Return shared hit list between two clusters. 
@@ -114,9 +114,9 @@ public class HPSEcalClusterIC extends HPSEcalCluster {
     /**
      * Gets all hits in the cluster.
      */
-    public List<CalorimeterHit> getCalorimeterHits() {
-        return allHitList;
-    }
+//    public List<CalorimeterHit> getCalorimeterHits() {
+//        return allHitList;
+//    }
     
     /**
      * Returns the uncorrected x,y,z position of the cluster.
