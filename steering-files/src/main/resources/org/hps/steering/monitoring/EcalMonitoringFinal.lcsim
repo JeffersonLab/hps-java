@@ -43,6 +43,7 @@
 <!--            <clusterWindow>32.0</clusterWindow>-->
                 <ecalName>Ecal</ecalName>
                 <ecalCollectionName>EcalCalHits</ecalCollectionName>
+                <addEMin>0.010</addEMin>
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>         

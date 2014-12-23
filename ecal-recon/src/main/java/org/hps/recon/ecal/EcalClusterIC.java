@@ -82,7 +82,8 @@ public class EcalClusterIC extends Driver {
     double minTime = 0.0;
     // Maximum time cut window range. Units in ns.
     double timeWindow = 20.0;
-    
+    // The detector
+    HPSEcal3 ecal;;
        
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
@@ -188,7 +189,7 @@ public class EcalClusterIC extends Driver {
 
     public void detectorChanged(Detector detector) {
         // Get the calorimeter.
-    	HPSEcal3 ecal = (HPSEcal3) detector.getSubdetector(ecalName);
+    	ecal = (HPSEcal3) detector.getSubdetector(ecalName);
     	
         // Store the map of neighbor crystals for the current calorimeter set-up.
         neighborMap = ecal.getNeighborMap();
@@ -618,9 +619,7 @@ public class EcalClusterIC extends Driver {
         } //End event output loop.
         int flag = 1 << LCIOConstants.CLBIT_HITS;
         event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
-        event.put(rejectedHitName, rejectedHitList, CalorimeterHit.class, flag);
-        
-        
+        event.put(rejectedHitName, rejectedHitList, CalorimeterHit.class, flag,ecal.getReadout().getName());                
     }
     
     public void endOfData() {
