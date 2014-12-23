@@ -17,8 +17,8 @@
     </execute>        
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>500</eventInterval>
-            <!-- <eventInterval>1</eventInterval> -->
+            <!-- <eventInterval>500</eventInterval> -->
+            <eventInterval>1</eventInterval>
         </driver>        
         <driver name="DualThresholdSignalFitDriver" type="org.hps.analysis.ecal.cosmic.DualThresholdSignalFitDriver">
             <tightSignificanceThreshold>4.0</tightSignificanceThreshold>
@@ -29,12 +29,17 @@
             <ecalCollectionName>LooseEcalCosmicCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
         </driver>
-        <driver name="DualThresholdCosmicClusterDriver" type="org.hps.analysis.ecal.cosmic.DualThresholdCosmicClusterDriver">
-            <minimumClusterSize>4</minimumClusterSize>
-            <minimumRows>4</minimumRows>
+        <driver name="DualThresholdCosmicClusterDriver" type="org.hps.recon.ecal.cluster.DualThresholdCosmicClusterDriver"> 
+            <logLevel>FINEST</logLevel>
+            <skipNoClusterEvents>true</skipNoClusterEvents>
+            <inputHitCollectionName>LooseEcalCosmicCalHits</inputHitCollectionName>
+            <inputTightHitCollectionName>TightEcalCosmicReadoutHits</inputTightHitCollectionName>
+            <outputClusterCollectionName>EcalCosmicClusters</outputClusterCollectionName>
+            <minClusterSize>4</minClusterSize>
+            <minRows>4</minRows>
         </driver>
         <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFileName}</outputFilePath>              
+            <outputFilePath>${outputFileName}</outputFilePath>
             <writeOnlyCollections>LooseEcalCosmicCalHits EcalCosmicClusters</writeOnlyCollections>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
