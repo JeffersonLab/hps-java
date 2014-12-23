@@ -8,6 +8,8 @@
         <driver name="EventMarkerDriver"/>              
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
+        <driver name="EcalClustererIC" />
+        <driver name="EcalClustererGTP" />   
         <driver name="LCIOWriter"/> 
         <driver name="CleanupDriver"/>
    </execute>    
@@ -28,14 +30,19 @@
             <addEMin>0.01</addEMin>
 <!--            <timeCut>true</timeCut>  -->
         </driver>
-   <driver name="EcalClustererIC" type="org.hps.recon.ecal.EcalClusterIC">
-            <ecalName>Ecal</ecalName>
+        <driver name="EcalClustererIC" type="org.hps.recon.ecal.EcalClusterIC">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <clusterCollectionName>EcalClustersIC</clusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold>        
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>        
+        </driver> 
+        <driver name="EcalClustererGTP" type="org.hps.recon.ecal.GTPOnlineClusterer">
+         <hitCollectionName>EcalCalHits</hitCollectionName>
+            <clusterCollectionName>EcalClustersGTP</clusterCollectionName>          
+            <seedLowThreshold>0.100</seedLowThreshold>        
         </driver>
+
 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
