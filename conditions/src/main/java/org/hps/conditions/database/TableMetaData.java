@@ -23,11 +23,11 @@ import org.hps.conditions.api.AbstractConditionsObjectCollection;
  */
 public final class TableMetaData {
 
-    String tableName;
-    String key;
-    Class<? extends ConditionsObject> objectClass;
-    Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
-    Set<String> fieldNames = new LinkedHashSet<String>();
+    protected String tableName;
+    protected String key;
+    protected Class<? extends ConditionsObject> objectClass;
+    protected Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
+    protected Set<String> fieldNames = new LinkedHashSet<String>();
 
     /**
      * The fully qualified constructor.
