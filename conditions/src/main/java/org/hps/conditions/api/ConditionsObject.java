@@ -1,7 +1,5 @@
 package org.hps.conditions.api;
 
-import org.hps.conditions.database.TableMetaData;
-
 /**
  * This is an ORM interface for accessing conditions database information by
  * row. It can handle new or existing records. The row ID values for new records are
@@ -9,12 +7,6 @@ import org.hps.conditions.database.TableMetaData;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface ConditionsObject {
-
-    /**
-     * Get the database table meta data associated to this object.
-     * @return The database table meta data associated to this object.
-     */
-    //TableMetaData getTableMetaData();
 
     /**
      * Get the row ID of this object.
