@@ -17,8 +17,12 @@ public final class QueryBuilder {
 
     private QueryBuilder() {
     }
-
-    public static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
+    
+    //static String buildSelect(TableMetaData tableMetaData, int collectionId) {  
+    //    return null;
+    //}
+    
+    static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         if (fields == null) {
@@ -40,7 +44,7 @@ public final class QueryBuilder {
         return buff.toString();
     }
 
-    public static String buildUpdate(String tableName, int rowId, String[] fields, Object[] values) {
+    static String buildUpdate(String tableName, int rowId, String[] fields, Object[] values) {
         if (fields.length != values.length)
             throw new IllegalArgumentException("The field and value arrays are different lengths.");
         StringBuffer buff = new StringBuffer();
@@ -69,7 +73,7 @@ public final class QueryBuilder {
         return buff.toString();
     }
     
-    public static String buildPreparedInsert(String tableName, ConditionsObject object) {
+    static String buildPreparedInsert(String tableName, ConditionsObject object) {
         if (object.getFieldValues().size() == 0) {
             throw new IllegalArgumentException("The ConditionsObject has no values set.");
         }
@@ -133,14 +137,14 @@ public final class QueryBuilder {
         return buff.toString();
     }
 
-    public static String buildDelete(String tableName, int rowId) {
+    static String buildDelete(String tableName, int rowId) {
         if (rowId <= 0)
             throw new IllegalArgumentException("Invalid row ID: " + rowId);
         String query = "DELETE FROM " + tableName + " WHERE id = " + rowId;
         return query;
     }
     
-    public static String formatDate(Date date) {
+    static String formatDate(Date date) {
         return dateFormat.format(date);
     }
 }

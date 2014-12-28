@@ -9,7 +9,7 @@ import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
- * Read ConditionsRecord objects from the conditions database.
+ * Read ConditionsRecord objects from the conditions database and cache the conditions set.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
@@ -25,6 +25,10 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
 
         DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
+
+        // Open the db connection.
+        databaseConditionsManager.openConnection();
+        
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
 
         if (tableMetaData == null)
@@ -50,6 +54,12 @@ class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsReco
         } catch (SQLException x) {
             throw new RuntimeException("Database error", x);
         }
+        
+        // Close the ResultSet and Statement.
+        DatabaseUtilities.cleanup(resultSet);
+        
+        // Close the db connection.
+        databaseConditionsManager.closeConnection();
 
         return getType().cast(collection);
     }

@@ -1,12 +1,9 @@
 package org.hps.conditions.database;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Statement;
 
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
@@ -56,10 +53,10 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public T getData(ConditionsManager conditionsManager, String name) {
-
+        
         // Get the DatabaseConditionsManager which is required for using this converter.
         DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
-
+        
         // Get the table meta data from the key given by the caller.
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
         if (tableMetaData == null)
@@ -106,6 +103,9 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             throw new RuntimeException(e);
         }
    
+        // Open a database connection.
+        databaseConditionsManager.openConnection();
+        
         // Loop over all records, which could just be a single one.
         for (ConditionsRecord conditionsRecord : filteredConditionsRecords) {
         
@@ -133,7 +133,13 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+            
+            // Close the Statement and the ResultSet.
+            DatabaseUtilities.cleanup(resultSet);
         }
+                
+        // Close the database connection.
+        databaseConditionsManager.closeConnection();
         
         return (T) collection;
     }

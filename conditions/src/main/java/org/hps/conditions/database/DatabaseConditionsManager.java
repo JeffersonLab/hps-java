@@ -79,7 +79,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected List<ConditionsConverter> converters;
     protected File connectionPropertiesFile;
     protected ConnectionParameters connectionParameters;
-    //= new DefaultConnectionParameters();
     protected Connection connection;
     protected boolean isConnected = false;
     protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
@@ -101,15 +100,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.setLevel(Level.FINER);
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
-        register();
-        this.setRun(-1);
-    }
-
-    /**
-     * Register this conditions manager as the global default.
-     */
-    public void register() {
         ConditionsManager.setDefaultConditionsManager(this);
+        this.setRun(-1);
     }
 
     /**
@@ -136,20 +128,30 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     /**
      * Open the database connection.
      */
-    public void openConnection() {
-        // Do the connection parameters need to be figured out automatically?
-        if (connectionParameters == null) {
-            // Setup the default read-only connection, which will choose a SLAC or JLab database.
-            connectionParameters = ConnectionParameters.fromResource(chooseConnectionPropertiesResource());
+    public Connection openConnection() {
+        if (!isConnected) {
+            // Do the connection parameters need to be figured out automatically?
+            if (connectionParameters == null) {
+                // Setup the default read-only connection, which will choose a SLAC or JLab database.
+                connectionParameters = ConnectionParameters.fromResource(chooseConnectionPropertiesResource());
+            }
+            
+            // Print out connection info to the log.
+            logger.config("opening connection to " + connectionParameters.getConnectionString());
+            logger.config("host " + connectionParameters.getHostname());
+            logger.config("port " + connectionParameters.getPort());
+            logger.config("user " + connectionParameters.getUser());
+            logger.config("database " + connectionParameters.getDatabase());
+
+            // Create the connection using the parameters.
+            connection = connectionParameters.createConnection();
+            
+            logger.config("successfuly created connection");
+            isConnected = true;
+        } else {
+            logger.info("using existing connection");
         }
-        logger.config("opening connection to " + connectionParameters.getConnectionString());
-        logger.config("host " + connectionParameters.getHostname());
-        logger.config("port " + connectionParameters.getPort());
-        logger.config("user " + connectionParameters.getUser());
-        logger.config("database " + connectionParameters.getDatabase());
-        connection = connectionParameters.createConnection();
-        logger.config("successfuly created connection");
-        isConnected = true;
+        return connection;
     }
 
     /**
@@ -173,13 +175,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.info("connection closed");
     }
 
-    @Override
-    public void finalize() {
-        if (isConnected()) {
-            closeConnection();
-        }
-    }
-
     /**
      * Get multiple <code>ConditionsObjectCollection</code> objects that may
      * have overlapping time validity information.
@@ -197,8 +192,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return A collection of objects of the given type from the conditions
      *         database
      */
-    // TODO: This should distinguish among multiple conditions sets of the same type by using the one with the most recent date
-    //       in its ConditionsRecord.
     public <CollectionType extends AbstractConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
         TableMetaData metaData = this.findTableMetaData(type).get(0);
         if (metaData == null) {
@@ -222,7 +215,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new IllegalArgumentException("The detectorName argument is null.");
         }
         
-        logger.finest("setDetector detector " + detectorName + " and run #" + runNumber);
+        logger.finest("setDetector - detector " + detectorName + " and run #" + runNumber);
         
         if (!isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
             if (!isInitialized) {
@@ -235,8 +228,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 if (runNumber != this.getRun()) {
                     logger.finest("run number is different");
                 }            
-                logger.info("setDetector with new detector " + detectorName + " and run #" + runNumber);
+                logger.info("new detector " + detectorName + " and run #" + runNumber);
                 logger.fine("old detector " + this.getDetector() + " and run #" + this.getRun());
+                
                 initialize(detectorName, runNumber);
             } else {
                 logger.finest("Conditions changed but will be ignored because manager is frozen.");
@@ -370,13 +364,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         connectionParameters = ConnectionParameters.fromProperties(file);
     }
     
+    /**
+     * Set the connection parameters to the conditions database.
+     * @param connectionParameters The connection parameters.
+     */
     public void setConnectionParameters(ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
     }
 
     /**
-     * Set the connection parameters from an embedded resource.
-     * @param resource The classpath resource
+     * Set the connection parameters from an embedded resource location.
+     * @param resource The classpath resource location.
      */
     public void setConnectionResource(String resource) {
         logger.config("setting connection resource " + resource);
@@ -495,22 +493,24 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The keys of the rows affected.
      */
     public List<Integer> updateQuery(String query) {
+        openConnection();
         logger.fine(query);
         List<Integer> keys = new ArrayList<Integer>();
         Statement statement = null;
+        ResultSet resultSet = null;
         try {
             statement = connection.createStatement();
             statement.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
-            ResultSet resultSet = statement.getGeneratedKeys();
+            resultSet = statement.getGeneratedKeys();
             while (resultSet.next()) {
                 int key = resultSet.getInt(1);
                 keys.add(key);
             }
         } catch (SQLException x) {
             throw new RuntimeException("Error in SQL query: " + query, x);
-        } finally {
-            DatabaseUtilities.close(statement);
-        }
+        } 
+        DatabaseUtilities.cleanup(resultSet);
+        closeConnection();
         return keys;
     }
 
@@ -595,6 +595,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     public <ObjectType extends ConditionsObject> void insertCollection(AbstractConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
+                
         if (collection == null) {
             throw new IllegalArgumentException("The collection is null.");
         }
@@ -624,12 +625,15 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.info("inserting collection with ID " + collection.getCollectionId() 
                 + " and key " + collection.getTableMetaData().getKey() + " into table " + tableMetaData.getTableName());
 
+        openConnection();
+        
+        PreparedStatement preparedStatement = null;
+        
         try {
             connection.setAutoCommit(false);
             logger.finest("starting insert transaction");
             String sql = QueryBuilder.buildPreparedInsert(tableMetaData.getTableName(), collection.iterator().next());
-            PreparedStatement preparedStatement = 
-                connection.prepareStatement(sql);
+            preparedStatement = connection.prepareStatement(sql);
             logger.finest("using prepared statement: " + sql);
             logger.finest("preparing updates");
             int collectionId = collection.getCollectionId();
@@ -654,7 +658,33 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         } finally {
             connection.setAutoCommit(true);
         }
+        
+        try {
+            preparedStatement.close();
+        } catch (Exception e) {
+        }
+        
+        closeConnection();
     }
+    
+    /*
+    public void selectCollection(AbstractConditionsObjectCollection collection) throws ConditionsObjectException {
+        int collectionId = collection.getCollectionId();
+        if (collectionId == -1) {
+            throw new ConditionsObjectException("Missing collection ID for select query.");
+        }
+        TableMetaData tableMetaData = collection.getTableMetaData();
+        String tableName = null;
+        if (tableMetaData != null) {
+            tableName = tableMetaData.getTableName();
+        } else {
+            List<TableMetaData> metaList = this.findTableMetaData(collection.getClass());
+            if (metaList.size() == 0) {
+                throw new ConditionsObjectException("Could not find meta data for collection with type " + collection.getClass().getCanonicalName());
+            }
+        }  
+    }
+    */
                       
     private void setupEcal() {
         logger.config("setting up ECAL conditions on detector");

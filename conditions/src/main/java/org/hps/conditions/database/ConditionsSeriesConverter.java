@@ -3,8 +3,8 @@ package org.hps.conditions.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -50,6 +50,8 @@ class ConditionsSeriesConverter {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public ConditionsSeries createSeries(String conditionsKey) {
+        
+        conditionsManager.openConnection();
 
         // Get the table meta data from the key given by the caller.
         TableMetaData tableMetaData = conditionsManager.findTableMetaData(conditionsKey);
@@ -98,8 +100,12 @@ class ConditionsSeriesConverter {
                 throw new RuntimeException(e);
             }
 
+            DatabaseUtilities.cleanup(resultSet);
+            
             series.add(collection);
         }
+        
+        conditionsManager.closeConnection();
 
         // Return new collection.
         return series;
