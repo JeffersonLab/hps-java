@@ -51,7 +51,7 @@ public class ReconData extends Driver {
     int TotalCluster=0;
     int TotalCluster2=0;
     double timeDifference;
-    double energyThreshold=1.5;
+    double energyThreshold=0;
     private LinkedList<ArrayList<Cluster>> clusterBuffer;
     protected String clusterCollectionName = "EcalClusters";
     
@@ -59,7 +59,7 @@ public class ReconData extends Driver {
  
     private FileWriter writer;
    // private FileWriter writer2;
-    String outputFileName = "TriTrigRecon.txt";
+    String outputFileName = "ReconRun3258.txt";
    // String outputFileName2 = "TriTrigReconHits.txt";
 
    
@@ -135,7 +135,7 @@ System.err.println("Error initializing output file for event display.");
   
 @Override
 public void endOfData(){
-System.out.println("Ho contato" + TotalCluster + " clusters di cui " +TotalCluster2 + "con E>1.5 e "+ Clustercount + "isolati\n");
+System.out.println("Ho contato" + TotalCluster + " clusters di cui " +TotalCluster2 + "con E>0 e "+ Clustercount + "isolati\n");
     
     try{
 //close the file writer.
@@ -163,7 +163,7 @@ catch(IOException e){
      ArrayList<Cluster> clusterSet = new ArrayList<Cluster>(); 
      for(Cluster cluster : clusterList){
          TotalCluster++;
-         if(cluster.getEnergy()>1.5){TotalCluster2++;}
+         if(cluster.getEnergy()>=0){TotalCluster2++;}
          clusterSet.add(cluster);
      }
      //remove the last event from cluster buffer and add the new one
