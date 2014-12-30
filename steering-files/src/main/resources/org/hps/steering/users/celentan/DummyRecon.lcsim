@@ -7,11 +7,10 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver"/> 
+    
         <driver name="EcalRawConverter"/>     
-        <driver name="EcalChannelsAmplitude"/>     
+        <driver name="EcalDummyRaw"/>     
 
-<!--        <driver name="RunControlDriver" />-->
       <driver name="AidaSaveDriver"/>
       <driver name="LCIOWriter"/>
       <driver name="CleanupDriver"/>
@@ -23,22 +22,15 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">   
-            <loadSvtConditions>false</loadSvtConditions>
-        </driver>
-        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-<!--            <threshold>150</threshold>-->
-            <applyBadCrystalMap>false</applyBadCrystalMap>
-<!--            <dropBadFADC>true</dropBadFADC>-->
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
         </driver> 
         
             
-        <driver name="EcalChannelsAmplitude" type="org.hps.users.celentan.EcalChannelsAmplitude">
-            <inputCollection>EcalCalHits</inputCollection>
-            <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
-            <inputClusterCollection>EcalClusters</inputClusterCollection>
-            <pedSamples>20</pedSamples>         
+        <driver name="EcalDummyRaw" type="org.hps.users.celentan.DummyDriverRaw">
         </driver>
       
          <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
