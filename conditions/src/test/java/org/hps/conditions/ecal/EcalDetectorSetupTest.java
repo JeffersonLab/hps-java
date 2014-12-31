@@ -1,4 +1,4 @@
-package org.hps.conditions;
+package org.hps.conditions.ecal;
 
 import java.util.List;
 

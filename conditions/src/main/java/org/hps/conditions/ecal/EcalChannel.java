@@ -10,6 +10,10 @@ import java.util.Map;
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.AbstractIdentifier;
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -20,6 +24,8 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+@Table(names = {"ecal_channels"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public final class EcalChannel extends AbstractConditionsObject {
 
     /**
@@ -244,7 +250,9 @@ public final class EcalChannel extends AbstractConditionsObject {
     /**
      * Get the crate number of the channel.
      * @return The crate number.
+     * 
      */
+    @Field(names = {"crate"})
     public int getCrate() {
         return getFieldValue("crate");
     }
@@ -253,6 +261,7 @@ public final class EcalChannel extends AbstractConditionsObject {
      * Get the slot number of the channel.
      * @return The slot number.
      */
+    @Field(names = {"slot"})
     public int getSlot() {
         return getFieldValue("slot");
     }
@@ -261,6 +270,7 @@ public final class EcalChannel extends AbstractConditionsObject {
      * Get the channel number of the channel.
      * @return The channel number.
      */
+    @Field(names = {"channel"})
     public int getChannel() {
         return getFieldValue("channel");
     }
@@ -269,6 +279,7 @@ public final class EcalChannel extends AbstractConditionsObject {
      * Get the x value of the channel.
      * @return The x value.
      */
+    @Field(names = {"x"})
     public int getX() {
         return getFieldValue("x");
     }
@@ -277,6 +288,7 @@ public final class EcalChannel extends AbstractConditionsObject {
      * Get the y value of the channel.
      * @return The y value.
      */
+    @Field(names = {"y"})
     public int getY() {
         return getFieldValue("y");
     }
@@ -285,6 +297,7 @@ public final class EcalChannel extends AbstractConditionsObject {
      * Get the ID of the channel.
      * @return The ID of the channel.
      */
+    @Field(names = {"channel_id"})
     public int getChannelId() {
         return getFieldValue("channel_id");
     }

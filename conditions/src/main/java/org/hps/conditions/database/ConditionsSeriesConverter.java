@@ -49,6 +49,7 @@ class ConditionsSeriesConverter {
      *         which type inferred from target variable.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
+    // FIXME: This should take a type name to enforce that all collections returned are of the same class.
     public ConditionsSeries createSeries(String conditionsKey) {
         
         conditionsManager.openConnection();

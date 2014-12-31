@@ -17,7 +17,7 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class TestRunSvtConditions extends AbstractSvtConditions {
+public final class TestRunSvtConditions extends AbstractSvtConditions {
 
     /**
      * Get the {@link TestRunSvtDaqMappingCollection} associated with these

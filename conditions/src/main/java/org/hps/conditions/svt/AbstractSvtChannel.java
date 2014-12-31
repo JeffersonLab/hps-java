@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 
 /**
@@ -79,6 +80,7 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
      * 
      * @return The channel ID.
      */
+    @Field(names = {"channel_id"})
     public int getChannelID() {
         return getFieldValue("channel_id");
     }
@@ -88,8 +90,8 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
      * 
      * @return The channel number.
      */
+    @Field(names = {"channel"})
     public int getChannel() {
         return getFieldValue("channel");
     }
-
 }

@@ -18,11 +18,12 @@ import org.lcsim.util.Driver;
  * <pre>
  * {@code
  * <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
- *     <freeze>true</freeze>
  *     <detectorName>HPS-TestRun-v5</detectorName>
+ *     <runNumber>1351</runNumber>
+ *     <xmlConfigResource>/org/hps/conditions/config/conditions_database_testrun_2012.xml</xmlConfigResource>
  *     <ecalName>Ecal</ecalName>
  *     <svtName>Tracker</svtName>
- *     <runNumber>1351</runNumber>
+ *     <freeze>true</freeze>
  * </driver>
  * }
  * </pre> 
@@ -39,10 +40,12 @@ import org.lcsim.util.Driver;
  */
 public class ConditionsDriver extends Driver {
 
+    DatabaseConditionsManager conditionsManager;
     String detectorName = null;
     String ecalName = null;
     String svtName = null;
     String tag = null;
+    String xmlConfigResource = null;
     int runNumber = 0;
     boolean freeze;    
     
@@ -50,12 +53,11 @@ public class ConditionsDriver extends Driver {
      * Default constructor.
      */
     public ConditionsDriver() {
-        new DatabaseConditionsManager();
+        conditionsManager = new DatabaseConditionsManager();
     }
     
     /**
      * Set the name of the detector to use.
-     * 
      * @param detectorName The name of the detector.
      */
     public void setDetectorName(String detectorName) {
@@ -67,7 +69,6 @@ public class ConditionsDriver extends Driver {
      * detector name and run number are set.  When frozen, the conditions system
      * will ignore subsequent calls to {@link org.lcsim.conditions.ConditionsManager#setDetector(String, int)}
      * and instead use the user supplied detector and run for the whole job.
-     * 
      * @param freeze True to freeze the conditions system after it is setup.
      */
     public void setFreeze(boolean freeze) {
@@ -82,7 +83,6 @@ public class ConditionsDriver extends Driver {
      * 
      * The method {@link #setDetectorName(String)} needs to be called before this one
      * or an exception will be thrown.
-     * 
      * @param runNumber The user supplied run number for the job.
      */
     public void setRunNumber(int runNumber) {
@@ -116,11 +116,23 @@ public class ConditionsDriver extends Driver {
     }
     
     /**
+     * Set an XML configuration resource.
+     * @param xmlConfigResource The XML configuration resource.
+     */
+    public void setXmlConfigResource(String xmlConfigResource) {
+        this.xmlConfigResource = xmlConfigResource;
+    }
+    
+    /**
      * Setup the conditions system based on the Driver parameters.
      * @throws RuntimeException If there is a problem setting up the conditions system.
      */
     public void initialize() {
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        if (xmlConfigResource != null) {
+            // Set a custom XML configuration resource.
+            conditionsManager.setXmlConfig(xmlConfigResource);
+        }
+
         if (ecalName != null) {
             // Set custom ECAL name.
             conditionsManager.setEcalName(ecalName);
@@ -134,7 +146,7 @@ public class ConditionsDriver extends Driver {
             conditionsManager.setTag(tag);
         }
         if (detectorName != null) {
-            // The manager can only be initialized if there is a user supplied detector name.
+            // The manager can only be initialized here if there is a user supplied detector name.
             try {
                 // Initialize the conditions manager.
                 conditionsManager.setDetector(detectorName, runNumber);

@@ -12,7 +12,7 @@ import org.lcsim.conditions.ConditionsManager;
  * Read ConditionsRecord objects from the conditions database and cache the conditions set.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
+public class ConditionsRecordConverter extends ConditionsObjectConverter<ConditionsRecordCollection> {
 
     /**
      * Get the ConditionsRecords for a run based on current configuration of the

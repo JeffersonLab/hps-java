@@ -7,6 +7,10 @@ import java.io.InputStream;
 
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -16,6 +20,8 @@ import org.jdom.output.XMLOutputter;
 /**
  * This is a simple class for getting an SVT XML configuration file.
  */
+@Table(names = {"svt_configurations"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public class SvtConfiguration extends AbstractConditionsObject {
 
     public static class SvtConfigurationCollection extends AbstractConditionsObjectCollection<SvtConfiguration> {
@@ -25,8 +31,14 @@ public class SvtConfiguration extends AbstractConditionsObject {
      * Get the filename associated with this configuration.
      * @return The filename associated with the configuration.
      */
+    @Field(names = {"filename"})
     public String getFileName() {
         return getFieldValue("filename");
+    }
+    
+    @Field(names = {"content"})
+    public byte[] getContent() {
+        return getFieldValue("content");
     }
 
     /**

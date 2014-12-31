@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
@@ -13,6 +17,8 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
+@Table(names = {"svt_channels"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public final class SvtChannel extends AbstractSvtChannel {
 
     public static class SvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
@@ -40,6 +46,7 @@ public final class SvtChannel extends AbstractSvtChannel {
      * Get the FEB ID.
      * @return The FEB ID.
      */
+    @Field(names = {"feb_id"})
     public int getFebID() {
         return getFieldValue("feb_id");
     }
@@ -48,6 +55,7 @@ public final class SvtChannel extends AbstractSvtChannel {
      * Get the FEB hybrid ID.
      * @return The FEB hybrid ID.
      */
+    @Field(names = {"feb_hybrid_id"})
     public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }

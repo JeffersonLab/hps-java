@@ -1,5 +1,9 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
@@ -9,6 +13,8 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
+@Table(names = {"svt_t0_shifts"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtT0Shift extends AbstractSvtT0Shift {
 
     public static class SvtT0ShiftCollection extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<SvtT0Shift> {
@@ -38,7 +44,8 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
      * 
      * @return The FEB ID.
      */
-    int getFebID() {
+    @Field(names = {"feb_id"})
+    public int getFebID() {
         return getFieldValue("feb_id");
     }
 
@@ -47,7 +54,8 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
      *
      * @return The FEB hybrid ID.
      */
-    int getFebHybridID() {
+    @Field(names = {"feb_hybrid_id"})
+    public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
 }

@@ -1,7 +1,10 @@
 package org.hps.conditions.svt;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
@@ -10,6 +13,8 @@ import org.hps.util.Pair;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
+@Table(names = {"svt_daq_map"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
 
     public static class SvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
@@ -95,14 +100,17 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
         }
     }
 
+    @Field(names = {"feb_id"})
     public int getFebID() {
         return getFieldValue("feb_id");
     }
 
+    @Field(names = {"feb_hybrid_id"})
     public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
 
+    @Field(names = {"side"})
     public String getSide() {
         return getFieldValue("side");
     }

@@ -2,9 +2,6 @@ package org.hps.conditions.ecal;
 
 import java.util.logging.Logger;
 
-import org.lcsim.conditions.ConditionsConverter;
-import org.lcsim.conditions.ConditionsManager;
-import org.lcsim.util.log.LogUtil;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
@@ -13,6 +10,9 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
 import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 import org.hps.conditions.svt.AbstractSvtConditionsConverter;
+import org.lcsim.conditions.ConditionsConverter;
+import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This class loads all ECal conditions into an {@link EcalConditions} object
@@ -22,19 +22,39 @@ import org.hps.conditions.svt.AbstractSvtConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public final class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
+public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
 
     static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
     
+    protected EcalChannelCollection getEcalChannelCollection(DatabaseConditionsManager manager) {
+        return manager.getCollection(EcalChannelCollection.class);
+    }
+    
+    protected EcalGainCollection getEcalGainCollection(DatabaseConditionsManager manager) {
+        return manager.getCollection(EcalGainCollection.class);
+    }
+    
+    protected EcalBadChannelCollection getEcalBadChannelCollection(DatabaseConditionsManager manager) {
+        return manager.getCollection(EcalBadChannelCollection.class);
+    }
+    
+    protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {
+        return manager.getCollection(EcalCalibrationCollection.class);
+    }
+    
+    protected EcalTimeShiftCollection getEcalTimeShiftCollection(DatabaseConditionsManager manager) {
+        return manager.getCollection(EcalTimeShiftCollection.class);
+    }
+        
     /**
      * Create ECAL conditions object containing all data for the current run.
      */
     public EcalConditions getData(ConditionsManager manager, String name) {
 
-        DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
+        DatabaseConditionsManager databaseConditionsManager = (DatabaseConditionsManager) manager;
 
         // Get the ECal channel map from the conditions database
-        EcalChannelCollection channels = dbConditionsManager.getCollection(EcalChannelCollection.class);
+        EcalChannelCollection channels = getEcalChannelCollection(databaseConditionsManager);
 
         // Create the ECal conditions object that will be used to encapsulate
         // ECal conditions collections
@@ -45,7 +65,7 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
 
         // Get the ECal gains from the conditions database and add them to the
         // conditions set
-        EcalGainCollection gains = dbConditionsManager.getCollection(EcalGainCollection.class);
+        EcalGainCollection gains = getEcalGainCollection(databaseConditionsManager);
         for (EcalGain gain : gains) {
             ChannelId channelId = new ChannelId(new int[] { gain.getChannelId() });
             EcalChannel channel = channels.findChannel(channelId);
@@ -53,20 +73,26 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
         }
 
         // Get the ECal bad channels and add them to the conditions set
+        EcalBadChannelCollection badChannels = null;
         try {
-            EcalBadChannelCollection badChannels = dbConditionsManager.getCollection(EcalBadChannelCollection.class);
+            badChannels = getEcalBadChannelCollection(databaseConditionsManager);
+        } catch (RuntimeException e) {
+            databaseConditionsManager.getLogger().warning(e.getMessage());
+        }
+        if (badChannels != null) {
             for (EcalBadChannel badChannel : badChannels) {
+                if (badChannel == null) {
+                    throw new RuntimeException("The badChannel points to null.");
+                }
                 ChannelId channelId = new ChannelId(new int[] { badChannel.getChannelId() });
                 EcalChannel channel = channels.findChannel(channelId);
                 conditions.getChannelConstants(channel).setBadChannel(true);
             }
-        } catch (RuntimeException e) {
-            logger.warning("A set of bad channels were not found.");
         }
 
         // Get the ECal calibrations from the conditions database and add them
         // to the conditions set.
-        EcalCalibrationCollection calibrations = dbConditionsManager.getCollection(EcalCalibrationCollection.class);
+        EcalCalibrationCollection calibrations = getEcalCalibrationCollection(databaseConditionsManager);
         for (EcalCalibration calibration : calibrations) {
             ChannelId channelId = new ChannelId(new int[] { calibration.getChannelId() });
             EcalChannel channel = channels.findChannel(channelId);
@@ -75,9 +101,9 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
 
         // Get the ECal time shifts from the conditions database and add them to
         // the conditions set.
-        EcalTimeShiftCollection timeShifts = dbConditionsManager.getCollection(EcalTimeShiftCollection.class);
+        EcalTimeShiftCollection timeShifts = getEcalTimeShiftCollection(databaseConditionsManager);
         for (EcalTimeShift timeShift : timeShifts) {
-            ChannelId channelId = new ChannelId(new int[] { timeShift.getChannelId() });
+            ChannelId channelId = new ChannelId(new int[] {timeShift.getChannelId()});
             EcalChannel channel = channels.findChannel(channelId);
             conditions.getChannelConstants(channel).setTimeShift(timeShift);
         }
@@ -93,5 +119,4 @@ public final class EcalConditionsConverter implements ConditionsConverter<EcalCo
     public Class<EcalConditions> getType() {
         return EcalConditions.class;
     }
-
 }

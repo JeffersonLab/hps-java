@@ -2,25 +2,29 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 
 /**
  * <p>
  * Encapsulates an SVT alignment constant, which is an encoded key plus a double
  * value.
- * </p>
  * <p>
  * The format of the keys is ABCDE where:<br>
  * A == half == [1,2]<br>
  * B == alignment type == [1,2]<br>
  * C == unit axis == [1,2,3]<br>
  * DE == module number == [1,10]
- * </p>
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SvtAlignmentConstant extends AbstractConditionsObject {
+@Table(names = "svt_alignments")
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
+public final class SvtAlignmentConstant extends AbstractConditionsObject {
 
-    public static class SvtAlignmentCollection extends AbstractConditionsObjectCollection<SvtAlignmentConstant> {
+    public static class SvtAlignmentConstantCollection extends AbstractConditionsObjectCollection<SvtAlignmentConstant> {
     }
 
     /** Top or bottom half. */
@@ -72,6 +76,7 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * Get the alignment constant's full key with the encoded information.
      * @return the alignment constant's key
      */
+    @Field(names = {"parameter"})
     public String getParameter() {
         return getFieldValue("parameter");
     }
@@ -80,6 +85,7 @@ public class SvtAlignmentConstant extends AbstractConditionsObject {
      * Get the the alignment constant's value which is always a single double.
      * @return the alignment constant's value as a double
      */
+    @Field(names = {"value"})
     public double getValue() {
         return getFieldValue("value");
     }

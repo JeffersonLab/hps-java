@@ -37,7 +37,6 @@ public class ConditionsDriverTest extends TestCase {
         loop.add(new EventMarkerDriver());
         loop.add(new CheckDriver());
         loop.loop(-1);
-        
     }
     
     static class CheckDriver extends Driver {

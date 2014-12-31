@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
+@Table(names = {"test_run_svt_channels"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public final class TestRunSvtChannel extends AbstractSvtChannel {
 
     public static class TestRunSvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
@@ -29,6 +35,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
      * 
      * @return The FPGA ID
      */
+    @Field(names = {"fpga"})
     public int getFpgaID() {
         return getFieldValue("fpga");
     }
@@ -38,6 +45,7 @@ public final class TestRunSvtChannel extends AbstractSvtChannel {
      * 
      * @return The hybrid ID.
      */
+    @Field(names = {"hybrid"})
     public int getHybridID() {
         return getFieldValue("hybrid");
     }

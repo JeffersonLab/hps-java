@@ -17,11 +17,7 @@ public final class QueryBuilder {
 
     private QueryBuilder() {
     }
-    
-    //static String buildSelect(TableMetaData tableMetaData, int collectionId) {  
-    //    return null;
-    //}
-    
+        
     static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");

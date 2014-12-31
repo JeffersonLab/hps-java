@@ -2,6 +2,7 @@ package org.hps.conditions.svt;
 
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 
 /**
@@ -30,6 +31,7 @@ public class AbstractSvtT0Shift extends AbstractConditionsObject {
      * 
      * @return The t0 shift.
      */
+    @Field(names = {"t0_shift"})
     public double getT0Shift() {
         return getFieldValue("t0_shift");
     }

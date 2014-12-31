@@ -8,8 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.conditions.database.ConditionsRecordConverter;
+import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.Field;
 import org.hps.conditions.database.QueryBuilder;
+import org.hps.conditions.database.Table;
 import org.hps.conditions.database.TableMetaData;
 
 /**
@@ -19,6 +23,8 @@ import org.hps.conditions.database.TableMetaData;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+@Table(names = {"conditions"})
+@Converter(converter = ConditionsRecordConverter.class)
 public final class ConditionsRecord extends AbstractConditionsObject {
     
     /**
@@ -157,7 +163,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public void insert() throws ConditionsObjectException {
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(ConditionsRecordCollection.class).get(0);
+        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData("conditions");
         String query = QueryBuilder.buildInsert(tableMetaData.getTableName(), this.getFieldValues());
         //System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
@@ -171,6 +177,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the starting run number.
      * @return The starting run number.
      */
+    @Field(names = {"run_start"})
     public int getRunStart() {
         return getFieldValue("run_start");
     }
@@ -179,6 +186,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the ending run number.
      * @return The ending run number.
      */
+    @Field(names = {"run_end"})
     public int getRunEnd() {
         return getFieldValue("run_end");
     }
@@ -187,6 +195,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the date this record was last updated.
      * @return The date this record was updated.
      */
+    @Field(names = {"updated"})
     public Date getUpdated() {
         return getFieldValue("updated");
     }
@@ -195,6 +204,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the date this record was created.
      * @return The date this record was created.
      */
+    @Field(names = {"created"})
     public Date getCreated() {
         return getFieldValue("created");
     }
@@ -203,6 +213,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the name of the user who created this record.
      * @return The name of the person who created the record.
      */
+    @Field(names = {"created_by"})
     public String getCreatedBy() {
         return getFieldValue("created_by");
     }
@@ -211,6 +222,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the notes.
      * @return The notes about this condition.
      */
+    @Field(names = {"notes"})
     public String getNotes() {
         return getFieldValue("notes");
     }
@@ -221,6 +233,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * "table name".
      * @return The name of the conditions.
      */
+    @Field(names = {"name"})
     public String getName() {
         return getFieldValue("name");
     }
@@ -229,6 +242,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the name of the table containing the actual raw conditions data.
      * @return The name of the table with the conditions data.
      */
+    @Field(names = {"table_name"})
     public String getTableName() {
         return getFieldValue("table_name");
     }
@@ -237,6 +251,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the collection ID, overriding this method from the parent class.
      * @return The collection ID.
      */
+    @Field(names = {"collection_id"})
     public int getCollectionId() {
         return getFieldValue("collection_id");
     }
@@ -245,6 +260,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
      * Get the string tag associated with these conditions.
      * @return The string tag.
      */
+    @Field(names = {"tag"})
     public String getTag() {
         return getFieldValue("tag");
     }

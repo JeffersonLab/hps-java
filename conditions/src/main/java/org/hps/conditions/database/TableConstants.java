@@ -6,23 +6,16 @@ package org.hps.conditions.database;
  * values for conditions data. The actual table names for the conditions data
  * are defined externally in an XML configuration file read by the
  * {@link DatabaseConditionsManager}.
- * </p>
  * <p>
  * It is possible that the key and table names are defined differently in the
  * XML configuration, e.g. if the name of the key is not exactly the same as the
  * table name, but usually they are the same value.
- * </p>
  */
-// FIXME: This should really be called something like "ConditionsKeys" as the
-// table names
-// are found in the XML configuration only.
+// TODO: This should be removed as these names are all used by default and can be overridden if needed.
 public final class TableConstants {
 
     private TableConstants() {
     }
-
-    /** Conditions key for ConditionsRecord. */
-    public static final String CONDITIONS_RECORD = "conditions_records";
 
     /** Conditions key for combined ECal conditions. */
     public static final String ECAL_CONDITIONS = "ecal_conditions";

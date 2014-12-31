@@ -1,9 +1,10 @@
 package org.hps.conditions.svt;
 
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
  * This abstract class provides some of the basic functionality used to access
@@ -47,14 +48,17 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
 
     }
 
+    @Field(names = {"svt_half"})
     public String getSvtHalf() {
         return getFieldValue("svt_half");
     }
 
+    @Field(names = {"layer"})
     public int getLayerNumber() {
         return getFieldValue("layer");
     }
 
+    @Field(names = {"orientation"})
     public String getOrientation() {
         return getFieldValue("orientation");
     }

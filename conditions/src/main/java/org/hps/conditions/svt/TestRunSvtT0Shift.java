@@ -1,5 +1,9 @@
 package org.hps.conditions.svt;
 
+import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
+import org.hps.conditions.database.MultipleCollectionsAction;
+import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
@@ -8,6 +12,8 @@ import org.hps.util.Pair;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
+@Table(names = {"test_run_svt_t0_shifts"})
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
     public static class TestRunSvtT0ShiftCollection extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<TestRunSvtT0Shift> {
@@ -39,7 +45,8 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      * 
      * @return The FPGA ID.
      */
-    int getFpgaID() {
+    @Field(names = {"fpga"})
+    public int getFpgaID() {
         return getFieldValue("fpga");
     }
 
@@ -48,7 +55,8 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
      * 
      * @return The hybrid ID.
      */
-    int getHybridID() {
+    @Field(names = {"hybrid"})
+    public int getHybridID() {
         return getFieldValue("hybrid");
     }
 }

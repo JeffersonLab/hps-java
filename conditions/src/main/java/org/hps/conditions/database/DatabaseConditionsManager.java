@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -29,16 +28,19 @@ import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.EcalDetectorSetup;
+import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
 import org.hps.conditions.svt.SvtConditions;
+import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDetectorSetup;
 import org.hps.conditions.svt.TestRunSvtConditions;
+import org.hps.conditions.svt.TestRunSvtConditionsConverter;
 import org.hps.conditions.svt.TestRunSvtDetectorSetup;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
@@ -47,14 +49,16 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 
 /**
  * <p>
- * This class should be used as the top-level ConditionsManager for database
- * access to conditions data.
- * </p>
+ * This class provides the top-level API for accessing database conditions,
+ * as well as configuring the database connection, initializing all
+ * required components, and loading required converters and table meta data.
+ * It is registered as the global <code>ConditionsManager</code> in the 
+ * constructor.
  * <p>
- * In general, this will be overriding the
- * <code>LCSimConditionsManagerImplementation</code> which is setup from within
- * <code>LCSimLoop</code>.
- * </p>
+ * Differences between Test Run and Engineering Run configurations are handled
+ * automatically.
+ * 
+ * @see org.lcsim.conditions.ConditionsManager
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -62,7 +66,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     protected static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
-    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_dev.xml";
+    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
     protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     protected static final int TEST_RUN_MAX_RUN = 1365;
     
@@ -75,26 +79,40 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
     
     protected String detectorName;
-    protected List<TableMetaData> tableMetaData;
-    protected List<ConditionsConverter> converters;
+    protected String ecalName = "Ecal";
+    protected String svtName = "Tracker";
+    protected EcalDetectorSetup ecalLoader = new EcalDetectorSetup();
+    protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
+    protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
+    
+    protected ConverterRegistry converters = ConverterRegistry.create();
+    protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
+    protected TableRegistry tableRegistry = TableRegistry.create();
+    
     protected File connectionPropertiesFile;
     protected ConnectionParameters connectionParameters;
     protected Connection connection;
     protected boolean isConnected = false;
-    protected ConditionsSeriesConverter conditionsSeriesConverter = new ConditionsSeriesConverter(this);
-    protected boolean isInitialized = false;
+    protected boolean loggedConnectionParameters = false;
+    
+    protected String tag = null;
+
     protected String resourceConfig = null;
     protected File fileConfig = null;
-    protected String ecalName = "Ecal";
-    protected String svtName = "Tracker";
+
+    protected boolean isInitialized = false;
     protected boolean isFrozen = false;
-    protected EcalDetectorSetup ecalLoader = new EcalDetectorSetup();
-    protected TestRunSvtDetectorSetup testRunSvtloader = new TestRunSvtDetectorSetup();
-    protected SvtDetectorSetup svtLoader = new SvtDetectorSetup();
-    protected String tag = null;
-        
+    
+    // Configuration from XML settings.
+    protected boolean setupSvtDetector = true;
+    protected boolean setupEcalDetector = true;
+    protected boolean freezeAfterInitialize = false;
+    protected boolean cacheAllConditions = false;
+            
     /**
      * Class constructor.
+     * Calling this will automatically register this
+     * manager as the global default.
      */
     public DatabaseConditionsManager() {
         logger.setLevel(Level.FINER);
@@ -102,17 +120,21 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         setupConnectionFromSystemProperty();
         ConditionsManager.setDefaultConditionsManager(this);
         this.setRun(-1);
+        for (ConditionsObjectConverter converter : converters.values()) {
+            logger.config("registering converter for " + converter.getType());
+            this.registerConditionsConverter(converter);
+        }
     }
-
+    
     /**
-     * Get the static instance of this class, which must have been registered
-     * first from a call to {@link #register()}.
+     * Get the static instance of this class.
      * @return The static instance of the manager.
      */
     public static DatabaseConditionsManager getInstance() {
 
-        // Perform default setup if necessary.
+        // Is there no manager installed yet?
         if (!ConditionsManager.isSetup()) {
+            // Perform default setup if necessary.
             new DatabaseConditionsManager();
         }
 
@@ -136,21 +158,21 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 connectionParameters = ConnectionParameters.fromResource(chooseConnectionPropertiesResource());
             }
             
-            // Print out connection info to the log.
-            logger.config("opening connection to " + connectionParameters.getConnectionString());
-            logger.config("host " + connectionParameters.getHostname());
-            logger.config("port " + connectionParameters.getPort());
-            logger.config("user " + connectionParameters.getUser());
-            logger.config("database " + connectionParameters.getDatabase());
+            if (!this.loggedConnectionParameters) {
+                // Print out detailed info to the log on first connection.
+                logger.config("opening connection to " + connectionParameters.getConnectionString());
+                logger.config("host " + connectionParameters.getHostname());
+                logger.config("port " + connectionParameters.getPort());
+                logger.config("user " + connectionParameters.getUser());
+                logger.config("database " + connectionParameters.getDatabase());
+                this.loggedConnectionParameters = true;
+            }
 
             // Create the connection using the parameters.
             connection = connectionParameters.createConnection();
-            
-            logger.config("successfuly created connection");
             isConnected = true;
-        } else {
-            logger.info("using existing connection");
-        }
+        } 
+        logger.info("connection opened");
         return connection;
     }
 
@@ -158,14 +180,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Close the database connection.
      */
     public void closeConnection() {
-        logger.info("closing connection");
         if (connection != null) {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                } else {
-                    logger.info("connection was already closed");
-                }
+                } 
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -187,13 +206,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     /**
-     * Get a given collection of the given type from the conditions database.
-     * @param type Class type
-     * @return A collection of objects of the given type from the conditions
-     *         database
+     * Get a given collection of the given type from the conditions database
+     * using the default table name.
+     * @param type The type of the conditions data.
+     * @return A collection of objects of the given type from the conditions database
      */
     public <CollectionType extends AbstractConditionsObjectCollection> CollectionType getCollection(Class<CollectionType> type) {
-        TableMetaData metaData = this.findTableMetaData(type).get(0);
+        TableMetaData metaData = tableRegistry.findByCollectionType(type);
         if (metaData == null) {
             throw new RuntimeException("Table name data for condition of type " + type.getSimpleName() + " was not found.");
         }
@@ -203,10 +222,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     /**
-     * This method catches changes to the detector name and run number. It is
-     * actually called every time an lcsim event is created, so it has internal
-     * logic to figure out if the conditions system actually needs to be
-     * updated.
+     * This method handles changes to the detector name and run number.
+     * It is called every time an LCSim event is created, and so it has 
+     * internal logic to figure out if the conditions system actually
+     * needs to be updated.
      */
     @Override
     public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
@@ -215,22 +234,22 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new IllegalArgumentException("The detectorName argument is null.");
         }
         
-        logger.finest("setDetector - detector " + detectorName + " and run #" + runNumber);
+        //logger.finest("setDetector - detector " + detectorName + " and run #" + runNumber);
         
         if (!isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
-            if (!isInitialized) {
-                logger.fine("first time initialization");
-            }
+            //if (!isInitialized) {
+            //    logger.fine("first time initialization");
+            //}
             if (!this.isFrozen) {
-                if (!detectorName.equals(this.getDetector())) {
-                    logger.finest("detector name is different");
-                }
-                if (runNumber != this.getRun()) {
-                    logger.finest("run number is different");
-                }            
+                //if (!detectorName.equals(this.getDetector())) {
+                //    logger.finest("detector name is different");
+                //}
+                //if (runNumber != this.getRun()) {
+                //    logger.finest("run number is different");
+                //}            
                 logger.info("new detector " + detectorName + " and run #" + runNumber);
-                logger.fine("old detector " + this.getDetector() + " and run #" + this.getRun());
-                
+                //logger.fine("old detector " + this.getDetector() + " and run #" + this.getRun());
+             
                 initialize(detectorName, runNumber);
             } else {
                 logger.finest("Conditions changed but will be ignored because manager is frozen.");
@@ -238,83 +257,120 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
     }
     
+    /**
+     * Utility method to determine if a run number is from the 2012 Test Run.
+     * @param runNumber The run number.
+     * @return True if run number is from the Test Run.
+     */
     public static boolean isTestRun(int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
     }
     
+    /**
+     * True if the current run number is from the Test Run.
+     * @return True if current run is from the Test Run.
+     */
     public boolean isTestRun() {
         return isTestRun(this.getRun());
     }
     
     /**
      * Perform all necessary initialization, including setup of the XML
-     * configuration and opening a connection to the database.
+     * configuration and loading of conditions onto the Detector.
      */
     protected void initialize(String detectorName, int runNumber) throws ConditionsNotFoundException {
 
-        logger.config("initializing " + getClass().getSimpleName() + " with detector " + detectorName + " and run number " + runNumber);
+        logger.config("initializing with detector " + detectorName + " and run number " + runNumber);
 
-        // Did the user not specify a config?
+        // Did the user not specify a specific configuration?
         if (resourceConfig == null && fileConfig == null) {
-            // We will try to pick a reasonable config based on the run number...
+            // We will try to pick a reasonable configuration based on the run number.
             if (runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN) {
-                // This looks like the Test Run so use the custom config for it.
+                // This looks like the Test Run so use the custom configuration for it.
                 this.resourceConfig = DatabaseConditionsManager.TEST_RUN_CONFIG;
                 logger.config("using test run XML config " + this.resourceConfig);
             } else { 
-                // This is probably the Engineering Run or later so use the default config.
+                // This is probably the Engineering Run or later so use the default configuration.
                 this.resourceConfig = DatabaseConditionsManager.DEFAULT_CONFIG;
                 logger.config("using default XML config " + this.resourceConfig);
             }
         }
         
+        // Is there both a resource and file configuration specified?
         if (resourceConfig != null && fileConfig != null) {
+            // It is an error if both of these have been set externally.
             throw new RuntimeException("Both resource and file configuration are set.");
         }
                 
         if (this.resourceConfig != null) {
+            // Load the resource configuration.
             this.configure(getClass().getResourceAsStream(this.resourceConfig));
         } else if (this.fileConfig != null) {
             try {
+                // Load the file configuration.
                 this.configure(new FileInputStream(this.fileConfig));
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
         
-        // Open the database connection.
-        if (!isConnected()) {
-            openConnection();
+        // Is this run number from the Test Run?
+        if (isTestRun(runNumber)) {
+            // Load Test Run specific converters.
+            this.registerConditionsConverter(new TestRunSvtConditionsConverter());
+            this.registerConditionsConverter(new TestRunEcalConditionsConverter());
         } else {
-            logger.config("using existing connection " + connectionParameters.getConnectionString());
+            // Load the default converters.
+            this.registerConditionsConverter(new SvtConditionsConverter());
+            this.registerConditionsConverter(new EcalConditionsConverter());
         }
-        
+                
         // Call the super class's setDetector method to construct the detector object.
         super.setDetector(detectorName, runNumber);
         
-        // Load conditions onto the ECAL subdetector object. 
-        try {
-            setupEcal();
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.log(Level.WARNING, "Error loading ECAL conditions onto detector.", e);
+        // Should all conditions sets be pre-cached?
+        if (this.cacheAllConditions) {
+            // Cache the conditions sets of all registered converters.
+            logger.info("precaching all conditions sets ...");
+            this.cacheConditionsSets();
         }
         
-        // Load conditions onto the SVT subdetector object.
-        try {
-            setupSvt(runNumber);
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.log(Level.WARNING, "Error loading SVT conditions onto detector.", e);
-        }                       
+        // Should the ECAL detector be setup with conditions data?
+        if (this.setupEcalDetector) {
+            try {
+                // Load conditions onto the ECAL subdetector object. 
+                setupEcal();
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.log(Level.WARNING, "Error loading ECAL conditions onto detector.", e);
+            }
+        }
+        
+        // Should the SVT detector be setup with conditions data? 
+        if (this.setupSvtDetector) {
+            try {
+                // Load conditions onto the SVT subdetector object.
+                setupSvt(runNumber);
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.log(Level.WARNING, "Error loading SVT conditions onto detector.", e);
+            }                 
+        }
                        
         this.isInitialized = true;
 
-        logger.config(getClass().getSimpleName() + " is initialized");
+        logger.config("conditions system initialized successfully");
+        
+        // Should the conditions system be frozen now?
+        if (this.freezeAfterInitialize) {
+            logger.info("executing freeze after initialize");
+            // Freeze the conditions system so subsequent updates will be ignored.
+            this.freeze();
+        }
     }
     
     /**
-     * Get the current lcsim compact <code>Detector</code> object.
+     * Get the current LCSim compact <code>Detector</code> object.
      * @return The detector object.
      */
     public Detector getDetectorObject() {
@@ -365,7 +421,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
     
     /**
-     * Set the connection parameters to the conditions database.
+     * Set the connection parameters of the conditions database.
      * @param connectionParameters The connection parameters.
      */
     public void setConnectionParameters(ConnectionParameters connectionParameters) {
@@ -386,9 +442,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
-    // TODO: If there are no records in the table, this method should simply return 1.  (for first collection)
     public int getNextCollectionID(String tableName) {
-        TableMetaData tableData = findTableMetaData(tableName);
+        TableMetaData tableData = tableRegistry.findByTableName(tableName);
         if (tableData == null)
             throw new IllegalArgumentException("There is no meta data for table " + tableName);
         ResultSet resultSet = selectQuery("SELECT MAX(collection_id)+1 FROM " + tableName);
@@ -431,44 +486,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             return false;
         }
     }
-
-    /**
-     * Get the list of table meta data.
-     * @return The list of table meta data.
-     */
-    public List<TableMetaData> getTableMetaDataList() {
-        return tableMetaData;
-    }
-
-    /**
-     * Find a table's meta data by key.
-     * @param name The name of the table.
-     * @return The table's meta data or null if does not exist.
-     */
-    public TableMetaData findTableMetaData(String name) {
-        for (TableMetaData meta : tableMetaData) {
-            if (meta.getKey().equals(name)) {
-                return meta;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Find meta data by collection class type.
-     * @param type The collection class.
-     * @return The table meta data.
-     */
-    public List<TableMetaData> findTableMetaData(Class type) {
-        List<TableMetaData> metaDataList = new ArrayList<TableMetaData>();
-        for (TableMetaData meta : tableMetaData) {
-            if (meta.getCollectionClass().equals(type)) {
-                metaDataList.add(meta);
-            }
-        }
-        return metaDataList;
-    }
-
+   
     /**
      * This method can be used to perform a database SELECT query.
      * @param query The SQL query string.
@@ -536,7 +554,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The set of matching conditions records.
      */
     public ConditionsRecordCollection findConditionsRecords(String name) {
-        ConditionsRecordCollection runConditionsRecords = getConditionsData(ConditionsRecordCollection.class, TableConstants.CONDITIONS_RECORD);
+        ConditionsRecordCollection runConditionsRecords = this.getCollection(ConditionsRecordCollection.class);
         logger.fine("searching for condition " + name + " in " + runConditionsRecords.size() + " records");
         ConditionsRecordCollection foundConditionsRecords = new ConditionsRecordCollection();
         for (ConditionsRecord record : runConditionsRecords) {
@@ -555,45 +573,82 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
         return foundConditionsRecords;
     }
-    
+
+    /**
+     * Get a list of all the ConditionsRecord objects.
+     * @return The list of all the ConditionsRecord objects.
+     */
     public ConditionsRecordCollection getConditionsRecords() {
         ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
-        for (TableMetaData tableMetaData : this.getTableMetaDataList()) {
-            ConditionsRecordCollection foundConditionsRecords = findConditionsRecords(tableMetaData.getKey());
-            conditionsRecords.addAll(foundConditionsRecords); 
+        for (TableMetaData tableMetaData : tableRegistry.values()) {
+            try {
+                ConditionsRecordCollection foundConditionsRecords = findConditionsRecords(tableMetaData.getKey());
+                conditionsRecords.addAll(foundConditionsRecords); 
+            } catch (Exception e) {
+                logger.warning(e.getMessage());
+            }
         }        
         return conditionsRecords;
     }
     
+    /**
+     * This method can be called to "freeze" the conditions system so that
+     * any subsequent updates to run number or detector name will be ignored.
+     */
     public void freeze() {
         if (this.getDetector() != null && this.getRun() != -1) {
             this.isFrozen = true;
-            logger.config("The conditions manager has been frozen and will ignore subsequent updates until unfrozen.");
+            logger.config("The conditions system has been frozen and will ignore subsequent updates.");
         } else {
-            logger.warning("The conditions manager cannot be frozen now because detector or run number are not valid.");
+            logger.warning("The conditions system cannot be frozen now because it is not initialized yet.");
         }
     }
     
+    /**
+     * Un-freeze the conditions system so that updates will be received again.
+     */
     public void unfreeze() {
         this.isFrozen = false;
     }
     
+    /**
+     * True if conditions system is frozen.
+     * @return True if conditions system is frozen.
+     */
     public boolean isFrozen() {
         return this.isFrozen;
     }
     
+    /**
+     * Set the name of the ECAL sub-detector.
+     * @param ecalName The name of the ECAL.
+     */
     public void setEcalName(String ecalName) {
         this.ecalName = ecalName;
     }
     
+    /**
+     * Set the name of the SVT sub-detector.
+     * @param svtName The name of the SVT.
+     */
     public void setSvtName(String svtName) {
         this.svtName = svtName;
     }
     
+    /**
+     * Set a tag used to filter ConditionsRecords.
+     * @param tag The tag value used to filter ConditionsRecords.
+     */
     public void setTag(String tag) {
         this.tag = tag;
     }
 
+    /**
+     * Insert a collection of ConditionsObjects into the database.
+     * @param collection The collection to insert.
+     * @throws SQLException If there is a database error.
+     * @throws ConditionsObjectException If there is a problem with the ConditionsObjects.
+     */
     public <ObjectType extends ConditionsObject> void insertCollection(AbstractConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
                 
         if (collection == null) {
@@ -605,15 +660,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         TableMetaData tableMetaData = collection.getTableMetaData();
         if (tableMetaData == null) {            
-            List<TableMetaData> tableMetaDataList = this.findTableMetaData(collection.getClass()); 
-            if (tableMetaDataList.size() == 0) {
-                throw new ConditionsObjectException("The conditions object collection is missing table meta data and none could be found by the conditions manager.");
-            } else {
-                // Use a default meta data object from the manager.
-                tableMetaData = tableMetaDataList.get(0);
-                collection.setTableMetaData(tableMetaData);
-                logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());
-            }
+            tableMetaData = tableRegistry.findByCollectionType(collection.getClass()); 
+            logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());
         }
         if (collection.getCollectionId() == -1) {
             try {
@@ -667,25 +715,66 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         closeConnection();
     }
     
-    /*
-    public void selectCollection(AbstractConditionsObjectCollection collection) throws ConditionsObjectException {
-        int collectionId = collection.getCollectionId();
-        if (collectionId == -1) {
-            throw new ConditionsObjectException("Missing collection ID for select query.");
-        }
-        TableMetaData tableMetaData = collection.getTableMetaData();
-        String tableName = null;
-        if (tableMetaData != null) {
-            tableName = tableMetaData.getTableName();
-        } else {
-            List<TableMetaData> metaList = this.findTableMetaData(collection.getClass());
-            if (metaList.size() == 0) {
-                throw new ConditionsObjectException("Could not find meta data for collection with type " + collection.getClass().getCanonicalName());
-            }
-        }  
+    /**
+     * Check if connected to the database.
+     * @return true if connected
+     */
+    public boolean isConnected() {
+        return isConnected;
     }
-    */
+    
+    /**
+     * Get the default detector name for the Test Run.
+     * @return The default detector name for the Test Run.
+     */
+    public static String getDefaultTestRunDetectorName() {
+        return DEFAULT_TEST_RUN_DETECTOR;
+    }
+    
+    /**
+     * Get the default detector name for the Engineering Run.
+     * @return The default detector name for the Engineering Run.
+     */
+    public static String getDefaultEngRunDetectorName() {
+        return DEFAULT_ENG_RUN_DETECTOR;
+    }
+        
+    /**
+     * Get the Logger for this class, which can be used by related sub-classes
+     * if they do not have their own logger.
+     * @return The Logger for this class.
+     */
+    public Logger getLogger() {
+        return logger;
+    }
+    
+    /**
+     * Find table information from the name.
+     * @param name The name of the table.
+     * @return The table information or null if does not exist.
+     */
+    public TableMetaData findTableMetaData(String name) {
+        return this.tableRegistry.findByTableName(name);
+    }
+    
+    /**
+     * Find table information from the collection type.
+     * @param type The collection type.
+     * @return The table information or null if does not exist.
+     */
+    public TableMetaData findTableMetaData(Class<?> type) {
+        return this.tableRegistry.findByCollectionType(type);
+    }
+
+    /*
+     *******************************
+     * Private methods below here. *
+     *******************************
+     */
                       
+    /**
+     * Setup the ECAL subdetector with conditions information.
+     */
     private void setupEcal() {
         logger.config("setting up ECAL conditions on detector");
         EcalConditions conditions = getCachedConditions(EcalConditions.class, ECAL_CONDITIONS).getCachedData();
@@ -693,6 +782,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.fine("done setting up ECAL conditions on detector");
     }
     
+    /**
+     * Set the SVT subdetector with conditions information.
+     * @param runNumber The run number.
+     */
     private void setupSvt(int runNumber) {
         if (isTestRun(runNumber)) {
             logger.config("loading Test Run SVT detector conditions");
@@ -707,29 +800,25 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
     
     /**
-     * Check if connected to the database.
-     * @return true if connected
+     * Cache conditions sets for all known tables.
      */
-    public boolean isConnected() {
-        return isConnected;
-    }
-    
-    public static String getDefaultTestRunDetectorName() {
-        return DEFAULT_TEST_RUN_DETECTOR;
-    }
-    
-    public static String getDefaultEngRunDetectorName() {
-        return DEFAULT_ENG_RUN_DETECTOR;
-    }
-    
-    public void addTableMetaData(TableMetaData tableMetaData) {
-        this.tableMetaData.add(tableMetaData);
-    }
-    
-    public Logger getLogger() {
-        return logger;
-    }
+    private void cacheConditionsSets() {
+        for (TableMetaData meta : tableRegistry.values()) {
+            try {
+                logger.fine("caching conditions " + meta.key + " with type "+ meta.collectionClass.getCanonicalName());
+                this.getCachedConditions(meta.collectionClass, meta.key);
+            } catch (Exception e) {
+                logger.warning("could not cache conditions " + meta.key);
+            }
+        }
+     }
         
+    /**
+     * Choose whether to use the JLAB or SLAC external database
+     * and return a connection properties resource with the appropriate
+     * connection information.
+     * @return The connection properties resource.
+     */
     private String chooseConnectionPropertiesResource() {
         String connectionName = "slac";
         try {
@@ -757,14 +846,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         // Create XML document from stream.
         Document config = createDocument(in);
-
-        // Load the table meta data.
-        loadTableMetaData(config);
-
-        // Load the converter classes.
-        loadConverters(config);
+        
+        loadConfiguration(config);
     }
-
+    
     /**
      * Create an XML document from an <code>InputStream</code>.
      * @param in The InputStream.
@@ -780,41 +865,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new RuntimeException(e);
         }
         return config;
-    }
-
-    /**
-     * Load data converters from an XML document.
-     * @param config The XML document.
-     */
-    private void loadConverters(Document config) {
-
-        if (this.converters != null) {
-            this.converters.clear();
-        }
-
-        // Load the list of converters from the "converters" section of the config document.
-        loadConditionsConverters(config.getRootElement().getChild("converters"));
-
-        // Register the list of converters with this manager.
-        for (ConditionsConverter converter : converters) {
-            registerConditionsConverter(converter);
-            logger.config("registered converter " + converter.getClass().getSimpleName());
-        }
-    }
-
-    /**
-     * Load table meta data configuration from an XML document.
-     * @param config The XML document.
-     */
-    private void loadTableMetaData(Document config) {
-
-        if (this.tableMetaData != null) {
-            this.tableMetaData.clear();
-        }
-
-        // Load table meta data from the "tables" section of the config document.
-        loadTableMetaData(config.getRootElement().getChild("tables"));
-    }
+    }    
 
     /**
      * Setup the database connection from a file specified by a Java system
@@ -833,83 +884,34 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     /**
-     * Load table meta data from the XML list.
-     * @param element The XML node containing a list of table elements.
+     * Load configuration information from an XML document.
+     * @param document The XML document.
      */
-    @SuppressWarnings("unchecked")
-    void loadTableMetaData(Element element) {
-
-        tableMetaData = new ArrayList<TableMetaData>();
-
-        for (Iterator<?> iterator = element.getChildren("table").iterator(); iterator.hasNext();) {
-            Element tableElement = (Element) iterator.next();
-            String tableName = tableElement.getAttributeValue("name");
-            String key = tableElement.getAttributeValue("key");
-
-            Element classesElement = tableElement.getChild("classes");
-            Element classElement = classesElement.getChild("object");
-            Element collectionElement = classesElement.getChild("collection");
-
-            String className = classElement.getAttributeValue("class");
-            String collectionName = collectionElement.getAttributeValue("class");
-
-            Class<? extends ConditionsObject> objectClass;
-            Class<?> rawObjectClass;
-            try {
-                rawObjectClass = Class.forName(className);
-                if (!ConditionsObject.class.isAssignableFrom(rawObjectClass)) {
-                    throw new RuntimeException("The class " + rawObjectClass.getSimpleName() + " does not extend ConditionsObject.");
-                }
-                objectClass = (Class<? extends ConditionsObject>) rawObjectClass;
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-
-            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
-            Class<?> rawCollectionClass;
-            try {
-                rawCollectionClass = Class.forName(collectionName);
-                if (!AbstractConditionsObjectCollection.class.isAssignableFrom(rawCollectionClass))
-                    throw new RuntimeException("The class " + rawCollectionClass.getSimpleName() + " does not extend ConditionsObjectCollection.");
-                collectionClass = (Class<? extends AbstractConditionsObjectCollection<?>>) rawCollectionClass;
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-
-            TableMetaData tableData = new TableMetaData(key, tableName, objectClass, collectionClass);
-            Element fieldsElement = tableElement.getChild("fields");
-            for (Iterator<?> fieldsIterator = fieldsElement.getChildren("field").iterator(); fieldsIterator.hasNext();) {
-                Element fieldElement = (Element) fieldsIterator.next();
-                String fieldName = fieldElement.getAttributeValue("name");
-                tableData.addField(fieldName);
-            }
-
-            tableMetaData.add(tableData);
+    private void loadConfiguration(Document document) {
+        
+        Element node = document.getRootElement().getChild("configuration");
+        
+        if (node == null)
+            return;
+        
+        Element element = node.getChild("setupSvtDetector");
+        if (element != null) {
+            this.setupSvtDetector = Boolean.parseBoolean(element.getText());
         }
-    }
-
-    /**
-     * Load conditions converters from the XML list.
-     * @param element The node with a list of child converter elements.
-     */
-    private void loadConditionsConverters(Element element) {
-        converters = new ArrayList<ConditionsConverter>();
-        for (Iterator iterator = element.getChildren("converter").iterator(); iterator.hasNext();) {
-            Element converterElement = (Element) iterator.next();
-            try {
-                Class converterClass = Class.forName(converterElement.getAttributeValue("class"));
-                if (ConditionsConverter.class.isAssignableFrom(converterClass)) {
-                    try {
-                        converters.add((ConditionsConverter) converterClass.newInstance());
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    throw new RuntimeException("The converter class " + converterClass.getSimpleName() + " does not extend the correct base type.");
-                }
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        
+        element = node.getChild("setupEcalDetector");
+        if (element != null) {
+            this.setupEcalDetector = Boolean.parseBoolean(element.getText());
+        }
+        
+        element = node.getChild("freezeAfterInitialize");
+        if (element != null) {
+            this.freezeAfterInitialize = Boolean.parseBoolean(element.getText());
+        }
+        
+        element = node.getChild("cacheAllCondition");
+        if (element != null) {
+            this.cacheAllConditions = Boolean.parseBoolean(element.getText());
         }
     }
 }

@@ -2,6 +2,10 @@ package org.hps.conditions.svt;
 
 import org.lcsim.conditions.ConditionsManager;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
+import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
+import org.hps.conditions.svt.SvtGain.SvtGainCollection;
+import org.hps.conditions.svt.SvtShapeFitParameters.SvtShapeFitParametersCollection;
 import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
 import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
 import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
@@ -10,6 +14,22 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
 
     public TestRunSvtConditionsConverter() {
         this.conditions = new TestRunSvtConditions();
+    }
+    
+    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "test_run_svt_shape_fit_parameters").getCachedData();
+    }
+    
+    protected SvtBadChannelCollection getSvtBadChannelCollection(DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtBadChannelCollection.class, "test_run_svt_bad_channels").getCachedData();
+    }
+    
+    protected SvtCalibrationCollection getSvtCalibrationCollection(DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtCalibrationCollection.class, "test_run_svt_calibrations").getCachedData();
+    }
+    
+    protected SvtGainCollection getSvtGainCollection(DatabaseConditionsManager manager) {
+        return manager.getCachedConditions(SvtGainCollection.class, "test_run_svt_gains").getCachedData();
     }
 
     /**
