@@ -22,12 +22,17 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
+                        <exclude>org/hps/conditions/beam/BeamCurrentTest.java</exclude>
+                        <exclude>org/hps/conditions/database/TableRegistryTest.java</exclude>
+                        <exclude>org/hps/conditions/database/ConverterRegistryTest.java</exclude>
+                        <exclude>org/hps/conditions/ecal/EcalDetectorSetupTest.java</exclude>
+                        <exclude>org/hps/conditions/ecal/EcalLedTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtBadChannelTest.java</exclude>
-                        <exclude>org/hps/conditions/svt/SvtGainInsertTest.java</exclude>
                         <exclude>org/hps/conditions/svt/SvtDetectorSetupTest.java</exclude> 
                         <exclude>org/hps/conditions/svt/SvtConfigurationTest.java</exclude>
-                        <exclude>org/hps/conditions/ConditionsSeriesConverterTest.java</exclude>
-                        <exclude>org/hps/conditions/api/AbstractConditionsObjectCollectionTest.java</exclude>
+                        <exclude>org/hps/conditions/svt/SvtDaqMappingTest.java</exclude>
+                        <exclude>org/hps/conditions/svt/TestRunSvtConditionsConverterTest.java</exclude>
+                        <exclude>org/hps/conditions/svt/TestRunSvtDaqMappingTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -46,6 +51,10 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.26</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
         </dependency>
     </dependencies>
 </project>
