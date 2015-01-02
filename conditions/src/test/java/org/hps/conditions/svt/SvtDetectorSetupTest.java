@@ -52,8 +52,8 @@ public class SvtDetectorSetupTest extends TestCase {
         SvtConditions conditions = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
 
         // Load the SVT conditions onto detector.
-        SvtDetectorSetup loader = new SvtDetectorSetup();
-        loader.load(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
+        SvtDetectorSetup loader = new SvtDetectorSetup("Tracker");
+        loader.loadDefault(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
 
         // Check sensor data.
         List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);

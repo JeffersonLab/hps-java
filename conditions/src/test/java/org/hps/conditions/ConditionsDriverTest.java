@@ -25,8 +25,6 @@ public class ConditionsDriverTest extends TestCase {
                     
         ConditionsDriver conditionsDriver = new ConditionsDriver();
         conditionsDriver.setDetectorName("HPS-TestRun-v5");
-        conditionsDriver.setEcalName("Ecal");
-        conditionsDriver.setSvtName("Tracker");        
         conditionsDriver.setTag("test_run");
         conditionsDriver.setRunNumber(1351);
         conditionsDriver.setFreeze(true);

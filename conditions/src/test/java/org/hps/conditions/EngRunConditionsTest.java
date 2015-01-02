@@ -32,7 +32,9 @@ import org.lcsim.util.loop.LCSimLoop;
  * This tests the basic correctness of conditions for an LCIO file generated from Engineering Run data.
  * <p>
  * Currently only ECAL conditions are handled here but SVT should be added once that information is in the
- * prod database.
+ * production database and there are runs available with Tracker data.
+ * <p>
+ * This test will need to be updated if the default conditions sets are changed for the EngRun.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -47,7 +49,8 @@ public class EngRunConditionsTest extends TestCase {
     
     public void test() throws Exception {
         
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        manager.setXmlConfig("/org/hps/conditions/config/conditions_database_engrun.xml");
         
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL(url));

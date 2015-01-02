@@ -52,7 +52,7 @@ public class EcalDetectorSetupTest extends TestCase {
         EcalConditions conditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
 
         // Load conditions onto detector.
-        EcalDetectorSetup loader = new EcalDetectorSetup();
+        EcalDetectorSetup loader = new EcalDetectorSetup("Ecal");
         loader.load(detector.getSubdetector("Ecal"), conditions);
 
         // Get crystals from detector.

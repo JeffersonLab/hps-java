@@ -18,7 +18,7 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This test checks the beam current values by run.
+ * This test checks the Test Run beam current values by run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class BeamCurrentTest extends TestCase {

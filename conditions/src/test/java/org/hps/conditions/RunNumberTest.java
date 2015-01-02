@@ -43,7 +43,7 @@ public class RunNumberTest extends TestCase {
 
         // Create the record loop.
         new DatabaseConditionsManager();
-        //DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
+        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
         LCSimLoop loop = new LCSimLoop();
 
         // Configure the loop.
