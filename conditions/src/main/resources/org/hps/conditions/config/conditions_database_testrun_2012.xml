@@ -1,5 +1,6 @@
 <conditions_database>
     <configuration>
+        <isTestRun>true</isTestRun>
         <setupSvtDetector>true</setupSvtDetector>
         <setupEcalDetector>true</setupEcalDetector>
         <cacheAllConditions>false</cacheAllConditions>
