@@ -163,7 +163,7 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public void insert() throws ConditionsObjectException {
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData("conditions");
+        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(ConditionsRecord.class);
         String query = QueryBuilder.buildInsert(tableMetaData.getTableName(), this.getFieldValues());
         //System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
