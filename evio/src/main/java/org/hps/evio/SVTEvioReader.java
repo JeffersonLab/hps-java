@@ -1,10 +1,18 @@
 package org.hps.evio;
 
+import static org.hps.evio.EventConstants.SVT_BANK_TAG;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.deprecated.HPSSVTConstants;
+//import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.SVTData;
+import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -15,17 +23,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.deprecated.HPSSVTConstants;
-import org.hps.conditions.svt.TestRunSvtConditions;
-import org.hps.conditions.svt.TestRunSvtDetectorSetup;
-//import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.readout.svt.FpgaData;
-import org.hps.readout.svt.SVTData;
-import org.hps.util.Pair;
-
-import static org.hps.conditions.database.TableConstants.SVT_CONDITIONS;
-import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
 /**
  *
@@ -64,11 +61,12 @@ public class SVTEvioReader extends EvioReader {
     
     // TODO: Move this class to the DaqMapping class instead
     private void setupDaqMap(Subdetector subdetector){
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         
-        TestRunSvtConditions conditions = manager.getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();
-        TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
-        loader.load(subdetector, conditions); 
+        // FIXME: Why is this setup code here? --JM
+        //DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        //TestRunSvtConditions conditions = manager.getCachedConditions(TestRunSvtConditions.class, SVT_CONDITIONS).getCachedData();
+        //TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
+        //loader.load(subdetector, conditions); 
     	
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
     	
