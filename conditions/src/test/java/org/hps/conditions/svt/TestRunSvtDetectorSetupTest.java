@@ -5,8 +5,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.svt.TestRunSvtConditions;
-import org.hps.conditions.svt.TestRunSvtDetectorSetup;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.Detector;
 
@@ -46,13 +44,6 @@ public class TestRunSvtDetectorSetupTest extends TestCase {
 
         // Get the detector.
         Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
-
-        // Get all test run SVT conditions.
-        TestRunSvtConditions conditions = conditionsManager.getCachedConditions(TestRunSvtConditions.class, "svt_conditions").getCachedData();
-
-        // Load the test run SVT conditions onto detector.
-        TestRunSvtDetectorSetup loader = new TestRunSvtDetectorSetup();
-        loader.load(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
 
         // Check sensor data.
         List<HpsTestRunSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsTestRunSiSensor.class);

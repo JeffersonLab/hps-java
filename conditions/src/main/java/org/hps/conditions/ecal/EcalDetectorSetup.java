@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
+import org.lcsim.conditions.ConditionsEvent;
+import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.geometry.Subdetector;
@@ -16,13 +19,41 @@ import org.lcsim.util.log.LogUtil;
  * detector.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class EcalDetectorSetup {
+public final class EcalDetectorSetup implements ConditionsListener {
 
-    static Logger logger = LogUtil.create(EcalDetectorSetup.class);
+    private static Logger logger = LogUtil.create(EcalDetectorSetup.class);
+    
+    private String ecalName = "Ecal";
+    private boolean enabled = true;
+    
+    public EcalDetectorSetup(String ecalName) {
+        this.ecalName = ecalName;
+    }
     
     public void setLogLevel(Level level) {
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
+    }
+    
+    public void setEcalName(String ecalName) {
+        this.ecalName = ecalName;
+    }
+    
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
+    @Override
+    public void conditionsChanged(ConditionsEvent event) {
+        if (enabled) {
+            logger.info("setting up ECAL detector conditions");
+            DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
+            Subdetector subdetector = manager.getDetectorObject().getSubdetector(ecalName); 
+            EcalConditions conditions = manager.getConditionsData(EcalConditions.class, "ecal_conditions");
+            load(subdetector, conditions);
+        } else {
+            
+        }
     }
         
     /**
@@ -30,7 +61,7 @@ public final class EcalDetectorSetup {
      * @param detector The detector object.
      * @param conditions The conditions object.
      */
-    public void load(Subdetector subdetector, EcalConditions conditions) {
+    void load(Subdetector subdetector, EcalConditions conditions) {
 
         logger.info("loading ECAL conditions onto subdetector " + subdetector.getName());
         
