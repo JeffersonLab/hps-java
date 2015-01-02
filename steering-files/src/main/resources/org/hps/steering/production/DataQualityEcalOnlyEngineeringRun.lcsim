@@ -7,6 +7,8 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="EcalMonitoring"/>
+        <driver name="EcalMonitoringIC"/>
+        <driver name="EcalMonitoringGTP"/>
         <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -18,6 +20,17 @@
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
         <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <overwriteDB>false</overwriteDB>
+        </driver> 
+    <driver name="EcalMonitoringIC" type="org.hps.analysis.dataquality.EcalMonitoring">
+         <clusterCollectionName>EcalClustersIC</clusterCollectionName>
+         <fillHitPlots>false</fillHitPlots>
+            <overwriteDB>false</overwriteDB>
+        </driver> 
+    <driver name="EcalMonitoringGTP" type="org.hps.analysis.dataquality.EcalMonitoring">
+            <clusterCollectionName>EcalClustersGTP</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
             <overwriteDB>false</overwriteDB>
         </driver> 
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
