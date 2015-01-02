@@ -9,6 +9,5 @@ public enum MultipleCollectionsAction {
     LAST_UPDATED,
     LAST_CREATED,
     LATEST_RUN_START,
-    COMBINE,
     ERROR
 }
