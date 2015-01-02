@@ -1,5 +1,6 @@
 package org.hps.conditions.ecal;
 
+import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
@@ -25,8 +26,8 @@ public final class TestRunEcalConditionsConverter extends EcalConditionsConverte
         return manager.getCachedConditions(EcalGainCollection.class, "test_run_ecal_gains").getCachedData();
     }
     
-    protected EcalBadChannelCollection getEcalBadChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(EcalBadChannelCollection.class, "test_run_ecal_bad_channels").getCachedData();
+    protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(DatabaseConditionsManager manager) {
+        return manager.getConditionsSeries(EcalBadChannelCollection.class, "test_run_ecal_bad_channels");
     }
     
     protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {

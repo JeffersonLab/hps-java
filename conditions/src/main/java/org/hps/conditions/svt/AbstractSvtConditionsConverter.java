@@ -2,6 +2,8 @@ package org.hps.conditions.svt;
 
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
@@ -30,6 +32,10 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
     
     protected SvtBadChannelCollection getSvtBadChannelCollection(DatabaseConditionsManager manager) {
         return manager.getCollection(SvtBadChannelCollection.class);
+    }
+    
+    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(DatabaseConditionsManager manager) {
+        return manager.getConditionsSeries(SvtBadChannelCollection.class);
     }
     
     protected SvtCalibrationCollection getSvtCalibrationCollection(DatabaseConditionsManager manager) {
@@ -65,10 +71,12 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
 
         // Get the bad channels from the conditions database. If there aren't any bad channels, notify the user and move on.
         try {
-            SvtBadChannelCollection badChannels = getSvtBadChannelCollection(dbConditionsManager);
-            for (SvtBadChannel badChannel : badChannels) {
-                AbstractSvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
-                conditions.getChannelConstants(channel).setBadChannel(true);
+            ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> badChannelSeries = getSvtBadChannelSeries(dbConditionsManager);
+            for (ConditionsObjectCollection<SvtBadChannel> badChannelCollection : badChannelSeries) {
+                for (SvtBadChannel badChannel : badChannelCollection) {
+                    AbstractSvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
+                    conditions.getChannelConstants(channel).setBadChannel(true);
+                }
             }
         } catch (RuntimeException e) {
             logger.warning("A set of SVT bad channels was not found.");
