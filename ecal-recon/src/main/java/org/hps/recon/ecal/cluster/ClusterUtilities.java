@@ -20,6 +20,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @see org.lcsim.event.Cluster
  * @see org.lcsim.event.base.BaseCluster
  */
+// TODO: Add method to get MCParticles (see getUniqueMCParticles from BaseCluster).
 public final class ClusterUtilities {
     
     private ClusterUtilities() {        
@@ -90,14 +91,14 @@ public final class ClusterUtilities {
      * @return The hit with the highest energy value.
      */
     public static CalorimeterHit getHighestEnergyHit(Cluster cluster) {
-        double maxEnergy = Double.MIN_VALUE;
-        CalorimeterHit highestEnergyHit = null;
-        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            if (hit.getCorrectedEnergy() > maxEnergy) {
-                highestEnergyHit = hit;
-            }
+        if (cluster.getCalorimeterHits().size() == 1) {
+            return cluster.getCalorimeterHits().get(0);
         }
-        return highestEnergyHit;
+        List<CalorimeterHit> hits = new ArrayList<CalorimeterHit>();
+        hits.addAll(cluster.getCalorimeterHits());
+        Collections.sort(hits, new CalorimeterHit.CorrectedEnergyComparator());
+        Collections.reverse(hits);
+        return hits.get(0);
     }
     
     /**
