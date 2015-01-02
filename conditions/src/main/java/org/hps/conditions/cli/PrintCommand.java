@@ -11,10 +11,9 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.cli.Option;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
-import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
 
@@ -32,9 +31,6 @@ class PrintCommand extends AbstractCommand {
     // Print IDs along with field values. 
     boolean printIDs = false;
     
-    // Print all available conditions sets without disambiguation.
-    boolean printAllAvailable = false;
-
     // Print conditions record and table info (default is yes).
     boolean printHeaders = true;
 
@@ -43,7 +39,7 @@ class PrintCommand extends AbstractCommand {
     
     PrintCommand() {
         super("print", "Print the table data for a conditions set");
-        this.options.addOption(new Option("t", true, "Set the conditions set name"));
+        this.options.addOption(new Option("t", true, "Set the table name"));
         this.options.addOption(new Option("a", false, "Use all available conditions for the run number and key name"));
         this.options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
         this.options.addOption(new Option("f", true, "Write print output to a file"));
@@ -84,11 +80,6 @@ class PrintCommand extends AbstractCommand {
                 System.exit(1);
             }
         }              
-
-        // Print all available conditions with this key and run number and do not disambiguate the collections (e.g. by date).
-        if (this.commandLine.hasOption("a")) {
-            printAllAvailable = true;
-        }
         
         // Print IDs in the output.
         if (this.commandLine.hasOption("i")) {
@@ -125,7 +116,7 @@ class PrintCommand extends AbstractCommand {
         for (String conditionsKey : conditionsKeys) {
                        
             // The list of collections to print.
-            List<AbstractConditionsObjectCollection> collectionList = new ArrayList<AbstractConditionsObjectCollection>();
+            List<ConditionsObjectCollection> collectionList = new ArrayList<ConditionsObjectCollection>();
         
             // Get the table meta data for the conditions key.
             TableMetaData tableMetaData = conditionsManager.findTableMetaData(conditionsKey);
@@ -135,17 +126,10 @@ class PrintCommand extends AbstractCommand {
                 throw new RuntimeException("The table meta data for " + conditionsKey + " does not exist.  The key might be invalid.");
             }
         
-            // Should all available collections be printed?
-            if (printAllAvailable) {
-                // Use all available conditions sets for this run number and key, without performing any disambiguation.
-                ConditionsSeries series = conditionsManager.getConditionsSeries(conditionsKey);
-                collectionList.addAll(series);
-            } else {
-                // Use only the single collection which would be seen by a user job for this run number and key.
-                AbstractConditionsObjectCollection collection = conditionsManager.getCollection(tableMetaData.getCollectionClass());
-                collectionList.add(collection);
-            }
-
+            // Use only the single collection which would be seen by a user job for this run number and key.
+            ConditionsObjectCollection collection = conditionsManager.getCollection(tableMetaData.getCollectionClass());
+            collectionList.add(collection);
+        
             // Print out all the collection data to console or file.
             printCollections(collectionList);
         }   
@@ -153,9 +137,9 @@ class PrintCommand extends AbstractCommand {
         ps.close();
     }
 
-    private void printCollections(List<AbstractConditionsObjectCollection> collectionList) {
+    private void printCollections(List<ConditionsObjectCollection> collectionList) {
         // Loop over all the collections and print them.
-        for (AbstractConditionsObjectCollection collection : collectionList) {
+        for (ConditionsObjectCollection collection : collectionList) {
             if (printHeaders) {
                 printCollectionHeader(collection);
             }
@@ -165,7 +149,7 @@ class PrintCommand extends AbstractCommand {
         }
     }
 
-    private void printCollection(AbstractConditionsObjectCollection collection) {
+    private void printCollection(ConditionsObjectCollection collection) {
         StringBuffer buffer = new StringBuffer();
         for (Object object : collection) {
             for (String columnName : collection.getTableMetaData().getFieldNames()) {
@@ -178,7 +162,7 @@ class PrintCommand extends AbstractCommand {
         ps.print(buffer.toString());
     }
 
-    private void printCollectionHeader(AbstractConditionsObjectCollection collection) {
+    private void printCollectionHeader(ConditionsObjectCollection collection) {
         ps.println("--------------------------------------");
         ps.println();
         ps.println(collection.getConditionsRecord());
