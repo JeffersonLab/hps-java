@@ -15,6 +15,7 @@ import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 
@@ -161,7 +162,7 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
         EventBuilder builder = new EventBuilder(EvioEventConstants.PRESTART_EVENT_TAG, DataType.UINT32, EventConstants.EVENT_BANK_NUM);
         int[] prestartData = new int[3];
         prestartData[0] = EventConstants.MC_TIME; //Unix time in seconds - this value for MC data
-        prestartData[1] = CalibrationDriver.runNumber(); //run number
+        prestartData[1] = ConditionsManager.defaultInstance().getRun(); //run number
         prestartData[2] = 0; //run type
 
         try {
