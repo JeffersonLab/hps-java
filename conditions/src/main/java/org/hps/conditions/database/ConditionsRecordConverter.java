@@ -25,9 +25,13 @@ public class ConditionsRecordConverter extends ConditionsObjectConverter<Conditi
     public ConditionsRecordCollection getData(ConditionsManager manager, String name) {
 
         DatabaseConditionsManager databaseConditionsManager = DatabaseConditionsManager.getInstance();
-
-        // Open the db connection.
-        databaseConditionsManager.openConnection();
+        
+        // Setup connection if necessary.
+        boolean reopenedConnection = false;
+        if (!databaseConditionsManager.isConnected()) {
+            databaseConditionsManager.openConnection();
+            reopenedConnection = true;
+        }
         
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);
 
@@ -58,9 +62,10 @@ public class ConditionsRecordConverter extends ConditionsObjectConverter<Conditi
         // Close the ResultSet and Statement.
         DatabaseUtilities.cleanup(resultSet);
         
-        // Close the db connection.
-        databaseConditionsManager.closeConnection();
-
+        if (reopenedConnection) {
+            databaseConditionsManager.closeConnection();
+        }
+        
         return getType().cast(collection);
     }
 

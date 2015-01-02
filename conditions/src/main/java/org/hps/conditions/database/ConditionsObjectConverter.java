@@ -6,6 +6,7 @@ import java.sql.SQLException;
 
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
@@ -65,93 +66,88 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         // Get the DatabaseConditionsManager which is required for using this converter.
         DatabaseConditionsManager databaseConditionsManager = (DatabaseConditionsManager) conditionsManager;
         
+        // Setup connection if necessary.
+        boolean reopenedConnection = false;
+        if (!databaseConditionsManager.isConnected()) {
+            // Open a connection to the database.
+            databaseConditionsManager.openConnection();
+            reopenedConnection = true;
+        }
+        
         // Get the TableMetaData for the type.
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(getType());    
         
         // Get the ConditionsRecordCollection with the run number assignments.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
-                
-        // The records to use will be added to this collection, which may depend on multiple record disambiguation.
-        ConditionsRecordCollection filteredConditionsRecords = new ConditionsRecordCollection();
+                        
+        // The record with the collection information.
+        ConditionsRecord conditionsRecord = null;
         
-        // Now we need to determine which ConditionsRecord objects to use according to configuration.
+        // Now we need to determine which ConditionsRecord object to use.
         if (conditionsRecords.size() == 0) {
             // No conditions records were found for the key.
+            // FIXME: This should possibly just return an empty collection instead.
             throw new RuntimeException("No conditions were found with key: " + name);
+        } else if (conditionsRecords.size() == 1) {
+            // Use the single conditions set that was found.
+            conditionsRecord = conditionsRecords.get(0);
         } else if (conditionsRecords.size() > 1) {           
             if (multipleCollections.equals(MultipleCollectionsAction.LAST_UPDATED)) {
                 // Use the conditions set with the latest updated date.
-                filteredConditionsRecords.add(conditionsRecords.sortedByUpdated().get(conditionsRecords.size() - 1));
+                conditionsRecord = conditionsRecords.sortedByUpdated().get(conditionsRecords.size() - 1);
             } else if (multipleCollections.equals(MultipleCollectionsAction.LAST_CREATED)){
                 // Use the conditions set with the latest created date.
-                filteredConditionsRecords.add(conditionsRecords.sortedByCreated().get(conditionsRecords.size() - 1));
+                conditionsRecord = conditionsRecords.sortedByCreated().get(conditionsRecords.size() - 1);
             } else if (multipleCollections.equals(MultipleCollectionsAction.LATEST_RUN_START)) {
                 // Use the conditions set with the greatest run start value.
-                filteredConditionsRecords.add(conditionsRecords.sortedByRunStart().get(conditionsRecords.size() - 1));
-            } else if (multipleCollections.equals(MultipleCollectionsAction.COMBINE)) {
-                // Combine all the records.
-                filteredConditionsRecords.addAll(conditionsRecords);                
+                conditionsRecord = conditionsRecords.sortedByRunStart().get(conditionsRecords.size() - 1);
             } else if (multipleCollections.equals(MultipleCollectionsAction.ERROR)) {            
-                // The converter has been configured to throw an error when this happens!
+                // The converter has been configured to throw an error.
                 throw new RuntimeException("Multiple ConditionsRecord object found for conditions key " + name);
             }           
-        } else {
-            // Single record was found.
-            filteredConditionsRecords.addAll(conditionsRecords);
-        }
+        } 
                 
-        // Create a collection of objects to to return.
-        AbstractConditionsObjectCollection collection = null;        
+        // Create a collection of objects to return.
+        ConditionsObjectCollection collection = null;
         try {
-            // If there is a single ConditionsRecord, then it can be assigned to the collection.
-            ConditionsRecord collectionConditionsRecord = null;
-            if (filteredConditionsRecords.size() == 1) {
-                collectionConditionsRecord = filteredConditionsRecords.get(0);
-            }
-            
-            // Create the collection with a ConditionsRecord that might be null.
-            collection = createCollection(collectionConditionsRecord, tableMetaData);
+            collection = createCollection(conditionsRecord, tableMetaData);
         } catch (ConditionsObjectException e) {
             throw new RuntimeException(e);
         }
-   
-        // Open a database connection.
-        databaseConditionsManager.openConnection();
-        
-        // Loop over all records, which could just be a single one.
-        for (ConditionsRecord conditionsRecord : filteredConditionsRecords) {
-                    
-            // Get the table name.
-            String tableName = conditionsRecord.getTableName();
+                               
+        // Get the table name.
+        String tableName = conditionsRecord.getTableName();
 
-            // Get the collection ID.
-            int collectionId = conditionsRecord.getCollectionId();
+        // Get the collection ID.
+        int collectionId = conditionsRecord.getCollectionId();
 
-            // Build a select query.
-            String query = QueryBuilder.buildSelect(tableName, collectionId, tableMetaData.getFieldNames(), "id ASC");
+        // Build a select query.
+        String query = QueryBuilder.buildSelect(tableName, collectionId, tableMetaData.getFieldNames(), "id ASC");
 
-            // Query the database to get the conditions collection's rows.
-            ResultSet resultSet = databaseConditionsManager.selectQuery(query);
+        // Query the database to get the collection's rows.
+        ResultSet resultSet = databaseConditionsManager.selectQuery(query);
 
-            try {
-                // Loop over the rows.
-                while (resultSet.next()) {
-                    // Create a new ConditionsObject from this row.
-                    ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
+        try {
+            // Loop over the rows.
+            while (resultSet.next()) {
+                // Create a new ConditionsObject from this row.
+                ConditionsObject newObject = createConditionsObject(resultSet, tableMetaData);
 
-                    // Add the object to the collection.
-                    collection.add(newObject);
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+                // Add the object to the collection.
+                collection.add(newObject);
             }
-            
-            // Close the Statement and the ResultSet.
-            DatabaseUtilities.cleanup(resultSet);
+        } catch (SQLException e) {
+            // Some kind of database error occurred.
+            throw new RuntimeException(e);
         }
+
+        // Close the Statement and the ResultSet.
+        DatabaseUtilities.cleanup(resultSet);
         
-        // Close the database connection.
-        databaseConditionsManager.closeConnection();
+        if (reopenedConnection) {
+            // Close connection if one was opened.
+            databaseConditionsManager.closeConnection();
+        }
         
         return (T) collection;
     }

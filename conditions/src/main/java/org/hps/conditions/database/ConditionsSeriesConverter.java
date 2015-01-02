@@ -3,80 +3,82 @@ package org.hps.conditions.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
 
 /**
- * <p>
- * This converter creates a <tt>ConditionsSeries</tt> which is a set of
- * <tt>ConditionsObjectCollection</tt> objects with the same type. This can be
- * used to retrieve sets of conditions that may overlap in time validity, such
- * as sets of bad channels .
- * </p>
- * <p>
- * Since type inference from the target variable is used in the
- * {@link #createSeries(String)} method signature, there only needs to be one of
- * these converters per {@link DatabaseConditionsManager}. The creation of the
- * specific types is also done automatically, so each type of conditions object
- * does not need its own converter class.
- * </p>
+ * This converter creates a {@link org.hps.conditions.api.ConditionsSeries} which is a list of
+ * {@link org.hps.conditions.api.ConditionsObjectCollection} objects having the same type. 
+ * This can be used to retrieve sets of conditions that may overlap in time validity.  The user
+ * may then use whichever collections are of interest to them.
+ * 
+ * @see org.hps.conditions.api.ConditionsSeries
+ * @see org.hps.conditions.api.ConditionsObjectCollection
+ * @see org.hps.conditions.api.ConditionsObject
+ * @see DatabaseConditionsManager
+ * 
+ * @param <ObjectType> The type of the ConditionsObject.
+ * @param <CollectionType> The type of the collection.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class ConditionsSeriesConverter {
+// FIXME: The ObjectType and CollectionType should probably not extend in order to simplify the types.
+class ConditionsSeriesConverter<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> {
 
-    DatabaseConditionsManager conditionsManager = null;
-
-    ConditionsSeriesConverter(DatabaseConditionsManager conditionsManager) {
-        if (conditionsManager == null)
-            throw new RuntimeException("The conditionsManager is null.");
-        this.conditionsManager = conditionsManager;
+    Class<ObjectType> objectType;
+    Class<CollectionType> collectionType;
+     
+    ConditionsSeriesConverter(Class<ObjectType> objectType, Class<CollectionType> collectionType) {
+        this.collectionType = collectionType;
+        this.objectType = objectType;
     }
 
     /**
-     * Create a <tt>ConditionsSeries</tt> which is a series of
-     * <tt>ConditionsObjectCollections</tt> of the same type, each of which have
-     * their own <tt>ConditionsRecord</tt>. This should be used for overlapping
-     * conditions, such as sets of bad channels that are combined together as in
-     * the test run.
-     * 
-     * @param conditionsKey The name of the conditions key to retrieve from the conditions table.
-     * @return The <tt>ConditionsSeries</tt> matching <tt>conditionsKey</tt>
-     *         which type inferred from target variable.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    // FIXME: This should take a type name to enforce that all collections returned are of the same class.
-    public ConditionsSeries createSeries(String conditionsKey) {
+     * Create a new conditions series.
+     * @param tableName The name of the data table.
+     * @return The conditions series.
+     */ 
+    @SuppressWarnings({ "unchecked" })
+    ConditionsSeries<ObjectType, CollectionType> createSeries(String tableName) {
+
+        if (tableName == null) {
+            throw new IllegalArgumentException("The tableName argument is null.");
+        }
         
-        conditionsManager.openConnection();
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        
+        // Setup connection if necessary.
+        boolean reopenedConnection = false;
+        if (!conditionsManager.isConnected()) {
+            conditionsManager.openConnection();
+            reopenedConnection = true;
+        }
+        
+        // Get the table meta data for the collection type.
+        TableMetaData tableMetaData = conditionsManager.findTableMetaData(collectionType);
+        if (tableMetaData == null) {
+            throw new RuntimeException("Table meta data for " + collectionType + " was not found.");
+        }
 
-        // Get the table meta data from the key given by the caller.
-        TableMetaData tableMetaData = conditionsManager.findTableMetaData(conditionsKey);
-        if (tableMetaData == null)
-            throw new RuntimeException("Table meta data for " + conditionsKey + " was not found.");
+        // Create a new conditions series.
+        ConditionsSeries<ObjectType, CollectionType> series = new ConditionsSeries<ObjectType, CollectionType>(objectType, collectionType);
+        
+        // Get the ConditionsRecord with the meta-data, which will use the current run number from the manager.
+        ConditionsRecordCollection conditionsRecords = conditionsManager.findConditionsRecords(tableName);
 
-        ConditionsSeries series = new ConditionsSeries();
-
-        // Get the ConditionsRecord with the meta-data, which will use the
-        // current run number from the manager.
-        ConditionsRecordCollection conditionsRecords = conditionsManager.findConditionsRecords(conditionsKey);
-
-        // Loop over conditions records. This will usually just be one record.
         for (ConditionsRecord conditionsRecord : conditionsRecords) {
 
-            AbstractConditionsObjectCollection collection;
+            ConditionsObjectCollection<ObjectType> collection;
             try {
-                collection = ConditionsRecordConverter.createCollection(conditionsRecord, tableMetaData);
+                collection = (ConditionsObjectCollection<ObjectType>) 
+                        ConditionsRecordConverter.createCollection(conditionsRecord, tableMetaData);
             } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }
-
-            // Get the table name.
-            String tableName = conditionsRecord.getTableName();
 
             // Get the collection ID.
             int collectionId = conditionsRecord.getCollectionId();
@@ -93,9 +95,8 @@ class ConditionsSeriesConverter {
                     // Create new ConditionsObject.
                     ConditionsObject newObject = ConditionsRecordConverter.createConditionsObject(resultSet, tableMetaData);
 
-                    // Add new object to collection, which will also assign it a
-                    // collection ID if applicable.
-                    collection.add(newObject);
+                    // Add new object to collection.
+                    collection.add((ObjectType) newObject);
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -103,11 +104,13 @@ class ConditionsSeriesConverter {
 
             DatabaseUtilities.cleanup(resultSet);
             
-            series.add(collection);
+            series.add((CollectionType) collection);
         }
         
-        conditionsManager.closeConnection();
-
+        if (reopenedConnection) {
+            conditionsManager.closeConnection();
+        }
+        
         // Return new collection.
         return series;
     }
