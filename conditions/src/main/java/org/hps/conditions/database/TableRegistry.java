@@ -23,7 +23,7 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
     private TableRegistry() {
     }
     
-    public static TableRegistry create() {
+    static TableRegistry create() {
         TableRegistry registry = new TableRegistry();
         for (Class<? extends ConditionsObject> objectType : ConditionsObjectUtilities.findConditionsObjectTypes()) {
             String name = ConditionsObjectUtilities.getTableNames(objectType)[0];
@@ -38,15 +38,15 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
         return registry;
     }
     
-    public TableMetaData findByObjectType(Class<? extends ConditionsObject> objectType) {
+    TableMetaData findByObjectType(Class<? extends ConditionsObject> objectType) {
         return objectTypeMap.get(objectType);
     }
     
-    public TableMetaData findByCollectionType(Class<?> collectionType) {
+    TableMetaData findByCollectionType(Class<?> collectionType) {
         return collectionTypeMap.get(collectionType);
     }
     
-    public TableMetaData findByTableName(String name) {
+    TableMetaData findByTableName(String name) {
         return this.get(name);
     }
     
