@@ -8,7 +8,7 @@ import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 @Table(names = {"svt_bad_channels", "test_run_svt_bad_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.COMBINE)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtBadChannel extends AbstractConditionsObject {
 
     public static class SvtBadChannelCollection extends AbstractConditionsObjectCollection<SvtBadChannel> {

@@ -12,7 +12,7 @@ import org.hps.conditions.database.Table;
  * should not be used in reconstruction.
  */
 @Table(names = {"ecal_bad_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.COMBINE)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public final class EcalBadChannel extends AbstractConditionsObject {
 
     public static class EcalBadChannelCollection extends AbstractConditionsObjectCollection<EcalBadChannel> {

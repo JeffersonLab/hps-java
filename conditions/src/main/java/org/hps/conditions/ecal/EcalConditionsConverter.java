@@ -2,6 +2,8 @@ package org.hps.conditions.ecal;
 
 import java.util.logging.Logger;
 
+import org.hps.conditions.api.ConditionsObjectCollection;
+import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalBadChannel.EcalBadChannelCollection;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
@@ -33,9 +35,9 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     protected EcalGainCollection getEcalGainCollection(DatabaseConditionsManager manager) {
         return manager.getCollection(EcalGainCollection.class);
     }
-    
-    protected EcalBadChannelCollection getEcalBadChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(EcalBadChannelCollection.class);
+        
+    protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(DatabaseConditionsManager manager) {
+        return manager.getConditionsSeries(EcalBadChannelCollection.class);
     }
     
     protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {
@@ -72,18 +74,12 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
             conditions.getChannelConstants(channel).setGain(gain);
         }
 
-        // Get the ECal bad channels and add them to the conditions set
-        EcalBadChannelCollection badChannels = null;
-        try {
-            badChannels = getEcalBadChannelCollection(databaseConditionsManager);
-        } catch (RuntimeException e) {
-            databaseConditionsManager.getLogger().warning(e.getMessage());
-        }
-        if (badChannels != null) {
+        ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> badChannelSeries = 
+                getEcalBadChannelSeries(databaseConditionsManager);
+        // FIXME: How to get EcalBadChannelCollection here instead for the collection type?
+        //        API of ConditionsSeries and ConditionsSeriesConverter needs to be changed!
+        for (ConditionsObjectCollection<EcalBadChannel> badChannels : badChannelSeries) {
             for (EcalBadChannel badChannel : badChannels) {
-                if (badChannel == null) {
-                    throw new RuntimeException("The badChannel points to null.");
-                }
                 ChannelId channelId = new ChannelId(new int[] { badChannel.getChannelId() });
                 EcalChannel channel = channels.findChannel(channelId);
                 conditions.getChannelConstants(channel).setBadChannel(true);
