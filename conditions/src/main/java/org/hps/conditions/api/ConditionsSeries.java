@@ -2,6 +2,7 @@ package org.hps.conditions.api;
 
 import java.util.ArrayList;
 
+
 /**
  * This class represents a series of collections containing
  * <tt>ConditionsObjects</tt>. It is used to conditions collections when there
@@ -9,14 +10,15 @@ import java.util.ArrayList;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-@SuppressWarnings("rawtypes")
-public class ConditionsSeries extends ArrayList<AbstractConditionsObjectCollection> {
+@SuppressWarnings({ "serial" })
+// FIXME: The CollectionType and ObjectType should possibly not use "extend".
+public class ConditionsSeries<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> extends ArrayList<ConditionsObjectCollection<ObjectType>> {
 
-    public AbstractConditionsObjectCollection findCollection(ConditionsRecord record) {
-        for (AbstractConditionsObjectCollection collection : this) {
-            if (collection.conditionsRecord == record)
-                return collection;
-        }
-        return null;
-    }   
+    Class<CollectionType> collectionType;
+    Class<ObjectType> objectType;
+    
+    public ConditionsSeries(Class<ObjectType> objectType, Class<CollectionType> collectionType) {
+        this.collectionType = collectionType;
+        this.objectType = objectType;
+    }
 }
