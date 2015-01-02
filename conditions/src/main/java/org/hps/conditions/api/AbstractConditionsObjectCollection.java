@@ -17,7 +17,8 @@ import org.hps.conditions.database.TableMetaData;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @param <ObjectType> The concrete type of the collection class.
  */
-public abstract class AbstractConditionsObjectCollection<ObjectType extends ConditionsObject> extends LinkedHashSet<ObjectType> {
+@SuppressWarnings("serial")
+public abstract class AbstractConditionsObjectCollection<ObjectType extends ConditionsObject> extends LinkedHashSet<ObjectType> implements ConditionsObjectCollection<ObjectType> {
 
     protected TableMetaData tableMetaData = null;
     protected int collectionId = -1;
