@@ -1,6 +1,7 @@
 package org.hps.conditions.svt;
 
 import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtBadChannel.SvtBadChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
@@ -20,8 +21,8 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
         return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "test_run_svt_shape_fit_parameters").getCachedData();
     }
     
-    protected SvtBadChannelCollection getSvtBadChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCachedConditions(SvtBadChannelCollection.class, "test_run_svt_bad_channels").getCachedData();
+    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(DatabaseConditionsManager manager) {
+        return manager.getConditionsSeries(SvtBadChannelCollection.class, "test_run_svt_bad_channels");
     }
     
     protected SvtCalibrationCollection getSvtCalibrationCollection(DatabaseConditionsManager manager) {
