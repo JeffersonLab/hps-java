@@ -20,20 +20,19 @@ import org.lcsim.util.Driver;
  * <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
  *     <detectorName>HPS-TestRun-v5</detectorName>
  *     <runNumber>1351</runNumber>
+ *     <tag>test_run</tag>
  *     <xmlConfigResource>/org/hps/conditions/config/conditions_database_testrun_2012.xml</xmlConfigResource>
- *     <ecalName>Ecal</ecalName>
- *     <svtName>Tracker</svtName>
  *     <freeze>true</freeze>
  * </driver>
  * }
  * </pre> 
  * <p>
- * This class is a "special" Driver which must have its initialization occur at the right time.
+ * This is a "special" Driver which must have its initialization occur at the right time.
  * It has a custom initialization method {@link #initialize()} which should be called after 
  * all Driver setup has occurred, but before the job actually begins.  This is so the conditions 
  * system functions properly, including the activation of registered listeners.  The setup is 
- * performed by default in the class {@link org.hps.job.JobManager}, which is used in the 
- * default command line front end of hps-distribution.  If that class is not being used, then
+ * performed by in the class {@link org.hps.job.JobManager}, which is used in the 
+ * default command line front end of the hps-distribution.  If that class is not being used, then
  * the method must be executed manually at the right time to achieve the proper behavior.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -42,8 +41,6 @@ public class ConditionsDriver extends Driver {
 
     DatabaseConditionsManager conditionsManager;
     String detectorName = null;
-    String ecalName = null;
-    String svtName = null;
     String tag = null;
     String xmlConfigResource = null;
     int runNumber = 0;
@@ -90,24 +87,6 @@ public class ConditionsDriver extends Driver {
     }            
     
     /**
-     * Set the name of the ECAL subdetector which the conditions manager will use for loading conditions
-     * onto the detector.
-     * @param ecalName The name of the ECAL subdetector.
-     */
-    public void setEcalName(String ecalName) {
-        this.ecalName = ecalName;
-    }
-       
-    /**
-     * Set the name of the SVT subdetector which the conditions manager will use for loading conditions
-     * onto the detector.
-     * @param svtName The name of the SVT subdetector.
-     */
-    public void setSvtName(String svtName) {
-        this.svtName = svtName;
-    }
-    
-    /**
      * Set a tag used to filter ConditionsRecords.
      * @param tag The tag value e.g. "eng_run" etc.
      */
@@ -133,14 +112,6 @@ public class ConditionsDriver extends Driver {
             conditionsManager.setXmlConfig(xmlConfigResource);
         }
 
-        if (ecalName != null) {
-            // Set custom ECAL name.
-            conditionsManager.setEcalName(ecalName);
-        }
-        if (svtName != null) {
-            // Set custom SVT name.
-            conditionsManager.setSvtName(svtName);
-        }
         if (tag != null) {
             // Set a tag for filtering ConditionsRecord objects.
             conditionsManager.setTag(tag);
