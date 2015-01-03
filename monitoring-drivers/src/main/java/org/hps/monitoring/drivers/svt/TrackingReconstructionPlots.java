@@ -51,7 +51,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class TrackingReconstructionPlots extends Driver implements Resettable {
+public class TrackingReconstructionPlots extends Driver {
 
     //private AIDAFrame plotterFrame;
     //private AIDAFrame topFrame;

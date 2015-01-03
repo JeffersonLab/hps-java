@@ -37,7 +37,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author phansson+
  */
-public class ECalGainDriver extends Driver implements Resettable, ActionListener, Redrawable {
+public class ECalGainDriver extends Driver implements ActionListener, Redrawable {
 
     private int nevents = 0;
     private boolean debug = true;
@@ -468,21 +468,6 @@ public class ECalGainDriver extends Driver implements Resettable, ActionListener
         gainWriter.close();
         if (debug) {
             System.out.format("trigTop %d trigBot %d trTop %d trBot %d clTop %d clBot %d matchTop %d matchBot %d\n", trigTop, trigBot, trTop, trBot, clTop, clBot, matchTop, matchBot);
-        }
-    }
-
-    @Override
-    public void reset() {
-        if (plotter != null) {
-            plotter.hide();
-            plotter.destroyRegions();
-            for (int x = -23; x <= 23; x++) { // slot
-                for (int y = -5; y <= 5; y++) { // crate  
-                    for (int iE = 0; iE <= 4; ++iE) {
-                        pePlots[x + 23][y + 5][iE].reset();
-                    }
-                }
-            }
         }
     }
 

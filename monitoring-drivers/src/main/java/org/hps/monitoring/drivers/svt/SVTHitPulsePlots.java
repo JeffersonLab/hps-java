@@ -31,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class SVTHitPulsePlots extends Driver implements Resettable {
+public class SVTHitPulsePlots extends Driver {
 
 	//private AIDAFrame plotterFrame;
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
@@ -169,15 +169,6 @@ public class SVTHitPulsePlots extends Driver implements Resettable {
         }
 
         return false;
-    }
-
-    @Override
-    public void reset() {
-        int ns = sensors.size();
-        for (int i = 0; i < ns; i++) {
-            aida.histogram2D(sensors.get(i).getName() + "_AdcVsChan").reset();
-            aida.profile1D(sensors.get(i).getName() + "_pulse").reset();
-        }
     }
     
     private int computePlotterRegion(SiSensor sensor) {

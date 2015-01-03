@@ -18,7 +18,7 @@ import org.lcsim.util.aida.AIDA;
 
  @author mgraham
  */
-public class ExamplePlotter extends Driver implements Resettable {
+public class ExamplePlotter extends Driver {
 
     //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
@@ -62,10 +62,5 @@ public class ExamplePlotter extends Driver implements Resettable {
             aida.histogram1D("Track Momentum (Pz)").fill(trk.getPX());
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
         }
-    }
-
-    @Override
-    public void reset() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

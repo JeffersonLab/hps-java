@@ -36,7 +36,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class SVTHitReconstructionPlots extends Driver implements Resettable {
+public class SVTHitReconstructionPlots extends Driver {
 
 	//private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
@@ -290,16 +290,6 @@ public class SVTHitReconstructionPlots extends Driver implements Resettable {
             }
         }
         //plotterFrame.dispose();
-    }
-
-    @Override
-    public void reset() {
-        for (SiSensor sensor : sensors) {
-            aida.histogram1D(sensor.getName() + "_raw_hits").reset();
-            aida.histogram1D(sensor.getName() + "_reco_hits").reset();
-            aida.histogram1D(sensor.getName() + "_cluster_size").reset();
-            aida.histogram1D(sensor.getName() + "_cluster_amp").reset();
-        }
     }
 
     private int computePlotterRegion(SiSensor sensor) {

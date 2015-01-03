@@ -30,7 +30,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class SVTEventInfo extends Driver implements Resettable {
+public class SVTEventInfo extends Driver {
 
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
     private AIDA aida = AIDA.defaultInstance();
@@ -176,16 +176,5 @@ public class SVTEventInfo extends Driver implements Resettable {
         if(!((HpsSiSensor) sensor).isTopLayer())
             return false;
         return true;
-    }
-
-    @Override
-    public void reset() {
-        aida.histogram1D("Total Number of Raw Hits in Top Half").reset();
-        aida.histogram1D("Total Number of Raw Hits in Bottom Half").reset();
-        aida.histogram1D("Number of Layers Hit in Top Half").reset();
-        aida.profile1D("Number of Hits per layer in Top Half").reset();
-        aida.histogram1D("Number of Layers Hit in Bottom Half").reset();
-        aida.profile1D("Number of Hits per layer in Top Half").reset();
-        aida.profile1D("Number of Hits per layer in Bottom Half").reset();
     }
 }

@@ -35,7 +35,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalCrystalFilter extends Driver implements Resettable, ActionListener, Redrawable {
+public class EcalCrystalFilter extends Driver implements ActionListener, Redrawable {
 
     private String inputCollection;
     private String outputPlotFileName;
@@ -657,19 +657,6 @@ public class EcalCrystalFilter extends Driver implements Resettable, ActionListe
         }
         //displayFastTrackingPlots();
 
-    }
-
-//    @Override
-    public void reset() {
-        if (plotter != null) {
-            plotter.hide();
-            plotter.destroyRegions();
-            for (int x = -23; x <= 23; x++) { // slot
-                for (int y = -5; y <= 5; y++) { // crate                
-                    aPlots[x + 23][y + 5].reset();
-                }
-            }
-        }
     }
 
     @Override

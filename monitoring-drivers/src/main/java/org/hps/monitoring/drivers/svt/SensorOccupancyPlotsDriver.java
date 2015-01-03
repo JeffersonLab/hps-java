@@ -31,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
  * @version $Id: SensorOccupancyPlotsDriver.java,v 1.8 2013/11/06 19:19:55 jeremy Exp $
  *
  */
-public class SensorOccupancyPlotsDriver extends Driver implements Resettable {
+public class SensorOccupancyPlotsDriver extends Driver {
 
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     private String trackerName = "Tracker";
@@ -181,10 +181,5 @@ public class SensorOccupancyPlotsDriver extends Driver implements Resettable {
         for (SiSensor sensor : sensors) {
             occupancyMap.put(sensor.getName(), new int[640]);
         }
-    }
-
-    public void reset() {
-        eventCount = 0;
-        resetOccupancyMap();
     }
 }

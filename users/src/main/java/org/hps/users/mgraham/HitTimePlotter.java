@@ -34,7 +34,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class HitTimePlotter extends Driver implements Resettable {
+public class HitTimePlotter extends Driver {
 
     //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
@@ -278,11 +278,6 @@ public class HitTimePlotter extends Driver implements Resettable {
         System.out.println(sensor.getName() + "; lyr=" + layer + "; mod=" + module + " -> xy[" + ix + "][" + iy + "] -> reg=" + region);
 
         return region;
-    }
-
-    @Override
-    public void reset() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public void setOutputPlots(String output) {

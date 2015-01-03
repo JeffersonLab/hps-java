@@ -29,7 +29,7 @@ import org.lcsim.util.aida.AIDA;
 
  @author mgraham
  */
-public class ExamplePlotter extends Driver implements Resettable {
+public class ExamplePlotter extends Driver {
 
     //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();

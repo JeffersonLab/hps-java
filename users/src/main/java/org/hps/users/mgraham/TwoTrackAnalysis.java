@@ -40,7 +40,7 @@ import Jama.SingularValueDecomposition;
  *
  * @author mgraham
  */
-public class TwoTrackAnalysis extends Driver implements Resettable {
+public class TwoTrackAnalysis extends Driver {
 
     public String outputTextName = "myevents.txt";
     FileWriter fw;
@@ -949,11 +949,6 @@ public class TwoTrackAnalysis extends Driver implements Resettable {
 
 
         }
-    }
-
-    @Override
-    public void reset() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public void setOutputPlots(String output) {

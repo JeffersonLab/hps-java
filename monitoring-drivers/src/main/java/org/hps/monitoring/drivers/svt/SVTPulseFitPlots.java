@@ -28,7 +28,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class SVTPulseFitPlots extends Driver implements Resettable {
+public class SVTPulseFitPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
@@ -186,18 +186,6 @@ public class SVTPulseFitPlots extends Driver implements Resettable {
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
                 Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    public void reset() {
-        for (int module = 0; module < 2; module++) {
-            for (int layer = 0; layer < 10; layer++) {
-                t0[module][layer].reset();
-                amp[module][layer].reset();
-                chiprob[module][layer].reset();
-                t0a[module][layer].reset();
-                shape[module][layer].reset();
             }
         }
     }

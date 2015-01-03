@@ -28,7 +28,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author meeg
  */
-public class TrackTimePlots extends Driver implements Resettable {
+public class TrackTimePlots extends Driver {
 
 	//private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
@@ -339,18 +339,6 @@ public class TrackTimePlots extends Driver implements Resettable {
     @Override
     public void endOfData() {
     	//plotterFrame.dispose();
-    }
-
-    @Override
-    public void reset() {
-        for (int module = 0; module < 2; module++) {
-            for (int layer = 0; layer < 10; layer++) {
-                trackHitT0[module][layer].reset();
-                trackHitDt[module][layer].reset();
-                t0[module][layer].reset();
-                trackT0[module].reset();
-            }
-        }
     }
 
     private int computePlotterRegion(int layer, int module) {

@@ -31,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
  */
 // FIXME: Resettable and Redrawable are no longer handled by the monitoring application
 //        so those hooks should be removed or the functionality achieved some other way.
-public class EcalMonitoringPlots extends Driver implements Resettable, Redrawable {
+public class EcalMonitoringPlots extends Driver implements Redrawable {
 
     String inputCollection = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
@@ -189,19 +189,6 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void endOfData() {
         plotter.hide();
         plotter.destroyRegions();
-    }
-
-    @Override
-    public void reset() {
-        hitCountFillPlot.reset();
-        hitCountDrawPlot.reset();
-        clusterCountFillPlot.reset();
-        clusterCountDrawPlot.reset();
-
-        occupancyDrawPlot.reset();
-        for (int id = 0; id < (47 * 11); id++) {
-            occupancyFill[id]=0;
-        }
     }
 
     @Override

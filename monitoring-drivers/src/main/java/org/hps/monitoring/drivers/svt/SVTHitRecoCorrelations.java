@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
@@ -31,7 +30,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author mgraham
  */
-public class SVTHitRecoCorrelations extends Driver implements Resettable {
+public class SVTHitRecoCorrelations extends Driver {
 
 	//private List<AIDAFrame> plotterFrame = new ArrayList<AIDAFrame>();
     private List<IPlotter> plotters = new ArrayList<IPlotter>();
@@ -464,21 +463,6 @@ public class SVTHitRecoCorrelations extends Driver implements Resettable {
         //    plotterFrame.get(i).dispose();
         //}
     }   
-
-    @Override
-    public void reset() {
-        int ns = sensors.size();
-        for (int i = 0; i < 5; i++) {
-            for (int ii = 0; ii < 5; ii++) {
-                aida.histogram2D("corr_TA_layer" + (i+1) + "_layer" + (ii+1)).reset();
-                aida.histogram2D("corr_TS_layer" + (i+1) + "_layer" + (ii+1)).reset();
-                aida.histogram2D("corrY_HTH_layer" + (i+1) + "_layer" + (ii+1)).reset();
-                aida.histogram2D("corrX_HTH_layer" + (i+1) + "_layer" + (ii+1)).reset();
-            }
-        }
-         
-    }
-
     
     private int getPhysLayer(int l,int side, boolean axial) {
         if(side==0) {

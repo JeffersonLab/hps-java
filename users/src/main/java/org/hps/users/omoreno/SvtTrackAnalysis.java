@@ -31,7 +31,7 @@ import org.lcsim.util.aida.AIDA;
  *
  */
 
-public class SvtTrackAnalysis extends Driver implements Resettable {
+public class SvtTrackAnalysis extends Driver {
 	
     private String trackCollectionName = "MatchedTracks";
     private String stripHitCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -369,11 +369,5 @@ public class SvtTrackAnalysis extends Driver implements Resettable {
     	System.out.println("Number of top tracks per event: " + tracksTopRatio);
     	System.out.println("Number of bottom tracks per event: " + tracksBottomRatio);
     	System.out.println("Number of two track events: " + twoTrackRatio);
-	}
-
-	@Override
-	public void reset() {
-		aida.histogram2D("Track Position at Ecal").reset();
-		aida.histogram2D("Track Position at Converter").reset();
 	}
 }

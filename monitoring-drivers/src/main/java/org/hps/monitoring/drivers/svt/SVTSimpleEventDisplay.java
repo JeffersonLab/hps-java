@@ -5,14 +5,8 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 //import hep.aida.jfree.plot.style.DefaultHistogram1DStyle;
 
-
-
 import java.util.List;
 
-
-
-//===> import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -21,6 +15,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+//===> import org.hps.conditions.deprecated.SvtUtils;
 
 /**
  * Plots hit counts for all SVT channels at each stage of reconstruction.
@@ -28,7 +23,7 @@ import org.lcsim.util.aida.AIDA;
  * event display by calling {@link #setSingleEvent(boolean)}.
  * 
  */
-public class SVTSimpleEventDisplay extends Driver implements Resettable {
+public class SVTSimpleEventDisplay extends Driver {
 
     /*
      * Names of collections.
@@ -341,13 +336,5 @@ public class SVTSimpleEventDisplay extends Driver implements Resettable {
         for (int module = 0; module < 2; module++) {
             hitCount[module].reset();
         }
-    }
-
-    /**
-     * Reset this Driver's plots.
-     */
-    public void reset() {
-        resetPlots();
-        resetHitCountPlot();
     }
 }

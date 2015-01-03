@@ -19,7 +19,7 @@ public final class MainJASDriver extends Driver {
 
     public MainJASDriver() {
 //        add(new HPSSVTSensorSetup());
-        add(new CalibrationDriver());
+        //add(new CalibrationDriver());
         add(new RawTrackerHitSensorSetup());
         //   Can remove HPSRawTrackerHitFitterDriver and DataTrackerHitDriver for integrated MC
         RawTrackerHitFitterDriver hitfitter=new RawTrackerHitFitterDriver();
