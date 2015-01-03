@@ -11,7 +11,6 @@ import java.util.List;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.readout.ecal.SSPData;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

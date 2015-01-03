@@ -11,7 +11,6 @@ import java.util.List;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.ecal.ECalUtils;
 import org.hps.util.Redrawable;
-import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -29,8 +28,6 @@ import org.lcsim.util.aida.AIDA;
  * @author Andrea Celentano
  * 
  */
-// FIXME: Resettable and Redrawable are no longer handled by the monitoring application
-//        so those hooks should be removed or the functionality achieved some other way.
 public class EcalMonitoringPlots extends Driver implements Redrawable {
 
     String inputCollection = "EcalReadoutHits";

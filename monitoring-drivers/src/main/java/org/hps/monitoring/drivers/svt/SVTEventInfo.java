@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //===> import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;

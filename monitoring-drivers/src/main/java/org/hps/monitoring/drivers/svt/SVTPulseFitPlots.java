@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import org.hps.conditions.deprecated.HPSSVTConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
-import org.hps.util.Resettable;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;

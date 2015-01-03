@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
-import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;

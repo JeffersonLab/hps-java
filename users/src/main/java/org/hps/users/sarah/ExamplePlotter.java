@@ -7,7 +7,6 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.util.Resettable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;

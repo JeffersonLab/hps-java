@@ -9,9 +9,7 @@ import hep.aida.ref.plotter.PlotterRegion;
 
 import java.util.List;
 
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.TriggerData;
-import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;

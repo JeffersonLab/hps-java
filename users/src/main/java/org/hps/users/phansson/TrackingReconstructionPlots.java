@@ -22,7 +22,6 @@ import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.Resettable;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;

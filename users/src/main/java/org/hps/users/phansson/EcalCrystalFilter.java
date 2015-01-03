@@ -21,7 +21,6 @@ import javax.swing.JLabel;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.util.Redrawable;
-import org.hps.util.Resettable;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;

@@ -15,7 +15,6 @@ import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
-import org.hps.util.Resettable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;

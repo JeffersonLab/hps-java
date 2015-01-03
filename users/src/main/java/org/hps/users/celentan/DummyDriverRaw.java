@@ -1,24 +1,18 @@
 package org.hps.users.celentan;
 
-
 import java.util.List;
-
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-
 import org.hps.readout.ecal.TriggerData;
 import org.hps.readout.ecal.SSPData;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-
-
 
 public class DummyDriverRaw extends Driver{
 
