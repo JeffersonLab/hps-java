@@ -19,7 +19,7 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalDaqPlots extends Driver implements Resettable {
+public class EcalDaqPlots extends Driver {
 
 	private String subdetectorName = "Ecal";
 	private String inputCollection = "EcalReadoutHits";
@@ -81,23 +81,6 @@ public class EcalDaqPlots extends Driver implements Resettable {
 			}
 		}
 		plotter.show();
-	}
-
-//	public void endOfData() {
-//		if (plotter != null) {
-//			plotter.hide();
-//		}
-//	}
-
-	public void reset() {
-		if (plotter != null) {
-			plotter.hide();
-			plotter.destroyRegions();
-			for (IHistogram1D plot : plots) {
-				plot.reset();
-			}
-			detectorChanged(detector);
-		}
 	}
 
 	public void process(EventHeader event) {

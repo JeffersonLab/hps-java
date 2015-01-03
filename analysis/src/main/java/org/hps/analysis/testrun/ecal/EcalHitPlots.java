@@ -17,7 +17,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalHitPlots extends Driver implements Resettable {
+public class EcalHitPlots extends Driver {
 
     //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
@@ -251,14 +251,6 @@ public class EcalHitPlots extends Driver implements Resettable {
         } else {
             hitCountPlot.fill(0);
         }
-    }
-
-    @Override
-    public void reset() {
-        hitCountPlot.reset();
-        hitTimePlot.reset();
-        hitEnergyPlot.reset();
-        hitMaxEnergyPlot.reset();
     }
 
     @Override

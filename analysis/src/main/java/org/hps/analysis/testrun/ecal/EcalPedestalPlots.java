@@ -28,7 +28,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalPedestalPlots extends Driver implements Resettable, ActionListener, Redrawable {
+public class EcalPedestalPlots extends Driver implements ActionListener, Redrawable {
 
     private String inputCollection = "EcalReadoutHits";
     private IPlotter plotter;
@@ -196,19 +196,6 @@ public class EcalPedestalPlots extends Driver implements Resettable, ActionListe
                         int y = helper.getValue(compactId, "iy");
                         System.out.printf("%d\t%d\t%d\t%f\t%f\n", crate, slot, ch, aPlots[x + 23][y + 5].mean(), aPlots[x + 23][y + 5].rms());
                     }
-                }
-            }
-        }
-    }
-
-    @Override
-    public void reset() {
-        if (plotter != null) {
-            plotter.hide();
-            plotter.destroyRegions();
-            for (int x = -23; x <= 23; x++) { // slot
-                for (int y = -5; y <= 5; y++) { // crate                
-                    aPlots[x + 23][y + 5].reset();
                 }
             }
         }

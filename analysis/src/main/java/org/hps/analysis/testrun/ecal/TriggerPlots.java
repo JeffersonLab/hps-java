@@ -17,7 +17,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class TriggerPlots extends Driver implements Resettable, Redrawable {
+public class TriggerPlots extends Driver implements Redrawable {
 
     int eventRefreshRate = 10000;
     int eventn = 0;
@@ -515,10 +515,6 @@ public class TriggerPlots extends Driver implements Resettable, Redrawable {
         if (eventRefreshRate > 0 && ++eventn % eventRefreshRate == 0) {
             redraw();
         }
-    }
-
-    @Override
-    public void reset() {
     }
 
     @Override

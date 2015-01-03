@@ -9,7 +9,6 @@ import java.util.List;
 import org.apache.commons.math.stat.StatUtils;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.util.Resettable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -17,7 +16,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalClusterPlots extends Driver implements Resettable {
+public class EcalClusterPlots extends Driver {
 
 	//AIDAFrame plotterFrame;
     String inputCollection = "EcalClusters";
@@ -183,14 +182,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
         } else {
             clusterCountPlot.fill(0);
         }
-    }
-
-    @Override
-    public void reset() {
-        clusterCountPlot.reset();
-        clusterSizePlot.reset();
-        clusterEnergyPlot.reset();
-        clusterMaxEnergyPlot.reset();
     }
 
     @Override

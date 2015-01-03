@@ -17,7 +17,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalClusterPlots extends Driver implements Resettable {
+public class EcalClusterPlots extends Driver {
 
 	//AIDAFrame plotterFrame;
     String inputCollection = "EcalClusters";
@@ -177,7 +177,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
                         }
                     }
                 }
-//                }
             }
             clusterMaxEnergyPlot.fill(maxEnergy);
         } else {
@@ -186,15 +185,6 @@ public class EcalClusterPlots extends Driver implements Resettable {
     }
 
     @Override
-    public void reset() {
-        clusterCountPlot.reset();
-        clusterSizePlot.reset();
-        clusterEnergyPlot.reset();
-        clusterMaxEnergyPlot.reset();
-    }
-
-    @Override
     public void endOfData() {
-    	//plotterFrame.dispose();
     }
 }

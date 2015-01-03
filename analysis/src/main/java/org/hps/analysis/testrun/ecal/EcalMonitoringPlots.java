@@ -17,7 +17,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalMonitoringPlots extends Driver implements Resettable, Redrawable {
+public class EcalMonitoringPlots extends Driver implements Redrawable {
 
     String inputCollection = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
@@ -106,14 +106,6 @@ public class EcalMonitoringPlots extends Driver implements Resettable, Redrawabl
     public void endOfData() {
         plotter.hide();
         plotter.destroyRegions();
-    }
-
-    @Override
-    public void reset() {
-        hitCountFillPlot.reset();
-        hitCountDrawPlot.reset();
-        clusterCountFillPlot.reset();
-        clusterCountDrawPlot.reset();
     }
 
     @Override
