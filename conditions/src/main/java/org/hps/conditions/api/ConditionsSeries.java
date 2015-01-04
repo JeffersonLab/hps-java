@@ -11,7 +11,6 @@ import java.util.ArrayList;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @SuppressWarnings({ "serial" })
-// FIXME: The CollectionType and ObjectType should possibly not use "extend".
 public class ConditionsSeries<ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> extends ArrayList<ConditionsObjectCollection<ObjectType>> {
 
     Class<CollectionType> collectionType;
