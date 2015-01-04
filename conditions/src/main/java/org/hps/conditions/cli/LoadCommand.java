@@ -75,6 +75,7 @@ class LoadCommand extends AbstractCommand {
         String insertSql = QueryBuilder.buildInsert(tableName, collectionID, columnNames, rows);
         if (verbose)
             System.out.println(insertSql);
+        // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the manager directly.
         List<Integer> IDs = conditionsManager.updateQuery(insertSql);
         System.out.println("Inserted " + IDs.size() + " new rows into table " + tableName + " with collection_id " + collectionID);
     }

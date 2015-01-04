@@ -14,8 +14,8 @@ import org.hps.conditions.api.ConditionsObject;
  * conditions data fields. The list of fields does not include the collection ID
  * or row ID, which are implicitly assumed to exist.
  * <p>
- * It also has references to the implementation classes which are used to map
- * the data onto {@link ConditionsObject} and {@link AbstractConditionsObjectCollection}.
+ * It also has references to the implementation classes which are used for the ORM
+ * onto {@link ConditionsObject} and {@link ConditionsObjectCollection}.
  * 
  * @see org.hps.conditions.api.ConditionsObject
  * @see org.hps.conditions.api.AbstractConditionsObjectCollection

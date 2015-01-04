@@ -9,9 +9,8 @@ import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
 import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 
 /**
- * This class loads all ECal conditions into an {@link EcalConditions} object
- * from the database, based on the current run number known by the conditions
- * manager.
+ * This class loads all Test Run ECAL conditions into an {@link EcalConditions} object
+ * from the database.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>

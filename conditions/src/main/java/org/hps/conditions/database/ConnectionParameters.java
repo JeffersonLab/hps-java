@@ -15,8 +15,6 @@ import java.util.Properties;
  * including hostname, port, user and password. It can also create and return a
  * Connection object based on these parameters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: ConnectionParameters.java,v 1.8 2013/10/04 01:54:16 jeremy Exp
- *          $
  */
 public class ConnectionParameters {
 

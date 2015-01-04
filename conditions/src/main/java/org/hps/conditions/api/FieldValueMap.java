@@ -7,12 +7,4 @@ import java.util.LinkedHashMap;
  * to values.
  */
 public final class FieldValueMap extends LinkedHashMap<String, Object> {
-
-    Object[] valuesToArray() {
-        return values().toArray();
-    }
-
-    String[] fieldsToArray() {
-        return keySet().toArray(new String[] {});
-    }
 }

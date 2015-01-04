@@ -40,6 +40,7 @@ public final class QueryBuilder {
         return buff.toString();
     }
 
+    /*
     static String buildUpdate(String tableName, int rowId, String[] fields, Object[] values) {
         if (fields.length != values.length)
             throw new IllegalArgumentException("The field and value arrays are different lengths.");
@@ -68,6 +69,7 @@ public final class QueryBuilder {
         buff.append(") ");
         return buff.toString();
     }
+    */
     
     static String buildPreparedInsert(String tableName, ConditionsObject object) {
         if (object.getFieldValues().size() == 0) {
@@ -133,12 +135,14 @@ public final class QueryBuilder {
         return buff.toString();
     }
 
+    /*
     static String buildDelete(String tableName, int rowId) {
         if (rowId <= 0)
             throw new IllegalArgumentException("Invalid row ID: " + rowId);
         String query = "DELETE FROM " + tableName + " WHERE id = " + rowId;
         return query;
     }
+    */
     
     static String formatDate(Date date) {
         return dateFormat.format(date);

@@ -579,6 +579,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Get a list of all the ConditionsRecord objects.
      * @return The list of all the ConditionsRecord objects.
      */
+    // FIXME: This should use a cache created in initialize rather than do a find every time.
     public ConditionsRecordCollection getConditionsRecords() {
         ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
         for (TableMetaData tableMetaData : tableRegistry.values()) {

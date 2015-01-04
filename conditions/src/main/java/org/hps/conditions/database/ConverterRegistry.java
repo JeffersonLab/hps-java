@@ -31,7 +31,7 @@ public class ConverterRegistry extends HashMap<Class<? extends ConditionsObject>
      * @return The registry of converters.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static ConverterRegistry create() {
+    static ConverterRegistry create() {
         ConverterRegistry registry = new ConverterRegistry();
         Reflections reflections = new Reflections("org.hps.conditions");
         Set<Class<? extends ConditionsObject>> objectTypes = reflections.getSubTypesOf(ConditionsObject.class);
