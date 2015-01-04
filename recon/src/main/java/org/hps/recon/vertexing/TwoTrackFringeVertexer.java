@@ -3,7 +3,7 @@ package org.hps.recon.vertexing;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
-import org.hps.conditions.deprecated.BeamlineConstants;
+import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;

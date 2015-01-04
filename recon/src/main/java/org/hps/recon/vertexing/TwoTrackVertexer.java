@@ -1,6 +1,6 @@
 package org.hps.recon.vertexing;
 
-import org.hps.conditions.deprecated.BeamlineConstants;
+import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Track;

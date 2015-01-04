@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.DumbShaperFit;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.ShapeFitParameters;

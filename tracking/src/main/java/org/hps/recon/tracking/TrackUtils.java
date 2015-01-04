@@ -32,8 +32,6 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.swim.Helix;
-import org.hps.conditions.deprecated.BeamlineConstants;
-//===> import org.hps.conditions.deprecated.SvtUtils;
 
 /**
  * Assorted helper functions for the track and helix objects in lcsim. Re-use as much of HelixUtils

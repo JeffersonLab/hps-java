@@ -21,10 +21,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.conditions.deprecated.BeamlineConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.StraightLineTrack;

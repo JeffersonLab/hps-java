@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.BeamlineConstants;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
+import org.hps.recon.tracking.BeamlineConstants;
 //import org.hps.util.AIDAFrame;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;

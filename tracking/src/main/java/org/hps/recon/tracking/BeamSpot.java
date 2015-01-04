@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.hps.conditions.deprecated;
+package org.hps.recon.tracking;
 
 import hep.physics.matrix.SymmetricMatrix;
 

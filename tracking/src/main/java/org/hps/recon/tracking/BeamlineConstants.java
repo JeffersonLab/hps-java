@@ -1,4 +1,4 @@
-package org.hps.conditions.deprecated;
+package org.hps.recon.tracking;
 
 public final class BeamlineConstants {
 

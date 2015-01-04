@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.deprecated.BeamSpot;
-import org.hps.conditions.deprecated.FieldMap;
 import org.hps.util.Pair;
 import org.lcsim.event.MCParticle;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
