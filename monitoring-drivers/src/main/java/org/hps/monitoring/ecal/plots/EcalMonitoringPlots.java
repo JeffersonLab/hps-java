@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.util.Redrawable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -28,7 +27,7 @@ import org.lcsim.util.aida.AIDA;
  * @author Andrea Celentano
  * 
  */
-public class EcalMonitoringPlots extends Driver implements Redrawable {
+public class EcalMonitoringPlots extends Driver {
 
     String inputCollection = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
@@ -72,7 +71,6 @@ public class EcalMonitoringPlots extends Driver implements Redrawable {
      * @param eventRefreshRate: the refresh rate, defined as number of events to accumulate before
      *        refreshing the plot
      */
-    @Override
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
@@ -188,8 +186,7 @@ public class EcalMonitoringPlots extends Driver implements Redrawable {
         plotter.destroyRegions();
     }
 
-    @Override
-    public void redraw() {
+    void redraw() {
         hitCountDrawPlot.reset();
         hitCountDrawPlot.add(hitCountFillPlot);
         plotter.region(0).clear();
