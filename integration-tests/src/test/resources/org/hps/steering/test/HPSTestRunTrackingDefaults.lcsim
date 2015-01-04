@@ -9,7 +9,6 @@
     
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="TrackerDigiDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
@@ -20,10 +19,6 @@
     </execute>
     
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
-        </driver>
-
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>

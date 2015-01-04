@@ -9,7 +9,6 @@
 <!--    
         <driver name="EventMarkerDriver"/>
 -->                
-        <driver name="CalibrationDriver"/>   
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClusterer"/>
@@ -26,9 +25,6 @@
             <eventInterval>1000</eventInterval>
         </driver>
 -->         
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-<!--            <runNumber>1351</runNumber>    -->
-        </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
