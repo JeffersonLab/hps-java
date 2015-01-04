@@ -22,6 +22,7 @@ import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 
+import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 

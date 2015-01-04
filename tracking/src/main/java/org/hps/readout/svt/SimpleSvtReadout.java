@@ -26,7 +26,6 @@ import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDr
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.ecal.TriggerableDriver;
-import org.hps.recon.tracking.HPSSVTConstants;
 import org.hps.util.RandomGaussian;
 
 /**

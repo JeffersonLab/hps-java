@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 
+
 import org.hps.readout.ecal.ReadoutTimestamp;
+import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 //===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;

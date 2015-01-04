@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.math3.special.Gamma;
+import org.hps.readout.svt.HPSSVTConstants;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;

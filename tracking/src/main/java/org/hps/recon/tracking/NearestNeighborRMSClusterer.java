@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.special.Gamma;
 
+import org.hps.readout.svt.HPSSVTConstants;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;

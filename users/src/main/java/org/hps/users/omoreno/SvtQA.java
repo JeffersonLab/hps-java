@@ -1,6 +1,6 @@
 package org.hps.users.omoreno;
 
-import static org.hps.recon.tracking.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
+import static org.hps.readout.svt.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;

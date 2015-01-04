@@ -1,21 +1,22 @@
 package org.hps.readout.svt;
 
 //--- java ---//
-import static org.hps.recon.tracking.HPSSVTConstants.ADC_TEMP_COUNT;
-import static org.hps.recon.tracking.HPSSVTConstants.BETA;
-import static org.hps.recon.tracking.HPSSVTConstants.CONST_A;
-import static org.hps.recon.tracking.HPSSVTConstants.MAX_TEMP;
-import static org.hps.recon.tracking.HPSSVTConstants.MIN_TEMP;
-import static org.hps.recon.tracking.HPSSVTConstants.R_DIV;
-import static org.hps.recon.tracking.HPSSVTConstants.TEMP_INC;
-import static org.hps.recon.tracking.HPSSVTConstants.TEMP_K0;
-import static org.hps.recon.tracking.HPSSVTConstants.TEMP_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.V_MAX;
-import static org.hps.recon.tracking.HPSSVTConstants.V_REF;
+import static org.hps.readout.svt.HPSSVTConstants.ADC_TEMP_COUNT;
+import static org.hps.readout.svt.HPSSVTConstants.BETA;
+import static org.hps.readout.svt.HPSSVTConstants.CONST_A;
+import static org.hps.readout.svt.HPSSVTConstants.MAX_TEMP;
+import static org.hps.readout.svt.HPSSVTConstants.MIN_TEMP;
+import static org.hps.readout.svt.HPSSVTConstants.R_DIV;
+import static org.hps.readout.svt.HPSSVTConstants.TEMP_INC;
+import static org.hps.readout.svt.HPSSVTConstants.TEMP_K0;
+import static org.hps.readout.svt.HPSSVTConstants.TEMP_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.V_MAX;
+import static org.hps.readout.svt.HPSSVTConstants.V_REF;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 
 //--- org.lcsim ---//
@@ -30,8 +31,6 @@ import org.lcsim.event.GenericObject;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  * @version $Id: FpgaData.java,v 1.3 2012/08/16 01:06:30 meeg Exp $
  */
-// FIXME: This seems like it might belong in org.hps.evio where it is used most.
-// It is also used by the apv25 package so leaving here for now. --JM
 public class FpgaData implements GenericObject {
 
     int fpgaID;

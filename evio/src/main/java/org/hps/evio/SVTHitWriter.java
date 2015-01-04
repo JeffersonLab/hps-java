@@ -19,8 +19,8 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.HPSSVTConstants;
 import org.hps.readout.svt.SVTData;
-import org.hps.recon.tracking.HPSSVTConstants;
 
 import static org.hps.evio.EventConstants.SVT_BANK_NUMBER;
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;

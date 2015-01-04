@@ -2,15 +2,15 @@ package org.hps.readout.svt;
 
 //--- Constants ---//
 
-import static org.hps.recon.tracking.HPSSVTConstants.APV_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.CHANNEL_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.FPGA_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.HYBRID_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.SAMPLE_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.TEMP_MASK;
-import static org.hps.recon.tracking.HPSSVTConstants.TOTAL_APV25_CHANNELS;
-import static org.hps.recon.tracking.HPSSVTConstants.TOTAL_APV25_PER_HYBRID;
-import static org.hps.recon.tracking.HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
+import static org.hps.readout.svt.HPSSVTConstants.APV_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.CHANNEL_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.FPGA_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.HYBRID_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.SAMPLE_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.TEMP_MASK;
+import static org.hps.readout.svt.HPSSVTConstants.TOTAL_APV25_CHANNELS;
+import static org.hps.readout.svt.HPSSVTConstants.TOTAL_APV25_PER_HYBRID;
+import static org.hps.readout.svt.HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
 
 /**
  * 
