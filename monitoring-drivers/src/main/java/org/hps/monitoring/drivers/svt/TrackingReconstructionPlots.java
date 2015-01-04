@@ -1028,67 +1028,6 @@ public class TrackingReconstructionPlots extends Driver {
 
     }
 
-    @Override
-    public void reset() {
-        aida.histogram1D("Track Momentum (Px)").reset();
-        aida.histogram1D("Track Momentum (Py)").reset();
-        aida.histogram1D("Track Momentum (Pz)").reset();
-        aida.histogram1D("Track Chi2").reset();
-        aida.histogram1D("Tracks per Event").reset();
-        aida.histogram1D("X @ Z=-60cm").reset();
-        aida.histogram1D("Y @ Z=-60cm").reset();
-        aida.histogram1D("Hits per Track").reset();
-        aida.histogram1D("Module 1 Residual X(mm)").reset();
-        aida.histogram1D("Module 1 Residual Y(mm)").reset();
-        aida.histogram1D("Module 2 Residual X(mm)").reset();
-        aida.histogram1D("Module 2 Residual Y(mm)").reset();
-        aida.histogram1D("Module 3 Residual X(mm)").reset();
-        aida.histogram1D("Module 3 Residual Y(mm)").reset();
-        aida.histogram1D("Module 4 Residual X(mm)").reset();
-        aida.histogram1D("Module 4 Residual Y(mm)").reset();
-        aida.histogram1D("Module 5 Residual X(mm)").reset();
-        aida.histogram1D("Module 5 Residual Y(mm)").reset();
-        aida.histogram1D("Module 6 Residual X(mm)").reset();
-        aida.histogram1D("Module 6 Residual Y(mm)").reset();
-        aida.histogram1D("Module 1 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 1 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 2 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 2 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 3 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 3 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 4 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 4 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 5 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 5 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 6 Residual X(mm) Top").reset();
-        aida.histogram1D("Module 6 Residual Y(mm) Top").reset();
-        aida.histogram1D("Module 1 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 1 Residual Y(mm) Bottom").reset();
-        aida.histogram1D("Module 2 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 2 Residual Y(mm) Bottom").reset();
-        aida.histogram1D("Module 3 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 3 Residual Y(mm) Bottom").reset();
-        aida.histogram1D("Module 4 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 4 Residual Y(mm) Bottom").reset();
-        aida.histogram1D("Module 5 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 5 Residual Y(mm) Bottom").reset();
-        aida.histogram1D("Module 6 Residual X(mm) Bottom").reset();
-        aida.histogram1D("Module 6 Residual Y(mm) Bottom").reset();
-
-        aida.histogram2D("Energy Vs Momentum").reset();
-        aida.histogram1D("Energy Over Momentum").reset();
-        aida.histogram1D("deltaX").reset();
-        aida.histogram1D("deltaY").reset();
-
-        aida.histogram1D("Amp (HitOnTrack)").reset();
-
-        aida.histogram1D("d0 ").reset();
-        aida.histogram1D("sinphi ").reset();
-        aida.histogram1D("omega ").reset();
-        aida.histogram1D("tan(lambda) ").reset();
-        aida.histogram1D("z0 ").reset();
-    }
-
     public boolean isShapeFit() {
         return shapeFit;
     }
