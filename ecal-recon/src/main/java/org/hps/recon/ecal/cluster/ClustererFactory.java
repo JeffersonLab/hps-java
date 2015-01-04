@@ -13,11 +13,11 @@ import org.lcsim.conditions.ConditionsManager;
  * this class implements the {@link Clusterer} interface and will throw an error if it does not.
  * 
  * @see Clusterer
- * @see ClasInnerCalClusterer
+ * @see ReconClusterer
  * @see DualThresholdCosmicClusterer
  * @see LegacyClusterer 
  * @see NearestNeighborClusterer
- * @see SimpleClasInnerCalClusterer
+ * @see SimpleReconClusterer
  * @see SimpleCosmicClusterer
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -41,10 +41,10 @@ public final class ClustererFactory {
         Clusterer clusterer;
         if (LegacyClusterer.class.getSimpleName().equals(name)) {
             clusterer = new LegacyClusterer();
-        } else if (SimpleClasInnerCalClusterer.class.getSimpleName().equals(name)) {
-            clusterer = new SimpleClasInnerCalClusterer();
-        } else if (ClasInnerCalClusterer.class.getSimpleName().equals(name)) {
-            clusterer = new ClasInnerCalClusterer();
+        } else if (SimpleReconClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new SimpleReconClusterer();
+        } else if (ReconClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new ReconClusterer();
         } else if (NearestNeighborClusterer.class.getSimpleName().equals(name)) {
             clusterer = new NearestNeighborClusterer();
         } else if (DualThresholdCosmicClusterer.class.getSimpleName().equals(name)) {

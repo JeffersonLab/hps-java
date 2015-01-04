@@ -26,7 +26,7 @@ import org.lcsim.event.EventHeader;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class SimpleClasInnerCalClusterer extends AbstractClusterer {
+public class SimpleReconClusterer extends AbstractClusterer {
     
     double minEnergy;
     double minTime;
@@ -36,7 +36,7 @@ public class SimpleClasInnerCalClusterer extends AbstractClusterer {
     /**
      * Initialize the algorithm with default cuts.
      */
-    public SimpleClasInnerCalClusterer() {
+    public SimpleReconClusterer() {
         super(new String[] { "minEnergy", "minTime", "timeWindow", "timeCut" }, new double[] { 0.001, 0.0, 20.0, 0. });
     }
 

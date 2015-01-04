@@ -47,23 +47,30 @@ public class ClustererTest extends TestCase {
         // Create test output dir.
         testOutputDir = new TestOutputFile(getClass().getSimpleName());
         testOutputDir.mkdir();        
+        
+        // Initialize conditions system.
+        new DatabaseConditionsManager();
     }
    
     public void testClasInnerCalClusterer() {
         // This is just replicating the default cuts.
-        runClustererTest("ClasInnerCalClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. }, true);;
+        //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. }, true);
+        runClustererTest("ReconClusterer");
     }
     
     public void testSimplClasInnerCalClusterer() {
-        runClustererTest("SimpleClasInnerCalClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
+        //runClustererTest("SimpleReconClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
+        runClustererTest("SimpleReconClusterer");
     }
     
-    public void testNearestNeighborClusterer() {
-        runClustererTest("NearestNeighborClusterer", new double[] { 0.0, 2.0 }, true);
+    public void testNearestNeighborClusterer() {    
+        //runClustererTest("NearestNeighborClusterer", new double[] { 0.0, 2.0 }, true);
+        runClustererTest("NearestNeighborClusterer");
     }
     
     public void testLegacyClusterer() {
-        runClustererTest("LegacyClusterer", new double[] { 0.0, 0.0 }, true);
+        //runClustererTest("LegacyClusterer", new double[] { 0.0, 0.0 }, true);
+        runClustererTest("LegacyClusterer");
     }
     
     /**
@@ -73,10 +80,7 @@ public class ClustererTest extends TestCase {
      * @param writeLcioFile Whether or not to write an LCIO output file.
      */
     private void runClustererTest(String clustererName, double[] cuts, boolean writeLcioFile) {
-        
-        // Initialize conditions system.
-        new DatabaseConditionsManager();
-        
+                
         // Config loop.
         LCSimLoop loop = new LCSimLoop();       
         try {
@@ -91,7 +95,9 @@ public class ClustererTest extends TestCase {
         String clusterCollectionName = clustererName + "Clusters";
         ClusterDriver clusterDriver = new ClusterDriver();
         clusterDriver.setClustererName(clustererName);
-        clusterDriver.setCuts(cuts);
+        if (cuts != null) {
+            clusterDriver.setCuts(cuts);
+        }
         clusterDriver.getLogger().setLevel(Level.ALL);
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
@@ -102,7 +108,7 @@ public class ClustererTest extends TestCase {
         loop.add(new ClusterCheckDriver(clusterCollectionName));
         
         if (writeLcioFile) {
-            loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName));
+            loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName + ".slcio"));
         }
         
         // Run the job.
@@ -112,6 +118,10 @@ public class ClustererTest extends TestCase {
             throw new RuntimeException(e);
         }
         loop.dispose();
+    }
+    
+    private void runClustererTest(String clustererName) {
+        runClustererTest(clustererName, null, true);
     }
     
     /**

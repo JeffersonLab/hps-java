@@ -8,14 +8,14 @@ import org.lcsim.lcio.LCIOConstants;
 
 /**
  * This is an implementation of {@link ClusterDriver} specialized for the
- * {@link ClasInnerCalClusterer}.  It currently implements optional
+ * {@link ReconClusterer}.  It currently implements optional
  * writing of a rejected hit list to the LCSim event.
  * 
- * @see ClasInnerCalClusterer
+ * @see ReconClusterer
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ClasInnerCalClusterDriver extends ClusterDriver {
+public class ReconClusterDriver extends ClusterDriver {
     
     // The name of the output collection of rejected hits.
     String rejectedHitCollectionName;
@@ -24,7 +24,7 @@ public class ClasInnerCalClusterDriver extends ClusterDriver {
     boolean writeRejectedHitCollection = false;
     
     // Reference to the concrete Clusterer object for convenience.
-    ClasInnerCalClusterer innerCalClusterer;
+    ReconClusterer innerCalClusterer;
         
     /**
      * Perform job initialization.  
@@ -35,7 +35,7 @@ public class ClasInnerCalClusterDriver extends ClusterDriver {
             this.setClustererName("ClasInnerCalClusterer");
         } else {
             // Does the Clusterer have the right type if there was a custom inialization parameter?
-            if (!(clusterer instanceof ClasInnerCalClusterer)) {
+            if (!(clusterer instanceof ReconClusterer)) {
                 // The Clusterer does not appear to have the right type for this Driver!
                 throw new IllegalArgumentException("The Clusterer type " + this.clusterer.getClass().getCanonicalName() + " does not have the right type.");
             }   

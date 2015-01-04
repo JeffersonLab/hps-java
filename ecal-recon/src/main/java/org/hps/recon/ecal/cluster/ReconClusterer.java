@@ -43,7 +43,7 @@ import org.lcsim.event.EventHeader;
  * @author Kyle McCarty <mccaky@gmail.com> 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class ClasInnerCalClusterer extends AbstractClusterer {
+public class ReconClusterer extends AbstractClusterer {
 
     // Energy comparator which performs position comparison when energy is equal.
     private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
@@ -74,7 +74,7 @@ public class ClasInnerCalClusterer extends AbstractClusterer {
     // List of rejected hits.
     List<CalorimeterHit> currentRejectedHitList;
 
-    public ClasInnerCalClusterer() {
+    public ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow", "timeCut" }, 
                 new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. });
     }
