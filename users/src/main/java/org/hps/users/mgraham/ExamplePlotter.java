@@ -89,11 +89,6 @@ public class ExamplePlotter extends Driver {
         }
     }
 
-    @Override
-    public void reset() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     public void setOutputPlots(String output) {
         this.outputPlots = output;
     }
