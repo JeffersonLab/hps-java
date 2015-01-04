@@ -23,7 +23,6 @@
         <driver name="EcalEventMonitor"/>
         <driver name="EcalDaqPlots"/>
 -->
-<!--        <driver name="RunControlDriver" />-->
         <!--<driver name="AidaSaveDriver"/>-->
     </execute>   
     
@@ -72,8 +71,6 @@
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
 <!-- Here are commented drivers -->
-          <!--<driver name="RunControlDriver" type="org.hps.util.RunControlDriver"> -->
-        
           <!--<driver name="EcalClusterer" type="org.hps.recon.ecal.HPSEcalCTPClusterer"> -->
         
           <!--  <driver name="EcalEvsX" type="org.hps.monitoring.ecal.EcalEvsX">

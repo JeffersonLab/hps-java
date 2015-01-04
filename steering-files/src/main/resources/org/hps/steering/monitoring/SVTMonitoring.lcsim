@@ -20,12 +20,10 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="TrackingReconstructionPlots" />
-<!--        <driver name="RunControlDriver" />-->
         <driver name="CleanupDriver"/>
         <driver name="AidaSaveDriver"/>
     </execute>
     <drivers>
-        <driver name="RunControlDriver" type="org.hps.util.RunControlDriver"/>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
