@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -61,9 +62,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
 
+    // Registry of conditions converters.
     protected ConverterRegistry converters = ConverterRegistry.create();
+    
+    // Registry of table meta data.
     protected TableRegistry tableRegistry = TableRegistry.create();
     
+    // Connection configuration.
     protected static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
     protected File connectionPropertiesFile;
     protected ConnectionParameters connectionParameters;
@@ -71,10 +76,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected boolean isConnected = false;
     protected boolean loggedConnectionParameters = false;
     
+    // Default configuration resources.
     protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
     protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     protected static final String ENGRUN_CONFIG = "/org/hps/conditions/config/conditions_database_engrun.xml";
     
+    // Max run number for the Test Run.
     protected static final int TEST_RUN_MAX_RUN = 1365;
     
     // The default Test Run detector.
@@ -83,6 +90,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     // The default Engineering Run detector.
     private static final String DEFAULT_ENG_RUN_DETECTOR = "HPS-Proposal2014-v8-6pt6";
     
+    // Detector setup.
     protected String detectorName;
     protected String ecalName = "Ecal";
     protected String svtName = "Tracker";
@@ -91,10 +99,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected EcalDetectorSetup ecalSetup = new EcalDetectorSetup(ecalName);
     protected SvtDetectorSetup svtSetup = new SvtDetectorSetup(svtName);
     
-
-        
+    // Active conditions tag.
     protected String tag = null;
 
+    // State of manager.
     protected boolean isInitialized = false;
     protected boolean isFrozen = false;
     protected boolean isConfigured = false;
@@ -106,6 +114,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected boolean closeConnectionAfterInitialize = true;
     protected boolean cacheAllConditions = false;
     protected boolean isTestRun = false;
+    
+    // Default login timeout of 5 seconds.
+    static {
+        DriverManager.setLoginTimeout(5);
+    }
     
     /**
      * Class constructor.
@@ -923,6 +936,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         element = node.getChild("closeConnectionAfterInitialize");
         if (element != null) {
             closeConnectionAfterInitialize = Boolean.parseBoolean(element.getText());
+        }
+        
+        element = node.getChild("loginTimeout");
+        if (element != null) {
+            DriverManager.setLoginTimeout(Integer.parseInt(element.getText()));
         }
     }
 }
