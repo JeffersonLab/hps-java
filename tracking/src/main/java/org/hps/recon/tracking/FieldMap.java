@@ -13,10 +13,8 @@ import org.lcsim.conditions.ConditionsManager;
 import org.hps.util.Pair;
 
 /**
- * @author Mathew Graham <mgraham@slac.stanford.edu> $Id: FieldMap.java,v 1.14
- *         2012/07/23 23:02:57 mgraham Exp $
+ * @author Mathew Graham <mgraham@slac.stanford.edu> 
  */
-// FIXME: Delete me.
 public class FieldMap {
 
     // TODO: Change all pairs such that FPGA is the fist value

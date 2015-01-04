@@ -1,21 +1,22 @@
 package org.hps.readout.svt;
 
 //--- java ---//
-import static org.hps.conditions.deprecated.HPSSVTConstants.ADC_TEMP_COUNT;
-import static org.hps.conditions.deprecated.HPSSVTConstants.BETA;
-import static org.hps.conditions.deprecated.HPSSVTConstants.CONST_A;
-import static org.hps.conditions.deprecated.HPSSVTConstants.MAX_TEMP;
-import static org.hps.conditions.deprecated.HPSSVTConstants.MIN_TEMP;
-import static org.hps.conditions.deprecated.HPSSVTConstants.R_DIV;
-import static org.hps.conditions.deprecated.HPSSVTConstants.TEMP_INC;
-import static org.hps.conditions.deprecated.HPSSVTConstants.TEMP_K0;
-import static org.hps.conditions.deprecated.HPSSVTConstants.TEMP_MASK;
-import static org.hps.conditions.deprecated.HPSSVTConstants.V_MAX;
-import static org.hps.conditions.deprecated.HPSSVTConstants.V_REF;
+import static org.hps.recon.tracking.HPSSVTConstants.ADC_TEMP_COUNT;
+import static org.hps.recon.tracking.HPSSVTConstants.BETA;
+import static org.hps.recon.tracking.HPSSVTConstants.CONST_A;
+import static org.hps.recon.tracking.HPSSVTConstants.MAX_TEMP;
+import static org.hps.recon.tracking.HPSSVTConstants.MIN_TEMP;
+import static org.hps.recon.tracking.HPSSVTConstants.R_DIV;
+import static org.hps.recon.tracking.HPSSVTConstants.TEMP_INC;
+import static org.hps.recon.tracking.HPSSVTConstants.TEMP_K0;
+import static org.hps.recon.tracking.HPSSVTConstants.TEMP_MASK;
+import static org.hps.recon.tracking.HPSSVTConstants.V_MAX;
+import static org.hps.recon.tracking.HPSSVTConstants.V_REF;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 //--- org.lcsim ---//
 import org.lcsim.event.GenericObject;

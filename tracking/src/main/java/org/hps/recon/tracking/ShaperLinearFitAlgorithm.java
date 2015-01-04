@@ -25,8 +25,6 @@ import org.freehep.math.minuit.MnUserParameters;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
-import org.hps.conditions.deprecated.HPSSVTConstants;
-
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
  * fits values and errors for T0 and amplitude.

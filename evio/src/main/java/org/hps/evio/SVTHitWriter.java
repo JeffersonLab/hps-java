@@ -17,10 +17,10 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
-import org.hps.conditions.deprecated.HPSSVTConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.FpgaData;
 import org.hps.readout.svt.SVTData;
+import org.hps.recon.tracking.HPSSVTConstants;
 
 import static org.hps.evio.EventConstants.SVT_BANK_NUMBER;
 import static org.hps.evio.EventConstants.SVT_BANK_TAG;

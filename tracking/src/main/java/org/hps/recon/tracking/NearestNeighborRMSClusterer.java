@@ -18,8 +18,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.RawTrackerHit;
 
-import org.hps.conditions.deprecated.HPSSVTConstants;
-
 /**
  *
  * @author Matt Graham

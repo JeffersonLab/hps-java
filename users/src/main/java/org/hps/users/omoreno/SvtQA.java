@@ -1,6 +1,6 @@
 package org.hps.users.omoreno;
 
-import static org.hps.conditions.deprecated.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
+import static org.hps.recon.tracking.HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
@@ -25,7 +25,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperAnalyticFitAlgorithm;
