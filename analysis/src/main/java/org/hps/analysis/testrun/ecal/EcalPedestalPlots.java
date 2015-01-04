@@ -15,7 +15,6 @@ import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.util.Redrawable;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
@@ -27,7 +26,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalPedestalPlots extends Driver implements ActionListener, Redrawable {
+public class EcalPedestalPlots extends Driver implements ActionListener {
 
     private String inputCollection = "EcalReadoutHits";
     private IPlotter plotter;
@@ -267,8 +266,7 @@ public class EcalPedestalPlots extends Driver implements ActionListener, Redrawa
         }
     }
 
-    @Override
-    public void redraw() {
+    void redraw() {
         aSigmaPlot.reset();
         aMeanPlot.reset();
         tSigmaPlot.reset();
@@ -287,7 +285,6 @@ public class EcalPedestalPlots extends Driver implements ActionListener, Redrawa
         }
     }
 
-    @Override
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }

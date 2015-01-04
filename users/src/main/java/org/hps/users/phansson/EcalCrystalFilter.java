@@ -20,7 +20,6 @@ import javax.swing.JLabel;
 
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.readout.ecal.TriggerData;
-import org.hps.util.Redrawable;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -34,7 +33,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class EcalCrystalFilter extends Driver implements ActionListener, Redrawable {
+public class EcalCrystalFilter extends Driver implements ActionListener {
 
     private String inputCollection;
     private String outputPlotFileName;
@@ -943,7 +942,7 @@ public class EcalCrystalFilter extends Driver implements ActionListener, Redrawa
         }
     }
 
-    public void redraw() {
+    void redraw() {
 //        aSigmaPlot.reset();
 //        aMeanPlot.reset();
 //        tSigmaPlot.reset();

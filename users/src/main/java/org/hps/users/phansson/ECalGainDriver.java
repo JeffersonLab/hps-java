@@ -23,7 +23,6 @@ import javax.swing.JLabel;
 import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.util.Redrawable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -36,7 +35,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author phansson+
  */
-public class ECalGainDriver extends Driver implements ActionListener, Redrawable {
+public class ECalGainDriver extends Driver implements ActionListener {
 
     private int nevents = 0;
     private boolean debug = true;
@@ -483,8 +482,7 @@ public class ECalGainDriver extends Driver implements ActionListener, Redrawable
         }
     }
 
-    @Override
-    public void redraw() {
+    void redraw() {
 
         //do something if needed
         mpePlot.reset();
@@ -501,7 +499,6 @@ public class ECalGainDriver extends Driver implements ActionListener, Redrawable
         }
     }
 
-    @Override
     public void setEventRefreshRate(int eventRefreshRate) {
         refreshRate = eventRefreshRate;
     }

@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.util.Redrawable;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -16,11 +15,10 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-public class TriggerPlots extends Driver implements Redrawable {
+public class TriggerPlots extends Driver {
 
     int eventRefreshRate = 10000;
     int eventn = 0;
-    //AIDAFrame plotterFrame;
     String inputCollection = "EcalCalHits";
     String clusterCollection = "EcalClusters";
     double clusterEnergyCut = 1280.0;
@@ -544,7 +542,6 @@ public class TriggerPlots extends Driver implements Redrawable {
         //plotterFrame.dispose();
     }
 
-    @Override
     public void redraw() {
         IHistogram1D heffTop = aida.histogramFactory().divide("bottom turn-on: top tag", toptrig_cl_ecal_e_probe_trig, toptrig_cl_ecal_e_probe);
         plotter5.region(7).clear();
@@ -565,7 +562,6 @@ public class TriggerPlots extends Driver implements Redrawable {
         plotter6.region(8).plot(heffBot2);
     }
 
-    @Override
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
