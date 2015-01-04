@@ -173,11 +173,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             
             if (!loggedConnectionParameters) {
                 // Print out detailed info to the log on first connection.
-                logger.config("opening connection to " + connectionParameters.getConnectionString());
-                logger.config("host " + connectionParameters.getHostname());
-                logger.config("port " + connectionParameters.getPort());
-                logger.config("user " + connectionParameters.getUser());
-                logger.config("database " + connectionParameters.getDatabase());
+                logger.info("opening connection to " + connectionParameters.getConnectionString());
+                logger.info("host " + connectionParameters.getHostname());
+                logger.info("port " + connectionParameters.getPort());
+                logger.info("user " + connectionParameters.getUser());
+                logger.info("database " + connectionParameters.getDatabase());
                 loggedConnectionParameters = true;
             }
 
@@ -269,7 +269,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 
         if (!isInitialized || !detectorName.equals(getDetector()) || runNumber != getRun()) {
             if (!isFrozen) {
-                logger.info("setDetector - new detector " + detectorName + " and run #" + runNumber);             
+                logger.info("new detector " + detectorName + " and run #" + runNumber);             
                 initialize(detectorName, runNumber);
             } else {
                 logger.finest("Conditions changed but will be ignored because manager is frozen.");
@@ -346,7 +346,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         
         isInitialized = true;
         
-        logger.config("conditions system initialized successfully");
+        logger.info("conditions system initialized successfully");
     }
 
     /**
@@ -576,7 +576,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 if (tag == null || (tag != null && record.getTag().equals(tag))) {
                     foundConditionsRecords.add(record);
                 } else {
-                    logger.info("rejected ConditionsRecord " + record.getRowId() + " because of non-matching tag " + record.getTag());
+                    logger.fine("rejected ConditionsRecord " + record.getRowId() + " because of non-matching tag " + record.getTag());
                 }
             }
         }
@@ -709,7 +709,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             String sql = QueryBuilder.buildPreparedInsert(tableMetaData.getTableName(), collection.iterator().next());
             preparedStatement = connection.prepareStatement(sql);
             logger.finest("using prepared statement: " + sql);
-            logger.finest("preparing updates");
+            logger.finest("preparing updates ...");
             int collectionId = collection.getCollectionId();
             for (ConditionsObject object : collection) {
                 preparedStatement.setObject(1, collectionId);
@@ -825,11 +825,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         try {
             // Is the JLAB database reachable?
             if (InetAddress.getByName("jmysql.jlab.org").isReachable(5000)) {
-                logger.config("jmysql.jlab.org is reachable");
                 connectionName = "jlab";
             } 
         } catch (UnknownHostException e) {
-            // Something wrong with the user's host name, but we will try to continue anyways.
+            // This will actually print a warning if the JLAB server is unreachable.
             logger.log(Level.WARNING, e.getMessage(), e);
         } catch (IOException e) {
             logger.severe(e.getMessage());
@@ -844,20 +843,24 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @param in the InputStream which should be in XML format
      */
     private void configure(InputStream in) {
-        SAXBuilder builder = new SAXBuilder();
-        Document config = null;
-        try {
-            config = builder.build(in);
-        } catch (JDOMException | IOException e) {
-            throw new RuntimeException(e);
+        if (!isConfigured) {
+            SAXBuilder builder = new SAXBuilder();
+            Document config = null;
+            try {
+                config = builder.build(in);
+            } catch (JDOMException | IOException e) {
+                throw new RuntimeException(e);
+            }
+            loadConfiguration(config);
+            try {
+                in.close();
+            } catch (IOException e) {
+                logger.warning(e.getMessage());
+            }
+            isConfigured = true;
+        } else {
+            logger.warning("System is already configured, so call to configure is ignored!");
         }
-        loadConfiguration(config);
-        try {
-            in.close();
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-        isConfigured = true;
     }
     
     /**
