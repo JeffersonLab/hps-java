@@ -9,7 +9,6 @@
 		<printInputFiles>true</printInputFiles>
 	</control>
 	<execute>
-<!--        <driver name="CalibrationDriver"/>   -->
 <!--		<driver name="EventMarkerDriver"/>-->
 		<driver name="EcalClusterer"/>
 		<driver name="EcalTrigger"/>
@@ -18,7 +17,6 @@
 		<driver name="ClockDriver"/>
 	</execute>
 	<drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
 		<driver name="EcalClusterer"
                 type="org.hps.recon.ecal.EcalClusterer">
 			<ecalName>Ecal</ecalName>

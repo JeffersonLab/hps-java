@@ -13,7 +13,6 @@
 
     <execute>
         <driver name="EventMarkerDriver"/>
-         <driver name="CalibrationDriver"/>   
         <driver name="BadChannelFilter" />
         <driver name="SimpleSVTReadout"/>
         <driver name="RawTrackerHitFitterDriver"/>
@@ -36,9 +35,6 @@
        	<driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
-        </driver>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>${runNumber}</runNumber>
         </driver>
          <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />     
  		<driver name="HPSSVTSensorSetup" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>

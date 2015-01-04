@@ -6,7 +6,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="HPSSVTSensorSetup"/>   
-        <driver name="CalibrationDriver"/>
         <driver name="BadChannelFilter" />
 <!--        <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
@@ -25,10 +24,6 @@
             <eventInterval>1000</eventInterval>
         </driver> 
         <driver name="HPSSVTSensorSetup" type="org.hps.conditions.deprecated.HPSSVTSensorSetup"/>
-        
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>${runNumber}</runNumber>
-        </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>

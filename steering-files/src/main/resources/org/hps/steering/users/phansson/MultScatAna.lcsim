@@ -8,8 +8,6 @@
     <execute>
         
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
-
 <!--
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -71,17 +69,6 @@
         <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
                 <outputPlots>trackingPlots.aida</outputPlots>
         </driver>   
-        
-
-
-
-
-
-
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>1351</runNumber>
-        </driver>
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>

@@ -7,7 +7,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <driver name="DQMDatabaseDriver"/>  
-        <driver name="CalibrationDriver"/> 
          <driver name="RawTrackerHitSensorSetup"/>
         <driver name="BadChannelFilter" /> 
  <!--        <driver name="RawTrackerHitFitterDriver" />-->
@@ -30,9 +29,6 @@
     </execute>    
     <drivers>    
      <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver"/> 
-     <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>${runNumber}</runNumber>
-        </driver> 
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>        

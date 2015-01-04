@@ -9,7 +9,6 @@
 		<printInputFiles>true</printInputFiles>
 	</control>
 	<execute>
-        <driver name="CalibrationDriver"/>   
 		<driver name="EventMarkerDriver"/>
 		<driver name="EcalReadout"/>
 		<driver name="EcalConverter"/>
@@ -24,7 +23,6 @@
 		<driver name="ClockDriver"/>
 	</execute>
 	<drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver"/>   
 		<driver name="Writer"
                 type="org.lcsim.util.loop.LCIODriver">
 			<outputFilePath>${outputFile}_ecalClusters</outputFilePath>

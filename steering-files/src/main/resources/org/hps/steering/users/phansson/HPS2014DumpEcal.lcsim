@@ -7,7 +7,6 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>        
-        <driver name="CalibrationDriver"/>   
         <driver name="EcalReadout"/> 
         <driver name="EcalConverter"/>
         <driver name="EcalClusterer"/>
@@ -24,11 +23,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-        </driver>
-        
-
-
     <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <readoutPeriod>4.0</readoutPeriod>
             <coincidenceWindow>2</coincidenceWindow>

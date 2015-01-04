@@ -7,7 +7,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalPedestalPlots"/>
 <!--        <driver name="EcalRawConverter"/>-->
 <!--
@@ -17,8 +16,6 @@
 -->
     </execute>    
     <drivers>
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">

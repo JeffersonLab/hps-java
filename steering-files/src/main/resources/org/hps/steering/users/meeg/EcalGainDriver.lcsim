@@ -7,7 +7,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
         
@@ -23,19 +22,13 @@
 
     </execute>    
     <drivers>
-
         <driver name="SVTBadChannelFilterDriver" type="org.hps.recon.tracking.SVTBadChannelFilterDriver"/>
-
         <driver name="EcalGainDriver"
 		type="org.hps.users.phansson.ECalGainDriver">
             <debug>false</debug>
             <hideFrame>true</hideFrame>
             <outputPlotFileName>gaindriver.aida</outputPlotFileName>
             <ecalGainFileName>clusterlist.txt</ecalGainFileName>
-        </driver>
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>1351</runNumber>
         </driver>
         <driver name="EcalRawConverter" 
                 type="org.hps.recon.ecal.EcalRawConverterDriver">

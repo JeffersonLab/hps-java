@@ -7,7 +7,6 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="CalibrationDriver"/>
         <driver name="EcalRawConverter"/>
         <driver name="EcalClusterer"/>
         <driver name="EcalTriggerFilter"/>
@@ -30,10 +29,6 @@
             <outputPlotFileName>gaindriver_sim.aida</outputPlotFileName>
             <ecalGainFileName>clusterlist_sim.txt</ecalGainFileName>
             <simTrigger>true</simTrigger>
-        </driver>
-
-        <driver name="CalibrationDriver" type="org.hps.conditions.deprecated.CalibrationDriver">
-            <runNumber>1351</runNumber>    
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalEdepToTriggerConverterDriver">
             <addNoise>true</addNoise>

@@ -8,7 +8,8 @@
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver"/>
         <driver name="EcalCalibrationsDriver" type="org.hps.recon.ecal.EcalCalibrationsDriver">
-            <loadCalibrations>true</loadCalibrations>
+            <outputFileName>ecal_calibrations.txt</outputFileName>
+            <loadCalibrations>false</loadCalibrations>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>EcalCalibrationPlots.aida</outputFileName>
