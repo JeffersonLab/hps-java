@@ -1,6 +1,5 @@
 package org.hps.users.jeremym;
 
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.recon.ecal.EcalClusterer;
 import org.hps.recon.ecal.EcalRawConverterDriver;
 import org.hps.recon.tracking.DataTrackerHitDriver;
@@ -27,10 +26,6 @@ import org.lcsim.util.Driver;
 public class TestRunReconDriver extends Driver {
     
     public TestRunReconDriver() {
-        
-        //CalibrationDriver calibrationDriver = new CalibrationDriver();
-        //calibrationDriver.setRunNumber(975);
-        //this.add(calibrationDriver);
         
         RawTrackerHitSensorSetup rawTrackerHitDriver = new RawTrackerHitSensorSetup();
         this.add(rawTrackerHitDriver);

@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import junit.framework.TestCase;
 
 import org.freehep.record.loop.RecordLoop.Command;
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.util.CompareHistograms;
 import org.lcsim.event.EventHeader;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -76,7 +75,6 @@ public class HelicalTrackHitDriverTest extends TestCase {
         // Specify the drivers that will run
         LCSimLoop lcsimLoop = new LCSimLoop();
         lcsimLoop.setLCIORecordSource(lcioInputFile);
-        lcsimLoop.add(new CalibrationDriver());
         lcsimLoop.add(new RawTrackerHitSensorSetup());
         lcsimLoop.add(hitFitter);
         lcsimLoop.add(new DataTrackerHitDriver());

@@ -1,6 +1,5 @@
 package org.hps.users.mgraham;
 
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.recon.tracking.DataTrackerHitDriver;
 import org.hps.recon.tracking.RawTrackerHitFitterDriver;
 import org.hps.recon.tracking.HelicalTrackHitDriver;
@@ -19,7 +18,6 @@ public final class MainJASDriver extends Driver {
 
     public MainJASDriver() {
 //        add(new HPSSVTSensorSetup());
-        //add(new CalibrationDriver());
         add(new RawTrackerHitSensorSetup());
         //   Can remove HPSRawTrackerHitFitterDriver and DataTrackerHitDriver for integrated MC
         RawTrackerHitFitterDriver hitfitter=new RawTrackerHitFitterDriver();

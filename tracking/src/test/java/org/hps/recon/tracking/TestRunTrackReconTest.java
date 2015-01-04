@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.util.CompareHistograms;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
@@ -205,9 +204,6 @@ public class TestRunTrackReconTest extends TestCase {
         public MainTrackingDriver() {
 
             //Setup the sensors and calibrations
-            CalibrationDriver calibDriver = new CalibrationDriver();
-            //calibDriver.setRunNumber(1351); //not sure what should be done here!? -> FIX THIS!
-            add(calibDriver);
             add(new RawTrackerHitSensorSetup());
             RawTrackerHitFitterDriver hitfitter = new RawTrackerHitFitterDriver();
             hitfitter.setFitAlgorithm("Analytic");

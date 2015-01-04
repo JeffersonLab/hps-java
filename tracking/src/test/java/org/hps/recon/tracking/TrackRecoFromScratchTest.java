@@ -28,7 +28,6 @@ public class TrackRecoFromScratchTest extends TestCase
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(lcioInputFile);
 
-        loop.add(new org.hps.conditions.deprecated.CalibrationDriver());
         loop.add(new org.hps.recon.tracking.SimpleTrackerDigiDriver());
         loop.add(new org.hps.recon.tracking.HelicalTrackHitDriver());
         loop.add(new org.hps.recon.tracking.TrackerReconDriver());

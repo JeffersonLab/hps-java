@@ -14,7 +14,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.deprecated.CalibrationDriver;
 import org.hps.recon.tracking.gbl.TruthResiduals;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
@@ -124,9 +123,6 @@ public class TruthResidualTest extends TestCase {
         public MainTrackingDriver() {
 
             //Setup the sensors and calibrations
-            CalibrationDriver calibDriver = new CalibrationDriver();
-            //calibDriver.setRunNumber(1351); //not sure what should be done here!? -> FIX THIS!
-            add(calibDriver);
             add(new RawTrackerHitSensorSetup());
             RawTrackerHitFitterDriver hitfitter = new RawTrackerHitFitterDriver();
             hitfitter.setFitAlgorithm("Analytic");
