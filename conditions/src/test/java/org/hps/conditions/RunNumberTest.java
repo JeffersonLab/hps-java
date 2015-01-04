@@ -96,7 +96,7 @@ public class RunNumberTest extends TestCase {
         static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         
         public void detectorChanged(Detector detector) {
-            System.out.println("detectorChanged - detector " + detector.getDetectorName() + " and run #" + conditionsManager.getRun());
+            //System.out.println("detectorChanged - detector " + detector.getDetectorName() + " and run #" + conditionsManager.getRun());
             int run = conditionsManager.getRun();
             uniqueRuns.add(run);
             runsProcessed.add(run);
