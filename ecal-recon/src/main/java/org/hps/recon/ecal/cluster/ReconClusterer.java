@@ -45,34 +45,35 @@ import org.lcsim.event.EventHeader;
  */
 public class ReconClusterer extends AbstractClusterer {
 
-    // Energy comparator which performs position comparison when energy is equal.
-    private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
+    // Minimum energy threshold for hits; lower energy hits will be
+    // excluded from clustering. Units in GeV.
+    double hitEnergyThreshold = 0.0075;
 
-    // Threshold for considering hit for clustering.
-    double hitEnergyThreshold;
-
-    // Minimum energy threshold for seed hits; if seed hit is below this value,
-    // the cluster is excluded from the output. Units in GeV.
-    double seedEnergyThreshold;
+    // Minimum energy threshold for seed hits; if seed hit is below
+    // cluster is excluded from output. Units in GeV.
+    double seedEnergyThreshold = 0.1;
 
     // Minimum energy threshold for cluster hits; if total cluster
     // energy is below, the cluster is excluded. Units in GeV.
-    double clusterEnergyThreshold;
+    double clusterEnergyThreshold = 0.3;
 
     // Apply time cut to hits
-    boolean timeCut;
+    boolean timeCut = false;
 
     // Minimum time cut window range. Units in ns.
-    double minTime;
+    double minTime = 0.0;
 
     // Maximum time cut window range. Units in ns.
-    double timeWindow;
+    double timeWindow = 20.0;
 
     // Make a map for quick calculation of the x-y position of crystal face
-    public Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
-    
-    // List of rejected hits.
-    List<CalorimeterHit> currentRejectedHitList;
+    Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
+
+    List<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
+
+    // A Comparator that sorts CalorimeterHit objects from highest to
+    // lowest energy.
+    private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
 
     public ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow", "timeCut" }, 
@@ -82,7 +83,7 @@ public class ReconClusterer extends AbstractClusterer {
     public void initialize() {
         hitEnergyThreshold = getCuts().getValue("hitEnergyThreshold");
         seedEnergyThreshold = getCuts().getValue("seedEnergyThreshold");
-        if (hitEnergyThreshold > seedEnergyThreshold) {            
+        if (hitEnergyThreshold > seedEnergyThreshold) {
             throw new IllegalArgumentException("hitEnergyThreshold must be <= to seedEnergyThreshold");
         }
         clusterEnergyThreshold = getCuts().getValue("clusterEnergyThreshold");
@@ -90,96 +91,43 @@ public class ReconClusterer extends AbstractClusterer {
         timeWindow = getCuts().getValue("timeWindow");
         timeCut = (getCuts().getValue("timeCut") == 1.);
     }
+    
+    /**
+     * Get the list of rejected hits that was made from processing the last event.
+     * @return The list of rejected hit.
+     */
+    List<CalorimeterHit> getRejectedHitList() {
+        return this.rejectedHitList;
+    }
 
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
 
-        // Clear corrected position map (or there is a potential memory leak!).
-        this.correctedPositionMap.clear();
-        
-        // Reset the the rejected hit list.
-        resetRejectedHitList();
-        
-        // Create the master list of hits to work from for clustering.
-        List<CalorimeterHit> hitList = new ArrayList<CalorimeterHit>(hits);                       
+        // Create a list to store the event hits in.
+        List<CalorimeterHit> hitList = new ArrayList<CalorimeterHit>();
+        List<CalorimeterHit> baseList = hits;
+        for (CalorimeterHit r : baseList) {
+            hitList.add(r);
+        }
+
+        // Create a list to store the newly created clusters in.
+        ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
+
+        // Create a list to store the rejected hits in.
+        // ArrayList<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
+        rejectedHitList = new ArrayList<CalorimeterHit>();
+
+        correctedPositionMap.clear();
 
         // Sort the list of hits by energy.
         Collections.sort(hitList, ENERGY_COMP);
 
-        // Filter the hit list.
-        filterHitList(hitList);
-                
-        // Create an ID map of the hits.
-        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
-
-        // Map a crystal to a list of all clusters in which it is a member.
-        Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new HashMap<CalorimeterHit, List<CalorimeterHit>>();
-
-        // Map a crystal to the seed of the cluster of which it is a member.
-        HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap = new HashMap<CalorimeterHit, CalorimeterHit>();
-
-        // Perform first pass calculations to find seed hits and do initial calculations on hits.
-        firstPass(hitList, hitMap, commonHits, hitSeedMap);
-
-        // Perform second pass calculations for component hits.
-        secondPass(hitList, hitMap, hitSeedMap);
-
-        // Perform third pass for calculations on common hits.
-        thirdPass(hitMap, commonHits, hitSeedMap);
-
-        // This removes common hits from the seed hit map.  (Why?)
-        removeCommonHits(commonHits, hitSeedMap);
-
-        // Create map to contain the total energy of each cluster
-        Map<CalorimeterHit, Double> seedEnergy = new HashMap<CalorimeterHit, Double>();
-
-        // ?????
-        getClusterEnergies(hitList, hitSeedMap, seedEnergy);
-
-        // Create map of seeds to energies.
-        createSeedMap(hitSeedMap, seedEnergy);
-
-        // Create a map to contain final uncorrected cluster energies including common hit distributions.
-        Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
-
-        // Distribute energies of common hits.
-        distributeCommonHitEnergies(commonHits, seedEnergy, seedEnergyTot);
-
-        //
-        // Correct the position as per HPS Note 2014-001.  (See class doc for link.)
-        //        
-        // Create maps with seed as key to position/centroid value.
-        Map<CalorimeterHit, double[]> rawSeedPosition = new HashMap<CalorimeterHit, double[]>();
-        Map<CalorimeterHit, double[]> corrSeedPosition = new HashMap<CalorimeterHit, double[]>();
-        correctClusterPositions(hitSeedMap, seedEnergyTot, rawSeedPosition, corrSeedPosition);
-
-        // Create the cluster collection.
-        return createClusterCollection(hitMap, commonHits, hitSeedMap, seedEnergyTot, rawSeedPosition, corrSeedPosition);
-    }
-
-    private void createSeedMap(HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap, Map<CalorimeterHit, Double> seedEnergy) {
-        // Putting total cluster energies excluding common hit energies into map with seed keys
-        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry : hitSeedMap.entrySet()) {
-            CalorimeterHit eSeed = entry.getValue();
-            double eEnergy = seedEnergy.get(eSeed);
-            eEnergy += entry.getKey().getCorrectedEnergy();
-            seedEnergy.put(eSeed, eEnergy);
-        }
-    }
-
-    private void resetRejectedHitList() {
-        if (currentRejectedHitList != null) {
-            currentRejectedHitList.clear();
-        }
-        currentRejectedHitList = new ArrayList<CalorimeterHit>();
-    }
-
-    private void filterHitList(List<CalorimeterHit> hitList) {
         // Filter the hit list of any hits that fail to pass the
         // designated threshold.
+
         for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or outside of time window, kill it.
             if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (timeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
-                currentRejectedHitList.add(hitList.get(index));
+                rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
 
@@ -191,181 +139,150 @@ public class ReconClusterer extends AbstractClusterer {
                 continue;
             }
         }
-    }
 
-    private void getClusterEnergies(List<CalorimeterHit> hitList, Map<CalorimeterHit, CalorimeterHit> hitSeedMap, Map<CalorimeterHit, Double> seedEnergy) {
-        // Get energy of each cluster, excluding common hits
-        for (CalorimeterHit iSeed : hitList) {
-            if (hitSeedMap.get(iSeed) == iSeed) {
-                seedEnergy.put(iSeed, 0.0);
-            }
+        // Create a map to connect the cell ID of a calorimeter crystal to the hit which occurred in
+        // that crystal.
+        HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
+        for (CalorimeterHit hit : hitList) {
+            hitMap.put(hit.getCellID(), hit);
         }
-    }
 
-    /*
-     * Outputs results to cluster collection.
-     */
-    private List<Cluster> createClusterCollection(Map<Long, CalorimeterHit> hitMap,  Map<CalorimeterHit, List<CalorimeterHit>> commonHits, HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap, Map<CalorimeterHit, Double> seedEnergyTot, Map<CalorimeterHit, double[]> rawSeedPosition, Map<CalorimeterHit, double[]> corrSeedPosition) {
-        
-        // Create a list to store the newly created clusters.
-        ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
-        
-        // Only write output if something actually exists.
-        if (hitMap.size() != 0) {
-            // Loop over seeds
-            for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
-                if (entry2.getKey() == entry2.getValue()) {
-                    if (seedEnergyTot.get(entry2.getKey()) < clusterEnergyThreshold) {
-                        // Not clustered for not passing cuts
-                        currentRejectedHitList.add(entry2.getKey());
-                    }
+        // Map a crystal to a list of all clusters in which it is a member.
+        Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new HashMap<CalorimeterHit, List<CalorimeterHit>>();
 
-                    else {
-                        // New cluster
-                        HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
-                        clusterList.add(cluster);
-                        // Loop over hits belonging to seeds
-                        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
-                            if (entry3.getValue() == entry2.getValue()) {
-                                if (currentRejectedHitList.contains(entry2.getValue())) {
-                                    currentRejectedHitList.add(entry3.getKey());
-                                } else {
-                                    // Add hit to cluster
-                                    cluster.addHit(entry3.getKey());
-                                }
-                            }
-                        }
+        // Map a crystal to the seed of the cluster of which it is a member.
+        HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap = new HashMap<CalorimeterHit, CalorimeterHit>();
 
-                        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
-                            if (entry4.getValue().contains(entry2.getKey())) {
-                                // Add shared hits for energy distribution between clusters
-                                cluster.addSharedHit(entry4.getKey());
-                            }
-                        }
+        // Loop through all calorimeter hits to locate seeds and perform
+        // first pass calculations for component and common hits.
+        for (int ii = 0; ii <= hitList.size() - 1; ii++) {
+            CalorimeterHit hit = hitList.get(ii);
+            // Get the set of all neighboring crystals to the current hit.
+            Set<Long> neighbors = neighborMap.get(hit.getCellID());
 
-                        // Input uncorrected cluster energies
-                        if (seedEnergyTot.values().size() > 0) {
-                            cluster.setEnergy(seedEnergyTot.get(entry2.getKey()));
-                            cluster.setUncorrectedEnergy(seedEnergyTot.get(entry2.getKey()));
-                        }
+            // Generate a list to store any neighboring hits in.
+            ArrayList<CalorimeterHit> neighborHits = new ArrayList<CalorimeterHit>();
 
-                        // Input both uncorrected and corrected cluster positions.
-                        cluster.setCorrPosition(corrSeedPosition.get(entry2.getKey()));
-                        cluster.setRawPosition(rawSeedPosition.get(entry2.getKey()));
+            // Sort through the set of neighbors and, if a hit exists
+            // which corresponds to a neighbor, add it to the list of
+            // neighboring hits.
+            for (Long neighbor : neighbors) {
+                // Get the neighboring hit.
+                CalorimeterHit neighborHit = hitMap.get(neighbor);
 
-                    }// End checking thresholds and write out.
+                // If it exists, add it to the list.
+                if (neighborHit != null) {
+                    neighborHits.add(neighborHit);
                 }
-            } // End cluster loop
-              // System.out.println("Number of clusters: "+clusterList.size());
-
-        } // End event output loop.
-        return clusterList;
-    }
-
-    private void correctClusterPositions(HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap, Map<CalorimeterHit, Double> seedEnergyTot, Map<CalorimeterHit, double[]> rawSeedPosition, Map<CalorimeterHit, double[]> corrSeedPosition) {
-        // top level iterates through seeds
-        for (Map.Entry<CalorimeterHit, Double> entryS : seedEnergyTot.entrySet()) {
-            // get the seed for this iteration
-            CalorimeterHit seedP = entryS.getKey();
-
-            double xCl = 0.0; // calculated cluster x position, prior to correction
-            double yCl = 0.0; // calculated cluster y position
-            double eNumX = 0.0;
-            double eNumY = 0.0;
-            double eDen = 0.0;
-            double w0 = 3.1;
-
-            // iterate through hits corresponding to seed
-            for (Map.Entry<CalorimeterHit, CalorimeterHit> entryP : hitSeedMap.entrySet()) {
-                if (entryP.getValue() == seedP) {
-                    // /////////////////////////////
-                    // This block fills a map with crystal to center of face of crystal
-                    // Get the hit indices as a Point.
-                    int ix = entryP.getKey().getIdentifierFieldValue("ix");
-                    int iy = entryP.getKey().getIdentifierFieldValue("iy");
-                    Point hitIndex = new Point(ix, iy);
-
-                    // Get the corrected position for this index pair.
-                    double[] position = correctedPositionMap.get(hitIndex);
-
-                    // If the result is null, it hasn't been calculated yet.
-                    if (position == null) {
-                        // Calculate the corrected position.
-                        IGeometryInfo geom = entryP.getKey().getDetectorElement().getGeometry();
-                        double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()), (Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
-
-                        // Convert the result to a Double[] array.
-                        position = new double[3];
-                        position[0] = pos[0];
-                        position[1] = pos[1];
-                        position[2] = pos[2];
-
-                        // Store the result in the map.
-                        correctedPositionMap.put(hitIndex, position);
-                    }
-                    // /////////////////////////////
-
-                    // Use Method 3 weighting scheme described in note:
-                    eNumX += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[0] / 10.0);
-                    eNumY += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[1] / 10.0);
-                    eDen += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP))));
-                }
-
             }
 
-            xCl = eNumX / eDen;
-            yCl = eNumY / eDen;
+            // Track whether the current hit is a seed hit or not.
+            boolean isSeed = true;
 
-            double[] rawPosition = new double[3];
-            rawPosition[0] = xCl * 10.0;// mm
-            rawPosition[1] = yCl * 10.0;// mm
-            int ix = seedP.getIdentifierFieldValue("ix");
-            int iy = seedP.getIdentifierFieldValue("iy");
-            Point hitIndex = new Point(ix, iy);
-            rawPosition[2] = correctedPositionMap.get(hitIndex)[2];
+            // Loops through all the neighboring hits to determine if
+            // the current hit is the local maximum within its set of
+            // neighboring hits.
+            seedHitLoop: for (CalorimeterHit neighbor : neighborHits) {
+                if (!equalEnergies(hit, neighbor)) {
+                    isSeed = false;
+                    break seedHitLoop;
+                }
+            }
+            // If this hit is a seed hit, just map it to itself.
+            if (isSeed && hit.getCorrectedEnergy() >= seedEnergyThreshold) {
+                hitSeedMap.put(hit, hit);
+            }
 
-            // Apply position correction factors:
-            // Position correction for electron:
-            int pdg = 11;
-            double xCorr = correctPosition(pdg, xCl * 10.0, seedEnergyTot.get(seedP));
+            // If this hit is a local maximum but does not pass seed threshold,
+            // remove from hit list and do not cluster.
+            else if (isSeed && hit.getCorrectedEnergy() < seedEnergyThreshold) {
+                hitList.remove(ii);
+                rejectedHitList.add(hit);
+                ii--;
+            }
 
-            double[] corrPosition = new double[3];
-            corrPosition[0] = xCorr * 10.0;// mm
-            corrPosition[1] = yCl * 10.0;// mm
-            corrPosition[2] = correctedPositionMap.get(hitIndex)[2];
+            // If this hit is not a seed hit, see if it should be
+            // attached to any neighboring seed hits.
+            else {
+                // Sort through the list of neighboring hits.
+                for (CalorimeterHit neighborHit : neighborHits) {
+                    // Check whether the neighboring hit is a seed.
+                    if (hitSeedMap.get(neighborHit) == neighborHit) {
+                        // If the neighboring hit is a seed hit and the
+                        // current hit has been associated with a cluster,
+                        // then it is a common hit between its previous
+                        // seed and the neighboring seed.
+                        if (hitSeedMap.containsKey(hit)) {
+                            // Check and see if a list of common seeds
+                            // for this hit already exists or not.
+                            List<CalorimeterHit> commonHitList = commonHits.get(hit);
 
-            corrSeedPosition.put(seedP, corrPosition);
-            rawSeedPosition.put(seedP, rawPosition);
+                            // If it does not, make a new one.
+                            if (commonHitList == null) {
+                                commonHitList = new ArrayList<CalorimeterHit>();
+                            }
 
-        }// end of cluster position calculation
-    }
+                            // Add the neighbors to the seeds to set of
+                            // common seeds.
+                            commonHitList.add(neighborHit);
+                            commonHitList.add(hitSeedMap.get(hit));
 
-    // Distribute common hit energies with clusters
-    private void distributeCommonHitEnergies(Map<CalorimeterHit, List<CalorimeterHit>> commonHits, Map<CalorimeterHit, Double> seedEnergy, Map<CalorimeterHit, Double> seedEnergyTot) {
-        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
-            CalorimeterHit commonCell = entry1.getKey();
-            CalorimeterHit seedA = entry1.getValue().get(0);
-            CalorimeterHit seedB = entry1.getValue().get(1);
-            double eFractionA = (seedEnergy.get(seedA)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
-            double eFractionB = (seedEnergy.get(seedB)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
-            double currEnergyA = seedEnergyTot.get(seedA);
-            double currEnergyB = seedEnergyTot.get(seedB);
-            currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
-            currEnergyB += eFractionB * commonCell.getCorrectedEnergy();
-            seedEnergyTot.put(seedA, currEnergyA);
-            seedEnergyTot.put(seedB, currEnergyB);
-        }
-    }
+                            // Put the common seed list back into the set.
+                            commonHits.put(hit, commonHitList);
+                        }
 
-    // Remove any common hits from the clustered hits collection.
-    private void removeCommonHits(Map<CalorimeterHit, List<CalorimeterHit>> commonHits, HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap) {
-        for (CalorimeterHit commonHit : commonHits.keySet()) {
-            hitSeedMap.remove(commonHit);
-        }
-    }
+                        // If the neighboring hit is a seed hit and the
+                        // current hit has not been added to a cluster yet
+                        // associate it with the neighboring seed and note
+                        // that it has been clustered.
+                        else {
+                            hitSeedMap.put(hit, neighborHit);
+                        }
+                    }
+                }
+            }
+        } // End primary seed loop.
 
-    // Performs second pass calculations for common hits.
-    private void thirdPass(Map<Long, CalorimeterHit> hitMap, Map<CalorimeterHit, List<CalorimeterHit>> commonHits, Map<CalorimeterHit, CalorimeterHit> hitSeedMap) {
+        // Performs second pass calculations for component hits.
+        secondaryHitsLoop: for (CalorimeterHit secondaryHit : hitList) {
+            // Look for hits that already have an associated seed/clustering.
+            if (!hitSeedMap.containsKey(secondaryHit)) {
+                continue secondaryHitsLoop;
+            }
+
+            // Get the secondary hit's neighboring crystals.
+            Set<Long> secondaryNeighbors = neighborMap.get(secondaryHit.getCellID());
+
+            // Make a list to store the hits associated with the
+            // neighboring crystals.
+            List<CalorimeterHit> secondaryNeighborHits = new ArrayList<CalorimeterHit>();
+
+            // Loop through the neighboring crystals.
+            for (Long secondaryNeighbor : secondaryNeighbors) {
+                // Get the hit associated with the neighboring crystal.
+                CalorimeterHit secondaryNeighborHit = hitMap.get(secondaryNeighbor);
+
+                // If the neighboring crystal exists and is not already
+                // in a cluster, add it to the list of neighboring hits.
+                if (secondaryNeighborHit != null && !hitSeedMap.containsKey(secondaryNeighborHit)) {
+                    secondaryNeighborHits.add(secondaryNeighborHit);
+                }
+            }
+
+            // Loop over the secondary neighbor hits.
+            for (CalorimeterHit secondaryNeighborHit : secondaryNeighborHits) {
+                // If the neighboring hit is of lower energy than the
+                // current secondary hit, then associate the neighboring
+                // hit with the current secondary hit's seed.
+                if (!equalEnergies(secondaryNeighborHit, secondaryHit)) {
+                    hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));
+                } else {
+                    continue;
+                }
+            }
+        } // End component hits loop.
+
+        // Performs second pass calculations for common hits.
         commonHitsLoop: for (CalorimeterHit clusteredHit : hitSeedMap.keySet()) {
 
             // Seed hits are never common hits and can be skipped.
@@ -427,178 +344,191 @@ public class ReconClusterer extends AbstractClusterer {
                 }
             }
         } // End common hits loop.
-    }
 
-    private void secondPass(List<CalorimeterHit> hitList, Map<Long, CalorimeterHit> hitMap, Map<CalorimeterHit, CalorimeterHit> hitSeedMap) {
-        // Performs second pass calculations for component hits.
-        secondaryHitsLoop: for (CalorimeterHit secondaryHit : hitList) {
-            // Look for hits that already have an associated seed/clustering.
-            if (!hitSeedMap.containsKey(secondaryHit)) {
-                continue secondaryHitsLoop;
-            }
-
-            // Get the secondary hit's neighboring crystals.
-            Set<Long> secondaryNeighbors = neighborMap.get(secondaryHit.getCellID());
-
-            // Make a list to store the hits associated with the
-            // neighboring crystals.
-            List<CalorimeterHit> secondaryNeighborHits = new ArrayList<CalorimeterHit>();
-
-            // Loop through the neighboring crystals.
-            for (Long secondaryNeighbor : secondaryNeighbors) {
-                // Get the hit associated with the neighboring crystal.
-                CalorimeterHit secondaryNeighborHit = hitMap.get(secondaryNeighbor);
-
-                // If the neighboring crystal exists and is not already
-                // in a cluster, add it to the list of neighboring hits.
-                if (secondaryNeighborHit != null && !hitSeedMap.containsKey(secondaryNeighborHit)) {
-                    secondaryNeighborHits.add(secondaryNeighborHit);
-                }
-            }
-
-            // Loop over the secondary neighbor hits.
-            for (CalorimeterHit secondaryNeighborHit : secondaryNeighborHits) {
-                // If the neighboring hit is of lower energy than the
-                // current secondary hit, then associate the neighboring
-                // hit with the current secondary hit's seed.
-                if (!equalEnergies(secondaryNeighborHit, secondaryHit)) {
-                    hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));
-                } else {
-                    continue;
-                }
-            }
-        } // End component hits loop.
-    }
-
-    // Loop through all calorimeter hits to locate seeds and perform first pass calculations for component and common hits.
-    private void firstPass(List<CalorimeterHit> hitList, Map<Long, CalorimeterHit> hitMap, Map<CalorimeterHit, List<CalorimeterHit>> commonHits, Map<CalorimeterHit, CalorimeterHit> hitSeedMap) {
-        for (int ii = 0; ii <= hitList.size() - 1; ii++) {
-            CalorimeterHit hit = hitList.get(ii);
-            // Get the set of all neighboring crystals to the current hit.
-            Set<Long> neighbors = neighborMap.get(hit.getCellID());
-
-            // Generate a list to store any neighboring hits in.
-            ArrayList<CalorimeterHit> neighborHits = new ArrayList<CalorimeterHit>();
-
-            // Sort through the set of neighbors and, if a hit exists
-            // which corresponds to a neighbor, add it to the list of
-            // neighboring hits.
-            for (Long neighbor : neighbors) {
-                // Get the neighboring hit.
-                CalorimeterHit neighborHit = hitMap.get(neighbor);
-
-                // If it exists, add it to the list.
-                if (neighborHit != null) {
-                    neighborHits.add(neighborHit);
-                }
-            }
-
-            // Track whether the current hit is a seed hit or not.
-            boolean isSeed = true;
-
-            // Loops through all the neighboring hits to determine if
-            // the current hit is the local maximum within its set of
-            // neighboring hits.
-            seedHitLoop: for (CalorimeterHit neighbor : neighborHits) {
-                if (!equalEnergies(hit, neighbor)) {
-                    isSeed = false;
-                    break seedHitLoop;
-                }
-            }
-            // If this hit is a seed hit, just map it to itself.
-            if (isSeed && hit.getCorrectedEnergy() >= seedEnergyThreshold) {
-                hitSeedMap.put(hit, hit);
-            }
-
-            // If this hit is a local maximum but does not pass seed threshold,
-            // remove from hit list and do not cluster.
-            else if (isSeed && hit.getCorrectedEnergy() < seedEnergyThreshold) {
-                hitList.remove(ii);
-                currentRejectedHitList.add(hit);
-                ii--;
-            }
-
-            // If this hit is not a seed hit, see if it should be
-            // attached to any neighboring seed hits.
-            else {
-                // Sort through the list of neighboring hits.
-                for (CalorimeterHit neighborHit : neighborHits) {
-                    // Check whether the neighboring hit is a seed.
-                    if (hitSeedMap.get(neighborHit) == neighborHit) {
-                        // If the neighboring hit is a seed hit and the
-                        // current hit has been associated with a cluster,
-                        // then it is a common hit between its previous
-                        // seed and the neighboring seed.
-                        if (hitSeedMap.containsKey(hit)) {
-                            // Check and see if a list of common seeds
-                            // for this hit already exists or not.
-                            List<CalorimeterHit> commonHitList = commonHits.get(hit);
-
-                            // If it does not, make a new one.
-                            if (commonHitList == null) {
-                                commonHitList = new ArrayList<CalorimeterHit>();
-                            }
-
-                            // Add the neighbors to the seeds to set of
-                            // common seeds.
-                            commonHitList.add(neighborHit);
-                            commonHitList.add(hitSeedMap.get(hit));
-
-                            // Put the common seed list back into the set.
-                            commonHits.put(hit, commonHitList);
-                        }
-
-                        // If the neighboring hit is a seed hit and the
-                        // current hit has not been added to a cluster yet
-                        // associate it with the neighboring seed and note
-                        // that it has been clustered.
-                        else {
-                            hitSeedMap.put(hit, neighborHit);
-                        }
-                    }
-                }
-            }
-        } // End primary seed loop.
-    }
-    
-    /**
-     * Get the list of rejected hits that was made from processing the last event.
-     * @return The list of rejected hit.
-     */
-    List<CalorimeterHit> getRejectedHitList() {
-        return this.currentRejectedHitList;
-    }
-
-    /**
-     * Handles pathological case where multiple neighboring crystals have EXACTLY the same energy.     
-     * @param hit
-     * @param neighbor Neighbor to hit
-     * @return boolean value of if the hit is a seed
-     */
-    private boolean equalEnergies(CalorimeterHit hit, CalorimeterHit neighbor) {
-        boolean isSeed = true;
-        int hix = hit.getIdentifierFieldValue("ix");
-        int hiy = Math.abs(hit.getIdentifierFieldValue("iy"));
-        int nix = neighbor.getIdentifierFieldValue("ix");
-        int niy = Math.abs(neighbor.getIdentifierFieldValue("iy"));
-        double hE = hit.getCorrectedEnergy();
-        double nE = neighbor.getCorrectedEnergy();
-        if (hE < nE) {
-            isSeed = false;
-        } else if ((hE == nE) && (hiy > niy)) {
-            isSeed = false;
-        } else if ((hE == nE) && (hiy == niy) && (hix > nix)) {
-            isSeed = false;
+        // Remove any common hits from the clustered hits collection.
+        for (CalorimeterHit commonHit : commonHits.keySet()) {
+            hitSeedMap.remove(commonHit);
         }
-        return isSeed;
+
+        /*
+         * All hits are sorted from above. The next part of the code is for calculating energies and
+         * positions.
+         */
+
+        // Create map to contain the total energy of each cluster
+        Map<CalorimeterHit, Double> seedEnergy = new HashMap<CalorimeterHit, Double>();
+
+        // Get energy of each cluster, excluding common hits
+        for (CalorimeterHit iSeed : hitList) {
+            if (hitSeedMap.get(iSeed) == iSeed) {
+                seedEnergy.put(iSeed, 0.0);
+            }
+        }
+
+        // Putting total cluster energies excluding common hit energies into map with seed keys
+        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry : hitSeedMap.entrySet()) {
+            CalorimeterHit eSeed = entry.getValue();
+            double eEnergy = seedEnergy.get(eSeed);
+            eEnergy += entry.getKey().getCorrectedEnergy();
+            seedEnergy.put(eSeed, eEnergy);
+        }
+
+        // Create a map to contain final uncorrected cluster energies including common hit
+        // distributions.
+        Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
+
+        // Distribute common hit energies with clusters
+        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
+            CalorimeterHit commonCell = entry1.getKey();
+            CalorimeterHit seedA = entry1.getValue().get(0);
+            CalorimeterHit seedB = entry1.getValue().get(1);
+            double eFractionA = (seedEnergy.get(seedA)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
+            double eFractionB = (seedEnergy.get(seedB)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
+            double currEnergyA = seedEnergyTot.get(seedA);
+            double currEnergyB = seedEnergyTot.get(seedB);
+            currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
+            currEnergyB += eFractionB * commonCell.getCorrectedEnergy();
+
+            seedEnergyTot.put(seedA, currEnergyA);
+            seedEnergyTot.put(seedB, currEnergyB);
+        }
+
+        // Cluster Position as per HPS Note 2014-001
+        // Create map with seed as key to position/centroid value
+        Map<CalorimeterHit, double[]> rawSeedPosition = new HashMap<CalorimeterHit, double[]>();
+        Map<CalorimeterHit, double[]> corrSeedPosition = new HashMap<CalorimeterHit, double[]>();
+
+        // top level iterates through seeds
+        for (Map.Entry<CalorimeterHit, Double> entryS : seedEnergyTot.entrySet()) {
+            // get the seed for this iteration
+            CalorimeterHit seedP = entryS.getKey();
+
+            double xCl = 0.0; // calculated cluster x position, prior to correction
+            double yCl = 0.0; // calculated cluster y position
+            double eNumX = 0.0;
+            double eNumY = 0.0;
+            double eDen = 0.0;
+            double w0 = 3.1;
+
+            // iterate through hits corresponding to seed
+            for (Map.Entry<CalorimeterHit, CalorimeterHit> entryP : hitSeedMap.entrySet()) {
+                if (entryP.getValue() == seedP) {
+                    // /////////////////////////////
+                    // This block fills a map with crystal to center of face of crystal
+                    // Get the hit indices as a Point.
+                    int ix = entryP.getKey().getIdentifierFieldValue("ix");
+                    int iy = entryP.getKey().getIdentifierFieldValue("iy");
+                    Point hitIndex = new Point(ix, iy);
+
+                    // Get the corrected position for this index pair.
+                    double[] position = correctedPositionMap.get(hitIndex);
+
+                    // If the result is null, it hasn't been calculated yet.
+                    if (position == null) {
+                        // Calculate the corrected position.
+                        IGeometryInfo geom = entryP.getKey().getDetectorElement().getGeometry();
+                        double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()), (Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
+
+                        // Convert the result to a Double[] array.
+                        position = new double[3];
+                        position[0] = pos[0];
+                        position[1] = pos[1];
+                        position[2] = pos[2];
+
+                        // Store the result in the map.
+                        correctedPositionMap.put(hitIndex, position);
+                    }
+                    // /////////////////////////////
+
+                    // Use Method 3 weighting scheme described in note:
+                    eNumX += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[0] / 10.0);
+                    eNumY += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[1] / 10.0);
+                    eDen += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP))));
+                }
+
+            }
+
+            xCl = eNumX / eDen;
+            yCl = eNumY / eDen;
+
+            double[] rawPosition = new double[3];
+            rawPosition[0] = xCl * 10.0;// mm
+            rawPosition[1] = yCl * 10.0;// mm
+            int ix = seedP.getIdentifierFieldValue("ix");
+            int iy = seedP.getIdentifierFieldValue("iy");
+            Point hitIndex = new Point(ix, iy);
+            rawPosition[2] = correctedPositionMap.get(hitIndex)[2];
+
+            rawSeedPosition.put(seedP, rawPosition);
+
+        }// end of cluster position calculation
+
+        /*
+         * Outputs results to cluster collection.
+         */
+        // Only write output if something actually exists.
+        if (hitMap.size() != 0) {
+            // Loop over seeds
+            for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
+                if (entry2.getKey() == entry2.getValue()) {
+                    if (seedEnergyTot.get(entry2.getKey()) < clusterEnergyThreshold) {
+                        // Not clustered for not passing cuts
+                        rejectedHitList.add(entry2.getKey());
+                    }
+
+                    else {
+                        // New cluster
+                        HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
+                        clusterList.add(cluster);
+                        // Loop over hits belonging to seeds
+                        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
+                            if (entry3.getValue() == entry2.getValue()) {
+                                if (rejectedHitList.contains(entry2.getValue())) {
+                                    rejectedHitList.add(entry3.getKey());
+                                } else {
+                                    // Add hit to cluster
+                                    cluster.addHit(entry3.getKey());
+                                }
+                            }
+                        }
+
+                        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
+                            if (entry4.getValue().contains(entry2.getKey())) {
+                                // Add shared hits for energy distribution between clusters
+                                cluster.addSharedHit(entry4.getKey());
+                                // fixes bug for SIO Writer?
+                                cluster.addHit(entry4.getKey());
+                            }
+                        }
+
+                        // Input uncorrected cluster energies
+                        if (seedEnergyTot.values().size() > 0) {
+                            cluster.setEnergy(seedEnergyTot.get(entry2.getKey()));
+                            cluster.setUncorrectedEnergy(seedEnergyTot.get(entry2.getKey()));
+                        }
+
+                        // Input uncorrected cluster positions.
+                        cluster.setRawPosition(rawSeedPosition.get(entry2.getKey()));
+
+                    }// End checking thresholds and write out.
+                }
+            } // End cluster loop
+            // System.out.println("Number of clusters: "+clusterList.size());
+        } // End event output loop.
+          // int flag = 1 << LCIOConstants.CLBIT_HITS;
+          // event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
+          // event.put(rejectedHitName, rejectedHitList, CalorimeterHit.class,
+          // flag,ecal.getReadout().getName());
+        return clusterList;
     }
-    
-    // FIXME: Is this really necessary?
+
     private static class EnergyComparator implements Comparator<CalorimeterHit> {
         /**
-         * Compares the first hit with respect to the second. This method will compare hits first by energy, and then spatially. In the case of equal energy hits, the hit closest to the beam gap and
-         * closest to the positron side of the detector will be selected. If all of these conditions are true, the hit with the positive y-index will be selected. Hits with all four conditions
-         * matching are the same hit.         
+         * Compares the first hit with respect to the second. This method will compare hits first by
+         * energy, and then spatially. In the case of equal energy hits, the hit closest to the beam
+         * gap and closest to the positron side of the detector will be selected. If all of these
+         * conditions are true, the hit with the positive y-index will be selected. Hits with all
+         * four conditions matching are the same hit.
          * @param hit1 The hit to compare.
          * @param hit2 The hit with respect to which the first should be compared.
          */
@@ -661,70 +591,30 @@ public class ReconClusterer extends AbstractClusterer {
             }
         }
     }
-    
-    // Variables for electron position corrections
-    static final double ELECTRON_POS_A = 0.0066;
-    static final double ELECTRON_POS_B = -0.03;
-    static final double ELECTRON_POS_C = 0.028;
-    static final double ELECTRON_POS_D = -0.45;
-    static final double ELECTRON_POS_E = 0.465;
 
-    // Variables for positron position corrections
-    static final double POSITRON_POS_A = 0.0072;
-    static final double POSITRON_POS_B = -0.031;
-    static final double POSITRON_POS_C = 0.007;
-    static final double POSITRON_POS_D = 0.342;
-    static final double POSITRON_POS_E = 0.108;
-
-    // Variables for photon position corrections
-    static final double PHOTON_POS_A = 0.005;
-    static final double PHOTON_POS_B = -0.032;
-    static final double PHOTON_POS_C = 0.011;
-    static final double PHOTON_POS_D = -0.037;
-    static final double PHOTON_POS_E = 0.294;
-    
     /**
-     * Calculates position correction based on cluster raw energy, x calculated position, and particle type as per <a
-     * href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-     * 
-     * @param pdg Particle id as per PDG
-     * @param xCl Calculated x centroid position of the cluster, uncorrected, at face
-     * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)
-     * @return Corrected x position
+     * Handles pathological case where multiple neighboring crystals have EXACTLY the same energy.
+     * @param hit
+     * @param neighbor Neighbor to hit
+     * @return boolean value of if the hit is a seed
      */
-    static double correctPosition(int pdg, double xPos, double rawEnergy) {
-        double xCl = xPos / 10.0;// convert to mm
-        if (pdg == 11) { // Particle is electron
-            double xCorr = correctPosition(xCl, rawEnergy, ELECTRON_POS_A, ELECTRON_POS_B, ELECTRON_POS_C, ELECTRON_POS_D, ELECTRON_POS_E);
-            return xCorr * 10.0;
-        } else if (pdg == -11) {// Particle is positron
-            double xCorr = correctPosition(xCl, rawEnergy, POSITRON_POS_A, POSITRON_POS_B, POSITRON_POS_C, POSITRON_POS_D, POSITRON_POS_E);
-            return xCorr * 10.0;
-        } else if (pdg == 22) {// Particle is photon
-            double xCorr = correctPosition(xCl, rawEnergy, PHOTON_POS_A, PHOTON_POS_B, PHOTON_POS_C, PHOTON_POS_D, PHOTON_POS_E);
-            return xCorr * 10.0;
-        } else { // Unknown
-            double xCorr = xCl;
-            return xCorr * 10.0;
+    private boolean equalEnergies(CalorimeterHit hit, CalorimeterHit neighbor) {
+        boolean isSeed = true;
+
+        int hix = hit.getIdentifierFieldValue("ix");
+        int hiy = Math.abs(hit.getIdentifierFieldValue("iy"));
+        int nix = neighbor.getIdentifierFieldValue("ix");
+        int niy = Math.abs(neighbor.getIdentifierFieldValue("iy"));
+        double hE = hit.getCorrectedEnergy();
+        double nE = neighbor.getCorrectedEnergy();
+        if (hE < nE) {
+            isSeed = false;
+        } else if ((hE == nE) && (hiy > niy)) {
+            isSeed = false;
+        } else if ((hE == nE) && (hiy == niy) && (hix > nix)) {
+            isSeed = false;
         }
-    }
-
-    /**
-     * Calculates the position correction in cm using the raw energy and variables associated with the fit of the particle as described in <a
-     * href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note 2014-001</a>
-     * 
-     * @param xCl
-     * @param rawEnergy
-     * @param varA
-     * @param varB
-     * @param varC
-     * @param varD
-     * @param varE
-     * @return
-     */
-    static double correctPosition(double xCl, double rawEnergy, double varA, double varB, double varC, double varD, double varE) {
-        double xCorr = xCl - (varA / Math.sqrt(rawEnergy) + varB) * xCl - (varC * rawEnergy + varD / Math.sqrt(rawEnergy) + varE);
-        return xCorr;
+        return isSeed;
     }
     
 }

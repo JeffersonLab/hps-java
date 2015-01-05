@@ -18,13 +18,13 @@ import org.lcsim.lcio.LCIOConstants;
 public class ReconClusterDriver extends ClusterDriver {
     
     // The name of the output collection of rejected hits.
-    String rejectedHitCollectionName;
+    String rejectedHitCollectionName = "ReconClusterRejectedHits";
     
     // Flag to persist the rejected hits to the LCIO file (off by default).
     boolean writeRejectedHitCollection = false;
     
     // Reference to the concrete Clusterer object for convenience.
-    ReconClusterer innerCalClusterer;
+    ReconClusterer reconClusterer;
         
     /**
      * Perform job initialization.  
@@ -32,7 +32,7 @@ public class ReconClusterDriver extends ClusterDriver {
     public void startOfData() {
         if (clusterer == null) {
             // Setup the Clusterer if it wasn't already initialized by a Driver argument.
-            this.setClustererName("ClasInnerCalClusterer");
+            this.setClustererName("ReconClusterer");
         } else {
             // Does the Clusterer have the right type if there was a custom inialization parameter?
             if (!(clusterer instanceof ReconClusterer)) {
@@ -45,7 +45,7 @@ public class ReconClusterDriver extends ClusterDriver {
         super.startOfData();
         
         // Set a reference to the specific type of Clusterer.
-        innerCalClusterer = getClusterer();
+        reconClusterer = getClusterer();
     }
     
     /**
@@ -62,7 +62,7 @@ public class ReconClusterDriver extends ClusterDriver {
      * This controls whether the rejected 
      * @param writeRejectedHitCollection
      */
-    public void setWriteRejectHitCollection(boolean writeRejectedHitCollection) {
+    public void setWriteRejectedHitCollection(boolean writeRejectedHitCollection) {
         this.writeRejectedHitCollection = writeRejectedHitCollection;
     }
     
@@ -74,30 +74,29 @@ public class ReconClusterDriver extends ClusterDriver {
         super.process(event);        
         
         // Write rejected hit list.
-        writeRejectedHitList(event);        
+        if (this.writeRejectedHitCollection) {
+            writeRejectedHitList(event);        
+        }
     }
     
     /**
      * Write the list of rejected hits to the event, according to current Driver parameter settings.
      */
     void writeRejectedHitList(EventHeader event) {
-        // Should rejected hit list be written?
-        if (this.rejectedHitCollectionName != null) {                   
-            List<CalorimeterHit> rejectedHitList = innerCalClusterer.getRejectedHitList();
-            if (rejectedHitList == null) {
-                throw new RuntimeException("The rejectedHitList is null.");
-            }
-            int flag = 1 << LCIOConstants.CLBIT_HITS;
-            this.getLogger().finer("writing rejected hit list " + rejectedHitCollectionName + " with " + rejectedHitList.size() + " hits");
-            event.put(rejectedHitCollectionName, rejectedHitList, CalorimeterHit.class, flag, ecal.getReadout().getName());
-            // Flag the collection as a subset, because other collection's objects are being used.
-            event.getMetaData(rejectedHitList).setSubset(true);
-            // Are we writing this collection to the output LCIO file?
-            if (!this.writeRejectedHitCollection) {
-                logger.finest("Rejected hit list is transient and will not be persisted.");
-                // Flag as transient.
-                event.getMetaData(rejectedHitList).setTransient(true);
-            }
+        List<CalorimeterHit> rejectedHitList = reconClusterer.getRejectedHitList();
+        if (rejectedHitList == null) {
+            throw new RuntimeException("The rejectedHitList is null.");
         }
+        int flag = 1 << LCIOConstants.CLBIT_HITS;
+        this.getLogger().finer("writing rejected hit list " + rejectedHitCollectionName + " with " + rejectedHitList.size() + " hits");
+        event.put(rejectedHitCollectionName, rejectedHitList, CalorimeterHit.class, flag, ecal.getReadout().getName());
+        // Flag the collection as a subset, because other collection's objects are being used.
+        event.getMetaData(rejectedHitList).setSubset(true);
+        // Are we writing this collection to the output LCIO file?
+        if (!this.writeRejectedHitCollection) {
+            logger.finest("Rejected hit list is transient and will not be persisted.");
+            // Flag as transient.
+            event.getMetaData(rejectedHitList).setTransient(true);
+        }   
     }             
 }

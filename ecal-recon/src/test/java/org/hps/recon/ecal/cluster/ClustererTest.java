@@ -29,12 +29,13 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+// TODO: Add repeatability test on number of clusters found.  (Could even check event by event based on first pass.)
 public class ClustererTest extends TestCase {
     
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
-    static int nEvents = 50; 
+    static int nEvents = 1000; 
     
     public void setUp() {
         // Cache the input file.
@@ -50,15 +51,15 @@ public class ClustererTest extends TestCase {
         
         // Initialize conditions system.
         new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
     }
-   
-    public void testClasInnerCalClusterer() {
-        // This is just replicating the default cuts.
+    
+    public void testReconClusterer() {
         //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. }, true);
         runClustererTest("ReconClusterer");
     }
     
-    public void testSimplClasInnerCalClusterer() {
+    public void testSimpleReconClusterer() {
         //runClustererTest("SimpleReconClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
         runClustererTest("SimpleReconClusterer");
     }
@@ -80,16 +81,22 @@ public class ClustererTest extends TestCase {
      * @param writeLcioFile Whether or not to write an LCIO output file.
      */
     private void runClustererTest(String clustererName, double[] cuts, boolean writeLcioFile) {
+        
+        System.out.println("testing Clusterer " + clustererName + " ...");
                 
-        // Config loop.
+        // Configure the loop.
         LCSimLoop loop = new LCSimLoop();       
         try {
+            // Set the input LCIO file.
             loop.setLCIORecordSource(inputFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }        
         
-        loop.add(new EventMarkerDriver());
+        // Setup event number print outs.
+        EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();
+        eventMarkerDriver.setEventInterval(100);
+        loop.add(eventMarkerDriver);
         
         // Configure the ClusterDriver and add it to the loop.
         String clusterCollectionName = clustererName + "Clusters";
@@ -102,24 +109,34 @@ public class ClustererTest extends TestCase {
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
-        clusterDriver.getLogger().setLevel(Level.INFO);
+        clusterDriver.getLogger().setLevel(Level.CONFIG);
+        //clusterDriver.getLogger().getHandlers()[0].flush();
         loop.add(clusterDriver);                         
         
+        // This Driver generates plots and the output LCIO file.
         loop.add(new ClusterCheckDriver(clusterCollectionName));
-        
         if (writeLcioFile) {
             loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName + ".slcio"));
         }
         
         // Run the job.
+        long startMillis = System.currentTimeMillis();
         try {
             loop.loop(nEvents);
+            long elapsedSeconds = (System.currentTimeMillis() - startMillis) / 1000;
+            System.out.println(clustererName + " took " + elapsedSeconds + "s for " + 
+                    loop.getTotalSupplied() + " events which is " + (double)loop.getTotalSupplied()/(double)elapsedSeconds +
+                    " events/s");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         loop.dispose();
     }
     
+    /**
+     * Run the Clusterer test with default cuts, writing an LCIO output file. 
+     * @param clustererName The name of the Clusterer.
+     */
     private void runClustererTest(String clustererName) {
         runClustererTest(clustererName, null, true);
     }

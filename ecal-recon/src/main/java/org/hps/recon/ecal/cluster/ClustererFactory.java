@@ -56,7 +56,7 @@ public final class ClustererFactory {
             try {
                 clusterer = fromCanonicalClassName(name);
                 if (!clusterer.getClass().isAssignableFrom(Clusterer.class)) {
-                    throw new IllegalArgumentException("The clsas " + name + " does not implement the Clusterer interface.");
+                    throw new IllegalArgumentException("The class " + name + " does not implement the Clusterer interface.");
                 }
             } catch (Exception e) {
                 // Okay nothing worked, so we have a problem!
@@ -87,7 +87,7 @@ public final class ClustererFactory {
     /**
      * Attempt to create a Clusterer object from the canonical class name.
      * @param canonicalName
-     * @return
+     * @return The new Clusterer object.
      * @throw IllegalArgumentException if the class does not implement the Clusterer interface.
      */
     private static Clusterer fromCanonicalClassName(String canonicalName) {
