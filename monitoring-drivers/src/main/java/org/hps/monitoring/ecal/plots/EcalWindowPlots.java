@@ -11,7 +11,11 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import org.hps.conditions.deprecated.EcalConditions;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalConditionsUtil;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -38,6 +42,9 @@ public class EcalWindowPlots extends Driver implements ActionListener {
     private boolean testSlot = false;
     private boolean testChannel = false;
     private int plotCrate, plotSlot, plotChannel;
+    private EcalConditions conditions;
+    private EcalConditionsUtil util;
+    private IIdentifierHelper helper;
 
     public EcalWindowPlots() {
         int count = 0;
@@ -76,6 +83,11 @@ public class EcalWindowPlots extends Driver implements ActionListener {
         if (inputCollection == null) {
             throw new RuntimeException("The inputCollection parameter was not set.");
         }
+        
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance(); 
+        this.conditions = manager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
+        this.util = new EcalConditionsUtil(conditions);
+        this.helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
 
         setupPlots();
     }
@@ -127,13 +139,15 @@ public class EcalWindowPlots extends Driver implements ActionListener {
 
     @Override
     public void process(EventHeader event) {
-        if (event.hasCollection(RawTrackerHit.class, inputCollection)) {
+        if (event.hasCollection(RawTrackerHit.class, inputCollection)) {            
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, inputCollection);
             for (RawTrackerHit hit : hits) {
-                Long daqId = EcalConditions.physicalToDaqID(hit.getCellID());
-                int crate = EcalConditions.getCrate(daqId);
-                int slot = EcalConditions.getSlot(daqId);
-                int channel = EcalConditions.getChannel(daqId);
+                
+                EcalChannel ecalChannel = util.findChannel(helper, hit.getCellID());
+                int crate = ecalChannel.getCrate();
+                int slot = ecalChannel.getSlot();
+                int channelNumber = ecalChannel.getChannel();
+                                
 //System.out.println("got hit: crate " + crate + ", slot " + slot + ", channel " + channel);
                 if (hit.getADCValues().length != window) {
                     throw new RuntimeException("Hit has unexpected window length " + hit.getADCValues().length + ", not " + window);
@@ -144,7 +158,7 @@ public class EcalWindowPlots extends Driver implements ActionListener {
                 if (testSlot && slot != plotSlot) {
                     continue;
                 }
-                if (testChannel && channel != plotChannel) {
+                if (testChannel && channelNumber != plotChannel) {
                     continue;
                 }
                 windowPlot.reset();
