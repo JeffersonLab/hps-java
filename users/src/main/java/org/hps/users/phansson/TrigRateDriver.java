@@ -15,15 +15,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.deprecated.EcalConditions;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.BeamlineConstants;
-//import org.hps.util.AIDAFrame;
-import org.lcsim.detector.identifier.ExpandedIdentifier;
-import org.lcsim.detector.identifier.IExpandedIdentifier;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
@@ -43,9 +36,7 @@ public class TrigRateDriver extends Driver {
     protected IDDecoder dec = null;
     protected Subdetector ecal;
     private String ecalName = "Ecal";
-    
-    
-    private boolean hideFrame = true;
+      
     private boolean simTrigger = false;
     
     private String outputPlotFileName = "trigRate.aida";
@@ -238,7 +229,6 @@ public class TrigRateDriver extends Driver {
     
 
     
-
     public void setDebug(boolean flag) {
         this.debug = flag;
     }
@@ -246,11 +236,7 @@ public class TrigRateDriver extends Driver {
     public void setOutputPlotFileName( String name ) {
         this.outputPlotFileName = name;
     }
-    
-    public void setHideFrame( boolean val ) {
-        this.hideFrame = val;
-    }
-    
+        
     public void setSimTrigger(boolean simTrigger) {
         this.simTrigger = simTrigger;
     }
@@ -369,17 +355,7 @@ public class TrigRateDriver extends Driver {
     
     }
        
-    
-    
-    
-  
-    
-    
- 
-      
-    
-    
-     
+    /*
     private boolean hasBadNeighbours(HPSEcalCluster cluster) {
         //check if this cluster has a neighbour that is dead or bad
         if(!EcalConditions.badChannelsLoaded()) return false;
@@ -402,10 +378,7 @@ public class TrigRateDriver extends Driver {
                 System.out.println(x + "," + y + " id " + hit.getCellID());
                 System.exit(1);
             }
-            //Find crystal pair
-            
-              
-                        
+            //Find crystal pair                                                 
             int x = helper.getValue(compactId, "ix");
             int y = helper.getValue(compactId, "iy");
             System.out.println("Hit at " + x + "," + y);
@@ -424,16 +397,9 @@ public class TrigRateDriver extends Driver {
             
             
         }
-        return false;
-        
+        return false;        
     }
-     
-    
-    
-    
- 
-   
-
+    */
     
     private void redraw() {
          //System.out.println("redraw");
