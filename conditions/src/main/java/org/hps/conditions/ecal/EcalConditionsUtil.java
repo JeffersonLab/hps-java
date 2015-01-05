@@ -40,7 +40,7 @@ public final class EcalConditionsUtil {
      * @return The corresponding ECAL channel found from the physical ID
      *         information.
      */
-    EcalChannel findChannel(IIdentifierHelper helper, long cellId) {
+    public EcalChannel findChannel(IIdentifierHelper helper, long cellId) {
 
         // Make an ID object from hit ID.
         IIdentifier id = new Identifier(cellId);
