@@ -191,7 +191,6 @@ public class ClusterDriver extends Driver {
      * This method implements the default clustering procedure based on input parameters.
      */
     public void process(EventHeader event) {
-        this.getLogger().fine("processing event #" + event.getEventNumber());
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
             logger.fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
@@ -225,6 +224,7 @@ public class ClusterDriver extends Driver {
                 throw new RuntimeException("The expected input hit collection is missing from the event.");
             }
         }
+        logger.getHandlers()[0].flush();
     }
     
     /**
