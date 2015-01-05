@@ -93,6 +93,7 @@ public class RawPedestalComputator extends Driver {
                 pedestal[ii] /= nEvents;
                 noise[ii] /= nEvents;
 
+                // FIXME: Is this right? --JM
                 EcalChannel ecalChannel = conditions.getChannelCollection().findChannel(new GeometryId(helper, new int[] {systemId, column, row}));
                 int crate = ecalChannel.getCrate();
                 int slot = ecalChannel.getSlot();
