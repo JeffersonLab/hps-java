@@ -35,7 +35,10 @@ import org.lcsim.util.Driver;
  * window. This is required for clustering to be consistent.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * 
+ * @deprecated Use {@link org.hps.recon.ecal.cluster.GTPOnlineClusterer} with {@link org.hps.recon.ecal.cluster.ClusterDriver} 
  */
+@Deprecated
 public class GTPOnlineClusterer extends Driver {
 	// The size of the temporal window in nanoseconds. By default,
 	// this is 1 clock-cycle before and 3 clock-cycles after.

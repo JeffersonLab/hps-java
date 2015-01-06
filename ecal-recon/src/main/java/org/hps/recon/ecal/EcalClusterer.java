@@ -23,8 +23,9 @@ import org.lcsim.lcio.LCIOConstants;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Tim Nelson <tknelson@slac.stanford.edu>
  *
- * @version $Id: EcalClusterer.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
+ * @deprecated Use {@link org.hps.recon.ecal.cluster.LegacyClusterer} with {@link org.hps.recon.ecal.cluster.ClusterDriver} 
  */
+@Deprecated
 public class EcalClusterer extends Driver {
 	
 	Detector detector = null;

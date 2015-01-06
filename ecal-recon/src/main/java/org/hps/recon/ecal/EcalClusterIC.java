@@ -45,7 +45,9 @@ import org.lcsim.util.Driver;
  * @author Holly Szumila-Vance <hvanc001@odu.edu>
  * @author Kyle McCarty <mccaky@gmail.com>
  *
+ * @deprecated Use {@link org.hps.recon.ecal.cluster.ReconClusterer} with {@link org.hps.recon.ecal.cluster.ClusterDriver} 
  */
+@Deprecated
 public class EcalClusterIC extends Driver {
 	// File writer to output cluster results.
     FileWriter writeHits = null;

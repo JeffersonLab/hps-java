@@ -31,7 +31,9 @@ import org.lcsim.util.Driver;
  * @author Holly Szumila-Vance <hszumila@jlab.org>
  * @author Sho Uemura <meeg@slac.stanford.edu>
  *
+ * @deprecated Use {@link org.hps.recon.ecal.cluster.SimpleReconClusterer} with {@link org.hps.recon.ecal.cluster.ClusterDriver} 
  */
+@Deprecated
 public class EcalClusterICBasic extends Driver {
 
     HPSEcal3 ecal;
