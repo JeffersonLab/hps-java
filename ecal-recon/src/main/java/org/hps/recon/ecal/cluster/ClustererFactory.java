@@ -13,10 +13,11 @@ import org.lcsim.conditions.ConditionsManager;
  * this class implements the {@link Clusterer} interface and will throw an error if it does not.
  * 
  * @see Clusterer
- * @see ReconClusterer
  * @see DualThresholdCosmicClusterer
+ * @see GTPOnlineClusterer
  * @see LegacyClusterer 
  * @see NearestNeighborClusterer
+ * @see ReconClusterer
  * @see SimpleReconClusterer
  * @see SimpleCosmicClusterer
  * 
@@ -51,6 +52,8 @@ public final class ClustererFactory {
             clusterer = new DualThresholdCosmicClusterer();
         } else if (SimpleCosmicClusterer.class.getSimpleName().equals(name)) {
             clusterer = new SimpleCosmicClusterer();
+        } else if (GTPOnlineClusterer.class.getSimpleName().equals(name)) {
+            clusterer = new GTPOnlineClusterer();
         } else {
             // Try to instantiate a Clusterer object from the name argument, assuming it is a canonical class name.
             try {
