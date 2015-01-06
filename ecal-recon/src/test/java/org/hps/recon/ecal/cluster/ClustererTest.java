@@ -34,7 +34,7 @@ public class ClustererTest extends TestCase {
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
-    static int nEvents = -1; 
+    static int nEvents = 500; 
     
     public void setUp() {
         // Cache the input file.
