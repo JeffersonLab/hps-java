@@ -29,13 +29,12 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: Add repeatability test on number of clusters found.  (Could even check event by event based on first pass.)
 public class ClustererTest extends TestCase {
     
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
-    static int nEvents = 1000; 
+    static int nEvents = -1; 
     
     public void setUp() {
         // Cache the input file.
@@ -66,6 +65,7 @@ public class ClustererTest extends TestCase {
     
     public void testNearestNeighborClusterer() {    
         //runClustererTest("NearestNeighborClusterer", new double[] { 0.0, 2.0 }, true);
+        //runClustererTest("NearestNeighborClusterer", null, true, false);
         runClustererTest("NearestNeighborClusterer");
     }
     
@@ -74,13 +74,17 @@ public class ClustererTest extends TestCase {
         runClustererTest("LegacyClusterer");
     }
     
+    public void testGTPOnlineClusterer() {
+        runClustererTest("GTPOnlineClusterer");
+    }
+    
     /**
      * Run the standard test for a Clusterer.
      * @param clustererName The name of the Clusterer.
      * @param cuts The cut values.
      * @param writeLcioFile Whether or not to write an LCIO output file.
      */
-    private void runClustererTest(String clustererName, double[] cuts, boolean writeLcioFile) {
+    private void runClustererTest(String clustererName, double[] cuts, boolean writeLcioFile, boolean checkSeedHit) {
         
         System.out.println("testing Clusterer " + clustererName + " ...");
                 
@@ -114,7 +118,8 @@ public class ClustererTest extends TestCase {
         loop.add(clusterDriver);                         
         
         // This Driver generates plots and the output LCIO file.
-        loop.add(new ClusterCheckDriver(clusterCollectionName));
+        loop.add(new ClusterCheckDriver(clusterCollectionName, checkSeedHit));
+        
         if (writeLcioFile) {
             loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName + ".slcio"));
         }
@@ -138,7 +143,7 @@ public class ClustererTest extends TestCase {
      * @param clustererName The name of the Clusterer.
      */
     private void runClustererTest(String clustererName) {
-        runClustererTest(clustererName, null, true);
+        runClustererTest(clustererName, null, true, false);
     }
     
     /**
@@ -159,9 +164,11 @@ public class ClustererTest extends TestCase {
         IHistogram1D positionYH1D;
         String clusterCollectionName;
         String clustererName;        
+        boolean checkSeedHit = true;
         
-        ClusterCheckDriver(String clusterCollectionName) {
+        ClusterCheckDriver(String clusterCollectionName, boolean checkSeedHit) {
             this.clusterCollectionName = clusterCollectionName;
+            this.checkSeedHit = checkSeedHit;
         }        
         
         public void startOfData() {
@@ -180,7 +187,10 @@ public class ClustererTest extends TestCase {
             List<Cluster> clusters = event.get(Cluster.class, this.clusterCollectionName);
             for (Cluster cluster : clusters) {
                 assertTrue("The cluster energy is invalid.", cluster.getEnergy() > 0.);
-                assertTrue("The cluster has no hits.", !cluster.getCalorimeterHits().isEmpty());                
+                assertTrue("The cluster has no hits.", !cluster.getCalorimeterHits().isEmpty());
+                if (checkSeedHit) {
+                    assertEquals("First hit is not seed.", cluster.getCalorimeterHits().get(0), ClusterUtilities.findHighestEnergyHit(cluster));
+                }
                 energyH1D.fill(cluster.getEnergy());
                 double rawEnergy = ClusterUtilities.computeRawEnergy(cluster);
                 uncorrectedEnergyH1D.fill(rawEnergy);
@@ -189,7 +199,7 @@ public class ClustererTest extends TestCase {
                 for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     hitEnergyH1D.fill(hit.getCorrectedEnergy());
                 }                
-                highestHitEnergyH1D.fill(ClusterUtilities.getHighestEnergyHit(cluster).getCorrectedEnergy());
+                highestHitEnergyH1D.fill(ClusterUtilities.findHighestEnergyHit(cluster).getCorrectedEnergy());
                 positionXH1D.fill(Math.abs(cluster.getPosition()[0]));
                 positionYH1D.fill(Math.abs(cluster.getPosition()[1]));
             }            
