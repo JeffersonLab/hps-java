@@ -3,8 +3,13 @@ package org.hps.recon.ecal.cluster;
 import java.util.Map;
 
 /**
- * This is an interface for accessing numerical cut values 
- * in a clustering algorithm by index or name.
+ * <p>
+ * This is an interface for accessing the numerical cut values 
+ * of a clustering algorithm by index or name.
+ * <p>
+ * The default units are generally GeV for energy and nanoseconds 
+ * for time, though this is not in any way modeled by this class. 
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface NumericalCuts {
