@@ -34,7 +34,7 @@ public class ClustererTest extends TestCase {
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
-    static int nEvents = 500; 
+    static int nEvents = -1; 
     
     public void setUp() {
         // Cache the input file.
@@ -55,7 +55,8 @@ public class ClustererTest extends TestCase {
     
     public void testReconClusterer() {
         //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. }, true);
-        runClustererTest("ReconClusterer");
+        //runClustererTest("ReconClusterer");
+        runClustererTest("ReconClusterer", null, true, true);
     }
     
     public void testSimpleReconClusterer() {

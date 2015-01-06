@@ -123,6 +123,8 @@ public class SimpleReconClusterer extends AbstractClusterer {
             cluster.addHit(hit);
         }
 
+        ClusterUtilities.sortReconClusterHits(clusters);
+        
         return clusters;
     }
 }
