@@ -58,7 +58,7 @@ public class ReconClusterer extends AbstractClusterer {
     double clusterEnergyThreshold = 0.3;
 
     // Apply time cut to hits
-    boolean timeCut = false;
+    boolean useTimeCut = false;
 
     // Minimum time cut window range. Units in ns.
     double minTime = 0.0;
@@ -76,8 +76,12 @@ public class ReconClusterer extends AbstractClusterer {
     private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
 
     ReconClusterer() {
-        super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow", "timeCut" }, 
-                new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. });
+        super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow" }, 
+                new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 });
+    }
+    
+    void setUseTimeCut(boolean useTimeCut) {
+        this.useTimeCut = useTimeCut;
     }
 
     public void initialize() {
@@ -89,7 +93,6 @@ public class ReconClusterer extends AbstractClusterer {
         clusterEnergyThreshold = getCuts().getValue("clusterEnergyThreshold");
         minTime = getCuts().getValue("minTime");
         timeWindow = getCuts().getValue("timeWindow");
-        timeCut = (getCuts().getValue("timeCut") == 1.);
     }
     
     /**
@@ -126,7 +129,7 @@ public class ReconClusterer extends AbstractClusterer {
 
         for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or outside of time window, kill it.
-            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (timeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
+            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (useTimeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }

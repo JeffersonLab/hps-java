@@ -22,26 +22,53 @@ public class ReconClusterDriver extends ClusterDriver {
     
     // Flag to persist the rejected hits to the LCIO file (off by default).
     boolean writeRejectedHitCollection = false;
-    
-    ReconClusterer reconClusterer = null;
-        
+            
     public ReconClusterDriver() {
         clusterer = ClustererFactory.create("ReconClusterer");
     }
+    
+    public void setClusterer(Clusterer clusterer) {
+        throw new UnsupportedOperationException("This method should not be used on this Driver.");
+    }
+    
+    public void setClustererName(String clustererName) {
+        throw new UnsupportedOperationException("This method should not be used on this Driver.");
+    }
+    
+    public void setHitEnergyThreshold(double hitEnergyThreshold) {
+        getReconClusterer().getCuts().setValue("hitEnergyThreshold", hitEnergyThreshold);
+    }
+    
+    public void setSeedEnergyThreshold(double seedEnergyThreshold) {
+        getReconClusterer().getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
+    }
+    
+    public void setClusterEnergyThreshold(double clusterEnergyThreshold) {
+        getReconClusterer().getCuts().setValue("clusterEnergyThreshold", clusterEnergyThreshold);
+    }
+    
+    public void setMinTime(double minTime) {
+        getReconClusterer().getCuts().setValue("minTime", minTime);
+    }
+    
+    public void setTimeWindow(double timeWindow) {
+        getReconClusterer().getCuts().setValue("timeWindow", timeWindow);
+    }
+    
+    public void setUseTimeCut(boolean useTimeCut) {
+        int timeCut = 0;
+        if (useTimeCut) {
+            timeCut = 1;
+        }
+    }    
         
     /**
      * Perform job initialization.  
      */
     public void startOfData() {
-        // Does the Clusterer have the right type?
-        if (!(clusterer instanceof ReconClusterer)) {
-            // The Clusterer does not appear to have the right type for this Driver!
-            throw new IllegalArgumentException("The Clusterer type " + this.clusterer.getClass().getCanonicalName() + " does not have the right type.");
-        }           
-        
         // Perform standard start of data initialization from super-class.
         super.startOfData();
-    }
+    }          
     
     /**
      * Set the name of the list of rejected hits.
