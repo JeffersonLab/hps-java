@@ -31,11 +31,11 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ClustererTest extends TestCase {
     
+    static int nEvents = 100;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
-    static int nEvents = -1; 
-    
+         
     public void setUp() {
         // Cache the input file.
         try {
@@ -54,29 +54,30 @@ public class ClustererTest extends TestCase {
     }
     
     public void testReconClusterer() {
-        //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. }, true);
+        //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 }, true);
         //runClustererTest("ReconClusterer");
         runClustererTest("ReconClusterer", null, true, true);
     }
     
     public void testSimpleReconClusterer() {
         //runClustererTest("SimpleReconClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
-        runClustererTest("SimpleReconClusterer");
+        //runClustererTest("SimpleReconClusterer");
+        runClustererTest("SimpleReconClusterer", null, true, true);
     }
     
     public void testNearestNeighborClusterer() {    
         //runClustererTest("NearestNeighborClusterer", new double[] { 0.0, 2.0 }, true);
-        //runClustererTest("NearestNeighborClusterer", null, true, false);
-        runClustererTest("NearestNeighborClusterer");
+        runClustererTest("NearestNeighborClusterer", null, true, false);
     }
     
     public void testLegacyClusterer() {
         //runClustererTest("LegacyClusterer", new double[] { 0.0, 0.0 }, true);
-        runClustererTest("LegacyClusterer");
+        runClustererTest("LegacyClusterer", null, true, false);
     }
     
     public void testGTPOnlineClusterer() {
-        runClustererTest("GTPOnlineClusterer");
+        //runClustererTest("GTPOnlineClusterer");
+        runClustererTest("GTPOnlineClusterer", null, true, true);
     }
     
     /**
@@ -140,7 +141,7 @@ public class ClustererTest extends TestCase {
     }
     
     /**
-     * Run the Clusterer test with default cuts, writing an LCIO output file. 
+     * Run the Clusterer test with default cuts, writing an LCIO output file and not checking seed hit. 
      * @param clustererName The name of the Clusterer.
      */
     private void runClustererTest(String clustererName) {
