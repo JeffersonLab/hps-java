@@ -514,11 +514,8 @@ public class ReconClusterer extends AbstractClusterer {
                 }
             } // End cluster loop
             // System.out.println("Number of clusters: "+clusterList.size());
-        } // End event output loop.
-          // int flag = 1 << LCIOConstants.CLBIT_HITS;
-          // event.put(clusterCollectionName, clusterList, HPSEcalClusterIC.class, flag);
-          // event.put(rejectedHitName, rejectedHitList, CalorimeterHit.class,
-          // flag,ecal.getReadout().getName());
+        } // End event output loop.        
+        ClusterUtilities.sortReconClusterHits(clusterList);
         return clusterList;
     }
 
