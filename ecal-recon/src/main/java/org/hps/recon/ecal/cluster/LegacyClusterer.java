@@ -27,7 +27,7 @@ public class LegacyClusterer extends AbstractClusterer {
     double minHitEnergy;
     
     LegacyClusterer() {
-        super(new String[] { "minClusterSeedEnergy", "minHitEnergy" }, new double[] { 0.05 * ECalUtils.GeV, 0.03 * ECalUtils.GeV });
+        super(new String[] { "minClusterSeedEnergy", "minHitEnergy" }, new double[] { 0.05, 0.03 });
     }
     
     public void initialize() {
