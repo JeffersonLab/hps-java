@@ -23,29 +23,24 @@ public class ReconClusterDriver extends ClusterDriver {
     // Flag to persist the rejected hits to the LCIO file (off by default).
     boolean writeRejectedHitCollection = false;
     
-    // Reference to the concrete Clusterer object for convenience.
-    ReconClusterer reconClusterer;
+    ReconClusterer reconClusterer = null;
+        
+    public ReconClusterDriver() {
+        clusterer = ClustererFactory.create("ReconClusterer");
+    }
         
     /**
      * Perform job initialization.  
      */
     public void startOfData() {
-        if (clusterer == null) {
-            // Setup the Clusterer if it wasn't already initialized by a Driver argument.
-            this.setClustererName("ReconClusterer");
-        } else {
-            // Does the Clusterer have the right type if there was a custom inialization parameter?
-            if (!(clusterer instanceof ReconClusterer)) {
-                // The Clusterer does not appear to have the right type for this Driver!
-                throw new IllegalArgumentException("The Clusterer type " + this.clusterer.getClass().getCanonicalName() + " does not have the right type.");
-            }   
-        }
+        // Does the Clusterer have the right type?
+        if (!(clusterer instanceof ReconClusterer)) {
+            // The Clusterer does not appear to have the right type for this Driver!
+            throw new IllegalArgumentException("The Clusterer type " + this.clusterer.getClass().getCanonicalName() + " does not have the right type.");
+        }           
         
         // Perform standard start of data initialization from super-class.
         super.startOfData();
-        
-        // Set a reference to the specific type of Clusterer.
-        reconClusterer = getClusterer();
     }
     
     /**
@@ -83,7 +78,7 @@ public class ReconClusterDriver extends ClusterDriver {
      * Write the list of rejected hits to the event, according to current Driver parameter settings.
      */
     void writeRejectedHitList(EventHeader event) {
-        List<CalorimeterHit> rejectedHitList = reconClusterer.getRejectedHitList();
+        List<CalorimeterHit> rejectedHitList = getReconClusterer().getRejectedHitList();
         if (rejectedHitList == null) {
             throw new RuntimeException("The rejectedHitList is null.");
         }
@@ -99,4 +94,8 @@ public class ReconClusterDriver extends ClusterDriver {
             event.getMetaData(rejectedHitList).setTransient(true);
         }   
     }             
+    
+    ReconClusterer getReconClusterer() {
+        return (ReconClusterer) this.clusterer;
+    }
 }

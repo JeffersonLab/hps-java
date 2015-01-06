@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 
 /**
  * <p>
@@ -80,8 +80,7 @@ public class LegacyClusterer extends AbstractClusterer {
             // Did we find a seed?
             if (isSeed) {
                 // Make a cluster from the hit list.
-                HPSEcalCluster cluster = new HPSEcalCluster();
-                cluster.setSeedHit(hit);
+                BaseCluster cluster = new BaseCluster();
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {
                     cluster.addHit(clusHit);

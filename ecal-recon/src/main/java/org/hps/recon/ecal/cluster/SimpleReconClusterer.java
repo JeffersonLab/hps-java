@@ -10,6 +10,7 @@ import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 
 /**
  * <p>
@@ -71,7 +72,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
         Collections.sort(sortedHitList, Collections.reverseOrder(new CalorimeterHit.CorrectedEnergyComparator()));
 
         // map from seed hit to cluster
-        Map<CalorimeterHit, HPSEcalCluster> seedToCluster = new HashMap<CalorimeterHit, HPSEcalCluster>();
+        Map<CalorimeterHit, BaseCluster> seedToCluster = new HashMap<CalorimeterHit, BaseCluster>();
 
         // Quick Map to access hits from cell IDs
         Map<Long, CalorimeterHit> idToHit = new HashMap<Long, CalorimeterHit>();
@@ -107,7 +108,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
             }
             if (biggestSeed == null) { // if no neighbors had more energy than this hit, this hit is a seed
                 hitToSeed.put(hit, hit);
-                HPSEcalCluster cluster = new HPSEcalCluster(hit.getCellID());
+                BaseCluster cluster = new HPSEcalCluster(); // FIXME: Replace with BaseCluster.
                 clusters.add(cluster);
                 seedToCluster.put(hit, cluster);
             } else {
@@ -118,7 +119,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
         // add all hits to clusters
         for (CalorimeterHit hit : sortedHitList) {
             CalorimeterHit seed = hitToSeed.get(hit);
-            HPSEcalCluster cluster = seedToCluster.get(seed);
+            BaseCluster cluster = seedToCluster.get(seed);
             cluster.addHit(hit);
         }
 
