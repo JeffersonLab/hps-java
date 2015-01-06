@@ -53,7 +53,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     // Internal variables.
     private boolean verbose = false;
     
-    public GTPOnlineClusterer() {
+    GTPOnlineClusterer() {
         super(new String[] { "seedThreshold" }, 
                 new double[] { 0.050 });
     }

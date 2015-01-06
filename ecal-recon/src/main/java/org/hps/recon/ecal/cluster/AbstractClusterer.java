@@ -59,7 +59,7 @@ public abstract class AbstractClusterer implements Clusterer {
     /**
      * Default no-arg constructor.
      */
-    protected AbstractClusterer() {
+    AbstractClusterer() {
         // No cuts are set.  
     }
     
