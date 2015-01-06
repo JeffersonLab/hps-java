@@ -17,7 +17,6 @@ import java.util.Set;
 
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
@@ -199,7 +198,7 @@ public class HPSEcalPlotsDriver extends Driver {
         MCParticle primary = getPrimary(mcparticles);
         double primaryE = primary.getEnergy();
 
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalClusterCollectionName);
+        List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
         if (clusters == null)
             throw new RuntimeException("Missing cluster collection!");
 
@@ -230,14 +229,14 @@ public class HPSEcalPlotsDriver extends Driver {
         IIdentifierHelper helper =
                 event.getMetaData(hits).getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper();
 
-        for (HPSEcalCluster clus : clusters) {
+        for (Cluster clus : clusters) {
 
             clusNHits.fill(clus.getCalorimeterHits().size());
 
             double e = clus.getEnergy();
             clusEPlot.fill(e);
             clusE += e;
-            CalorimeterHit seedHit = (CalorimeterHit) clus.getSeedHit();
+            CalorimeterHit seedHit = (CalorimeterHit) clus.getCalorimeterHits().get(0);
             //double maxe = 0;
             for (CalorimeterHit hit : clus.getCalorimeterHits()) {
                 if (hitClusMap.containsKey(hit)) {

@@ -1,16 +1,14 @@
 package org.hps.monitoring.ecal.plots;
 
-import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -162,10 +160,10 @@ public class EcalMonitoringPlots extends Driver {
             }
         }
 
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);
-            for (HPSEcalCluster cluster : clusters) {
-                clusterCountFillPlot.fill(cluster.getSeedHit().getIdentifierFieldValue("ix"), cluster.getSeedHit().getIdentifierFieldValue("iy"));
+        if (event.hasCollection(Cluster.class, clusterCollection)) {
+            List<Cluster> clusters = event.get(Cluster.class, clusterCollection);
+            for (Cluster cluster : clusters) {
+                clusterCountFillPlot.fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
             }
         }
        

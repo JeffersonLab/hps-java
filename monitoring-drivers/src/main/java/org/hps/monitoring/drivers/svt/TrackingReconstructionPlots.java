@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 //===> import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.DumbShaperFit;
 import org.hps.recon.tracking.HelixConverter;
@@ -25,8 +24,9 @@ import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.ShaperFitAlgorithm;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.RawTrackerHit;
@@ -626,9 +626,9 @@ public class TrackingReconstructionPlots extends Driver {
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         nTracks.fill(tracks.size());
-        if (event.hasCollection(HPSEcalCluster.class, ecalCollectionName)) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
-            for (HPSEcalCluster cluster : clusters) {
+        if (event.hasCollection(Cluster.class, ecalCollectionName)) {
+            List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
+            for (Cluster cluster : clusters) {
                 if (cluster.getPosition()[1] > 0) {
                     aida.histogram2D("Top ECal Cluster Position").fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 }
@@ -829,10 +829,10 @@ public class TrackingReconstructionPlots extends Driver {
                     }
                 }
             }
-            if(event.hasCollection(HPSEcalCluster.class,ecalCollectionName)) {
-                List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
+            if(event.hasCollection(Cluster.class,ecalCollectionName)) {
+                List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
 
-                HPSEcalCluster clust = findClosestCluster(posAtEcal, clusters);
+                Cluster clust = findClosestCluster(posAtEcal, clusters);
 
                 //           if (clust != null) {
                 if (clust != null) {
@@ -1008,10 +1008,10 @@ public class TrackingReconstructionPlots extends Driver {
         //bottomFrame.dispose();
     }
 
-    private HPSEcalCluster findClosestCluster(Hep3Vector posonhelix, List<HPSEcalCluster> clusters) {
-        HPSEcalCluster closest = null;
+    private Cluster findClosestCluster(Hep3Vector posonhelix, List<Cluster> clusters) {
+        Cluster closest = null;
         double minDist = 9999;
-        for (HPSEcalCluster cluster : clusters) {
+        for (Cluster cluster : clusters) {
             double[] clPos = cluster.getPosition();
             double clEne = cluster.getEnergy();
             double dist = Math.sqrt(Math.pow(clPos[0] - posonhelix.x(), 2) + Math.pow(clPos[1] - posonhelix.y(), 2)); //coordinates!!!

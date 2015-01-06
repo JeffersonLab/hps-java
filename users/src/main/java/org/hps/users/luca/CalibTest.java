@@ -3,12 +3,13 @@ package org.hps.users.luca;
 
 //import hep.aida.ITupleColumn.String;
 
+import hep.aida.IHistogram1D;
+
 import java.util.List;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.util.Driver;
-import hep.aida.IHistogram1D;
 import org.lcsim.util.aida.AIDA;
 // the class has to be derived from the driver class
 public class CalibTest extends Driver {

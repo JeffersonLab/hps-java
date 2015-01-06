@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;
 
@@ -117,7 +117,7 @@ public class MollerTriggerDriver extends TriggerDriver {
         // Check if there is a cluster collection. If not, there is no
         // reason to continue; a trigger can not be produced if there
         // are no clusters.
-        if(!event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if(!event.hasCollection(Cluster.class, clusterCollectionName)) {
             // VERBOSE :: Note that no cluster collection exists for
             //            this event.
             if(verbose) { System.out.println("No cluster collection is present for event."); }
@@ -131,7 +131,7 @@ public class MollerTriggerDriver extends TriggerDriver {
         if(verbose) { System.out.println("Cluster collection is present for event."); }
         
         // Get the cluster list from the event.
-        List<HPSEcalCluster> eventList = event.get(HPSEcalCluster.class, clusterCollectionName);
+        List<Cluster> eventList = event.get(Cluster.class, clusterCollectionName);
         
         // VERBOSE :: Output the number of extant clusters.
         if(verbose) { System.out.printf("%d clusters in event.%n", eventList.size()); }
@@ -139,29 +139,29 @@ public class MollerTriggerDriver extends TriggerDriver {
         // Add the clusters from the event into the cluster list
         // if they pass the minimum total cluster energy and seed
         // energy thresholds.
-        for(HPSEcalCluster cluster : eventList) {
+        for(Cluster cluster : eventList) {
             // Increment the clusters processed count.
             allClusters++;
             
             // Plot the seed energy / cluster energy histogram.
-            seedPercent.fill(cluster.getSeedHit().getCorrectedEnergy() / cluster.getEnergy(), 1);
+            seedPercent.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy() / cluster.getEnergy(), 1);
             
             // Get the cluster position indices.
-            int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-            int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+            int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+            int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
             
             // VERBOSE :: Output the current cluster's properties.
             if(verbose) {
                 System.out.printf("\tTesting cluster at (%d, %d) with total energy %f and seed energy %f.%n",
-                        ix, iy, cluster.getSeedHit().getCorrectedEnergy(), cluster.getEnergy());
+                        ix, iy, cluster.getCalorimeterHits().get(0).getCorrectedEnergy(), cluster.getEnergy());
             }
             
             // Add the clusters to the uncut histograms.
             clusterHitCount.fill(cluster.getCalorimeterHits().size());
             clusterTotalEnergy.fill(cluster.getEnergy());
-            clusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+            clusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
             clusterDistribution.fill(ix > 0 ? ix - 1 : ix, iy, 1);
-            if(cluster.getSeedHit().getCorrectedEnergy() > 0.100) { clusterDistribution100.fill(ix > 0 ? ix - 1 : ix, iy, 1); }
+            if(cluster.getCalorimeterHits().get(0).getCorrectedEnergy() > 0.100) { clusterDistribution100.fill(ix > 0 ? ix - 1 : ix, iy, 1); }
             
             // VERBOSE :: Output the single cluster trigger thresholds.
             if(verbose) {
@@ -214,7 +214,7 @@ public class MollerTriggerDriver extends TriggerDriver {
 	                // Add the clusters to the cut histograms.
 	                aClusterHitCount.fill(cluster.getCalorimeterHits().size());
 	                aClusterTotalEnergy.fill(cluster.getEnergy());
-	                aClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+	                aClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
 	                aClusterDistribution.fill(ix > 0 ? ix - 1 : ix, iy, 1);
 	                
 	                // Increment the trigger count.
@@ -247,7 +247,7 @@ public class MollerTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterHitCountCut(HPSEcalCluster cluster) {
+    private boolean clusterHitCountCut(Cluster cluster) {
         return cluster.getCalorimeterHits().size() >= clusterHitCountThreshold;
     }
     
@@ -258,9 +258,9 @@ public class MollerTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterSeedEnergyCut(Cluster cluster) {
         // Get the seed energy value.
-        double seedEnergy = cluster.getSeedHit().getCorrectedEnergy();
+        double seedEnergy = cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
         
         // Perform the seed energy cut.
         return seedEnergy >= clusterSeedEnergyThresholdLow && seedEnergy <= clusterSeedEnergyThresholdHigh;
@@ -273,7 +273,7 @@ public class MollerTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterTotalEnergyCut(Cluster cluster) {
         // Get the cluster energy.
         double clusterEnergy = cluster.getEnergy();
         
@@ -288,10 +288,10 @@ public class MollerTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterPositionCut(HPSEcalCluster cluster) {
+    private boolean clusterPositionCut(Cluster cluster) {
         // Get the cluster position.
-        Point seedLoc =  new Point(cluster.getSeedHit().getIdentifierFieldValue("ix"),
-                cluster.getSeedHit().getIdentifierFieldValue("iy"));
+        Point seedLoc =  new Point(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
+                cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
         
         // Check if it is one of the allowed seed crystals.
         return allowedSeedSet.contains(seedLoc);
@@ -302,7 +302,7 @@ public class MollerTriggerDriver extends TriggerDriver {
     // ==================================================================
     
     /**
-     * Sets the LCIO collection name where <code>HPSEcalCluster</code>
+     * Sets the LCIO collection name where <code>Cluster</code>
      * objects are stored for use in the trigger.
      * @param clusterCollectionName - The name of the LCIO collection.
      */
@@ -428,7 +428,7 @@ public class MollerTriggerDriver extends TriggerDriver {
     private Set<Point> allowedSeedSet = new HashSet<Point>();
     
     /**
-     * The name of the LCIO collection containing <code>HPSEcalCluster
+     * The name of the LCIO collection containing <code>Cluster
      * </code> objects.
      */
     private String clusterCollectionName = "EcalClusters";

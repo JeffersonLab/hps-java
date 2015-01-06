@@ -16,6 +16,7 @@ import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;
 import org.hps.recon.tracking.StraightLineTrack;
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -133,8 +134,8 @@ public class TrackExtrapolationAnalysis extends Driver {
             aida.histogram2D("Extrapolated X: Extend vs SLT").fill(extendAtConverter.y(), slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[0]);
             aida.histogram2D("Extrapolated Y: Extend vs SLT").fill(extendAtConverter.z(), slt.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN)[1]);
 
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
-            HPSEcalCluster clust = findClosestCluster(posAtEcal, clusters);
+            List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
+            Cluster clust = findClosestCluster(posAtEcal, clusters);
 
             if (clust != null) {
  //               System.out.println("Cluster Position = ("+clust.getPosition()[0]+","+clust.getPosition()[1]+","+clust.getPosition()[2]+")");
@@ -456,10 +457,10 @@ public class TrackExtrapolationAnalysis extends Driver {
         style.statisticsBoxStyle().setVisible(true);
     }
 
-    private HPSEcalCluster findClosestCluster(Hep3Vector posonhelix, List<HPSEcalCluster> clusters) {
-        HPSEcalCluster closest = null;
+    private Cluster findClosestCluster(Hep3Vector posonhelix, List<Cluster> clusters) {
+        Cluster closest = null;
         double minDist = 9999;
-        for (HPSEcalCluster cluster : clusters) {
+        for (Cluster cluster : clusters) {
             double[] clPos = cluster.getPosition();
             double clEne = cluster.getEnergy();
 //            double dist = Math.sqrt(Math.pow(clPos[0] - posonhelix.y(), 2) + Math.pow(clPos[1] - posonhelix.z(), 2)); //coordinates!!!

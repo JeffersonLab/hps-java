@@ -5,7 +5,6 @@ import java.util.List;
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
 import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -49,7 +48,7 @@ public class LCIOBridgeDriver extends Driver {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
             
             // Define a list of clusters from the event.
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+            List<org.lcsim.event.Cluster> clusters = event.get(org.lcsim.event.Cluster.class, clusterCollectionName);
             
             // Increment the number of events we have seen.
             eventsProcessed++;
@@ -74,12 +73,12 @@ public class LCIOBridgeDriver extends Driver {
             	}
             	
             	// Add all the clusters.
-            	for(HPSEcalCluster cluster : clusters) {
+            	for(org.lcsim.event.Cluster cluster : clusters) {
             		// Get the seed hit.
-            		CalorimeterHit seed = cluster.getSeedHit();
+            		CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
             		int ix = seed.getIdentifierFieldValue("ix");
             		int iy = seed.getIdentifierFieldValue("iy");
-            		double energy = seed.getRawEnergy();
+            		double energy = seed.getRawEnergy(); // FIXME: Should this be getCorrectedEnergy() instead? --JM
             		
             		// Add the cluster center to the event display.
             		Cluster cc = new Cluster(ix, iy, energy);

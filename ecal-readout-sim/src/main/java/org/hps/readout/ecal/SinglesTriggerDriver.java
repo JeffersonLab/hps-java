@@ -5,7 +5,7 @@ import hep.aida.IHistogram2D;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;
 
@@ -44,19 +44,19 @@ public class SinglesTriggerDriver extends TriggerDriver {
     @Override
     public void process(EventHeader event) {
         // Make sure that there are clusters in the event.
-        if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of clusters.
-            List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+            List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
             
             // Iterate over the clusters.
-            for(HPSEcalCluster cluster : clusterList) {
+            for(Cluster cluster : clusterList) {
                 // Get the x and y indices.
-                int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-                int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+                int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
                 ix = ix > 0 ? ix - 1 : ix;
                 
                 // Populate the uncut plots.
-                clusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy(), 1);
+                clusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy(), 1);
                 clusterTotalEnergy.fill(cluster.getEnergy(), 1);
                 clusterHitCount.fill(cluster.getCalorimeterHits().size(), 1);
                 clusterDistribution.fill(ix, iy, 1);
@@ -73,13 +73,13 @@ public class SinglesTriggerDriver extends TriggerDriver {
     @Override
     protected boolean triggerDecision(EventHeader event) {
         // Check that there is a cluster object collection.
-        if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of hits.
-            List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+            List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
             
             // Iterate over the hits and perform the cuts.
             triggerLoop:
-            for(HPSEcalCluster cluster : clusterList) {
+            for(Cluster cluster : clusterList) {
                 // Perform the hit count cut.
                 if(!SSPTriggerLogic.clusterHitCountCut(cluster, hitCountLow)) {
                     continue triggerLoop;
@@ -96,12 +96,12 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 }
                 
                 // Get the x and y indices.
-                int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-                int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+                int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
                 ix = ix > 0 ? ix - 1 : ix;
                 
                 // Populate the cut plots.
-                clusterSeedEnergySingle.fill(cluster.getSeedHit().getCorrectedEnergy(), 1);
+                clusterSeedEnergySingle.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy(), 1);
                 clusterTotalEnergySingle.fill(cluster.getEnergy(), 1);
                 clusterHitCountSingle.fill(cluster.getCalorimeterHits().size(), 1);
                 clusterDistributionSingle.fill(ix, iy, 1);

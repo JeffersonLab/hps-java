@@ -1,6 +1,7 @@
 package org.hps.recon.ecal;
 
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 
 /**
  *
@@ -34,8 +35,8 @@ public class ECalUtils {
      * @param ecalCluster : ECal cluster
      * @return Quadrant number
      */
-    public static int getQuadrant(HPSEcalCluster ecalCluster) {
-        return getQuadrant(ecalCluster.getSeedHit());
+    public static int getQuadrant(Cluster ecalCluster) {
+        return getQuadrant(ecalCluster.getCalorimeterHits().get(0));
     }
 
     public static int getQuadrant(CalorimeterHit hit) {

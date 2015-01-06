@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.ecal.TriggerData;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.HPSTrack;
@@ -37,6 +36,7 @@ import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
@@ -325,23 +325,23 @@ public class ROOTFlatTupleDriver extends Driver {
         }
         
         
-        List<HPSEcalCluster> clusters = new ArrayList<HPSEcalCluster>();
+        List<Cluster> clusters = new ArrayList<Cluster>();
 
-        if(!event.hasCollection(HPSEcalCluster.class, ecalClusterCollectionName)) {
+        if(!event.hasCollection(Cluster.class, ecalClusterCollectionName)) {
             if(_debug) {
                 System.out.println(this.getClass().getSimpleName() + ": event doesn't have a ecal cluster collection ");
             }
         } else {
-            clusters = event.get(HPSEcalCluster.class, ecalClusterCollectionName); 
+            clusters = event.get(Cluster.class, ecalClusterCollectionName); 
         
             if(_debug) {
                 System.out.println(this.getClass().getSimpleName() + ": found " + clusters.size() + " ecal clusters " + event.getEventNumber());
             }
 
 			boolean goodRegion = false;
-			for(HPSEcalCluster c : clusters) {
-                int iy = c.getSeedHit().getIdentifierFieldValue("iy");
-                int ix = c.getSeedHit().getIdentifierFieldValue("ix");
+			for(Cluster c : clusters) {
+                int iy = c.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+                int ix = c.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 double E = c.getEnergy();
 				int evtnr = event.getEventNumber();
                 int clsize = c.getSize();
@@ -525,13 +525,13 @@ public class ROOTFlatTupleDriver extends Driver {
      * @return clostest cluster.
      */
 
-    private HPSEcalCluster findEcalCluster(Track trk, List<HPSEcalCluster> clusters) {
-    	HPSEcalCluster matched_cluster = null;
+    private Cluster findEcalCluster(Track trk, List<Cluster> clusters) {
+    	Cluster matched_cluster = null;
     	double drMin = 9999999.9;
     	double drMax = 9999999.9;
     	double dr;
     	Hep3Vector pos_cl,pos_trk;
-    	for(HPSEcalCluster cluster : clusters) {
+    	for(Cluster cluster : clusters) {
     		pos_cl = new BasicHep3Vector(cluster.getPosition());
     		pos_trk = TrackUtils.extrapolateTrack(trk,pos_cl.z());
     		dr = VecOp.sub(pos_cl, pos_trk).magnitude();
@@ -545,7 +545,7 @@ public class ROOTFlatTupleDriver extends Driver {
     	return matched_cluster;
     }
     
-    private void fillTextTuple(MCParticle e, MCParticle p, List<CmpTrack> tracks, Hep3Vector vtxPosParticle, Hep3Vector vtxPos, Hep3Vector vtxPosFr, Hep3Vector vtxPosNonBend, List<HPSEcalCluster> clusters, EventHeader event) throws IOException {
+    private void fillTextTuple(MCParticle e, MCParticle p, List<CmpTrack> tracks, Hep3Vector vtxPosParticle, Hep3Vector vtxPos, Hep3Vector vtxPosFr, Hep3Vector vtxPosNonBend, List<Cluster> clusters, EventHeader event) throws IOException {
         if(doPrintBranchInfoLine) {
             throw new RuntimeException("Need to fill tuple branches first!?");
         }
@@ -649,7 +649,7 @@ public class ROOTFlatTupleDriver extends Driver {
                 } 
                 else printWriter.format("%5.5f %5.5f %5.5f %5.5f %5.5f ",-9999999.9,-9999999.9,-9999999.9,-9999999.9,-9999999.9);
                 
-                HPSEcalCluster matched_cluster = findEcalCluster(trk1, clusters);
+                Cluster matched_cluster = findEcalCluster(trk1, clusters);
                 if(matched_cluster !=null) {
                 	double[] pos_cluster = matched_cluster.getPosition();
                 	posAtECal = TrackUtils.extrapolateTrack(trk1,pos_cluster[2]);
@@ -816,9 +816,9 @@ public class ROOTFlatTupleDriver extends Driver {
             else if(clusters.size()<=i) {
                 printWriter.format("%5.5f %5d %5d %5.5f %5.5f %5.5f %5d ",-999999.9,-999999,-999999,-999999.,-999999.,-999999.,-999999);
             } else {
-                //for(HPSEcalCluster cl : clusters) {
-                int iy = clusters.get(i).getSeedHit().getIdentifierFieldValue("iy");
-                int ix = clusters.get(i).getSeedHit().getIdentifierFieldValue("ix");
+                //for(Cluster cl : clusters) {
+                int iy = clusters.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+                int ix = clusters.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 double pos[] = clusters.get(i).getPosition();
                 double E = clusters.get(i).getEnergy();
                 int clsize = clusters.get(i).getSize();

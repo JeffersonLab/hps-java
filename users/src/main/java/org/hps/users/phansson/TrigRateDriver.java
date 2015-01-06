@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.BeamlineConstants;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
@@ -255,8 +255,8 @@ public class TrigRateDriver extends Driver {
         
         if(simTrigger) {
             boolean trigger = false;
-            if(event.hasCollection(HPSEcalCluster.class, triggerClusterCollectionName)) {
-                for(HPSEcalCluster cluster : event.get(HPSEcalCluster.class, triggerClusterCollectionName)) {
+            if(event.hasCollection(Cluster.class, triggerClusterCollectionName)) {
+                for(Cluster cluster : event.get(Cluster.class, triggerClusterCollectionName)) {
                     if(cluster.getEnergy() > triggerThreshold) {
                         trigger = true;
                     }
@@ -276,7 +276,7 @@ public class TrigRateDriver extends Driver {
         
         //fastTracking(event);
         
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalClusterCollectionName); 
+        List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName); 
         
         
         if(debug) System.out.println( clusters.size() + " ECal clusters in the event");
@@ -295,11 +295,11 @@ public class TrigRateDriver extends Driver {
         }
         
         
-        for(HPSEcalCluster cl : clusters) {
+        for(Cluster cl : clusters) {
             
             int[] clusterPosIdx = new int[2];
-            clusterPosIdx[0] = cl.getSeedHit().getIdentifierFieldValue("ix");
-            clusterPosIdx[1] = cl.getSeedHit().getIdentifierFieldValue("iy");
+            clusterPosIdx[0] = cl.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+            clusterPosIdx[1] = cl.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
             //Uses shower max position -> update ix,iy above? --> FIX THIS!
             double clusterPosY = cl.getPosition()[1];
             double clusterPosZ = cl.getPosition()[2];         
@@ -356,7 +356,7 @@ public class TrigRateDriver extends Driver {
     }
        
     /*
-    private boolean hasBadNeighbours(HPSEcalCluster cluster) {
+    private boolean hasBadNeighbours(Cluster cluster) {
         //check if this cluster has a neighbour that is dead or bad
         if(!EcalConditions.badChannelsLoaded()) return false;
         List<CalorimeterHit> hits = cluster.getCalorimeterHits();

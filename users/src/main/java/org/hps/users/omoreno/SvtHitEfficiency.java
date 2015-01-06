@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
@@ -30,10 +32,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackerHitUtils;
 
 /**
  * Analysis driver used to calculate the hit efficiency of the SVT.
@@ -250,14 +248,14 @@ public class SvtHitEfficiency extends Driver {
         if(tracks.size() >= 2 ) return;
         
         // Get the list of Ecal clusters from the event
-        List<HPSEcalCluster> ecalClusters = event.get(HPSEcalCluster.class, ecalClustersCollectionName);
+        //List<Cluster> ecalClusters = event.get(Cluster.class, ecalClustersCollectionName);
 
         for(Track track : tracks){
         	
             ecalClusterTrackMatch = false;
         	
             // Check if there is an Ecal cluster in the same detector volume as the track
-        	/*for(HPSEcalCluster ecalCluster : ecalClusters){
+        	/*for(Cluster ecalCluster : ecalClusters){
         		if(ecalCluster.getPosition()[1] > 0 && trkUtil.getZ0() > 0){
         			ecalClusterTrackMatch = true;
         			break;

@@ -7,9 +7,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
@@ -112,14 +113,14 @@ public class EcalClustererCosmics extends Driver {
 
             // Put Cluster collection into event.
             int flag = 1 << LCIOConstants.CLBIT_HITS;
-            event.put(clusterCollectionName, createClusters(hitMap), HPSEcalCluster.class, flag);
+            event.put(clusterCollectionName, createClusters(hitMap), Cluster.class, flag);
         }
     }
 
-    public List<HPSEcalCluster> createClusters(Map<Long, CalorimeterHit> map) {
+    public List<Cluster> createClusters(Map<Long, CalorimeterHit> map) {
 
         // New Cluster list to be added to event.
-        List<HPSEcalCluster> clusters = new ArrayList<HPSEcalCluster>();
+        List<Cluster> clusters = new ArrayList<Cluster>();
 
         // Loop over ECal hits to find cluster seeds.
         for (CalorimeterHit hit : map.values()) {
@@ -169,7 +170,7 @@ public class EcalClustererCosmics extends Driver {
             // Did we find a seed?
             if (isSeed) {
                 // Make a cluster from the hit list.
-                HPSEcalCluster cluster = new HPSEcalCluster(hit.getCellID());
+                BaseCluster cluster = new BaseCluster();
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {
                     cluster.addHit(clusHit);

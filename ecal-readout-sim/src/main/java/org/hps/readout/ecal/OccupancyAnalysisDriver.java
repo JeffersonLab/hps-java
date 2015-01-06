@@ -1,12 +1,12 @@
 package org.hps.readout.ecal;
 
-import java.util.List;
-
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import java.util.List;
+
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -62,22 +62,22 @@ public class OccupancyAnalysisDriver extends Driver {
     @Override
     public void process(EventHeader event) {
     	// If clusters are present, process them.
-    	if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+    	if(event.hasCollection(Cluster.class, clusterCollectionName)) {
     		// Get the list of clusters.
-    		List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+    		List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
     		
     		// Use the clusters to populate the cluster plots.
-    		for(HPSEcalCluster cluster : clusterList) {
+    		for(Cluster cluster : clusterList) {
     			// Get the ix and iy values for the cluster.
-    			int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-    			int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+    			int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+    			int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
     			
     			// If we want to ignore the beam gap rows, make sure
     			// that iy exceeds two.
     			if(!ignoreBeamGapRows || (Math.abs(iy) > 2)) {
 	        		// If the cluster passes the seed threshold, place it in
 	        		// the level 1 plots.
-	    			if(cluster.getSeedHit().getCorrectedEnergy() >= seedThreshold) {
+	    			if(cluster.getCalorimeterHits().get(0).getCorrectedEnergy() >= seedThreshold) {
 	    				clusterDistribution[0].fill(ix, iy, scalingFactor);
 	    				clusterHitDistribution[0].fill(cluster.getCalorimeterHits().size(), scalingFactor);
 	    				clusterEnergyDistribution[0].fill(cluster.getEnergy() * beamRatio, scalingFactor);

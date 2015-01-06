@@ -10,19 +10,18 @@ package org.hps.users.luca;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.TriggerDriver;
-
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -72,8 +71,8 @@ public class myTriggerDriver extends TriggerDriver {
     protected String clusterCollectionName = "EcalClusters";
     // FIFO queues of lists of clusters in each ECal half.
     // Each list corresponds to one readout cycle.
-    private Queue<List<HPSEcalCluster>> topClusterQueue = null;
-    private Queue<List<HPSEcalCluster>> botClusterQueue = null;
+    private Queue<List<Cluster>> topClusterQueue = null;
+    private Queue<List<Cluster>> botClusterQueue = null;
     PrintWriter pairWriter;
 
     private enum Flag {
@@ -286,13 +285,13 @@ public class myTriggerDriver extends TriggerDriver {
     @Override
     public void startOfData() {
         //initialize queues and fill with empty lists
-        topClusterQueue = new LinkedList<List<HPSEcalCluster>>();
-        botClusterQueue = new LinkedList<List<HPSEcalCluster>>();
+        topClusterQueue = new LinkedList<List<Cluster>>();
+        botClusterQueue = new LinkedList<List<Cluster>>();
         for (int i = 0; i < 2 * pairCoincidence + 1; i++) {
-            topClusterQueue.add(new ArrayList<HPSEcalCluster>());
+            topClusterQueue.add(new ArrayList<Cluster>());
         }
         for (int i = 0; i < pairCoincidence + 1; i++) {
-            botClusterQueue.add(new ArrayList<HPSEcalCluster>());
+            botClusterQueue.add(new ArrayList<Cluster>());
         }
         super.startOfData();
         if (clusterCollectionName == null) {
@@ -310,19 +309,19 @@ public class myTriggerDriver extends TriggerDriver {
 
     @Override
     public void process(EventHeader event) {
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             // this needs to run every readout cycle whether or not trigger is live
-            updateClusterQueues(event.get(HPSEcalCluster.class, clusterCollectionName));
+            updateClusterQueues(event.get(Cluster.class, clusterCollectionName));
 
             if (pairWriter != null) {
-                List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
-                for (HPSEcalCluster[] pair : clusterPairs) {
+                List<Cluster[]> clusterPairs = getClusterPairsTopBot();
+                for (Cluster[] pair : clusterPairs) {
                     pairWriter.format("%d\t", ClockSingleton.getClock());
-                    for (HPSEcalCluster cluster : pair) {
-                        pairWriter.format("%f\t", cluster.getSeedHit().getTime());
-                        pairWriter.format("%f\t", cluster.getSeedHit().getRawEnergy());
-                        pairWriter.format("%d\t", cluster.getSeedHit().getIdentifierFieldValue("ix"));
-                        pairWriter.format("%d\t", cluster.getSeedHit().getIdentifierFieldValue("iy"));
+                    for (Cluster cluster : pair) {
+                        pairWriter.format("%f\t", cluster.getCalorimeterHits().get(0).getTime());
+                        pairWriter.format("%f\t", cluster.getCalorimeterHits().get(0).getRawEnergy());
+                        pairWriter.format("%d\t", cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"));
+                        pairWriter.format("%d\t", cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
                         pairWriter.format("%d\t", cluster.getSize());
                         pairWriter.format("%f\t", cluster.getEnergy());
                         pairWriter.format("%f\t", getClusterAngle(cluster));
@@ -339,7 +338,7 @@ public class myTriggerDriver extends TriggerDriver {
     @Override
     protected boolean triggerDecision(EventHeader event) {
         // Get the list of raw ECal hits.
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             return testTrigger();
         } else {
             return false;
@@ -349,22 +348,22 @@ public class myTriggerDriver extends TriggerDriver {
     public boolean testTrigger() {
         boolean trigger = false;
 
-        List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+        List<Cluster[]> clusterPairs = getClusterPairsTopBot();
 
         //--- Apply Trigger Cuts ---//
 
         // Iterate through all cluster pairs present in the event.  If at least
         // one of the cluster pairs satisfies all of the trigger conditions,
         // a trigger signal is sent to all other detectors.
-        for (HPSEcalCluster[] clusterPair : clusterPairs) {
+        for (Cluster[] clusterPair : clusterPairs) {
 
             EnumSet<Flag> bits = EnumSet.noneOf(Flag.class);
 
             if (outputStream != null) {
                 outputStream.printf("Event %d: cluster pair (energy %f in quadrant %d (%s), energy %f in quadrant %d (%s))\n",
                         ClockSingleton.getClock(),
-                        clusterPair[0].getEnergy(), ECalUtils.getQuadrant(clusterPair[0]), clusterPair[0].getSeedHit().getPositionVec().toString(),
-                        clusterPair[1].getEnergy(), ECalUtils.getQuadrant(clusterPair[1]), clusterPair[1].getSeedHit().getPositionVec().toString());
+                        clusterPair[0].getEnergy(), ECalUtils.getQuadrant(clusterPair[0]), clusterPair[0].getCalorimeterHits().get(0).getPositionVec().toString(),
+                        clusterPair[1].getEnergy(), ECalUtils.getQuadrant(clusterPair[1]), clusterPair[1].getCalorimeterHits().get(0).getPositionVec().toString());
             }
 
             allPairs++;
@@ -477,9 +476,9 @@ public class myTriggerDriver extends TriggerDriver {
                 }
                 trigger = true;
 
-                for (HPSEcalCluster cluster : clusterPair) {
-                    int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-                    int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                for (Cluster cluster : clusterPair) {
+                    int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+                    int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
                     trigClusterSeeds.fill(ix - 0.5 * Math.signum(ix), iy);
                 }
             }
@@ -518,19 +517,19 @@ public class myTriggerDriver extends TriggerDriver {
         writer.close();
     }
 
-    protected void updateClusterQueues(List<HPSEcalCluster> ecalClusters) {
-        ArrayList<HPSEcalCluster> topClusterList = new ArrayList<HPSEcalCluster>();
-        ArrayList<HPSEcalCluster> botClusterList = new ArrayList<HPSEcalCluster>();
-        for (HPSEcalCluster ecalCluster : ecalClusters) {
-//            System.out.format("add cluster\t%f\t%d\n", ecalCluster.getSeedHit().getTime(), ecalCluster.getSeedHit().getIdentifierFieldValue("iy"));
-            if (ecalCluster.getSeedHit().getIdentifierFieldValue("iy") > 0) {
+    protected void updateClusterQueues(List<Cluster> ecalClusters) {
+        ArrayList<Cluster> topClusterList = new ArrayList<Cluster>();
+        ArrayList<Cluster> botClusterList = new ArrayList<Cluster>();
+        for (Cluster ecalCluster : ecalClusters) {
+//            System.out.format("add cluster\t%f\t%d\n", ecalCluster.getCalorimeterHits().get(0).getTime(), ecalCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
+            if (ecalCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) {
                 topClusterList.add(ecalCluster);
             } else {
                 botClusterList.add(ecalCluster);
             }
 
-            int ix = ecalCluster.getSeedHit().getIdentifierFieldValue("ix");
-            int iy = ecalCluster.getSeedHit().getIdentifierFieldValue("iy");
+            int ix = ecalCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+            int iy = ecalCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
             clusterSeeds.fill(ix - 0.5 * Math.signum(ix), iy);
         }
 
@@ -546,23 +545,23 @@ public class myTriggerDriver extends TriggerDriver {
      * @param ecalClusters : List of ECal clusters
      * @return list of cluster pairs
      */
-    protected List<HPSEcalCluster[]> getClusterPairsTopBot() {
+    protected List<Cluster[]> getClusterPairsTopBot() {
         // Make a list of cluster pairs
-        List<HPSEcalCluster[]> clusterPairs = new ArrayList<HPSEcalCluster[]>();
+        List<Cluster[]> clusterPairs = new ArrayList<Cluster[]>();
 
         // Loop over all top-bottom pairs of clusters; higher-energy cluster goes first in the pair
         // To apply pair coincidence time, use only bottom clusters from the 
         // readout cycle pairCoincidence readout cycles ago, and top clusters 
         // from all 2*pairCoincidence+1 previous readout cycles
-        for (HPSEcalCluster botCluster : botClusterQueue.element()) {   /////da come capisco sembra un for su tutti i cluster solo della testa della queue..e gli altri?
-            for (List<HPSEcalCluster> topClusters : topClusterQueue) {
-                for (HPSEcalCluster topCluster : topClusters) {
-//                    System.out.format("%f\t%f\n", topCluster.getSeedHit().getTime(), botCluster.getSeedHit().getTime());
+        for (Cluster botCluster : botClusterQueue.element()) {   /////da come capisco sembra un for su tutti i cluster solo della testa della queue..e gli altri?
+            for (List<Cluster> topClusters : topClusterQueue) {
+                for (Cluster topCluster : topClusters) {
+//                    System.out.format("%f\t%f\n", topCluster.getCalorimeterHits().get(0).getTime(), botCluster.getCalorimeterHits().get(0).getTime());
                     if (topCluster.getEnergy() > botCluster.getEnergy()) {
-                        HPSEcalCluster[] clusterPair = {topCluster, botCluster};
+                        Cluster[] clusterPair = {topCluster, botCluster};
                         clusterPairs.add(clusterPair);
                     } else {
-                        HPSEcalCluster[] clusterPair = {botCluster, topCluster};
+                        Cluster[] clusterPair = {botCluster, topCluster};
                         clusterPairs.add(clusterPair);
                     }
                 }
@@ -578,7 +577,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if opposite quadrants, false otherwise
      */
-    protected boolean oppositeQuadrantsCut(HPSEcalCluster[] clusterPair) {
+    protected boolean oppositeQuadrantsCut(Cluster[] clusterPair) {
         int quad1 = ECalUtils.getQuadrant(clusterPair[0]);
         int quad2 = ECalUtils.getQuadrant(clusterPair[1]);
 
@@ -598,7 +597,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair: pair of clusters
      * @return true if pair passes cut, false if fail
      */
-    protected boolean clusterHitCount(HPSEcalCluster[] clusterPair) {
+    protected boolean clusterHitCount(Cluster[] clusterPair) {
         return (clusterPair[0].getCalorimeterHits().size() >= minHitCount
                 && clusterPair[1].getCalorimeterHits().size() >= minHitCount);
     }
@@ -610,7 +609,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if a pair is found, false otherwise
      */
-    protected boolean clusterECut(HPSEcalCluster[] clusterPair) {
+    protected boolean clusterECut(Cluster[] clusterPair) {
         return (clusterPair[0].getEnergy() < clusterEnergyHigh
                 && clusterPair[1].getEnergy() < clusterEnergyHigh
                 && clusterPair[0].getEnergy() > clusterEnergyLow
@@ -636,7 +635,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
-    protected boolean energyDifference(HPSEcalCluster[] clusterPair) {
+    protected boolean energyDifference(Cluster[] clusterPair) {
         double clusterEDifference = clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
 
         return (clusterEDifference < energyDifferenceThreshold);
@@ -649,8 +648,8 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
-    protected boolean energyDistanceCut(HPSEcalCluster[] clusterPair) {
-        HPSEcalCluster lowEnergyCluster = clusterPair[1];
+    protected boolean energyDistanceCut(Cluster[] clusterPair) {
+        Cluster lowEnergyCluster = clusterPair[1];
 
         // Calculate its position
         double lowEClusterDistance = getClusterDistance(clusterPair[1]);
@@ -666,23 +665,23 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
-    protected boolean coplanarityCut(HPSEcalCluster[] clusterPair) {
+    protected boolean coplanarityCut(Cluster[] clusterPair) {
         return (Math.abs(pairUncoplanarity(clusterPair)) < maxCoplanarityAngle);
     }
 
-    protected double pairUncoplanarity(HPSEcalCluster[] clusterPair) { // Find the angle between clusters in the pair
+    protected double pairUncoplanarity(Cluster[] clusterPair) { // Find the angle between clusters in the pair
         double cluster1Angle = (getClusterAngle(clusterPair[0]) + 180.0) % 180.0;
         double cluster2Angle = (getClusterAngle(clusterPair[1]) + 180.0) % 180.0;
 
         return cluster2Angle - cluster1Angle;
     }
 
-    protected double getClusterAngle(HPSEcalCluster cluster) { //returns angle in range of -180 to 180
-        double position[] = cluster.getSeedHit().getPosition();
+    protected double getClusterAngle(Cluster cluster) { //returns angle in range of -180 to 180
+        double position[] = cluster.getCalorimeterHits().get(0).getPosition();
         return Math.toDegrees(Math.atan2(position[1], position[0] - originX));
     }
 
-    protected double getClusterDistance(HPSEcalCluster cluster) {
-        return Math.hypot(cluster.getSeedHit().getPosition()[0] - originX, cluster.getSeedHit().getPosition()[1]);
+    protected double getClusterDistance(Cluster cluster) {
+        return Math.hypot(cluster.getCalorimeterHits().get(0).getPosition()[0] - originX, cluster.getCalorimeterHits().get(0).getPosition()[1]);
     }
 }

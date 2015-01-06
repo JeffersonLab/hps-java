@@ -3,7 +3,7 @@ package org.hps.readout.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -55,9 +55,9 @@ public class TestRunTriggerDriver extends TriggerDriver {
 
     @Override
     protected boolean triggerDecision(EventHeader event) {
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             cycleCounter++;
-            if (testTrigger(event.get(HPSEcalCluster.class, clusterCollectionName))) {
+            if (testTrigger(event.get(Cluster.class, clusterCollectionName))) {
                 triggerThisCycle = true;
             }
         }
@@ -71,12 +71,12 @@ public class TestRunTriggerDriver extends TriggerDriver {
         }
     }
 
-    public boolean testTrigger(List<HPSEcalCluster> clusters) {
+    public boolean testTrigger(List<Cluster> clusters) {
         boolean trigger = false;
 
         topBits <<= 1;
         botBits <<= 1;
-        for (HPSEcalCluster cluster : clusters) {
+        for (Cluster cluster : clusters) {
             if (cluster.getEnergy() > clusterEnergyLow) {
                 if (cluster.getPosition()[1] > 0) {
                     topBits |= 1;

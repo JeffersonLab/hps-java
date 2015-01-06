@@ -8,10 +8,10 @@ import hep.physics.vec.Hep3Vector;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -85,9 +85,9 @@ public class SVTEventDisplay extends Driver {
                 fillPlots(hrth);
             }
 
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, ecalCollectionName);
+            List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
             //             System.out.println("Number of ECAL clusters="+clusters.size());
-            for (HPSEcalCluster cluster : clusters) {
+            for (Cluster cluster : clusters) {
 //                dec.setID(cluster.getSeedHit().getCellID());
 //                CalorimeterHit seedHit = cluster.getSeedHit();
 //                    System.out.println("z = "+seedHit.getPosition()[2]+" y = "+seedHit.getPosition()[1]);

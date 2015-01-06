@@ -9,11 +9,10 @@ import hep.aida.IPlotterStyle;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.lang.System;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hps.monitoring.ecal.eventdisplay.ui.PDataEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
@@ -21,10 +20,9 @@ import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -330,16 +328,16 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 		}
 		
 		// If there are clusters in the event...
-		if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
+		if (event.hasCollection(Cluster.class, clusterCollection)) {
 			// Get the list of clusters.
-			List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);
+			List<Cluster> clusters = event.get(Cluster.class, clusterCollection);
 			
 			// Iterate over the clusters and add them to the event
 			// display if appropriate.
-			for (HPSEcalCluster cluster : clusters) {
+			for (Cluster cluster : clusters) {
 				// Get the ix and iy indices for the seed.
-				int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-				int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+				int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+				int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
 				
 				// Get the histogram index for the hit.
 				int id = ECalUtils.getHistoIDFromRowColumn(iy, ix);

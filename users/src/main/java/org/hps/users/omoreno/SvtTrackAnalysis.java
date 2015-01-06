@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.event.Cluster;
 //--- org.lcsim ---//
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -264,7 +264,7 @@ public class SvtTrackAnalysis extends Driver {
     	List<SeedTrack> tracks = event.get(SeedTrack.class, trackCollectionName);
     	
     	Map<Hep3Vector,SeedTrack> trackToEcalPosition = new HashMap<Hep3Vector, SeedTrack>();
-     	Map<SeedTrack, HPSEcalCluster> trackToCluster = new HashMap<SeedTrack, HPSEcalCluster>();
+     	Map<SeedTrack, Cluster> trackToCluster = new HashMap<SeedTrack, Cluster>();
     	List<Hep3Vector> ecalPos = new ArrayList<Hep3Vector>();
     	
     	for(SeedTrack track : tracks){
@@ -318,14 +318,14 @@ public class SvtTrackAnalysis extends Driver {
     		ecalPos.add(positionEcal);  		
     	}
     	
-    	if(!event.hasCollection(HPSEcalCluster.class, "EcalClusters")) return;
-    	List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters");
+    	if(!event.hasCollection(Cluster.class, "EcalClusters")) return;
+    	List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
     	
 
     	for(Hep3Vector ecalP : ecalPos){
         	double xdiff = 1000; 
         	double ydiff = 1000;
-    		for(HPSEcalCluster cluster : clusters){
+    		for(Cluster cluster : clusters){
     			double xd = ecalP.y() - cluster.getPosition()[0];
     			double yd = ecalP.z() - cluster.getPosition()[1];  
     			if(yd < ydiff){
@@ -338,7 +338,7 @@ public class SvtTrackAnalysis extends Driver {
     		aida.histogram2D("XY Difference between Ecal Cluster and Track Position").fill(xdiff, ydiff);
     	}
     	
-    	for(Map.Entry<SeedTrack, HPSEcalCluster> entry : trackToCluster.entrySet()){
+    	for(Map.Entry<SeedTrack, Cluster> entry : trackToCluster.entrySet()){
     		double Energy = entry.getValue().getEnergy();
     		SeedTrack track = entry.getKey();
     		double pTotal = Math.sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY() + track.getPZ()*track.getPZ());
@@ -351,7 +351,7 @@ public class SvtTrackAnalysis extends Driver {
     		aida.histogram2D("E versus P").fill(Energy, pTotal*1000);
     	}
     	
-    	for(HPSEcalCluster cluster : clusters){
+    	for(Cluster cluster : clusters){
     		double[] clusterPosition = cluster.getPosition();
     		
     		System.out.println("Cluster Position: [" + clusterPosition[0] + ", " + clusterPosition[1] + ", " + clusterPosition[2]+ "]");

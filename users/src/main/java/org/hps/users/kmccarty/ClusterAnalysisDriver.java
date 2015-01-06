@@ -1,11 +1,11 @@
 package org.hps.users.kmccarty;
 
-import java.util.List;
-
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import java.util.List;
+
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -58,32 +58,32 @@ public class ClusterAnalysisDriver extends Driver {
 	
 	public void process(EventHeader event) {
 		// Check if there exists a cluster collection.
-		if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+		if(event.hasCollection(Cluster.class, clusterCollectionName)) {
 			// Get the raw hit collection.
-			List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+			List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
 			
 			// Output the information on each hit to the histograms.
-			for(HPSEcalCluster cluster : clusterList) {
+			for(Cluster cluster : clusterList) {
 				// Get the x and y indices for the hits.
-				int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-				int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+				int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+				int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
 				if(ix > 0) { ix = ix - 1; }
 				
 				// Write to the histograms.
 				clusterTotalEnergy.fill(cluster.getEnergy());
-				clusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+				clusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
 				clusterHitCount.fill(cluster.getCalorimeterHits().size());
 				clusterDistribution.fill(ix, iy, 1.0);
 				
-				if(cluster.getSeedHit().getCorrectedEnergy() > 0.100) {
+				if(cluster.getCalorimeterHits().get(0).getCorrectedEnergy() > 0.100) {
 					fClusterTotalEnergy.fill(cluster.getEnergy());
-					fClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+					fClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
 					fClusterHitCount.fill(cluster.getCalorimeterHits().size());
 					fClusterDistribution.fill(ix, iy, 1.0);
 					
 					if(cluster.getCalorimeterHits().size() > 1) {
 						nClusterTotalEnergy.fill(cluster.getEnergy());
-						nClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+						nClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
 						nClusterHitCount.fill(cluster.getCalorimeterHits().size());
 						nClusterDistribution.fill(ix, iy, 1.0);
 					}

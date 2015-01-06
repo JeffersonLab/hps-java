@@ -5,7 +5,6 @@ import hep.aida.IHistogram1D;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -70,7 +69,7 @@ public class HPSEcalFADCPlotsDriver extends Driver {
 	}
 
 	public void process(EventHeader event) {
-		List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+		List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
 		if (clusters == null)
 			throw new RuntimeException("Missing cluster collection!");
 

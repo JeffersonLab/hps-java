@@ -145,9 +145,9 @@ public class EcalMonitoring extends DataQualityMonitor {
         }
 
         List<Cluster> clusters;
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName))
+        if (event.hasCollection(Cluster.class, clusterCollectionName))
             clusters = event.get(Cluster.class, clusterCollectionName);
-        else if (event.hasCollection(HPSEcalClusterIC.class, clusterCollectionName))
+        else if (event.hasCollection(Cluster.class, clusterCollectionName))
             clusters = event.get(Cluster.class, clusterCollectionName);
         else if (event.hasCollection(Cluster.class, clusterCollectionName))
             clusters = event.get(Cluster.class, clusterCollectionName);

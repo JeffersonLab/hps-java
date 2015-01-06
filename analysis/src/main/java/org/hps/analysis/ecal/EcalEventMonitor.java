@@ -13,6 +13,7 @@ import javax.swing.JCheckBox;
 
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -96,10 +97,10 @@ public class EcalEventMonitor extends Driver implements ItemListener {
                 hitPlot.fill(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"), hit.getRawEnergy());
             }
         }
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
-            for (HPSEcalCluster cluster : clusters) {
-                CalorimeterHit seedHit = cluster.getSeedHit();
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
+            List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
+            for (Cluster cluster : clusters) {
+                CalorimeterHit seedHit = cluster.getCalorimeterHits().get(0);
                 clusterPlot.fill(seedHit.getIdentifierFieldValue("ix"), seedHit.getIdentifierFieldValue("iy"), cluster.getEnergy());
             }
         }

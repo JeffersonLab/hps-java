@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
-import org.hps.recon.ecal.HPSEcalCluster;
+//import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOReader;
@@ -88,15 +88,15 @@ public class LCIOManager implements EventManager {
         // from the LCIO event.
         else {
             // Check to see if the event has a cluster collection.
-            if(current.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+            if(current.hasCollection(org.lcsim.event.Cluster.class, clusterCollectionName)) {
                 // Get the list of LCIO clusters.
-                List<HPSEcalCluster> lcioList = current.get(HPSEcalCluster.class, clusterCollectionName);
+                List<org.lcsim.event.Cluster> lcioList = current.get(org.lcsim.event.Cluster.class, clusterCollectionName);
                 
                 // Create a list to store event display clusters.
                 List<Cluster> displayList = new ArrayList<Cluster>(lcioList.size());
                 
                 // Convert the LCIO clusters to display clusters.
-                for(HPSEcalCluster lcioCluster : lcioList) {
+                for(org.lcsim.event.Cluster lcioCluster : lcioList) {
                     displayList.add(toPanelCluster(lcioCluster));
                 }
                 
@@ -193,13 +193,13 @@ public class LCIOManager implements EventManager {
     
     // TODO: LCIO files can't actually store an HPSEcalCluster; this
     // needs to be converted to use regular LCIO clusters instead.
-    public static final Cluster toPanelCluster(HPSEcalCluster lcioCluster) {
+    public static final Cluster toPanelCluster(org.lcsim.event.Cluster lcioCluster) {
         // If the argument is null, return null.
         if(lcioCluster == null) { return null; }
         
         // Otherwise, get the cluster x/y indices and energy.
-        int ix = lcioCluster.getSeedHit().getIdentifierFieldValue("ix");
-        int iy = lcioCluster.getSeedHit().getIdentifierFieldValue("iy");
+        int ix = lcioCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+        int iy = lcioCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
         double energy = lcioCluster.getEnergy();
         
         // Create and return a panel cluster from the above values.

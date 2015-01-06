@@ -5,8 +5,8 @@ import hep.aida.IHistogram2D;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.ParticleTypeClassifier;
@@ -86,22 +86,23 @@ public class TestRunRateAnalysis extends Driver {
 //        MCParticle particle = mcparticles.get(0);
 
         // Get the list of raw ECal hits.
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+        List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
         if (clusters == null) {
             throw new RuntimeException("Event is missing ECal clusters collection!");
         }
 
         boolean trigger = false;
 
-        for (HPSEcalCluster cluster : clusters) {
-            if (cluster.getEnergy() > clusterEnergyLow && cluster.getSeedHit().getIdentifierFieldValue("ix") < 0) {
+        for (Cluster cluster : clusters) {
+            CalorimeterHit seedHit = cluster.getCalorimeterHits().get(0);
+            if (cluster.getEnergy() > clusterEnergyLow && seedHit.getIdentifierFieldValue("ix") < 0) {
 //            if (cluster.getEnergy() > clusterEnergyLow && cluster.getSeedHit().getIdentifierFieldValue("iy")>0 && cluster.getSeedHit().getIdentifierFieldValue("ix")<0) {
-                triggersY[Math.abs(cluster.getSeedHit().getIdentifierFieldValue("iy")) - 1]++;
-                if (Math.abs(cluster.getSeedHit().getIdentifierFieldValue("iy")) > 1) {
+                triggersY[Math.abs(seedHit.getIdentifierFieldValue("iy")) - 1]++;
+                if (Math.abs(seedHit.getIdentifierFieldValue("iy")) > 1) {
                     trigger = true;
                 }
             }
-            if (cluster.getSeedHit().getIdentifierFieldValue("ix") < 0 && Math.abs(cluster.getSeedHit().getIdentifierFieldValue("iy")) > 1) {
+            if (seedHit.getIdentifierFieldValue("ix") < 0 && Math.abs(seedHit.getIdentifierFieldValue("iy")) > 1) {
                 for (MCParticle particle : mcparticles) {
                     if (ParticleTypeClassifier.isElectron(particle.getPDGID())) {
                         electronEClusterVsP.fill(1000.0 * particle.getPZ(), 1000.0 * cluster.getEnergy());

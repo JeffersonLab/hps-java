@@ -3,8 +3,7 @@ package org.hps.users.luca;
 import java.util.List;
 
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.HPSEcalCluster;
-
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -73,18 +72,18 @@ public class FEETrigger2 extends TriggerDriver {
 	 */
 	@Override
 	public void process(EventHeader event) {
-		if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+		if(event.hasCollection(Cluster.class, clusterCollectionName)) {
 			// Get the list of clusters from the event.
-			List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+			List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
 			
 			// Loop over the clusters and check for any that pass the threshold.
-			for(HPSEcalCluster cluster : clusterList) {
+			for(Cluster cluster : clusterList) {
 				// Check if the current cluster exceeds the energy
 				// threshold. If it does not, continue to the next
 				// cluster in the list.
 				if(cluster.getEnergy() > energyThreshold) {
 					// Get the x-index of the seed hit.
-					int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+					int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
 					
 					// Determine in which region the cluster is located
 					// and increment the counter for that region. Zones
@@ -115,7 +114,7 @@ public class FEETrigger2 extends TriggerDriver {
 	protected boolean triggerDecision(EventHeader event) {
 		// Check if the event has clusters. An event with no clusters
 		// should never result in a trigger.
-		if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+		if(event.hasCollection(Cluster.class, clusterCollectionName)) {
 			// Check if any of the zone counts are high enough to trigger.
 			return triggerTest();
 		}

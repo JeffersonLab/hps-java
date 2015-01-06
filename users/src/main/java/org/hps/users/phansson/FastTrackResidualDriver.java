@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
@@ -225,8 +225,8 @@ public class FastTrackResidualDriver extends Driver {
         
         
         //Get the calorimeter cluster object used to construct the track
-        List<HPSEcalCluster> ecal_all_clusters = getAllEcalClustersForFastTracking(event);
-        //Exit if no clusters found
+        List<Cluster> ecal_all_clusters = getAllEcalClustersForFastTracking(event);
+                //Exit if no clusters found
         if (ecal_all_clusters.size()==0) return;
 
         //if ( 1==1 ) return;
@@ -442,10 +442,10 @@ public class FastTrackResidualDriver extends Driver {
     
     
     
-//    private List<HPSEcalCluster> getAllEcalClusters(EventHeader event) {
+//    private List<Cluster> getAllEcalClusters(EventHeader event) {
 //        
-//        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalReadoutHits"); 
-//        //List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters"); 
+//        List<Cluster> clusters = event.get(Cluster.class, "EcalReadoutHits"); 
+//        //List<Cluster> clusters = event.get(Cluster.class, "EcalClusters"); 
 //
 //        if ( debug) {
 //            System.out.println("Found " + clusters.size() + " clusters");
@@ -454,18 +454,18 @@ public class FastTrackResidualDriver extends Driver {
 //    }
 
  
-    public int[] getCrystalPair(HPSEcalCluster cluster) {
+    public int[] getCrystalPair(Cluster cluster) {
         int[] pos = new int[2];
-        pos[0] = cluster.getSeedHit().getIdentifierFieldValue("ix");
-        pos[1] = cluster.getSeedHit().getIdentifierFieldValue("iy");
+        pos[0] = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+        pos[1] = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
         
-        //System.out.println("cluster ix,iy " + pos[0] + "," + pos[1] + "    from pos  " + cluster.getSeedHit().getPositionVec().toString());
+        //System.out.println("cluster ix,iy " + pos[0] + "," + pos[1] + "    from pos  " + cluster.getCalorimeterHits().get(0).getPositionVec().toString());
         return pos;
         //getCrystalPair(cluster.getPosition());
     }
     
     
-    private List<Integer> getEcalClustersForFastTracking(List<HPSEcalCluster> clusters, String side) {
+    private List<Integer> getEcalClustersForFastTracking(List<Cluster> clusters, String side) {
         if(side!="up" && side!="down") {
             throw new RuntimeException("This ecal side" + side + " do not exist!!");
         }
@@ -494,7 +494,7 @@ public class FastTrackResidualDriver extends Driver {
         return cls;
     }
      
-    private int selectCluster(List<Integer> ids, List<HPSEcalCluster> clusters) {
+    private int selectCluster(List<Integer> ids, List<Cluster> clusters) {
         //need to decide which cluster to take
 
         
@@ -536,17 +536,12 @@ public class FastTrackResidualDriver extends Driver {
            
     }
 
-    private List<HPSEcalCluster> getAllEcalClustersForFastTracking(EventHeader event) {
-        
-        //List<HPSEcalCluster> clusters = new ArrayList<HPSEcalCluster>();
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters"); 
-        //List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalReadoutHits"); 
-        //List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalCalHits"); 
+    private List<Cluster> getAllEcalClustersForFastTracking(EventHeader event) {        
+        List<Cluster> clusters = event.get(Cluster.class, "EcalClusters"); 
         if ( debug) {
             System.out.println("Found " + clusters.size() + " EcalClusters");
         }
-        
-     
+             
         return clusters;
     }
 

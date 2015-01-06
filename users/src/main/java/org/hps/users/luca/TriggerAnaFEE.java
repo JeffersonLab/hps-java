@@ -5,30 +5,17 @@
  */
 
 package org.hps.users.luca;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
+
 import org.hps.readout.ecal.TriggerDriver;
-
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-
-import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.Driver;
-import hep.aida.*;
-
-import java.io.FileWriter;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
+import org.lcsim.event.EventHeader;
+import org.lcsim.util.Driver;
 
 
 /**
@@ -43,7 +30,7 @@ public class TriggerAnaFEE extends Driver {
     int TotalCluster=0;
     double timeDifference;
     double energyThreshold=0;
-    private LinkedList<ArrayList<HPSEcalCluster>> clusterBuffer;
+    private LinkedList<ArrayList<Cluster>> clusterBuffer;
     protected String clusterCollectionName = "EcalClusters";
     
  //AIDA aida = AIDA.defaultInstance();
@@ -88,12 +75,12 @@ this.outputFileName = outputFileName;
 public void startOfData(){
 
     //initialize the clusterbuffer
-    clusterBuffer= new LinkedList<ArrayList<HPSEcalCluster>>();
+    clusterBuffer= new LinkedList<ArrayList<Cluster>>();
  //populate the clusterbuffer with (2*clusterWindow + 1)
  // empty events, representing the fact that the first few events will not have any events in the past portion of the buffer
     int bufferSize=(2*clusterWindow)+1;
     for(int i = 0;i<bufferSize; i++){
-    clusterBuffer.add(new ArrayList<HPSEcalCluster>(0));
+    clusterBuffer.add(new ArrayList<Cluster>(0));
     }
     
     
@@ -141,20 +128,20 @@ catch(IOException e){
      
      //get the clusters from the event IF they are triggered
     if(TriggerDriver.triggerBit()){
-     if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
-        List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );    
+     if(event.hasCollection(Cluster.class, "EcalClusters")) {
+        List<Cluster> clusterList =event.get(Cluster.class,clusterCollectionName );    
              
     
      
     
-     for(HPSEcalCluster cluster : clusterList){
+     for(Cluster cluster : clusterList){
         // clusterEne.fill(cluster.getEnergy());
          TotalCluster++;
         int id;
             Clustercount++;
            id=getCrystal(cluster);
            try{
-     writer.append(id + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getSeedHit().getRawEnergy() + " " + cluster.getSeedHit().getIdentifierFieldValue("ix")+" " +cluster.getSeedHit().getIdentifierFieldValue("iy"));
+     writer.append(id + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getRawEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
      /*for(CalorimeterHit hit : cluster.getCalorimeterHits())
      {writer.append(hit.getRawEnergy()+ " ");
        }*/
@@ -180,10 +167,10 @@ catch(IOException e){
       
  
  
- public int getCrystal (HPSEcalCluster cluster){
+ public int getCrystal (Cluster cluster){
  int x,y,id=0;
- x= (-1)*cluster.getSeedHit().getIdentifierFieldValue("ix");
- y= cluster.getSeedHit().getIdentifierFieldValue("iy");
+ x= (-1)*cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+ y= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
  
  if(y==5){
  if(x<0)

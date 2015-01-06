@@ -5,31 +5,14 @@
  */
 
 package org.hps.users.luca;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
 
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.Driver;
-import hep.aida.*;
-import hep.aida.IHistogram3D;
-import java.io.FileWriter;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.MCParticle;
 
 /**
  * 
@@ -105,13 +88,13 @@ catch(IOException e){
            
      
      //get the clusters from the event
-     if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
-        List<HPSEcalCluster> clusterList =event.get(HPSEcalCluster.class,clusterCollectionName );    
-           for(HPSEcalCluster cluster : clusterList){
+     if(event.hasCollection(Cluster.class, "EcalClusters")) {
+        List<Cluster> clusterList =event.get(Cluster.class,clusterCollectionName );    
+           for(Cluster cluster : clusterList){
            if(cluster.getEnergy()>1.5){
            int id=getCrystal(cluster);
            try{
-               writer.append(id + " " + cluster.getSeedHit().getRawEnergy() + " " + cluster.getEnergy()+"\n");
+               writer.append(id + " " + cluster.getCalorimeterHits().get(0).getRawEnergy() + " " + cluster.getEnergy()+"\n");
            }
            catch(IOException e ){System.err.println("Error writing to output for event display");}   
            
@@ -144,10 +127,10 @@ catch(IOException e){
       
  
  
-public int getCrystal (HPSEcalCluster cluster){
+public int getCrystal (Cluster cluster){
  int x,y,id=0;
- x= (-1)*cluster.getSeedHit().getIdentifierFieldValue("ix");
- y= cluster.getSeedHit().getIdentifierFieldValue("iy");
+ x= (-1)*cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+ y= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
  
  if(y==5){
  if(x<0)

@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-import org.hps.recon.ecal.HPSEcalCluster;
+//import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.util.Driver;
 
 /**
@@ -50,15 +50,15 @@ public class EventDisplayOutputDriver extends Driver {
      */
     public void process(EventHeader event) {
         // Get the list of clusters.
-        List<HPSEcalCluster> clusters;
+        List<org.lcsim.event.Cluster> clusters;
 
         // If no cluster collection is present, then make an
         // empty list instead to avoid crashes.
         try {
-            clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+            clusters = event.get(org.lcsim.event.Cluster.class, clusterCollectionName);
             if (clusters == null) { throw new RuntimeException("Missing cluster collection!"); }
         }
-        catch(IllegalArgumentException e) { clusters = new ArrayList<HPSEcalCluster>(0); }
+        catch(IllegalArgumentException e) { clusters = new ArrayList<org.lcsim.event.Cluster>(0); }
         
         // Get the list of calorimeter hits.
         List<CalorimeterHit> hits;
@@ -103,9 +103,9 @@ public class EventDisplayOutputDriver extends Driver {
                 // Only write clusters if the option is selected.
                 if(outputClusters) {
 	                // Process the clusters.
-	                for (HPSEcalCluster cluster : clusters) {
+	                for (org.lcsim.event.Cluster cluster : clusters) {
 	                    // Get the seed hit for the cluster.
-	                    CalorimeterHit seedHit = (CalorimeterHit)cluster.getSeedHit();
+	                    CalorimeterHit seedHit = (CalorimeterHit)cluster.getCalorimeterHits().get(0);
 	                    int ix = seedHit.getIdentifierFieldValue("ix");
 	                    int iy = seedHit.getIdentifierFieldValue("iy");
 	                    double time = seedHit.getTime();

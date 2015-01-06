@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -25,6 +24,7 @@ import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
@@ -208,17 +208,17 @@ public class SimpleResiduals extends Driver {
         return pos;
     }
         
-    private List<HPSEcalCluster> getAllEcalClusters(EventHeader event) {
+    private List<Cluster> getAllEcalClusters(EventHeader event) {
         
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters"); 
+        List<Cluster> clusters = event.get(Cluster.class, "EcalClusters"); 
         if ( debug) {
             System.out.println("Found " + clusters.size() + " clusters");
         }
         return clusters;
     }
 
-    private double[] getClusterPosition(HPSEcalCluster cluster) {
-        CalorimeterHit hit = cluster.getSeedHit();
+    private double[] getClusterPosition(Cluster cluster) {
+        CalorimeterHit hit = cluster.getCalorimeterHits().get(0);
 
         //IDDecoder dec = dec.getSubdetector("Ecal").getIDDecoder();
         dec.setID(hit.getCellID());
@@ -231,14 +231,14 @@ public class SimpleResiduals extends Driver {
     }
 
     
-    private List<Hep3Vector> getEcalClustersForFastTracking(List<HPSEcalCluster> clusters, String side) {
+    private List<Hep3Vector> getEcalClustersForFastTracking(List<Cluster> clusters, String side) {
         if(!side.equalsIgnoreCase("up") && !side.equalsIgnoreCase("down")) {
             throw new RuntimeException("This ecal side" + side + " do not exist!!");
         }
         List<Hep3Vector> cls = new ArrayList<Hep3Vector>();
         boolean save;
         double [] pos_xy;
-        for ( HPSEcalCluster cl : clusters) {
+        for ( Cluster cl : clusters) {
             save=false;
             pos_xy = getClusterPosition(cl);
             if(pos_xy[1]>=0 && side.equalsIgnoreCase("up")) {
@@ -262,9 +262,9 @@ public class SimpleResiduals extends Driver {
         
     }
 
-    private List<HPSEcalCluster> getAllEcalClustersForFastTracking(EventHeader event) {
+    private List<Cluster> getAllEcalClustersForFastTracking(EventHeader event) {
         
-        List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters"); 
+        List<Cluster> clusters = event.get(Cluster.class, "EcalClusters"); 
         if ( debug) {
             System.out.println("Found " + clusters.size() + " clusters");
         }
@@ -284,7 +284,7 @@ public class SimpleResiduals extends Driver {
         List<SiTrackerHitStrip1D> trackerHits = getAllHitsInEvent(event);
         
         //Get the calorimeter cluster object used to construct the track
-        List<HPSEcalCluster> ecal_all_clusters = getAllEcalClustersForFastTracking(event);
+        List<Cluster> ecal_all_clusters = getAllEcalClustersForFastTracking(event);
         //Exit if no clusters found
         if (ecal_all_clusters.size()==0) return;
 

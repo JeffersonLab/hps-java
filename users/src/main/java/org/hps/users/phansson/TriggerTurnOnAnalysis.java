@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
 import org.hps.readout.ecal.TriggerData;
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.geometry.Detector;
@@ -128,9 +128,9 @@ public class TriggerTurnOnAnalysis extends Driver {
             if(_DEBUG) System.out.println(this.getClass().getSimpleName() + ": event " + event.getRunNumber() + " has no trigger data");
         }
         
-        List<HPSEcalCluster> clusters = null;
-        if( event.hasCollection(HPSEcalCluster.class, ecalClusterCollectionName) ) {
-            clusters = event.get(HPSEcalCluster.class, ecalClusterCollectionName);
+        List<Cluster> clusters = null;
+        if( event.hasCollection(Cluster.class, ecalClusterCollectionName) ) {
+            clusters = event.get(Cluster.class, ecalClusterCollectionName);
             if(_DEBUG) System.out.println(this.getClass().getSimpleName() + ": event " + event.getRunNumber() + " has " + clusters.size() + " ecal clusters");
         }
         else {

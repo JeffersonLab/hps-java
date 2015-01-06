@@ -1,5 +1,7 @@
 package org.hps.analysis.ecal;
 
+import static org.hps.recon.ecal.ECalUtils.maxVolt;
+import static org.hps.recon.ecal.ECalUtils.nBit;
 import hep.aida.IHistogram2D;
 
 import java.util.ArrayList;
@@ -7,10 +9,9 @@ import java.util.List;
 
 import org.hps.readout.ecal.TriggerDriver;
 import org.hps.recon.ecal.ECalUtils;
-import static org.hps.recon.ecal.ECalUtils.maxVolt;
-import static org.hps.recon.ecal.ECalUtils.nBit;
 import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -85,12 +86,12 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     	
     	// If the current event has the indicated cluster collection,
     	// use it as the cluster list.
-    	List<HPSEcalCluster> clusters;
-    	if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
-    		clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+    	List<Cluster> clusters;
+    	if(event.hasCollection(Cluster.class, clusterCollectionName)) {
+    		clusters = event.get(Cluster.class, clusterCollectionName);
     	}
     	// If it does not, then use an empty list to avoid crashing.
-    	else { clusters = new ArrayList<HPSEcalCluster>(0); }
+    	else { clusters = new ArrayList<Cluster>(0); }
         
         // Populate hit plots.
         for (CalorimeterHit hit : hits) {
@@ -120,9 +121,9 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
         boolean trigger = TriggerDriver.triggerBit();
         
         // Populate cluster based plots.
-        for (HPSEcalCluster cluster : clusters) {
+        for (Cluster cluster : clusters) {
         	// Get the cluster's seed hit position.
-        	CalorimeterHit seed = cluster.getSeedHit();
+        	CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
             int ix = seed.getIdentifierFieldValue("ix");
             int iy = seed.getIdentifierFieldValue("iy");
             

@@ -11,8 +11,8 @@ import java.util.List;
 import org.apache.commons.math.stat.StatUtils;
 import org.hps.readout.ecal.SSPTriggerLogic;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -167,20 +167,20 @@ public class EcalClusterPlots extends Driver {
     @Override
     public void process(EventHeader event) {
     	// Check whether the event has clusters or not.
-    	if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+    	if(event.hasCollection(Cluster.class, clusterCollectionName)) {
     		// Get the list of clusters.
-    		List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+    		List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
     		
     		// Create lists to store the clusters from the top of the
     		// calorimeter and the bottom.
-    		List<HPSEcalCluster> topList = new ArrayList<HPSEcalCluster>();
-    		List<HPSEcalCluster> bottomList = new ArrayList<HPSEcalCluster>();
+    		List<Cluster> topList = new ArrayList<Cluster>();
+    		List<Cluster> bottomList = new ArrayList<Cluster>();
     		
     		// Track the highest energy cluster in the event.
     		double maxEnergy = 0.0;
     		
     		// Process each of the clusters.
-    		for(HPSEcalCluster cluster : clusterList) {
+    		for(Cluster cluster : clusterList) {
     			// If this cluster has a higher energy then was seen
     			// previously, it is now the highest energy cluster.
 				if (cluster.getEnergy() > maxEnergy) {
@@ -221,7 +221,7 @@ public class EcalClusterPlots extends Driver {
     			// Cluster pairs are formed from all top/bottom cluster
     			// combinations. To create these pairs, separate the
     			// clusters into two lists based on their y-indices.
-    			if(cluster.getSeedHit().getIdentifierFieldValue("ix") > 0) {
+    			if(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0) {
     				topList.add(cluster);
     			} else {
     				bottomList.add(cluster);
@@ -233,14 +233,14 @@ public class EcalClusterPlots extends Driver {
     		if(maxEnergy > 0) { clusterMaxEnergyPlot.fill(maxEnergy); }
     		
     		// Create a list to store cluster pairs.
-    		List<HPSEcalCluster[]> pairList = new ArrayList<HPSEcalCluster[]>(topList.size() * bottomList.size());
+    		List<Cluster[]> pairList = new ArrayList<Cluster[]>(topList.size() * bottomList.size());
     		
     		// Form pairs from all possible combinations of clusters
     		// from the top and bottom lists.
-    		for(HPSEcalCluster topCluster : topList) {
-    			for(HPSEcalCluster bottomCluster : bottomList) {
+    		for(Cluster topCluster : topList) {
+    			for(Cluster bottomCluster : bottomList) {
     				// Make a cluster pair array.
-    				HPSEcalCluster[] pair = new HPSEcalCluster[2];
+    				Cluster[] pair = new Cluster[2];
     				
     				// The lower energy cluster goes in the second slot.
     				if(topCluster.getEnergy() > bottomCluster.getEnergy()) {
@@ -257,7 +257,7 @@ public class EcalClusterPlots extends Driver {
     		}
     		
     		// Iterate over each pair and calculate the pair cut values.
-    		for(HPSEcalCluster[] pair : pairList) {
+    		for(Cluster[] pair : pairList) {
     			// Get the energy slope value.
     			double energySumValue = SSPTriggerLogic.getValueEnergySum(pair);
     			double energyDifferenceValue = SSPTriggerLogic.getValueEnergyDifference(pair);

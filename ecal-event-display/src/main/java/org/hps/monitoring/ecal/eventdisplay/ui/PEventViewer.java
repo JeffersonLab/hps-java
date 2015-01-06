@@ -32,7 +32,7 @@ public class PEventViewer extends PassiveViewer {
     public void addCluster(Cluster cluster) { clusterList.add(cluster); }
     
     @Override
-    public void addCluster(HPSEcalCluster lcioCluster) { clusterList.add(toPanelCluster(lcioCluster)); }
+    public void addCluster(org.lcsim.event.Cluster lcioCluster) { clusterList.add(toPanelCluster(lcioCluster)); }
     
     /**
      * Removes all of the hit data from the viewer.

@@ -8,17 +8,13 @@ package org.hps.users.luca;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import org.hps.recon.ecal.HPSRawCalorimeterHit;
+
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
-import org.lcsim.util.Driver;
-import org.lcsim.lcio.LCIOConstants;
-import java.io.PrintWriter;
 import org.lcsim.geometry.IDDecoder;
-import org.lcsim.event.CalorimeterHit;
+import org.lcsim.util.Driver;
 
 /**
  *

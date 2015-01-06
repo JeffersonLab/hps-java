@@ -12,10 +12,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;
 
@@ -79,16 +79,16 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
     public void process(EventHeader event) {
         // Generate a temporary list to store the good clusters
         // in before they are added to the buffer.
-        List<HPSEcalCluster> tempList = new ArrayList<HPSEcalCluster>();
+        List<Cluster> tempList = new ArrayList<Cluster>();
         
         // If the current event has a cluster collection, get it.
-        if(event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // VERBOSE :: Note that a cluster collection exists for
             //            this event.
             if(verbose) { System.out.println("Cluster collection is present for event."); }
             
             // Get the cluster list from the event.
-            List<HPSEcalCluster> eventList = event.get(HPSEcalCluster.class, clusterCollectionName);
+            List<Cluster> eventList = event.get(Cluster.class, clusterCollectionName);
             
             // VERBOSE :: Output the number of extant clusters.
             if(verbose) { System.out.printf("%d clusters in event.%n", eventList.size()); }
@@ -96,27 +96,27 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
             // Add the clusters from the event into the cluster list
             // if they pass the minimum total cluster energy and seed
             // energy thresholds.
-            for(HPSEcalCluster cluster : eventList) {
+            for(Cluster cluster : eventList) {
                 // Increment the clusters processed count.
                 allClusters++;
                 
                 // Plot the seed energy / cluster energy histogram.
-                seedPercent.fill(cluster.getSeedHit().getCorrectedEnergy() / cluster.getEnergy(), 1);
+                seedPercent.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy() / cluster.getEnergy(), 1);
                 
                 // Get the cluster position indices.
-                int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-                int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+                int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+                int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
                 
                 // VERBOSE :: Output the current cluster's properties.
                 if(verbose) {
                     System.out.printf("\tTesting cluster at (%d, %d) with total energy %f and seed energy %f.%n",
-                            ix, iy, cluster.getSeedHit().getCorrectedEnergy(), cluster.getEnergy());
+                            ix, iy, cluster.getCalorimeterHits().get(0).getCorrectedEnergy(), cluster.getEnergy());
                 }
                 
                 // Add the clusters to the uncut histograms.
                 clusterHitCount.fill(cluster.getCalorimeterHits().size());
                 clusterTotalEnergy.fill(cluster.getEnergy());
-                clusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+                clusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
                 clusterDistribution.fill(ix, iy, 1);
                 
                 // VERBOSE :: Output the single cluster trigger thresholds.
@@ -180,7 +180,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
                     // Add the cluster information to the single cut histograms.
                     pClusterHitCount.fill(cluster.getCalorimeterHits().size());
                     pClusterTotalEnergy.fill(cluster.getEnergy());
-                    pClusterSeedEnergy.fill(cluster.getSeedHit().getCorrectedEnergy());
+                    pClusterSeedEnergy.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
                     pClusterDistribution.fill(ix, iy, 1);
                 }
             }
@@ -204,9 +204,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
         
         // Loop over all of the cluster lists in the cluster buffer.
         double[] energy = { 0.0, 0.0, 0.0 };
-        for(List<HPSEcalCluster> bufferList : clusterBuffer) {
+        for(List<Cluster> bufferList : clusterBuffer) {
             // Loop over all of the clusters in each buffer list.
-            for(HPSEcalCluster cluster : bufferList) {
+            for(Cluster cluster : bufferList) {
                 // If the new cluster is higher energy than the first
                 // slot cluster, move the subsequent clusters down and
                 // insert the new one.
@@ -249,11 +249,11 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
     
     public void startOfData() {
         // Initialize the cluster buffer to the size of the coincidence window.
-        clusterBuffer = new LinkedList<List<HPSEcalCluster>>();
+        clusterBuffer = new LinkedList<List<Cluster>>();
         
         // Populate the buffer with empty lists.
         for(int i = 0; i < coincidenceWindow; i++) {
-            clusterBuffer.add(new ArrayList<HPSEcalCluster>(0));
+            clusterBuffer.add(new ArrayList<Cluster>(0));
         }
         
         // Initialize the cluster hit count diagnostic plots.
@@ -316,18 +316,18 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
         allPairs++;
         
         // Get the cluster position indices.
-        int[] ix = { clusterPair[0].getSeedHit().getIdentifierFieldValue("ix"), clusterPair[1].getSeedHit().getIdentifierFieldValue("ix") };
-        int[] iy = { clusterPair[0].getSeedHit().getIdentifierFieldValue("iy"), clusterPair[1].getSeedHit().getIdentifierFieldValue("iy") };
+        int[] ix = { clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix") };
+        int[] iy = { clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("iy") };
         
         // VERBOSE :: Output the clusters selected for triggering.
         if(verbose) {
             System.out.printf("\tTesting first cluster at (%d, %d) with total energy %f and seed energy %f.%n",
-                    ix[0], iy[0], clusterPair[0].getSeedHit().getCorrectedEnergy(), clusterPair[0].getEnergy());
+                    ix[0], iy[0], clusterPair[0].getCalorimeterHits().get(0).getCorrectedEnergy(), clusterPair[0].getEnergy());
             System.out.printf("\tTesting second cluster at (%d, %d) with total energy %f and seed energy %f.%n",
-                    ix[1], iy[1], clusterPair[1].getSeedHit().getCorrectedEnergy(), clusterPair[1].getEnergy());
+                    ix[1], iy[1], clusterPair[1].getCalorimeterHits().get(0).getCorrectedEnergy(), clusterPair[1].getEnergy());
             if(useClusterTriplet) {
                 System.out.printf("\tTesting third cluster at (%d, %d) with total energy %f and seed energy %f.%n",
-                        ix[1], iy[1], clusterTriplet[2].getSeedHit().getCorrectedEnergy(), clusterTriplet[2].getEnergy());
+                        ix[1], iy[1], clusterTriplet[2].getCalorimeterHits().get(0).getCorrectedEnergy(), clusterTriplet[2].getEnergy());
             }
         }
         
@@ -371,8 +371,8 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
                 aClusterHitCount.fill(clusterPair[1].getCalorimeterHits().size());
                 aClusterTotalEnergy.fill(clusterPair[0].getEnergy());
                 aClusterTotalEnergy.fill(clusterPair[1].getEnergy());
-                aClusterSeedEnergy.fill(clusterPair[0].getSeedHit().getCorrectedEnergy());
-                aClusterSeedEnergy.fill(clusterPair[1].getSeedHit().getCorrectedEnergy());
+                aClusterSeedEnergy.fill(clusterPair[0].getCalorimeterHits().get(0).getCorrectedEnergy());
+                aClusterSeedEnergy.fill(clusterPair[1].getCalorimeterHits().get(0).getCorrectedEnergy());
                 aClusterDistribution.fill(ix[0], iy[0], 1);
                 aClusterDistribution.fill(ix[1], iy[1], 1);
                 
@@ -400,8 +400,8 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
             aClusterHitCount.fill(clusterPair[1].getCalorimeterHits().size());
             aClusterTotalEnergy.fill(clusterPair[0].getEnergy());
             aClusterTotalEnergy.fill(clusterPair[1].getEnergy());
-            aClusterSeedEnergy.fill(clusterPair[0].getSeedHit().getCorrectedEnergy());
-            aClusterSeedEnergy.fill(clusterPair[1].getSeedHit().getCorrectedEnergy());
+            aClusterSeedEnergy.fill(clusterPair[0].getCalorimeterHits().get(0).getCorrectedEnergy());
+            aClusterSeedEnergy.fill(clusterPair[1].getCalorimeterHits().get(0).getCorrectedEnergy());
             aClusterDistribution.fill(ix[0], iy[0], 1);
             aClusterDistribution.fill(ix[1], iy[1], 1);
             
@@ -428,7 +428,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterHitCountCut(HPSEcalCluster cluster) {
+    private boolean clusterHitCountCut(Cluster cluster) {
         return cluster.getCalorimeterHits().size() >= clusterHitCountThreshold;
     }
     
@@ -439,9 +439,9 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterSeedEnergyCut(Cluster cluster) {
         // Get the seed energy value.
-        double seedEnergy = cluster.getSeedHit().getCorrectedEnergy();
+        double seedEnergy = cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
         
         // Perform the seed energy cut.
         return seedEnergy >= clusterSeedEnergyThresholdLow && seedEnergy <= clusterSeedEnergyThresholdHigh;
@@ -454,7 +454,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes and <code>
      * false</code> if it does not.
      */
-    private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterTotalEnergyCut(Cluster cluster) {
         // Get the cluster energy.
         double clusterEnergy = cluster.getEnergy();
         
@@ -469,12 +469,12 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * cut value.
      * @return Returns the cut value as a <code>double</code>.
      */
-    private static double getEnergySumValue(HPSEcalCluster[] clusterGroup) {
+    private static double getEnergySumValue(Cluster[] clusterGroup) {
         // Track the sum.
         double energySum = 0.0;
         
         // Add the energies of all clusters in the array.
-        for(HPSEcalCluster cluster : clusterGroup) { energySum += cluster.getEnergy(); }
+        for(Cluster cluster : clusterGroup) { energySum += cluster.getEnergy(); }
         
         // Return the sum.
         return energySum;
@@ -487,18 +487,18 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * cut value.
      * @return Returns the cut value as a <code>double</code>.
      */
-    private double getInvariantMassValue(HPSEcalCluster[] clusterPair) {
+    private double getInvariantMassValue(Cluster[] clusterPair) {
         // Store the x/y positions for the seeds.
         double x[] = new double[2];
         double y[] = new double[2];
         
         // Get the seed hits.
-        CalorimeterHit[] seed = { clusterPair[0].getSeedHit(), clusterPair[1].getSeedHit() };
+        CalorimeterHit[] seed = { clusterPair[0].getCalorimeterHits().get(0), clusterPair[1].getCalorimeterHits().get(0) };
         
         // Set the positions for each seed.
         for(int index = 0; index < seed.length; index++) {
             // Get the seed position array stored in the position map.
-            Double[] seedPos = seedPosMap.get(clusterPair[index].getSeedHit());
+            Double[] seedPos = seedPosMap.get(clusterPair[index].getCalorimeterHits().get(0));
             
             // If there is a position array for the seed, use it.
             if(seedPos != null) {
@@ -509,7 +509,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
             // Otherwise, calculate the position at the crystal face.
             else {
                 // Get the position and store it in a double array.
-                IGeometryInfo geom = clusterPair[index].getSeedHit().getDetectorElement().getGeometry();
+                IGeometryInfo geom = clusterPair[index].getCalorimeterHits().get(0).getDetectorElement().getGeometry();
                 double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()),
                         (Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
                 
@@ -519,7 +519,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
                 
                 // Store the seed location for future use.
                 Double[] positionVec = { pos[0], pos[1], pos[2] };
-                seedPosMap.put(clusterPair[index].getSeedHit(), positionVec);
+                seedPosMap.put(clusterPair[index].getCalorimeterHits().get(0), positionVec);
             }
         }
         
@@ -538,10 +538,10 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster seed is on the
      * edge of the calorimeter and <code>false</code> otherwise.
      */
-    private static boolean isEdgeCluster(HPSEcalCluster cluster) {
+    private static boolean isEdgeCluster(Cluster cluster) {
         // Get the x- and y-indices of the cluster seed hit.
-        int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
-        int iy = cluster.getSeedHit().getIdentifierFieldValue("iy");
+        int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+        int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
         
         // Track whether the cluster is an edge cluster or not.
         boolean edge = false;
@@ -571,7 +571,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the clusters pass and <code>
      * false</code> if they does not.
      */
-    private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairEnergySumCut(Cluster[] clusterPair) {
         // Get the energy sum value.
         double energySum = getEnergySumValue(clusterPair);
         
@@ -587,7 +587,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the clusters pass and <code>
      * false</code> if they does not.
      */
-    private boolean pairInvariantMassCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairInvariantMassCut(Cluster[] clusterPair) {
         // Calculate the invariant mass.
         double myy2 = getInvariantMassValue(clusterPair);
         
@@ -603,7 +603,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the clusters pass and <code>
      * false</code> if they does not.
      */
-    private boolean tripletEnergySumCut(HPSEcalCluster[] clusterTriplet) {
+    private boolean tripletEnergySumCut(Cluster[] clusterTriplet) {
         return (getEnergySumValue(clusterTriplet) >= tripletEnergySumThreshold);
     }
     
@@ -615,15 +615,15 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the clusters pass and <code>
      * false</code> if they does not.
      */
-    private static boolean tripletHorizontalCut(HPSEcalCluster[] clusterTriplet) {
+    private static boolean tripletHorizontalCut(Cluster[] clusterTriplet) {
         // Track whether a cluster has occurred on each horizontal side
         // of the calorimeter.
         boolean leftCluster = false;
         boolean rightCluster = false;
         
         // Sort through the cluster triplet and check where they occur.
-        for(HPSEcalCluster cluster : clusterTriplet) {
-            int ix = cluster.getSeedHit().getIdentifierFieldValue("ix");
+        for(Cluster cluster : clusterTriplet) {
+            int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
             if(ix < 0) { leftCluster = true; }
             if(ix > 0) { rightCluster = true; }
         }
@@ -633,10 +633,10 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
         else { return false; }
     }
     
-    private boolean tripletTotalEnergyCut(HPSEcalCluster[] clusterTriplet) {
+    private boolean tripletTotalEnergyCut(Cluster[] clusterTriplet) {
         // Check to see if each cluster passes the check.
-        for(HPSEcalCluster cluster1 : clusterTriplet) {
-            for(HPSEcalCluster cluster2 : clusterTriplet) {
+        for(Cluster cluster1 : clusterTriplet) {
+            for(Cluster cluster2 : clusterTriplet) {
                 // The cluster pair must be two different clusters.
                 if(cluster1 == cluster2) { continue; }
                 
@@ -670,7 +670,7 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
     // ==================================================================
     
     /**
-     * Sets the LCIO collection name where <code>HPSEcalCluster</code>
+     * Sets the LCIO collection name where <code>Cluster</code>
      * objects are stored for use in the trigger.
      * @param clusterCollectionName - The name of the LCIO collection.
      */
@@ -897,29 +897,29 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
     
     /**
      * <b>clusterBuffer</b><br/><br/>
-     * <code>private LinkedList<List<HPSEcalCluster>> <b>clusterBuffer</b></code><br/><br/>
+     * <code>private LinkedList<List<Cluster>> <b>clusterBuffer</b></code><br/><br/>
      * Stores the list of clusters from each event for a finite-sized
      * buffer. The size of the buffer is determined by the coincidence
      * window.
      */
-    private LinkedList<List<HPSEcalCluster>> clusterBuffer;
+    private LinkedList<List<Cluster>> clusterBuffer;
     
     /**
      * <b>clusterCollectionName</b><br/><br/>
      * <code>private String <b>clusterCollectionName</b></code><br/><br/>
-     * The name of the LCIO collection containing <code>HPSEcalCluster
+     * The name of the LCIO collection containing <code>Cluster
      * </code> objects.
      */
     private String clusterCollectionName = "EcalClusters";
     
     /**
      * <b>clusterPair</b><br/><br/>
-     * <code>private HPSEcalCluster[] <b>clusterPair</b></code><br/><br/>
+     * <code>private Cluster[] <b>clusterPair</b></code><br/><br/>
      * Stores the two highest energy clusters located in the cluster
      * buffer. These are sorted by energy, with the highest energy
      * cluster first in the array.
      */
-    private HPSEcalCluster[] clusterPair = new HPSEcalCluster[2];
+    private Cluster[] clusterPair = new Cluster[2];
     
     /**
      * <b>clusterHitCountThreshold</b><br/><br/>
@@ -963,12 +963,12 @@ public class NeutralPionTriggerDriver extends TriggerDriver {
     
     /**
      * <b>clusterTriplet</b><br/><br/>
-     * <code>private HPSEcalCluster[] <b>clusterTriplet</b></code><br/><br/>
+     * <code>private Cluster[] <b>clusterTriplet</b></code><br/><br/>
      * Stores the three highest energy clusters located in the cluster
      * buffer. These are sorted by energy, with the highest energy
      * cluster first in the array.
      */
-    private HPSEcalCluster[] clusterTriplet = new HPSEcalCluster[3]; 
+    private Cluster[] clusterTriplet = new Cluster[3]; 
     
     /**
      * <b>coincidenceWindow</b><br/><br/>

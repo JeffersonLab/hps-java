@@ -6,8 +6,8 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -89,11 +89,11 @@ public class EcalMonitoringPlots extends Driver {
                 hitCountFillPlot.fill(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"));
             }
         }
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollection)) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollection);
+        if (event.hasCollection(Cluster.class, clusterCollection)) {
+            List<Cluster> clusters = event.get(Cluster.class, clusterCollection);
 //if (clusters.size()>1)            
-            for (HPSEcalCluster cluster : clusters) {
-                clusterCountFillPlot.fill(cluster.getSeedHit().getIdentifierFieldValue("ix"), cluster.getSeedHit().getIdentifierFieldValue("iy"));
+            for (Cluster cluster : clusters) {
+                clusterCountFillPlot.fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
             }
         }
         if (eventRefreshRate > 0 && ++eventn % eventRefreshRate == 0) {

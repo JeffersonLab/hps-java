@@ -5,31 +5,14 @@
  */
 
 package org.hps.users.luca;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
 
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.Driver;
-import hep.aida.*;
-import hep.aida.IHistogram3D;
-import java.io.FileWriter;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.MCParticle;
 
 /**
  * 
@@ -41,8 +24,8 @@ public class mycluster2 extends Driver {
     int Clustercount=0;
     protected String clusterCollectionName = "EcalClusters";
     
-    ArrayList<HPSEcalCluster> ClusterQueue;
-    List<HPSEcalCluster> goodCluster;
+    ArrayList<Cluster> ClusterQueue;
+    List<Cluster> goodCluster;
  
     private FileWriter writer;
     //private FileWriter writer2;
@@ -82,8 +65,8 @@ this.outputFileName = outputFileName;
 public void startOfData(){
 
  
-    ClusterQueue=new ArrayList<HPSEcalCluster>();
-    goodCluster = new ArrayList<HPSEcalCluster>();
+    ClusterQueue=new ArrayList<Cluster>();
+    goodCluster = new ArrayList<Cluster>();
     
     
     try{
@@ -121,9 +104,9 @@ catch(IOException e){
            
      
      
-     if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
+     if(event.hasCollection(Cluster.class, "EcalClusters")) {
             
-         fillQueue(event.get(HPSEcalCluster.class, clusterCollectionName));
+         fillQueue(event.get(Cluster.class, clusterCollectionName));
           
             
             }       
@@ -132,8 +115,8 @@ catch(IOException e){
  /**
  * Puts cluster collected from events in the ClusterQueue
  */
- public void fillQueue (List<HPSEcalCluster> ecalClusters){
- for(HPSEcalCluster cluster : ecalClusters)
+ public void fillQueue (List<Cluster> ecalClusters){
+ for(Cluster cluster : ecalClusters)
  {
      
      ClusterQueue.add(cluster);
@@ -156,7 +139,7 @@ catch(IOException e){
          
          
     for(int i=0; i< ClusterQueue.size(); i++){
-    if(ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("ix")== posx && ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("iy")==posy && ClusterQueue.get(i).getEnergy()>1.6){
+    if(ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("ix")== posx && ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("iy")==posy && ClusterQueue.get(i).getEnergy()>1.6){
         // System.out.println("sono nel primo if, ovvero ci sono cluster dove voglio io");
            if(ClusterChecker(i)){
       goodCluster.add(ClusterQueue.get(i));}
@@ -172,11 +155,11 @@ catch(IOException e){
  
  
  int id;
- for(HPSEcalCluster cluster :goodCluster){
+ for(Cluster cluster :goodCluster){
    Clustercount++;
    id=getCrystal(cluster);
      try{
-     writer.append(id + " " + cluster.getSeedHit().getIdentifierFieldValue("ix") + " " + cluster.getSeedHit().getIdentifierFieldValue("iy")+ " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getSeedHit().getRawEnergy() + " ");
+     writer.append(id + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy")+ " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getRawEnergy() + " ");
      /*for(CalorimeterHit hit : cluster.getCalorimeterHits())
      {writer.append(hit.getRawEnergy()+ " ");
        }*/
@@ -202,7 +185,7 @@ boolean check=true;
     for (int i=(pos-5);i<pos+5;i++){
         ///controlla che non esca da array
         if(i>=0 && i < ClusterQueue.size()){
-            deltaT=Math.abs(ClusterQueue.get(i).getSeedHit().getTime()-ClusterQueue.get(pos).getSeedHit().getTime());
+            deltaT=Math.abs(ClusterQueue.get(i).getCalorimeterHits().get(0).getTime()-ClusterQueue.get(pos).getCalorimeterHits().get(0).getTime());
     ///controlla la differenza temporale che deve essere >80ns, se è maggiore, check=true, se è minore, checka la posizione
      if(deltaT<80)
      {check=PositionChecker(i);}
@@ -218,9 +201,9 @@ return check;
        boolean test=true;
 
 //controllo su posizione orizzontale
-     if(ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("ix")< posx-2 || ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("ix")> posx+2){
+     if(ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("ix")< posx-2 || ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("ix")> posx+2){
         //se orizzonale soddisfatto, controllo verticale
-         if(ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("iy")< posy-2 || ClusterQueue.get(i).getSeedHit().getIdentifierFieldValue("ix")> posy+2){
+         if(ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("iy")< posy-2 || ClusterQueue.get(i).getCalorimeterHits().get(0).getIdentifierFieldValue("ix")> posy+2){
          test= true;
          }
      
@@ -232,10 +215,10 @@ return check;
      return test;
  }
  
- public int getCrystal (HPSEcalCluster cluster){
+ public int getCrystal (Cluster cluster){
  int x,y,id=0;
- x= (-1)*cluster.getSeedHit().getIdentifierFieldValue("ix");
- y= cluster.getSeedHit().getIdentifierFieldValue("iy");
+ x= (-1)*cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+ y= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
  
  if(y==5){
  if(x<0)

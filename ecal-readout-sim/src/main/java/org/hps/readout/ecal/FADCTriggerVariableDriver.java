@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 
@@ -56,40 +56,40 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
     public void process(EventHeader event) {
     //    super.process(event);
 
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
 
 
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, clusterCollectionName);
+            List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
 
             //System.out.printf("%d ecal clusters in event\n", clusters.size());
             //System.out.printf("%s: %d clusters\n",this.getClass().getSimpleName(),clusters.size());
-        	//for(HPSEcalCluster cl : clusters) {
+        	//for(Cluster cl : clusters) {
         	//	System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
         	//}
-        	List<HPSEcalCluster> unique_clusters = this.getUniqueClusters(clusters);
+        	List<Cluster> unique_clusters = this.getUniqueClusters(clusters);
         	//System.out.printf("%s: %d unique clusters\n",this.getClass().getSimpleName(),unique_clusters.size());
-        	//for(HPSEcalCluster cl : unique_clusters) {
+        	//for(Cluster cl : unique_clusters) {
         	//	System.out.printf("%s: cl E %f x %f y %f \n",this.getClass().getSimpleName(),cl.getEnergy(),cl.getPosition()[0],cl.getPosition()[1]);
         	//}
 
             updateClusterQueues(unique_clusters);
-            List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+            List<Cluster[]> clusterPairs = getClusterPairsTopBot();
             boolean foundClusterPairs = !clusterPairs.isEmpty();
 
             if (foundClusterPairs) {
 
             int ipair = 0;
-            for(HPSEcalCluster[] pair : clusterPairs) {
+            for(Cluster[] pair : clusterPairs) {
             
                 String evString = String.format("%d %f %d ", event.getEventNumber(),this.beamEnergy,ipair);
                 for(int icluster = 0; icluster!=2; icluster++ ) {
                     
-                    HPSEcalCluster cluster = pair[icluster];
+                    Cluster cluster = pair[icluster];
                     
                     //int quad = ECalUtils.getQuadrant(cluster);
                     double E = cluster.getEnergy();
-                    double pos[] = cluster.getSeedHit().getPosition();
-                    //System.out.printf("x %f y %f ix %d iy %d \n", pos[0], pos[1], cluster.getSeedHit().getIdentifierFieldValue("ix"), cluster.getSeedHit().getIdentifierFieldValue("iy"));
+                    double pos[] = cluster.getCalorimeterHits().get(0).getPosition();
+                    //System.out.printf("x %f y %f ix %d iy %d \n", pos[0], pos[1], cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
                     
                     evString += String.format("%f %f %f ", E, pos[0], pos[1]);
                 }
@@ -121,12 +121,12 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
 
     
     
-    private List<HPSEcalCluster> getUniqueClusters(List<HPSEcalCluster> clusters) {
-    	List<HPSEcalCluster> unique = new ArrayList<HPSEcalCluster>();
-    	for(HPSEcalCluster loop_cl : clusters) {
-			HPSEcalClusterCmp loop_clCmp = new HPSEcalClusterCmp(loop_cl);
+    private List<Cluster> getUniqueClusters(List<Cluster> clusters) {
+    	List<Cluster> unique = new ArrayList<Cluster>();
+    	for(Cluster loop_cl : clusters) {
+			ClusterCmp loop_clCmp = new ClusterCmp(loop_cl);
     		boolean found = false;
-			for(HPSEcalCluster cl : unique) {
+			for(Cluster cl : unique) {
     			if( loop_clCmp.compareTo(cl) == 0 ) {
     				found = true;
     			}
@@ -139,13 +139,13 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
     }
 
 
-    private static class HPSEcalClusterCmp implements Comparable<HPSEcalCluster> {
-    	private HPSEcalCluster _cluster;
-		public HPSEcalClusterCmp(HPSEcalCluster cl) {
+    private static class ClusterCmp implements Comparable<Cluster> {
+    	private Cluster _cluster;
+		public ClusterCmp(Cluster cl) {
 			set_cluster(cl);
 		}
 		@Override
-		public int compareTo(HPSEcalCluster cl) {
+		public int compareTo(Cluster cl) {
 				if(cl.getEnergy()==get_cluster().getEnergy() && cl.getPosition()[0]==get_cluster().getPosition()[0] && cl.getPosition()[1]==get_cluster().getPosition()[1] ) {
 					return 0;
 				} else {
@@ -156,10 +156,10 @@ public class FADCTriggerVariableDriver extends FADCTriggerDriver {
 					}
 				}
 		}
-		public HPSEcalCluster get_cluster() {
+		public Cluster get_cluster() {
 			return _cluster;
 		}
-		public void set_cluster(HPSEcalCluster _cluster) {
+		public void set_cluster(Cluster _cluster) {
 			this._cluster = _cluster;
 		}
     	

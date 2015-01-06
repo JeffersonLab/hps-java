@@ -6,29 +6,15 @@
 
 package org.hps.users.luca;
 import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import java.io.IOException;
-import java.util.*;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
-
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.event.SimCalorimeterHit; 
-import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.Driver;
-import hep.aida.*;
 
 import java.io.FileWriter;
-import org.lcsim.event.CalorimeterHit;
+import java.io.IOException;
+import java.util.List;
+
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 /**
  * This driver is supposed to read the truth information out of a SLIC output about the energy deposition in a given crystal
  * @author Luca

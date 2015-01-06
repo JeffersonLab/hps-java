@@ -11,8 +11,8 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.Track;
@@ -143,10 +143,10 @@ public class TestRunTrackReconEfficiency  extends Driver {
         
         // First check if the event contains a collection of Ecal clusters.  If
         // it doesn't skip the event.
-        if(!event.hasCollection(HPSEcalCluster.class, ecalClustersCollectionName)) return;
+        if(!event.hasCollection(Cluster.class, ecalClustersCollectionName)) return;
        
         // Get the list of Ecal clusters in the event
-        List<HPSEcalCluster> ecalClusters = event.get(HPSEcalCluster.class, ecalClustersCollectionName);
+        List<Cluster> ecalClusters = event.get(Cluster.class, ecalClustersCollectionName);
        
         // Get the list of tracks from the event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
@@ -154,7 +154,7 @@ public class TestRunTrackReconEfficiency  extends Driver {
         // If the event has a single Ecal cluster satisfying the threshold cut, 
         // check if there is a track that is well matched to the cluster
         if(ecalClusters.size() == 1){
-        	HPSEcalCluster ecalCluster = ecalClusters.get(0);
+        	Cluster ecalCluster = ecalClusters.get(0);
         	
         	// If the cluster is above the energy threshold, then the track should
         	// be findable
@@ -246,8 +246,8 @@ public class TestRunTrackReconEfficiency  extends Driver {
        	}
        	
        	// Match a track to the trigger cluster
-       	HPSEcalCluster matchedCluster = null; 
-       	for(HPSEcalCluster ecalCluster : ecalClusters){
+       	Cluster matchedCluster = null; 
+       	for(Cluster ecalCluster : ecalClusters){
        		if(ecalCluster.getPosition()[1] > 0 && topTrigger){
        			if(!isClusterMatchedToTrack(ecalCluster, topTracks)){
        				this.printDebug("Trigger cluster-track match was not found.");
@@ -304,14 +304,14 @@ public class TestRunTrackReconEfficiency  extends Driver {
     /**
      * 
      */
-    private boolean isClusterWithinWindow(HPSEcalCluster clusterPosition){
+    private boolean isClusterWithinWindow(Cluster clusterPosition){
     	return true;
     }
     
     /**
      * 
      */
-    private boolean isClusterAboveEnergyThreshold(HPSEcalCluster ecalCluster){
+    private boolean isClusterAboveEnergyThreshold(Cluster ecalCluster){
     	if(ecalCluster.getEnergy() > thresholdEnergy) return true;
     	return false;
     }
@@ -319,7 +319,7 @@ public class TestRunTrackReconEfficiency  extends Driver {
     /**
      * 
      */
-    private boolean hasClustersInOppositeVolumes(List<HPSEcalCluster> ecalClusters){
+    private boolean hasClustersInOppositeVolumes(List<Cluster> ecalClusters){
     	this.printPosition(ecalClusters.get(0).getPosition());
     	this.printPosition(ecalClusters.get(1).getPosition());
     	if((ecalClusters.get(0).getPosition()[1] > 0 && ecalClusters.get(1).getPosition()[1] < 0)
@@ -332,7 +332,7 @@ public class TestRunTrackReconEfficiency  extends Driver {
     /**
      * 
      */
-    private boolean isClusterMatchedToTrack(HPSEcalCluster cluster, List<Track> tracks){
+    private boolean isClusterMatchedToTrack(Cluster cluster, List<Track> tracks){
     	Hep3Vector clusterPos = new BasicHep3Vector(cluster.getPosition());
     	double rMax = Double.MAX_VALUE;
     	Track matchedTrack = null; 

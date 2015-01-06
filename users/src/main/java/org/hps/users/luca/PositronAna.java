@@ -6,32 +6,17 @@
 
 package org.hps.users.luca;
 import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import java.io.IOException;
-import java.util.*;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
 
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.Driver;
-import hep.aida.*;
-import hep.aida.IHistogram3D;
-import java.io.FileWriter;
 import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.MCParticle;
-import org.hps.recon.particle.HpsReconParticleDriver;
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 /**
  *
  * @author Luca
@@ -111,7 +96,7 @@ this.outputFileName = outputFileName;
       cluscount++;
           int id=getCrystal(cluster);
           try{
-          writer.append(id + " " + cluster.getEnergy() + " " + cluster.getSize() + " " + HPSEcalCluster.getSeedHit(cluster).getCorrectedEnergy() + " " + HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("ix")+" " +HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("iy")+ "\n");
+          writer.append(id + " " + cluster.getEnergy() + " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getCorrectedEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy")+ "\n");
           }
           
         catch(IOException e ){System.err.println("Error writing to output for event display");} 
@@ -131,8 +116,8 @@ this.outputFileName = outputFileName;
    
  public int getCrystal (Cluster cluster){
  int x,y,id=0;
- x= (-1)*HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("ix");
- y= HPSEcalCluster.getSeedHit(cluster).getIdentifierFieldValue("iy");
+ x= (-1)*cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+ y= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
  
  if(y==5){
  if(x<0)

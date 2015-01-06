@@ -6,26 +6,14 @@
 
 package org.hps.users.luca;
 import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import java.io.IOException;
-
 
 import java.util.List;
-import java.util.Queue;
-import org.hps.readout.ecal.ClockSingleton;
-import org.hps.readout.ecal.TriggerDriver;
 
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.Driver;
-import hep.aida.*;
-import hep.aida.IHistogram3D;
-import java.io.FileWriter;
-import org.lcsim.event.CalorimeterHit;
+import org.lcsim.util.aida.AIDA;
 
 /**
  *
@@ -100,16 +88,16 @@ catch(IOException e){
   
      }
      
-     if(event.hasCollection(HPSEcalCluster.class, "EcalClusters")) {
-            List<HPSEcalCluster> clusters = event.get(HPSEcalCluster.class, "EcalClusters");
+     if(event.hasCollection(Cluster.class, "EcalClusters")) {
+            List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
           
             if(clusters.size() > 0) {
-               for(HPSEcalCluster cluster : clusters){
+               for(Cluster cluster : clusters){
                    eneClusterPlot.fill(cluster.getEnergy());
-                   eneSeedPlot.fill(cluster.getSeedHit().getRawEnergy());
+                   eneSeedPlot.fill(cluster.getCalorimeterHits().get(0).getRawEnergy());
                    if(cluster.getEnergy()>=1.4){
                    eneClusterPlotcut.fill(cluster.getEnergy());
-                   eneSeedPlotcut.fill(cluster.getSeedHit().getRawEnergy());
+                   eneSeedPlotcut.fill(cluster.getCalorimeterHits().get(0).getRawEnergy());
                    }
                   
                 }  

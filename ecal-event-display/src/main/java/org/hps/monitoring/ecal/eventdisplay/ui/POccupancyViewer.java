@@ -72,7 +72,7 @@ public class POccupancyViewer extends PassiveViewer {
      * <b>Note:</b> This operation is not supported for occupancies.
      */
     @Override
-    public void addCluster(HPSEcalCluster cluster) { }
+    public void addCluster(org.lcsim.event.Cluster cluster) { }
     
     /**
      * Removes a hit from the display.

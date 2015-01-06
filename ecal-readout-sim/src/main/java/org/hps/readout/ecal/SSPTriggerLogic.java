@@ -1,6 +1,6 @@
 package org.hps.readout.ecal;
 
-import org.hps.recon.ecal.HPSEcalCluster;
+import org.lcsim.event.Cluster;
 
 /**
  * Class <code>SSPLogic</code> implements each of the trigger cuts. It
@@ -21,7 +21,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    public static final boolean clusterHitCountCut(HPSEcalCluster cluster, int thresholdLow) {
+    public static final boolean clusterHitCountCut(Cluster cluster, int thresholdLow) {
         return (getValueClusterHitCount(cluster) >= thresholdLow);
     }
     
@@ -32,7 +32,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    public static final boolean clusterSeedEnergyCut(HPSEcalCluster cluster, double thresholdLow, double thresholdHigh) {
+    public static final boolean clusterSeedEnergyCut(Cluster cluster, double thresholdLow, double thresholdHigh) {
         // Get the cluster seed energy.
         double energy = getValueClusterSeedEnergy(cluster);
         
@@ -50,7 +50,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    public static final boolean clusterTotalEnergyCut(HPSEcalCluster cluster, double thresholdLow, double thresholdHigh) {
+    public static final boolean clusterTotalEnergyCut(Cluster cluster, double thresholdLow, double thresholdHigh) {
         // Get the total cluster energy.
         double energy = getValueClusterTotalEnergy(cluster);
         
@@ -65,8 +65,8 @@ public class SSPTriggerLogic {
      * be calculated.
      * @return Returns the distance between the clusters.
      */
-    public static final double getClusterDistance(HPSEcalCluster cluster) {
-        return Math.hypot(cluster.getSeedHit().getPosition()[0] - ORIGIN_X, cluster.getSeedHit().getPosition()[1]);
+    public static final double getClusterDistance(Cluster cluster) {
+        return Math.hypot(cluster.getCalorimeterHits().get(0).getPosition()[0] - ORIGIN_X, cluster.getCalorimeterHits().get(0).getPosition()[1]);
     }
     
     /**
@@ -75,7 +75,7 @@ public class SSPTriggerLogic {
      * derived.
      * @return Returns the cut value.
      */
-    public static final double getValueClusterTotalEnergy(HPSEcalCluster cluster) {
+    public static final double getValueClusterTotalEnergy(Cluster cluster) {
         return cluster.getEnergy();
     }
     
@@ -85,7 +85,7 @@ public class SSPTriggerLogic {
      * derived.
      * @return Returns the cut value.
      */
-    public static final int getValueClusterHitCount(HPSEcalCluster cluster) {
+    public static final int getValueClusterHitCount(Cluster cluster) {
         return cluster.getCalorimeterHits().size();
     }
     
@@ -95,8 +95,8 @@ public class SSPTriggerLogic {
      * derived.
      * @return Returns the cut value.
      */
-    public static final double getValueClusterSeedEnergy(HPSEcalCluster cluster) {
-        return cluster.getSeedHit().getCorrectedEnergy();
+    public static final double getValueClusterSeedEnergy(Cluster cluster) {
+        return cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
     }
     
     /**
@@ -106,11 +106,11 @@ public class SSPTriggerLogic {
      * @param originX - The calorimeter center.
      * @return Returns the cut value.
      */
-    public static final double getValueCoplanarity(HPSEcalCluster[] clusterPair) {
+    public static final double getValueCoplanarity(Cluster[] clusterPair) {
         // Get the cluster angles.
         double[] clusterAngle = new double[2];
         for(int i = 0; i < 2; i++) {
-            double position[] = clusterPair[i].getSeedHit().getPosition();
+            double position[] = clusterPair[i].getCalorimeterHits().get(0).getPosition();
             clusterAngle[i] = (Math.toDegrees(Math.atan2(position[1], position[0] - ORIGIN_X)) + 180.0) % 180.0;
         }
         
@@ -124,7 +124,7 @@ public class SSPTriggerLogic {
      * be calculated.
      * @return Returns the cut value.
      */
-    public static final double getValueEnergyDifference(HPSEcalCluster[] clusterPair) {
+    public static final double getValueEnergyDifference(Cluster[] clusterPair) {
         return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
     }
     
@@ -136,7 +136,7 @@ public class SSPTriggerLogic {
      * energy slope equation E_low + R_min * F.
      * @return Returns the cut value.
      */
-    public static final double getValueEnergySlope(HPSEcalCluster[] clusterPair, double energySlopeParamF) {
+    public static final double getValueEnergySlope(Cluster[] clusterPair, double energySlopeParamF) {
         // E + R*F
         // Get the low energy cluster energy.
         double slopeParamE = clusterPair[1].getEnergy();
@@ -154,7 +154,7 @@ public class SSPTriggerLogic {
      * be calculated.
      * @return Returns the cut value.
      */
-    public static final double getValueEnergySum(HPSEcalCluster[] clusterPair) {
+    public static final double getValueEnergySum(Cluster[] clusterPair) {
         return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
     }
     
@@ -166,7 +166,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    public static final boolean pairCoplanarityCut(HPSEcalCluster[] clusterPair, double thresholdHigh) {
+    public static final boolean pairCoplanarityCut(Cluster[] clusterPair, double thresholdHigh) {
         return (getValueCoplanarity(clusterPair) < thresholdHigh);
     }
     
@@ -178,7 +178,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    public static final boolean pairEnergyDifferenceCut(HPSEcalCluster[] clusterPair, double thresholdHigh) {
+    public static final boolean pairEnergyDifferenceCut(Cluster[] clusterPair, double thresholdHigh) {
         return (getValueEnergyDifference(clusterPair) < thresholdHigh);
     }
     
@@ -190,7 +190,7 @@ public class SSPTriggerLogic {
      * @param thresholdLow - The lower bound for the cut.
      * @return true if pair is found, false otherwise
      */
-    public static final boolean pairEnergySlopeCut(HPSEcalCluster[] clusterPair, double thresholdLow, double energySlopeParamF) {
+    public static final boolean pairEnergySlopeCut(Cluster[] clusterPair, double thresholdLow, double energySlopeParamF) {
         return (getValueEnergySlope(clusterPair, energySlopeParamF) > thresholdLow);
     }
     
@@ -203,7 +203,7 @@ public class SSPTriggerLogic {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    public static final boolean pairEnergySumCut(HPSEcalCluster[] clusterPair, double thresholdLow, double thresholdHigh) {
+    public static final boolean pairEnergySumCut(Cluster[] clusterPair, double thresholdLow, double thresholdHigh) {
         // Get the energy sum value.
         double energySum = getValueEnergySum(clusterPair);
         

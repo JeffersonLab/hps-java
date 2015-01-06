@@ -2,8 +2,9 @@ package org.hps.monitoring.ecal.eventdisplay.ui;
 
 import org.hps.monitoring.ecal.eventdisplay.event.Cluster;
 import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.ecal.HPSEcalClusterIC;
+//import org.hps.recon.ecal.HPSEcalCluster;
+//import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.lcsim.event.CalorimeterHit;
 
 /**
@@ -38,7 +39,7 @@ public abstract class PassiveViewer extends Viewer {
      * Adds a new cluster to the display.
      * @param cluster - The cluster to be added.
      */
-    public abstract void addCluster(HPSEcalCluster cluster);
+    public abstract void addCluster(org.lcsim.event.Cluster cluster);
     
     /**
      * Clears any hits or clusters that have been added to the viewer.
@@ -79,10 +80,10 @@ public abstract class PassiveViewer extends Viewer {
      * @return Returns the argument cluster as a <code>Cluster</code>
      * object that can be used with the <code>Viewer</code>.
      */
-    public static final Cluster toPanelCluster(HPSEcalCluster lcioCluster) {
+    public static final Cluster toPanelCluster(org.lcsim.event.Cluster lcioCluster) {
         // Get the cluster data from the LCIO cluster.
-        int ix = lcioCluster.getSeedHit().getIdentifierFieldValue("ix");
-        int iy = lcioCluster.getSeedHit().getIdentifierFieldValue("iy");
+        int ix = lcioCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+        int iy = lcioCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
         double energy = lcioCluster.getEnergy();
         
         // Generate a new cluster.
@@ -90,6 +91,7 @@ public abstract class PassiveViewer extends Viewer {
         
         // If this is an IC cluster, cast it so that shared hits can
         // be properly displayed.
+        // FIXME: This should be changed to use the standard LCSim Cluster interface.  --JM
         if(lcioCluster instanceof HPSEcalClusterIC) {
         	// Cast the cluster object.
         	HPSEcalClusterIC icCluster = (HPSEcalClusterIC) lcioCluster;

@@ -5,10 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.lcsim.event.EventHeader;
+import org.hps.readout.ecal.FADCTriggerDriver;
 import org.hps.readout.ecal.TriggerDriver;
+import org.hps.recon.ecal.ECalUtils;
+import org.lcsim.event.Cluster;
+import org.lcsim.event.EventHeader;
 /**
  * Class <code>FADCVariableTriggerDriver</code> reads reconstructed
  * clusters and makes trigger decisions on them. It is designed to
@@ -47,8 +48,8 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
     // ==================================================================
     // ==== Driver Internal Variables ===================================
     // ==================================================================
-    private Queue<List<HPSEcalCluster>> topClusterQueue = null;	// Store clusters on the top half of the calorimeter.
-    private Queue<List<HPSEcalCluster>> botClusterQueue = null;	// Store clusters on the bottom half of the calorimeter.
+    private Queue<List<Cluster>> topClusterQueue = null;	// Store clusters on the top half of the calorimeter.
+    private Queue<List<Cluster>> botClusterQueue = null;	// Store clusters on the bottom half of the calorimeter.
     private int allClusters = 0;								// Track the number of clusters processed.
     private int allPairs = 0;									// Track the number of cluster pairs processed.
     private int clusterTotalEnergyCount = 0;					// Track the clusters which pass the total energy cut.
@@ -92,18 +93,18 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
     @Override
     public void process(EventHeader event) {
     	// Process the list of clusters for the event, if it exists.
-        if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
         	// Get the collection of clusters.
-        	List<HPSEcalCluster> clusterList = event.get(HPSEcalCluster.class, clusterCollectionName);
+        	List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
         	
         	// Create a list to hold clusters which pass the single
         	// cluster cuts.
-        	List<HPSEcalCluster> goodClusterList = new ArrayList<HPSEcalCluster>(clusterList.size());
+        	List<Cluster> goodClusterList = new ArrayList<Cluster>(clusterList.size());
         	
         	// Sort through the cluster list and add clusters that pass
         	// the single cluster cuts to the good list.
         	clusterLoop:
-        	for(HPSEcalCluster cluster : clusterList) {
+        	for(Cluster cluster : clusterList) {
         		// Increment the number of processed clusters.
         		allClusters++;
         		
@@ -305,19 +306,19 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
         }
     	
         // Initialize the top and bottom cluster queues.
-        topClusterQueue = new LinkedList<List<HPSEcalCluster>>();
-        botClusterQueue = new LinkedList<List<HPSEcalCluster>>();
+        topClusterQueue = new LinkedList<List<Cluster>>();
+        botClusterQueue = new LinkedList<List<Cluster>>();
         
         // Populate the top cluster queue. It should be populated with
         // a number of empty lists equal to (2 * pairCoincidence + 1).
         for (int i = 0; i < 2 * pairCoincidence + 1; i++) {
-            topClusterQueue.add(new ArrayList<HPSEcalCluster>());
+            topClusterQueue.add(new ArrayList<Cluster>());
         }
         
         // Populate the bottom cluster queue. It should be populated with
         // a number of empty lists equal to (2 * pairCoincidence + 1).
         for (int i = 0; i < pairCoincidence + 1; i++) {
-            botClusterQueue.add(new ArrayList<HPSEcalCluster>());
+            botClusterQueue.add(new ArrayList<Cluster>());
         }
         
         // If a background level has been set, pick the correct cuts.
@@ -333,28 +334,28 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param ecalClusters : List of ECal clusters
      * @return list of cluster pairs
      */
-    protected List<HPSEcalCluster[]> getClusterPairsTopBot() {
+    protected List<Cluster[]> getClusterPairsTopBot() {
         // Create a list to store cluster pairs. 
-        List<HPSEcalCluster[]> clusterPairs = new ArrayList<HPSEcalCluster[]>();
+        List<Cluster[]> clusterPairs = new ArrayList<Cluster[]>();
         
         // Loop over all top-bottom pairs of clusters; higher-energy cluster goes first in the pair
         // To apply pair coincidence time, use only bottom clusters from the 
         // readout cycle pairCoincidence readout cycles ago, and top clusters 
         // from all 2*pairCoincidence+1 previous readout cycles
-        for (HPSEcalCluster botCluster : botClusterQueue.element()) {
-            for (List<HPSEcalCluster> topClusters : topClusterQueue) {
-                for (HPSEcalCluster topCluster : topClusters) {
+        for (Cluster botCluster : botClusterQueue.element()) {
+            for (List<Cluster> topClusters : topClusterQueue) {
+                for (Cluster topCluster : topClusters) {
                 	// The first cluster in a pair should always be
                 	// the higher energy cluster. If the top cluster
                 	// is higher energy, it goes first.
                     if (topCluster.getEnergy() > botCluster.getEnergy()) {
-                        HPSEcalCluster[] clusterPair = {topCluster, botCluster};
+                        Cluster[] clusterPair = {topCluster, botCluster};
                         clusterPairs.add(clusterPair);
                     }
                     
                     // Otherwise, the bottom cluster goes first.
                     else {
-                        HPSEcalCluster[] clusterPair = {botCluster, topCluster};
+                        Cluster[] clusterPair = {botCluster, topCluster};
                         clusterPairs.add(clusterPair);
                     }
                 }
@@ -375,7 +376,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
 	protected boolean triggerDecision(EventHeader event) {
     	// If there is a list of clusters present for this event,
     	// check whether it passes the trigger conditions.
-    	if (event.hasCollection(HPSEcalCluster.class, clusterCollectionName)) {
+    	if (event.hasCollection(Cluster.class, clusterCollectionName)) {
         	return testTrigger();
         }
         
@@ -392,7 +393,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    private boolean clusterHitCountCut(HPSEcalCluster cluster) {
+    private boolean clusterHitCountCut(Cluster cluster) {
     	return (getValueClusterHitCount(cluster) >= minHitCount);
     }
     
@@ -404,7 +405,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    private boolean clusterSeedEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterSeedEnergyCut(Cluster cluster) {
     	// Get the cluster seed energy.
     	double energy = getValueClusterSeedEnergy(cluster);
     	
@@ -421,7 +422,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster passes the cut
      * and <code>false</code> if the cluster does not.
      */
-    private boolean clusterTotalEnergyCut(HPSEcalCluster cluster) {
+    private boolean clusterTotalEnergyCut(Cluster cluster) {
     	// Get the total cluster energy.
     	double energy = getValueClusterTotalEnergy(cluster);
     	
@@ -437,8 +438,8 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the distance between the clusters.
      */
-    private double getClusterDistance(HPSEcalCluster cluster) {
-        return Math.hypot(cluster.getSeedHit().getPosition()[0] - originX, cluster.getSeedHit().getPosition()[1]);
+    private double getClusterDistance(Cluster cluster) {
+        return Math.hypot(cluster.getCalorimeterHits().get(0).getPosition()[0] - originX, cluster.getCalorimeterHits().get(0).getPosition()[1]);
     }
     
     /**
@@ -448,7 +449,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
-    private double getValueClusterTotalEnergy(HPSEcalCluster cluster) {
+    private double getValueClusterTotalEnergy(Cluster cluster) {
     	return cluster.getEnergy();
     }
     
@@ -459,7 +460,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
-    private int getValueClusterHitCount(HPSEcalCluster cluster) {
+    private int getValueClusterHitCount(Cluster cluster) {
     	return cluster.getCalorimeterHits().size();
     }
     
@@ -470,8 +471,8 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * derived.
      * @return Returns the cut value.
      */
-    private double getValueClusterSeedEnergy(HPSEcalCluster cluster) {
-    	return cluster.getSeedHit().getCorrectedEnergy();
+    private double getValueClusterSeedEnergy(Cluster cluster) {
+    	return cluster.getCalorimeterHits().get(0).getCorrectedEnergy();
     }
     
     /**
@@ -481,11 +482,11 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
-    private double getValueCoplanarity(HPSEcalCluster[] clusterPair) {
+    private double getValueCoplanarity(Cluster[] clusterPair) {
     	// Get the cluster angles.
     	double[] clusterAngle = new double[2];
     	for(int i = 0; i < 2; i++) {
-            double position[] = clusterPair[i].getSeedHit().getPosition();
+            double position[] = clusterPair[i].getCalorimeterHits().get(0).getPosition();
             //clusterAngle[i] = Math.toDegrees(Math.atan2(position[1], position[0] - originX));
             //clusterAngle[i] = (clusterAngle[i] + 180.0) % 180.0;
             clusterAngle[i] = (Math.toDegrees(Math.atan2(position[1], position[0] - originX)) + 180.0) % 180.0;
@@ -502,7 +503,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
-    private double getValueEnergyDifference(HPSEcalCluster[] clusterPair) {
+    private double getValueEnergyDifference(Cluster[] clusterPair) {
     	return clusterPair[0].getEnergy() - clusterPair[1].getEnergy();
     }
     
@@ -513,7 +514,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
-    private double getValueEnergySlope(HPSEcalCluster[] clusterPair) {
+    private double getValueEnergySlope(Cluster[] clusterPair) {
     	// E + R*F
     	// Get the low energy cluster energy.
     	double slopeParamE = clusterPair[1].getEnergy();
@@ -532,7 +533,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * be calculated.
      * @return Returns the cut value.
      */
-    private double getValueEnergySum(HPSEcalCluster[] clusterPair) {
+    private double getValueEnergySum(Cluster[] clusterPair) {
     	return clusterPair[0].getEnergy() + clusterPair[1].getEnergy();
     }
     
@@ -544,7 +545,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    private boolean pairCoplanarityCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairCoplanarityCut(Cluster[] clusterPair) {
         return (getValueCoplanarity(clusterPair) < coplanarityHigh);
     }
     
@@ -556,7 +557,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    private boolean pairEnergyDifferenceCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairEnergyDifferenceCut(Cluster[] clusterPair) {
         return (getValueEnergyDifference(clusterPair) < energyDifferenceHigh);
     }
     
@@ -568,7 +569,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param clusterPair : pair of clusters
      * @return true if pair is found, false otherwise
      */
-    private boolean pairEnergySlopeCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairEnergySlopeCut(Cluster[] clusterPair) {
     	return (getValueEnergySlope(clusterPair) > energySlopeLow);
     }
     
@@ -580,7 +581,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
-    private boolean pairEnergySumCut(HPSEcalCluster[] clusterPair) {
+    private boolean pairEnergySumCut(Cluster[] clusterPair) {
     	// Get the energy sum value.
     	double energySum = getValueEnergySum(clusterPair);
     	
@@ -701,13 +702,13 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
 	 */
     private boolean testTrigger() {
     	// Get the list of cluster pairs.
-    	List<HPSEcalCluster[]> clusterPairs = getClusterPairsTopBot();
+    	List<Cluster[]> clusterPairs = getClusterPairsTopBot();
         
         // Iterate over the cluster pairs and perform each of the cluster
         // pair cuts on them. A cluster pair that passes all of the
         // cuts registers as a trigger.
     	pairLoop:
-        for (HPSEcalCluster[] clusterPair : clusterPairs) {
+        for (Cluster[] clusterPair : clusterPairs) {
     		// Increment the number of processed cluster pairs.
     		allPairs++;
     		
@@ -759,16 +760,16 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * 
      * @param clusterList - The clusters to add to the queues.
      */
-    private void updateClusterQueues(List<HPSEcalCluster> clusterList) {
+    private void updateClusterQueues(List<Cluster> clusterList) {
     	// Create lists to store the top and bottom clusters.
-        ArrayList<HPSEcalCluster> topClusterList = new ArrayList<HPSEcalCluster>();
-        ArrayList<HPSEcalCluster> botClusterList = new ArrayList<HPSEcalCluster>();
+        ArrayList<Cluster> topClusterList = new ArrayList<Cluster>();
+        ArrayList<Cluster> botClusterList = new ArrayList<Cluster>();
         
         // Loop over the clusters in the cluster list.
-        for (HPSEcalCluster cluster : clusterList) {
+        for (Cluster cluster : clusterList) {
         	// If the cluster is on the top of the calorimeter, it
         	// goes into the top cluster list.
-            if (cluster.getSeedHit().getIdentifierFieldValue("iy") > 0) {
+            if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") > 0) {
                 topClusterList.add(cluster);
             }
             
