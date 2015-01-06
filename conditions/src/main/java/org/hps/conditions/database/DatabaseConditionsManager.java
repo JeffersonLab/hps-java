@@ -126,13 +126,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * manager as the global default.
      */
     public DatabaseConditionsManager() {
-        logger.setLevel(Level.FINER);
+        logger.setLevel(Level.INFO);
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
         ConditionsManager.setDefaultConditionsManager(this);
         setRun(-1);
         for (ConditionsObjectConverter converter : converters.values()) {
-            logger.config("registering converter for " + converter.getType());
+            //logger.config("registering converter for " + converter.getType());
             registerConditionsConverter(converter);
         }
         addConditionsListener(ecalSetup);
@@ -829,7 +829,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             } 
         } catch (UnknownHostException e) {
             // This will actually print a warning if the JLAB server is unreachable.
-            logger.log(Level.WARNING, e.getMessage(), e);
+            //logger.log(Level.WARNING, e.getMessage(), e);
         } catch (IOException e) {
             logger.severe(e.getMessage());
             throw new RuntimeException(e);            
