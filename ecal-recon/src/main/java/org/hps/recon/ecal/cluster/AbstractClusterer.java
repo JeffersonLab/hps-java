@@ -35,7 +35,7 @@ public abstract class AbstractClusterer implements Clusterer {
      * @param defaultCuts The default cut values for the algorithm matching the cutNames ordering.
      * @throw IllegalArgumentException if the arguments are null or the arrays are different lengths.
      */
-    protected AbstractClusterer(String cutNames[], double[] defaultCuts) {
+    AbstractClusterer(String cutNames[], double[] defaultCuts) {
         if (cutNames == null) {
             throw new IllegalArgumentException("The cutNames is set to null.");
         }
@@ -52,7 +52,7 @@ public abstract class AbstractClusterer implements Clusterer {
      * Constructor with cuts set.
      * @param cuts The numerical cuts.
      */
-    protected AbstractClusterer(NumericalCuts cuts) {
+    AbstractClusterer(NumericalCuts cuts) {
         this.cuts = cuts;
     }
     

@@ -75,7 +75,7 @@ public class ReconClusterer extends AbstractClusterer {
     // lowest energy.
     private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
 
-    public ReconClusterer() {
+    ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow", "timeCut" }, 
                 new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0, 0. });
     }

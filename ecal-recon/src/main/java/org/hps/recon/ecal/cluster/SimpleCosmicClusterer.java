@@ -40,7 +40,7 @@ public class SimpleCosmicClusterer extends AbstractClusterer {
     /**
      * Default constructor that sets cut names and default values.
      */
-    public SimpleCosmicClusterer() {
+    SimpleCosmicClusterer() {
         super(new String[] { "minClusterSize", "minRows", "maxHitsPerRow" }, new double[] { 3, 3, 2 });
     }
     

@@ -37,7 +37,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
     /**
      * Initialize the algorithm with default cuts.
      */
-    public SimpleReconClusterer() {
+    SimpleReconClusterer() {
         super(new String[] { "minEnergy", "minTime", "timeWindow", "timeCut" }, new double[] { 0.001, 0.0, 20.0, 0. });
     }
 

@@ -21,7 +21,7 @@ public class NearestNeighborClusterer extends AbstractClusterer {
     double minHitEnergy = 0;
     double minSize = 2;
     
-    public NearestNeighborClusterer() {
+    NearestNeighborClusterer() {
         super(new String[] {"minHitEnergy", "minSize" }, new double[] { 0.0, 2.0 });
     }
     

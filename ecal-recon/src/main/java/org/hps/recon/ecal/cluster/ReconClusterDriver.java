@@ -54,8 +54,8 @@ public class ReconClusterDriver extends ClusterDriver {
     }
     
     /**
-     * This controls whether the rejected 
-     * @param writeRejectedHitCollection
+     * This controls whether the rejected hit collection is written out.
+     * @param writeRejectedHitCollection True to write rejected hit collection.
      */
     public void setWriteRejectedHitCollection(boolean writeRejectedHitCollection) {
         this.writeRejectedHitCollection = writeRejectedHitCollection;

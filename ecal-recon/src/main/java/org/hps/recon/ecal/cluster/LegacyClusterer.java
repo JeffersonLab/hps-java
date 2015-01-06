@@ -15,7 +15,7 @@ import org.lcsim.event.base.BaseCluster;
  * <p>
  * This Driver creates clusters from a CalorimeterHit input collection.
  * <p>
- * The clustering algorithm is implemented according to the description in pages 83 and 84 of the 
+ * The clustering algorithm is implemented according to the description on pages 83 and 84 of the 
  * <a href="https://confluence.slac.stanford.edu/download/attachments/86676777/HPSProposal-FINAL_Rev2.pdf">HPS Proposal document</a>.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
