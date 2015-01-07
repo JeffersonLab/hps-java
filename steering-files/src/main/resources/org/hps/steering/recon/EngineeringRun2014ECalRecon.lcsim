@@ -1,52 +1,71 @@
 <!-- 
-  Offline reconstruction for 2014 engineering run (ECal only) data.
-  @author Matt Graham <mgraham@slac.stanford.edu>
+    Offline reconstruction for 2014 engineering run (ECal only) data.
+
+    Changes made by JM:
+            
+    -Replaced clustering Drivers with new recon.ecal.cluster classes.    
+    -Commented out the legacy clusterer. 
+    -Configured ReconClusterDriver to not write the rejected hit collection.
+    -Changed output cluster collection names.
+     
+    @author Matt Graham <mgraham@slac.stanford.edu> 
+    @author Jeremy McCormick<jeremym@slac.stanford.edu>
 -->
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver"/>              
+        <driver name="EventMarkerDriver" />
         <driver name="EcalRawConverter" />
-        <driver name="EcalClusterer" />
-        <driver name="EcalClustererIC" />
-        <driver name="EcalClustererGTP" />   
-        <driver name="LCIOWriter"/> 
-        <driver name="CleanupDriver"/>
-   </execute>    
-    <drivers>    
+        <!-- <driver name="LegacyClusterer" /> -->
+        <driver name="ReconClusterer" />
+        <driver name="GTPOnlineClusterer" />
+        <driver name="LCIOWriter" />
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
-        </driver>        
+        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
-            <ecalName>Ecal</ecalName>
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <seedEMin>0.1</seedEMin>
-            <addEMin>0.01</addEMin>
-<!--            <timeCut>true</timeCut>  -->
+        <!--
+        Uncomment to include legacy clustering from Test Run proposal algorithm.  
+        <driver name="LegacyClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <logLevel>warning</logLevel>
+            <outputClusterCollectionName>EcalClustersLegacy</outputClusterCollectionName>
+            <clustererName>LegacyClusterer</clustererName>            
+            <cuts>0.1 0.01</cuts>
         </driver>
-        <driver name="EcalClustererIC" type="org.hps.recon.ecal.EcalClusterIC">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <clusterCollectionName>EcalClustersIC</clusterCollectionName>
+        -->
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>warning</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
-            <seedEnergyThreshold>0.100</seedEnergyThreshold>        
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>        
-        </driver> 
-        <driver name="EcalClustererGTP" type="org.hps.recon.ecal.GTPOnlineClusterer">
-         <hitCollectionName>EcalCalHits</hitCollectionName>
-            <clusterCollectionName>EcalClustersGTP</clusterCollectionName>          
-            <seedLowThreshold>0.100</seedLowThreshold>        
+            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.200</clusterEnergyThreshold> 
+            <!--  
+            <minTime></minTime> 
+            <timeWindow></timeWindow>
+            --> 
+            <useTimeCut>false</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
-
-
+        <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <logLevel>warning</logLevel>
+            <clustererName>GTPOnlineClusterer</clustererName>
+            <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
+            <!-- seedMinEnergy -->
+            <cuts>0.100</cuts>
+        </driver>        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <!-- Uncomment if you only want specific collections in the output. -->
+            <!-- <writeOnlyCollections>EcalCalHits EcalClusters EcalClustersGTP</writeOnlyCollections> -->
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
-        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
     </drivers>
 </lcsim>
