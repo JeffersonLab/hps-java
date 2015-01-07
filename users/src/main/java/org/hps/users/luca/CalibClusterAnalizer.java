@@ -32,6 +32,7 @@ public class CalibClusterAnalizer extends Driver {
         if(event.hasCollection(Cluster.class,"EcalClusters"))
         {List<Cluster> clusters= event.get(Cluster.class,"EcalClusters");
         for(Cluster cluster : clusters){
+            
         eneTuttiPlot.fill(cluster.getEnergy());
        SeedHitPlot.fill(cluster.getCalorimeterHits().get(0).getCorrectedEnergy());
         }
