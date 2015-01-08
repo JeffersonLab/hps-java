@@ -30,7 +30,7 @@ public class CalibClusterAnalyzerEngRun extends Driver  {
     private FileWriter writer3;
     String outputFileName = "CalibClusterAnalyzerEngRunGTP.txt";
     String outputFileName2 = "CalibClusterAnalyzerEngRunIC.txt";
-    String outputFileName3 = "CalbClusterAnalyzerEngRunHIT.txt";
+    String outputFileName3 = "CalibClusterAnalyzerEngRunHIT.txt";
     public void setEnergyThreshold (double threshold){
     this.energyThreshold=threshold;
     }
