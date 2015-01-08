@@ -1,5 +1,6 @@
 package org.hps.recon.ecal.cluster;
 
+import hep.aida.ICloud1D;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
@@ -15,6 +16,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -55,13 +57,11 @@ public class ClustererTest extends TestCase {
     
     public void testReconClusterer() {
         //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 }, true);
-        //runClustererTest("ReconClusterer");
         runClustererTest("ReconClusterer", null, true, true);
     }
     
     public void testSimpleReconClusterer() {
         //runClustererTest("SimpleReconClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
-        //runClustererTest("SimpleReconClusterer");
         runClustererTest("SimpleReconClusterer", null, true, true);
     }
     
@@ -76,7 +76,6 @@ public class ClustererTest extends TestCase {
     }
     
     public void testGTPOnlineClusterer() {
-        //runClustererTest("GTPOnlineClusterer");
         runClustererTest("GTPOnlineClusterer", null, true, true);
     }
     
@@ -115,8 +114,8 @@ public class ClustererTest extends TestCase {
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
+        clusterDriver.setCalculateProperties(true);
         clusterDriver.getLogger().setLevel(Level.CONFIG);
-        //clusterDriver.getLogger().getHandlers()[0].flush();
         loop.add(clusterDriver);                         
         
         // This Driver generates plots and the output LCIO file.
@@ -139,15 +138,7 @@ public class ClustererTest extends TestCase {
         }
         loop.dispose();
     }
-    
-    /**
-     * Run the Clusterer test with default cuts, writing an LCIO output file and not checking seed hit. 
-     * @param clustererName The name of the Clusterer.
-     */
-    private void runClustererTest(String clustererName) {
-        runClustererTest(clustererName, null, true, false);
-    }
-    
+           
     /**
      * This Driver will check some of the basic Cluster values (currently just size and energy).
      * It also produces some QA plots for each Clusterer in its own output AIDA dir within the plot tree.
@@ -164,6 +155,12 @@ public class ClustererTest extends TestCase {
         IHistogram2D rawVsCorrectedH2D;
         IHistogram1D positionXH1D;
         IHistogram1D positionYH1D;
+        IHistogram1D positionZH1D;
+        IHistogram1D shapeParam1H1D;
+        IHistogram1D shapeParam2H1D;
+        IHistogram1D shapeParam3H1D;
+        ICloud1D ithetaC1D;
+        ICloud1D iphiC1D;
         String clusterCollectionName;
         String clustererName;        
         boolean checkSeedHit = true;
@@ -183,6 +180,12 @@ public class ClustererTest extends TestCase {
             rawVsCorrectedH2D = aida.histogram2D(clusterCollectionName + "/Raw vs Corrected Energy", 100, 0.0, 2.0, 100, 0.0, 2.0);
             positionXH1D = aida.histogram1D(clusterCollectionName + "/Position X", 300, 0., 1500.0);
             positionYH1D = aida.histogram1D(clusterCollectionName + "/Position Y", 500, 0., 1000.0);
+            positionZH1D = aida.histogram1D(clusterCollectionName + "/Position Z", 600, 1400., 1500.0);
+            shapeParam1H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 1", 500, -5, 95);
+            shapeParam2H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 2", 520, -10, 250);
+            shapeParam3H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 3", 520, -10, 250);
+            ithetaC1D = aida.cloud1D(clusterCollectionName + "/ITheta");
+            iphiC1D = aida.cloud1D(clusterCollectionName + "/IPhi");
         }
         
         public void process(EventHeader event) {
@@ -193,6 +196,7 @@ public class ClustererTest extends TestCase {
                 if (checkSeedHit) {
                     assertEquals("First hit is not seed.", cluster.getCalorimeterHits().get(0), ClusterUtilities.findHighestEnergyHit(cluster));
                 }
+                assertTrue("Cluster properties not calculated.", !((BaseCluster)cluster).needsPropertyCalculation());
                 energyH1D.fill(cluster.getEnergy());
                 double rawEnergy = ClusterUtilities.computeRawEnergy(cluster);
                 uncorrectedEnergyH1D.fill(rawEnergy);
@@ -204,6 +208,12 @@ public class ClustererTest extends TestCase {
                 highestHitEnergyH1D.fill(ClusterUtilities.findHighestEnergyHit(cluster).getCorrectedEnergy());
                 positionXH1D.fill(Math.abs(cluster.getPosition()[0]));
                 positionYH1D.fill(Math.abs(cluster.getPosition()[1]));
+                positionZH1D.fill(Math.abs(cluster.getPosition()[2]));
+                shapeParam1H1D.fill(cluster.getShape()[0]);
+                shapeParam2H1D.fill(cluster.getShape()[1]);
+                shapeParam3H1D.fill(cluster.getShape()[2]);
+                iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
+                ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));
             }            
             countH1D.fill(clusters.size());
         }              
