@@ -25,6 +25,7 @@ public class ReconClusterDriver extends ClusterDriver {
             
     public ReconClusterDriver() {
         clusterer = ClustererFactory.create("ReconClusterer");
+        //this.applyCorrections = true;
     }
     
     public void setClusterer(Clusterer clusterer) {
@@ -56,10 +57,7 @@ public class ReconClusterDriver extends ClusterDriver {
     }
     
     public void setUseTimeCut(boolean useTimeCut) {
-        int timeCut = 0;
-        if (useTimeCut) {
-            timeCut = 1;
-        }
+        getReconClusterer().setUseTimeCut(useTimeCut);
     }    
         
     /**
