@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import junit.framework.TestCase;
@@ -16,6 +17,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
@@ -33,7 +35,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ClustererTest extends TestCase {
     
-    static int nEvents = 100;
+    static int nEvents = 1000;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
@@ -115,6 +117,7 @@ public class ClustererTest extends TestCase {
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
         clusterDriver.setCalculateProperties(true);
+        clusterDriver.setSortHits(true);
         clusterDriver.getLogger().setLevel(Level.CONFIG);
         loop.add(clusterDriver);                         
         
@@ -161,6 +164,8 @@ public class ClustererTest extends TestCase {
         IHistogram1D shapeParam3H1D;
         ICloud1D ithetaC1D;
         ICloud1D iphiC1D;
+        IHistogram2D particleVsClusterEnergyH2D;
+        IHistogram1D particleMinusClusterEnergyH1D;
         String clusterCollectionName;
         String clustererName;        
         boolean checkSeedHit = true;
@@ -180,10 +185,12 @@ public class ClustererTest extends TestCase {
             rawVsCorrectedH2D = aida.histogram2D(clusterCollectionName + "/Raw vs Corrected Energy", 100, 0.0, 2.0, 100, 0.0, 2.0);
             positionXH1D = aida.histogram1D(clusterCollectionName + "/Position X", 300, 0., 1500.0);
             positionYH1D = aida.histogram1D(clusterCollectionName + "/Position Y", 500, 0., 1000.0);
-            positionZH1D = aida.histogram1D(clusterCollectionName + "/Position Z", 600, 1400., 1500.0);
+            positionZH1D = aida.histogram1D(clusterCollectionName + "/Position Z", 1000, 0, 2000.0);
             shapeParam1H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 1", 500, -5, 95);
             shapeParam2H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 2", 520, -10, 250);
             shapeParam3H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 3", 520, -10, 250);
+            particleVsClusterEnergyH2D = aida.histogram2D(clusterCollectionName + "/MCParticle vs Cluster E", 200, 0, 2.0, 200, 0., 2.0);
+            particleMinusClusterEnergyH1D = aida.histogram1D(clusterCollectionName + "/MCParticle Minus Cluster E", 200, -2.0, 2.0);
             ithetaC1D = aida.cloud1D(clusterCollectionName + "/ITheta");
             iphiC1D = aida.cloud1D(clusterCollectionName + "/IPhi");
         }
@@ -213,7 +220,15 @@ public class ClustererTest extends TestCase {
                 shapeParam2H1D.fill(cluster.getShape()[1]);
                 shapeParam3H1D.fill(cluster.getShape()[2]);
                 iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
-                ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));
+                ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));                                
+                
+                Set<MCParticle> particles = ClusterUtilities.findMCParticles(cluster);
+                double particleEnergy = 0;
+                for (MCParticle particle : particles) {
+                    particleEnergy += particle.getEnergy();
+                }
+                particleVsClusterEnergyH2D.fill(particleEnergy, cluster.getEnergy());
+                particleMinusClusterEnergyH1D.fill(particleEnergy - cluster.getEnergy());
             }            
             countH1D.fill(clusters.size());
         }              
