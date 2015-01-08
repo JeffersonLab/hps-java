@@ -11,7 +11,10 @@ import org.lcsim.event.CalorimeterHit;
  *
  * @author Holly Szumila <hvanc001@odu.edu>
  * @author Sho Uemura <meeg@slac.stanford.edu>
+ * 
+ * @deprecated Use the {@link org.lcsim.event.Cluster} interface or {@link org.lcsim.event.BaseCluster} class.
  */
+@Deprecated
 public class HPSEcalClusterIC extends HPSEcalCluster {
     private int particleID = 0;
     private double[] rawPosition = new double[3];

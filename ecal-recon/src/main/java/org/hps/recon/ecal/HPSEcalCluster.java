@@ -16,8 +16,10 @@ import org.lcsim.event.base.BaseCluster;
  * Cluster with position defined by seed hit (for 1-bit trigger)
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: HPSEcalCluster.java,v 1.11 2013/02/25 22:39:24 meeg Exp $
+ * 
+ * @deprecated Use the {@link org.lcsim.event.Cluster} interface or {@link org.lcsim.event.BaseCluster} class.
  */
+@Deprecated
 public class HPSEcalCluster extends BaseCluster {
 
     private CalorimeterHit seedHit = null;
