@@ -46,7 +46,9 @@
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold> 
+            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
+            <calculateProperties>false</calculateProperties>
+            <applyCorrections>true</applyCorrections>
             <!--  
             <minTime></minTime> 
             <timeWindow></timeWindow>
@@ -60,6 +62,8 @@
             <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
             <!-- seedMinEnergy -->
             <cuts>0.100</cuts>
+            <calculateProperties>true</calculateProperties>
+            <applyCorrections>false</applyCorrections>
         </driver>        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <!-- Uncomment if you only want specific collections in the output. -->
