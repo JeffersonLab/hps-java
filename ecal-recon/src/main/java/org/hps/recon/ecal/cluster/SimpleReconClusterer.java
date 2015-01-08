@@ -122,8 +122,6 @@ public class SimpleReconClusterer extends AbstractClusterer {
             BaseCluster cluster = seedToCluster.get(seed);
             cluster.addHit(hit);
         }
-
-        ClusterUtilities.sortReconClusterHits(clusters);
         
         return clusters;
     }
