@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -113,7 +112,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 }
 
                 // Create a cluster for the potential seed.
-                BaseCluster protoCluster = new HPSEcalCluster(); // FIXME: Should be changed to BaseCluster but needs prop calculations for now.
+                BaseCluster protoCluster = new BaseCluster();
                 protoCluster.addHit(seed);
 
                 // Iterate over the other hits and if the are within
@@ -145,6 +144,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                         }
                     }
                 }
+                
 
                 // If this point is reached, then the seed was not
                 // invalidated by any of the other hits and is really
@@ -172,8 +172,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 }
             }
         }
-
-
+                
         // VERBOSE :: Print a new line.
         if(verbose) { System.out.println(); }
 

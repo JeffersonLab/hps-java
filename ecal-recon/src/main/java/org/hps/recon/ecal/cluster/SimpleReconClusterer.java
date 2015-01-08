@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -108,7 +107,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
             }
             if (biggestSeed == null) { // if no neighbors had more energy than this hit, this hit is a seed
                 hitToSeed.put(hit, hit);
-                BaseCluster cluster = new HPSEcalCluster(); // FIXME: Replace with BaseCluster.
+                BaseCluster cluster = new BaseCluster();
                 clusters.add(cluster);
                 seedToCluster.put(hit, cluster);
             } else {
