@@ -196,23 +196,20 @@ public final class ClusterUtilities {
     }
     
     /**
-     * Find the unique set of MCParticles that are referenced by the 
-     * hits of the Cluster.
+     * Find the unique set of MCParticles that are referenced by the hits of the Cluster.
      * @param clusters The input Cluster.
      * @return The set of unique MCParticles.
      */
-    public static Set<MCParticle> findMCParticles(List<Cluster> clusters) {  
+    public static Set<MCParticle> findMCParticles(Cluster cluster) {  
         Set<MCParticle> particles = new HashSet<MCParticle>();
-        for (Cluster cluster : clusters) {
-            for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                if (hit instanceof SimCalorimeterHit) {
-                    SimCalorimeterHit simHit = (SimCalorimeterHit)hit;
-                    for (int i = 0; i < simHit.getMCParticleCount(); i++) {
-                        particles.add(simHit.getMCParticle(i));
-                    }
+        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            if (hit instanceof SimCalorimeterHit) {
+                SimCalorimeterHit simHit = (SimCalorimeterHit)hit;
+                for (int i = 0; i < simHit.getMCParticleCount(); i++) {
+                    particles.add(simHit.getMCParticle(i));
                 }
             }
-        }
+        }        
         return particles;
     }
    
@@ -366,10 +363,8 @@ public final class ClusterUtilities {
         for (Cluster cluster : clusters) {
             if (cluster instanceof BaseCluster) {
                 BaseCluster baseCluster = (BaseCluster)cluster;
-                //if (baseCluster.needsPropertyCalculation()) {
                 baseCluster.setPropertyCalculator(calc);
                 baseCluster.calculateProperties();
-                //}
             }
         }
     }    
