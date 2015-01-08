@@ -75,8 +75,16 @@ public final class ClusterUtilities {
      * @return The total raw energy.
      */
     public static double computeRawEnergy(Cluster cluster) {
+        return computeEnergySum(cluster.getCalorimeterHits());
+    }
+    
+    /**
+     * Compute the energy sum for a set of CalorimeterHits by adding all their corrected energies.
+     * @return The energy sum.
+     */
+    public static double computeEnergySum(List<CalorimeterHit> hits) {
         double uncorrectedEnergy = 0;
-        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+        for (CalorimeterHit hit : hits) {
             uncorrectedEnergy += hit.getCorrectedEnergy();
         }
         return uncorrectedEnergy;
@@ -84,6 +92,10 @@ public final class ClusterUtilities {
     
     /**
      * Find the hit with the highest energy value.
+     * This method doesn't handle hits with the same energy properly.
+     * It will simply return the first of them.
+     * Use {@link #sortReconClusterHits(List)} if this level of disambiguation
+     * is needed (e.g. in order to find an exact seed hit).
      * @param cluster The input cluster.
      * @return The hit with the highest energy value.
      */
@@ -140,22 +152,47 @@ public final class ClusterUtilities {
     }
     
     /**
-     * Find the seed hit of a Cluster, without any disambiguation when
-     * energy is equal.     
+     * Find hits in a cluster that are shared with other Clusters.
+     * @param cluster The input cluster.
+     * @param clusters The list of clusters.
+     * @return The list of shared hits.
+     */
+    public static List<CalorimeterHit> findSharedHits(Cluster cluster, List<Cluster> clusters) {
+        Set<CalorimeterHit> allHits = new HashSet<CalorimeterHit>();
+        List<CalorimeterHit> sharedHits = new ArrayList<CalorimeterHit>();
+        for (Cluster otherCluster : clusters) {
+            if (otherCluster != cluster) {
+                allHits.addAll(otherCluster.getCalorimeterHits());
+            }
+        }
+        for (CalorimeterHit clusterHit : cluster.getCalorimeterHits()) {
+            if (allHits.contains(clusterHit)) {
+                sharedHits.add(clusterHit);
+            }
+        }
+        return sharedHits;
+    }
+    
+    
+    /**
+     * Find the seed hit of a Cluster.
      * @param cluster The input Cluster.
      * @return The seed hit.
      */
-    public CalorimeterHit findSeedHit(Cluster cluster) {
+    public static CalorimeterHit findSeedHit(Cluster cluster) {        
         if (cluster.getSize() == 0) {
             // There are no hits!
             return null;
-        } else if (cluster.getSize() == 1) {
-            // There is a single hit.
-            return cluster.getCalorimeterHits().get(0);
-        } else {
-            // Sort hits and return one with highest energy.
-            return findHighestEnergyHit(cluster);
-        }
+        } else if (cluster.getSize() > 1) {        
+            // Make sure the hit ordering is correct.
+            List<Cluster> clusterList = new ArrayList<Cluster>();
+            clusterList.add(cluster);
+            
+            // Sort hits on energy, with position used for disambiguation of equal energies.
+            sortReconClusterHits(clusterList);
+        }        
+        // Get the first hit, which should now be the seed.
+        return cluster.getCalorimeterHits().get(0);
     }
     
     /**
@@ -211,7 +248,10 @@ public final class ClusterUtilities {
         }
     }
     
-    static class UniqueEnergyComparator implements Comparator<CalorimeterHit> {
+    /**
+     * Compare CalorimeterHit energies and disambiguate equal values using the crystal position.         
+     */
+    static final class UniqueEnergyComparator implements Comparator<CalorimeterHit> {
         /**
          * Compares the first hit with respect to the second. This method will compare hits first by
          * energy, and then spatially. In the case of equal energy hits, the hit closest to the beam
@@ -280,4 +320,57 @@ public final class ClusterUtilities {
             }
         }
     }
+    
+    /**
+     * Apply HPS-specific energy and position corrections to a list of clusters in place.
+     * 
+     * @see ReconClusterPropertyCalculator
+     * @see ReconClusterPositionCorrection
+     * @see ReconClusterEnergyCorrection
+     */
+    public static void applyCorrections(List<Cluster> clusters) {
+        
+        // Use the HPS specific property calculator.
+        ReconClusterPropertyCalculator calc = new ReconClusterPropertyCalculator();
+        
+        // Loop over the clusters.
+        for (Cluster cluster : clusters) {
+            
+            if (cluster instanceof BaseCluster) {
+            
+                BaseCluster baseCluster = (BaseCluster)cluster;            
+            
+                // First calculate the cluster properties, if needed.
+                if (baseCluster.needsPropertyCalculation()) {                
+                    // Calculate the properties of the cluster.
+                    baseCluster.setPropertyCalculator(calc);
+                    baseCluster.calculateProperties();
+                }
+            
+                // Apply position correction, which should happen before final energy correction.
+                ReconClusterPositionCorrection.setCorrectedPosition(baseCluster);
+            
+                // Apply energy correction.
+                ReconClusterEnergyCorrection.setCorrectedEnergy(baseCluster);
+            }
+        }
+    }
+    
+    /**
+     * Call {@link org.lcsim.event.base.BaseCluster#calculateProperties()}
+     * on all clusters in the list.
+     * @param clusters The list of clusters.
+     */
+    public static void calculateProperties(List<Cluster> clusters) {
+        ReconClusterPropertyCalculator calc = new ReconClusterPropertyCalculator();
+        for (Cluster cluster : clusters) {
+            if (cluster instanceof BaseCluster) {
+                BaseCluster baseCluster = (BaseCluster)cluster;
+                //if (baseCluster.needsPropertyCalculation()) {
+                baseCluster.setPropertyCalculator(calc);
+                baseCluster.calculateProperties();
+                //}
+            }
+        }
+    }    
 }
