@@ -223,4 +223,133 @@ catch(IOException e){
  return id;
  
  }
+    
+    public int getCrystalFront (Cluster cluster){
+ int x,y,id=0;
+ x= (-1)*cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+ y= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+ 
+ if(y==5){
+ if(x<0)
+ {id=x+24;}
+ else id= x+23;
+ }
+ 
+ else if(y==4)
+ {if(x<0){
+  id=x+70;}
+ else id=x+69;}
+ 
+ else if(y==3)
+ {if(x<0){
+  id=x+116;}
+ else id=x+115;}
+ 
+ else if(y==2)
+ {if(x<0){
+  id=x+162;}
+ else id=x+161;}
+ 
+ else if(y==1)
+ {x=-x;
+     if(x>0){
+  id=-x+208;}
+ else if(x==-1){id=208;}
+ else if(x<-1) id=-x+198;}
+ 
+  else if(y==-1)
+ {x=-x;
+     if(x>0){
+  id=-x+245;}
+ else if(x==-1 )id=245;
+ else if(x<-1){id=-x+235;}}
+ 
+ 
+ else if(y==-2)
+ {if(x<0){
+  id=x+282;}
+ else id=x+281;}
+ 
+  else if(y==-3)
+ {if(x<0){
+  id=x+328;}
+ else id=x+327;}
+ 
+ else if(y==-4)
+ {if(x<0){
+  id=x+374;}
+ else id=x+373;}
+ 
+ else if(y==-5)
+ {if(x<0){
+  id=x+420;}
+ else id=x+419;}
+ 
+ return id;
+ 
+ }   
+    public int getCrystalFront (CalorimeterHit hit){
+ int x,y,id=0;
+ x= (-1)*hit.getIdentifierFieldValue("ix");
+ y= hit.getIdentifierFieldValue("iy");
+ 
+ if(y==5){
+ if(x<0)
+ {id=x+24;}
+ else id= x+23;
+ }
+ 
+ else if(y==4)
+ {if(x<0){
+  id=x+70;}
+ else id=x+69;}
+ 
+ else if(y==3)
+ {if(x<0){
+  id=x+116;}
+ else id=x+115;}
+ 
+ else if(y==2)
+ {if(x<0){
+  id=x+162;}
+ else id=x+161;}
+ 
+ else if(y==1)
+ {x=-x;
+     if(x>0){
+  id=-x+208;}
+ else if(x==-1){id=208;}
+ else if(x<-1) id=-x+198;}
+ 
+  else if(y==-1)
+ {x=-x;
+     if(x>0){
+  id=-x+245;}
+ else if(x==-1 )id=245;
+ else if(x<-1){id=-x+235;}}
+ 
+ 
+ else if(y==-2)
+ {if(x<0){
+  id=x+282;}
+ else id=x+281;}
+ 
+  else if(y==-3)
+ {if(x<0){
+  id=x+328;}
+ else id=x+327;}
+ 
+ else if(y==-4)
+ {if(x<0){
+  id=x+374;}
+ else id=x+373;}
+ 
+ else if(y==-5)
+ {if(x<0){
+  id=x+420;}
+ else id=x+419;}
+ 
+ return id;
+ 
+ }
 }
