@@ -30,9 +30,9 @@ import org.lcsim.util.aida.AIDA;
 
 public class CalibClusterAnalizerSim extends Driver {
     double energyThreshold=0;
-    AIDA aida = AIDA.defaultInstance();
-    IHistogram1D eneTuttiPlot = aida.histogram1D("All Clusters Energy", 300, 0.0,3.0);
-    IHistogram1D SeedHitPlot = aida.histogram1D("SeedHit Energy", 300, 0.0,3.0);
+    //AIDA aida = AIDA.defaultInstance();
+    //IHistogram1D eneTuttiPlot = aida.histogram1D("All Clusters Energy", 300, 0.0,3.0);
+   // IHistogram1D SeedHitPlot = aida.histogram1D("SeedHit Energy", 300, 0.0,3.0);
     protected String clusterCollectionName = "EcalClusters";
     private FileWriter writer;
 //  private FileWriter writer2;
@@ -79,11 +79,13 @@ catch(IOException e){
         if(event.hasCollection(Cluster.class,"EcalClusters"))
         {List<Cluster> clusters= event.get(Cluster.class,"EcalClusters");
         for(Cluster cluster : clusters){
-        int id;
+        int idBack;
+        int idFront;
        
-        id=getCrystal(cluster);
+        idBack=getCrystal(cluster);
+        idFront=getCrystalFront(cluster);
         try{
-         writer.append(id + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getRawEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy")+ "\n");
+         writer.append(idBack + " " + idFront +" "+ cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getRawEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy")+ "\n");
         }
         catch(IOException e ){System.err.println("Error writing to output for event display");}   
       
