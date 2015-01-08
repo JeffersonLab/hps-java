@@ -31,6 +31,7 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ClusterDriver extends Driver {
     
+    protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
     protected String ecalName = "Ecal";    
     protected HPSEcal3 ecal;
     protected NeighborMap neighborMap;
@@ -42,14 +43,15 @@ public class ClusterDriver extends Driver {
     protected boolean skipNoClusterEvents = false;
     protected boolean writeClusterCollection = true;
     protected boolean storeHits = true;
-    protected double[] cutValues;
-    protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
+    protected double[] cuts;
+    protected boolean sortHits = true;
+    protected boolean calculateProperties = true;
+    protected boolean applyCorrections = false;
     
     /**
-     * No arg constructor.
+     * No argument constructor.
      */
     public ClusterDriver() {
-        logger.config("initializing");
     }
     
     /**
@@ -115,6 +117,30 @@ public class ClusterDriver extends Driver {
     }
     
     /**
+     * True to calculate cluster properties before writing to event.
+     * @param calculateProperties True to calculate cluster properties.
+     */
+    public void setCalculateProperties(boolean calculateProperties) {
+        this.calculateProperties = calculateProperties;
+    }
+    
+    /**
+     * True to sort the clusters' hits before writing to event.
+     * @param sortHits True to sort hits.
+     */
+    public void setSortHits(boolean sortHits) {
+        this.sortHits = sortHits;
+    }
+    
+    /**
+     * True to apply cluster position and energy corrections.
+     * @param applyCorrections True to apply corrections.
+     */
+    public void setApplyCorrections(boolean applyCorrections) {
+        this.applyCorrections = applyCorrections;
+    }
+    
+    /**
      * Set the Clusterer by name.  
      * This will use a factory method which first tries to use some hard-coded names from 
      * the cluster package.  As a last resort, it will interpret the name as a canonical 
@@ -148,7 +174,7 @@ public class ClusterDriver extends Driver {
      * @param cuts The numerical cuts.
      */
     public void setCuts(double[] cuts) {
-        this.cutValues = cuts;
+        this.cuts = cuts;
     }
     
     /**
@@ -175,15 +201,15 @@ public class ClusterDriver extends Driver {
         if (this.clusterer == null) {
             throw new RuntimeException("The clusterer was never initialized.");
         }
-        if (this.cutValues != null) {
+        if (this.cuts != null) {
             logger.config("setting cuts on clusterer");
-            this.clusterer.getCuts().setValues(cutValues);
+            this.clusterer.getCuts().setValues(cuts);
         } 
         logger.config("Clusterer has the following cuts ...");
         for (int cutIndex = 0; cutIndex < clusterer.getCuts().getValues().length; cutIndex++) {
             logger.config("  " + this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
         }            
-        logger.config("initializing clusterer");
+        logger.config("initializing clusterer " + clusterer.getClass().getName());
         this.clusterer.initialize();
     }
     
@@ -211,6 +237,19 @@ public class ClusterDriver extends Driver {
                 flags = 1 << LCIOConstants.CLBIT_HITS;
             }
             if (!clusters.isEmpty() || this.createEmptyClusterCollection) {
+                if (sortHits) {
+                    // Sort the hits.
+                    ClusterUtilities.sortReconClusterHits(clusters);
+                }
+                if (calculateProperties) {
+                    // Calculate properties using default property calculator.
+                    ClusterUtilities.calculateProperties(clusters);
+                }
+                if (applyCorrections) {
+                    // Apply additional position and energy corrections.
+                    ClusterUtilities.applyCorrections(clusters);
+                }
+                                                
                 logger.finer("writing " + clusters.size() + " clusters to collection " + outputClusterCollectionName);
                 event.put(outputClusterCollectionName, clusters, Cluster.class, flags);
                 if (!this.writeClusterCollection) {
