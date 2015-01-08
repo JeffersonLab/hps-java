@@ -518,10 +518,9 @@ public class ReconClusterer extends AbstractClusterer {
             } // End cluster loop
             // System.out.println("Number of clusters: "+clusterList.size());
         } // End event output loop.        
-        ClusterUtilities.sortReconClusterHits(clusterList);
         return clusterList;
     }
-
+    
     private static class EnergyComparator implements Comparator<CalorimeterHit> {
         /**
          * Compares the first hit with respect to the second. This method will compare hits first by
@@ -544,9 +543,11 @@ public class ReconClusterer extends AbstractClusterer {
 
             // Perform the energy comparison. The higher energy hit
             // will be ordered first.
-            if (e[0] < e[1]) {
+            if (e[0] < e[1]) { 
+                // FIXME: This should return -1 instead.
                 return 1;
             } else if (e[0] > e[1]) {
+                // FIXME: This should return 1.
                 return -1;
             }
 
