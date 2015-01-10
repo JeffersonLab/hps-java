@@ -64,13 +64,13 @@ public class EcalConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        if (event.hasCollection(HPSRawCalorimeterHit.class, rawCollectionName)) {
+        if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
             // Get the list of ECal hits.
-            List<HPSRawCalorimeterHit> hits = event.get(HPSRawCalorimeterHit.class, rawCollectionName);
+            List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
 
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
 
-            for (HPSRawCalorimeterHit hit : hits) {
+            for (RawCalorimeterHit hit : hits) {
                 newHits.add(HitDtoA(hit));
             }
 

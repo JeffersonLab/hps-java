@@ -5,10 +5,10 @@ import hep.aida.IHistogram1D;
 
 import java.util.List;
 
-import org.hps.recon.ecal.HPSRawCalorimeterHit;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -78,13 +78,13 @@ public class HPSEcalFADCPlotsDriver extends Driver {
 			throw new RuntimeException("Missing hit collection!");
 
 		if (rawCollectionName != null) {
-			List<HPSRawCalorimeterHit> rawHits = event.get(HPSRawCalorimeterHit.class, rawCollectionName);
+			List<RawCalorimeterHit> rawHits = event.get(RawCalorimeterHit.class, rawCollectionName);
 			if (rawHits == null)
 				throw new RuntimeException("Missing hit collection!");
 
-			for (HPSRawCalorimeterHit hit : rawHits) {
+			for (RawCalorimeterHit hit : rawHits) {
 				rawE.fill(hit.getAmplitude());
-				window_E.fill(hit.getAmplitude(),hit.getWindowSize());
+				//window_E.fill(hit.getAmplitude(),hit.getWindowSize());
 			}
 		}
 
