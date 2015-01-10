@@ -6,6 +6,7 @@ import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 
 /**
  * This is an interface for creating clusters and providing cut values
@@ -51,4 +52,23 @@ public interface Clusterer extends ConditionsListener {
      * @return The numerical cut settings.
      */
     NumericalCuts getCuts();
+    
+    /**
+     * Get the type of <code>Cluster</code> created by this algorithm.
+     * @return The type of the Cluster.
+     */
+    ClusterType getClusterType();
+    
+    /**
+     * Get the integer encoding of the <code>Cluster</code> type.
+     * This is a convenience method, and it is declared as final in the abstract implementation.
+     * @return The integer encoding of the Cluster type.
+     */
+    int getClusterTypeEncoding();
+    
+    /**
+     * Create a basic <code>Cluster</code> with the correct type for this algorithm. 
+     * @return The basic Cluster.
+     */
+    BaseCluster createBasicCluster();
 }

@@ -107,7 +107,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
             }
             if (biggestSeed == null) { // if no neighbors had more energy than this hit, this hit is a seed
                 hitToSeed.put(hit, hit);
-                BaseCluster cluster = new BaseCluster();
+                BaseCluster cluster = createBasicCluster();
                 clusters.add(cluster);
                 seedToCluster.put(hit, cluster);
             } else {
@@ -123,5 +123,10 @@ public class SimpleReconClusterer extends AbstractClusterer {
         }
         
         return clusters;
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.SIMPLE_RECON;
     }
 }

@@ -24,6 +24,9 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  */
 public final class ClusterUtilities {
     
+    // Use the HPS specific property calculator.
+    private static final ReconClusterPropertyCalculator propertyCalculator = new ReconClusterPropertyCalculator();
+    
     private ClusterUtilities() {        
     }
 
@@ -326,10 +329,7 @@ public final class ClusterUtilities {
      * @see ReconClusterEnergyCorrection
      */
     public static void applyCorrections(List<Cluster> clusters) {
-        
-        // Use the HPS specific property calculator.
-        ReconClusterPropertyCalculator calc = new ReconClusterPropertyCalculator();
-        
+                
         // Loop over the clusters.
         for (Cluster cluster : clusters) {
             
@@ -340,7 +340,7 @@ public final class ClusterUtilities {
                 // First calculate the cluster properties, if needed.
                 if (baseCluster.needsPropertyCalculation()) {                
                     // Calculate the properties of the cluster.
-                    baseCluster.setPropertyCalculator(calc);
+                    baseCluster.setPropertyCalculator(propertyCalculator);
                     baseCluster.calculateProperties();
                 }
             
@@ -351,6 +351,31 @@ public final class ClusterUtilities {
                 ReconClusterEnergyCorrection.setCorrectedEnergy(baseCluster);
             }
         }
+    }
+    
+    /**
+     * Apply HPS-specific energy and position corrections to a single Cluster.
+     * 
+     * @see ReconClusterPropertyCalculator
+     * @see ReconClusterPositionCorrection
+     * @see ReconClusterEnergyCorrection
+     */
+    public static void applyCorrections(Cluster cluster) {
+
+        BaseCluster baseCluster = (BaseCluster)cluster;            
+
+        // First calculate the cluster properties, if needed.
+        if (baseCluster.needsPropertyCalculation()) {                
+            // Calculate the properties of the cluster.
+            baseCluster.setPropertyCalculator(propertyCalculator);
+            baseCluster.calculateProperties();
+        }
+
+        // Apply position correction, which should happen before final energy correction.
+        ReconClusterPositionCorrection.setCorrectedPosition(baseCluster);
+
+        // Apply energy correction.
+        ReconClusterEnergyCorrection.setCorrectedEnergy(baseCluster);              
     }
     
     /**

@@ -39,6 +39,42 @@ public class ClustererTest extends TestCase {
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
+    
+    static class ClustererTestSetup {
+        
+        boolean writeLcioFile = false;
+        boolean checkSeedHit = false;
+        boolean applyCorrections = false;        
+        double[] cuts = null;
+        ClusterType clusterType; 
+        
+        ClustererTestSetup(double[] cuts) {
+            this.cuts = cuts;            
+        }
+        
+        ClustererTestSetup() {            
+        }
+        
+        ClustererTestSetup writeLcioFile() {
+            writeLcioFile = true;
+            return this;
+        }
+        
+        ClustererTestSetup checkSeedHit() {
+            checkSeedHit = true;
+            return this;
+        }
+        
+        ClustererTestSetup applyCorrections() {
+            applyCorrections = true;
+            return this;
+        }        
+        
+        ClustererTestSetup checkClusterType(ClusterType clusterType) {
+            this.clusterType = clusterType;
+            return this;
+        }
+    }
          
     public void setUp() {
         // Cache the input file.
@@ -57,36 +93,60 @@ public class ClustererTest extends TestCase {
         DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
     }
     
-    public void testReconClusterer() {
-        //runClustererTest("ReconClusterer", new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 }, true);
-        runClustererTest("ReconClusterer", null, true, true);
+    /**
+     * Test the recon clustering algorithm, formerly called the IC clusterer.
+     */
+    public void testReconClusterer() {        
+        runClustererTest("ReconClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkSeedHit().applyCorrections().checkClusterType(ClusterType.RECON));
     }
     
+    /**
+     * Test a simple version of the recon clustering.
+     */
     public void testSimpleReconClusterer() {
-        //runClustererTest("SimpleReconClusterer", new double[] { 0.0, 0.0, 9999.0, 0. }, true);
-        runClustererTest("SimpleReconClusterer", null, true, true);
+        runClustererTest("SimpleReconClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.SIMPLE_RECON));
     }
     
+    /**
+     * Test a simplistic NN clustering algorithm.
+     */
     public void testNearestNeighborClusterer() {    
-        //runClustererTest("NearestNeighborClusterer", new double[] { 0.0, 2.0 }, true);
-        runClustererTest("NearestNeighborClusterer", null, true, false);
+        runClustererTest("NearestNeighborClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.NN));
     }
     
+    /**
+     * Test the clustering algorithm from the Test Run proposal document.
+     */
     public void testLegacyClusterer() {
-        //runClustererTest("LegacyClusterer", new double[] { 0.0, 0.0 }, true);
-        runClustererTest("LegacyClusterer", null, true, false);
+        runClustererTest("LegacyClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.LEGACY));
     }
     
+    /**
+     * Test the online version of the GTP algorithm.
+     */
     public void testGTPOnlineClusterer() {
-        runClustererTest("GTPOnlineClusterer", null, true, true);
+        runClustererTest("GTPOnlineClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.GTP_ONLINE));
     }
     
+    /**
+     * Test the CTP clustering algorithm.
+     */
     public void testCTPClusterer() {
-        runClustererTest("CTPClusterer", null, true, false);
+        runClustererTest("CTPClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.CTP));
     }
     
+    /**
+     * Test the GTP clustering algorithm.
+     */
     public void testGTPClusterer() {
-        runClustererTest("GTPClusterer", null, true, false);
+        runClustererTest("GTPClusterer", 
+                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.GTP));
     }
     
     /**
@@ -95,7 +155,7 @@ public class ClustererTest extends TestCase {
      * @param cuts The cut values.
      * @param writeLcioFile Whether or not to write an LCIO output file.
      */
-    private void runClustererTest(String clustererName, double[] cuts, boolean writeLcioFile, boolean checkSeedHit) {
+    private void runClustererTest(String clustererName, ClustererTestSetup setup) {
         
         System.out.println("testing Clusterer " + clustererName + " ...");
                 
@@ -117,8 +177,8 @@ public class ClustererTest extends TestCase {
         String clusterCollectionName = clustererName + "Clusters";
         ClusterDriver clusterDriver = new ClusterDriver();
         clusterDriver.setClustererName(clustererName);
-        if (cuts != null) {
-            clusterDriver.setCuts(cuts);
+        if (setup.cuts != null) {
+            clusterDriver.setCuts(setup.cuts);
         }
         clusterDriver.getLogger().setLevel(Level.ALL);
         clusterDriver.setInputHitCollectionName("EcalHits");       
@@ -126,13 +186,14 @@ public class ClustererTest extends TestCase {
         clusterDriver.setRaiseErrorNoHitCollection(true);
         clusterDriver.setCalculateProperties(true);
         clusterDriver.setSortHits(true);
+        clusterDriver.setApplyCorrections(setup.applyCorrections);
         clusterDriver.getLogger().setLevel(Level.CONFIG);
         loop.add(clusterDriver);                         
         
         // This Driver generates plots and the output LCIO file.
-        loop.add(new ClusterCheckDriver(clusterCollectionName, checkSeedHit));
+        loop.add(new ClusterCheckDriver(clusterCollectionName, setup.checkSeedHit, setup.clusterType));
         
-        if (writeLcioFile) {
+        if (setup.writeLcioFile) {
             loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName + ".slcio"));
         }
         
@@ -177,10 +238,12 @@ public class ClustererTest extends TestCase {
         String clusterCollectionName;
         String clustererName;        
         boolean checkSeedHit = true;
+        ClusterType clusterType;
         
-        ClusterCheckDriver(String clusterCollectionName, boolean checkSeedHit) {
+        ClusterCheckDriver(String clusterCollectionName, boolean checkSeedHit, ClusterType clusterType) {
             this.clusterCollectionName = clusterCollectionName;
             this.checkSeedHit = checkSeedHit;
+            this.clusterType = clusterType;
         }        
         
         public void startOfData() {
@@ -212,6 +275,9 @@ public class ClustererTest extends TestCase {
                     assertEquals("First hit is not seed.", cluster.getCalorimeterHits().get(0), ClusterUtilities.findHighestEnergyHit(cluster));
                 }
                 assertTrue("Cluster properties not calculated.", !((BaseCluster)cluster).needsPropertyCalculation());
+                if (clusterType != null) {
+                    assertEquals("Cluster type is not correct.", clusterType, ClusterType.getClusterType(cluster.getType()));
+                }
                 energyH1D.fill(cluster.getEnergy());
                 double rawEnergy = ClusterUtilities.computeRawEnergy(cluster);
                 uncorrectedEnergyH1D.fill(rawEnergy);

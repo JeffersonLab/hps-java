@@ -113,5 +113,9 @@ public class DualThresholdCosmicClusterer extends SimpleCosmicClusterer {
         }        
         return set;
     }
-    
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.DUAL_THRESHOLD_COSMIC;
+    }    
 }

@@ -8,6 +8,7 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 
@@ -71,6 +72,20 @@ public abstract class AbstractClusterer implements Clusterer {
     public abstract List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits);
     
     /**
+     * Get the type code for the clusters produced by this algorithm.
+     * @return The type code of the cluster.
+     */
+    public abstract ClusterType getClusterType();
+    
+    /**
+     * Get the integer encoding of the <code>Cluster</code> type.
+     * @return The integer encoding of the Cluster type.
+     */
+    public final int getClusterTypeEncoding() {
+        return getClusterType().getType();
+    }
+    
+    /**
      * Detector setup performed here to get reference to ECAL subdetector and neighbor mapping.
      */
     @Override
@@ -92,7 +107,7 @@ public abstract class AbstractClusterer implements Clusterer {
      * Get the numerical cut settings.
      * @return The numerical cuts.
      */
-    public NumericalCuts getCuts() {
+    public final NumericalCuts getCuts() {
         return this.cuts;
     }
     
@@ -100,7 +115,16 @@ public abstract class AbstractClusterer implements Clusterer {
      * Convenience method to get the identifier helper from the ECAL subdetector.
      * @return The identifier helper.
      */
-    protected IIdentifierHelper getIdentifierHelper() {
+    protected final IIdentifierHelper getIdentifierHelper() {
         return ecal.getDetectorElement().getIdentifierHelper();
+    }
+    
+    /**
+     * Create a basic <code>Cluster</code> with the correct type.
+     */
+    public BaseCluster createBasicCluster() {
+        BaseCluster cluster = new BaseCluster();
+        cluster.setType(getClusterType().getType());
+        return cluster;
     }
 }

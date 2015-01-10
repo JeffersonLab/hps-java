@@ -480,8 +480,12 @@ public class ReconClusterer extends AbstractClusterer {
                     }
 
                     else {
+                        
+                        // FIXME: All of the following should be converted to use the BaseCluster API. --JM
+                        
                         // New cluster
                         HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
+                        cluster.setType(this.getClusterTypeEncoding());
                         clusterList.add(cluster);
                         // Loop over hits belonging to seeds
                         for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
@@ -616,6 +620,10 @@ public class ReconClusterer extends AbstractClusterer {
             isSeed = false;
         }
         return isSeed;
+    }
+    
+    public ClusterType getClusterType() {
+        return ClusterType.RECON;
     }
     
 }

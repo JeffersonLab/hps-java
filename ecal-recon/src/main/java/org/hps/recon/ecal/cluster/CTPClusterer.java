@@ -304,7 +304,7 @@ public class CTPClusterer extends AbstractClusterer {
                 CalorimeterHit seedHit = (BaseCalorimeterHit)CalorimeterHitUtilities.create(0.0, clusterTime, possibleCluster, hits.get(0).getMetaData());
 
                 // Generate a new cluster from the seed hit.
-                BaseCluster cluster = new BaseCluster();
+                BaseCluster cluster = createBasicCluster();
                 cluster.addHit(seedHit);
                 // Populate the cluster with each of the chosen neighbors.
                 for (CalorimeterHit clusterHit : hits) {
@@ -328,5 +328,10 @@ public class CTPClusterer extends AbstractClusterer {
                 return (o1.getTime() > o2.getTime()) ? 1 : -1;
             }
         }
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.CTP;
     }
 }

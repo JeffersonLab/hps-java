@@ -120,7 +120,7 @@ public class GTPClusterer extends AbstractClusterer {
             
             // Store the crystals that are part of this potential cluster, 
             // starting with the cluster seed candidate.
-            BaseCluster cluster = new BaseCluster();            
+            BaseCluster cluster = createBasicCluster();            
             cluster.addHit(currentHit);
             
             // Get the set of neighbors for this hit.
@@ -267,5 +267,10 @@ public class GTPClusterer extends AbstractClusterer {
         else {
             this.seedEnergyThreshold = seedEnergyThreshold;
         }
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.GTP;
     }     
 }

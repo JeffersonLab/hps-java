@@ -59,7 +59,7 @@ public class NearestNeighborClusterer extends AbstractClusterer {
      * @param neighborMap The map of HPS crystal neighbors.
      */    
     BaseCluster createCluster(Map<Long, CalorimeterHit> map, CalorimeterHit hit) {
-        BaseCluster cluster = new BaseCluster();
+        BaseCluster cluster = createBasicCluster();
         // start by adding this hit to the cluster
         cluster.addHit(hit);
         // remove this hit from the map so it can't be used again
@@ -87,5 +87,9 @@ public class NearestNeighborClusterer extends AbstractClusterer {
             }
         }
         return cluster;
+    }
+    
+    public ClusterType getClusterType() {
+        return ClusterType.NN;
     }
 }

@@ -155,5 +155,10 @@ public class SimpleCosmicClusterer extends AbstractClusterer {
             }
         }
         return selectedClusters;
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.SIMPLE_COSMIC;
     }    
 }

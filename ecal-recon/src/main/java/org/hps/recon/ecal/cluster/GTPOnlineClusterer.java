@@ -112,7 +112,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 }
 
                 // Create a cluster for the potential seed.
-                BaseCluster protoCluster = new BaseCluster();
+                BaseCluster protoCluster = createBasicCluster();
                 protoCluster.addHit(seed);
 
                 // Iterate over the other hits and if the are within
@@ -352,5 +352,10 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     public void setWindowAfter(int cyclesAfter) {
         timeAfter = cyclesAfter * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.GTP_ONLINE;
     }
 }

@@ -80,7 +80,7 @@ public class LegacyClusterer extends AbstractClusterer {
             // Did we find a seed?
             if (isSeed) {
                 // Make a cluster from the hit list.
-                BaseCluster cluster = new BaseCluster();
+                BaseCluster cluster = createBasicCluster();
                 cluster.addHit(hit);
                 for (CalorimeterHit clusHit : neighborHits) {
                     cluster.addHit(clusHit);
@@ -89,5 +89,10 @@ public class LegacyClusterer extends AbstractClusterer {
             }
         }
         return clusters;
+    }
+
+    @Override
+    public ClusterType getClusterType() {
+        return ClusterType.LEGACY;
     }
 }

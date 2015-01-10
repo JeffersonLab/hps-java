@@ -44,9 +44,9 @@ public class ClusterDriver extends Driver {
     protected boolean writeClusterCollection = true;
     protected boolean storeHits = true;
     protected double[] cuts;
-    protected boolean sortHits = true;
-    protected boolean calculateProperties = true;
-    protected boolean applyCorrections = false;
+    protected boolean sortHits;
+    protected boolean calculateProperties;
+    protected boolean applyCorrections;
     
     /**
      * No argument constructor.
