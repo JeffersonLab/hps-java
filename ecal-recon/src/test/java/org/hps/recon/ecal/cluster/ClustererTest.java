@@ -35,7 +35,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ClustererTest extends TestCase {
     
-    static int nEvents = 1000;
+    static int nEvents = 100;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
@@ -48,11 +48,11 @@ public class ClustererTest extends TestCase {
             throw new RuntimeException(e);
         }
         
-        // Create test output dir.
+        // Create test output directory.
         testOutputDir = new TestOutputFile(getClass().getSimpleName());
         testOutputDir.mkdir();        
         
-        // Initialize conditions system.
+        // Initialize the conditions system.
         new DatabaseConditionsManager();
         DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
     }
@@ -79,6 +79,14 @@ public class ClustererTest extends TestCase {
     
     public void testGTPOnlineClusterer() {
         runClustererTest("GTPOnlineClusterer", null, true, true);
+    }
+    
+    public void testCTPClusterer() {
+        runClustererTest("CTPClusterer", null, true, false);
+    }
+    
+    public void testGTPClusterer() {
+        runClustererTest("GTPClusterer", null, true, false);
     }
     
     /**

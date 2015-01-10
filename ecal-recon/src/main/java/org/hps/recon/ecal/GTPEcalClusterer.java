@@ -30,7 +30,10 @@ import org.lcsim.util.Driver;
  * either at the same location as the seed hit or is a neighbor to the seed hit.
  * @author Kyle McCarty
  * @author Sho Uemura
+ * 
+ * @deprecated Use the {@link org.hps.recon.ecal.cluster.GTPClusterDriver} instead.
  */
+@Deprecated
 public class GTPEcalClusterer extends Driver {
 	Detector detector = null;
 	
