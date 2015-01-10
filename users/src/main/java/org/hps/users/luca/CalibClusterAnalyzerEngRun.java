@@ -12,6 +12,13 @@ import hep.aida.IHistogram1D;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -28,8 +35,8 @@ public class CalibClusterAnalyzerEngRun extends Driver  {
     private FileWriter writer;
     private FileWriter writer2;
     private FileWriter writer3;
-    String outputFileName = "CalibClusterAnalyzerEngRunGTP.txt";
-    String outputFileName2 = "CalibClusterAnalyzerEngRunIC.txt";
+    String outputFileName = "CalibClusterAnalyzerEngRunGTPtest.txt";
+    String outputFileName2 = "CalibClusterAnalyzerEngRunICtest.txt";
     String outputFileName3 = "CalibClusterAnalyzerEngRunHIT.txt";
     public void setEnergyThreshold (double threshold){
     this.energyThreshold=threshold;
@@ -46,6 +53,9 @@ public class CalibClusterAnalyzerEngRun extends Driver  {
   }
    @Override   
 public void startOfData(){
+    
+    
+    
     try{
     //initialize the writers
     writer=new FileWriter(outputFileName);
@@ -77,6 +87,8 @@ catch(IOException e){
 } 
     @Override
     public void process (EventHeader event){
+        EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        EcalChannelCollection channels = ecalConditions.getChannelCollection();
         //here it writes the GTP clusters info
         if(event.hasCollection(Cluster.class,"EcalClustersGTP"))
         {List<Cluster> clusters= event.get(Cluster.class,"EcalClustersGTP");
@@ -85,8 +97,11 @@ catch(IOException e){
            int idFront;
            idFront=getCrystalFront(cluster);
            idBack=getCrystal(cluster);
+           EcalChannel channel = channels.findGeometric(cluster.getCalorimeterHits().get(0).getCellID());
+           EcalChannelConstants channelConstants = ecalConditions.getChannelConstants(channel);
+          //. System.out.println(channelConstants.getGain().getGain() + " ot asil cristallo " + idBack+  " \n ");
            try{
-            writer.append(idBack + " " + idFront + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getCorrectedEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") + "\n");
+            writer.append(idBack + " " + idFront + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getCorrectedEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") +  " " + channelConstants.getGain().getGain() + "\n");
             }
            catch(IOException e ){System.err.println("Error writing to output for event display");}   
          }
@@ -94,20 +109,23 @@ catch(IOException e){
         //here it writes the ICCluster info
         if(event.hasCollection(Cluster.class,"EcalClustersIC"))
         {List<Cluster> clusters= event.get(Cluster.class,"EcalClustersIC");
+        ClusterUtilities.sortReconClusterHits(clusters); 
          for(Cluster cluster : clusters){
+         EcalChannel channel = channels.findGeometric(cluster.getCalorimeterHits().get(0).getCellID());
+           EcalChannelConstants channelConstants = ecalConditions.getChannelConstants(channel);    
            int idBack;
            int idFront;
            idFront=getCrystalFront(cluster);
            idBack=getCrystal(cluster);
            try{
-            writer2.append(idBack + " "+ idFront + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getCorrectedEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") + "\n");
+            writer2.append(idBack + " "+ idFront + " " + cluster.getEnergy()+ " " + cluster.getSize() + " " + cluster.getCalorimeterHits().get(0).getCorrectedEnergy() + " " + cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix")+" " +cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy") + " " + channelConstants.getGain().getGain() + "\n");
             }
            catch(IOException e ){System.err.println("Error writing to output for event display");}   
          }
         }
         
         //here it writes the hit info
-        if(event.hasCollection(CalorimeterHit.class,"EcalCalHits"))
+     /*   if(event.hasCollection(CalorimeterHit.class,"EcalCalHits"))
         {List<CalorimeterHit> hits= event.get(CalorimeterHit.class,"EcalCalHits");
          for(CalorimeterHit hit : hits){
            int idBack;
@@ -121,7 +139,7 @@ catch(IOException e){
          }
         }
         
-        
+       */ 
     
     }
     
