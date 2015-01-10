@@ -25,7 +25,7 @@ public class ReconClusterDriver extends ClusterDriver {
             
     public ReconClusterDriver() {
         clusterer = ClustererFactory.create("ReconClusterer");
-        //this.applyCorrections = true;
+        this.applyCorrections = true;
     }
     
     public void setClusterer(Clusterer clusterer) {
