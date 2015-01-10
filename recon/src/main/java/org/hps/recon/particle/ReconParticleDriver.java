@@ -4,9 +4,13 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.HepLorentzVector;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.hps.recon.ecal.HPSEcalClusterIC;
+import org.hps.recon.ecal.cluster.ClusterType;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
@@ -14,6 +18,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -262,13 +267,13 @@ public abstract class ReconParticleDriver extends Driver {
             // If a cluster was found that matches the track...
             if (matchedCluster != null) {
 
-                if (matchedCluster instanceof HPSEcalClusterIC) {
+                if (matchedCluster.getType() == ClusterType.RECON.getType()) {
                     int pid = particle.getParticleIDUsed().getPDG();
-                    if (pid == -11) {
-                        ((HPSEcalClusterIC) matchedCluster).setParticleID(pid);
-                    }// End of cluster position/energy corrections. 
-                    else if (pid == 11) {
-                        ((HPSEcalClusterIC) matchedCluster).setParticleID(pid);
+                    // Is cluster from an electron or positron?
+                    if (pid == -11 || pid == 11) {
+                        // Set PID and apply corrections.
+                        ((BaseCluster) matchedCluster).setParticleId(pid);
+                        ClusterUtilities.applyCorrections(matchedCluster);
                     }
                 }
 
@@ -310,12 +315,15 @@ public abstract class ReconParticleDriver extends Driver {
                 // The particle is assumed to be a photon, since it
                 // did not leave any track.
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
-
-                if (unmatchedCluster instanceof HPSEcalClusterIC) {
+                
+                if (unmatchedCluster.getType() == ClusterType.RECON.getType()) {
                     int pid = particle.getParticleIDUsed().getPDG();
+                    // If not electron....
                     if (pid != 11) {
-                        ((HPSEcalClusterIC) unmatchedCluster).setParticleID(pid);
-                    }// End of cluster position/energy corrections. 
+                        // Set PID and apply corrections.
+                        ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                        ClusterUtilities.applyCorrections(unmatchedCluster);
+                    }
                 }
 
                 // Add the particle to the reconstructed particle list.
