@@ -15,6 +15,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
 
 public class RawPedestalComputator extends Driver {
 
@@ -59,9 +60,9 @@ public class RawPedestalComputator extends Driver {
             for (RawTrackerHit hit : hits) {
                 row = hit.getIdentifierFieldValue("iy");
                 column = hit.getIdentifierFieldValue("ix");
-                ii = ECalUtils.getHistoIDFromRowColumn(row, column);
+                ii = EcalMonitoringUtilities.getHistoIDFromRowColumn(row, column);
                 if ((row != 0) && (column != 0)) {
-                    if (!ECalUtils.isInHole(row, column)) {
+                    if (!EcalMonitoringUtilities.isInHole(row, column)) {
                         if (isFirstRaw[ii]) { // at the very first hit we read for this channel, we need to read the window length and save it
                             isFirstRaw[ii] = false;
                             windowRaw[ii] = hit.getADCValues().length;
@@ -84,9 +85,9 @@ public class RawPedestalComputator extends Driver {
 
             for (int ii = 0; ii < 11 * 47; ii++) {
                 int row, column;
-                row = ECalUtils.getRowFromHistoID(ii);
-                column = ECalUtils.getColumnFromHistoID(ii);
-                if (ECalUtils.isInHole(row, column))
+                row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+                column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+                if (EcalMonitoringUtilities.isInHole(row, column))
                     continue;
                 if ((row == 0) || (column == 0))
                     continue;

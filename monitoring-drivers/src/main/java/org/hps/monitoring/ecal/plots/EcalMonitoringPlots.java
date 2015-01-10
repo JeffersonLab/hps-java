@@ -92,8 +92,8 @@ public class EcalMonitoringPlots extends Driver {
       
         NoccupancyFill=1; //to avoid a "NaN" at beginning
         for (int ii = 0; ii < (11 * 47); ii++) {
-            int row = ECalUtils.getRowFromHistoID(ii);
-            int column = ECalUtils.getColumnFromHistoID(ii);
+            int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+            int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
             occupancyFill[ii]=0;
         }
 
@@ -145,7 +145,7 @@ public class EcalMonitoringPlots extends Driver {
             for (CalorimeterHit hit : hits) {
                 int column = hit.getIdentifierFieldValue("ix");
                 int row = hit.getIdentifierFieldValue("iy");
-                int id = ECalUtils.getHistoIDFromRowColumn(row, column);
+                int id = EcalMonitoringUtilities.getHistoIDFromRowColumn(row, column);
                 hitCountFillPlot.fill(column, row);
                 {
                  chits[id]++;
@@ -202,12 +202,12 @@ public class EcalMonitoringPlots extends Driver {
         
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
-            int row = ECalUtils.getRowFromHistoID(id);
-            int column = ECalUtils.getColumnFromHistoID(id);
+            int row = EcalMonitoringUtilities.getRowFromHistoID(id);
+            int column = EcalMonitoringUtilities.getColumnFromHistoID(id);
             double mean = occupancyFill[id]/NoccupancyFill;
             
             occupancyFill[id]=0;
-            if ((row != 0) && (column != 0) && (!ECalUtils.isInHole(row, column)))
+            if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
                 occupancyDrawPlot.fill(column, row, mean);
         }
         plotter.region(2).clear();

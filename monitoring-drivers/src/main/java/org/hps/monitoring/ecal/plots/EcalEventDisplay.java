@@ -169,8 +169,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 			// for possibly different raw waveform dimensions!
 			
 			//Get the x and y indices for the current channel.
-			int row = ECalUtils.getRowFromHistoID(ii);
-			int column = ECalUtils.getColumnFromHistoID(ii);
+			int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+			int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
 			
 			// Initialize the histograms for the current crystal channel.
 			channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : "
@@ -311,7 +311,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 				
 				if (iy != 0 && ix != 0) {
 					// Get the histogram index for the hit.
-					int id = ECalUtils.getHistoIDFromRowColumn(iy, ix);
+					int id = EcalMonitoringUtilities.getHistoIDFromRowColumn(iy, ix);
 					
 					// If the hit has energy, populate the plots.
 					if(hit.getCorrectedEnergy() > 0) {
@@ -340,7 +340,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 				int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
 				
 				// Get the histogram index for the hit.
-				int id = ECalUtils.getHistoIDFromRowColumn(iy, ix);
+				int id = EcalMonitoringUtilities.getHistoIDFromRowColumn(iy, ix);
 				
 				// Add the cluster energy to the plot.
 				if(cluster.getEnergy() > 0.0) {
@@ -429,9 +429,9 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 		
 		// Make sure that the clicked crystal is valid. Necessary??
 		if((ecalPoint.x != 0) && (ecalPoint.y != 0))
-			if (!ECalUtils.isInHole(ecalPoint.y, ecalPoint.x)) {
+			if (!EcalMonitoringUtilities.isInHole(ecalPoint.y, ecalPoint.x)) {
 				// Get the crystal ID.
-				int id = ECalUtils.getHistoIDFromRowColumn(ecalPoint.y, ecalPoint.x);
+				int id = EcalMonitoringUtilities.getHistoIDFromRowColumn(ecalPoint.y, ecalPoint.x);
 				
 				// Clear and replot region 0 for the new crystal.
 				plotter.region(0).clear();
