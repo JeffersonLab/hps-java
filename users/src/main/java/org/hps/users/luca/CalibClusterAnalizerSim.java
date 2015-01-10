@@ -65,7 +65,7 @@ public void startOfData(){
 public void endOfData(){
   
     try{
-//close the file writer.
+    //close the file writer.
     writer.close();
     //writer2.close();
     }
