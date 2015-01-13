@@ -21,7 +21,7 @@ import org.lcsim.event.base.AbstractClusterPropertyCalculator;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ReconClusterPropertyCalculator extends AbstractClusterPropertyCalculator {
+public final class DefaultClusterPropertyCalculator extends AbstractClusterPropertyCalculator {
 
     static final double eCriticalW = 800.0 * ECalUtils.MeV / (74 + 1);
     static final double radLenW = 8.8; // mm
@@ -43,7 +43,7 @@ public final class ReconClusterPropertyCalculator extends AbstractClusterPropert
      * <p>
      * Perform the cluster property calculations, which sets this object's state.
      * <p>
-     * Copied and modified from 
+     * This algorithm is copied and modified from 
      * {@link org.lcsim.event.base.TensorClusterPropertyCalculator#calculateProperties(List)}.
      */    
     public void calculateProperties(Cluster cluster) {

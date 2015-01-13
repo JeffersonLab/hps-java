@@ -11,7 +11,7 @@ import org.lcsim.event.base.BaseCluster;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ReconClusterPositionCorrection {
+public final class ClusterPositionCorrection {
            
     // Variables for electron position corrections.
     static final double ELECTRON_POS_A = 0.0066;

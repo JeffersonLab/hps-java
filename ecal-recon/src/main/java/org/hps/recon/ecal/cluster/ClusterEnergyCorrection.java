@@ -8,7 +8,7 @@ import org.lcsim.event.base.BaseCluster;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ReconClusterEnergyCorrection {
+public final class ClusterEnergyCorrection {
         
     // Variables for electron energy corrections.
     static final double ELECTRON_ENERGY_A = -0.0027;
