@@ -11,17 +11,24 @@ import org.lcsim.util.Driver;
 import hep.aida.IHistogram1D;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.readout.ecal.FADCEcalReadoutDriver;
+import org.hps.readout.ecal.RingBuffer;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
+import org.lcsim.geometry.subdetector.HPSEcal3;
 
 
 /**
@@ -38,9 +45,14 @@ public class CalibClusterAnalyzerEngRun extends Driver  {
     String outputFileName = "CalibClusterAnalyzerEngRunGTPtest.txt";
     String outputFileName2 = "CalibClusterAnalyzerEngRunICtest.txt";
     String outputFileName3 = "CalibClusterAnalyzerEngRunHIT.txt";
+    private EcalConditions ecalConditions = null;
+    private String ecalName = "Ecal";
+    private Subdetector ecal;
+    private EcalChannelCollection channels= null;
+    
     public void setEnergyThreshold (double threshold){
     this.energyThreshold=threshold;
-    }
+       }
   
   public void setOutputFileName(String outputFileName){
   this.outputFileName = outputFileName;
@@ -51,6 +63,23 @@ public class CalibClusterAnalyzerEngRun extends Driver  {
   public void setOutputFileName3(String outputFileName3){
   this.outputFileName3 = outputFileName3;
   }
+  
+  
+  
+@Override
+    public void detectorChanged(Detector detector) {
+        // Get the Subdetector.
+        ecal = detector.getSubdetector(ecalName);
+        
+      /*  // ECAL combined conditions object.
+        ecalConditions = ConditionsManager.defaultInstance()
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();*/
+        
+        
+        
+         ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+         channels = ecalConditions.getChannelCollection();
+    }  
    @Override   
 public void startOfData(){
     
@@ -87,8 +116,9 @@ catch(IOException e){
 } 
     @Override
     public void process (EventHeader event){
-        EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-        EcalChannelCollection channels = ecalConditions.getChannelCollection();
+        
+       // EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+       // EcalChannelCollection channels = ecalConditions.getChannelCollection();
         //here it writes the GTP clusters info
         if(event.hasCollection(Cluster.class,"EcalClustersGTP"))
         {List<Cluster> clusters= event.get(Cluster.class,"EcalClustersGTP");
@@ -97,6 +127,7 @@ catch(IOException e){
            int idFront;
            idFront=getCrystalFront(cluster);
            idBack=getCrystal(cluster);
+           //EcalChannelCollection channels = ecalConditions.getChannelCollection();
            EcalChannel channel = channels.findGeometric(cluster.getCalorimeterHits().get(0).getCellID());
            EcalChannelConstants channelConstants = ecalConditions.getChannelConstants(channel);
           //. System.out.println(channelConstants.getGain().getGain() + " ot asil cristallo " + idBack+  " \n ");
@@ -143,7 +174,7 @@ catch(IOException e){
     
     }
     
-    
+ 
  public int getCrystal (Cluster cluster){
  int x,y,id=0;
  x= cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
