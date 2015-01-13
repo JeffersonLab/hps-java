@@ -344,6 +344,27 @@ public final class ClusterUtilities {
     }
     
     /**
+     * Apply HPS-specific energy and position corrections to a cluster.
+     * 
+     * @see DefaultClusterPropertyCalculator
+     * @see ClusterPositionCorrection
+     * @see ClusterEnergyCorrection
+     */
+    public static void applyCorrections(Cluster cluster) {
+                            
+        if (cluster instanceof BaseCluster) {
+            
+            BaseCluster baseCluster = (BaseCluster)cluster;            
+                        
+            // Apply PID based position correction, which should happen before final energy correction.
+            ClusterPositionCorrection.setCorrectedPosition(baseCluster);
+            
+            // Apply PID based energy correction.
+            ClusterEnergyCorrection.setCorrectedEnergy(baseCluster);
+        }        
+    }    
+    
+    /**
      * Call {@link org.lcsim.event.base.BaseCluster#calculateProperties()}
      * on all clusters in the list.
      * @param clusters The list of clusters.
