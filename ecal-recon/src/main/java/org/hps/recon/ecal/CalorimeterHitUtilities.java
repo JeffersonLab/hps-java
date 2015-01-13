@@ -1,8 +1,10 @@
 package org.hps.recon.ecal;
 
+import org.lcsim.detector.IGeometryInfo;
+import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.event.EventHeader.LCMetaData;
+import org.lcsim.event.base.BaseCalorimeterHit;
 
 /**
  * This is a simple set of utility methods for creating CalorimeterHit objects. 
@@ -31,4 +33,12 @@ public final class CalorimeterHitUtilities {
     public static final CalorimeterHit create(double energy, double time, long id, int type, LCMetaData metaData) {
         return new BaseCalorimeterHit(energy, energy, 0, time, id, null, type, metaData);
     }    
+    
+    public static EcalCrystal findCrystal(CalorimeterHit hit) {
+        return (EcalCrystal)hit.getMetaData().getIDDecoder().getSubdetector().getDetectorElement().findDetectorElement(hit.getIdentifier());
+    }
+    
+    public static IGeometryInfo findGeometryInfo(CalorimeterHit hit) {
+        return findCrystal(hit).getGeometry();
+    }
 }
