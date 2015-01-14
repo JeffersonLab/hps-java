@@ -1,9 +1,5 @@
 package org.hps.recon.ecal.cluster;
 
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
-
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.recon.ecal.HPSEcalClusterIC;
-import org.lcsim.detector.IGeometryInfo;
-import org.lcsim.detector.solids.Trd;
+import org.hps.recon.ecal.cluster.AbstractClusterer;
+import org.hps.recon.ecal.cluster.ClusterType;
+import org.hps.recon.ecal.cluster.Clusterer;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseCluster;
 
 /**
  * <p>
@@ -92,7 +89,7 @@ public class ReconClusterer extends AbstractClusterer {
         }
         clusterEnergyThreshold = getCuts().getValue("clusterEnergyThreshold");
         minTime = getCuts().getValue("minTime");
-        timeWindow = getCuts().getValue("timeWindow");
+        timeWindow = getCuts().getValue("timeWindow");      
     }
     
     /**
@@ -102,16 +99,12 @@ public class ReconClusterer extends AbstractClusterer {
     List<CalorimeterHit> getRejectedHitList() {
         return this.rejectedHitList;
     }
-
-    public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
-
+    
+   
+    public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {	
         // Create a list to store the event hits in.
-        List<CalorimeterHit> hitList = new ArrayList<CalorimeterHit>();
-        List<CalorimeterHit> baseList = hits;
-        for (CalorimeterHit r : baseList) {
-            hitList.add(r);
-        }
-
+        List<CalorimeterHit> hitList = hits;
+        
         // Create a list to store the newly created clusters in.
         ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
 
@@ -149,17 +142,21 @@ public class ReconClusterer extends AbstractClusterer {
         for (CalorimeterHit hit : hitList) {
             hitMap.put(hit.getCellID(), hit);
         }
+        
+        // Create a map to connect a seed hit to its cluster.
+        Map<CalorimeterHit, BaseCluster> seedToCluster = new HashMap<CalorimeterHit,BaseCluster>();
 
         // Map a crystal to a list of all clusters in which it is a member.
         Map<CalorimeterHit, List<CalorimeterHit>> commonHits = new HashMap<CalorimeterHit, List<CalorimeterHit>>();
 
         // Map a crystal to the seed of the cluster of which it is a member.
-        HashMap<CalorimeterHit, CalorimeterHit> hitSeedMap = new HashMap<CalorimeterHit, CalorimeterHit>();
+        HashMap<CalorimeterHit, CalorimeterHit> hitToSeed = new HashMap<CalorimeterHit, CalorimeterHit>();
 
         // Loop through all calorimeter hits to locate seeds and perform
-        // first pass calculations for component and common hits.
+        // first pass calculations for component and common hits.        
         for (int ii = 0; ii <= hitList.size() - 1; ii++) {
             CalorimeterHit hit = hitList.get(ii);
+           
             // Get the set of all neighboring crystals to the current hit.
             Set<Long> neighbors = neighborMap.get(hit.getCellID());
 
@@ -174,7 +171,7 @@ public class ReconClusterer extends AbstractClusterer {
                 CalorimeterHit neighborHit = hitMap.get(neighbor);
 
                 // If it exists, add it to the list.
-                if (neighborHit != null) {
+                if (neighborHit != null && hitList.contains(neighborHit)) {
                     neighborHits.add(neighborHit);
                 }
             }
@@ -191,31 +188,41 @@ public class ReconClusterer extends AbstractClusterer {
                     break seedHitLoop;
                 }
             }
-            // If this hit is a seed hit, just map it to itself.
-            if (isSeed && hit.getCorrectedEnergy() >= seedEnergyThreshold) {
-                hitSeedMap.put(hit, hit);
-            }
-
-            // If this hit is a local maximum but does not pass seed threshold,
-            // remove from hit list and do not cluster.
-            else if (isSeed && hit.getCorrectedEnergy() < seedEnergyThreshold) {
-                hitList.remove(ii);
-                rejectedHitList.add(hit);
-                ii--;
-            }
+     
+            // Hit is a local maximum
+            if (isSeed){
+            	// Seed must pass minimum threshold
+            	if (hit.getCorrectedEnergy() >= seedEnergyThreshold)
+            	{
+            		// Create new cluster
+                    BaseCluster cluster = createBasicCluster();
+                    clusterList.add(cluster);
+                    seedToCluster.put(hit, cluster);
+                    hitToSeed.put(hit, hit);
+            		
+            	}
+            	// Seed does not pass minimum threshold
+            	else{
+                    rejectedHitList.add(hit);
+            		hitList.remove(ii);
+                    ii--;
+            	}            
+            }// end if isSeed
 
             // If this hit is not a seed hit, see if it should be
             // attached to any neighboring seed hits.
-            else {
+            else {     	
                 // Sort through the list of neighboring hits.
                 for (CalorimeterHit neighborHit : neighborHits) {
                     // Check whether the neighboring hit is a seed.
-                    if (hitSeedMap.get(neighborHit) == neighborHit) {
+                  //  if (seedToCluster.containsKey(neighborHit)) {
+                    if (hitToSeed.get(neighborHit) == neighborHit) {
+
                         // If the neighboring hit is a seed hit and the
                         // current hit has been associated with a cluster,
                         // then it is a common hit between its previous
                         // seed and the neighboring seed.
-                        if (hitSeedMap.containsKey(hit)) {
+                        if (hitToSeed.containsKey(hit)) {
                             // Check and see if a list of common seeds
                             // for this hit already exists or not.
                             List<CalorimeterHit> commonHitList = commonHits.get(hit);
@@ -228,7 +235,7 @@ public class ReconClusterer extends AbstractClusterer {
                             // Add the neighbors to the seeds to set of
                             // common seeds.
                             commonHitList.add(neighborHit);
-                            commonHitList.add(hitSeedMap.get(hit));
+                            commonHitList.add(hitToSeed.get(hit));
 
                             // Put the common seed list back into the set.
                             commonHits.put(hit, commonHitList);
@@ -239,7 +246,7 @@ public class ReconClusterer extends AbstractClusterer {
                         // associate it with the neighboring seed and note
                         // that it has been clustered.
                         else {
-                            hitSeedMap.put(hit, neighborHit);
+                            hitToSeed.put(hit, neighborHit);
                         }
                     }
                 }
@@ -249,7 +256,7 @@ public class ReconClusterer extends AbstractClusterer {
         // Performs second pass calculations for component hits.
         secondaryHitsLoop: for (CalorimeterHit secondaryHit : hitList) {
             // Look for hits that already have an associated seed/clustering.
-            if (!hitSeedMap.containsKey(secondaryHit)) {
+            if (!hitToSeed.containsKey(secondaryHit)) {
                 continue secondaryHitsLoop;
             }
 
@@ -267,7 +274,7 @@ public class ReconClusterer extends AbstractClusterer {
 
                 // If the neighboring crystal exists and is not already
                 // in a cluster, add it to the list of neighboring hits.
-                if (secondaryNeighborHit != null && !hitSeedMap.containsKey(secondaryNeighborHit)) {
+                if (secondaryNeighborHit != null && !hitToSeed.containsKey(secondaryNeighborHit)) {
                     secondaryNeighborHits.add(secondaryNeighborHit);
                 }
             }
@@ -278,20 +285,13 @@ public class ReconClusterer extends AbstractClusterer {
                 // current secondary hit, then associate the neighboring
                 // hit with the current secondary hit's seed.
                 if (!equalEnergies(secondaryNeighborHit, secondaryHit)) {
-                    hitSeedMap.put(secondaryNeighborHit, hitSeedMap.get(secondaryHit));
-                } else {
-                    continue;
-                }
+                    hitToSeed.put(secondaryNeighborHit, hitToSeed.get(secondaryHit));
+                } else {continue;}
             }
         } // End component hits loop.
-
+        
         // Performs second pass calculations for common hits.
-        commonHitsLoop: for (CalorimeterHit clusteredHit : hitSeedMap.keySet()) {
-
-            // Seed hits are never common hits and can be skipped.
-            if (hitSeedMap.get(clusteredHit) == clusteredHit) {
-                continue commonHitsLoop;
-            }
+        commonHitsLoop: for (CalorimeterHit clusteredHit : hitToSeed.keySet()) {
 
             // Get the current clustered hit's neighboring crystals.
             Set<Long> clusteredNeighbors = neighborMap.get(clusteredHit.getCellID());
@@ -307,13 +307,13 @@ public class ReconClusterer extends AbstractClusterer {
 
                 // If it exists, add it to the neighboring hit list.
 
-                if (clusteredNeighborHit != null && hitSeedMap.get(clusteredNeighborHit) != null) {
+                if (clusteredNeighborHit != null && hitToSeed.get(clusteredNeighborHit) != null) {
                     clusteredNeighborHits.add(clusteredNeighborHit);
                 }
             }
 
             // Get the seed hit associated with this clustered hit.
-            CalorimeterHit clusteredHitSeed = hitSeedMap.get(clusteredHit);
+            CalorimeterHit clusteredHitSeed = hitToSeed.get(clusteredHit);
 
             // Loop over the clustered neighbor hits.
             for (CalorimeterHit clusteredNeighborHit : clusteredNeighborHits) {
@@ -321,7 +321,7 @@ public class ReconClusterer extends AbstractClusterer {
                 // is not already associated with the current clustered
                 // hit's seed.
 
-                if ((hitSeedMap.get(clusteredNeighborHit) != clusteredHitSeed)) {
+                if ((hitToSeed.get(clusteredNeighborHit) != clusteredHitSeed)) {
                     // Check for lowest energy hit and that comparison hit is not already common.
                     // If already common, this boundary is already accounted for.
                     if (!equalEnergies(clusteredHit, clusteredNeighborHit) && !commonHits.containsKey(clusteredNeighborHit)) {
@@ -338,7 +338,7 @@ public class ReconClusterer extends AbstractClusterer {
                         // Add the neighbors to the seeds to set of
                         // common seeds.
                         commonHitList.add(clusteredHitSeed);
-                        commonHitList.add(hitSeedMap.get(clusteredNeighborHit));
+                        commonHitList.add(hitToSeed.get(clusteredNeighborHit));
 
                         // Put the common seed list back into the set.
                         commonHits.put(clusteredHit, commonHitList);
@@ -347,55 +347,69 @@ public class ReconClusterer extends AbstractClusterer {
                 }
             }
         } // End common hits loop.
-
+        
         // Remove any common hits from the clustered hits collection.
         for (CalorimeterHit commonHit : commonHits.keySet()) {
-            hitSeedMap.remove(commonHit);
+            hitToSeed.remove(commonHit);
+            hitList.remove(commonHit);
         }
 
+        
+        /*
+         * All hits are sorted from above. The next part of the code is for 
+         * building the output cluster collections.
+         */
+        	// Add all hits except for common hits
+        	for (CalorimeterHit ihit : hitList)
+        	{
+        		CalorimeterHit iseed = hitToSeed.get(ihit);
+        		BaseCluster icluster = seedToCluster.get(iseed);
+        		icluster.addHit(ihit);
+        	}
+        
+        	// Add common hits
+        	for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> commHit : commonHits.entrySet())
+        	{
+        		CalorimeterHit seedA = commHit.getValue().get(0);
+        		CalorimeterHit seedB = commHit.getValue().get(1);
+        		double eclusterA = seedToCluster.get(seedA).getEnergy();
+        		double eclusterB = seedToCluster.get(seedB).getEnergy();       	
+        		double fractionA = eclusterA / (eclusterA + eclusterB);
+        		double fractionB = eclusterB / (eclusterA + eclusterB);        	
+        		double hitcontributionA = commHit.getKey().getCorrectedEnergy()*fractionA;
+        		double hitcontributionB = commHit.getKey().getCorrectedEnergy()*fractionB;
+        	
+        		BaseCluster clusterA = seedToCluster.get(seedA);
+        		BaseCluster clusterB = seedToCluster.get(seedB);
+
+        		clusterA.addHit(commHit.getKey(), hitcontributionA);
+        		clusterB.addHit(commHit.getKey(), hitcontributionB);
+        	}
+    
+        	// Remove clusters that do not pass cluster threshold and add to rejectedHitList.
+        	for (int j=0; j <= clusterList.size()-1; j++)
+        		{	
+        		Cluster checkcluster = clusterList.get(j);        	
+        		if (checkcluster.getEnergy() < clusterEnergyThreshold) {
+        			List<CalorimeterHit> clusterHits= checkcluster.getCalorimeterHits();
+        			for (CalorimeterHit nhit : clusterHits){
+        				rejectedHitList.add(nhit);
+        			}
+        			clusterList.remove(checkcluster);
+        			j--;
+        		} 
+        		else {       			
+        			continue;
+        		}
+        	}
+        return clusterList;
+    }
+        //TODO: Move this to a separate position/cluster calculator
         /*
          * All hits are sorted from above. The next part of the code is for calculating energies and
          * positions.
          */
-
-        // Create map to contain the total energy of each cluster
-        Map<CalorimeterHit, Double> seedEnergy = new HashMap<CalorimeterHit, Double>();
-
-        // Get energy of each cluster, excluding common hits
-        for (CalorimeterHit iSeed : hitList) {
-            if (hitSeedMap.get(iSeed) == iSeed) {
-                seedEnergy.put(iSeed, 0.0);
-            }
-        }
-
-        // Putting total cluster energies excluding common hit energies into map with seed keys
-        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry : hitSeedMap.entrySet()) {
-            CalorimeterHit eSeed = entry.getValue();
-            double eEnergy = seedEnergy.get(eSeed);
-            eEnergy += entry.getKey().getCorrectedEnergy();
-            seedEnergy.put(eSeed, eEnergy);
-        }
-
-        // Create a map to contain final uncorrected cluster energies including common hit
-        // distributions.
-        Map<CalorimeterHit, Double> seedEnergyTot = seedEnergy;
-
-        // Distribute common hit energies with clusters
-        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry1 : commonHits.entrySet()) {
-            CalorimeterHit commonCell = entry1.getKey();
-            CalorimeterHit seedA = entry1.getValue().get(0);
-            CalorimeterHit seedB = entry1.getValue().get(1);
-            double eFractionA = (seedEnergy.get(seedA)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
-            double eFractionB = (seedEnergy.get(seedB)) / ((seedEnergy.get(seedA) + seedEnergy.get(seedB)));
-            double currEnergyA = seedEnergyTot.get(seedA);
-            double currEnergyB = seedEnergyTot.get(seedB);
-            currEnergyA += eFractionA * commonCell.getCorrectedEnergy();
-            currEnergyB += eFractionB * commonCell.getCorrectedEnergy();
-
-            seedEnergyTot.put(seedA, currEnergyA);
-            seedEnergyTot.put(seedB, currEnergyB);
-        }
-
+/*
         // Cluster Position as per HPS Note 2014-001
         // Create map with seed as key to position/centroid value
         Map<CalorimeterHit, double[]> rawSeedPosition = new HashMap<CalorimeterHit, double[]>();
@@ -465,66 +479,8 @@ public class ReconClusterer extends AbstractClusterer {
             rawSeedPosition.put(seedP, rawPosition);
 
         }// end of cluster position calculation
+*/
 
-        /*
-         * Outputs results to cluster collection.
-         */
-        // Only write output if something actually exists.
-        if (hitMap.size() != 0) {
-            // Loop over seeds
-            for (Map.Entry<CalorimeterHit, CalorimeterHit> entry2 : hitSeedMap.entrySet()) {
-                if (entry2.getKey() == entry2.getValue()) {
-                    if (seedEnergyTot.get(entry2.getKey()) < clusterEnergyThreshold) {
-                        // Not clustered for not passing cuts
-                        rejectedHitList.add(entry2.getKey());
-                    }
-
-                    else {
-                        
-                        // FIXME: All of the following should be converted to use the BaseCluster API. --JM
-                        
-                        // New cluster
-                        HPSEcalClusterIC cluster = new HPSEcalClusterIC(entry2.getKey());
-                        cluster.setType(this.getClusterTypeEncoding());
-                        clusterList.add(cluster);
-                        // Loop over hits belonging to seeds
-                        for (Map.Entry<CalorimeterHit, CalorimeterHit> entry3 : hitSeedMap.entrySet()) {
-                            if (entry3.getValue() == entry2.getValue()) {
-                                if (rejectedHitList.contains(entry2.getValue())) {
-                                    rejectedHitList.add(entry3.getKey());
-                                } else {
-                                    // Add hit to cluster
-                                    cluster.addHit(entry3.getKey());
-                                }
-                            }
-                        }
-
-                        for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> entry4 : commonHits.entrySet()) {
-                            if (entry4.getValue().contains(entry2.getKey())) {
-                                // Add shared hits for energy distribution between clusters
-                                cluster.addSharedHit(entry4.getKey());
-                                // fixes bug for SIO Writer?
-                                cluster.addHit(entry4.getKey());
-                            }
-                        }
-
-                        // Input uncorrected cluster energies
-                        if (seedEnergyTot.values().size() > 0) {
-                            cluster.setEnergy(seedEnergyTot.get(entry2.getKey()));
-                            cluster.setUncorrectedEnergy(seedEnergyTot.get(entry2.getKey()));
-                        }
-
-                        // Input uncorrected cluster positions.
-                        cluster.setRawPosition(rawSeedPosition.get(entry2.getKey()));
-
-                    }// End checking thresholds and write out.
-                }
-            } // End cluster loop
-            // System.out.println("Number of clusters: "+clusterList.size());
-        } // End event output loop.        
-        return clusterList;
-    }
-    
     private static class EnergyComparator implements Comparator<CalorimeterHit> {
         /**
          * Compares the first hit with respect to the second. This method will compare hits first by
@@ -548,10 +504,8 @@ public class ReconClusterer extends AbstractClusterer {
             // Perform the energy comparison. The higher energy hit
             // will be ordered first.
             if (e[0] < e[1]) { 
-                // FIXME: This should return -1 instead.
                 return 1;
             } else if (e[0] > e[1]) {
-                // FIXME: This should return 1.
                 return -1;
             }
 
