@@ -8,7 +8,6 @@ import hep.physics.vec.HepLorentzVector;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
@@ -507,10 +506,8 @@ public abstract class ReconParticleDriver extends Driver {
         // Get the position of the cluster and extrapolate the position
         // of the track at the z-position of the cluster.
 
+        // Removed reading of "corrected" position from HPSEcalClusterIC here.  --JM 
         Hep3Vector clusterPosition = new BasicHep3Vector(cluster.getPosition());
-        if (cluster instanceof HPSEcalClusterIC) {
-            clusterPosition = new BasicHep3Vector(((HPSEcalClusterIC) cluster).getCorrPosition());
-        }
         Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(track, clusterPosition.z());
 
         // TODO: There are some track whose extrapolated coordinates
