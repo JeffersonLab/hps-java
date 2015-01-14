@@ -1,5 +1,9 @@
 package org.hps.recon.ecal.cluster;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +16,8 @@ import java.util.Set;
 import org.hps.recon.ecal.cluster.AbstractClusterer;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.Clusterer;
+import org.lcsim.detector.IGeometryInfo;
+import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -68,10 +74,6 @@ public class ReconClusterer extends AbstractClusterer {
 
     List<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
 
-    // A Comparator that sorts CalorimeterHit objects from highest to
-    // lowest energy.
-    private static final EnergyComparator ENERGY_COMP = new EnergyComparator();
-
     ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow" }, 
                 new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 });
@@ -112,14 +114,11 @@ public class ReconClusterer extends AbstractClusterer {
         // ArrayList<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
         rejectedHitList = new ArrayList<CalorimeterHit>();
 
-        correctedPositionMap.clear();
-
         // Sort the list of hits by energy.
-        Collections.sort(hitList, ENERGY_COMP);
-
+        ClusterUtilities.sortHitsUniqueEnergy(hitList);
+        
         // Filter the hit list of any hits that fail to pass the
         // designated threshold.
-
         for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or outside of time window, kill it.
             if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (useTimeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
@@ -153,7 +152,7 @@ public class ReconClusterer extends AbstractClusterer {
         HashMap<CalorimeterHit, CalorimeterHit> hitToSeed = new HashMap<CalorimeterHit, CalorimeterHit>();
 
         // Loop through all calorimeter hits to locate seeds and perform
-        // first pass calculations for component and common hits.        
+        // first pass calculations for component and common hits. 
         for (int ii = 0; ii <= hitList.size() - 1; ii++) {
             CalorimeterHit hit = hitList.get(ii);
            
@@ -398,157 +397,13 @@ public class ReconClusterer extends AbstractClusterer {
         			clusterList.remove(checkcluster);
         			j--;
         		} 
-        		else {       			
+        		else {    
+        			// Computer the position of the cluster and set it.
+        			calculatePosition(checkcluster);
         			continue;
         		}
         	}
         return clusterList;
-    }
-        //TODO: Move this to a separate position/cluster calculator
-        /*
-         * All hits are sorted from above. The next part of the code is for calculating energies and
-         * positions.
-         */
-/*
-        // Cluster Position as per HPS Note 2014-001
-        // Create map with seed as key to position/centroid value
-        Map<CalorimeterHit, double[]> rawSeedPosition = new HashMap<CalorimeterHit, double[]>();
-        Map<CalorimeterHit, double[]> corrSeedPosition = new HashMap<CalorimeterHit, double[]>();
-
-        // top level iterates through seeds
-        for (Map.Entry<CalorimeterHit, Double> entryS : seedEnergyTot.entrySet()) {
-            // get the seed for this iteration
-            CalorimeterHit seedP = entryS.getKey();
-
-            double xCl = 0.0; // calculated cluster x position, prior to correction
-            double yCl = 0.0; // calculated cluster y position
-            double eNumX = 0.0;
-            double eNumY = 0.0;
-            double eDen = 0.0;
-            double w0 = 3.1;
-
-            // iterate through hits corresponding to seed
-            for (Map.Entry<CalorimeterHit, CalorimeterHit> entryP : hitSeedMap.entrySet()) {
-                if (entryP.getValue() == seedP) {
-                    // /////////////////////////////
-                    // This block fills a map with crystal to center of face of crystal
-                    // Get the hit indices as a Point.
-                    int ix = entryP.getKey().getIdentifierFieldValue("ix");
-                    int iy = entryP.getKey().getIdentifierFieldValue("iy");
-                    Point hitIndex = new Point(ix, iy);
-
-                    // Get the corrected position for this index pair.
-                    double[] position = correctedPositionMap.get(hitIndex);
-
-                    // If the result is null, it hasn't been calculated yet.
-                    if (position == null) {
-                        // Calculate the corrected position.
-                        IGeometryInfo geom = entryP.getKey().getDetectorElement().getGeometry();
-                        double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()), (Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
-
-                        // Convert the result to a Double[] array.
-                        position = new double[3];
-                        position[0] = pos[0];
-                        position[1] = pos[1];
-                        position[2] = pos[2];
-
-                        // Store the result in the map.
-                        correctedPositionMap.put(hitIndex, position);
-                    }
-                    // /////////////////////////////
-
-                    // Use Method 3 weighting scheme described in note:
-                    eNumX += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[0] / 10.0);
-                    eNumY += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP)))) * (correctedPositionMap.get(hitIndex)[1] / 10.0);
-                    eDen += Math.max(0.0, (w0 + Math.log(entryP.getKey().getCorrectedEnergy() / seedEnergyTot.get(seedP))));
-                }
-
-            }
-
-            xCl = eNumX / eDen;
-            yCl = eNumY / eDen;
-
-            double[] rawPosition = new double[3];
-            rawPosition[0] = xCl * 10.0;// mm
-            rawPosition[1] = yCl * 10.0;// mm
-            int ix = seedP.getIdentifierFieldValue("ix");
-            int iy = seedP.getIdentifierFieldValue("iy");
-            Point hitIndex = new Point(ix, iy);
-            rawPosition[2] = correctedPositionMap.get(hitIndex)[2];
-
-            rawSeedPosition.put(seedP, rawPosition);
-
-        }// end of cluster position calculation
-*/
-
-    private static class EnergyComparator implements Comparator<CalorimeterHit> {
-        /**
-         * Compares the first hit with respect to the second. This method will compare hits first by
-         * energy, and then spatially. In the case of equal energy hits, the hit closest to the beam
-         * gap and closest to the positron side of the detector will be selected. If all of these
-         * conditions are true, the hit with the positive y-index will be selected. Hits with all
-         * four conditions matching are the same hit.
-         * @param hit1 The hit to compare.
-         * @param hit2 The hit with respect to which the first should be compared.
-         */
-        public int compare(CalorimeterHit hit1, CalorimeterHit hit2) {
-            // Hits are sorted on a hierarchy by three conditions. First,
-            // the hits with the highest energy come first. Next, they
-            // are ranked by vertical proximity to the beam gap, and
-            // lastly, they are sorted by horizontal proximity to the
-            // positron side of the detector.
-
-            // Get the hit energies.
-            double[] e = { hit1.getCorrectedEnergy(), hit2.getCorrectedEnergy() };
-
-            // Perform the energy comparison. The higher energy hit
-            // will be ordered first.
-            if (e[0] < e[1]) { 
-                return 1;
-            } else if (e[0] > e[1]) {
-                return -1;
-            }
-
-            // If the hits are the same energy, we must perform the
-            // spatial comparisons.
-            else {
-                // Get the position with respect to the beam gap.
-                int[] iy = { Math.abs(hit1.getIdentifierFieldValue("iy")), Math.abs(hit2.getIdentifierFieldValue("iy")) };
-
-                // The closest hit is first.
-                if (iy[0] > iy[1]) {
-                    return -1;
-                } else if (iy[0] < iy[1]) {
-                    return 1;
-                }
-
-                // Hits that are identical in vertical distance from
-                // beam gap and energy are differentiated with distance
-                // horizontally from the positron side of the detector.
-                else {
-                    // Get the position from the positron side.
-                    int[] ix = { hit1.getIdentifierFieldValue("ix"), hit2.getIdentifierFieldValue("ix") };
-
-                    // The closest hit is first.
-                    if (ix[0] > ix[1]) {
-                        return 1;
-                    } else if (ix[0] < ix[1]) {
-                        return -1;
-                    }
-
-                    // If all of these checks are the same, compare
-                    // the raw value for iy. If these are identical,
-                    // then the two hits are the same. Otherwise, sort
-                    // the numerical value of iy. (This removes the
-                    // issue where hits (x, y) and (x, -y) can have
-                    // the same energy and be otherwise seen as the
-                    // same hit from the above checks.
-                    else {
-                        return Integer.compare(hit1.getIdentifierFieldValue("iy"), hit2.getIdentifierFieldValue("iy"));
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -575,6 +430,77 @@ public class ReconClusterer extends AbstractClusterer {
         }
         return isSeed;
     }
+    
+    /**
+     * Calculates the position of each cluster with no correction for particle type
+     * as documented in HPS Note 2014-001.
+     * @param cluster
+     */
+    private void calculatePosition(Cluster cluster){
+        final double w0 = 3.1;
+        // calculated cluster x position
+    	double xCl = 0.0; 
+    	// calculated cluster y position
+        double yCl = 0.0; 
+        double eNumX = 0.0;
+        double eNumY = 0.0;
+        double eDen = 0.0;
+        List<CalorimeterHit> clusterHits= cluster.getCalorimeterHits();
+		for (CalorimeterHit hit : clusterHits){
+			// This block fills a map with crystal to center of face of crystal
+	    	// Get the hit indices as a Point.
+	    	int ix = hit.getIdentifierFieldValue("ix");
+	    	int iy = hit.getIdentifierFieldValue("iy");
+	    	Point hitIndex = new Point(ix, iy);
+	    	
+	    	// Get the corrected position for this index pair.
+	    	double[] position = correctedPositionMap.get(hitIndex);
+	    	
+	    	if (position == null){
+	    		addToMap(hit);
+	    		position = correctedPositionMap.get(hitIndex);
+	    	}
+			
+            eNumX += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy()))) * (correctedPositionMap.get(hitIndex)[0] / 10.0);
+            eNumY += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy()))) * (correctedPositionMap.get(hitIndex)[1] / 10.0);
+            eDen += Math.max(0.0, (w0 + Math.log(hit.getCorrectedEnergy() / cluster.getEnergy())));
+			
+		}// end for iteration through clusterHits
+		
+		xCl = eNumX / eDen;
+        yCl = eNumY / eDen;
+
+        double[] clusterPosition = new double[3];
+        clusterPosition[0] = xCl * 10.0;// mm
+        clusterPosition[1] = yCl * 10.0;// mm
+        int ix = clusterHits.get(0).getIdentifierFieldValue("ix");
+        int iy = clusterHits.get(0).getIdentifierFieldValue("iy");
+        Point hitIndex = new Point(ix, iy);
+        clusterPosition[2] = correctedPositionMap.get(hitIndex)[2];
+
+        ((BaseCluster) cluster).setPosition(clusterPosition);    	    	
+    }
+ 
+    /**
+     * This constructs a mapping of a crystal to an x,y position at the face of the ecal.
+     * This fills the correctedPositionMap with the position of a crystal's face from the
+     * index x,y of the crystal.
+     * @param hit
+     */
+    private void addToMap(CalorimeterHit hit){
+    	int ix = hit.getIdentifierFieldValue("ix");
+    	int iy = hit.getIdentifierFieldValue("iy");
+    	Point hitIndex = new Point(ix, iy);
+    	// If the result is null, it hasn't been calculated yet.
+    	// Calculate the corrected position.
+    	IGeometryInfo geom = hit.getDetectorElement().getGeometry();
+    	double[] pos = geom.transformLocalToGlobal(VecOp.add(geom.transformGlobalToLocal(geom.getPosition()), (Hep3Vector) new BasicHep3Vector(0, 0, -1 * ((Trd) geom.getLogicalVolume().getSolid()).getZHalfLength()))).v();
+
+    	// Store the result in the map.
+    	correctedPositionMap.put(hitIndex, pos);      	
+    }
+    
+    
     
     public ClusterType getClusterType() {
         return ClusterType.RECON;
