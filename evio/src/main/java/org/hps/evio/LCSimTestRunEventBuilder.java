@@ -14,6 +14,7 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.util.log.LogUtil;
@@ -26,10 +27,8 @@ import org.lcsim.util.log.LogUtil;
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
-    String detectorName = null;
     ECalEvioReader ecalReader = null;
     AbstractSvtEvioReader svtReader = null;
-    protected int run = 0; //current run number, taken from prestart and end events
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
@@ -39,11 +38,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         ecalReader = new ECalEvioReader(0x1, 0x2);
         svtReader = new TestRunSvtEvioReader();
         logger.setLevel(Level.FINE);
-    }
-
-    @Override
-    public void setDetectorName(String detectorName) {
-        this.detectorName = detectorName;
     }
 
     public void setEcalHitCollectionName(String ecalHitCollectionName) {
@@ -61,7 +55,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             if (data != null) {
                 int seconds = data[0];
                 time = ((long) seconds) * 1000000000;
-                run = data[1];
+                int run = data[1];
                 logger.info("Prestart event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", run " + run + ", run type " + data[2]);
             }
         } else if (EvioEventUtilities.isGoEvent(evioEvent)) {
@@ -80,7 +74,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             int seconds = data[0];
             time = ((long) seconds) * 1000000000;
-            run = 0;
+            //run = 0;
             logger.info("End event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", event count " + data[2]);
         }
     }
@@ -90,7 +84,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
             throw new RuntimeException("Not a physics event: event tag " + evioEvent.getHeader().getTag());
         }
-
+        
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = getEventData(evioEvent);
 
@@ -121,10 +115,10 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             for (BaseStructure bank : evioEvent.getChildren()) {
                 if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
                     eventID = bank.getIntData();
-                }
+                } 
             }
         }
-
+        
         if (eventID == null) {
             logger.warning("No event ID bank found");
             eventID = new int[3];
@@ -145,7 +139,11 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         }
 
         // Create a new LCSimEvent.
-        EventHeader lcsimEvent = new BaseLCSimEvent(run, eventID[0], detectorName, time);
+        EventHeader lcsimEvent = new BaseLCSimEvent(
+                ConditionsManager.defaultInstance().getRun(), 
+                eventID[0], 
+                ConditionsManager.defaultInstance().getDetector(), 
+                time);
 
         lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);
         return lcsimEvent;

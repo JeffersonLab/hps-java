@@ -27,22 +27,19 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
 	//-----------------//
 	private static final String DB_CONFIGURATION
 		= "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-	private static final String DETECTOR = "HPS-TestRun-v5";
-	private static final int RUN_NUMBER = 1351;
 	
 	public void testLCSimTestRunEventBuilder() throws Exception { 
 	
-		// Configure the conditions system to retrieve test run conditions for
-		// run 1351
+		// Configure the conditions system to retrieve test run conditions fo run 1351.
 		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
 		conditionsManager.setXmlConfig(DB_CONFIGURATION);
-		//conditionsManager.setDetector(DETECTOR, RUN_NUMBER);
-
+		
 		// Create the test run event builder
 		LCSimTestRunEventBuilder builder = new LCSimTestRunEventBuilder();
 		conditionsManager.addConditionsListener(builder);
-		builder.setDetectorName("HPS-TestRun-v5");
-	
+
+		conditionsManager.setDetector("HPS-TestRun-v5", 1351);
+
 		// Retrieve the remote test file.  The file currently being contains a
 		// subset of events from run 1351
 		FileCache cache = new FileCache();

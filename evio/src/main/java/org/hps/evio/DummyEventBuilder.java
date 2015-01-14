@@ -38,14 +38,10 @@ public class DummyEventBuilder implements LCSimEventBuilder {
     }
     
     @Override
-    public void setDetectorName(String detectorName) {
-    }
-
-    @Override
     public void readEvioEvent(EvioEvent evioEvent) {
     }
 
 	@Override
 	public void conditionsChanged(ConditionsEvent conditionsEvent) {
-	}
+	}	
 }

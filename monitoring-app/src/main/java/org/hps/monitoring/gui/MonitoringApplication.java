@@ -1183,7 +1183,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // Set the detector name on the event builder so it can find conditions data.
         // FIXME: This call should be made unnecessary by modifying the EventBuilder API to remove setDetectorName.
-        eventBuilder.setDetectorName(configurationModel.getDetectorName());
+        //eventBuilder.setDetectorName(configurationModel.getDetectorName());
 
         ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
 

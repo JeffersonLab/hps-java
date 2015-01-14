@@ -44,7 +44,8 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 		// Create event builder.
 		LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
 		conditionsManager.addConditionsListener(builder);
-		builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
+		//builder.setDetectorName("HPS-Proposal2014-v8-6pt6");
+		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2744);
 
 		// Get remote test file.
 		FileCache cache = new FileCache();

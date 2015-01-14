@@ -12,8 +12,9 @@ import org.lcsim.event.EventHeader;
 public interface LCSimEventBuilder extends ConditionsListener {
 
     /**
-     * Read information from an EVIO event to set the event builder's state.
-     * This does not actually build an LCSim event.
+     * Read information from an EVIO control event such as go or pre start
+     * to set the event builder's state. This does not actually build an 
+     * LCSim event.
      * @param evioEvent The input EvioEvent.
      */
     void readEvioEvent(EvioEvent evioEvent);
@@ -24,10 +25,4 @@ public interface LCSimEventBuilder extends ConditionsListener {
      * @return The LCSim event.
      */
     EventHeader makeLCSimEvent(EvioEvent evioEvent);
-
-    /**
-     * Set the detector to be used for LCSim conditions.
-     * @param detectorName The detector name.
-     */
-    void setDetectorName(String detectorName);
 }
