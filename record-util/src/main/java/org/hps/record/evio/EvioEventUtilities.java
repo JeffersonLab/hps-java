@@ -6,8 +6,8 @@ import static org.hps.record.evio.EvioEventConstants.PAUSE_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.PHYSICS_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.PRESTART_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.SYNC_EVENT_TAG;
-import org.jlab.coda.jevio.BaseStructure;
 
+import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
@@ -113,5 +113,26 @@ public final class EvioEventUtilities {
             }
             return null; //we didn't find the bank; give up
         }
+    }
+    
+    /**
+     * Get the head bank with event header that includes run number.
+     * This is a nested bank.
+     * @param evioEvent The EVIO event.
+     * @return The head bank or null if does not exist in this event.
+     */
+    public static BaseStructure getHeadBank(EvioEvent evioEvent) {
+        if (evioEvent.getChildCount() > 0) {
+            for (BaseStructure topBank : evioEvent.getChildren()) {
+                if (topBank.getChildren() != null) {
+                    for (BaseStructure nestedBank : topBank.getChildren()) {
+                        if (nestedBank.getHeader().getTag() == EvioEventConstants.HEAD_BANK_TAG) {
+                            return nestedBank;
+                        }
+                    }
+                }
+            }
+        }
+        return null;        
     }
 }
