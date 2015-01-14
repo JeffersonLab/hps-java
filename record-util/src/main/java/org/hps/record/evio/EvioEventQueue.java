@@ -8,6 +8,10 @@ import org.jlab.coda.jevio.EvioEvent;
  */
 public final class EvioEventQueue extends AbstractRecordQueue<EvioEvent> {
 
+    public EvioEventQueue(long timeoutMillis, int maxSize) {
+        super(timeoutMillis, maxSize);
+    }
+    
 	/**
 	 * Get the class of the supplied records.
 	 * @return The class of the supplied records.
