@@ -246,6 +246,16 @@ public final class ClusterUtilities {
     }
     
     /**
+     * Sort in place a list of hits by their corrected energy.
+     * If energy is equal then position is used to disambiguate.
+     * @param hits The list of hits.
+     */
+    public static void sortHitsUniqueEnergy(List<CalorimeterHit> hits) {
+        Comparator<CalorimeterHit> comparator = Collections.reverseOrder(new UniqueEnergyComparator());
+        Collections.sort(hits, comparator);
+    }
+    
+    /**
      * Compare CalorimeterHit energies and disambiguate equal values using the crystal position.         
      */
     static final class UniqueEnergyComparator implements Comparator<CalorimeterHit> {
