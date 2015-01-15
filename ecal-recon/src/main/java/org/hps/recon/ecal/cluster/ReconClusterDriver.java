@@ -42,27 +42,28 @@ public class ReconClusterDriver extends ClusterDriver {
     }
     
     public void setHitEnergyThreshold(double hitEnergyThreshold) {
-        getReconClusterer().getCuts().setValue("hitEnergyThreshold", hitEnergyThreshold);
+        getClusterer().getCuts().setValue("hitEnergyThreshold", hitEnergyThreshold);
     }
     
     public void setSeedEnergyThreshold(double seedEnergyThreshold) {
-        getReconClusterer().getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
+        getClusterer().getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
     }
     
     public void setClusterEnergyThreshold(double clusterEnergyThreshold) {
-        getReconClusterer().getCuts().setValue("clusterEnergyThreshold", clusterEnergyThreshold);
+        getClusterer().getCuts().setValue("clusterEnergyThreshold", clusterEnergyThreshold);
     }
     
     public void setMinTime(double minTime) {
-        getReconClusterer().getCuts().setValue("minTime", minTime);
+        getClusterer().getCuts().setValue("minTime", minTime);
     }
     
     public void setTimeWindow(double timeWindow) {
-        getReconClusterer().getCuts().setValue("timeWindow", timeWindow);
+        getClusterer().getCuts().setValue("timeWindow", timeWindow);
     }
     
     public void setUseTimeCut(boolean useTimeCut) {
-        getReconClusterer().setUseTimeCut(useTimeCut);
+        ReconClusterer clusterer = getClusterer();
+        clusterer.setUseTimeCut(useTimeCut);
     }    
         
     /**

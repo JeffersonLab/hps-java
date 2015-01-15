@@ -3,6 +3,7 @@ package org.hps.recon.ecal.cluster;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.base.BaseCluster;
+import org.lcsim.event.base.ClusterPropertyCalculator;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
@@ -330,10 +332,7 @@ public final class ClusterUtilities {
     
     /**
      * Apply HPS-specific energy and position corrections to a list of clusters in place.
-     * 
-     * @see DefaultClusterPropertyCalculator
-     * @see ClusterPositionCorrection
-     * @see ClusterEnergyCorrection
+     * @param clusters The list of clusters.
      */
     public static void applyCorrections(List<Cluster> clusters) {
                 
@@ -355,10 +354,7 @@ public final class ClusterUtilities {
     
     /**
      * Apply HPS-specific energy and position corrections to a cluster.
-     * 
-     * @see DefaultClusterPropertyCalculator
-     * @see ClusterPositionCorrection
-     * @see ClusterEnergyCorrection
+     * @param cluster The input cluster.
      */
     public static void applyCorrections(Cluster cluster) {
                             
@@ -376,11 +372,20 @@ public final class ClusterUtilities {
     
     /**
      * Call {@link org.lcsim.event.base.BaseCluster#calculateProperties()}
-     * on all clusters in the list.
+     * on all clusters in the list using the default calculator.
      * @param clusters The list of clusters.
      */
     public static void calculateProperties(List<Cluster> clusters) {
-        DefaultClusterPropertyCalculator calc = new DefaultClusterPropertyCalculator();
+        calculateProperties(clusters, new DefaultClusterPropertyCalculator());
+    }    
+    
+    /**
+     * Call {@link org.lcsim.event.base.BaseCluster#calculateProperties()}
+     * on all clusters in the list using the given calculator.
+     * @param clusters The list of clusters.
+     * @param calc The property calculator.
+     */
+    public static void calculateProperties(List<Cluster> clusters, ClusterPropertyCalculator calc) {
         for (Cluster cluster : clusters) {
             if (cluster instanceof BaseCluster) {
                 BaseCluster baseCluster = (BaseCluster)cluster;
@@ -389,4 +394,39 @@ public final class ClusterUtilities {
             }
         }
     }    
+    
+    /**
+     * Create a map between a particle and its list of hits from a Cluster.
+     * @param cluster The input cluster.
+     * @return A map between a particle and its hits.
+     */
+    public static Map<MCParticle, List<SimCalorimeterHit>> createParticleHitMap(Cluster cluster) {
+        Map<MCParticle, List<SimCalorimeterHit>> particleHitMap = new HashMap<MCParticle, List<SimCalorimeterHit>>();
+        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            if (hit instanceof SimCalorimeterHit) {
+                SimCalorimeterHit simHit = (SimCalorimeterHit) hit;
+                for (int i = 0; i < simHit.getMCParticleCount(); i++) {
+                    MCParticle particle = simHit.getMCParticle(i);
+                    if (particleHitMap.get(particle) == null) {
+                        particleHitMap.put(particle, new ArrayList<SimCalorimeterHit>());
+                    }
+                    particleHitMap.get(particle).add(simHit);
+                }
+            }
+        }
+        return particleHitMap;
+    }
+    
+    /**
+     * Get the set of hits from a list of clusters.
+     * @param The input cluster list.
+     * @return The list of hits from all the clusters.
+     */
+    public static Set<CalorimeterHit> getHits(List<Cluster> clusters) {
+        Set<CalorimeterHit> hits = new HashSet<CalorimeterHit>();
+        for (Cluster cluster : clusters) {
+            hits.addAll(cluster.getCalorimeterHits());
+        }
+        return hits;
+    }
 }

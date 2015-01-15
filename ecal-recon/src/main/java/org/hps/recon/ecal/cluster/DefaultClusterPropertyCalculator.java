@@ -47,6 +47,8 @@ public final class DefaultClusterPropertyCalculator extends AbstractClusterPrope
      * {@link org.lcsim.event.base.TensorClusterPropertyCalculator#calculateProperties(List)}.
      */    
     public void calculateProperties(Cluster cluster) {
+        
+        reset();
                 
         calculateMaxDistance(cluster.getEnergy(), cluster.getParticleId() == 11 || cluster.getParticleId() == 0);
         

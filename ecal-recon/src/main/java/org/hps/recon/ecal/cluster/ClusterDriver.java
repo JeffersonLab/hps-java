@@ -32,21 +32,23 @@ import org.lcsim.util.log.LogUtil;
 public class ClusterDriver extends Driver {
     
     protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
+    
     protected String ecalName = "Ecal";    
     protected HPSEcal3 ecal;
     protected NeighborMap neighborMap;
     protected String outputClusterCollectionName = "EcalClusters";
     protected String inputHitCollectionName = "EcalCalHits";
     protected Clusterer clusterer;
+    protected double[] cuts;
+    
     protected boolean createEmptyClusterCollection = true;
     protected boolean raiseErrorNoHitCollection = false;
     protected boolean skipNoClusterEvents = false;
     protected boolean writeClusterCollection = true;
     protected boolean storeHits = true;
-    protected double[] cuts;
-    protected boolean sortHits;
-    protected boolean calculateProperties;
-    protected boolean applyCorrections;
+    protected boolean calculateProperties = false;
+    protected boolean applyCorrections = false;
+    protected boolean sortHits = false;
     
     /**
      * No argument constructor.
@@ -216,7 +218,7 @@ public class ClusterDriver extends Driver {
     /**
      * This method implements the default clustering procedure based on input parameters.
      */
-    public void process(EventHeader event) {
+    public void process(EventHeader event) {               
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
             logger.fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");

@@ -1,12 +1,15 @@
 package org.hps.recon.ecal.cluster;
 
 import hep.aida.ICloud1D;
+import hep.aida.ICloud2D;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -29,22 +32,28 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * This test does basic sanity checks on the output from the Clusterer algorithms,
- * and it creates an AIDA file with useful plots.
+ * and it creates an AIDA file with some useful plots, as well as optionally writes
+ * an LCIO file with the event data plus the clusters.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ClustererTest extends TestCase {
     
-    static int nEvents = 100;
+    static int nEvents = 1000;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
     
     static class ClustererTestSetup {
         
-        boolean writeLcioFile = false;
-        boolean checkSeedHit = false;
-        boolean applyCorrections = false;        
+        boolean writeLcioFile;
+        boolean checkSeedHit;
+        boolean applyCorrections;        
+        boolean checkHitEnergy;
+        boolean checkPropCalc;
+        boolean checkPosition;
+        boolean calculateProperties;
+        boolean sortHits;
         double[] cuts = null;
         ClusterType clusterType; 
         
@@ -70,8 +79,33 @@ public class ClustererTest extends TestCase {
             return this;
         }        
         
+        ClustererTestSetup calculateProperties() {
+            calculateProperties = true;
+            return this;
+        }
+        
+        ClustererTestSetup sortHits() {
+            sortHits = true;
+            return this;
+        }
+        
+        ClustererTestSetup checkHitEnergy() {
+            checkHitEnergy = true;
+            return this;
+        }
+        
+        ClustererTestSetup checkPropCalc() {
+            checkPropCalc = true;
+            return this;
+        }
+        
         ClustererTestSetup checkClusterType(ClusterType clusterType) {
             this.clusterType = clusterType;
+            return this;
+        }
+        
+        ClustererTestSetup checkPosition() {
+            this.checkPosition = true;
             return this;
         }
     }
@@ -98,7 +132,12 @@ public class ClustererTest extends TestCase {
      */
     public void testReconClusterer() {        
         runClustererTest("ReconClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkSeedHit().applyCorrections().checkClusterType(ClusterType.RECON));
+                new ClustererTestSetup()
+                    .writeLcioFile()
+                    .checkSeedHit()
+                    .checkClusterType(ClusterType.RECON)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -106,7 +145,12 @@ public class ClustererTest extends TestCase {
      */
     public void testSimpleReconClusterer() {
         runClustererTest("SimpleReconClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.SIMPLE_RECON));
+                new ClustererTestSetup()
+                    .writeLcioFile()
+                    .checkSeedHit()
+                    .checkClusterType(ClusterType.SIMPLE_RECON)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -114,7 +158,11 @@ public class ClustererTest extends TestCase {
      */
     public void testNearestNeighborClusterer() {    
         runClustererTest("NearestNeighborClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.NN));
+                new ClustererTestSetup(new double[] { 0.0075, 3 })
+                    .writeLcioFile()
+                    .checkClusterType(ClusterType.NN)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -122,7 +170,11 @@ public class ClustererTest extends TestCase {
      */
     public void testLegacyClusterer() {
         runClustererTest("LegacyClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.LEGACY));
+                new ClustererTestSetup()
+                    .writeLcioFile()
+                    .checkClusterType(ClusterType.LEGACY)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -130,7 +182,11 @@ public class ClustererTest extends TestCase {
      */
     public void testGTPOnlineClusterer() {
         runClustererTest("GTPOnlineClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.GTP_ONLINE));
+                new ClustererTestSetup()
+                    .writeLcioFile().checkSeedHit()
+                    .checkClusterType(ClusterType.GTP_ONLINE)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -138,7 +194,10 @@ public class ClustererTest extends TestCase {
      */
     public void testCTPClusterer() {
         runClustererTest("CTPClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkClusterType(ClusterType.CTP));
+                new ClustererTestSetup()
+                    .writeLcioFile()
+                    .checkClusterType(ClusterType.CTP)
+                    .checkPosition());
     }
     
     /**
@@ -146,7 +205,11 @@ public class ClustererTest extends TestCase {
      */
     public void testGTPClusterer() {
         runClustererTest("GTPClusterer", 
-                new ClustererTestSetup().writeLcioFile().checkSeedHit().checkClusterType(ClusterType.GTP));
+                new ClustererTestSetup()
+                    .writeLcioFile()
+                    .checkClusterType(ClusterType.GTP)
+                    .checkHitEnergy()
+                    .checkPosition());
     }
     
     /**
@@ -184,14 +247,14 @@ public class ClustererTest extends TestCase {
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
-        clusterDriver.setCalculateProperties(true);
-        clusterDriver.setSortHits(true);
+        clusterDriver.setCalculateProperties(setup.calculateProperties);
+        clusterDriver.setSortHits(setup.sortHits);              
         clusterDriver.setApplyCorrections(setup.applyCorrections);
         clusterDriver.getLogger().setLevel(Level.CONFIG);
         loop.add(clusterDriver);                         
         
         // This Driver generates plots and the output LCIO file.
-        loop.add(new ClusterCheckDriver(clusterCollectionName, setup.checkSeedHit, setup.clusterType));
+        loop.add(new ClusterCheckDriver(clusterCollectionName, setup));
         
         if (setup.writeLcioFile) {
             loop.add(new LCIODriver(testOutputDir.getPath() + File.separator + clustererName + ".slcio"));
@@ -233,30 +296,36 @@ public class ClustererTest extends TestCase {
         IHistogram1D shapeParam3H1D;
         ICloud1D ithetaC1D;
         ICloud1D iphiC1D;
+        ICloud1D nParticlesC1D;
+        ICloud1D particleEnergyC1D;
         IHistogram2D particleVsClusterEnergyH2D;
         IHistogram1D particleMinusClusterEnergyH1D;
+        ICloud2D clusterPositionC2D;
+        ICloud2D highestParticleEnergyVsClusterEnergyC2D;
+        ICloud2D clusterVsHitCountC2d;
+        IHistogram1D earliestHitTimeH1D;
+        IHistogram1D latestHitTimeH1D;
         String clusterCollectionName;
-        String clustererName;        
-        boolean checkSeedHit = true;
-        ClusterType clusterType;
+        String clustererName;
         
-        ClusterCheckDriver(String clusterCollectionName, boolean checkSeedHit, ClusterType clusterType) {
+        ClustererTestSetup setup;
+        
+        ClusterCheckDriver(String clusterCollectionName, ClustererTestSetup setup) {
             this.clusterCollectionName = clusterCollectionName;
-            this.checkSeedHit = checkSeedHit;
-            this.clusterType = clusterType;
+            this.setup = setup;
         }        
         
         public void startOfData() {
             energyH1D = aida.histogram1D(clusterCollectionName + "/Cluster Energy", 300, 0.0, 3.0);
             uncorrectedEnergyH1D = aida.histogram1D(clusterCollectionName + "/Uncorrected Cluster Energy", 200, 0.0, 2.0);
-            countH1D = aida.histogram1D(clusterCollectionName + "/Cluster Count", 10, -0.5, 9.5);
+            countH1D = aida.histogram1D(clusterCollectionName + "/Cluster Count", 20, -0.5, 19.5);
             sizeH1D = aida.histogram1D(clusterCollectionName + "/Cluster Size", 30, 0.5, 30.5);
             highestHitEnergyH1D = aida.histogram1D(clusterCollectionName + "/Highest Hit Energy", 300, 0.0, 1.5);
-            hitEnergyH1D = aida.histogram1D(clusterCollectionName + "/Hit Energy", 300, 0.0, 1.5);
+            hitEnergyH1D = aida.histogram1D(clusterCollectionName + "/Hit Energy", 600, 0.0, 1.5);
             rawVsCorrectedH2D = aida.histogram2D(clusterCollectionName + "/Raw vs Corrected Energy", 100, 0.0, 2.0, 100, 0.0, 2.0);
-            positionXH1D = aida.histogram1D(clusterCollectionName + "/Position X", 300, 0., 1500.0);
-            positionYH1D = aida.histogram1D(clusterCollectionName + "/Position Y", 500, 0., 1000.0);
-            positionZH1D = aida.histogram1D(clusterCollectionName + "/Position Z", 1000, 0, 2000.0);
+            positionXH1D = aida.histogram1D(clusterCollectionName + "/Position X", 500, 0., 500.0);
+            positionYH1D = aida.histogram1D(clusterCollectionName + "/Position Y", 500, 0., 100.0);
+            positionZH1D = aida.histogram1D(clusterCollectionName + "/Position Z", 200, 1400., 1500.0);
             shapeParam1H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 1", 500, -5, 95);
             shapeParam2H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 2", 520, -10, 250);
             shapeParam3H1D = aida.histogram1D(clusterCollectionName + "/Shape Param 3", 520, -10, 250);
@@ -264,47 +333,102 @@ public class ClustererTest extends TestCase {
             particleMinusClusterEnergyH1D = aida.histogram1D(clusterCollectionName + "/MCParticle Minus Cluster E", 200, -2.0, 2.0);
             ithetaC1D = aida.cloud1D(clusterCollectionName + "/ITheta");
             iphiC1D = aida.cloud1D(clusterCollectionName + "/IPhi");
+            clusterPositionC2D = aida.cloud2D(clusterCollectionName + "/Position XY", Integer.MAX_VALUE);
+            nParticlesC1D = aida.cloud1D(clusterCollectionName + "/MCParticle Count");
+            particleEnergyC1D = aida.cloud1D(clusterCollectionName + "/MCParticle Total Energy");
+            highestParticleEnergyVsClusterEnergyC2D = aida.cloud2D(clusterCollectionName + "/Highest Particle E vs Cluster E");
+            earliestHitTimeH1D = aida.histogram1D(clusterCollectionName + "/Earliest Hit Time", 500, 0., 500.);
+            latestHitTimeH1D = aida.histogram1D(clusterCollectionName + "/Latest Hit Time", 500, 0., 500.);
+            clusterVsHitCountC2d = aida.cloud2D(clusterCollectionName + "/Cluster Vs Hit Count");
         }
         
         public void process(EventHeader event) {
             List<Cluster> clusters = event.get(Cluster.class, this.clusterCollectionName);
             for (Cluster cluster : clusters) {
-                assertTrue("The cluster energy is invalid.", cluster.getEnergy() > 0.);
-                assertTrue("The cluster has no hits.", !cluster.getCalorimeterHits().isEmpty());
-                if (checkSeedHit) {
-                    assertEquals("First hit is not seed.", cluster.getCalorimeterHits().get(0), ClusterUtilities.findHighestEnergyHit(cluster));
-                }
-                assertTrue("Cluster properties not calculated.", !((BaseCluster)cluster).needsPropertyCalculation());
-                if (clusterType != null) {
-                    assertEquals("Cluster type is not correct.", clusterType, ClusterType.getClusterType(cluster.getType()));
-                }
-                energyH1D.fill(cluster.getEnergy());
-                double rawEnergy = ClusterUtilities.computeRawEnergy(cluster);
-                uncorrectedEnergyH1D.fill(rawEnergy);
-                sizeH1D.fill(cluster.getCalorimeterHits().size());
-                rawVsCorrectedH2D.fill(rawEnergy, cluster.getEnergy());
-                for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                    hitEnergyH1D.fill(hit.getCorrectedEnergy());
-                }                
-                highestHitEnergyH1D.fill(ClusterUtilities.findHighestEnergyHit(cluster).getCorrectedEnergy());
-                positionXH1D.fill(Math.abs(cluster.getPosition()[0]));
-                positionYH1D.fill(Math.abs(cluster.getPosition()[1]));
-                positionZH1D.fill(Math.abs(cluster.getPosition()[2]));
-                shapeParam1H1D.fill(cluster.getShape()[0]);
-                shapeParam2H1D.fill(cluster.getShape()[1]);
-                shapeParam3H1D.fill(cluster.getShape()[2]);
-                iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
-                ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));                                
                 
-                Set<MCParticle> particles = ClusterUtilities.findMCParticles(cluster);
-                double particleEnergy = 0;
-                for (MCParticle particle : particles) {
-                    particleEnergy += particle.getEnergy();
-                }
-                particleVsClusterEnergyH2D.fill(particleEnergy, cluster.getEnergy());
-                particleMinusClusterEnergyH1D.fill(particleEnergy - cluster.getEnergy());
+                // Test assertions.
+                checkCluster(cluster);                
+                
+                // Fill plots.
+                fillClusterPlots(cluster);
             }            
             countH1D.fill(clusters.size());
+            clusterVsHitCountC2d.fill(clusters.size(), ClusterUtilities.getHits(clusters).size());
+        }
+
+        /**
+         * @param cluster
+         */
+        private void fillClusterPlots(Cluster cluster) {
+            energyH1D.fill(cluster.getEnergy());
+            double rawEnergy = ClusterUtilities.computeRawEnergy(cluster);
+            uncorrectedEnergyH1D.fill(rawEnergy);
+            sizeH1D.fill(cluster.getCalorimeterHits().size());
+            rawVsCorrectedH2D.fill(rawEnergy, cluster.getEnergy());
+            for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                hitEnergyH1D.fill(hit.getCorrectedEnergy());
+            }                
+            highestHitEnergyH1D.fill(ClusterUtilities.findHighestEnergyHit(cluster).getCorrectedEnergy());
+            positionXH1D.fill(Math.abs(cluster.getPosition()[0]));
+            positionYH1D.fill(Math.abs(cluster.getPosition()[1]));
+            positionZH1D.fill(Math.abs(cluster.getPosition()[2]));
+            shapeParam1H1D.fill(cluster.getShape()[0]);
+            shapeParam2H1D.fill(cluster.getShape()[1]);
+            shapeParam3H1D.fill(cluster.getShape()[2]);
+            iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
+            ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));                                
+            clusterPositionC2D.fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+            
+            //Map<MCParticle, List<SimCalorimeterHit>> particleHitMap = ClusterUtilities.createParticleHitMap(cluster);
+            
+            Set<MCParticle> particles = ClusterUtilities.findMCParticles(cluster);
+            double particleEnergy = 0;
+            double highestParticleEnergy = Double.MIN_VALUE;
+            for (MCParticle particle : particles) {
+                particleEnergy += particle.getEnergy();
+                if (particle.getEnergy() > highestParticleEnergy) {
+                    highestParticleEnergy = particle.getEnergy();
+                }
+            }
+            particleVsClusterEnergyH2D.fill(particleEnergy, cluster.getEnergy());
+            particleMinusClusterEnergyH1D.fill(particleEnergy - cluster.getEnergy());
+            nParticlesC1D.fill(particles.size());
+            particleEnergyC1D.fill(particleEnergy);
+            highestParticleEnergyVsClusterEnergyC2D.fill(highestParticleEnergy, cluster.getEnergy());
+
+            List<CalorimeterHit> hitsForTime = new ArrayList<CalorimeterHit>();
+            hitsForTime.addAll(cluster.getCalorimeterHits());
+            Collections.sort(hitsForTime, new CalorimeterHit.TimeComparator());
+            earliestHitTimeH1D.fill(hitsForTime.get(0).getTime());
+            latestHitTimeH1D.fill(hitsForTime.get(hitsForTime.size() - 1).getTime());
+        }
+
+        /**
+         * @param cluster
+         */
+        private void checkCluster(Cluster cluster) {
+            assertTrue("The cluster energy is invalid.", cluster.getEnergy() > 0.);
+            assertTrue("The cluster has no hits.", !cluster.getCalorimeterHits().isEmpty());
+            if (setup.checkSeedHit) {
+                assertEquals("First hit is not seed.", cluster.getCalorimeterHits().get(0), ClusterUtilities.findHighestEnergyHit(cluster));
+            }
+            if (setup.checkPropCalc) {
+                assertTrue("Cluster properties not calculated.", !((BaseCluster)cluster).needsPropertyCalculation());
+            }
+            if (setup.clusterType != null) {
+                assertEquals("Cluster type is not correct.", setup.clusterType, ClusterType.getClusterType(cluster.getType()));
+            }
+            if (setup.checkHitEnergy) {
+                for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                    assertTrue("Hit energy " + hit.getCorrectedEnergy() + " is <= 0.", hit.getCorrectedEnergy() > 0.);
+                }
+            }
+            if (setup.checkPosition) {
+                double[] position = cluster.getPosition();
+                assertTrue("Position X is invalid.", Math.abs(position[0]) < 400. && position[0] != 0.);
+                assertTrue("Position Y is invalid.", Math.abs(position[1]) > 25. && Math.abs(position[1]) < 90.);
+                assertTrue("Position Z is invalid.", position[2] > 1460. && position[2] < 1480.);
+            }
         }              
     }
     

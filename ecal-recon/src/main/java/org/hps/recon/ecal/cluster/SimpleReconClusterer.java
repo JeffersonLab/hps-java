@@ -31,18 +31,17 @@ public class SimpleReconClusterer extends AbstractClusterer {
     double minEnergy;
     double minTime;
     double timeWindow;
-    boolean timeCut;
+    boolean useTimeCut;
 
     /**
      * Initialize the algorithm with default cuts.
      */
     SimpleReconClusterer() {
-        super(new String[] { "minEnergy", "minTime", "timeWindow", "timeCut" }, new double[] { 0.001, 0.0, 20.0, 0. });
+        super(new String[] { "minEnergy", "minTime", "timeWindow" }, new double[] { 0.001, 0.0, 20.0 });
     }
 
     public void initialize() {
         // Setup class variables from cuts.
-        timeCut = (getCuts().getValue("timeCut") == 1.0);
         minEnergy = getCuts().getValue("minEnergy");
         minTime = getCuts().getValue("minTime");
         timeWindow = getCuts().getValue("timeWindow");
@@ -61,7 +60,7 @@ public class SimpleReconClusterer extends AbstractClusterer {
                 continue;
             }
             // if time cut is being used, reject hits outside the time window
-            if (timeCut && (h.getTime() < minTime || h.getTime() > minTime + timeWindow)) {
+            if (useTimeCut && (h.getTime() < minTime || h.getTime() > minTime + timeWindow)) {
                 continue;
             }
             sortedHitList.add(h);
@@ -128,5 +127,9 @@ public class SimpleReconClusterer extends AbstractClusterer {
     @Override
     public ClusterType getClusterType() {
         return ClusterType.SIMPLE_RECON;
+    }
+    
+    public void setUseTimeCut(boolean useTimeCut) {
+        this.useTimeCut = useTimeCut;
     }
 }

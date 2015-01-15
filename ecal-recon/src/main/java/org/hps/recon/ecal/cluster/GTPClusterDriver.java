@@ -28,4 +28,8 @@ public class GTPClusterDriver extends ClusterDriver {
         GTPClusterer gtpClusterer = getClusterer();
         gtpClusterer.setLimitClusterRange(limitClusterRange);
     }        
+    
+    public void setClusterWindow(int clusterWindow) {
+        getClusterer().getCuts().setValue("clusterWindow", clusterWindow);
+    }
 }
