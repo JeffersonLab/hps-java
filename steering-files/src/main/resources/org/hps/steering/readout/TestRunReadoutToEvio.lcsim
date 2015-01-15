@@ -46,10 +46,9 @@
             <inputCollection>EcalCorrectedHits</inputCollection>
             <outputCollection>EcalFilteredHits</outputCollection>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.CTPEcalClusterer">
-            <ecalName>Ecal</ecalName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.CTPClusterDriver">
             <clusterWindow>32.0</clusterWindow>
-            <ecalCollectionName>EcalFilteredHits</ecalCollectionName>
+            <inputHitCollectionName>EcalFilteredHits</inputHitCollectionName>
         </driver>
         <driver name="EcalTrigger" type="org.hps.readout.ecal.TestRunTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>

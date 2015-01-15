@@ -49,10 +49,9 @@
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterICBasic">
-            <ecalName>Ecal</ecalName>
-            <ecalCollectionName>EcalHits</ecalCollectionName>
-            <timeCut>false</timeCut>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>SimpleReconClusterer</clustererName>
+            <inputHitCollectionName>EcalHits</inputHitCollectionName>
         </driver>              
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">

@@ -38,7 +38,7 @@
                         <exclude>org/hps/ReadoutToEvioTest.java</exclude>
                         <exclude>org/hps/ReadoutToLcioTest.java</exclude>
                         <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
-                        <exclude>org/hps/ReconClusterICTest.java</exclude>
+                        <exclude>org/hps/TestRunReadoutToEvioTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
                     <trimStackTrace>false</trimStackTrace>

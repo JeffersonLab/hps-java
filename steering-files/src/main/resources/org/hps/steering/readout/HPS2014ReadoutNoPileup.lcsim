@@ -35,11 +35,10 @@
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
             <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
         </driver>
-        <driver name="EcalTriggerClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
-            <ecalName>Ecal</ecalName>
-            <clusterWindow>0</clusterWindow>
-            <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
-            <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
+        <driver name="EcalTriggerClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
+            <clusterWindow>0</clusterWindow>            
+            <inputHitCollectionName>EcalReadoutAnalogHits</inputHitCollectionName>
+            <outputClusterCollectionName>EcalTriggerClusters</outputClusterCollectionName>
         </driver>
         <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalTriggerClusters</clusterCollectionName>
