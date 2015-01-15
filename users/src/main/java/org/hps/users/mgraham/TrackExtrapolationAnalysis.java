@@ -10,7 +10,6 @@ import hep.physics.vec.Hep3Vector;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.HPSTrack;
 import org.hps.recon.tracking.HelixConverter;

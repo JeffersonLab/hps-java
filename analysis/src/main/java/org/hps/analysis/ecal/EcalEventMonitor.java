@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.swing.JCheckBox;
 
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

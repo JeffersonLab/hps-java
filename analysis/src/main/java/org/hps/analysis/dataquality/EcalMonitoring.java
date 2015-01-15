@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
-import org.hps.recon.ecal.HPSEcalClusterIC;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

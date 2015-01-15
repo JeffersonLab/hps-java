@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.hps.readout.ecal.TriggerDriver;
 import org.hps.recon.ecal.ECalUtils;
-import org.hps.recon.ecal.HPSEcalCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

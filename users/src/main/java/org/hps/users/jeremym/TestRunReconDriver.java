@@ -1,7 +1,7 @@
 package org.hps.users.jeremym;
 
-import org.hps.recon.ecal.EcalClusterer;
 import org.hps.recon.ecal.EcalRawConverterDriver;
+import org.hps.recon.ecal.cluster.ClusterDriver;
 import org.hps.recon.tracking.DataTrackerHitDriver;
 import org.hps.recon.tracking.HelicalTrackHitDriver;
 import org.hps.recon.tracking.RawTrackerHitFitterDriver;
@@ -34,11 +34,10 @@ public class TestRunReconDriver extends Driver {
         ecalRawConverter.setEcalCollectionName("EcalCalHits");
         ecalRawConverter.setUse2014Gain(false);
         this.add(ecalRawConverter);
-        
-        EcalClusterer ecalClusterer = new EcalClusterer();
-        ecalClusterer.setEcalName("Ecal");
-        ecalClusterer.setEcalCollectionName("EcalCalHits");
-        this.add(ecalClusterer);
+                
+        ClusterDriver clusterer = new ClusterDriver();
+        clusterer.setClustererName("LegacyClusterer");
+        this.add(clusterer);
         
         RawTrackerHitFitterDriver fitterDriver = new RawTrackerHitFitterDriver();
         fitterDriver.setFitAlgorithm("Analytic");
