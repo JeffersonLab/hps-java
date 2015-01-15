@@ -19,9 +19,8 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
-            <ecalName>Ecal</ecalName>
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>LegacyClusterer</clustererName>
         </driver>             
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>

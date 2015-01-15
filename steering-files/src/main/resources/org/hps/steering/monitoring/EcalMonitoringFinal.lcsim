@@ -1,20 +1,19 @@
 
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
-        <numberOfEvents>-1</numberOfEvents> 
+        <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
-    </control>    
+    </control>
     <execute>
         <!-- <driver name="EventMarkerDriver"/> -->
-        <driver name="EcalRawConverter"/> 
-        <driver name="EcalClusterer"/> 
-        <driver name="EcalMonitoringPlots"/>      <!-- General plots -->
-        <driver name="EcalHitPlots"/>             <!-- Single hit distributions -->
-        <driver name="EcalClusterPlots"/>         <!-- Clusters distributions -->
-        <driver name="EcalDaqPlots"/>              <!-- DAQ Plots -->
-        <driver name="EcalEventDisplay"/>          <!-- Ecal event display -->
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <driver name="EcalMonitoringPlots" />      <!-- General plots -->
+        <driver name="EcalHitPlots" />             <!-- Single hit distributions -->
+        <driver name="EcalClusterPlots" />         <!-- Clusters distributions -->
+        <driver name="EcalDaqPlots" />              <!-- DAQ Plots -->
+        <driver name="EcalEventDisplay" />          <!-- Ecal event display -->
 <!--    <driver name="EcalWindowPlots"/>        -->
 
 <!--   <driver name="EcalEvsX"/>    -->           
@@ -28,40 +27,38 @@
     
 <!--  Here starts the drivers description -->
     <drivers>
-       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
             <applyBadCrystalMap>false</applyBadCrystalMap>
-           <use2014Gain>false</use2014Gain> 
+            <use2014Gain>false</use2014Gain> 
 <!--            <dropBadFADC>true</dropBadFADC>-->
         </driver>
-     <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer"> 
-<!--          <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterIC">  -->
-<!--            <clusterWindow>32.0</clusterWindow>-->
-                <ecalName>Ecal</ecalName>
-                <ecalCollectionName>EcalCalHits</ecalCollectionName>
-                <addEMin>0.010</addEMin>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>LegacyClusterer</clustererName> 
+            <!-- <addEMin>0.010</addEMin> -->
+            <cuts>0.010</cuts>
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
-            <inputCollection>EcalCalHits</inputCollection>         
+            <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>5</eventRefreshRate>
             <accumulateHits>false</accumulateHits>
         </driver>
         <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
-            <inputCollection>EcalCalHits</inputCollection>        
+            <inputCollection>EcalCalHits</inputCollection>
             <maxE>2.0</maxE>
-            <logScale>false</logScale>  
+            <logScale>false</logScale>
         </driver>
         <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
             <maxE>2.0</maxE>
             <logScale>false</logScale>
         </driver>
         <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
-        <inputCollection>EcalCalHits</inputCollection>
+            <inputCollection>EcalCalHits</inputCollection>
         </driver>
-         <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+        <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>

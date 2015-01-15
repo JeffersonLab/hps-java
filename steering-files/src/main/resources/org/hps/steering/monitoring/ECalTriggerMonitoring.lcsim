@@ -13,9 +13,8 @@
 <!--        <driver name="EcalMonitoringPlots"/>-->
 <!--        <driver name="EcalHitPlots"/>-->
 <!--        <driver name="EcalClusterPlots"/>-->
-        <driver name="TriggerPlots"/>
+<!--        <driver name="TriggerPlots"/> -->
 <!--
-        <driver name="EcalEventMonitor"/>
         <driver name="EcalEvsX"/>
         <driver name="EcalWindowPlots"/>
         <driver name="EcalDaqPlots"/>
@@ -35,40 +34,41 @@
             <inputCollection>EcalCalHits</inputCollection>
             <outputCollection>EcalFilteredHits</outputCollection>
         </driver>        
-        <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">
+        <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
-            <eventRefreshRate>1</eventRefreshRate>
-        </driver>
-        <driver name="EcalEventMonitor" type="org.hps.monitoring.drivers.ecal.EcalEventMonitor">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <eventRefreshRate>1</eventRefreshRate>
         </driver>
 <!--        <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>-->
-        <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
+<!--          
+        <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.plots.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <maxE>10000</maxE>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
+-->        
         <driver name="EventMarkerDriver"
                 type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.CTPEcalClusterer">
-            <ecalName>Ecal</ecalName>
-            <clusterWindow>32.0</clusterWindow>
-            <ecalCollectionName>EcalFilteredHits</ecalCollectionName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>CTPClusterer</clustererName>
+            <inputHitCollectionName>EcalFilteredHits</inputHitCollectionName>
+            <cuts>0 32.0</cuts>
         </driver>
-        <driver name="EcalHitPlots" type="org.hps.monitoring.drivers.ecal.EcalHitPlots">
+        <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
         </driver>
-        <driver name="EcalClusterPlots" type="org.hps.monitoring.drivers.ecal.EcalClusterPlots">
+        <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
         </driver>
-        <driver name="TriggerPlots" type="org.hps.monitoring.drivers.ecal.TriggerPlots">
+<!--         
+        <driver name="TriggerPlots" type="org.hps.monitoring.ecal.plots.TriggerPlots">
             <clusterEnergyCut>1280</clusterEnergyCut>
             <eventRefreshRate>10000</eventRefreshRate>
         </driver>
+ -->        
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>triggerPlots</outputFileName>
         </driver>

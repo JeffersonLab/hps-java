@@ -1,26 +1,15 @@
-<lcsim  xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-       
-       
-     <control>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
         <verbose>true</verbose>
-    </control> 
-    
-    <classpath>
-    <jar>users/target/hps-users-3.0-SNAPSHOT.jar</jar>
-    </classpath>
-    
+    </control>
     <execute>
-       <driver name="HitrateHistograms"/>
+        <driver name="HitrateHistograms" />
     </execute>
-    
     <drivers>
-    	<driver name="HitrateHistograms" type="org.lcsim.hps.users.spaul.HitrateHistograms">
-
+        <driver name="HitrateHistograms" type="org.hps.users.spaul.HitrateHistograms">
         </driver>
-       
-                                                                    
     </drivers>
 </lcsim>

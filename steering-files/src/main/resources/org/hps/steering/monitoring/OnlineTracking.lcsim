@@ -1,125 +1,93 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
         <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>false</printInputFiles>
         <printDriversDetailed>false</printDriversDetailed>
-    </control>    
+    </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="SVTSetupDriver"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalClusterer"/>
-        <driver name="SVTOccupancyPlots"/>
-        <driver name="SVTEventPlots"/>   
-        <driver name="SVTPulsePlots"/> 
-        <driver name="RawTrackerHitFitterDriver"/>    
-        <driver name="TrackerHitDriver"/>           
-        <driver name="SVTHitRecoPlots"/>  
-        <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackerReconDriver"/>
-        <driver name="TrackingReconstructionPlots"/>        
-<!--       <driver name="SVTHitCorrPlots"/>  --> 
-<!--       <driver name="LCIOWriter"/>  -->  
-       <driver name="CleanupDriver"/>
-    </execute>    
+        <driver name="EventMarkerDriver" />
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <driver name="SVTOccupancyPlots" />
+        <driver name="SVTEventPlots" />
+        <driver name="SVTPulsePlots" />
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver" />
+        <driver name="SVTHitRecoPlots" />
+        <driver name="HelicalTrackHitDriver" />
+        <driver name="TrackerReconDriver" />
+        <driver name="TrackingReconstructionPlots" />
+        <driver name="CleanupDriver" />
+    </execute>
     <drivers>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-	    <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
-	</driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.EcalClusterer">
-	    <ecalName>Ecal</ecalName>
-	    <ecalCollectionName>EcalCalHits</ecalCollectionName>
-	</driver>
-
-          <driver name="RawTrackerHitFitterDriver"
-                type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-           <rawHitCollectionName>SVTRawTrackerHits</rawHitCollectionName>  
-          <fittedHitCollectionName>SVTFittedRawTrackerHits</fittedHitCollectionName> 
-           <fitAlgorithm>Analytic</fitAlgorithm>  
         </driver>
-
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>LegacyClusterer</clustererName>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver"
+            type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <rawHitCollectionName>SVTRawTrackerHits</rawHitCollectionName>
+            <fittedHitCollectionName>SVTFittedRawTrackerHits</fittedHitCollectionName>
+            <fitAlgorithm>Analytic</fitAlgorithm>
+        </driver>
         <driver name="TrackerHitDriver"
-                type="org.hps.recon.tracking.DataTrackerHitDriver">
-                <clusterSeedThreshold>3.0</clusterSeedThreshold>
-                <clusterNeighborThreshold>3.0</clusterNeighborThreshold>
-                <clusterThreshold>3.0</clusterThreshold>
+            type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <clusterSeedThreshold>3.0</clusterSeedThreshold>
+            <clusterNeighborThreshold>3.0</clusterNeighborThreshold>
+            <clusterThreshold>3.0</clusterThreshold>
         </driver>
-
-         <driver name="SVTEventPlots"
-                type="org.hps.monitoring.drivers.svt.SVTEventInfo">
-                 <outputPlots>svtEventInfoPlots.aida</outputPlots>
+        <driver name="SVTEventPlots"
+            type="org.hps.monitoring.drivers.svt.SVTEventInfo">
+            <outputPlots>svtEventInfoPlots.aida</outputPlots>
         </driver>
-
         <driver name="SVTHitRecoPlots"
-                type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
-             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
-             <outputPlots>svtHitRecoPlots.aida</outputPlots>
+            type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
+            <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
+            <outputPlots>svtHitRecoPlots.aida</outputPlots>
         </driver>
-
         <driver name="SVTHitCorrPlots"
-                type="org.hps.monitoring.drivers.svt.SVTHitRecoCorrelations">
-             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>   
-             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>   
-             <outputPlots>svtHitRecoCorrPlots.aida</outputPlots>
+            type="org.hps.monitoring.drivers.svt.SVTHitRecoCorrelations">
+            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
+            <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
+            <outputPlots>svtHitRecoCorrPlots.aida</outputPlots>
         </driver>
-
         <driver name="SVTPulsePlots"
-                type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
-        <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>  
-             <outputPlots>svtPulsePlots.aida</outputPlots> 
-        </driver>    
-        <driver name="SVTOccupancyPlots" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
+            type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
+            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
+            <outputPlots>svtPulsePlots.aida</outputPlots>
+        </driver>
+        <driver name="SVTOccupancyPlots"
+            type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-
         <driver name="SVTEventDisplay"
-                type="org.hps.monitoring.drivers.svt.SVTEventDisplay">
-        </driver>    
-
-        <driver name="SVTSetupDriver"
-                type="org.hps.conditions.deprecated.HPSSVTSensorSetup">
-        </driver>        
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+            type="org.hps.monitoring.drivers.svt.SVTEventDisplay">
+        </driver>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
-
         <driver name="HelicalTrackHitDriver"
-                type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
-        
-        <driver name="TrackerReconDriver"
-                type="org.hps.recon.tracking.TrackerReconDriver">
-            <debug>false</debug>           
+        <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
-        </driver>        
-
-     	<driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-                <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
-
-
-          <driver name="LCIOWriter"
-                type="org.hps.users.mgraham.MyLCIOWriterDriver">
-            <outputFilePath>/Users/mgraham/HPS/trackRecon.slcio</outputFilePath>
+        <driver name="TrackingReconstructionPlots"
+            type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
+            <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
-
-<!--
-          <driver name="LCIOWriter"
-                type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>/Users/mgraham/HPS/trackRecon.slcio</outputFilePath>
+        <driver name="CleanupDriver"
+            type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits SVTRawTrackerHits SVTFittedRawTrackerHits StripClusterer_SiTrackerHitStrip1D</collectionNames>
         </driver>
--->
-       <driver name="CleanupDriver" 
-                type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
-                <collectionNames>TrackerHits SVTRawTrackerHits  SVTFittedRawTrackerHits StripClusterer_SiTrackerHitStrip1D</collectionNames>
-        </driver>
-
-    </drivers>   
+    </drivers>
 </lcsim>

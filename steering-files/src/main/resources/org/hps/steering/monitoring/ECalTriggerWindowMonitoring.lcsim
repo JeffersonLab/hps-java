@@ -1,28 +1,25 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
         <numberOfEvents>-1</numberOfEvents>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
-    </control>    
+    </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="FADCConverter"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalClusterer"/>
-        <driver name="EcalIntegralPedestalPlots"/>
-        <driver name="EcalMonitoringPlots"/>
-        <driver name="EcalHitPlots"/>
-        <driver name="EcalClusterPlots"/>
-        <driver name="EcalWindowEventPlots"/>
-        <driver name="EcalEventMonitor"/>
+        <driver name="EventMarkerDriver" />
+        <driver name="FADCConverter" />
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <!-- <driver name="EcalIntegralPedestalPlots" />  -->
+        <driver name="EcalMonitoringPlots" />
+        <driver name="EcalHitPlots" />
+        <driver name="EcalClusterPlots" />
+        <driver name="EcalWindowEventPlots" />
 <!--
         <driver name="EcalPedestalPlots"/>
-        <driver name="EcalEvsX"/>
         <driver name="EcalWindowPlots"/>
         <driver name="EcalDaqPlots"/>
 -->
-    </execute>    
+    </execute>
     <drivers>
         <driver name="FADCConverter" type="org.hps.recon.ecal.FADCConverterDriver">
             <threshold>80</threshold>
@@ -33,47 +30,40 @@
             <gain>1.0</gain>
             <use2014Gain>false</use2014Gain>
         </driver>
-        <driver name="EcalDaqPlots" type="org.hps.monitoring.drivers.ecal.EcalDaqPlots">
+        <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
         </driver>
-        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.drivers.ecal.EcalMonitoringPlots">
+        <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalIntegralHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="EcalEventMonitor" type="org.hps.monitoring.drivers.ecal.EcalEventMonitor">
-            <eventRefreshRate>1</eventRefreshRate>
-        </driver>
-        <driver name="EcalWindowPlots" type="org.hps.monitoring.drivers.ecal.EcalWindowPlotsXY">
+        <driver name="EcalWindowPlots" type="org.hps.monitoring.ecal.plots.EcalWindowPlotsXY">
             <subdetectorName>Ecal</subdetectorName>
             <inputCollection>EcalReadoutHits</inputCollection>
             <window>100</window>
         </driver>
-        <driver name="EcalWindowEventPlots" type="org.hps.monitoring.drivers.ecal.EcalWindowEventPlots">
+        <driver name="EcalWindowEventPlots" type="org.hps.monitoring.ecal.plots.EcalWindowEventPlots">
             <inputCollection>EcalReadoutHits</inputCollection>
             <window>100</window>
         </driver>
-<!--        <driver name="EcalPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
+<!--        <driver name="EcalPedestalPlots" type="org.hps.monitoring.ecal.plots.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>-->
-        <driver name="EcalIntegralPedestalPlots" type="org.hps.monitoring.drivers.ecal.EcalPedestalPlots">
+<!--          
+        <driver name="EcalIntegralPedestalPlots" type="org.hps.monitoring.ecal.plots.EcalPedestalPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+-->        
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="EcalClusterer"
-                type="org.hps.recon.ecal.CTPEcalClusterer">
-            <ecalName>Ecal</ecalName>
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+            <clustererName>CTPClusterer</clustererName>
         </driver>
-        <driver name="EcalClusterPlots" type="org.hps.monitoring.drivers.ecal.EcalClusterPlots">
+        <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
         </driver>
-        <driver name="EcalHitPlots" type="org.hps.monitoring.drivers.ecal.EcalHitPlots">
-        </driver>
-        <driver name="EcalEvsX" type="org.hps.monitoring.drivers.ecal.EcalEvsX">
-            <inputCollection>EcalClusters</inputCollection>
+        <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
         </driver>
     </drivers>
 </lcsim>

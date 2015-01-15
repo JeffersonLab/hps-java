@@ -48,10 +48,9 @@
             <use2014Gain>true</use2014Gain>
             <!--            <debug>true</debug>-->
         </driver>	
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.GTPEcalClusterer">
-            <ecalName>Ecal</ecalName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
+            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <clusterWindow>1</clusterWindow>
-            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
         </driver>
         <driver name="EcalTrigger" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
