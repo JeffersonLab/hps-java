@@ -135,15 +135,20 @@ public class SvtSensorSetup extends Driver {
      */
 	public void detectorChanged(Detector detector){
 		
-		// Get the collection of all SiSensors from the SVT 
-        List<SiSensor> sensors 
-        	= detector.getSubdetector(SVT_SUBDETECTOR_NAME).
-        			getDetectorElement().findDescendants(SiSensor.class);
+	    if (detector.getSubdetector(SVT_SUBDETECTOR_NAME) != null) {
+	    
+	        // Get the collection of all SiSensors from the SVT 
+	        List<SiSensor> sensors 
+        	    = detector.getSubdetector(SVT_SUBDETECTOR_NAME)
+        	        .getDetectorElement().findDescendants(SiSensor.class);
 		
-		// Loop through all of the sensors and configure them
-		for(SiSensor sensor : sensors){
-			this.setupSensor(sensor);
-		}
+	        // Loop through all of the sensors and configure them
+	        for(SiSensor sensor : sensors){
+	            this.setupSensor(sensor);
+	        }
+	    } else {
+	        getLogger().warning("no SVT detector found");
+	    }
 	}
 	
 	/**
