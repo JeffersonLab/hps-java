@@ -429,4 +429,46 @@ public final class ClusterUtilities {
         }
         return hits;
     }
+    
+    /**
+     * This method will determine which hits are likely shared with
+     * other clusters, by comparing a hit's energy to its contribution.
+     * If the energy is greater than the contribution, then its energy
+     * will assumed to be shared between clusters.  This convention
+     * might not be true depending on the clustering algorithm, but
+     * it is probably the best that can be done without the complete 
+     * list of clusters in the event.
+     * @param cluster The input cluster.
+     */
+    public static List<CalorimeterHit> findSharedHits(Cluster cluster) {
+        List<CalorimeterHit> sharedHits = new ArrayList<CalorimeterHit>();
+        for (int i = 0; i < cluster.getCalorimeterHits().size(); i++) {
+            if (cluster.getCalorimeterHits().get(i).getCorrectedEnergy() > cluster.getHitContributions()[i]) {
+                sharedHits.add(cluster.getCalorimeterHits().get(i));
+            }
+        }
+        return sharedHits;
+    }
+
+    /**
+     * This method will determine which hits are likely not shared
+     * other clusters, by comparing a hit's energy to its contribution.
+     * If the energy is equal to the contribution, then its energy
+     * will assumed to not be shared between clusters.  This convention
+     * might not be true depending on the clustering algorithm, but
+     * it is probably the best that can be done without the complete list
+     * of clusters in the event.
+     * @param cluster The input cluster.
+     */
+    public static List<CalorimeterHit> findUnsharedHits(Cluster cluster) {
+        List<CalorimeterHit> uniqueHits = new ArrayList<CalorimeterHit>();
+        for (int i = 0; i < cluster.getCalorimeterHits().size(); i++) {
+            if (cluster.getCalorimeterHits().get(i).getCorrectedEnergy() == cluster.getHitContributions()[i]) {
+                uniqueHits.add(cluster.getCalorimeterHits().get(i));
+            }
+        }
+        return uniqueHits;
+    }
+
+    
 }
