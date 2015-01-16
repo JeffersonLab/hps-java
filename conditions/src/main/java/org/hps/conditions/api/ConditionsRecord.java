@@ -159,11 +159,14 @@ public final class ConditionsRecord extends AbstractConditionsObject {
     public ConditionsRecord() {
     }
     
-    // TODO: This should be replaced by generic insert method on ConditionsObject (if possible).
+    // TODO: This should eventually be replaced by the generic insert method from the manager (if possible).
     public void insert() throws ConditionsObjectException {
         if (fieldValues.size() == 0)
             throw new ConditionsObjectException("There are no field values to insert.");
-        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(ConditionsRecord.class);
+        TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(ConditionsRecordCollection.class);
+        if (tableMetaData == null) {
+            throw new ConditionsObjectException("Failed to get meta data for ConditionsRecord.");
+        }
         String query = QueryBuilder.buildInsert(tableMetaData.getTableName(), this.getFieldValues());
         //System.out.println(query);
         List<Integer> keys = DatabaseConditionsManager.getInstance().updateQuery(query);
