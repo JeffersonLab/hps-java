@@ -159,11 +159,21 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         return (DatabaseConditionsManager) manager;
     }
+    
+    public boolean checkConnection() {
+        if (!isConnected()) {
+            openConnection();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Open the database connection.
      */
-    public Connection openConnection() {
+    public boolean openConnection() {
+        boolean openedConnection = false;
         if (!isConnected) {
             // Do the connection parameters need to be figured out automatically?
             if (connectionParameters == null) {
@@ -183,10 +193,13 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
             // Create the connection using the parameters.
             connection = connectionParameters.createConnection();
-            isConnected = true;
+            isConnected = true;                        
+            openedConnection = true;
         } 
         logger.info("connection opened");
-        return connection;
+        
+        // Flag to indicate whether an existing connection was used or not.
+        return openedConnection;
     }
 
     /**
@@ -205,6 +218,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         connection = null;
         isConnected = false;
         logger.info("connection closed");
+    }
+    
+    /**
+     * Close the database connection but only if there was a connection opened
+     * based on the flag.  Otherwise, it should be left open.
+     * @param connectionOpened Whether or not to close the connection.
+     */
+    public void closeConnection(boolean connectionOpened) {
+        if (connectionOpened) {
+            closeConnection();
+        }
     }
 
     /**
@@ -458,6 +482,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The next collection ID.
      */
     public int getNextCollectionID(String tableName) {
+        boolean openedConnection = openConnection();
         TableMetaData tableData = tableRegistry.findByTableName(tableName);
         if (tableData == null)
             throw new IllegalArgumentException("There is no meta data for table " + tableName);
@@ -471,6 +496,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             logger.warning(e.getMessage());
         }
         logger.fine("new collection ID " + collectionId + " created for table " + tableName);
+        closeConnection(openedConnection);
         return collectionId;
     }
 
@@ -526,7 +552,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The keys of the rows affected.
      */
     public List<Integer> updateQuery(String query) {
-        openConnection();
+        boolean openedConnection = openConnection();
         logger.fine(query);
         List<Integer> keys = new ArrayList<Integer>();
         Statement statement = null;
@@ -543,7 +569,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new RuntimeException("Error in SQL query: " + query, x);
         } 
         DatabaseUtilities.cleanup(resultSet);
-        closeConnection();
+        closeConnection(openedConnection);        
         return keys;
     }
 
@@ -683,7 +709,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         TableMetaData tableMetaData = collection.getTableMetaData();
         if (tableMetaData == null) {            
             tableMetaData = tableRegistry.findByCollectionType(collection.getClass()); 
-            logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());
+            logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());            
         }
         if (collection.getCollectionId() == -1) {
             try {
@@ -693,7 +719,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }
         logger.info("inserting collection with ID " + collection.getCollectionId() 
-                + " and key " + collection.getTableMetaData().getKey() + " into table " + tableMetaData.getTableName());
+                + " and key " + tableMetaData.getKey() + " into table " + tableMetaData.getTableName());
 
         boolean openedConnection = false;
         if (!isConnected()) {
@@ -737,10 +763,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             preparedStatement.close();
         } catch (Exception e) {
         }
-        
-        if (openedConnection) {
-            closeConnection();
-        }
+               
+        closeConnection(openedConnection);        
     }
     
     /**
