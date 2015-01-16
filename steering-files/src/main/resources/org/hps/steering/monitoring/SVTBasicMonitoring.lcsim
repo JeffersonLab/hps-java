@@ -37,9 +37,10 @@
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         </driver>        
-        <driver name="SVTBasicMonitoringPlots" type="org.hps.monitoring.drivers.svt.BasicMonitoringPlotsDriver">
+        <!-- Fixed this from BasicSVTMonitoringPlots which seems to have disappeared or been renamed.  JM -->
+        <driver name="SVTBasicMonitoringPlots" type="org.hps.monitoring.drivers.svt.SVTMonitoringPlots">
             <inputCollection>SVTRawTrackerHits</inputCollection>
-            <singleEvent>false</singleEvent>
+            <!-- <singleEvent>false</singleEvent>  -->
         </driver>
     </drivers>
 </lcsim>
