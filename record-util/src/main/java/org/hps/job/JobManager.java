@@ -25,9 +25,19 @@ public class JobManager extends JobControlManager {
      */
     @Override
     public boolean run() {
+        
+        // Inject the SvtSensorSetup Driver required for most recon jobs.
+        addSvtSetupDriver();
+        
+        // Setup the conditions if there is a ConditionsDriver present.
         setupConditions();
+        
+        // Run the job.
         boolean result = super.run();
+        
+        // Close the conditions database connection if it is open.        
         DatabaseConditionsManager.getInstance().closeConnection();
+               
         return result;
     }
 
@@ -46,6 +56,35 @@ public class JobManager extends JobControlManager {
         }
         if (conditionsDriver != null) {
             conditionsDriver.initialize();
+        }
+    }
+    
+    static String driverClassName = "org.hps.recon.tracking.SvtSensorSetup";
+    private void addSvtSetupDriver() {        
+        Class<?> driverClass = null;        
+        try {
+            driverClass = Class.forName(driverClassName);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("SvtSensorSetup class is not accessible.", e);
+        }
+        
+        boolean hasSetupDriver = false;
+        for (Driver driver : this.getDriverAdapter().getDriver().drivers()) {
+            if (driver.getClass().getCanonicalName().equals(driverClassName)) {
+                hasSetupDriver = true;
+                break;
+            }
+        }
+
+        if (!hasSetupDriver) {
+            Driver setupDriver;
+            try {
+                setupDriver = (Driver) driverClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException("Error creating new SvtSensorSetup Driver.", e);
+            }
+            this.getDriverAdapter().getDriver().drivers().add(0, setupDriver);
+            logStream.println("added SvtSensorSetup to beginning of Driver list");
         }
     }
 }
