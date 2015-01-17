@@ -1,5 +1,14 @@
 package org.hps.conditions.beam;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.ITree;
+import hep.aida.ITuple;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import junit.framework.TestCase;
@@ -7,6 +16,7 @@ import junit.framework.TestCase;
 import org.hps.conditions.beam.BeamConditions.BeamConditionsCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
  * Load beam conditions for every run from the ECAL commissioning.
@@ -38,6 +48,7 @@ public class BeamConditionsTest extends TestCase {
         DatabaseConditionsManager manager = new DatabaseConditionsManager();
         manager.setLogLevel(Level.SEVERE);
         System.out.println("run id current position_x position_y energy");
+        Map<Integer, BeamConditions> beamConditions = new LinkedHashMap<Integer, BeamConditions>();
         for (int run : runs) {
             try {
                 manager.setDetector("HPS-ECalCommissioning", run);
@@ -54,6 +65,53 @@ public class BeamConditionsTest extends TestCase {
             System.out.print(beam.getPositionY() + " ");
             System.out.print(beam.getEnergy());
             System.out.println();
+            beamConditions.put(run, beam);
         }
+        writeBeamTuple(beamConditions);
     }
+    
+    static private void writeBeamTuple(Map<Integer, BeamConditions> beamConditions) {
+        
+        File dir = new TestOutputFile(BeamConditionsTest.class.getSimpleName());
+        dir.mkdir();
+        
+        IAnalysisFactory analysisFactory = IAnalysisFactory.create();
+        ITree tree = null;
+        try {
+            tree = analysisFactory.createTreeFactory().create(dir.getPath() + File.separator + "BeamTuple.aida", "xml", false, true);
+        } catch (IllegalArgumentException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        ITuple tuple = analysisFactory.createTupleFactory(tree).create("/Beam Tuple", "Beam Tuple", "int run, double current, position_x, position_y, energy");
+        tuple.start();
+        for (Entry<Integer, BeamConditions> entry : beamConditions.entrySet()) {
+            tuple.addRow();
+            
+            Double current = entry.getValue().getCurrent();
+            if (current == null)
+                current = 0.;
+            Double positionX = entry.getValue().getPositionX();
+            if (positionX == null)
+                positionX = 0.;
+            Double positionY =  entry.getValue().getPositionY();
+            if (positionY == null)
+                positionY = 0.;
+            Double energy = entry.getValue().getEnergy();
+            if (energy == null)
+                energy = 0.;
+                        
+            tuple.fill(0, (int)entry.getKey());
+            tuple.fill(1, (double)current);
+            tuple.fill(2, (double)positionX);
+            tuple.fill(3, (double)positionY);
+            tuple.fill(4, (double)energy);
+            tuple.next();
+        }
+        
+        try {
+            tree.commit();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }       
 }
