@@ -3,6 +3,7 @@ package org.hps.conditions.beam;
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
@@ -35,6 +36,7 @@ public final class BeamConditions extends AbstractConditionsObject {
      * A null value means it was not recorded.
      * @return The beam current (nA).
      */
+    @Field(names = {"current"})
     public Double getCurrent() {
         return getFieldValue("current");
     }
@@ -43,6 +45,7 @@ public final class BeamConditions extends AbstractConditionsObject {
      * Get the average beam position in X (mm).
      * @return The beam position (mm).
      */
+    @Field(names = {"position_x"})
     public Double getPositionX() {
         return getFieldValue("position_x");
     }
@@ -51,6 +54,7 @@ public final class BeamConditions extends AbstractConditionsObject {
      * Get the average beam position in Y (mm).
      * @return The beam position (mm).
      */
+    @Field(names = {"position_y"})
     public Double getPositionY() {
         return getFieldValue("position_y");
     }
@@ -61,6 +65,7 @@ public final class BeamConditions extends AbstractConditionsObject {
      * A null value means it was not recorded.
      * @return The beam energy.
      */
+    @Field(names = {"energy"})
     public Double getEnergy() {
         return getFieldValue("energy");
     }        
