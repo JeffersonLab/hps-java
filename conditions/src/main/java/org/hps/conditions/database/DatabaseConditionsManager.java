@@ -160,17 +160,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         return (DatabaseConditionsManager) manager;
     }
     
-    public boolean checkConnection() {
-        if (!isConnected()) {
-            openConnection();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     /**
      * Open the database connection.
+     * @return True if a connection was opened; false if using an existing connection.
      */
     public boolean openConnection() {
         boolean openedConnection = false;
@@ -223,7 +215,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     /**
      * Close the database connection but only if there was a connection opened
      * based on the flag.  Otherwise, it should be left open.
-     * @param connectionOpened Whether or not to close the connection.
+     * @param connectionOpened True to close the connection; false to leave it open.
      */
     public void closeConnection(boolean connectionOpened) {
         if (connectionOpened) {
