@@ -33,6 +33,7 @@
                         <exclude>org/hps/conditions/svt/SvtDaqMappingTest.java</exclude>
                         <exclude>org/hps/conditions/svt/TestRunSvtConditionsConverterTest.java</exclude>
                         <exclude>org/hps/conditions/svt/TestRunSvtDaqMappingTest.java</exclude>
+                        <exclude>org/hps/conditions/beam/BeamConditionsTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
