@@ -400,7 +400,7 @@ public class ReconClusterer extends AbstractClusterer {
 
         // Remove clusters that do not pass cluster threshold and add to rejectedHitList.
         for (int j = 0; j <= clusterList.size() - 1; j++) {
-            Cluster checkcluster = clusterList.get(j);
+            BaseCluster checkcluster = (BaseCluster) clusterList.get(j);
             if (checkcluster.getEnergy() < clusterEnergyThreshold) {
                 List<CalorimeterHit> clusterHits = checkcluster.getCalorimeterHits();
                 for (CalorimeterHit nhit : clusterHits) {
@@ -447,7 +447,7 @@ public class ReconClusterer extends AbstractClusterer {
      * HPS Note 2014-001.
      * @param cluster
      */
-    private void calculatePosition(Cluster cluster) {
+    private void calculatePosition(BaseCluster cluster) {
         final double w0 = 3.1;
         // calculated cluster x position
         double xCl = 0.0;
@@ -488,8 +488,9 @@ public class ReconClusterer extends AbstractClusterer {
         int iy = clusterHits.get(0).getIdentifierFieldValue("iy");
         Point hitIndex = new Point(ix, iy);
         clusterPosition[2] = correctedPositionMap.get(hitIndex)[2];
-
-        ((BaseCluster) cluster).setPosition(clusterPosition);
+        
+        cluster.setPosition(clusterPosition);
+        cluster.setNeedsPropertyCalculation(false);
     }
 
     /**
