@@ -141,19 +141,23 @@ public class ReconClusterer extends AbstractClusterer {
 //        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
         
         HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
-        boolean multihit = false;
-        for (int ii = hitList.size() - 1; ii >= 0; ii--) {
-        	CalorimeterHit hit = hitList.get(ii);
-        	if (hitMap.containsKey(hit.getCellID())){
-//        		throw new RuntimeException("Multiple CalorimeterHits found in same crystal.");
-        		multihit = true;
-        		hitList.remove(ii);
-        	}
-        	else{hitMap.put(hit.getCellID(), hit);}
-        }
         
-        if (multihit == true){System.out.println("Multiple CalorimeterHits found in same crystal!");}
+        //boolean multihit = false;
+        for (int ii = hitList.size() - 1; ii >= 0; ii--) {
+            CalorimeterHit hit = hitList.get(ii);
+            if (hitMap.containsKey(hit.getCellID())) {
+                // throw new RuntimeException("Multiple CalorimeterHits found in same crystal.");
+                //multihit = true;
+                hitList.remove(ii);
+            } else {
+                hitMap.put(hit.getCellID(), hit);
+            }
+        }
 
+        // Multiple hits in same channel occurs in the data, so no print out is needed here.  --JM
+        //if (multihit == true) {
+        //    System.err.println("Multiple CalorimeterHits found in same crystal!");            
+        //}
 
         // Create a map to connect a seed hit to its cluster.
         Map<CalorimeterHit, BaseCluster> seedToCluster = new HashMap<CalorimeterHit, BaseCluster>();
