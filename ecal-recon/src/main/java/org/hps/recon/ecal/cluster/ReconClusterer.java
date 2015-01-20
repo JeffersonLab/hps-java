@@ -137,7 +137,23 @@ public class ReconClusterer extends AbstractClusterer {
 
         // Create a map to connect the cell ID of a calorimeter crystal to the hit which occurred in
         // that crystal.
-        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
+        
+//        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
+        
+        HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
+        boolean multihit = false;
+        for (int ii = hitList.size() - 1; ii >= 0; ii--) {
+        	CalorimeterHit hit = hitList.get(ii);
+        	if (hitMap.containsKey(hit.getCellID())){
+//        		throw new RuntimeException("Multiple CalorimeterHits found in same crystal.");
+        		multihit = true;
+        		hitList.remove(ii);
+        	}
+        	else{hitMap.put(hit.getCellID(), hit);}
+        }
+        
+        if (multihit == true){System.out.println("Multiple CalorimeterHits found in same crystal!");}
+
 
         // Create a map to connect a seed hit to its cluster.
         Map<CalorimeterHit, BaseCluster> seedToCluster = new HashMap<CalorimeterHit, BaseCluster>();
@@ -269,7 +285,8 @@ public class ReconClusterer extends AbstractClusterer {
 
                 // If the neighboring crystal exists and is not already
                 // in a cluster, add it to the list of neighboring hits.
-                if (secondaryNeighborHit != null && !hitToSeed.containsKey(secondaryNeighborHit)) {
+                if (secondaryNeighborHit != null && !hitToSeed.containsKey(secondaryNeighborHit)
+                		&& hitList.contains(secondaryNeighborHit)) {
                     secondaryNeighborHits.add(secondaryNeighborHit);
                 }
             }
@@ -304,7 +321,8 @@ public class ReconClusterer extends AbstractClusterer {
 
                 // If it exists, add it to the neighboring hit list.
 
-                if (clusteredNeighborHit != null && hitToSeed.get(clusteredNeighborHit) != null) {
+                if (clusteredNeighborHit != null && hitToSeed.get(clusteredNeighborHit) != null
+                		&& hitList.contains(clusteredNeighborHit)) {
                     clusteredNeighborHits.add(clusteredNeighborHit);
                 }
             }
