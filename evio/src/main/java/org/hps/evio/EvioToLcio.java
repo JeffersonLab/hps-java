@@ -352,9 +352,10 @@ public class EvioToLcio {
                     EvioEvent evioEvent = null;
                     try {
                         eventQueue.next();
-                        evioEvent = (EvioEvent) eventQueue.getCurrentRecord();                        
-                        reader.parseEvent(evioEvent);
-                    } catch (IOException | EvioException e) {
+                        evioEvent = (EvioEvent) eventQueue.getCurrentRecord();         
+                        // The parseEvent method does not need to be called here.
+                        // The events were already parsed when buffering.                        
+                    } catch (IOException e) {
                         // This means the EVIO event has bad data.  
                         logger.severe(e.getMessage());
                         e.printStackTrace();
@@ -418,7 +419,7 @@ public class EvioToLcio {
                             throw new RuntimeException("The LCSimEventBuilder was never initialized.");
                         }
 
-                        // Build the LCIO event.
+                        // Build the LCIO event.                        
                         EventHeader lcioEvent = eventBuilder.makeLCSimEvent(evioEvent);
                         eventTime = (lcioEvent.getTimeStamp() / 1000000);                           
                         logger.finest("created LCIO event #" + lcioEvent.getEventNumber() + " with time " + new Date(eventTime));
@@ -428,6 +429,7 @@ public class EvioToLcio {
                         }
 
                         // Activate Driver process methods.
+                        logger.finest("jobManager processing event " + lcioEvent.getEventNumber());
                         jobManager.processEvent(lcioEvent);
 
                         // Write out this LCIO event.
