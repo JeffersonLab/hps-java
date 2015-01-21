@@ -48,10 +48,15 @@ public class TIData extends TriggerData {
         calib    = ((bank[0]>>28)&1)==1;
         pulser   = ((bank[0]>>29)&1)==1;
 
-        final long timelo = bank[2] * 4;
-        final long timehi = (bank[3] & 0xffff) * 4 * (long)Math.pow(2,32);
-        
-        time = timelo+timehi; // units ns
+        long w1 = bank[2];
+        long w2 = bank[3];
+        if (w1<0) w1 += 2*(long)Integer.MAX_VALUE+2;
+        if (w2<0) w2 += 2*(long)Integer.MAX_VALUE+2;
+
+        final long timelo = w1;
+        final long timehi = (w2 & 0xffff) << 32;
+
+        time = 4*(timelo+timehi); // units ns
     }
 
     public int getTag() {
