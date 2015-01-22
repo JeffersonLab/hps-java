@@ -121,7 +121,9 @@ public class ReconClusterer extends AbstractClusterer {
         // designated threshold.
         for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or outside of time window, kill it.
-            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (useTimeCut && (hitList.get(index).getTime() < minTime || hitList.get(index).getTime() > (minTime + timeWindow)))) {
+            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) 
+            		|| (useTimeCut && (hitList.get(index).getTime() < minTime 
+            				|| hitList.get(index).getTime() > (minTime + timeWindow)))) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
@@ -143,12 +145,15 @@ public class ReconClusterer extends AbstractClusterer {
         HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();
         
         //boolean multihit = false;
-        for (int ii = hitList.size() - 1; ii >= 0; ii--) {
+        //for (int ii = hitList.size() - 1; ii >= 0; ii--) {
+        for (int ii = 0; ii <= hitList.size() - 1; ii++){
             CalorimeterHit hit = hitList.get(ii);
             if (hitMap.containsKey(hit.getCellID())) {
                 // throw new RuntimeException("Multiple CalorimeterHits found in same crystal.");
                 //multihit = true;
+                rejectedHitList.add(hit);
                 hitList.remove(ii);
+                ii--;
             } else {
                 hitMap.put(hit.getCellID(), hit);
             }
