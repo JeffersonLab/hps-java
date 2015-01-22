@@ -80,6 +80,9 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             createLayerPlot2D(plotDir + "fitT0ChiProb", kk, 200, -100, 100, 100, 0, 1.0);
             createLayerPlot2D(plotDir + "fitAmpChiProb", kk, 200, 0, 20000, 100, 0, 1.0);
             createLayerPlot1D(plotDir + "signalClusterT0", kk, 500, -100, 100);
+            createLayerPlot2D(plotDir + "signalClusterSizeT0", kk, 200, -100, 100, 10, 0.5, 10.5);
+
+            createLayerPlot2D(plotDir + "goodClusterFits", kk, 200, -100, 100, 100, 0, 20000);
             createLayerPlot2D(plotDir + "badClusterFits", kk, 200, -100, 100, 100, 0, 20000);
         }
         resetEfficiencyMap();
@@ -190,6 +193,7 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
             if (clusters != null) {
                 for (TrackerHit clust : clusters) {
                     getLayerPlot1D(plotDir + "signalClusterT0", simhit.getLayer()).fill(clust.getTime());
+                    getLayerPlot2D(plotDir + "signalClusterSizeT0", simhit.getLayer()).fill(clust.getTime(), clust.getRawHits().size());
 
                     for (int i = 0; i < 16; i++) {
                         if (Math.abs(clust.getTime()) < i + 1) {
@@ -198,7 +202,12 @@ public class SVTHitMCEfficiency extends DataQualityMonitor {
                     }
                     if (Math.abs(clust.getTime()) < t0Cut) {
                         gotCluster = 1;
+                        for (RawTrackerHit rth : (List<RawTrackerHit>) clust.getRawHits()) {
+                            GenericObject fit = (GenericObject) rthtofit.to(rth);
+                            getLayerPlot2D(plotDir + "goodClusterFits", simhit.getLayer()).fill(ShapeFitParameters.getT0(fit), ShapeFitParameters.getAmp(fit));
+                        }
                     } else {
+//                        System.out.println(clust.getRawHits().size());
                         for (RawTrackerHit rth : (List<RawTrackerHit>) clust.getRawHits()) {
                             GenericObject fit = (GenericObject) rthtofit.to(rth);
                             getLayerPlot2D(plotDir + "badClusterFits", simhit.getLayer()).fill(ShapeFitParameters.getT0(fit), ShapeFitParameters.getAmp(fit));

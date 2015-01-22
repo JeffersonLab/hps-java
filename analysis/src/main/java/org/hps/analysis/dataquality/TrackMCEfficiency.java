@@ -62,7 +62,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     int findableelectrons = 0;
     int findableTracks = 0;
     double foundTracks = 0;
-    private boolean debugTrackEfficiency = true;
+    private boolean debugTrackEfficiency = false;
     private String plotDir = "TrackMCEfficiency/";
     private String resDir = "TrackMCResolution/";
     private String misidDir = "TrackMCMisId/";
@@ -110,7 +110,7 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         IHistogram1D pMCRes = hf.createHistogram1D(resDir + "Momentum Resolution", 50, -0.5, 0.5);
         IHistogram1D phi0MCRes = hf.createHistogram1D(resDir + "phi0 Resolution", 50, -0.1, 0.1);
         IHistogram1D d0MCRes = hf.createHistogram1D(resDir + "d0 Resolution", 50, -0.5, 0.5);
-        IHistogram1D z0MCRes = hf.createHistogram1D(resDir + "z0 Resolution", 50, -1.0,1.0);
+        IHistogram1D z0MCRes = hf.createHistogram1D(resDir + "z0 Resolution", 50, -1.0, 1.0);
         IHistogram1D tanLambdaMCRes = hf.createHistogram1D(resDir + "tanLambda Resolution", 50, -0.1, 0.1);
     }
 
@@ -153,24 +153,37 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         Map<Track, TrackAnalysis> tkanalMap = new HashMap<Track, TrackAnalysis>();
         RelationalTable hittomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> mcrelations = event.get(LCRelation.class, trackHitMCRelationsCollectionName);
-        for (LCRelation relation : mcrelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+        if (debugTrackEfficiency) {
+            System.out.println(this.getClass().getSimpleName() + ": number of MC relations = " + mcrelations.size());
+        }
+        for (LCRelation relation : mcrelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hittomc.add(relation.getFrom(), relation.getTo());
+            }
+        }
+        if (debugTrackEfficiency) {
+            System.out.println(this.getClass().getSimpleName() + ": number of hittomc relations = " + hittomc.size());
+        }
         RelationalTable mcHittomcP = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         //  Get the collections of SimTrackerHits
         List<List<SimTrackerHit>> simcols = event.get(SimTrackerHit.class);
         //  Loop over the SimTrackerHits and fill in the relational table
-        for (List<SimTrackerHit> simlist : simcols)
-            for (SimTrackerHit simhit : simlist)
-                if (simhit.getMCParticle() != null)
+        for (List<SimTrackerHit> simlist : simcols) {
+            for (SimTrackerHit simhit : simlist) {
+                if (simhit.getMCParticle() != null) {
                     mcHittomcP.add(simhit, simhit.getMCParticle());
+                }
+            }
+        }
         RelationalTable trktomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
             List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
-            for (LCRelation relation : trueHitRelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+            for (LCRelation relation : trueHitRelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                     rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+            }
         }
         // make relational table for strip clusters to mc particle
         List<TrackerHit> siClusters = event.get(TrackerHit.class, siClusterCollectionName);
@@ -179,9 +192,11 @@ public class TrackMCEfficiency extends DataQualityMonitor {
             List<RawTrackerHit> rawHits = cluster.getRawHits();
             for (RawTrackerHit rth : rawHits) {
                 Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(rth);
-                if (simTrackerHits != null)
-                    for (SimTrackerHit simhit : simTrackerHits)
+                if (simTrackerHits != null) {
+                    for (SimTrackerHit simhit : simTrackerHits) {
                         clustertosimhit.add(cluster, simhit);
+                    }
+                }
             }
         }
         //relational tables from mc particle to raw and fitted tracker hits
@@ -190,33 +205,46 @@ public class TrackMCEfficiency extends DataQualityMonitor {
         for (LCRelation hit : fittedTrackerHits) {
             RawTrackerHit rth = FittedRawTrackerHit.getRawTrackerHit(hit);
             Set<SimTrackerHit> simTrackerHits = rawtomc.allFrom(rth);
-            if (simTrackerHits != null)
-                for (SimTrackerHit simhit : simTrackerHits)
-                    if (simhit.getMCParticle() != null)
+            if (simTrackerHits != null) {
+                for (SimTrackerHit simhit : simTrackerHits) {
+                    if (simhit.getMCParticle() != null) {
                         fittomc.add(hit, simhit.getMCParticle());
+                    }
+                }
+            }
         }
 
         RelationalTable hittostrip = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, detectorFrameHitRelationsCollectionName);
-        for (LCRelation relation : hitrelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+        for (LCRelation relation : hitrelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hittostrip.add(relation.getFrom(), relation.getTo());
+            }
+        }
 
         RelationalTable hittorotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> rotaterelations = event.get(LCRelation.class, trackHitRelationsCollectionName);
-        for (LCRelation relation : rotaterelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+        for (LCRelation relation : rotaterelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hittorotated.add(relation.getFrom(), relation.getTo());
+            }
+        }
 
         //  Instantiate the class that determines if a track is "findable"
         FindableTrack findable = new FindableTrack(event);
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
+        if (debugTrackEfficiency) {
+            System.out.println(this.getClass().getSimpleName() + ": nTracks = " + tracks.size());
+        }
         for (Track trk : tracks) {
             TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc, rawtomc, hittostrip, hittorotated);
             tkanalMap.put(trk, tkanal);
             MCParticle mcp = tkanal.getMCParticleNew();
             if (mcp != null) {//  Create a map between the tracks found and the assigned MC particle            
+                if (debugTrackEfficiency) {
+                    System.out.println(this.getClass().getSimpleName() + ": found MCP match");
+                }
                 trktomc.add(trk, tkanal.getMCParticleNew());
             }
         }
@@ -238,6 +266,9 @@ public class TrackMCEfficiency extends DataQualityMonitor {
             double eta = -Math.log(Math.tan(Math.atan2(pt, pz) / 2));
             double phi = Math.atan2(px, pz);
             //  Find the number of layers hit by this mc particle
+            if (debugTrackEfficiency) {
+                System.out.println("MC pt=" + pt);
+            }
             int nhits = findable.LayersHit(mcp);
             boolean isFindable = findable.InnerTrackerIsFindable(mcp, nlayers - 2);
 
@@ -258,14 +289,17 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 //it's the A'...let's see if we found both tracks.
                 List<MCParticle> daughters = mcp.getDaughters();
                 for (MCParticle d : daughters) {
-                    if (trktomc.allTo(d).isEmpty())
+                    if (trktomc.allTo(d).isEmpty()) {
                         bothreco = false;
-                    if (!findable.InnerTrackerIsFindable(d, nlayers - 2))
+                    }
+                    if (!findable.InnerTrackerIsFindable(d, nlayers - 2)) {
                         bothfindable = false;
+                    }
                 }
                 double vtxWgt = 0;
-                if (bothreco)
+                if (bothreco) {
                     vtxWgt = 1.0;
+                }
 //                VxEff.fill(mcp.getOriginX(), vtxWgt);
 //                VyEff.fill(mcp.getOriginY(), vtxWgt);
 //                VzEff.fill(mcp.getOriginZ(), vtxWgt);
@@ -281,8 +315,9 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 _nchMCP++;
                 findableTracks++;
                 double wgt = 0.;
-                if (ntrk > 0)
+                if (ntrk > 0) {
                     wgt = 1.;
+                }
                 foundTracks += wgt;
                 peffFindable.fill(p, wgt);
                 phieffFindable.fill(phi, wgt);
@@ -295,8 +330,9 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                     Set<FittedRawTrackerHit> fitlist = fittomc.allTo(mcp);
                     if (debugTrackEfficiency) {
                         System.out.println(this.getClass().getSimpleName() + ":  Missed a findable track with MC p = " + p);
-                            if (!hasHTHInEachLayer(hitlist, fitlist))
-                                System.out.println("\t\tThis track failed becasue it's missing a helical track hit");
+                        if (!hasHTHInEachLayer(hitlist, fitlist)) {
+                            System.out.println("\t\tThis track failed becasue it's missing a helical track hit");
+                        }
                     }
                 }
 
@@ -305,8 +341,9 @@ public class TrackMCEfficiency extends DataQualityMonitor {
                 totelectrons++;
 //                    findableelectrons++;
                 double wgt = 0.;
-                if (ntrk > 0)
+                if (ntrk > 0) {
                     wgt = 1.;
+                }
                 foundelectrons += wgt;
                 peffElectrons.fill(p, wgt);
                 phieffElectrons.fill(phi, wgt);
@@ -349,15 +386,19 @@ public class TrackMCEfficiency extends DataQualityMonitor {
     }
 
     private boolean hasHTHInEachLayer(Set<HelicalTrackCross> list, Set<FittedRawTrackerHit> fitlist) {
-        if(list.size()==0)
+        if (list.isEmpty()) {
             return false;
-        if(!(list.toArray()[0] instanceof HelicalTrackCross))
+        }
+        if (!(list.toArray()[0] instanceof HelicalTrackCross)) {
             return false;
+        }
         for (int layer = 1; layer < nlayers - 2; layer += 2) {
-            boolean hasThisLayer = false;            
-            for (HelicalTrackCross hit : list)
-                if (hit.Layer() == layer)
+            boolean hasThisLayer = false;
+            for (HelicalTrackCross hit : list) {
+                if (hit.Layer() == layer) {
                     hasThisLayer = true;
+                }
+            }
             if (!hasThisLayer) {
 //                System.out.println("Missing reconstructed hit in layer = " + layer);
                 boolean hasFitHitSL1 = false;
