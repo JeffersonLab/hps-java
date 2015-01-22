@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.hps.readout.ecal.TriggerData;
+import org.hps.readout.ecal.triggerbank.AbstractIntData;
+import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
@@ -33,10 +33,13 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
     protected static Logger logger = LogUtil.create(LCSimTestRunEventBuilder.class);
+    protected List<IntBankDefinition> intBanks = null;
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new ECalEvioReader(0x1, 0x2);
         svtReader = new TestRunSvtEvioReader();
+        intBanks = new ArrayList<IntBankDefinition>();
+        intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
         logger.setLevel(Level.FINE);
     }
 
@@ -84,7 +87,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
             throw new RuntimeException("Not a physics event: event tag " + evioEvent.getHeader().getTag());
         }
-        
+
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = getEventData(evioEvent);
 
@@ -109,16 +112,16 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         int[] eventID = null;
         //array of length 3: {event number, trigger code, readout status}
 
-        List<TriggerData> triggerList = getTriggerData(evioEvent);
+        List<AbstractIntData> triggerList = getTriggerData(evioEvent);
 
         if (evioEvent.getChildCount() > 0) {
             for (BaseStructure bank : evioEvent.getChildren()) {
                 if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
                     eventID = bank.getIntData();
-                } 
+                }
             }
         }
-        
+
         if (eventID == null) {
             logger.warning("No event ID bank found");
             eventID = new int[3];
@@ -132,51 +135,84 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             }
         }
 
-        if (triggerList.isEmpty()) {
-            logger.finest("No trigger bank found");
-        } else if (triggerList.size() > 1) {
-            logger.finest("Found multiple trigger banks");
-        }
+        time = getTime(triggerList);
 
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = new BaseLCSimEvent(
-                ConditionsManager.defaultInstance().getRun(), 
-                eventID[0], 
-                ConditionsManager.defaultInstance().getDetector(), 
+                ConditionsManager.defaultInstance().getRun(),
+                eventID[0],
+                ConditionsManager.defaultInstance().getDetector(),
                 time);
 
-        lcsimEvent.put("TriggerBank", triggerList, TriggerData.class, 0);
+        lcsimEvent.put("TriggerBank", triggerList, AbstractIntData.class, 0);
         return lcsimEvent;
     }
 
-    protected List<TriggerData> getTriggerData(EvioEvent evioEvent) {
-        List<TriggerData> triggerList = new ArrayList<TriggerData>();
-        if (evioEvent.getChildCount() > 0) {
-            for (BaseStructure bank : evioEvent.getChildren()) {
-                if (bank.getHeader().getTag() == sspCrateBankTag) {
-                    if (bank.getChildCount() > 0) {
-                        for (BaseStructure slotBank : bank.getChildren()) {
-                            if (slotBank.getHeader().getTag() == sspBankTag) {
-//                                TriggerData triggerData = new TriggerData(slotBank.getIntData());
-//                                time = ((long) triggerData.getTime()) * 1000000000;
-                                triggerList.add(makeTriggerData(slotBank.getIntData()));
-                            }
-                        }
-                    }
+    protected long getTime(List<AbstractIntData> triggerList) {
+        for (AbstractIntData data : triggerList) {
+            if (data instanceof TestRunTriggerData) {
+                return (((TestRunTriggerData) data).getTime()) * 1000000000L;
+            }
+        }
+        return 0;
+    }
+
+    protected List<AbstractIntData> getTriggerData(EvioEvent evioEvent) {
+        List<AbstractIntData> triggerList = new ArrayList<AbstractIntData>();
+
+        for (IntBankDefinition def : intBanks) {
+            BaseStructure bank = def.findBank(evioEvent);
+            if (bank != null) { //returns null if no banks found
+                try {
+                    AbstractIntData data = (AbstractIntData) def.dataClass.getConstructor(int[].class).newInstance(bank.getIntData());
+                    triggerList.add(data);
+                } catch (Exception ex) {
+                    Logger.getLogger(LCSimTestRunEventBuilder.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            } else {
+                logger.finest("No trigger bank found of type " + def.dataClass.getSimpleName());
             }
         }
         return triggerList;
     }
 
-    protected TriggerData makeTriggerData(int[] data) {
-        TriggerData triggerData = new TriggerData(data);
-        time = ((long) triggerData.getTime()) * 1000000000;
-        return triggerData;
-    }
-
+//    protected TriggerData makeTriggerData(int[] data) {
+//        TriggerData triggerData = new TriggerData(data);
+//        time = ((long) triggerData.getTime()) * 1000000000;
+//        return triggerData;
+//    }
     @Override
     public void conditionsChanged(ConditionsEvent conditionsEvent) {
         ecalReader.initialize();
+    }
+
+    protected class IntBankDefinition {
+
+        int[] bankTags;
+        Class<? extends AbstractIntData> dataClass;
+
+        public IntBankDefinition(Class dataClass, int[] bankTags) {
+            this.bankTags = bankTags;
+            this.dataClass = dataClass;
+        }
+
+        public BaseStructure findBank(EvioEvent evioEvent) {
+            BaseStructure currentBank = evioEvent;
+            searchLoop:
+            for (int bankTag : bankTags) {
+                if (currentBank.getChildCount() > 0) {
+                    for (BaseStructure childBank : currentBank.getChildren()) {
+                        if (childBank.getHeader().getTag() == bankTag) { //found a bank with the right tag; step inside this bank and conitnue searching
+                            currentBank = childBank;
+                            continue searchLoop;
+                        }
+                    }
+                    return null; //didn't find a bank with the right tag, give up
+                } else { //bank has no children, give up
+                    return null;
+                }
+            }
+            return currentBank; // matched every tag, so this is the bank we want
+        }
     }
 }
