@@ -293,9 +293,10 @@ public final class CompositeLoop extends DefaultRecordLoop {
             if (config.eventBuilder != null) {
                 if (config.detectorName != null) {
                     // Is LCSim ConditionsManager installed yet?
-                    if (!ConditionsManager.isSetup())
-                        // Setup LCSim conditions system if not already.
+                    if (!ConditionsManager.isSetup()) {
+                        // Setup default LCSim conditions system if not already.
                         LCSimConditionsManagerImplementation.register();
+                    }
                     //config.eventBuilder.setDetectorName(config.detectorName);
                 } else {
                     throw new IllegalArgumentException("Missing detectorName in configuration.");

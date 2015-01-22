@@ -60,7 +60,6 @@ import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -70,7 +69,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
@@ -97,6 +95,7 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
+import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager;
@@ -985,7 +984,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             // Start thread which will trigger a disconnect if the event processing finishes.
             startSessionWatchdogThread();            
 
-            // Apparently, the visible plots won't draw without this!  (Unless the user clicks directly on the tab.)
+            // FIXME: Apparently, the visible plots won't draw without this!  (Unless the user clicks directly on the tab.)
             plotWindow.getPlotPane().requestFocusInWindow();            
 
             log(Level.INFO, "Successfully started the monitoring session.");
@@ -1036,6 +1035,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 throw new IOException(e);
             }
         } else {
+            // This is when a direct file source is used and ET is not needed.
             this.setConnectionStatus(ConnectionStatus.CONNECTED);
         }
     }
@@ -1114,16 +1114,19 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         try {
             // Create and the job manager.  The conditions manager is instantiated from this call but not configured.
             jobManager = new JobManager();
+                        
+            // Setup the event builder to translate from EVIO to LCIO.
+            // This must happen before Driver setup so the builder's listeners are activated first!
+            createEventBuilder();
+            
+            // Configure the job manager for the XML steering.
             jobManager.setPerformDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
                 setupSteeringResource(steering);
             } else if (steeringType.equals(SteeringType.FILE)) {
                 setupSteeringFile(steering);
             }
-
-            // Setup the event builder to translate from EVIO to LCIO.
-            createEventBuilder();
-            
+           
             // Is there a user specified run number from the JobPanel?
             if (configurationModel.hasPropertyValue(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
                 int userRunNumber = configurationModel.getUserRunNumber();
@@ -1181,10 +1184,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             throw new RuntimeException("Failed to create LCSimEventBuilder.", e);
         }
 
-        // Set the detector name on the event builder so it can find conditions data.
-        // FIXME: This call should be made unnecessary by modifying the EventBuilder API to remove setDetectorName.
-        //eventBuilder.setDetectorName(configurationModel.getDetectorName());
-
+        // Add the builder as a listener so it is notified when conditions change.
         ConditionsManager.defaultInstance().addConditionsListener(eventBuilder);
 
         log(Level.CONFIG, "Successfully initialized event builder <" + eventBuilderClassName + ">");
@@ -1345,10 +1345,13 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
+        
+        // Setup for conditions activation via EVIO events.
+        loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
 
         // Create the CompositeLoop with the configuration.
         loop = new CompositeLoop(loopConfig);
-
+                
         // Create the processing thread.
         processingThread = new EventProcessingThread(loop);
 
