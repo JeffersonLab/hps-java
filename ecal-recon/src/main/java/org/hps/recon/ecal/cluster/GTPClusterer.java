@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.lcsim.event.CalorimeterHit;
@@ -68,7 +69,6 @@ public class GTPClusterer extends AbstractClusterer {
     }    
     
     public void initialize() {
-        
         // Set cuts.
         setSeedEnergyThreshold(getCuts().getValue("seedEnergyThreshold"));
         setClusterWindow((int) getCuts().getValue("clusterWindow"));
@@ -101,6 +101,25 @@ public class GTPClusterer extends AbstractClusterer {
         // Get the list of hits at the current time in the event buffer.
         Map<Long, CalorimeterHit> currentHits = hitBuffer.get(clusterWindow);
         
+        // DEBUG :: Print the cluster window.
+        System.out.printf("%n%nEvent:%n");
+        int window = (hitBuffer.size() - 1) / 2;
+        int bufferNum = 0;
+        for(Map<Long, CalorimeterHit> bufferMap : hitBuffer) {
+            System.out.printf("Buffer %d:%n", hitBuffer.size() - bufferNum - window - 1);
+            CalorimeterHit hit = null;
+            
+            for(Entry<Long, CalorimeterHit> entry : bufferMap.entrySet()) {
+            	hit = entry.getValue();
+            	System.out.printf("\t(%3d, %3d) --> %.4f (%.4f)%n", hit.getIdentifierFieldValue("ix"),
+            			hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
+            }
+            
+            bufferNum++;
+        }
+        
+        if(currentHits.isEmpty()) { System.out.println("\tNo hits this event!"); }
+        
         // For a hit to be a cluster center, it must be a local maximum
         // both with respect to its neighbors and itself both in the
         // present time and at all times within the event buffer.
@@ -109,12 +128,18 @@ public class GTPClusterer extends AbstractClusterer {
             // Get the actual hit object.
             CalorimeterHit currentHit = currentHits.get(currentID);
             
+            // DEBUG :: Print the current cluster.
+            System.out.printf("Cluster Check:%n");
+        	System.out.printf("\t(%3d, %3d) --> %.4f%n", currentHit.getIdentifierFieldValue("ix"),
+        			currentHit.getIdentifierFieldValue("iy"), currentHit.getCorrectedEnergy(), currentHit.getRawEnergy());
+            
             // Store the energy of the current hit.
             double currentEnergy = currentHit.getRawEnergy();
             
             // If the hit energy is lower than the minimum threshold,
             // then we immediately reject this hit as a possible cluster.
             if (currentEnergy < seedEnergyThreshold) {
+            	System.out.printf("\tREJECT :: Does not exceed seed threshold %.4f.%n", seedEnergyThreshold);
                 continue seedLoop;
             }
             
@@ -139,6 +164,9 @@ public class GTPClusterer extends AbstractClusterer {
                     // is larger than then original hit. If it is, we may
                     // stop the comparison because this is not a cluster.
                     if (bufferHitEnergy > currentEnergy) {
+                    	System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.");
+                    	System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", bufferHit.getIdentifierFieldValue("ix"),
+                    			bufferHit.getIdentifierFieldValue("iy"), bufferHit.getCorrectedEnergy(), bufferHit.getRawEnergy());
                         continue seedLoop;
                     }
                     
@@ -164,6 +192,9 @@ public class GTPClusterer extends AbstractClusterer {
                         // If it is, we may stop the comparison because this
                         // is not a cluster.
                         if (neighborHitEnergy > currentEnergy) {
+                        	System.out.printf("\tREJECT :: Buffer hit surpasses hit energy.%n");
+                        	System.out.printf("\tBUFFER HIT :: (%3d, %3d) --> %.4f%n", neighborHit.getIdentifierFieldValue("ix"),
+                        			neighborHit.getIdentifierFieldValue("iy"), neighborHit.getCorrectedEnergy(), neighborHit.getRawEnergy());
                             continue seedLoop;
                         }
                         
@@ -182,6 +213,14 @@ public class GTPClusterer extends AbstractClusterer {
             
             // Add the cluster to the list of clusters.
             clusters.add(cluster);
+            
+            System.out.printf("Cluster added.%n");
+            System.out.printf("\t(%3d, %3d) --> %.4f GeV --> %d hits%n", cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
+            		cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), cluster.getEnergy(), cluster.getCalorimeterHits().size());
+            for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+            	System.out.printf("\t\tCLUSTER HIT :: (%3d, %3d) --> %.4f%n", hit.getIdentifierFieldValue("ix"),
+            			hit.getIdentifierFieldValue("iy"), hit.getCorrectedEnergy(), hit.getRawEnergy());
+            }
         }
         
         // Return the generated list of clusters.
@@ -196,7 +235,6 @@ public class GTPClusterer extends AbstractClusterer {
      * @param event - The event to process.
      */
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
-            
         // Store each hit in a set by its cell ID so that it may be
         // easily acquired later.
         HashMap<Long, CalorimeterHit> hitMap = new HashMap<Long, CalorimeterHit>();

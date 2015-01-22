@@ -32,4 +32,12 @@ public class GTPClusterDriver extends ClusterDriver {
     public void setClusterWindow(int clusterWindow) {
         getClusterer().getCuts().setValue("clusterWindow", clusterWindow);
     }
+    
+    public void setSeedEnergyThreshold(double seedEnergyThreshold) {
+    	getClusterer().getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
+    }
+    
+    public void setAsymmetricWindow(boolean asymmetricWindow) {
+    	((GTPClusterer) getClusterer()).setLimitClusterRange(asymmetricWindow);
+    }
 }
