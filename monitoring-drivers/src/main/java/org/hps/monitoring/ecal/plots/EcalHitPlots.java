@@ -8,8 +8,6 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.readout.ecal.TriggerData;
-import org.hps.readout.ecal.SSPData;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;

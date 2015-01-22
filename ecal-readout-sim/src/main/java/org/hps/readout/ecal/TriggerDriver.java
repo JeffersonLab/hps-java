@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
@@ -156,10 +157,10 @@ public abstract class TriggerDriver extends TriggerableDriver {
      * Make a dummy TriggerData
      */
     protected void makeTriggerData(EventHeader event, String collectionName) {
-        TriggerData tData = new TriggerData(new int[8]);
-        List<TriggerData> triggerList = new ArrayList<TriggerData>();
+        TestRunTriggerData tData = new TestRunTriggerData(new int[8]);
+        List<TestRunTriggerData> triggerList = new ArrayList<TestRunTriggerData>();
         triggerList.add(tData);
-        event.put(collectionName, triggerList, TriggerData.class, 0);
+        event.put(collectionName, triggerList, TestRunTriggerData.class, 0);
     }
 
     @Override

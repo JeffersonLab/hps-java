@@ -44,14 +44,8 @@ public class TIData extends AbstractIntData {
         calib = ((bank[0] >> 28) & 1) == 1;
         pulser = ((bank[0] >> 29) & 1) == 1;
 
-        long w1 = bank[2];
-        long w2 = bank[3];
-        if (w1 < 0) {
-            w1 += 2 * (long) Integer.MAX_VALUE + 2;
-        }
-        if (w2 < 0) {
-            w2 += 2 * (long) Integer.MAX_VALUE + 2;
-        }
+        long w1 = bank[2] & 0xffffffffL;
+        long w2 = bank[3] & 0xffffffffL;
 
         final long timelo = w1;
         final long timehi = (w2 & 0xffff) << 32;

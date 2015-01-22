@@ -6,13 +6,13 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.PlotterRegion;
-
 import java.util.List;
-
-import org.hps.readout.ecal.TriggerData;
+import org.hps.readout.ecal.triggerbank.AbstractIntData;
+import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -28,7 +28,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class TrackTimePlots extends Driver {
 
-	//private AIDAFrame plotterFrame;
+    //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String hitCollection = "StripClusterer_SiTrackerHitStrip1D";
     private String trackCollection = "MatchedTracks";
@@ -47,7 +47,7 @@ public class TrackTimePlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-    	//plotterFrame = new AIDAFrame();
+        //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("HPS SVT Track Time Plots");
 
         aida.tree().cd("/");
@@ -118,12 +118,11 @@ public class TrackTimePlots extends Driver {
         style.dataStyle().errorBarStyle().setVisible(false);
         plotter7.createRegions(2, 2);
 
-        
-        for(HpsSiSensor sensor : sensors){
-        	int module = sensor.getModuleNumber();
-        	int layer = sensor.getLayerNumber(); 
+        for (HpsSiSensor sensor : sensors) {
+            int module = sensor.getModuleNumber();
+            int layer = sensor.getLayerNumber();
             int region = computePlotterRegion(layer + 1, module);
-        
+
             t0[module][layer] = aida.histogram1D(sensor.getName() + "_timing", 75, -50, 100.0);
             plotter.region(region).plot(t0[module][layer]);
             ((PlotterRegion) plotter.region(region)).getPlot().getXAxis().setLabel("Hit time [ns]");
@@ -142,16 +141,16 @@ public class TrackTimePlots extends Driver {
             ((PlotterRegion) plotter6.region(region)).getPlot().getXAxis().setLabel("Hit position [mm]");
             ((PlotterRegion) plotter6.region(region)).getPlot().getYAxis().setLabel("Hit time residual [ns]");
         }
-        	
+
         for (int module = 0; module < 2; module++) {
-        
+
             trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 75, -50, 100.0);
             plotter2.region(module).plot(trackT0[module]);
             ((PlotterRegion) plotter2.region(module)).getPlot().getXAxis().setLabel("Track time [ns]");
             trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 33, -1, 32);
             plotter2.region(module + 2).plot(trackTrigTime[module]);
-            ((PlotterRegion) plotter2.region(module+2)).getPlot().getXAxis().setLabel("Track time [ns]");
-            ((PlotterRegion) plotter2.region(module+2)).getPlot().getYAxis().setLabel("Trigger time [clocks]");
+            ((PlotterRegion) plotter2.region(module + 2)).getPlot().getXAxis().setLabel("Track time [ns]");
+            ((PlotterRegion) plotter2.region(module + 2)).getPlot().getYAxis().setLabel("Trigger time [clocks]");
             style = plotter2.region(module + 2).style();
             style.setParameter("hist2DStyle", "colorMap");
             style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
@@ -162,63 +161,62 @@ public class TrackTimePlots extends Driver {
             ((PlotterRegion) plotter7.region(module)).getPlot().getXAxis().setLabel("Track time range [ns]");
             trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 75, -50, 100.0, 75, -50, 100.0);
             plotter7.region(module + 2).plot(trackTimeMinMax[module]);
-            ((PlotterRegion) plotter7.region(module+2)).getPlot().getXAxis().setLabel("First track hit time [ns]");
-            ((PlotterRegion) plotter7.region(module+2)).getPlot().getYAxis().setLabel("Last track hit time [ns]");
+            ((PlotterRegion) plotter7.region(module + 2)).getPlot().getXAxis().setLabel("First track hit time [ns]");
+            ((PlotterRegion) plotter7.region(module + 2)).getPlot().getYAxis().setLabel("Last track hit time [ns]");
             style = plotter7.region(module + 2).style();
             style.setParameter("hist2DStyle", "colorMap");
             style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
             style.zAxisStyle().setParameter("scale", "log");
         }
-        	
-       /* ===> for (int module = 0; module < 2; module++) {
-            for (int layer = 0; layer < 10; layer++) {
-                SiSensor sensor = SvtUtils.getInstance().getSensor(module, layer);
-                int region = computePlotterRegion(layer + 1, module);
-                t0[module][layer] = aida.histogram1D(sensor.getName() + "_timing", 75, -50, 100.0);
-                plotter.region(region).plot(t0[module][layer]);
-                ((PlotterRegion) plotter.region(region)).getPlot().getXAxis().setLabel("Hit time [ns]");
-                trackHitT0[module][layer] = aida.histogram1D(sensor.getName() + "_trackHit_timing", 75, -50, 4000.0);
-                plotter3.region(region).plot(trackHitT0[module][layer]);
-                ((PlotterRegion) plotter3.region(region)).getPlot().getXAxis().setLabel("Hit time [ns]");
-                trackHitDt[module][layer] = aida.histogram1D(sensor.getName() + "_trackHit_dt", 50, -20, 20.0);
-                plotter4.region(region).plot(trackHitDt[module][layer]);
-                ((PlotterRegion) plotter4.region(region)).getPlot().getXAxis().setLabel("Hit time residual [ns]");
-                trackHit2D[module][layer] = aida.histogram2D(sensor.getName() + "_trackHit_dt_2D", 75, -50, 100.0, 50, -20, 20.0);
-                plotter5.region(region).plot(trackHit2D[module][layer]);
-                ((PlotterRegion) plotter5.region(region)).getPlot().getXAxis().setLabel("Track time [ns]");
-                ((PlotterRegion) plotter5.region(region)).getPlot().getYAxis().setLabel("Hit time [ns]");
-                trackHitDtChan[module][layer] = aida.histogram2D(sensor.getName() + "_trackHit_dt_chan", 200, -20, 20, 50, -20, 20.0);
-                plotter6.region(region).plot(trackHitDtChan[module][layer]);
-                ((PlotterRegion) plotter6.region(region)).getPlot().getXAxis().setLabel("Hit position [mm]");
-                ((PlotterRegion) plotter6.region(region)).getPlot().getYAxis().setLabel("Hit time residual [ns]");
-            }
-            trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 75, -50, 100.0);
-            plotter2.region(module).plot(trackT0[module]);
-            ((PlotterRegion) plotter2.region(module)).getPlot().getXAxis().setLabel("Track time [ns]");
-            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 33, -1, 32);
-            plotter2.region(module + 2).plot(trackTrigTime[module]);
-            ((PlotterRegion) plotter2.region(module+2)).getPlot().getXAxis().setLabel("Track time [ns]");
-            ((PlotterRegion) plotter2.region(module+2)).getPlot().getYAxis().setLabel("Trigger time [clocks]");
-            style = plotter2.region(module + 2).style();
-            style.setParameter("hist2DStyle", "colorMap");
-            style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            style.zAxisStyle().setParameter("scale", "log");
 
-            trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75, 0, 30.0);
-            plotter7.region(module).plot(trackTimeRange[module]);
-            ((PlotterRegion) plotter7.region(module)).getPlot().getXAxis().setLabel("Track time range [ns]");
-            trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 75, -50, 100.0, 75, -50, 100.0);
-            plotter7.region(module + 2).plot(trackTimeMinMax[module]);
-            ((PlotterRegion) plotter7.region(module+2)).getPlot().getXAxis().setLabel("First track hit time [ns]");
-            ((PlotterRegion) plotter7.region(module+2)).getPlot().getYAxis().setLabel("Last track hit time [ns]");
-            style = plotter7.region(module + 2).style();
-            style.setParameter("hist2DStyle", "colorMap");
-            style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-            style.zAxisStyle().setParameter("scale", "log");
-        } ===> */
+        /* ===> for (int module = 0; module < 2; module++) {
+         for (int layer = 0; layer < 10; layer++) {
+         SiSensor sensor = SvtUtils.getInstance().getSensor(module, layer);
+         int region = computePlotterRegion(layer + 1, module);
+         t0[module][layer] = aida.histogram1D(sensor.getName() + "_timing", 75, -50, 100.0);
+         plotter.region(region).plot(t0[module][layer]);
+         ((PlotterRegion) plotter.region(region)).getPlot().getXAxis().setLabel("Hit time [ns]");
+         trackHitT0[module][layer] = aida.histogram1D(sensor.getName() + "_trackHit_timing", 75, -50, 4000.0);
+         plotter3.region(region).plot(trackHitT0[module][layer]);
+         ((PlotterRegion) plotter3.region(region)).getPlot().getXAxis().setLabel("Hit time [ns]");
+         trackHitDt[module][layer] = aida.histogram1D(sensor.getName() + "_trackHit_dt", 50, -20, 20.0);
+         plotter4.region(region).plot(trackHitDt[module][layer]);
+         ((PlotterRegion) plotter4.region(region)).getPlot().getXAxis().setLabel("Hit time residual [ns]");
+         trackHit2D[module][layer] = aida.histogram2D(sensor.getName() + "_trackHit_dt_2D", 75, -50, 100.0, 50, -20, 20.0);
+         plotter5.region(region).plot(trackHit2D[module][layer]);
+         ((PlotterRegion) plotter5.region(region)).getPlot().getXAxis().setLabel("Track time [ns]");
+         ((PlotterRegion) plotter5.region(region)).getPlot().getYAxis().setLabel("Hit time [ns]");
+         trackHitDtChan[module][layer] = aida.histogram2D(sensor.getName() + "_trackHit_dt_chan", 200, -20, 20, 50, -20, 20.0);
+         plotter6.region(region).plot(trackHitDtChan[module][layer]);
+         ((PlotterRegion) plotter6.region(region)).getPlot().getXAxis().setLabel("Hit position [mm]");
+         ((PlotterRegion) plotter6.region(region)).getPlot().getYAxis().setLabel("Hit time residual [ns]");
+         }
+         trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 75, -50, 100.0);
+         plotter2.region(module).plot(trackT0[module]);
+         ((PlotterRegion) plotter2.region(module)).getPlot().getXAxis().setLabel("Track time [ns]");
+         trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 75, -50, 100.0, 33, -1, 32);
+         plotter2.region(module + 2).plot(trackTrigTime[module]);
+         ((PlotterRegion) plotter2.region(module+2)).getPlot().getXAxis().setLabel("Track time [ns]");
+         ((PlotterRegion) plotter2.region(module+2)).getPlot().getYAxis().setLabel("Trigger time [clocks]");
+         style = plotter2.region(module + 2).style();
+         style.setParameter("hist2DStyle", "colorMap");
+         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+         style.zAxisStyle().setParameter("scale", "log");
+
+         trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75, 0, 30.0);
+         plotter7.region(module).plot(trackTimeRange[module]);
+         ((PlotterRegion) plotter7.region(module)).getPlot().getXAxis().setLabel("Track time range [ns]");
+         trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 75, -50, 100.0, 75, -50, 100.0);
+         plotter7.region(module + 2).plot(trackTimeMinMax[module]);
+         ((PlotterRegion) plotter7.region(module+2)).getPlot().getXAxis().setLabel("First track hit time [ns]");
+         ((PlotterRegion) plotter7.region(module+2)).getPlot().getYAxis().setLabel("Last track hit time [ns]");
+         style = plotter7.region(module + 2).style();
+         style.setParameter("hist2DStyle", "colorMap");
+         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+         style.zAxisStyle().setParameter("scale", "log");
+         } ===> */
 //        shape = aida.histogram2D("Shape", 200, -1, 3, 200, -0.5, 2);
 //        plotter5.region(0).plot(shape);
-
         //plotterFrame.pack();
         //plotterFrame.setVisible(true);
     }
@@ -240,37 +238,40 @@ public class TrackTimePlots extends Driver {
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
-        if (event.hasCollection(TriggerData.class, "TriggerBank")) {
-            List<TriggerData> triggerList = event.get(TriggerData.class, "TriggerBank");
-            if (!triggerList.isEmpty()) {
-                TriggerData triggerData = triggerList.get(0);
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
+                    TestRunTriggerData triggerData = new TestRunTriggerData(data);
 
-                orTrig = triggerData.getOrTrig();
-                if (orTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & orTrig) != 0) {
-                            orTrigTime = i;
-                            break;
+                    orTrig = triggerData.getOrTrig();
+                    if (orTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & orTrig) != 0) {
+                                orTrigTime = i;
+                                break;
+                            }
                         }
                     }
-                }
-                topTrig = triggerData.getTopTrig();
-                if (topTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & topTrig) != 0) {
-                            topTrigTime = i;
-                            break;
+                    topTrig = triggerData.getTopTrig();
+                    if (topTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & topTrig) != 0) {
+                                topTrigTime = i;
+                                break;
+                            }
                         }
                     }
-                }
-                botTrig = triggerData.getBotTrig();
-                if (botTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & botTrig) != 0) {
-                            botTrigTime = i;
-                            break;
+                    botTrig = triggerData.getBotTrig();
+                    if (botTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & botTrig) != 0) {
+                                botTrigTime = i;
+                                break;
+                            }
                         }
                     }
+                    break;
                 }
             }
         }
@@ -280,8 +281,8 @@ public class TrackTimePlots extends Driver {
         for (SiTrackerHitStrip1D hit : hits) {
             //===> IIdentifier id = hit.getSensor().getIdentifier();
             //===> int layer = helper.getValue(id, "layer");
-             int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber(); 
-             int module = ((HpsSiSensor) hit.getSensor()).getModuleNumber(); 
+            int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
+            int module = ((HpsSiSensor) hit.getSensor()).getModuleNumber();
             //===> int module = helper.getValue(id, "module");
 //            System.out.format("%d, %d, %d\n",hit.getCellID(),layer,module);
             t0[module][layer - 1].fill(hit.getTime());
@@ -336,7 +337,7 @@ public class TrackTimePlots extends Driver {
 
     @Override
     public void endOfData() {
-    	//plotterFrame.dispose();
+        //plotterFrame.dispose();
     }
 
     private int computePlotterRegion(int layer, int module) {

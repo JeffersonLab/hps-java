@@ -24,9 +24,11 @@ public class TestRunTriggerData extends AbstractIntData {
 //    }
     public TestRunTriggerData(int[] bank) {
         super(bank);
-        if (this.bank.length != BANK_SIZE) {
-            throw new RuntimeException();
-        }
+        decodeData();
+    }
+
+    public TestRunTriggerData(GenericObject data) {
+        super(data, BANK_TAG);
         decodeData();
     }
 

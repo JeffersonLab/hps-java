@@ -7,7 +7,6 @@ import hep.aida.IPlotter;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.readout.ecal.TriggerData;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -116,19 +115,6 @@ public class EcalClusterPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        int orTrig = 0;
-        int topTrig = 0;
-        int botTrig = 0;
-        if (event.hasCollection(TriggerData.class, "TriggerBank")) {
-            List<TriggerData> triggerList = event.get(TriggerData.class, "TriggerBank");
-            if (!triggerList.isEmpty()) {
-                TriggerData triggerData = triggerList.get(0);
-
-                orTrig = triggerData.getOrTrig();
-                topTrig = triggerData.getTopTrig();
-                botTrig = triggerData.getBotTrig();
-            }
-        }
         if (event.hasCollection(Cluster.class, inputCollection)) {
             List<Cluster> clusters = event.get(Cluster.class, inputCollection);
             clusterCountPlot.fill(clusters.size());

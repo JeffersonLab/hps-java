@@ -10,17 +10,15 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.physics.vec.Hep3Vector;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.readout.ecal.TriggerData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -118,10 +116,10 @@ public class TriggerTurnOnAnalysis extends Driver {
         
 
         
-        List<TriggerData> trigger_data = null;
+        List<GenericObject> trigger_data = null;
         
-        if(event.hasCollection(TriggerData.class, triggerDataCollectionName)) {
-            trigger_data = event.get(TriggerData.class, triggerDataCollectionName);
+        if(event.hasCollection(GenericObject.class, triggerDataCollectionName)) {
+            trigger_data = event.get(GenericObject.class, triggerDataCollectionName);
             if(_DEBUG) System.out.println(this.getClass().getSimpleName() + ": event " + event.getRunNumber() + " has trigger data");
         }
         else {

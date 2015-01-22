@@ -7,7 +7,8 @@ import hep.aida.IPlotterFactory;
 
 import java.util.List;
 
-import org.hps.readout.ecal.TriggerData;
+import org.hps.readout.ecal.triggerbank.AbstractIntData;
+import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -52,7 +53,6 @@ public class EcalHitPlots extends Driver {
 
         //plotterFrame = new AIDAFrame();
         //plotterFrame.setTitle("HPS ECal Hit Plots");
-
         aida.tree().cd("/");
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
@@ -70,7 +70,6 @@ public class EcalHitPlots extends Driver {
         plotter.createRegions(1, 2);
         plotter.region(0).plot(hitCountPlot);
         plotter.region(1).plot(hitTimePlot);
-
 
         // Setup the plotter.
         plotter2 = plotterFactory.create("Hit Energies");
@@ -151,40 +150,44 @@ public class EcalHitPlots extends Driver {
         int orTrigTime = -1;
         int topTrigTime = -1;
         int botTrigTime = -1;
+
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            if (!triggerList.isEmpty()) {
-                GenericObject triggerData = triggerList.get(0);
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
+                    TestRunTriggerData triggerData = new TestRunTriggerData(data);
 
-                int orTrig = TriggerData.getOrTrig(triggerData);
-                if (orTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & orTrig) != 0) {
-                            orTrigTime = i;
-                            orTrigTimePlot.fill(i);
-                            break;
+                    int orTrig = triggerData.getOrTrig();
+                    if (orTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & orTrig) != 0) {
+                                orTrigTime = i;
+                                orTrigTimePlot.fill(i);
+                                break;
+                            }
                         }
                     }
-                }
-                int topTrig = TriggerData.getTopTrig(triggerData);
-                if (topTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & topTrig) != 0) {
-                            topTrigTime = i;
-                            topTrigTimePlot.fill(i);
-                            break;
+                    int topTrig = triggerData.getTopTrig();
+                    if (topTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & topTrig) != 0) {
+                                topTrigTime = i;
+                                topTrigTimePlot.fill(i);
+                                break;
+                            }
                         }
                     }
-                }
-                int botTrig = TriggerData.getBotTrig(triggerData);
-                if (botTrig != 0) {
-                    for (int i = 0; i < 32; i++) {
-                        if ((1 << (31 - i) & botTrig) != 0) {
-                            botTrigTime = i;
-                            botTrigTimePlot.fill(i);
-                            break;
+                    int botTrig = triggerData.getBotTrig();
+                    if (botTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & botTrig) != 0) {
+                                botTrigTime = i;
+                                botTrigTimePlot.fill(i);
+                                break;
+                            }
                         }
                     }
+                    break;
                 }
             }
         }

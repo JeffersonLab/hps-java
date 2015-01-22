@@ -2,7 +2,7 @@ package org.hps.readout.ecal;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 
@@ -29,14 +29,14 @@ public class TestRunTriggerDriver extends TriggerDriver {
     @Override
     protected void makeTriggerData(EventHeader event, String collectionName) {
         int[] trigArray = new int[8];
-        trigArray[TriggerData.TOP_TRIG] = topBits;
-        trigArray[TriggerData.BOT_TRIG] = botBits;
-        trigArray[TriggerData.AND_TRIG] = topBits & botBits;
-        trigArray[TriggerData.OR_TRIG] = topBits | botBits;
-        TriggerData tData = new TriggerData(trigArray);
-        List<TriggerData> triggerList = new ArrayList<TriggerData>();
+        trigArray[TestRunTriggerData.TOP_TRIG] = topBits;
+        trigArray[TestRunTriggerData.BOT_TRIG] = botBits;
+        trigArray[TestRunTriggerData.AND_TRIG] = topBits & botBits;
+        trigArray[TestRunTriggerData.OR_TRIG] = topBits | botBits;
+        TestRunTriggerData tData = new TestRunTriggerData(trigArray);
+        List<TestRunTriggerData> triggerList = new ArrayList<TestRunTriggerData>();
         triggerList.add(tData);
-        event.put(collectionName, triggerList, TriggerData.class, 0);
+        event.put(collectionName, triggerList, TestRunTriggerData.class, 0);
     }
 
     public void setClusterCollectionName(String clusterCollectionName) {
