@@ -4,8 +4,8 @@ import java.util.Arrays;
 import org.lcsim.event.GenericObject;
 
 /**
- * GenericObject representation of a UINT32 bank read from EVIO. The bank header
- * tag identifies the type of data, and is stored as the first int in the
+ * GenericObject representation of an INT32/UINT32 bank read from EVIO. The bank
+ * header tag identifies the type of data, and is stored as the first int in the
  * GenericObject. The contents of the bank are the remaining N-1 ints.
  * Constructors are provided from int[] (for reading from EVIO) and from
  * GenericObject (for reading from LCIO).
@@ -27,12 +27,16 @@ public abstract class AbstractIntData implements GenericObject {
      * @param bank
      */
     protected AbstractIntData(int[] bank) {
-        this.bank = Arrays.copyOf(bank, bank.length);
+        if (bank == null) {
+            this.bank = new int[0];
+        } else {
+            this.bank = Arrays.copyOf(bank, bank.length);
+        }
     }
 
     /**
-     * Constructor from LCIO GenericObject. Checks the bank tag; subclass must
-     * set the expected value of the tag.
+     * Constructor from LCIO GenericObject. Checks the bank tag; subclass
+     * constructor must set the expected value of the tag.
      *
      * @param data
      * @param expectedTag
@@ -48,6 +52,12 @@ public abstract class AbstractIntData implements GenericObject {
         return bank;
     }
 
+    /**
+     * Return the int bank of an AbstractIntData read from LCIO.
+     *
+     * @param object
+     * @return
+     */
     public static int[] getBank(GenericObject object) {
         int N = object.getNInt() - 1;
         int[] bank = new int[N];
@@ -58,16 +68,22 @@ public abstract class AbstractIntData implements GenericObject {
     }
 
     /**
+     * Return a single value from the int bank of an AbstractIntData.
+     *
+     * @param object
+     * @param index
+     * @return
+     */
+    public static int getBankInt(GenericObject object, int index) {
+        return object.getIntVal(index + 1);
+    }
+
+    /**
      * Returns the EVIO bank header tag expected for this data.
      *
      * @return
      */
     public abstract int getTag();
-
-    /**
-     * Parses the bank so the object can be used in analysis.
-     */
-    protected abstract void decodeData();
 
     /**
      * Returns the EVIO bank tag for a data object.
@@ -78,6 +94,11 @@ public abstract class AbstractIntData implements GenericObject {
     public static int getTag(GenericObject data) {
         return data.getIntVal(0);
     }
+
+    /**
+     * Parses the bank so the object can be used in analysis.
+     */
+    protected abstract void decodeData();
 
     @Override
     public int getNInt() {
