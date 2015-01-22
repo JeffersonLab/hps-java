@@ -306,6 +306,8 @@ public class CTPClusterer extends AbstractClusterer {
                 // Generate a new cluster from the seed hit.
                 BaseCluster cluster = createBasicCluster();
                 cluster.addHit(seedHit);
+                cluster.setPosition(seedHit.getDetectorElement().getGeometry().getPosition().v());
+                cluster.setNeedsPropertyCalculation(false);
                 // Populate the cluster with each of the chosen neighbors.
                 for (CalorimeterHit clusterHit : hits) {
                     cluster.addHit(clusterHit);

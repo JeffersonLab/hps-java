@@ -114,6 +114,8 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 // Create a cluster for the potential seed.
                 BaseCluster protoCluster = createBasicCluster();
                 protoCluster.addHit(seed);
+                protoCluster.setPosition(seed.getDetectorElement().getGeometry().getPosition().v());
+                protoCluster.setNeedsPropertyCalculation(false);
 
                 // Iterate over the other hits and if the are within
                 // the clustering spatiotemporal window, compare their
