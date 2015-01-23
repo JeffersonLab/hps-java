@@ -123,27 +123,31 @@ class RunPanel extends JPanel implements PropertyChangeListener {
 
         private void endRun(EvioEvent evioEvent) {
             // Get end run data.
-            int[] data = evioEvent.getIntData();
-            int seconds = data[0];
-            int eventCount = data[2];
-            long endMillis = ((long) seconds) * 1000;
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
+            if (data != null) {
+                int seconds = data[0];
+                int eventCount = data[2];
+                long endMillis = ((long) seconds) * 1000;
 
-            // Update the GUI.
-            model.setEndDate(new Date(endMillis));
-            model.computeRunLength();
-            model.setTotalEvents(eventCount);
+                // Update the GUI.
+                model.setEndDate(new Date(endMillis));
+                model.computeRunLength();
+                model.setTotalEvents(eventCount);
+            }
         }
 
         private void startRun(EvioEvent evioEvent) {
             // Get start of run data.
-            int[] data = evioEvent.getIntData();
-            int seconds = data[0];
-            int runNumber = data[1];
-            long startMillis = ((long) seconds) * 1000;
+            int[] data = EvioEventUtilities.getControlEventData(evioEvent);
+            if (data != null) {
+                int seconds = data[0];
+                int runNumber = data[1];
+                long startMillis = ((long) seconds) * 1000;
 
-            // Update the GUI.
-            model.setRunNumber(runNumber);
-            model.setStartDate(new Date(startMillis));
+                // Update the GUI.
+                model.setRunNumber(runNumber);
+                model.setStartDate(new Date(startMillis));
+            }
         }
 
         @Override
