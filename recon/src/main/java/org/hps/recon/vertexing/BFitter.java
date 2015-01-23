@@ -23,6 +23,7 @@ import org.lcsim.recon.vertexing.billoir.Perigee;
 
 
 import Jama.Matrix;
+import hep.physics.matrix.SymmetricMatrix;
 import org.lcsim.spacegeom.SpacePoint;
 
 
@@ -60,9 +61,9 @@ public class BFitter implements VFitter {
         double[][] parameters = new double[5][ntrk];
         double[][] errors = new double[15][ntrk];
         for (Track iTrack : tracks) {
-            double[] iOldParams = iTrack.getTrackParameters();
+            double[] iOldParams = iTrack.getTrackStates().get(0).getParameters();
             Matrix jacobi = new Matrix(getJacobi(iOldParams));
-            Matrix olderrors = Maths.toJamaMatrix(iTrack.getErrorMatrix());
+            Matrix olderrors = Maths.toJamaMatrix(new SymmetricMatrix(5,iTrack.getTrackStates().get(0).getCovMatrix(),true));
 
             double theta = PI/2 - atan(iOldParams[4]);
 //            double[] newparams = new double[]{iOldParams[0], iOldParams[3], theta, iOldParams[1], iOldParams[2]};
