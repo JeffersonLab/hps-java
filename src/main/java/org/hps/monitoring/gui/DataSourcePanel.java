@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.hps.monitoring.gui.model.ConfigurationModel;
@@ -71,11 +72,35 @@ class DataSourcePanel extends AbstractFieldsPanel {
         return path.substring(path.lastIndexOf(".") + 1);
     }
 
+    /**
+     * This is a simple file filter that will accept files with
+     * ".evio" anywhere in their name. 
+     */
+    static class EvioFileFilter extends FileFilter {
+
+        public EvioFileFilter() {            
+        }
+        
+        @Override
+        public boolean accept(File pathname) {
+            if (pathname.getName().contains(".evio")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        @Override
+        public String getDescription() {
+            return "EVIO files";
+        }        
+    }
+    
     private void chooseDataFile() {
         JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setAcceptAllFileFilterUsed(false);
         fc.addChoosableFileFilter(new FileNameExtensionFilter("LCIO files", "slcio"));
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("EVIO files", "evio"));
+        fc.addChoosableFileFilter(new EvioFileFilter());
         fc.setDialogTitle("Select Data File");
         int r = fc.showDialog(this, "Select ...");
         File file = null;
