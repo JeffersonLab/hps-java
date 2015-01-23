@@ -4,10 +4,9 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-
 import java.util.List;
-
 import org.hps.readout.ecal.triggerbank.AbstractIntData;
+import org.hps.readout.ecal.triggerbank.SSPData;
 import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
@@ -156,6 +155,40 @@ public class EcalHitPlots extends Driver {
             for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
                     TestRunTriggerData triggerData = new TestRunTriggerData(data);
+
+                    int orTrig = triggerData.getOrTrig();
+                    if (orTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & orTrig) != 0) {
+                                orTrigTime = i;
+                                orTrigTimePlot.fill(i);
+                                break;
+                            }
+                        }
+                    }
+                    int topTrig = triggerData.getTopTrig();
+                    if (topTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & topTrig) != 0) {
+                                topTrigTime = i;
+                                topTrigTimePlot.fill(i);
+                                break;
+                            }
+                        }
+                    }
+                    int botTrig = triggerData.getBotTrig();
+                    if (botTrig != 0) {
+                        for (int i = 0; i < 32; i++) {
+                            if ((1 << (31 - i) & botTrig) != 0) {
+                                botTrigTime = i;
+                                botTrigTimePlot.fill(i);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                } else if (AbstractIntData.getTag(data) == SSPData.BANK_TAG) {
+                    SSPData triggerData = new SSPData(data);
 
                     int orTrig = triggerData.getOrTrig();
                     if (orTrig != 0) {
