@@ -66,22 +66,22 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 	private ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
 	
 	// Internal variables.
-	private Detector detector;									 // The active detector.
 	private PEventViewer viewer;								 // Single event display.
 	private int pedSamples = 10;								 // 
 	private IPlotterStyle pstyle;								 // The plotter style for all plots.
-	private long lastEventTime = 0;							 // Tracks the time at which the last event occurred.
+	private long lastEventTime = 0;								 // Tracks the time at which the last event occurred.
 	private int eventRefreshRate = 1;							 // The number of seconds before an update occurs.
-	private double minEch = 10 * ECalUtils.MeV;				 // The energy scale minimum.
+	private boolean resetOnUpdate = true;						 // Clears the event display on each update.
+	private double minEch = 10 * ECalUtils.MeV;					 // The energy scale minimum.
 	private double maxEch = 3500 * ECalUtils.MeV;				 // The energy scale maximum.
 	private int[] windowRaw = new int[NUM_CHANNELS];			 // The number of samples in a waveform for each channel.
-	private boolean[] isFirstRaw = new boolean[NUM_CHANNELS]; // Whether a waveform plot was initiated for each channel.
+	private boolean[] isFirstRaw = new boolean[NUM_CHANNELS];	 // Whether a waveform plot was initiated for each channel.
 	
 	// Plot style and title variables.
 	private static final String NO_TITLE = "";
 	//private static final String SIGNAL_TIME_TITLE = "Time (ns)";
 	private static final String HIT_TIME_TITLE = "Hit Time (ns)";
-	private static final String SIGNAL_DATA_STYLE_COLOR = "orange";
+	//private static final String SIGNAL_DATA_STYLE_COLOR = "orange";
 	//private static final String RAW_WAVEFORM_TITLE = "Raw Waveform";
 	private static final String HIT_ENERGY_TITLE = "Hit Energy (GeV)";
 	private static final String CLUSTER_ENERGY_TITLE = "Cluster Energy (GeV)";
@@ -142,14 +142,22 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 	}
 	
 	/**
+	 * Sets whether the event display should be cleared after event
+	 * or whether it should retain the previously displayed results.
+	 * @param resetOnUpdate - <code>true</code> means that the event
+	 * display should be cleared on each update and <code>false</code>
+	 * that it should not.
+	 */
+	public void setResetOnUpdate(boolean resetOnUpdate) {
+		this.resetOnUpdate = resetOnUpdate;
+	}
+	
+	/**
 	 * Initializes the single channel monitoring plots for all crystal
 	 * channels and defines the plotter region that contains them.
 	 */
 	@Override
 	public void detectorChanged(Detector detector) {
-		// Store the current detector.
-		this.detector = detector;
-		
 		// Reset the AIDA tree directory.
 		aida.tree().cd("/");
 		
@@ -296,7 +304,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 		}
 		
 		// If an update should be made, perform the update.
-		if(update) { viewer.resetDisplay(); }
+		if(update && resetOnUpdate) { viewer.resetDisplay(); }
 		
 		// If the event has calorimeter hit objects...
 		if(event.hasCollection(CalorimeterHit.class, inputCollection)) {
