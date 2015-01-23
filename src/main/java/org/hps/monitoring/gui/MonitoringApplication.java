@@ -99,6 +99,7 @@ import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -1114,6 +1115,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         try {
             // Create and the job manager.  The conditions manager is instantiated from this call but not configured.
             jobManager = new JobManager();
+            
+            if (configurationModel.hasPropertyValue(ConfigurationModel.DETECTOR_ALIAS_PROPERTY) && configurationModel.getDetectorAlias() != null) {
+                // Set a detector alias.                
+                ConditionsReader.addAlias(configurationModel.getDetectorName(), "file://" + configurationModel.getDetectorAlias());
+                logger.config("using detector alias " + configurationModel.getDetectorAlias());
+            }
                         
             // Setup the event builder to translate from EVIO to LCIO.
             // This must happen before Driver setup so the builder's listeners are activated first!
@@ -1166,7 +1173,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         jobManager.setup(is);
         is.close();
     }
-
+        
     /**
      * Create the event builder for converting EVIO events to LCSim.
      */
@@ -1189,7 +1196,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         log(Level.CONFIG, "Successfully initialized event builder <" + eventBuilderClassName + ">");
     }
-
+    
     /**
      * Create a connection to an ET system using current parameters from the GUI. If successful, the
      * application's ConnectionStatus is changed to CONNECTED.

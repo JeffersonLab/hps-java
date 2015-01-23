@@ -9,6 +9,7 @@ final class Commands {
     static final String AIDA_AUTO_SAVE = "aidaAutoSave";
     static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
     static final String BLOCKING_CHANGED = "blockingChanged";
+    static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
     static final String CHOOSE_FILE_SOURCE = "chooseFileSource";
     static final String CHOOSE_STEERING_FILE = "chooseSteeringFile";
@@ -16,6 +17,7 @@ final class Commands {
     static final String CLEAR_LOG_TABLE = "clearLogTable";
     static final String DATA_SOURCE_TYPE_CHANGED = "dataSourceTypeChanged";
     static final String DETECTOR_NAME_CHANGED = "detectorNameChanged";
+    static final String DETECTOR_ALIAS_CHANGED = "detectorAliasChanged";
     static final String DISCONNECT = "disconnect";
     static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
     static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
