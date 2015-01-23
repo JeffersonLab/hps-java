@@ -282,7 +282,7 @@ public class SvtHitEfficiency extends Driver {
             
         	// Apply a momentum cut? Probably ...
         	// Calculate the track momentum
-        	double momentum = Math.sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY() + track.getPZ()*track.getPZ());
+        	double momentum = Math.sqrt(track.getTrackStates().get(0).getMomentum()[0]*track.getTrackStates().get(0).getMomentum()[0] + track.getTrackStates().get(0).getMomentum()[1]*track.getTrackStates().get(0).getMomentum()[1] + track.getTrackStates().get(0).getMomentum()[2]*track.getTrackStates().get(0).getMomentum()[2]);
         	if(momentum < 0.5 /* GeV */) continue;
         	if(enableMomentumPlots)
         		aida.histogram1D("Track Momentum - All Tracks").fill(momentum);

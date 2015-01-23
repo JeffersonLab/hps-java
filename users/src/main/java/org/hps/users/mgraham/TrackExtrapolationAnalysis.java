@@ -80,7 +80,7 @@ public class TrackExtrapolationAnalysis extends Driver {
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track trk : tracks) {
-            double trackP = trk.getPX();
+            double trackP = trk.getTrackStates().get(0).getMomentum()[0];
             SeedTrack stEle = (SeedTrack) trk;
             SeedCandidate seedEle = stEle.getSeedCandidate();
             HelicalTrackFit ht = seedEle.getHelix();

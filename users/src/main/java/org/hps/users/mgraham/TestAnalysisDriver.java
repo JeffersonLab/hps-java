@@ -75,16 +75,17 @@ Map<Track, TrackAnalysis> tkanalMap = new HashMap<Track, TrackAnalysis>();
         //  Analyze the tracks in the event
         for (Track track : tracklist) {
             //  Calculate the track pT and cos(theta)
-            double d0 = track.getTrackParameter(HelicalTrackFit.dcaIndex);
-            double z0 = track.getTrackParameter(HelicalTrackFit.z0Index);
-            double phi0 = track.getTrackParameter(HelicalTrackFit.phi0Index);
-            double slope = track.getTrackParameter(HelicalTrackFit.slopeIndex);
-            double curve = track.getTrackParameter(HelicalTrackFit.curvatureIndex);
-            double d0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex));
-            double z0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index));
-            double phi0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index));
-            double slopeErr = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex));
-            double curveErr = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex));
+            double d0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.dcaIndex);
+            double z0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.z0Index);
+            double phi0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.phi0Index);
+            double slope = track.getTrackStates().get(0).getParameter(HelicalTrackFit.slopeIndex);
+            double curve = track.getTrackStates().get(0).getParameter(HelicalTrackFit.curvatureIndex);
+            SymmetricMatrix covMatrix = new SymmetricMatrix(5,track.getTrackStates().get(0).getCovMatrix(),true);
+            double d0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex));
+            double z0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index));
+            double phi0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index));
+            double slopeErr = Math.sqrt(covMatrix.e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex));
+            double curveErr = Math.sqrt(covMatrix.e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex));
              SeedTrack stEle = (SeedTrack) track;
             SeedCandidate seedEle = stEle.getSeedCandidate();
             HelicalTrackFit ht = seedEle.getHelix();

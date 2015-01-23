@@ -159,7 +159,7 @@ public class RunMPAlignment extends Driver {
             }
         }   
         if(hitsOnWrongSide) {
-            System.out.println(this.getClass().getSimpleName() + ": TRACK w/ both halves hit (: chi2 "+track.getChi2()+", pX "+track.getPX()+", pY "+track.getPY()+", pZ "+track.getPZ()+")");
+            System.out.println(this.getClass().getSimpleName() + ": TRACK w/ both halves hit (: chi2 "+track.getChi2()+", pX "+track.getTrackStates().get(0).getMomentum()[0]+", pY "+track.getTrackStates().get(0).getMomentum()[1]+", pZ "+track.getTrackStates().get(0).getMomentum()[2]+")");
             System.out.printf(this.getClass().getSimpleName() + ": Hits: ");
             for (TrackerHit hit : hitsOnTrack) {
                 double[] pos = hit.getPosition();

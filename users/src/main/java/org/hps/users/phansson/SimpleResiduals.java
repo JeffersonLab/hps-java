@@ -555,10 +555,10 @@ public class SimpleResiduals extends Driver {
     
     
     public void fillTrackInfo( Track track) {
-        aida.histogram1D("phi0").fill(track.getTrackParameter(HelicalTrackFit.phi0Index));    
-        aida.histogram1D("z0").fill(track.getTrackParameter(HelicalTrackFit.z0Index));
-        aida.histogram1D("slope").fill(track.getTrackParameter(HelicalTrackFit.slopeIndex));
-        double theta = Math.atan(1.0/track.getTrackParameter(HelicalTrackFit.slopeIndex));
+        aida.histogram1D("phi0").fill(track.getTrackStates().get(0).getParameter(HelicalTrackFit.phi0Index));    
+        aida.histogram1D("z0").fill(track.getTrackStates().get(0).getParameter(HelicalTrackFit.z0Index));
+        aida.histogram1D("slope").fill(track.getTrackStates().get(0).getParameter(HelicalTrackFit.slopeIndex));
+        double theta = Math.atan(1.0/track.getTrackStates().get(0).getParameter(HelicalTrackFit.slopeIndex));
         aida.histogram1D("theta").fill(theta);
     }
     

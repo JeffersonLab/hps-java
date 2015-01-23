@@ -122,10 +122,10 @@ public class StraightTrackAnalysis extends Driver {
 
         for (Track trk : tracks) {
 //            StraightTrack stght = (StraightTrack) trk;
-            aida.histogram1D("d0", 50, -2, 2).fill(trk.getTrackParameters()[0]);
-            aida.histogram1D("z0", 50, -2, 2).fill(trk.getTrackParameters()[3]);
-            aida.histogram1D("xy slope", 50, -0.2, 0.25).fill(trk.getTrackParameters()[1]);
-            aida.histogram1D("sz slope", 50, -0.25, 0.25).fill(trk.getTrackParameters()[4]);
+            aida.histogram1D("d0", 50, -2, 2).fill(trk.getTrackStates().get(0).getParameters()[0]);
+            aida.histogram1D("z0", 50, -2, 2).fill(trk.getTrackStates().get(0).getParameters()[3]);
+            aida.histogram1D("xy slope", 50, -0.2, 0.25).fill(trk.getTrackStates().get(0).getParameters()[1]);
+            aida.histogram1D("sz slope", 50, -0.25, 0.25).fill(trk.getTrackStates().get(0).getParameters()[4]);
             aida.histogram1D("track chi2 per ndf", 50, 0, 2).fill(trk.getChi2() / trk.getNDF());
             aida.histogram1D("track nhits", 50, 0, 10).fill(trk.getTrackerHits().size());
             TrackAnalysis tkanal = new TrackAnalysis(trk, hittomc);

@@ -288,9 +288,9 @@ public class FastTrackAnalysisDriver extends Driver {
             }
             if (mcp.getParents().size() == 1 && mcp.getParents().get(0).getPDGID() == 622) {
                 int nhits = tkanal.getNHitsNew();
-                double px = track.getPX();
-                double py = track.getPY();
-                double pz = track.getPZ();
+                double px = track.getTrackStates().get(0).getMomentum()[0];
+                double py = track.getTrackStates().get(0).getMomentum()[1];
+                double pz = track.getTrackStates().get(0).getMomentum()[2];
                 double pt = Math.sqrt(px * px + py * py);
                 double pperp = Math.sqrt(py * py + pz * pz);
                 double p = Math.sqrt(pt * pt + pz * pz);
@@ -350,12 +350,12 @@ public class FastTrackAnalysisDriver extends Driver {
                     double RP = htPos.R();
                     double slopeP = htPos.slope();
 
-                    double pxE = ele.getPX();
-                    double pyE = ele.getPY();
-                    double pzE = ele.getPZ();
-                    double pxP = pos.getPX();
-                    double pyP = pos.getPY();
-                    double pzP = pos.getPZ();
+                    double pxE = ele.getTrackStates().get(0).getMomentum()[0];
+                    double pyE = ele.getTrackStates().get(0).getMomentum()[1];
+                    double pzE = ele.getTrackStates().get(0).getMomentum()[2];
+                    double pxP = pos.getTrackStates().get(0).getMomentum()[0];
+                    double pyP = pos.getTrackStates().get(0).getMomentum()[1];
+                    double pzP = pos.getTrackStates().get(0).getMomentum()[2];
 
                     List<BilliorTrack> btlist = new ArrayList<BilliorTrack>();
 
@@ -722,9 +722,9 @@ public class FastTrackAnalysisDriver extends Driver {
         double me = 0.000511;
         // Loop over jets
 
-        double p1x = track1.getPX();
-        double p1y = track1.getPY();
-        double p1z = track1.getPZ();
+        double p1x = track1.getTrackStates().get(0).getMomentum()[0];
+        double p1y = track1.getTrackStates().get(0).getMomentum()[1];
+        double p1z = track1.getTrackStates().get(0).getMomentum()[2];
         double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
         double e1 = Math.sqrt(p1mag2 + me * me);
         double dydx1 = slt1.dydx();
@@ -737,9 +737,9 @@ public class FastTrackAnalysisDriver extends Driver {
         double truep1x = truep1y / dydx1;
         double truep1z = dzdx1 * truep1x;
 
-        double p2x = track2.getPX();
-        double p2y = track2.getPY();
-        double p2z = track2.getPZ();
+        double p2x = track2.getTrackStates().get(0).getMomentum()[0];
+        double p2y = track2.getTrackStates().get(0).getMomentum()[1];
+        double p2z = track2.getTrackStates().get(0).getMomentum()[2];
         double p2mag2 = p2x * p2x + p2y * p2y + p2z * p2z;
         double e2 = Math.sqrt(p2mag2 + me * me);
 
@@ -827,9 +827,9 @@ public class FastTrackAnalysisDriver extends Driver {
     private Hep3Vector getTrueMomentum(Track track1, StraightLineTrack slt1) {
         double[] truep = {0, 0, 0};
         double me = 0.000511;
-        double p1x = track1.getPX();
-        double p1y = track1.getPY();
-        double p1z = track1.getPZ();
+        double p1x = track1.getTrackStates().get(0).getMomentum()[0];
+        double p1y = track1.getTrackStates().get(0).getMomentum()[1];
+        double p1z = track1.getTrackStates().get(0).getMomentum()[2];
         double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
         double e1 = Math.sqrt(p1mag2 + me * me);
         double dydx1 = slt1.dydx();

@@ -669,9 +669,9 @@ public class TrackingReconstructionPlots extends Driver {
 
             boolean isSingleHitPerLayerTrack = singleTrackHitPerLayer(trk);
 
-            aida.histogram1D("Track Momentum (Px)").fill(trk.getPY());
-            aida.histogram1D("Track Momentum (Py)").fill(trk.getPZ());
-            aida.histogram1D("Track Momentum (Pz)").fill(trk.getPX());
+            aida.histogram1D("Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
+            aida.histogram1D("Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
+            aida.histogram1D("Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             aida.histogram1D("Hits per Track").fill(trk.getTrackerHits().size());
@@ -696,15 +696,15 @@ public class TrackingReconstructionPlots extends Driver {
 //            Hep3Vector posonhelix = HelixUtils.PointOnHelix(ht, sECAL);//position in tracker coordinates!
             aida.histogram1D("X (mm) @ ECAL").fill(posAtEcal.x());
             aida.histogram1D("Y (mm) @ ECAL").fill(posAtEcal.y());
-            if (trk.getPX() > 1.0) {
+            if (trk.getTrackStates().get(0).getMomentum()[0] > 1.0) {
                 aida.histogram1D("X (mm) @ ECAL (Pz>1)").fill(posAtEcal.x());
                 aida.histogram1D("Y (mm) @ ECAL (Pz>1)").fill(posAtEcal.y());
             }
-            aida.histogram1D("d0 ").fill(trk.getTrackParameter(ParameterName.d0.ordinal()));
-            aida.histogram1D("sinphi ").fill(Math.sin(trk.getTrackParameter(ParameterName.phi0.ordinal())));
-            aida.histogram1D("omega ").fill(trk.getTrackParameter(ParameterName.omega.ordinal()));
-            aida.histogram1D("tan(lambda) ").fill(trk.getTrackParameter(ParameterName.tanLambda.ordinal()));
-            aida.histogram1D("z0 ").fill(trk.getTrackParameter(ParameterName.z0.ordinal()));
+            aida.histogram1D("d0 ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.d0.ordinal()));
+            aida.histogram1D("sinphi ").fill(Math.sin(trk.getTrackStates().get(0).getParameter(ParameterName.phi0.ordinal())));
+            aida.histogram1D("omega ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.omega.ordinal()));
+            aida.histogram1D("tan(lambda) ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.tanLambda.ordinal()));
+            aida.histogram1D("z0 ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.z0.ordinal()));
 
             int isTop = -1;
             if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
@@ -716,14 +716,14 @@ public class TrackingReconstructionPlots extends Driver {
             }//            System.out.println("Charge = " + charge + "; isTop = " + isTop);
             aida.histogram2D("Charge vs Slope").fill(charge, isTop);
             if (isTop == 0) {
-                aida.histogram1D("Top Track Momentum (Px)").fill(trk.getPY());
-                aida.histogram1D("Top Track Momentum (Py)").fill(trk.getPZ());
-                aida.histogram1D("Top Track Momentum (Pz)").fill(trk.getPX());
+                aida.histogram1D("Top Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
+                aida.histogram1D("Top Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
+                aida.histogram1D("Top Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
                 aida.histogram1D("Top Track Chi2").fill(trk.getChi2());
             } else {
-                aida.histogram1D("Bottom Track Momentum (Px)").fill(trk.getPY());
-                aida.histogram1D("Bottom Track Momentum (Py)").fill(trk.getPZ());
-                aida.histogram1D("Bottom Track Momentum (Pz)").fill(trk.getPX());
+                aida.histogram1D("Bottom Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
+                aida.histogram1D("Bottom Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
+                aida.histogram1D("Bottom Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
                 aida.histogram1D("Bottom Track Chi2").fill(trk.getChi2());
             }
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
@@ -803,7 +803,7 @@ public class TrackingReconstructionPlots extends Driver {
                  double amp = fit.getAmp();
                     
                  aida.histogram1D("Amp (HitOnTrack)").fill(amp);
-                 if (trk.getPX() > 1)
+                 if (trk.getTrackStates().get(0).getMomentum()[0] > 1)
                  aida.histogram1D("Amp Pz>1000 (HitOnTrack)").fill(amp);
                  }                
                  */
@@ -817,12 +817,12 @@ public class TrackingReconstructionPlots extends Driver {
                                 double amp = fit.getAmp();
                                 clusterSum += amp;
                                 aida.histogram1D("Amp (HitOnTrack)").fill(amp);
-                                if (trk.getPX() > 1) {
+                                if (trk.getTrackStates().get(0).getMomentum()[0] > 1) {
                                     aida.histogram1D("Amp Pz>1000 (HitOnTrack)").fill(amp);
                                 }
                             }
                             aida.histogram1D("Amp (CluOnTrack)").fill(clusterSum);
-                            if (trk.getPX() > 1) {
+                            if (trk.getTrackStates().get(0).getMomentum()[0] > 1) {
                                 aida.histogram1D("Amp Pz>1000 (CluOnTrack)").fill(clusterSum);
                             }
                         }
@@ -839,20 +839,20 @@ public class TrackingReconstructionPlots extends Driver {
 
                     posAtEcal = TrackUtils.extrapolateTrack(trk, clust.getPosition()[2]);//.positionAtEcal();
 
-                    aida.histogram2D("Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-                    aida.histogram1D("Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                    aida.histogram2D("Energy Vs Momentum").fill(clust.getEnergy(), trk.getTrackStates().get(0).getMomentum()[0] * 1000.0);
+                    aida.histogram1D("Energy Over Momentum").fill(clust.getEnergy() / (trk.getTrackStates().get(0).getMomentum()[0] * 1000.0));
                     aida.histogram1D("deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
                     aida.histogram1D("deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
-                    //                if (trk.getPX() > 1.0) {
+                    //                if (trk.getTrackStates().get(0).getMomentum()[0] > 1.0) {
                     //                    aida.histogram1D("deltaX (Pz>1)").fill(clust.getPosition()[0] - posAtEcal.y());
                     //                    aida.histogram1D("deltaY (Pz>1)").fill(clust.getPosition()[1] - posAtEcal.z());
                     //                }
                     aida.histogram2D("X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
                     aida.histogram2D("Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
                     if (isTop == 0) {
-                        aida.histogram2D("Top Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-                        //                    aida.histogram2D("Top Energy Vs Momentum").fill(posAtEcal.y(), trk.getPX() * 1000.0);
-                        aida.histogram1D("Top Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                        aida.histogram2D("Top Energy Vs Momentum").fill(clust.getEnergy(), trk.getTrackStates().get(0).getMomentum()[0] * 1000.0);
+                        //                    aida.histogram2D("Top Energy Vs Momentum").fill(posAtEcal.y(), trk.getTrackStates().get(0).getMomentum()[0] * 1000.0);
+                        aida.histogram1D("Top Energy Over Momentum").fill(clust.getEnergy() / (trk.getTrackStates().get(0).getMomentum()[0] * 1000.0));
                         aida.histogram1D("Top deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
                         aida.histogram1D("Top deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
                         aida.histogram2D("Top deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());
@@ -860,8 +860,8 @@ public class TrackingReconstructionPlots extends Driver {
                         aida.histogram2D("Top X ECal Vs Track").fill(clust.getPosition()[0], posAtEcal.x());
                         aida.histogram2D("Top Y ECal Vs Track").fill(clust.getPosition()[1], posAtEcal.y());
                     } else {
-                        aida.histogram2D("Bottom Energy Vs Momentum").fill(clust.getEnergy(), trk.getPX() * 1000.0);
-                        aida.histogram1D("Bottom Energy Over Momentum").fill(clust.getEnergy() / (trk.getPX() * 1000.0));
+                        aida.histogram2D("Bottom Energy Vs Momentum").fill(clust.getEnergy(), trk.getTrackStates().get(0).getMomentum()[0] * 1000.0);
+                        aida.histogram1D("Bottom Energy Over Momentum").fill(clust.getEnergy() / (trk.getTrackStates().get(0).getMomentum()[0] * 1000.0));
                         aida.histogram1D("Bottom deltaX").fill(clust.getPosition()[0] - posAtEcal.x());
                         aida.histogram1D("Bottom deltaY").fill(clust.getPosition()[1] - posAtEcal.y());
                         aida.histogram2D("Bottom deltaX vs X").fill(clust.getPosition()[0], clust.getPosition()[0] - posAtEcal.x());

@@ -286,31 +286,31 @@ public class SvtTrackAnalysis extends Driver {
     		aida.histogram1D("R").fill((1/TrackUtils.getR(track))*1000);
     		aida.histogram1D("Tan(Lambda)").fill(TrackUtils.getTanLambda(track));
     		
-    		aida.histogram1D("Px").fill(track.getPX());
-    		aida.histogram1D("Py").fill(track.getPY());
-    		aida.histogram1D("Pz").fill(track.getPZ());
+    		aida.histogram1D("Px").fill(track.getTrackStates().get(0).getMomentum()[0]);
+    		aida.histogram1D("Py").fill(track.getTrackStates().get(0).getMomentum()[1]);
+    		aida.histogram1D("Pz").fill(track.getTrackStates().get(0).getMomentum()[2]);
     		aida.histogram1D("ChiSquared").fill(track.getChi2());
     		
     		if(Math.signum(TrackUtils.getR(track)) < 0){
     			aida.histogram2D("Track Position at Ecal: Curvature < 0").fill(positionEcal.y(), positionEcal.z());
     			aida.histogram2D("Track Position at Harp: Curvature < 0").fill(positionConverter.y(), positionConverter.z());
-        		aida.histogram1D("Px: C < 0").fill(track.getPX());
-        		aida.histogram1D("Py: C < 0").fill(track.getPY());
-        		aida.histogram1D("Pz: C < 0").fill(track.getPZ());
+        		aida.histogram1D("Px: C < 0").fill(track.getTrackStates().get(0).getMomentum()[0]);
+        		aida.histogram1D("Py: C < 0").fill(track.getTrackStates().get(0).getMomentum()[1]);
+        		aida.histogram1D("Pz: C < 0").fill(track.getTrackStates().get(0).getMomentum()[2]);
         		nnegative++;
     		} else if(Math.signum(TrackUtils.getR(track)) > 0){
     			aida.histogram2D("Track Position at Ecal: Curvature > 0").fill(positionEcal.y(), positionEcal.z());
     			aida.histogram2D("Track Position at Harp: Curvature > 0").fill(positionConverter.y(), positionConverter.z());
-        		aida.histogram1D("Px: C > 0").fill(track.getPX());
-        		aida.histogram1D("Px: C > 0").fill(track.getPY());
-        		aida.histogram1D("Px: C > 0").fill(track.getPZ());
+        		aida.histogram1D("Px: C > 0").fill(track.getTrackStates().get(0).getMomentum()[0]);
+        		aida.histogram1D("Px: C > 0").fill(track.getTrackStates().get(0).getMomentum()[1]);
+        		aida.histogram1D("Px: C > 0").fill(track.getTrackStates().get(0).getMomentum()[2]);
         		npositive++;
     		}
     		
     		if(tracks.size() > 1){
     			aida.histogram2D("Track Position at Ecal: Two Tracks").fill(positionEcal.y(), positionEcal.z());
     			aida.histogram2D("Track Position at Harp: Two Tracks").fill(positionConverter.y(), positionConverter.z()); 
-    			aida.histogram1D("Px: Two Tracks").fill(track.getPX());
+    			aida.histogram1D("Px: Two Tracks").fill(track.getTrackStates().get(0).getMomentum()[0]);
     			if(tracks.size() == 2) nTwoTracks++;
     		}
     		
@@ -341,7 +341,7 @@ public class SvtTrackAnalysis extends Driver {
     	for(Map.Entry<SeedTrack, Cluster> entry : trackToCluster.entrySet()){
     		double Energy = entry.getValue().getEnergy();
     		SeedTrack track = entry.getKey();
-    		double pTotal = Math.sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY() + track.getPZ()*track.getPZ());
+    		double pTotal = Math.sqrt(track.getTrackStates().get(0).getMomentum()[0]*track.getTrackStates().get(0).getMomentum()[0] + track.getTrackStates().get(0).getMomentum()[1]*track.getTrackStates().get(0).getMomentum()[1] + track.getTrackStates().get(0).getMomentum()[2]*track.getTrackStates().get(0).getMomentum()[2]);
     		
     		double ep = Energy/(pTotal*1000);
     		

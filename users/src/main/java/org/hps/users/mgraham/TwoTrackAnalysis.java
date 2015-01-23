@@ -263,9 +263,9 @@ public class TwoTrackAnalysis extends Driver {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         System.out.println("Staring TwoTrackAnalysis");
         for (Track trk : tracks) {
-            aida.histogram1D("Track Momentum (Px)").fill(trk.getPY());
-            aida.histogram1D("Track Momentum (Py)").fill(trk.getPZ());
-            aida.histogram1D("Track Momentum (Pz)").fill(trk.getPX());
+            aida.histogram1D("Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
+            aida.histogram1D("Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
+            aida.histogram1D("Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             SeedTrack stEle = (SeedTrack) trk;
@@ -740,21 +740,21 @@ public class TwoTrackAnalysis extends Driver {
                     Hep3Vector[] trkatconvE;
                     Hep3Vector[] trkatconvP;
                     if (trk1.getCharge() > 0) {
-                        pxP = trk1.getPX();
-                        pyP = trk1.getPY();
-                        pzP = trk1.getPZ();
-                        pxE = trk2.getPX();
-                        pyE = trk2.getPY();
-                        pzE = trk2.getPZ();
+                        pxP = trk1.getTrackStates().get(0).getMomentum()[0];
+                        pyP = trk1.getTrackStates().get(0).getMomentum()[1];
+                        pzP = trk1.getTrackStates().get(0).getMomentum()[2];
+                        pxE = trk2.getTrackStates().get(0).getMomentum()[0];
+                        pyE = trk2.getTrackStates().get(0).getMomentum()[1];
+                        pzE = trk2.getTrackStates().get(0).getMomentum()[2];
                         trkatconvP = trkatconver1;
                         trkatconvE = trkatconver2;
                     } else {
-                        pxP = trk2.getPX();
-                        pyP = trk2.getPY();
-                        pzP = trk2.getPZ();
-                        pxE = trk1.getPX();
-                        pyE = trk1.getPY();
-                        pzE = trk1.getPZ();
+                        pxP = trk2.getTrackStates().get(0).getMomentum()[0];
+                        pyP = trk2.getTrackStates().get(0).getMomentum()[1];
+                        pzP = trk2.getTrackStates().get(0).getMomentum()[2];
+                        pxE = trk1.getTrackStates().get(0).getMomentum()[0];
+                        pyE = trk1.getTrackStates().get(0).getMomentum()[1];
+                        pzE = trk1.getTrackStates().get(0).getMomentum()[2];
                         trkatconvP = trkatconver2;
                         trkatconvE = trkatconver1;
                     }
@@ -766,7 +766,7 @@ public class TwoTrackAnalysis extends Driver {
                     pw.format("%5.5f %5.5f %5.5f %5.5f ",distance,vX,vY,vZ);
                     pw.println();
 
-                    if (trk1.getPX() > 0.25 && trk2.getPX() > 0.25 && Math.abs(C.get(1, 0)) < 6.0) {
+                    if (trk1.getTrackStates().get(0).getMomentum()[0] > 0.25 && trk2.getTrackStates().get(0).getMomentum()[0] > 0.25 && Math.abs(C.get(1, 0)) < 6.0) {
                         aida.histogram1D("XVertex with y cut").fill(C.get(0, 0));
                         aida.histogram1D("YVertex with y cut").fill(C.get(1, 0));
                         aida.histogram1D("ZVertex with y cut").fill(C.get(2, 0));
@@ -846,15 +846,15 @@ public class TwoTrackAnalysis extends Driver {
                         // aida.histogram1D("Big Bump Track Parity").fill(trksparity);
                     }
                     if (eplustop) { //read Little bump as e+ top
-                        // aida.histogram1D("Little Bump Track Momenta (Px)").fill(trk1.getPX());
-                        // aida.histogram1D("Little Bump Track Momenta (Py)").fill(trk1.getPY());
-                        // aida.histogram1D("Little Bump Track Momenta (Pz)").fill(trk1.getPZ());
+                        // aida.histogram1D("Little Bump Track Momenta (Px)").fill(trk1.getTrackStates().get(0).getMomentum()[0]);
+                        // aida.histogram1D("Little Bump Track Momenta (Py)").fill(trk1.getTrackStates().get(0).getMomentum()[1]);
+                        // aida.histogram1D("Little Bump Track Momenta (Pz)").fill(trk1.getTrackStates().get(0).getMomentum()[2]);
                         // aida.histogram1D("Little Bump Tracks Chi2").fill(trk1.getChi2());
-                        // aida.histogram1D("Little Bump Track Momenta (Px)").fill(trk2.getPX());
-                        // aida.histogram1D("Little Bump Track Momenta (Py)").fill(trk2.getPY());
-                        // aida.histogram1D("Little Bump Track Momenta (Pz)").fill(trk2.getPZ());
+                        // aida.histogram1D("Little Bump Track Momenta (Px)").fill(trk2.getTrackStates().get(0).getMomentum()[0]);
+                        // aida.histogram1D("Little Bump Track Momenta (Py)").fill(trk2.getTrackStates().get(0).getMomentum()[1]);
+                        // aida.histogram1D("Little Bump Track Momenta (Pz)").fill(trk2.getTrackStates().get(0).getMomentum()[2]);
                         // aida.histogram1D("Little Bump Tracks Chi2").fill(trk2.getChi2());
-                        // aida.histogram1D("Little Bump Sum of Track's Momentums").fill(Math.sqrt(Math.pow((trk1.getPY() + trk2.getPY()), 2) + Math.pow((trk1.getPX() + trk2.getPX()), 2) + Math.pow((trk1.getPZ() + trk2.getPZ()), 2)));
+                        // aida.histogram1D("Little Bump Sum of Track's Momentums").fill(Math.sqrt(Math.pow((trk1.getTrackStates().get(0).getMomentum()[1] + trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0] + trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2] + trk2.getTrackStates().get(0).getMomentum()[2]), 2)));
                         double Etrk1sq = (Math.pow(trkatconver1[1].x(), 2) + Math.pow(trkatconver1[1].y(), 2) + Math.pow(trkatconver1[1].z(), 2));
                         double Etrk2sq = (Math.pow(trkatconver2[1].x(), 2) + Math.pow(trkatconver2[1].y(), 2) + Math.pow(trkatconver2[1].z(), 2));
                         double Etrk1 = Math.sqrt(Etrk1sq);
@@ -862,23 +862,23 @@ public class TwoTrackAnalysis extends Driver {
                         double p1dotp2 = (trkatconver1[1].x() * trkatconver2[1].x() + trkatconver1[1].y() * trkatconver2[1].y() + trkatconver1[1].z() * trkatconver2[1].z());
                         aida.histogram1D("Invariant Mass").fill(Math.sqrt(2 * Etrk1 * Etrk2 - 2 * p1dotp2));
                         if (qtrk1 == 1) {
-                            //       aida.histogram2D("Little Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))), Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))));
+                            //       aida.histogram2D("Little Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))));
                         } else {
-                            //      aida.histogram2D("Little Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))), Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))));
+                            //      aida.histogram2D("Little Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))));
                         }
                         aida.histogram2D("X v Y - e+ Top").fill(C.get(0, 0), C.get(1, 0));
                         aida.histogram2D("X v Z - e+ Top").fill(C.get(0, 0), C.get(2, 0));
                         aida.histogram2D("Y v Z - e+ Top").fill(C.get(1, 0), C.get(2, 0));
                     } else { //read Big bump as e- top
-//                        aida.histogram1D("Big Bump Track Momenta (Px)").fill(trk1.getPX());
-//                        aida.histogram1D("Big Bump Track Momenta (Py)").fill(trk1.getPY());
-//                        aida.histogram1D("Big Bump Track Momenta (Pz)").fill(trk1.getPZ());
+//                        aida.histogram1D("Big Bump Track Momenta (Px)").fill(trk1.getTrackStates().get(0).getMomentum()[0]);
+//                        aida.histogram1D("Big Bump Track Momenta (Py)").fill(trk1.getTrackStates().get(0).getMomentum()[1]);
+//                        aida.histogram1D("Big Bump Track Momenta (Pz)").fill(trk1.getTrackStates().get(0).getMomentum()[2]);
 //                        aida.histogram1D("Big Bump Tracks Chi2").fill(trk1.getChi2());
-//                        aida.histogram1D("Big Bump Track Momenta (Px)").fill(trk2.getPX());
-//                        aida.histogram1D("Big Bump Track Momenta (Py)").fill(trk2.getPY());
-//                        aida.histogram1D("Big Bump Track Momenta (Pz)").fill(trk2.getPZ());
+//                        aida.histogram1D("Big Bump Track Momenta (Px)").fill(trk2.getTrackStates().get(0).getMomentum()[0]);
+//                        aida.histogram1D("Big Bump Track Momenta (Py)").fill(trk2.getTrackStates().get(0).getMomentum()[1]);
+//                        aida.histogram1D("Big Bump Track Momenta (Pz)").fill(trk2.getTrackStates().get(0).getMomentum()[2]);
 //                        aida.histogram1D("Big Bump Tracks Chi2").fill(trk2.getChi2());
-//                        aida.histogram1D("Big Bump Sum of Track's Momentums").fill(Math.sqrt(Math.pow((trk1.getPY() + trk2.getPY()), 2) + Math.pow((trk1.getPX() + trk2.getPX()), 2) + Math.pow((trk1.getPZ() + trk2.getPZ()), 2)));
+//                        aida.histogram1D("Big Bump Sum of Track's Momentums").fill(Math.sqrt(Math.pow((trk1.getTrackStates().get(0).getMomentum()[1] + trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0] + trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2] + trk2.getTrackStates().get(0).getMomentum()[2]), 2)));
                         double Etrk1sq = (Math.pow(trkatconver1[1].x(), 2) + Math.pow(trkatconver1[1].y(), 2) + Math.pow(trkatconver1[1].z(), 2));
                         double Etrk2sq = (Math.pow(trkatconver2[1].x(), 2) + Math.pow(trkatconver2[1].y(), 2) + Math.pow(trkatconver2[1].z(), 2));
                         double Etrk1 = Math.sqrt(Etrk1sq);
@@ -886,9 +886,9 @@ public class TwoTrackAnalysis extends Driver {
                         double p1dotp2 = (trkatconver1[1].x() * trkatconver2[1].x() + trkatconver1[1].y() * trkatconver2[1].y() + trkatconver1[1].z() * trkatconver2[1].z());
                         aida.histogram1D("Invariant Mass").fill(Math.sqrt(2 * Etrk1 * Etrk2 - 2 * p1dotp2));
                         if (qtrk1 == 1) {
-                            //  aida.histogram2D("Big Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))), Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))));
+                            //  aida.histogram2D("Big Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))));
                         } else {
-                            // aida.histogram2D("Big Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))), Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))));
+                            // aida.histogram2D("Big Bump P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))));
                         }
                         aida.histogram2D("X v Y - e- Top").fill(C.get(0, 0), C.get(1, 0));
                         aida.histogram2D("X v Z - e- Top").fill(C.get(0, 0), C.get(2, 0));
@@ -905,42 +905,42 @@ public class TwoTrackAnalysis extends Driver {
 
 
                 if ((isTrk2Top + isTrk1Top) == 0) {
-//                    aida.histogram1D("Split Track Momenta (Px)").fill(trk1.getPX());
-//                    aida.histogram1D("Split Track Momenta (Py)").fill(trk1.getPY());
-//                    aida.histogram1D("Split Track Momenta (Pz)").fill(trk1.getPZ());
+//                    aida.histogram1D("Split Track Momenta (Px)").fill(trk1.getTrackStates().get(0).getMomentum()[0]);
+//                    aida.histogram1D("Split Track Momenta (Py)").fill(trk1.getTrackStates().get(0).getMomentum()[1]);
+//                    aida.histogram1D("Split Track Momenta (Pz)").fill(trk1.getTrackStates().get(0).getMomentum()[2]);
 //                    aida.histogram1D("Split Tracks Chi2").fill(trk1.getChi2());
-//                    aida.histogram1D("Split Track Momenta (Px)").fill(trk2.getPX());
-//                    aida.histogram1D("Split Track Momenta (Py)").fill(trk2.getPY());
-//                    aida.histogram1D("Split Track Momenta (Pz)").fill(trk2.getPZ());
+//                    aida.histogram1D("Split Track Momenta (Px)").fill(trk2.getTrackStates().get(0).getMomentum()[0]);
+//                    aida.histogram1D("Split Track Momenta (Py)").fill(trk2.getTrackStates().get(0).getMomentum()[1]);
+//                    aida.histogram1D("Split Track Momenta (Pz)").fill(trk2.getTrackStates().get(0).getMomentum()[2]);
 //                    aida.histogram1D("Split Tracks Chi2").fill(trk2.getChi2());
                     //     aida.histogram1D("Charge Distributions Split Tracks").fill(qtrk1 + qtrk2);
                 }
 
                 if ((isTrk2Top + isTrk1Top) == 2) {
-//                    aida.histogram1D("Top-Top Track Momenta (Px)").fill(trk1.getPX());
-//                    aida.histogram1D("Top-Top Track Momenta (Py)").fill(trk1.getPY());
-//                    aida.histogram1D("Top-Top Track Momenta (Pz)").fill(trk1.getPZ());
+//                    aida.histogram1D("Top-Top Track Momenta (Px)").fill(trk1.getTrackStates().get(0).getMomentum()[0]);
+//                    aida.histogram1D("Top-Top Track Momenta (Py)").fill(trk1.getTrackStates().get(0).getMomentum()[1]);
+//                    aida.histogram1D("Top-Top Track Momenta (Pz)").fill(trk1.getTrackStates().get(0).getMomentum()[2]);
 //                    aida.histogram1D("Top-Top Tracks Chi2").fill(trk1.getChi2());
-//                    aida.histogram1D("Top-Top Track Momenta (Px)").fill(trk2.getPX());
-//                    aida.histogram1D("Top-Top Track Momenta (Py)").fill(trk2.getPY());
-//                    aida.histogram1D("Top-Top Track Momenta (Pz)").fill(trk2.getPZ());
+//                    aida.histogram1D("Top-Top Track Momenta (Px)").fill(trk2.getTrackStates().get(0).getMomentum()[0]);
+//                    aida.histogram1D("Top-Top Track Momenta (Py)").fill(trk2.getTrackStates().get(0).getMomentum()[1]);
+//                    aida.histogram1D("Top-Top Track Momenta (Pz)").fill(trk2.getTrackStates().get(0).getMomentum()[2]);
 //                    aida.histogram1D("Top-Top Tracks Chi2").fill(trk2.getChi2());
                     //     aida.histogram1D("Charge Distributions Non-Split Tracks").fill(qtrk1 + qtrk2);
                 }
 
 
 //                if ((qtrk1 + qtrk2) == 0) {
-//                    aida.histogram1D("Perpendicular Momentum").fill(Math.sqrt(Math.pow((trk1.getPY() + trk2.getPY()), 2) + Math.pow((trk1.getPZ() + trk2.getPZ()), 2)));
+//                    aida.histogram1D("Perpendicular Momentum").fill(Math.sqrt(Math.pow((trk1.getTrackStates().get(0).getMomentum()[1] + trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2] + trk2.getTrackStates().get(0).getMomentum()[2]), 2)));
 //
 //                    if (qtrk1 == 1) {
-//                        aida.histogram2D("Py+ vs. Py-").fill(trk1.getPY(), trk2.getPY());
-//                        aida.histogram2D("Pz+ vs. Pz-").fill(trk1.getPZ(), trk2.getPZ());
-//                        aida.histogram2D("Total P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))), Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))));
+//                        aida.histogram2D("Py+ vs. Py-").fill(trk1.getTrackStates().get(0).getMomentum()[1], trk2.getTrackStates().get(0).getMomentum()[1]);
+//                        aida.histogram2D("Pz+ vs. Pz-").fill(trk1.getTrackStates().get(0).getMomentum()[2], trk2.getTrackStates().get(0).getMomentum()[2]);
+//                        aida.histogram2D("Total P+ vs. P-").fill(Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))));
 //
 //                    } else {
-//                        aida.histogram2D("Py+ vs. Py-").fill(trk2.getPY(), trk1.getPY());
-//                        aida.histogram2D("Pz+ vs. Pz-").fill(trk2.getPZ(), trk1.getPZ());
-//                        aida.histogram2D("Total P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getPY()), 2) + Math.pow((trk2.getPX()), 2) + Math.pow((trk2.getPZ()), 2))), Math.sqrt((Math.pow((trk1.getPY()), 2) + Math.pow((trk1.getPX()), 2) + Math.pow((trk1.getPZ()), 2))));
+//                        aida.histogram2D("Py+ vs. Py-").fill(trk2.getTrackStates().get(0).getMomentum()[1], trk1.getTrackStates().get(0).getMomentum()[1]);
+//                        aida.histogram2D("Pz+ vs. Pz-").fill(trk2.getTrackStates().get(0).getMomentum()[2], trk1.getTrackStates().get(0).getMomentum()[2]);
+//                        aida.histogram2D("Total P+ vs. P-").fill(Math.sqrt((Math.pow((trk2.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk2.getTrackStates().get(0).getMomentum()[2]), 2))), Math.sqrt((Math.pow((trk1.getTrackStates().get(0).getMomentum()[1]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[0]), 2) + Math.pow((trk1.getTrackStates().get(0).getMomentum()[2]), 2))));
 //                    }
 //                }
 

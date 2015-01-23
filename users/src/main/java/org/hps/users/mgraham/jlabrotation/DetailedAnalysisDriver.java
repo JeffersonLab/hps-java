@@ -360,7 +360,7 @@ public class DetailedAnalysisDriver extends Driver {
             aida.cloud1D("Axial Tracks per Event").fill(axialtracklist.size());
             String atrackdir = "TrackInfoAxial/";
             for (Track atrack : axialtracklist) {
-                double apx = atrack.getPX();
+                double apx = atrack.getTrackStates().get(0).getMomentum()[0];
                 aida.cloud1D(atrackdir + "pX").fill(apx);
                 TrackAnalysis tkanal = new TrackAnalysis(atrack, hittomcAxial);
                 MCParticle mcp = tkanal.getMCParticle();
@@ -406,16 +406,17 @@ public class DetailedAnalysisDriver extends Driver {
         //  Analyze the tracks in the event
         for (Track track : tracklist) {
             //  Calculate the track pT and cos(theta)
-            double d0 = track.getTrackParameter(HelicalTrackFit.dcaIndex);
-            double z0 = track.getTrackParameter(HelicalTrackFit.z0Index);
-            double phi0 = track.getTrackParameter(HelicalTrackFit.phi0Index);
-            double slope = track.getTrackParameter(HelicalTrackFit.slopeIndex);
-            double curve = track.getTrackParameter(HelicalTrackFit.curvatureIndex);
-            double d0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex));
-            double z0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index));
-            double phi0Err = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index));
-            double slopeErr = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex));
-            double curveErr = Math.sqrt(track.getErrorMatrix().e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex));
+            double d0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.dcaIndex);
+            double z0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.z0Index);
+            double phi0 = track.getTrackStates().get(0).getParameter(HelicalTrackFit.phi0Index);
+            double slope = track.getTrackStates().get(0).getParameter(HelicalTrackFit.slopeIndex);
+            double curve = track.getTrackStates().get(0).getParameter(HelicalTrackFit.curvatureIndex);
+            SymmetricMatrix covMatrix = new SymmetricMatrix(5,track.getTrackStates().get(0).getCovMatrix(),true);
+            double d0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex));
+            double z0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index));
+            double phi0Err = Math.sqrt(covMatrix.e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index));
+            double slopeErr = Math.sqrt(covMatrix.e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex));
+            double curveErr = Math.sqrt(covMatrix.e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex));
             _nchRec++;
             if (track.getCharge() < 0)
                 _neleRec++;
@@ -434,7 +435,7 @@ public class DetailedAnalysisDriver extends Driver {
             double xoca = ht.x0();
             double yoca = ht.y0();
             double[] poca = {xoca, yoca, z0};
-            double mom[] = track.getMomentum();
+            double mom[] = track.getTrackStates().get(0).getMomentum();
             double px = mom[0];
             double py = mom[1];
             double pz = mom[2];
@@ -526,9 +527,9 @@ public class DetailedAnalysisDriver extends Driver {
                 double pzmc = Pmc.z();
                 double ptmc = Math.sqrt(pxmc * pxmc + pymc * pymc);
                 double pmc = Math.sqrt(ptmc * ptmc + pzmc * pzmc);
-                double pxtk = track.getPX();
-                double pytk = track.getPY();
-                double pztk = track.getPZ();
+                double pxtk = track.getTrackStates().get(0).getMomentum()[0];
+                double pytk = track.getTrackStates().get(0).getMomentum()[1];
+                double pztk = track.getTrackStates().get(0).getMomentum()[2];
                 double pttk = Math.sqrt(pxtk * pxtk + pytk * pytk);
                 double ptk = Math.sqrt(pttk * pttk + pztk * pztk);
 
@@ -815,9 +816,9 @@ public class DetailedAnalysisDriver extends Driver {
                 continue;
             if (mcp.getParents().size() == 1 && mcp.getParents().get(0).getPDGID() == 622) {
                 int nhits = tkanal.getNHitsNew();
-                double px = track.getPX();
-                double py = track.getPY();
-                double pz = track.getPZ();
+                double px = track.getTrackStates().get(0).getMomentum()[0];
+                double py = track.getTrackStates().get(0).getMomentum()[1];
+                double pz = track.getTrackStates().get(0).getMomentum()[2];
                 double pt = Math.sqrt(px * px + py * py);
                 double pperp = Math.sqrt(py * py + pz * pz);
                 double p = Math.sqrt(pt * pt + pz * pz);
@@ -1327,9 +1328,9 @@ public class DetailedAnalysisDriver extends Driver {
         double me = 0.000511;
         // Loop over jets
 
-        double p1x = track1.getPX();
-        double p1y = track1.getPY();
-        double p1z = track1.getPZ();
+        double p1x = track1.getTrackStates().get(0).getMomentum()[0];
+        double p1y = track1.getTrackStates().get(0).getMomentum()[1];
+        double p1z = track1.getTrackStates().get(0).getMomentum()[2];
         double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
         double e1 = Math.sqrt(p1mag2 + me * me);
         double dydx1 = slt1.dydx();
@@ -1341,9 +1342,9 @@ public class DetailedAnalysisDriver extends Driver {
         double truep1x = truep1y / dydx1;
         double truep1z = dzdx1 * truep1x;
 
-        double p2x = track2.getPX();
-        double p2y = track2.getPY();
-        double p2z = track2.getPZ();
+        double p2x = track2.getTrackStates().get(0).getMomentum()[0];
+        double p2y = track2.getTrackStates().get(0).getMomentum()[1];
+        double p2z = track2.getTrackStates().get(0).getMomentum()[2];
         double p2mag2 = p2x * p2x + p2y * p2y + p2z * p2z;
         double e2 = Math.sqrt(p2mag2 + me * me);
 
@@ -1430,9 +1431,9 @@ public class DetailedAnalysisDriver extends Driver {
     private Hep3Vector getTrueMomentum(Track track1, StraightLineTrack slt1) {
         double[] truep = {0, 0, 0};
         double me = 0.000511;
-        double p1x = track1.getPX();
-        double p1y = track1.getPY();
-        double p1z = track1.getPZ();
+        double p1x = track1.getTrackStates().get(0).getMomentum()[0];
+        double p1y = track1.getTrackStates().get(0).getMomentum()[1];
+        double p1z = track1.getTrackStates().get(0).getMomentum()[2];
         double p1mag2 = p1x * p1x + p1y * p1y + p1z * p1z;
         double e1 = Math.sqrt(p1mag2 + me * me);
         double dydx1 = slt1.dydx();

@@ -71,9 +71,9 @@ public class ExamplePlotter extends Driver {
         aida.tree().cd("/");
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track trk : tracks) {
-            aida.histogram1D("Track Momentum (Px)").fill(trk.getPY());
-            aida.histogram1D("Track Momentum (Py)").fill(trk.getPZ());
-            aida.histogram1D("Track Momentum (Pz)").fill(trk.getPX());
+            aida.histogram1D("Track Momentum (Px)").fill(trk.getTrackStates().get(0).getMomentum()[1]);
+            aida.histogram1D("Track Momentum (Py)").fill(trk.getTrackStates().get(0).getMomentum()[2]);
+            aida.histogram1D("Track Momentum (Pz)").fill(trk.getTrackStates().get(0).getMomentum()[0]);
             aida.histogram1D("Track Chi2").fill(trk.getChi2());
 
             SeedTrack stEle = (SeedTrack) trk;

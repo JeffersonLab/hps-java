@@ -327,7 +327,7 @@ public class TrigRateDriver extends Driver {
                 trkMatchTool.setCluster(cl);
                 trkMatchTool.match(tracks);
                 if(trkMatchTool.isMatchedY(20)) {
-                    eoverp = cl.getEnergy()/(trkMatchTool.getMatchedTrack().getPX()*1000);
+                    eoverp = cl.getEnergy()/(trkMatchTool.getMatchedTrack().getTrackStates().get(0).getMomentum()[0]*1000);
                 }   
             }
             if(eoverp>0) aida.histogram1D("Eoverp " + side).fill(eoverp);

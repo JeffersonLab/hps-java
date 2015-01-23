@@ -55,9 +55,9 @@ public class RunAlignment extends Driver {
             ap.PrintResidualsAndDerivatives(trk);
 
             if(1==1){
-                aida.histogram1D("Track d0",50,-0.5,0.5).fill(trk.getTrackParameter(0));
-                aida.histogram1D("Track sin(phi0)",50,-0.5,0.5).fill(Math.sin(trk.getTrackParameter(1)));
-                aida.histogram1D("Track z0",50,-0.1,0.1).fill(Math.sin(trk.getTrackParameter(3)));
+                aida.histogram1D("Track d0",50,-0.5,0.5).fill(trk.getTrackStates().get(0).getParameter(0));
+                aida.histogram1D("Track sin(phi0)",50,-0.5,0.5).fill(Math.sin(trk.getTrackStates().get(0).getParameter(1)));
+                aida.histogram1D("Track z0",50,-0.1,0.1).fill(Math.sin(trk.getTrackStates().get(0).getParameter(3)));
                 aida.histogram1D("Track chi^2",50,0,25).fill(trk.getChi2());
                 for (int i = 1; i < 11; i++) {
                 double[] res = ap.getResidual(trk, i);
@@ -70,11 +70,11 @@ public class RunAlignment extends Driver {
 
                 aida.histogram1D("deltaU -- Layer " + mylayer,50,-duRange,duRange).fill(res[0]);
                 aida.histogram1D("deltaU Pull-- Layer " + mylayer,50,-3,3).fill(res[0]/res[3]);
-                if(i==3&&Math.sin(trk.getTrackParameter(1))>0){
+                if(i==3&&Math.sin(trk.getTrackStates().get(0).getParameter(1))>0){
                     aida.histogram1D("Positive phi0  deltaU -- Layer " + mylayer,50,-duRange,duRange).fill(res[0]);
                 aida.histogram1D("Positive phi0 deltaU Pull-- Layer " + mylayer,50,-3,3).fill(res[0]/res[3]);
                 }
-                if(i==3&&Math.sin(trk.getTrackParameter(1))<0){
+                if(i==3&&Math.sin(trk.getTrackStates().get(0).getParameter(1))<0){
                     aida.histogram1D("Negative phi0  deltaU -- Layer " + mylayer,50,-duRange,duRange).fill(res[0]);
                 aida.histogram1D("Negative phi0 deltaU Pull-- Layer " + mylayer,50,-3,3).fill(res[0]/res[3]);
                 }
