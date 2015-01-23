@@ -26,6 +26,7 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String AIDA_AUTO_SAVE_PROPERTY = "AidaAutoSave";
     public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
+    public static final String DETECTOR_ALIAS_PROPERTY = "DetectorAlias";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
     public static final String DISCONNECT_ON_END_RUN_PROPERTY = "DisconnectOnEndRun";
     public static final String EVENT_BUILDER_PROPERTY = "EventBuilderClassName";
@@ -63,12 +64,14 @@ public final class ConfigurationModel extends AbstractModel {
 
     // These key values are primarily used to figure out what properties need to be persisted when
     // writing to a text file.
+    // FIXME: This could probably be replaced with introspection on this class of "_PROPERTY" variables.
     static final String[] CONFIG_PROPERTIES = new String[] {
 
             // Job settings
             AIDA_AUTO_SAVE_PROPERTY, 
             AIDA_FILE_NAME_PROPERTY, 
             DETECTOR_NAME_PROPERTY, 
+            DETECTOR_ALIAS_PROPERTY,
             DISCONNECT_ON_ERROR_PROPERTY, 
             DISCONNECT_ON_END_RUN_PROPERTY, 
             EVENT_BUILDER_PROPERTY,
@@ -177,6 +180,20 @@ public final class ConfigurationModel extends AbstractModel {
         config.set(DETECTOR_NAME_PROPERTY, detectorName);
         firePropertyChange(DETECTOR_NAME_PROPERTY, oldValue, getDetectorName());
     }
+    
+    public String getDetectorAlias() {
+        return config.get(DETECTOR_ALIAS_PROPERTY);
+    }
+    
+    public void setDetectorAlias(String detectorAlias) {
+        String oldValue = null;
+        if (hasPropertyValue(DETECTOR_ALIAS_PROPERTY)) {
+            oldValue = getDetectorAlias();
+        }
+        config.set(DETECTOR_ALIAS_PROPERTY, detectorAlias);
+        firePropertyChange(DETECTOR_ALIAS_PROPERTY, oldValue, getDetectorAlias());
+    }
+    
 
     public String getEventBuilderClassName() {
         return config.get(EVENT_BUILDER_PROPERTY);

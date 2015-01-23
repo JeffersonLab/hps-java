@@ -30,6 +30,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
@@ -50,6 +52,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private JTextField steeringFileField;
     private JComboBox<?> steeringTypeComboBox;
     private JComboBox<String> detectorNameComboBox;
+    private JTextField detectorAliasField;
     private JComboBox<String> eventBuilderComboBox;
     private JTextField userRunNumberField;
     private JCheckBox freezeConditionsCheckBox;    
@@ -106,6 +109,15 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         detectorNameComboBox = addComboBox("Detector Name", this.findDetectorNames());
         detectorNameComboBox.setActionCommand(DETECTOR_NAME_CHANGED);
         detectorNameComboBox.addActionListener(this);
+        
+        detectorAliasField = addField("Detector Resources Directory", "", 35, true);
+        detectorAliasField.setActionCommand(DETECTOR_ALIAS_CHANGED);
+        detectorAliasField.addPropertyChangeListener("value", this);
+        detectorAliasField.addActionListener(this);
+        
+        JButton compactXmlButton = addButton("Select Compact Xml File");
+        compactXmlButton.setActionCommand(Commands.CHOOSE_COMPACT_FILE);
+        compactXmlButton.addActionListener(this);
 
         userRunNumberField = addField("User Run Number", "", 10, false);
         userRunNumberField.addPropertyChangeListener("value", this);
@@ -226,6 +238,46 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             }
         }
     }
+    
+    /**
+     * This filter will accept only files called compact.xml which
+     * should be an LCSim detector description file. 
+     */
+    static class CompactFileFilter extends FileFilter {
+
+        public CompactFileFilter() {            
+        }
+        
+        @Override
+        public boolean accept(File pathname) {
+            if (pathname.getName().equals("compact.xml")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        @Override
+        public String getDescription() {
+            return "Compact XML files";
+        }        
+    }
+    
+    
+    /**
+     * Choose a compact XML file to override the one embedded in the jar as a resource.
+     */
+    void chooseCompactFile() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Choose a Compact XML File");
+        fc.setCurrentDirectory(new File("."));
+        fc.setFileFilter(new CompactFileFilter());
+        int r = fc.showDialog(this, "Select ...");
+        if (r == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            configurationModel.setDetectorAlias(file.getParent());
+        }
+    }    
 
     /**
      * Parse the lcsim steering file to see if it appears to be valid.
@@ -246,6 +298,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
             this.chooseSteeringFile();
+        } else if (e.getActionCommand().equals(Commands.CHOOSE_COMPACT_FILE)) {
+            chooseCompactFile();
         } else if (DISCONNECT_ON_ERROR_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setDisconnectOnError(disconnectOnErrorCheckBox.isSelected());
         } else if (DISCONNECT_ON_END_RUN_CHANGED.equals(e.getActionCommand())) {
@@ -270,6 +324,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             } else {
                 throw new IllegalArgumentException("Conditions system may only be frozen if there is a valid user run number.");
             }
+        } else if (DETECTOR_ALIAS_CHANGED.equals(e.getActionCommand())) {
+            configurationModel.setDetectorName(detectorAliasField.getText());
         }
     }
 
@@ -334,6 +390,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
 
             if (evt.getPropertyName().equals(DETECTOR_NAME_PROPERTY)) {
                 detectorNameComboBox.setSelectedItem((String) value);
+            } else if (evt.getPropertyName().equals(DETECTOR_ALIAS_PROPERTY)) {
+                detectorAliasField.setText((String) value);
             } else if (evt.getPropertyName().equals(AIDA_AUTO_SAVE_PROPERTY)) {
                 aidaAutoSaveCheckbox.setSelected((Boolean) value);
             } else if (evt.getPropertyName().equals(AIDA_FILE_NAME_PROPERTY)) {
