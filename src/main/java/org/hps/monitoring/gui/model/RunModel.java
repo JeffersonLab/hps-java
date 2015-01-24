@@ -12,15 +12,23 @@ public final class RunModel extends AbstractModel {
     public final static String END_DATE_PROPERTY = "EndDate";
     public final static String RUN_LENGTH_PROPERTY = "RunLength"; // set at end, in seconds
     public final static String TOTAL_EVENTS_PROPERTY = "TotalEvents"; // only set at end
-    public final static String EVENTS_RECEIVED_PROPERTY = "EventsReceived"; // events received so
-                                                                            // far
-    public final static String ELAPSED_TIME_PROPERTY = "ElapsedTime"; // updated on the fly, in
-                                                                      // seconds
-    public final static String DATA_RECEIVED_PROPERTY = "DataReceived"; // updated on the fly, in
-                                                                        // bytes
+    public final static String EVENTS_RECEIVED_PROPERTY = "EventsReceived"; // events received so far
+    public final static String ELAPSED_TIME_PROPERTY = "ElapsedTime"; // updated on the fly, in seconds
+    public final static String DATA_RECEIVED_PROPERTY = "DataReceived"; // updated on the fly, in bytes
     public final static String EVENT_NUMBER_PROPERTY = "EventNumber"; // current event number
+    public final static String DATA_RATE_PROPERTY = "DataRate"; // data rate in megabytes per second
 
-    static final String[] properties = new String[] { RUN_NUMBER_PROPERTY, START_DATE_PROPERTY, END_DATE_PROPERTY, RUN_LENGTH_PROPERTY, TOTAL_EVENTS_PROPERTY, ELAPSED_TIME_PROPERTY, DATA_RECEIVED_PROPERTY, EVENT_NUMBER_PROPERTY };
+    static final String[] properties = new String[] { 
+        RUN_NUMBER_PROPERTY, 
+        START_DATE_PROPERTY, 
+        END_DATE_PROPERTY, 
+        RUN_LENGTH_PROPERTY, 
+        TOTAL_EVENTS_PROPERTY, 
+        ELAPSED_TIME_PROPERTY, 
+        DATA_RECEIVED_PROPERTY, 
+        EVENT_NUMBER_PROPERTY, 
+        DATA_RATE_PROPERTY
+    };
 
     int runNumber;
     Date startDate;
@@ -31,6 +39,7 @@ public final class RunModel extends AbstractModel {
     int elapsedTime;
     long dataReceived;
     int eventNumber;
+    double dataRate;
 
     public String[] getPropertyNames() {
         return properties;
@@ -136,6 +145,16 @@ public final class RunModel extends AbstractModel {
         int oldValue = this.eventNumber;
         this.eventNumber = eventNumber;
         this.firePropertyChange(EVENT_NUMBER_PROPERTY, oldValue, this.eventNumber);
+    }
+    
+    public void setDataRate(double dataRate) {
+        double oldValue = this.dataRate;
+        this.dataRate = dataRate;
+        this.firePropertyChange(DATA_RATE_PROPERTY, oldValue, this.dataRate);
+    }
+    
+    public double getDataRate() {
+        return dataRate;
     }
 
     public void reset() {

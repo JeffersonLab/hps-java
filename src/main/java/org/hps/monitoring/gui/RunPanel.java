@@ -1,14 +1,6 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.model.RunModel.DATA_RECEIVED_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.ELAPSED_TIME_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.END_DATE_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.EVENTS_RECEIVED_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.EVENT_NUMBER_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.RUN_LENGTH_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.RUN_NUMBER_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.START_DATE_PROPERTY;
-import static org.hps.monitoring.gui.model.RunModel.TOTAL_EVENTS_PROPERTY;
+import static org.hps.monitoring.gui.model.RunModel.*;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -49,6 +41,7 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
     FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
     FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
+    FieldPanel dataRateField = new FieldPanel("Data Rate [mb/s]", "", 12, false);
 
     Timer timer;
     long jobStartMillis;
@@ -73,8 +66,9 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         add(eventsReceivedField);
         add(dataReceivedField);
         add(eventNumberField);
+        add(dataRateField);
 
-        this.setMinimumSize(new Dimension(0, 190));
+        this.setMinimumSize(new Dimension(0, 240));
     }
 
     void startJobTimer() {
@@ -91,7 +85,6 @@ class RunPanel extends JPanel implements PropertyChangeListener {
 
     void stopRunTimer() {
         timer.cancel();
-        timer.purge();
     }
 
     class RunModelUpdater extends CompositeRecordProcessor {
@@ -104,6 +97,8 @@ class RunPanel extends JPanel implements PropertyChangeListener {
 
         @Override
         public void process(CompositeRecord event) {
+            // FIXME: This should not update every event.  It overloads the EDT.
+            //        Listeners can be enabled/disabled based on an event interval.
             model.incrementEventsReceived();
             EvioEvent evioEvent = event.getEvioEvent();
             if (event.getEtEvent() != null && event.getEvioEvent() == null) {
@@ -155,6 +150,49 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             RunPanel.this.stopRunTimer();
         }
     }
+    
+    /**
+     * Update the data rate field at about once per second based on how
+     * many bytes were received by the processor in that interval.
+     * The actual number of milliseconds between updates is not computed,
+     * so this might be slightly inaccurate.
+     */
+    class DataRateUpdater extends CompositeRecordProcessor {
+        
+        double bytesReceived = 0;
+        Timer dataRateTimer;
+        
+        @Override
+        public void startJob() {
+            // Start the timer to execute data rate calculation about once per second.
+            dataRateTimer = new Timer("DataRateTimer");
+            TimerTask dataRateTask = new TimerTask() {                                                                 
+                public void run() {
+                    double megaBytesReceived = bytesReceived / 1000000;
+                    model.setDataRate(megaBytesReceived);
+                    bytesReceived = 0;
+                }
+            };
+            dataRateTimer.scheduleAtFixedRate(dataRateTask, 0, 1000);
+        }
+        
+        @Override
+        public void process(CompositeRecord event) {            
+            if (event.getEtEvent() != null && event.getEvioEvent() == null) {
+                // Use ET events for length.
+                bytesReceived += event.getEtEvent().getData().length;
+            } else if (event.getEvioEvent() != null) {
+                // Use EVIO events for length.
+                bytesReceived += event.getEvioEvent().getTotalBytes();
+            }
+            // FIXME: If there is an LCIO source only, it is not easy to get the data length in bytes!
+        }      
+        
+        public void endJob() {
+            // Kill the timer.
+            dataRateTimer.cancel();
+        }
+    }
 
     /**
      * Update the GUI from changes in the underlying RunModel object.
@@ -186,6 +224,8 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             this.dataReceivedField.setValue((Long) value);
         } else if (EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
             this.eventNumberField.setValue((Integer) value);
+        } else if (DATA_RATE_PROPERTY.equals(evt.getPropertyName())) {
+            this.dataRateField.setValue((Double) value);
         }
     }
 }
