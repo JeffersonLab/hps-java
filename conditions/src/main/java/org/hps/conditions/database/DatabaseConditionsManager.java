@@ -115,8 +115,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected boolean cacheAllConditions = false;
     protected boolean isTestRun = false;
     
-    // Default login timeout of 5 seconds.
     static {
+        // Default login timeout of 5 seconds.
         DriverManager.setLoginTimeout(5);
     }
     
@@ -174,7 +174,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
             
             if (!loggedConnectionParameters) {
-                // Print out detailed info to the log on first connection.
+                // Print out detailed info to the log on first connection within the job.
                 logger.info("opening connection to " + connectionParameters.getConnectionString());
                 logger.info("host " + connectionParameters.getHostname());
                 logger.info("port " + connectionParameters.getPort());
@@ -327,7 +327,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             } else if (runNumber > TEST_RUN_MAX_RUN) {
                 // Run numbers greater than max of Test Run assumed to be Eng Run (for now!).
                 setXmlConfig(DatabaseConditionsManager.ENGRUN_CONFIG);
-            } 
+            } else if (runNumber == 0) {
+                // Use the default configuration because the run number is basically meaningless.
+                setXmlConfig(DatabaseConditionsManager.DEFAULT_CONFIG);
+            }
         }
 
         registerConverters();
@@ -338,7 +341,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         // Open the database connection.
         openConnection();
         
-        // Call the super class's setDetector method to construct the detector object.
+        // Call the super class's setDetector method to construct the detector object and activate listeners.
         super.setDetector(detectorName, runNumber);
                         
         // Should all conditions sets be cached?
@@ -366,7 +369,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
 
     /**
-     * 
+     * Register the conditions converters with the manager.
      */
     private void registerConverters() {
         if (svtConverter != null) {
@@ -701,7 +704,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         TableMetaData tableMetaData = collection.getTableMetaData();
         if (tableMetaData == null) {            
             tableMetaData = tableRegistry.findByCollectionType(collection.getClass()); 
-            logger.fine("using default table meta data with table " + tableMetaData.getTableName() + " for collection of type " + collection.getClass().getCanonicalName());            
+            if (tableMetaData == null) {
+                // This is a fatal error because no meta data is available for the type.
+                throw new ConditionsObjectException("Failed to find meta data for type: " + collection.getClass());
+            }
+            logger.fine("using default table meta data " + tableMetaData.getTableName() + " for type " + collection.getClass());            
         }
         if (collection.getCollectionId() == -1) {
             try {
@@ -710,14 +717,12 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 throw new RuntimeException(e);
             }
         }
+        // FIXME: If collection ID is already set this should be an error!
+        
         logger.info("inserting collection with ID " + collection.getCollectionId() 
                 + " and key " + tableMetaData.getKey() + " into table " + tableMetaData.getTableName());
 
-        boolean openedConnection = false;
-        if (!isConnected()) {
-            openConnection();
-            openedConnection = true;
-        }
+        boolean openedConnection = openConnection();
         
         PreparedStatement preparedStatement = null;
         
@@ -756,7 +761,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         } catch (Exception e) {
         }
                
-        closeConnection(openedConnection);        
+        closeConnection(openedConnection);
     }
     
     /**
@@ -845,6 +850,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             } 
         } catch (UnknownHostException e) {
             // This will actually print a warning if the JLAB server is unreachable.
+            // There is always a warning when running outside JLAB, so suppress it for now.
             //logger.log(Level.WARNING, e.getMessage(), e);
         } catch (IOException e) {
             logger.severe(e.getMessage());
@@ -881,7 +887,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     /**
      * Setup the database connection from a file specified by a Java system
-     * property setting. This is possibly overridden by subsequent, direct API calls to
+     * property setting. This could be overridden by subsequent API calls to
      * {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
      */
     private void setupConnectionFromSystemProperty() {
