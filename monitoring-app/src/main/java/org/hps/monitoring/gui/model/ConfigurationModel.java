@@ -492,7 +492,11 @@ public final class ConfigurationModel extends AbstractModel {
     }
     
     public boolean hasPropertyValue(String key) {
-        return config.hasKey(key) ? true : false;
+        return config.hasKey(key);
+    }
+    
+    public boolean hasValidProperty(String key) {
+        return config.hasKey(key) && config.get(key) != null;
     }
         
     @Override
