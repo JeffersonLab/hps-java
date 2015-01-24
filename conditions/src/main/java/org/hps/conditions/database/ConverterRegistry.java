@@ -13,9 +13,11 @@ import org.reflections.Reflections;
 
 /**
  * This is a registry of all available conditions converters.
- * These classes are found using reflection.  Only converters
- * with a {@link Table} annotation are loaded, and the class
- * must not be abstract.
+ * These classes are found using reflection.  An anonymous converter
+ * is created on the fly for {@link org.hps.conditions.api.ConditionsObject} 
+ * classes with a {@link Table}, and the class itself must not be abstract.
+ * If the {@link Converter} annotation is set on the class, then this
+ * is used to instantiate the specific converter class instead.
  * 
  * @see ConditionsObjectConverter
  * 
