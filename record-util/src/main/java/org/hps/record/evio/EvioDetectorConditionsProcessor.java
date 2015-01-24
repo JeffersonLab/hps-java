@@ -51,7 +51,7 @@ public class EvioDetectorConditionsProcessor extends EvioEventProcessor {
 
     @Override
     public void startRun(EvioEvent evioEvent) {
-        System.out.println("EvioDetectorConditionsProcessor.startRun");
+        //System.out.println("EvioDetectorConditionsProcessor.startRun");
         if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
             // Get the pre start event's data bank.
             int[] data = EvioEventUtilities.getControlEventData(evioEvent);
@@ -61,7 +61,7 @@ public class EvioDetectorConditionsProcessor extends EvioEventProcessor {
             
             // Initialize the conditions system from the detector name and run number.
             try {
-                System.out.println("  setting up conditions from pre start: " + detectorName + " #" + runNumber);
+                //System.out.println("  setting up conditions from pre start: " + detectorName + " #" + runNumber);
                 ConditionsManager.defaultInstance().setDetector(detectorName, runNumber);
             } catch (ConditionsNotFoundException e) {
                 throw new RuntimeException("Error setting up conditions from EVIO pre start event.", e);
