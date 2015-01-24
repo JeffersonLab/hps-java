@@ -11,6 +11,7 @@ import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
 import static org.hps.monitoring.gui.Commands.LOG_TO_TERMINAL;
 import static org.hps.monitoring.gui.Commands.NEXT;
 import static org.hps.monitoring.gui.Commands.PAUSE;
+import static org.hps.monitoring.gui.Commands.RESET_PLOTS;
 import static org.hps.monitoring.gui.Commands.RESTORE_DEFAULT_GUI_LAYOUT;
 import static org.hps.monitoring.gui.Commands.RESUME;
 import static org.hps.monitoring.gui.Commands.SAVE_CONFIG_FILE;
@@ -23,6 +24,7 @@ import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
 import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
+import hep.aida.ITree;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
@@ -302,6 +304,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             if (fileValidationThread == null) {
                 new FileValidationThread().start();
             }
+        } else if (RESET_PLOTS.equals(cmd)) {
+            resetAidaTree();
         }
     }
 
@@ -446,8 +450,12 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
     private void createSystemStatusWindow() {
         systemStatusWindow = new SystemStatusWindow();
-        WindowConfiguration wc = new WindowConfiguration(650, /* FIXME: Hard-coded width setting. */
-        ScreenUtil.getScreenHeight() / 2, (int) ScreenUtil.getBoundsX(0), MAIN_FRAME_HEIGHT);
+        WindowConfiguration wc = new WindowConfiguration(
+                650, /* FIXME: Hard-coded width setting. */
+                //ScreenUtil.getScreenHeight() - mainPanel.getHeight(),
+                400,
+                (int) ScreenUtil.getBoundsX(0), 
+                MAIN_FRAME_HEIGHT);
         systemStatusWindow.setMinimumSize(new Dimension(wc.width, wc.height));
         systemStatusWindow.setDefaultWindowConfiguration(wc);
     }
@@ -590,6 +598,14 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         savePlotsItem.setEnabled(false);
         savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
         plotsMenu.add(savePlotsItem);
+        
+        JMenuItem resetPlotsItem = new JMenuItem("Reset Plots");
+        resetPlotsItem.setMnemonic(KeyEvent.VK_R);
+        resetPlotsItem.setActionCommand(RESET_PLOTS);
+        resetPlotsItem.addActionListener(this);
+        resetPlotsItem.setEnabled(true);
+        resetPlotsItem.setToolTipText("Reset all AIDA plots in the default tree.");
+        plotsMenu.add(resetPlotsItem);
 
         JMenu logMenu = new JMenu("Log");
         logMenu.setMnemonic(KeyEvent.VK_L);
@@ -1116,7 +1132,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             // Create and the job manager.  The conditions manager is instantiated from this call but not configured.
             jobManager = new JobManager();
             
-            if (configurationModel.hasPropertyValue(ConfigurationModel.DETECTOR_ALIAS_PROPERTY) && configurationModel.getDetectorAlias() != null) {
+            if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
                 // Set a detector alias.                
                 ConditionsReader.addAlias(configurationModel.getDetectorName(), "file://" + configurationModel.getDetectorAlias());
                 logger.config("using detector alias " + configurationModel.getDetectorAlias());
@@ -1135,7 +1151,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
             }
            
             // Is there a user specified run number from the JobPanel?
-            if (configurationModel.hasPropertyValue(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
                 int userRunNumber = configurationModel.getUserRunNumber();
                 String detectorName = configurationModel.getDetectorName();
                 DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
@@ -1352,6 +1368,9 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
+        
+        // Data rate updater for RunPanel.
+        loopConfig.add(runPanel.new DataRateUpdater());
         
         // Setup for conditions activation via EVIO events.
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
@@ -1643,7 +1662,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         plotWindow.resetWindowConfiguration();
         systemStatusWindow.resetWindowConfiguration();
     }
-
+    
     /**
      * Load the current Configuration by updating the ConfigurationModel.
      */
