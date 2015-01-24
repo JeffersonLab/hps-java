@@ -4,8 +4,6 @@ import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.plotter.PlotterRegion;
-import jas.hist.JASHist;
 
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +105,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         if (sensors.size() > 20) {
             throw new RuntimeException("Can't handle > 20 sensors at a time.");
         }
+        
+        if (sensors.size() == 0) {
+            throw new RuntimeException("No sensors were found in this detector.");
+        }
 
         // Map a map of sensors to their region numbers in the plotter.
         sensorRegionMap = new HashMap<String, Integer>();
@@ -118,15 +120,13 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Setup the occupancy plots.
         aida.tree().cd("/");
         for (SiSensor sensor : sensors) {
-        	//IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
             IHistogram1D occupancyPlot = createSensorPlot(sensor);
             occupancyPlot.reset();
             int region = sensorRegionMap.get(sensor.getName());
             plotter.region(region).plot(occupancyPlot);
-            JASHist hist = ((PlotterRegion) plotter.region(region)).getPlot();
-            hist.setAllowUserInteraction(false);
-            hist.setAllowPopupMenus(false);
         }
+        
+        plotter.show();
     }
 
     public void process(EventHeader event) {
