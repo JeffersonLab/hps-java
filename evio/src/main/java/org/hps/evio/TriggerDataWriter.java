@@ -17,6 +17,8 @@ import org.lcsim.event.EventHeader;
  */
 public class TriggerDataWriter implements HitWriter {
 
+    private int verbosity = 1;
+
     @Override
     public boolean hasData(EventHeader event) {
         return event.hasCollection(TestRunTriggerData.class, TestRunTriggerData.TRIG_COLLECTION);
@@ -43,7 +45,6 @@ public class TriggerDataWriter implements HitWriter {
             }
         }
 
-
         List<AbstractIntData> triggerList = event.get(AbstractIntData.class, TestRunTriggerData.TRIG_COLLECTION);
         EvioBank triggerBank = new EvioBank(EventConstants.TRIGGER_BANK_TAG, DataType.UINT32, EventConstants.TRIGGER_BANK_NUMBER);
         try {
@@ -57,5 +58,10 @@ public class TriggerDataWriter implements HitWriter {
     @Override
     public void writeData(EventHeader event, EventHeader toEvent) {
         toEvent.put(TestRunTriggerData.TRIG_COLLECTION, event.get(AbstractIntData.class, TestRunTriggerData.TRIG_COLLECTION));
+    }
+
+    @Override
+    public void setVerbosity(int verbosity) {
+        this.verbosity = verbosity;
     }
 }

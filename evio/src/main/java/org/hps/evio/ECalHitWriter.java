@@ -40,6 +40,8 @@ public class ECalHitWriter implements HitWriter {
 
     private static EcalConditions ecalConditions = null;
 
+    private int verbosity = 1;
+
     public ECalHitWriter() {
     }
 
@@ -105,13 +107,15 @@ public class ECalHitWriter implements HitWriter {
         }
     }
 
-    private void writeHits(List<Object> rawCalorimeterHits, EventBuilder builder, int mode) {
-        System.out.println("Writing " + rawCalorimeterHits.size() + " ECal hits in integral format");
+    private void writeHits(List<Object> rawHits, EventBuilder builder, int mode) {
+        if (verbosity >= 1) {
+            System.out.println("Writing " + rawHits.size() + " ECal hits to EVIO");
+        }
 
         // Make two lists containing the hits from top and bottom sections, which go into separate EVIO data banks.
         List<Object> topHits = new ArrayList<Object>();
         List<Object> bottomHits = new ArrayList<Object>();
-        for (Object hit : rawCalorimeterHits) {
+        for (Object hit : rawHits) {
 //            Long daqID = EcalConditions.physicalToDaqID(getCellID(hit));
             int crate = getCrate(getCellID(hit));
             if (crate == ECAL_BOTTOM_BANK_TAG) {
@@ -412,12 +416,16 @@ public class ECalHitWriter implements HitWriter {
             case EventConstants.ECAL_WINDOW_MODE:
             case EventConstants.ECAL_PULSE_MODE:
                 List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, hitCollectionName);
-                System.out.println("Writing " + rawTrackerHits.size() + " ECal hits");
+                if (verbosity >= 1) {
+                    System.out.println("Writing " + rawTrackerHits.size() + " ECal hits");
+                }
                 toEvent.put(hitCollectionName, rawTrackerHits, RawTrackerHit.class, 0, readoutName);
                 break;
             case EventConstants.ECAL_PULSE_INTEGRAL_MODE:
                 List<RawCalorimeterHit> rawCalorimeterHits = event.get(RawCalorimeterHit.class, hitCollectionName);
-                System.out.println("Writing " + rawCalorimeterHits.size() + " ECal hits in integral format");
+                if (verbosity >= 1) {
+                    System.out.println("Writing " + rawCalorimeterHits.size() + " ECal hits in integral format");
+                }
                 int flags = 0;
                 flags += 1 << LCIOConstants.RCHBIT_TIME; //store timestamp
                 toEvent.put(hitCollectionName, rawCalorimeterHits, RawCalorimeterHit.class, flags, readoutName);
@@ -425,6 +433,11 @@ public class ECalHitWriter implements HitWriter {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void setVerbosity(int verbosity) {
+        this.verbosity = verbosity;
     }
 
     /**

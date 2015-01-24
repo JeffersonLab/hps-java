@@ -32,7 +32,7 @@ import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 // TODO: Update this class so it works correctly with the database conditions system
 public class SVTHitWriter implements HitWriter {
 
-    boolean debug = false;
+    private int verbosity = 1;
 
     // Subdetector name
     private static final String subdetectorName = "Tracker";
@@ -86,8 +86,10 @@ public class SVTHitWriter implements HitWriter {
         List<RawTrackerHit> hits = event.get(RawTrackerHit.class, hitCollectionName);
         Map<Integer, FpgaData> fpgaData = makeFpgaData(event.getDetector().getSubdetector(subdetectorName));
 
-        System.out.println("Writing " + hits.size() + " SVT hits");
-        System.out.println("Writing " + fpgaData.size() + " FPGA data");
+        if (verbosity >= 1) {
+            System.out.println("Writing " + hits.size() + " SVT hits");
+            System.out.println("Writing " + fpgaData.size() + " FPGA data");
+        }
 
         Map<Integer, List<int[]>> fpgaHits = new HashMap<Integer, List<int[]>>();
 
@@ -140,7 +142,7 @@ public class SVTHitWriter implements HitWriter {
                 throw new RuntimeException("tried to fill SVT buffer of length " + dataBuffer.length + " with " + ptr + " ints");
             }
 
-            if (debug) {
+            if (verbosity >= 2) {
                 System.out.println(this.getClass().getSimpleName() + ": FPGA " + fpgaNumber + " : Data size: " + dataBuffer.length);
             }
 
@@ -166,7 +168,9 @@ public class SVTHitWriter implements HitWriter {
     @Override
     public void writeData(EventHeader event, EventHeader toEvent) {
         List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, hitCollectionName);
-        System.out.println("Writing " + rawTrackerHits.size() + " SVT hits");
+        if (verbosity >= 1) {
+            System.out.println("Writing " + rawTrackerHits.size() + " SVT hits");
+        }
         int flags = 1 << LCIOConstants.TRAWBIT_ID1;
         toEvent.put(hitCollectionName, rawTrackerHits, RawTrackerHit.class, flags, readoutName);
 
@@ -174,8 +178,14 @@ public class SVTHitWriter implements HitWriter {
         toEvent.put(relationCollectionName, trueHitRelations, LCRelation.class, 0);
 
         List<FpgaData> fpgaData = new ArrayList(makeFpgaData(event.getDetector().getSubdetector(subdetectorName)).values());
-        System.out.println("Writing " + fpgaData.size() + " FPGA data");
-
+        if (verbosity >= 1) {
+            System.out.println("Writing " + fpgaData.size() + " FPGA data");
+        }
         toEvent.put(fpgaDataCollectionName, fpgaData, FpgaData.class, 0);
+    }
+
+    @Override
+    public void setVerbosity(int verbosity) {
+        this.verbosity = verbosity;
     }
 }
