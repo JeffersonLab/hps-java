@@ -191,7 +191,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         int[] bankTags;
         Class<? extends AbstractIntData> dataClass;
 
-        public IntBankDefinition(Class dataClass, int[] bankTags) {
+        public IntBankDefinition(Class<? extends AbstractIntData> dataClass, int[] bankTags) {
             this.bankTags = bankTags;
             this.dataClass = dataClass;
         }
