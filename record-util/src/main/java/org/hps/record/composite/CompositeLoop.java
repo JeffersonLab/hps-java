@@ -315,18 +315,24 @@ public final class CompositeLoop extends DefaultRecordLoop {
         	evioAdapter.setStopOnEndRun(config.stopOnEndRun);
         
         // Add EtEventProcessors to loop.
-        for (EtEventProcessor processor : config.etProcessors) {
-            etAdapter.addProcessor(processor);
+        if (etAdapter != null) {
+            for (EtEventProcessor processor : config.etProcessors) {
+                etAdapter.addProcessor(processor);
+            }
         }
                 
         // Add EvioEventProcessors to loop.
-        for (EvioEventProcessor processor : config.evioProcessors) {
-            evioAdapter.addProcessor(processor);
+        if (evioAdapter != null) {
+            for (EvioEventProcessor processor : config.evioProcessors) {
+                evioAdapter.addProcessor(processor);
+            }
         }
         
         // Add Drivers to loop.
-        for (Driver driver : config.drivers) {
-            lcioAdapter.addDriver(driver);
+        if (lcioAdapter != null) {
+            for (Driver driver : config.drivers) {
+                lcioAdapter.addDriver(driver);
+            }
         }
         
         // Add CompositeLoopAdapter which should execute last.
