@@ -39,7 +39,7 @@
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <clustererName>LegacyClusterer</clustererName> 
             <!-- <addEMin>0.010</addEMin> -->
-            <cuts>0.010</cuts>
+            <cuts>0.05 0.010</cuts>
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>
