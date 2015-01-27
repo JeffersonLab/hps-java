@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,17 +21,15 @@ import org.hps.monitoring.gui.model.RunModel;
 import org.hps.record.composite.CompositeRecord;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.event.EventHeader;
 
 /**
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: Add current data rate field (measured over last ~second).
-// TOOD: Add current event rate field (measured over last ~second).
 // TODO: Add event sequence number from CompositeRecord.
-// TODO: Add average data rate field (over entire session).
-// TODO: Add average proc time per event field (over entire session).
 class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
@@ -39,14 +39,14 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
     FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);
     FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
-    FieldPanel dataReceivedField = new FieldPanel("Data Received [bytes]", "", 14, false);
+    FieldPanel dataReceivedField = new FieldPanel("Data Received [MB]", "", 14, false);
     FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
-    FieldPanel dataRateField = new FieldPanel("Data Rate [mb/s]", "", 12, false);
-
-    Timer timer;
-    long jobStartMillis;
+    FieldPanel dataRateField = new FieldPanel("Data Rate [MB/s]", "", 12, false);
+    FieldPanel eventRateField = new FieldPanel("Event Rate [evt/s]", "", 14, false);
 
     RunModel model;
+    
+    NumberFormat formatter = new DecimalFormat("#0.00"); 
 
     RunPanel(RunModel model) {
         this.model = model;
@@ -67,52 +67,91 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         add(dataReceivedField);
         add(eventNumberField);
         add(dataRateField);
+        add(eventRateField);
 
         this.setMinimumSize(new Dimension(0, 240));
     }
 
-    void startJobTimer() {
-        timer = new Timer("JobTimer");
-        jobStartMillis = System.currentTimeMillis();
-        TimerTask updateTimeTask = new TimerTask() {
-            public void run() {
-                final int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / 1000);
-                model.setElapsedTime(elapsedTime);
-            }
-        };
-        timer.scheduleAtFixedRate(updateTimeTask, 0, 1000);
-    }
-
-    void stopRunTimer() {
-        timer.cancel();
-    }
-
     class RunModelUpdater extends CompositeRecordProcessor {
 
+        Timer timer;
+        
+        int eventsReceived;
+        double bytesReceived;
+        int totalEvents;
+        int eventNumber;
+        int runNumber = -1;
+        long jobStartMillis;
+        
         @Override
         public void startJob() {
             model.reset();
-            RunPanel.this.startJobTimer();
+            jobStartMillis = System.currentTimeMillis();
+            
+            // Start the timer to update GUI components about once per second.
+            timer = new Timer("RunModelUpdaterTimer");
+            TimerTask task = new TimerTask() {                                                                 
+                public void run() {                     
+                    final int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / 1000);
+                    double megaBytesReceived = bytesReceived / 1000000;
+                    totalEvents += eventsReceived;
+                    
+                    model.setElapsedTime(elapsedTime);
+                    model.setEventsReceived(totalEvents);
+                    model.setDataRate(megaBytesReceived);
+                    model.addDataReceived(megaBytesReceived);
+                    model.setEventNumber(eventNumber);
+                    model.setEventRate(eventsReceived);
+                    eventsReceived = 0;
+                    bytesReceived = 0;
+                    eventNumber = 0;  
+                }
+            };
+            timer.scheduleAtFixedRate(task, 0, 1000);          
         }
 
         @Override
         public void process(CompositeRecord event) {
-            // FIXME: This should not update every event.  It overloads the EDT.
-            //        Listeners can be enabled/disabled based on an event interval.
-            model.incrementEventsReceived();
-            EvioEvent evioEvent = event.getEvioEvent();
-            if (event.getEtEvent() != null && event.getEvioEvent() == null) {
-                model.addDataReceived(event.getEtEvent().getData().length);
-            } else if (evioEvent != null) {
-                model.addDataReceived((long) evioEvent.getTotalBytes());
-                model.setEventNumber(evioEvent.getEventNumber());
+            ++eventsReceived;
+            if (event.getEvioEvent() != null) {
+                EvioEvent evioEvent = event.getEvioEvent();
+                bytesReceived += evioEvent.getTotalBytes();
+                eventNumber = evioEvent.getEventNumber();
                 if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
+                    // Get run start info from pre start event.
                     startRun(evioEvent);
                 } else if (EvioEventUtilities.isEndEvent(evioEvent)) {
+                    // Get end run info from end event.
                     endRun(evioEvent);
+                } else {                    
+                    // Check for run info in head bank.
+                    checkHeadBank(evioEvent);
                 }
+            } else if (event.getEtEvent() != null) {
+                bytesReceived += event.getEtEvent().getData().length;
+                eventNumber = event.getEtEvent().getId();
             } else if (event.getLcioEvent() != null) {
-                model.setEventNumber(event.getLcioEvent().getEventNumber());
+                EventHeader lcioEvent = event.getLcioEvent();
+                eventNumber = lcioEvent.getEventNumber();
+                if (lcioEvent.getRunNumber() != runNumber) {
+                    runNumber = lcioEvent.getRunNumber();
+                    startRun(lcioEvent);
+                }
+            }                    
+        }
+
+        /**
+         * @param evioEvent
+         */
+        private void checkHeadBank(EvioEvent evioEvent) {
+            BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
+            if (headBank != null) {
+                int headBankRun = headBank.getIntData()[1];
+                if (headBankRun != runNumber) {
+                    runNumber = headBankRun;
+                    model.setRunNumber(headBankRun);
+                    model.setStartDate(new Date(headBank.getIntData()[3]));
+                }
             }
         }
 
@@ -136,7 +175,7 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             if (data != null) {
                 int seconds = data[0];
-                int runNumber = data[1];
+                runNumber = data[1];
                 long startMillis = ((long) seconds) * 1000;
 
                 // Update the GUI.
@@ -144,58 +183,20 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 model.setStartDate(new Date(startMillis));
             }
         }
-
+        
+        private void startRun(EventHeader lcioEvent) {
+            model.setRunNumber(lcioEvent.getRunNumber());
+            model.setStartDate(new Date(lcioEvent.getTimeStamp() / 1000));
+        }
+        
         @Override
         public void endJob() {
-            RunPanel.this.stopRunTimer();
+            timer.cancel();
         }
     }
     
     /**
-     * Update the data rate field at about once per second based on how
-     * many bytes were received by the processor in that interval.
-     * The actual number of milliseconds between updates is not computed,
-     * so this might be slightly inaccurate.
-     */
-    class DataRateUpdater extends CompositeRecordProcessor {
-        
-        double bytesReceived = 0;
-        Timer dataRateTimer;
-        
-        @Override
-        public void startJob() {
-            // Start the timer to execute data rate calculation about once per second.
-            dataRateTimer = new Timer("DataRateTimer");
-            TimerTask dataRateTask = new TimerTask() {                                                                 
-                public void run() {
-                    double megaBytesReceived = bytesReceived / 1000000;
-                    model.setDataRate(megaBytesReceived);
-                    bytesReceived = 0;
-                }
-            };
-            dataRateTimer.scheduleAtFixedRate(dataRateTask, 0, 1000);
-        }
-        
-        @Override
-        public void process(CompositeRecord event) {            
-            if (event.getEtEvent() != null && event.getEvioEvent() == null) {
-                // Use ET events for length.
-                bytesReceived += event.getEtEvent().getData().length;
-            } else if (event.getEvioEvent() != null) {
-                // Use EVIO events for length.
-                bytesReceived += event.getEvioEvent().getTotalBytes();
-            }
-            // FIXME: If there is an LCIO source only, it is not easy to get the data length in bytes!
-        }      
-        
-        public void endJob() {
-            // Kill the timer.
-            dataRateTimer.cancel();
-        }
-    }
-
-    /**
-     * Update the GUI from changes in the underlying RunModel object.
+     * Update the GUI from changes to the backing RunModel object.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -221,11 +222,13 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         } else if (ELAPSED_TIME_PROPERTY.equals(evt.getPropertyName())) {
             this.elapsedTimeField.setValue((Integer) value);
         } else if (DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
-            this.dataReceivedField.setValue((Long) value);
+            this.dataReceivedField.setValue(formatter.format((Double) value));
         } else if (EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
             this.eventNumberField.setValue((Integer) value);
         } else if (DATA_RATE_PROPERTY.equals(evt.getPropertyName())) {
-            this.dataRateField.setValue((Double) value);
+            this.dataRateField.setValue(formatter.format((Double) value));
+        } else if (EVENT_RATE_PROPERTY.equals(evt.getPropertyName())) {
+            this.eventRateField.setValue(formatter.format((Double) value));
         }
     }
 }

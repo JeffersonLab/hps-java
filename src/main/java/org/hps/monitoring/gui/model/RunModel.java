@@ -17,6 +17,7 @@ public final class RunModel extends AbstractModel {
     public final static String DATA_RECEIVED_PROPERTY = "DataReceived"; // updated on the fly, in bytes
     public final static String EVENT_NUMBER_PROPERTY = "EventNumber"; // current event number
     public final static String DATA_RATE_PROPERTY = "DataRate"; // data rate in megabytes per second
+    public final static String EVENT_RATE_PROPERTY = "EventRate"; // event rate per second
 
     static final String[] properties = new String[] { 
         RUN_NUMBER_PROPERTY, 
@@ -27,26 +28,24 @@ public final class RunModel extends AbstractModel {
         ELAPSED_TIME_PROPERTY, 
         DATA_RECEIVED_PROPERTY, 
         EVENT_NUMBER_PROPERTY, 
-        DATA_RATE_PROPERTY
+        DATA_RATE_PROPERTY,
+        EVENT_RATE_PROPERTY
     };
 
-    int runNumber;
+    Integer runNumber;
     Date startDate;
     Date endDate;
-    int runLength;
-    int totalEvents;
-    int eventsReceived;
-    int elapsedTime;
-    long dataReceived;
-    int eventNumber;
-    double dataRate;
+    Integer runLength;
+    Integer totalEvents;
+    Integer eventsReceived;
+    Integer elapsedTime;
+    Double dataReceived;
+    Integer eventNumber;
+    Double dataRate;
+    Double eventRate;
 
     public String[] getPropertyNames() {
         return properties;
-    }
-
-    public int getRunNumber() {
-        return runNumber;
     }
 
     public void setRunNumber(int runNumber) {
@@ -55,28 +54,16 @@ public final class RunModel extends AbstractModel {
         this.firePropertyChange(RUN_NUMBER_PROPERTY, oldValue, this.runNumber);
     }
 
-    public Date getStartDate() {
-        return startDate;
-    }
-
     public void setStartDate(Date startDate) {
         Date oldValue = this.startDate;
         this.startDate = startDate;
         this.firePropertyChange(START_DATE_PROPERTY, oldValue, this.startDate);
     }
 
-    public Date getEndDate() {
-        return endDate;
-    }
-
     public void setEndDate(Date endDate) {
         Date oldValue = this.endDate;
         this.endDate = endDate;
         this.firePropertyChange(END_DATE_PROPERTY, oldValue, this.endDate);
-    }
-
-    public int getRunLength() {
-        return runLength;
     }
 
     public void setRunLength(int runLength) {
@@ -93,18 +80,10 @@ public final class RunModel extends AbstractModel {
         }
     }
 
-    public int getTotalEvents() {
-        return totalEvents;
-    }
-
     public void setTotalEvents(int totalEvents) {
         int oldValue = this.totalEvents;
         this.totalEvents = totalEvents;
         this.firePropertyChange(TOTAL_EVENTS_PROPERTY, oldValue, this.totalEvents);
-    }
-
-    public int getEventsReceived() {
-        return eventsReceived;
     }
 
     public void setEventsReceived(int eventsReceived) {
@@ -117,27 +96,19 @@ public final class RunModel extends AbstractModel {
         this.setEventsReceived(eventsReceived + 1);
     }
 
-    public int getElapsedTime() {
-        return elapsedTime;
-    }
-
     public void setElapsedTime(int elapsedTime) {
         int oldValue = this.elapsedTime;
         this.elapsedTime = elapsedTime;
         this.firePropertyChange(ELAPSED_TIME_PROPERTY, oldValue, this.elapsedTime);
     }
 
-    public long getDataReceived() {
-        return dataReceived;
-    }
-
-    public void setDataReceived(long dataReceived) {
-        long oldValue = this.dataReceived;
+    public void setDataReceived(double dataReceived) {
+        double oldValue = this.dataReceived;
         this.dataReceived = dataReceived;
         this.firePropertyChange(DATA_RECEIVED_PROPERTY, oldValue, this.dataReceived);
     }
 
-    public void addDataReceived(long addDataReceived) {
+    public void addDataReceived(double addDataReceived) {
         this.setDataReceived(dataReceived + addDataReceived);
     }
 
@@ -152,11 +123,13 @@ public final class RunModel extends AbstractModel {
         this.dataRate = dataRate;
         this.firePropertyChange(DATA_RATE_PROPERTY, oldValue, this.dataRate);
     }
-    
-    public double getDataRate() {
-        return dataRate;
+        
+    public void setEventRate(double eventRate) {
+        double oldValue = this.eventRate;
+        this.eventRate = eventRate;
+        this.firePropertyChange(EVENT_RATE_PROPERTY, oldValue, this.eventRate);
     }
-
+    
     public void reset() {
         setDataReceived(0);
         setElapsedTime(0);
