@@ -16,8 +16,6 @@ import org.jlab.coda.et.enums.Mode;
 // FIXME: When the set methods are called, e.g. from GUI updates, this triggers
 // a property change event that pushes the values back to the GUI again.
 // FIXME: Should check if property exists in set methods before retrieving old value for all set methods.
-// FIXME: Should use objects instead of primitive types so that null can be used (e.g. for run number etc.).
-// TODO: How to handle null values?
 public final class ConfigurationModel extends AbstractModel {
 
     Configuration config;

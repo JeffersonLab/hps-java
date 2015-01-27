@@ -1,30 +1,8 @@
 package org.hps.monitoring.gui;
 
-import static org.hps.monitoring.gui.Commands.AIDA_AUTO_SAVE;
-import static org.hps.monitoring.gui.Commands.CHOOSE_LOG_FILE;
-import static org.hps.monitoring.gui.Commands.CLEAR_LOG_TABLE;
-import static org.hps.monitoring.gui.Commands.CONNECT;
-import static org.hps.monitoring.gui.Commands.DISCONNECT;
-import static org.hps.monitoring.gui.Commands.EXIT;
-import static org.hps.monitoring.gui.Commands.LOAD_DEFAULT_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.gui.Commands.LOG_TO_TERMINAL;
-import static org.hps.monitoring.gui.Commands.NEXT;
-import static org.hps.monitoring.gui.Commands.PAUSE;
-import static org.hps.monitoring.gui.Commands.RESET_PLOTS;
-import static org.hps.monitoring.gui.Commands.RESTORE_DEFAULT_GUI_LAYOUT;
-import static org.hps.monitoring.gui.Commands.RESUME;
-import static org.hps.monitoring.gui.Commands.SAVE_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.SAVE_LAYOUT;
-import static org.hps.monitoring.gui.Commands.SAVE_LOG_TABLE;
-import static org.hps.monitoring.gui.Commands.SAVE_PLOTS;
-import static org.hps.monitoring.gui.Commands.SCREENSHOT;
-import static org.hps.monitoring.gui.Commands.SELECT_CONFIG_FILE;
-import static org.hps.monitoring.gui.Commands.SHOW_SETTINGS;
-import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
+import static org.hps.monitoring.gui.Commands.*;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
-import hep.aida.ITree;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
@@ -1368,10 +1346,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         // RunPanel updater.
         loopConfig.add(runPanel.new RunModelUpdater());
-        
-        // Data rate updater for RunPanel.
-        loopConfig.add(runPanel.new DataRateUpdater());
-        
+                
         // Setup for conditions activation via EVIO events.
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
 
