@@ -29,7 +29,6 @@ import org.lcsim.event.EventHeader;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: Add event sequence number from CompositeRecord.
 class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
@@ -46,7 +45,7 @@ class RunPanel extends JPanel implements PropertyChangeListener {
 
     RunModel model;
     
-    NumberFormat formatter = new DecimalFormat("#0.00"); 
+    static final NumberFormat formatter = new DecimalFormat("#0.00"); 
 
     RunPanel(RunModel model) {
         this.model = model;
@@ -82,6 +81,45 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         int eventNumber;
         int runNumber = -1;
         long jobStartMillis;
+        long lastTickMillis = 0;
+        static final long millis = 1000;
+        
+        class RunTimerTask extends TimerTask {
+            
+            public void run() {                     
+                
+                double tickLengthSeconds = (System.currentTimeMillis() - lastTickMillis) / (double)millis;
+                int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / (double)millis);
+                double megaBytesReceived = bytesReceived / 1000000;
+                totalEvents += eventsReceived;
+
+                /*
+                System.out.println("tickLengthSeconds = " + tickLengthSeconds);
+                System.out.println("elapsedTime = " + elapsedTime);
+                System.out.println("eventsReceived = " + eventsReceived);
+                System.out.println("dataRate = " + (megaBytesReceived / tickLengthSeconds));
+                System.out.println("eventNumber = " + eventNumber);
+                System.out.println("eventRate = " + (eventsReceived / tickLengthSeconds));
+                System.out.println("totalEvents = " + totalEvents);
+                System.out.println("megaBytesReceived = " + megaBytesReceived);
+                */
+                
+                model.setElapsedTime(elapsedTime);
+                model.setEventsReceived(totalEvents);
+                model.setDataRate(megaBytesReceived / tickLengthSeconds);
+                model.addDataReceived(megaBytesReceived);
+                model.setEventNumber(eventNumber);
+                model.setEventRate(eventsReceived / tickLengthSeconds);
+                
+                eventsReceived = 0;
+                bytesReceived = 0;
+                eventNumber = 0;  
+                
+                lastTickMillis = System.currentTimeMillis();
+                
+                // System.out.println();
+            }        
+        }
         
         @Override
         public void startJob() {
@@ -90,46 +128,31 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             
             // Start the timer to update GUI components about once per second.
             timer = new Timer("RunModelUpdaterTimer");
-            TimerTask task = new TimerTask() {                                                                 
-                public void run() {                     
-                    final int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / 1000);
-                    double megaBytesReceived = bytesReceived / 1000000;
-                    totalEvents += eventsReceived;
-                    
-                    model.setElapsedTime(elapsedTime);
-                    model.setEventsReceived(totalEvents);
-                    model.setDataRate(megaBytesReceived);
-                    model.addDataReceived(megaBytesReceived);
-                    model.setEventNumber(eventNumber);
-                    model.setEventRate(eventsReceived);
-                    eventsReceived = 0;
-                    bytesReceived = 0;
-                    eventNumber = 0;  
-                }
-            };
-            timer.scheduleAtFixedRate(task, 0, 1000);          
+            lastTickMillis = System.currentTimeMillis();
+            timer.scheduleAtFixedRate(new RunTimerTask(), 0, 1000);
         }
 
         @Override
-        public void process(CompositeRecord event) {
-            ++eventsReceived;
+        public void process(CompositeRecord event) {            
             if (event.getEvioEvent() != null) {
                 EvioEvent evioEvent = event.getEvioEvent();
                 bytesReceived += evioEvent.getTotalBytes();
-                eventNumber = evioEvent.getEventNumber();
                 if (EvioEventUtilities.isPreStartEvent(evioEvent)) {
                     // Get run start info from pre start event.
                     startRun(evioEvent);
                 } else if (EvioEventUtilities.isEndEvent(evioEvent)) {
                     // Get end run info from end event.
                     endRun(evioEvent);
-                } else {                    
+                } else if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {                    
                     // Check for run info in head bank.
                     checkHeadBank(evioEvent);
+                    eventNumber = evioEvent.getEventNumber();
+                    eventsReceived += 1;
                 }
             } else if (event.getEtEvent() != null) {
                 bytesReceived += event.getEtEvent().getData().length;
                 eventNumber = event.getEtEvent().getId();
+                eventsReceived += 1;
             } else if (event.getLcioEvent() != null) {
                 EventHeader lcioEvent = event.getLcioEvent();
                 eventNumber = lcioEvent.getEventNumber();
@@ -137,11 +160,13 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                     runNumber = lcioEvent.getRunNumber();
                     startRun(lcioEvent);
                 }
+                eventsReceived += 1;
             }                    
         }
 
         /**
-         * @param evioEvent
+         * Check for head bank and update the run info if necessary.
+         * @param evioEvent The EVIO event.
          */
         private void checkHeadBank(EvioEvent evioEvent) {
             BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
@@ -150,7 +175,7 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 if (headBankRun != runNumber) {
                     runNumber = headBankRun;
                     model.setRunNumber(headBankRun);
-                    model.setStartDate(new Date(headBank.getIntData()[3]));
+                    model.setStartDate(new Date(headBank.getIntData()[3] * 1000));
                 }
             }
         }
@@ -176,22 +201,26 @@ class RunPanel extends JPanel implements PropertyChangeListener {
             if (data != null) {
                 int seconds = data[0];
                 runNumber = data[1];
-                long startMillis = ((long) seconds) * 1000;
-
+                
                 // Update the GUI.
                 model.setRunNumber(runNumber);
-                model.setStartDate(new Date(startMillis));
+                model.setStartDate(new Date(seconds * 1000));
             }
         }
         
         private void startRun(EventHeader lcioEvent) {
             model.setRunNumber(lcioEvent.getRunNumber());
-            model.setStartDate(new Date(lcioEvent.getTimeStamp() / 1000));
+            long seconds = lcioEvent.getTimeStamp() / 1000000000;
+            model.setStartDate(new Date((int)seconds));
         }
         
         @Override
         public void endJob() {
             timer.cancel();
+            
+            // Push final values into GUI.
+            timer = new Timer("RunModelUpdaterEndJobTimer");
+            timer.schedule(new RunTimerTask(), 0);
         }
     }
     

@@ -11,6 +11,7 @@ EventBuilderClassName=org.hps.evio.LCSimEngRunEventBuilder
 #LogFileName=
 LogLevel=ALL
 LogToFile=false
+MaxEvents=-1
 #SteeringFile=
 SteeringResource=org/hps/steering/monitoring/DummyMonitoring.lcsim
 SteeringType=RESOURCE
@@ -34,3 +35,5 @@ StationName=MY_STATION
 Verbose=false
 WaitMode=TIMED
 WaitTime=1000000000
+
+SaveLayout=false;

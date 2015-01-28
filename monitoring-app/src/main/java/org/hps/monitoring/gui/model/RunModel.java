@@ -19,19 +19,8 @@ public final class RunModel extends AbstractModel {
     public final static String DATA_RATE_PROPERTY = "DataRate"; // data rate in megabytes per second
     public final static String EVENT_RATE_PROPERTY = "EventRate"; // event rate per second
 
-    static final String[] properties = new String[] { 
-        RUN_NUMBER_PROPERTY, 
-        START_DATE_PROPERTY, 
-        END_DATE_PROPERTY, 
-        RUN_LENGTH_PROPERTY, 
-        TOTAL_EVENTS_PROPERTY, 
-        ELAPSED_TIME_PROPERTY, 
-        DATA_RECEIVED_PROPERTY, 
-        EVENT_NUMBER_PROPERTY, 
-        DATA_RATE_PROPERTY,
-        EVENT_RATE_PROPERTY
-    };
-
+    static final String[] RUN_PROPERTIES = AbstractModel.getPropertyNames(RunModel.class);
+    
     Integer runNumber;
     Date startDate;
     Date endDate;
@@ -45,11 +34,11 @@ public final class RunModel extends AbstractModel {
     Double eventRate;
 
     public String[] getPropertyNames() {
-        return properties;
+        return RUN_PROPERTIES;
     }
 
     public void setRunNumber(int runNumber) {
-        int oldValue = this.runNumber;
+        Integer oldValue = this.runNumber;
         this.runNumber = runNumber;
         this.firePropertyChange(RUN_NUMBER_PROPERTY, oldValue, this.runNumber);
     }
@@ -67,7 +56,7 @@ public final class RunModel extends AbstractModel {
     }
 
     public void setRunLength(int runLength) {
-        int oldValue = this.runLength;
+        Integer oldValue = this.runLength;
         this.runLength = runLength;
         this.firePropertyChange(RUN_LENGTH_PROPERTY, oldValue, this.runLength);
     }
@@ -81,29 +70,25 @@ public final class RunModel extends AbstractModel {
     }
 
     public void setTotalEvents(int totalEvents) {
-        int oldValue = this.totalEvents;
+        Integer oldValue = this.totalEvents;
         this.totalEvents = totalEvents;
         this.firePropertyChange(TOTAL_EVENTS_PROPERTY, oldValue, this.totalEvents);
     }
 
     public void setEventsReceived(int eventsReceived) {
-        int oldValue = this.eventsReceived;
+        Integer oldValue = this.eventsReceived;
         this.eventsReceived = eventsReceived;
         this.firePropertyChange(EVENTS_RECEIVED_PROPERTY, oldValue, this.eventsReceived);
     }
 
-    public void incrementEventsReceived() {
-        this.setEventsReceived(eventsReceived + 1);
-    }
-
     public void setElapsedTime(int elapsedTime) {
-        int oldValue = this.elapsedTime;
+        Integer oldValue = this.elapsedTime;
         this.elapsedTime = elapsedTime;
         this.firePropertyChange(ELAPSED_TIME_PROPERTY, oldValue, this.elapsedTime);
     }
 
     public void setDataReceived(double dataReceived) {
-        double oldValue = this.dataReceived;
+        Double oldValue = this.dataReceived;
         this.dataReceived = dataReceived;
         this.firePropertyChange(DATA_RECEIVED_PROPERTY, oldValue, this.dataReceived);
     }
@@ -113,19 +98,19 @@ public final class RunModel extends AbstractModel {
     }
 
     public void setEventNumber(int eventNumber) {
-        int oldValue = this.eventNumber;
+        Integer oldValue = this.eventNumber;
         this.eventNumber = eventNumber;
         this.firePropertyChange(EVENT_NUMBER_PROPERTY, oldValue, this.eventNumber);
     }
     
     public void setDataRate(double dataRate) {
-        double oldValue = this.dataRate;
+        Double oldValue = this.dataRate;
         this.dataRate = dataRate;
         this.firePropertyChange(DATA_RATE_PROPERTY, oldValue, this.dataRate);
     }
         
     public void setEventRate(double eventRate) {
-        double oldValue = this.eventRate;
+        Double oldValue = this.eventRate;
         this.eventRate = eventRate;
         this.firePropertyChange(EVENT_RATE_PROPERTY, oldValue, this.eventRate);
     }
