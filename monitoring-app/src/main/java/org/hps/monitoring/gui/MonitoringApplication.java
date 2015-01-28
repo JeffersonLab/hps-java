@@ -1326,9 +1326,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration().setStopOnEndRun(configurationModel.getDisconnectOnEndRun()).setStopOnErrors(configurationModel.getDisconnectOnError()).setDataSourceType(configurationModel.getDataSourceType()).setProcessingStage(configurationModel.getProcessingStage()).setEtConnection(connection).setFilePath(configurationModel.getDataSourcePath()).setLCSimEventBuilder(eventBuilder).setDetectorName(configurationModel.getDetectorName());
 
         long maxEvents = configurationModel.getMaxEvents();
-        System.out.println("setupCompositeLoop - max events " + maxEvents);
         if (maxEvents > 0L) {
-            System.out.println("setupCompositeLoop - setting max events to " + maxEvents);
+            log(Level.CONFIG, "maxEvents <" + maxEvents + ">");
             loopConfig.setMaxRecords(maxEvents);
         }
         
