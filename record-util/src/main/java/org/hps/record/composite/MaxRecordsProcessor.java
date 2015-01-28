@@ -42,7 +42,7 @@ public class MaxRecordsProcessor extends CompositeRecordProcessor {
         }        
         if (recordsReceived >= maxRecords) {
             // Throw exception if max records was reached or exceeded.
-            new MaxRecordsException("Maximum number of records received.", maxRecords);
+            throw new MaxRecordsException("Maximum number of records received.", maxRecords);
         }
     }
 }
