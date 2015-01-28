@@ -4,11 +4,11 @@ package org.hps.record;
  * Exception thrown when maximum number of records is reached.
  */
 // FIXME: Use loop(nevents) instead of this for controlling number of records run.
-public class MaxRecordsException extends Exception {
+public class MaxRecordsException extends RuntimeException {
 
-    int maxRecords;
+    long maxRecords;
     
-    public MaxRecordsException(String message, int maxRecords) {
+    public MaxRecordsException(String message, long maxRecords) {
         super(message);
         this.maxRecords = maxRecords;
     }
@@ -17,7 +17,7 @@ public class MaxRecordsException extends Exception {
      * Get the maximum number of records.
      * @return The maximum number of records.
      */
-    public int getMaxRecords() {
+    public long getMaxRecords() {
         return maxRecords;
     }
 }

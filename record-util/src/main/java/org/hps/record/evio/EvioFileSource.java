@@ -121,7 +121,7 @@ public final class EvioFileSource extends AbstractRecordSource {
     public boolean supportsNext() {
         return true;
     }
-    
+        
     /**
      * True if there is a current record loaded.
      * @return True if there is a current record loaded.
@@ -137,6 +137,10 @@ public final class EvioFileSource extends AbstractRecordSource {
      */
     @Override
     public boolean hasNext() {
-        return !atEnd;
+        try {
+            return reader.getNumEventsRemaining() != 0;
+        } catch (IOException | EvioException e) {
+            throw new RuntimeException("Error getting num remaining events.");
+        }
     }
 }

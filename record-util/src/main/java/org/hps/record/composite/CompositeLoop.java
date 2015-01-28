@@ -10,6 +10,7 @@ import org.freehep.record.source.NoSuchRecordException;
 import org.freehep.record.source.RecordSource;
 import org.hps.record.EndRunException;
 import org.hps.record.MaxRecordsException;
+import org.hps.record.RecordProcessingException;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.et.EtEventProcessor;
@@ -98,7 +99,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
             // Ignore the error!
             return;
         }
-        
+                
         // Set the exception on the super class.
         this._exception = x;
         
@@ -112,7 +113,7 @@ public final class CompositeLoop extends DefaultRecordLoop {
     protected void handleSourceError(Throwable x) {
 
         x.printStackTrace();
-
+        
         // Is the error ignorable?
         if (isIgnorable(x)) {
             // Ignore the error!
@@ -127,47 +128,39 @@ public final class CompositeLoop extends DefaultRecordLoop {
     }        
     
     /**
-     * True if an error is ignorable.  If <code>stopOnErrors</code>
+     * <p>
+     * True if an error is ignore-able.  If <code>stopOnErrors</code>
      * is true, then this method always returns false.  Otherwise,
      * the error cause determines whether the loop can continue 
      * processing.
+     * <p>
+     * The assumption here is that errors coming from event processing
+     * of the composite records are caught in the adapters and then wrapped
+     * in a {@link org.hps.record.RecordProcessingException}.  Certain
+     * errors which should never be ignored are also wrapped in a 
+     * similar way, so we need to check for these error types before 
+     * assuming that event processing can continue.
+     * 
      * @param x The error that occurred.
      * @return True if the error can be ignored.
      */
-    private boolean isIgnorable(Throwable x) {
-        
-        // Should the loop try to recover from the error if possible?
-        if (!stopOnErrors) {
-        
-            // EndRunExceptions are never ignored.
-            if (x.getCause() instanceof EndRunException)
-                return false;
-        
-            // MaxRecordsExceptions are never ignored.
-            if (x.getCause() instanceof MaxRecordsException)
-                return false;
-        
-            // ET system errors are always considered fatal.
-            if (x.getCause() instanceof EtSourceException)
-                return false;
-        
-            // The NoSuchRecordException indicates a RecordSource 
-            // was exhausted so processing needs to end.
-            if (x.getCause() instanceof NoSuchRecordException)
-                return false;
-        
-            // When this occurs one of the loops is probably messed up, 
-            // so it is not considered recoverable.
-            if (x.getCause() instanceof IllegalStateException) 
-                return false;
-        
-            // Ignore the error.
-            return true;
-            
-        } else {        
-            // Error is not ignored. 
-            return false;
+    private boolean isIgnorable(Throwable x) {        
+        if (!stopOnErrors) {        
+            if (x instanceof RecordProcessingException) {
+                Throwable cause = x.getCause();
+                if (cause instanceof MaxRecordsException || 
+                        cause instanceof EndRunException || 
+                        cause instanceof EtSourceException || 
+                        cause instanceof NoSuchRecordException) {
+                    // These types of exceptions are never ignored.
+                    return false;
+                } else {
+                    // Other types of record processing exceptions are considered non-fatal.
+                    return true;
+                }
+            } 
         }
+        return false;               
     }
             
     /**

@@ -65,8 +65,12 @@ public class EvioEventAdapter extends RecordProcessorAdapter<EvioEvent> {
                 }
             } else {
                 // Load the next record from the EVIO record source. 
-                source.next();                
-                evioEvent = (EvioEvent)source.getCurrentRecord();
+                if (source.hasNext()) {
+                    source.next();                
+                    evioEvent = (EvioEvent)source.getCurrentRecord();
+                } else {
+                    throw new NoSuchRecordException("EVIO event source has no more records.");
+                }
             }
             // Failed to create an EvioEvent?
             if (evioEvent == null) {

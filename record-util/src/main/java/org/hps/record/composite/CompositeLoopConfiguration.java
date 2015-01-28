@@ -30,7 +30,7 @@ public class CompositeLoopConfiguration {
     boolean stopOnErrors = true;
     boolean stopOnEndRun = true;
     
-    int maxRecords = -1;
+    long maxRecords = -1;
          
     DataSourceType sourceType = DataSourceType.ET_SERVER;
     ProcessingStage processingStage = ProcessingStage.LCIO;
@@ -158,7 +158,7 @@ public class CompositeLoopConfiguration {
      * @param maxRecords
      * @return
      */
-    public CompositeLoopConfiguration setMaxRecords(int maxRecords) {
+    public CompositeLoopConfiguration setMaxRecords(long maxRecords) {
         if (maxRecords < 1)
             throw new IllegalArgumentException("Invalid maxRecords value: " + maxRecords);
         this.maxRecords = maxRecords;
