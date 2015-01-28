@@ -354,7 +354,11 @@ public class EvioToLcio {
                         eventQueue.next();
                         evioEvent = (EvioEvent) eventQueue.getCurrentRecord();         
                         // The parseEvent method does not need to be called here.
-                        // The events were already parsed when buffering.                        
+                        // The events were already parsed when buffering.
+                        if (evioEvent == null) {
+                            new RuntimeException().printStackTrace();
+                            continue recordLoop;
+                        }
                     } catch (IOException e) {
                         // This means the EVIO event has bad data.  
                         logger.severe(e.getMessage());
@@ -529,8 +533,9 @@ public class EvioToLcio {
                 e.printStackTrace();
             }
 
-            // Check here while buffering if the run number can be used to initialize the conditions system.
             if (evioEvent != null) {
+                
+                // Parse the event.
                 try {
                     reader.parseEvent(evioEvent);
                 } catch (EvioException e) {
@@ -538,21 +543,25 @@ public class EvioToLcio {
                     e.printStackTrace();
                     continue;
                 }
-                
-                // Head head bank from event.
-                BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
-                
-                // Is there a head bank available?
-                if (headBank != null) { 
-                                        
-                    // Get the run number from the head bank.
-                    int headBankRunNumber = headBank.getIntData()[1];                    
-                    logger.finer("got head bank with run number " + headBankRunNumber);
 
-                    // Check if the conditions system needs to be updated from the head bank.
-                    checkConditions(headBankRunNumber, false);                    
-                } else {
-                    logger.finest("event " + evioEvent.getEventNumber() + " does not have a head bank");
+                // Is conditions system not frozen?
+                if (!DatabaseConditionsManager.getInstance().isFrozen()) {
+                
+                    // Get head bank from event.
+                    BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
+                
+                    // Is head bank available in this event?
+                    if (headBank != null) { 
+                                        
+                        // Get the run number from the head bank.
+                        runNumber = headBank.getIntData()[1];                    
+                        logger.finer("got head bank with run number " + runNumber);
+
+                        // Check if the conditions system needs to be updated from the head bank.
+                        checkConditions(runNumber, false);                    
+                    } else {
+                        logger.finest("event " + evioEvent.getEventNumber() + " does not have a head bank");
+                    }
                 }
             } 
         }
@@ -605,25 +614,20 @@ public class EvioToLcio {
      * @param freeze True to freeze conditions system after it is setup.
      */
     private void checkConditions(int runNumber, boolean freeze) {
-        
+                        
         // Is the event builder uninitialized?
         if (eventBuilder == null) {
             // Setup event builder.
             setupEventBuilder(runNumber);
-        } 
-        
-        // Is run number not set or is this a new run number?
-        if (this.runNumber == null || runNumber != this.runNumber) {
-            // Make this the new run number.
-            this.runNumber = runNumber;
-            
-            // Update the conditions system with the new run number.
-            try {
-                ConditionsManager.defaultInstance().setDetector(detectorName, this.runNumber);
-            } catch (ConditionsNotFoundException e) {
-                throw new RuntimeException("Error initializing conditions system.", e);
-            }     
         }
+                
+        // Update the conditions system with the new run number.       
+        try {
+            // This call may be ignored by the conditions system if the run number is not new.
+            ConditionsManager.defaultInstance().setDetector(detectorName, runNumber);
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException("Error initializing conditions system.", e);
+        }     
         
         if (freeze) {
             // Freeze the conditions system so subsequent run numbers are ignored.
