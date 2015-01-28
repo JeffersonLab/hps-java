@@ -87,7 +87,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This class is the implementation of the GUI for the Monitoring Application.
  */
-// TODO: Move GUI/window functionality to a new class. (This one is too big!)
 public final class MonitoringApplication extends ApplicationWindow implements ActionListener, SystemStatusListener, PropertyChangeListener {
 
     // Top-level Swing components.
@@ -128,7 +127,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     private static Logger logger;
     private Handler logHandler;
     private DefaultTableModel logTableModel;
-    static final String[] logTableColumns = { "Date", "Message", "Level" };
+    static final String[] logTableColumns = { "Date", "Level", "Message" };
     private JTable logTable;
     private static Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -536,7 +535,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
         saveLayoutItem.setActionCommand(SAVE_LAYOUT);
         saveLayoutItem.addActionListener(this);
         saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
-        if (configurationModel.hasPropertyValue(ConfigurationModel.SAVE_LAYOUT_PROPERTY)) {
+        if (configurationModel.hasPropertyKey(ConfigurationModel.SAVE_LAYOUT_PROPERTY)) {
             saveLayoutItem.setSelected(configurationModel.getSaveLayout());
         }
         saveLayoutItem.addPropertyChangeListener(this); 
@@ -1135,7 +1134,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
                 logger.config("setting user run number " + userRunNumber + " with detector " + detectorName);
                 conditionsManager.setDetector(configurationModel.getDetectorName(), userRunNumber);
-                if (configurationModel.hasPropertyValue(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
+                if (configurationModel.hasPropertyKey(ConfigurationModel.FREEZE_CONDITIONS_PROPERTY)) {
                     // Freeze the conditions system to ignore run numbers from the events.  
                     logger.config("user configured to freeze conditions system from monitoring app");
                     conditionsManager.freeze();
@@ -1326,21 +1325,25 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration().setStopOnEndRun(configurationModel.getDisconnectOnEndRun()).setStopOnErrors(configurationModel.getDisconnectOnError()).setDataSourceType(configurationModel.getDataSourceType()).setProcessingStage(configurationModel.getProcessingStage()).setEtConnection(connection).setFilePath(configurationModel.getDataSourcePath()).setLCSimEventBuilder(eventBuilder).setDetectorName(configurationModel.getDetectorName());
 
+        long maxEvents = configurationModel.getMaxEvents();
+        System.out.println("setupCompositeLoop - max events " + maxEvents);
+        if (maxEvents > 0L) {
+            System.out.println("setupCompositeLoop - setting max events to " + maxEvents);
+            loopConfig.setMaxRecords(maxEvents);
+        }
+        
         // Add all Drivers from the pre-configured JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
             loopConfig.add(driver);
         }
 
-        // DEBUG: Turn these off while doing other stuff!!!!
         // Using ET server?
         if (usingEtServer()) {
 
             // ET system monitor.
-            // FIXME: Make whether this is run or not configurable through the JobPanel.
             loopConfig.add(new EtSystemMonitor());
 
             // ET system strip charts.
-            // FIXME: Make whether this is run or not configurable through the JobPanel.
             loopConfig.add(new EtSystemStripCharts());
         }
 
@@ -1506,7 +1509,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 // Interrupt the thread which should cause it to stop.
                 sessionWatchdogThread.interrupt();
                 try {
-                    // This should always work once the thread is interupted.
+                    // This should always work once the thread is interrupted.
                     sessionWatchdogThread.join();
                 } catch (InterruptedException e) {
                     // This should never happen.
@@ -1539,8 +1542,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
             } catch (InterruptedException e) {
                 // This probably just means that the disconnect button was pushed, and this thread
-                // should
-                // no longer monitor the event processing.
+                // should no longer monitor the event processing.
                 e.printStackTrace();
             }
         }
@@ -1604,7 +1606,7 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
 
     private void updateLayoutConfiguration() {
-        if (configurationModel.hasPropertyValue(SAVE_LAYOUT_PROPERTY)) {
+        if (configurationModel.hasPropertyKey(SAVE_LAYOUT_PROPERTY)) {
             // Should the GUI config be saved?
             if (configurationModel.getSaveLayout()) {
                 // Push the current GUI settings into the configuration.
@@ -1698,10 +1700,10 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
     }
 
     /**
-     * This is a thread to validate the current input file. This must be done on a seperate thread,
+     * This is a thread to validate the current input file. This must be done on a separate thread,
      * because EVIO files may take a long time to be completely read in using the EvioReader. Also,
      * since the request for file validation comes on the EDT thread, the task must be put onto a
-     * seperate thread so that actionPerformed() may exit and not block the EDT from updating the
+     * different thread so that actionPerformed() may exit and not block the EDT from updating the
      * GUI.
      */
     class FileValidationThread extends Thread {

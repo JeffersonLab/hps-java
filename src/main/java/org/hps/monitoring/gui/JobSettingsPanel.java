@@ -31,7 +31,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.monitoring.gui.model.ConfigurationModel;
@@ -56,6 +55,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private JComboBox<String> eventBuilderComboBox;
     private JTextField userRunNumberField;
     private JCheckBox freezeConditionsCheckBox;    
+    private JTextField maxEventsField;
     private JCheckBox disconnectOnErrorCheckBox;
     private JCheckBox disconnectOnEndRunCheckBox;
     private JTextField aidaSaveFileNameField;
@@ -128,6 +128,11 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         freezeConditionsCheckBox = addCheckBox("Freeze detector conditions", false, true);
         freezeConditionsCheckBox.addActionListener(this);
         freezeConditionsCheckBox.setActionCommand(FREEZE_CONDITIONS_CHANGED);
+        
+        maxEventsField = addField("Max Events", "-1", 10, false);
+        maxEventsField.addPropertyChangeListener("value", this);
+        maxEventsField.setEnabled(true);
+        maxEventsField.setEditable(true);
         
         eventBuilderComboBox = addComboBox("LCSim Event Builder", this.findEventBuilderClassNames());
         eventBuilderComboBox.setSize(24, eventBuilderComboBox.getPreferredSize().height);
@@ -319,7 +324,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         } else if (DETECTOR_NAME_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setDetectorName((String) detectorNameComboBox.getSelectedItem());
         } else if (FREEZE_CONDITIONS_CHANGED.equals(e.getActionCommand())) {
-            if (configurationModel.hasPropertyValue(USER_RUN_NUMBER_PROPERTY) && configurationModel.getUserRunNumber() != null) {
+            if (configurationModel.hasPropertyKey(USER_RUN_NUMBER_PROPERTY) && configurationModel.getUserRunNumber() != null) {
                 configurationModel.setFreezeConditions(freezeConditionsCheckBox.isSelected());
             } else {
                 throw new IllegalArgumentException("Conditions system may only be frozen if there is a valid user run number.");
@@ -371,6 +376,9 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                     throw new IllegalArgumentException("The value " + evt.getNewValue() + " is not a valid run number.");
                 }                            
             }
+        } else if (source == maxEventsField) {
+            configurationModel.setMaxEvents(Long.parseLong(maxEventsField.getText()));
+            System.out.println("setMaxEvents - " + configurationModel.getMaxEvents());
         }
     }
 
@@ -428,6 +436,10 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (evt.getPropertyName().equals(FREEZE_CONDITIONS_PROPERTY)) {
                 if (value != null) {
                     freezeConditionsCheckBox.setSelected((Boolean) value);
+                }
+            } else if (evt.getPropertyName().equals(MAX_EVENTS_PROPERTY)) {
+                if (value != null) {
+                    maxEventsField.setText(value.toString());
                 }
             }
         }

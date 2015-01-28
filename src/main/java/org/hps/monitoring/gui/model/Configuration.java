@@ -129,6 +129,20 @@ public final class Configuration {
             return null;
         }
     }
+    
+    /**
+     * Get a key value as a Long.
+     * @param key The key to lookup.
+     * @param key The value or null if does not exist.
+     * @return
+     */
+    Long getLong(String key) {
+        if (checkKey(key)) {
+            return Long.parseLong(properties.getProperty(key));
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Write this configuration to a file and set that file as the current one.

@@ -1,7 +1,10 @@
 package org.hps.monitoring.gui.model;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.logging.Level;
+
+import javassist.Modifier;
 
 import org.hps.monitoring.enums.SteeringType;
 import org.hps.record.enums.DataSourceType;
@@ -12,9 +15,8 @@ import org.jlab.coda.et.enums.Mode;
  * A model of the global configuration parameters that can be used to automatically update the GUI
  * from a configuration or push changes from GUI components into the current configuration.
  */
-// TODO: Should set methods check if new value is equal to old and then ignore if so?
 // FIXME: When the set methods are called, e.g. from GUI updates, this triggers
-// a property change event that pushes the values back to the GUI again.
+//        a property change event that pushes the values back to the GUI again.
 // FIXME: Should check if property exists in set methods before retrieving old value for all set methods.
 public final class ConfigurationModel extends AbstractModel {
 
@@ -32,6 +34,7 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String LOG_FILE_NAME_PROPERTY = "LogFileName";
     public static final String LOG_LEVEL_PROPERTY = "LogLevel";
     public static final String LOG_TO_FILE_PROPERTY = "LogToFile";
+    public static final String MAX_EVENTS_PROPERTY = "MaxEvents";
     public static final String MONITORING_APPLICATION_LAYOUT_PROPERTY = "MonitoringApplicationLayout";
     public static final String PLOT_FRAME_LAYOUT_PROPERTY = "PlotFrameLayout";
     public static final String SAVE_LAYOUT_PROPERTY = "SaveLayout";
@@ -59,56 +62,9 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String WAIT_MODE_PROPERTY = "WaitMode";
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
     public static final String PRESCALE_PROPERTY = "Prescale";
-
-    // These key values are primarily used to figure out what properties need to be persisted when
-    // writing to a text file.
-    // FIXME: This could probably be replaced with introspection on this class of "_PROPERTY" variables.
-    static final String[] CONFIG_PROPERTIES = new String[] {
-
-            // Job settings
-            AIDA_AUTO_SAVE_PROPERTY, 
-            AIDA_FILE_NAME_PROPERTY, 
-            DETECTOR_NAME_PROPERTY, 
-            DETECTOR_ALIAS_PROPERTY,
-            DISCONNECT_ON_ERROR_PROPERTY, 
-            DISCONNECT_ON_END_RUN_PROPERTY, 
-            EVENT_BUILDER_PROPERTY,
-            FREEZE_CONDITIONS_PROPERTY,
-            LOG_FILE_NAME_PROPERTY, 
-            LOG_LEVEL_PROPERTY, 
-            LOG_TO_FILE_PROPERTY, 
-            STEERING_FILE_PROPERTY, 
-            STEERING_RESOURCE_PROPERTY, 
-            STEERING_TYPE_PROPERTY,
-            USER_RUN_NUMBER_PROPERTY,
-
-            // Data source
-            DATA_SOURCE_TYPE_PROPERTY, 
-            DATA_SOURCE_PATH_PROPERTY, 
-            PROCESSING_STAGE_PROPERTY,
-
-            // ET parameters
-            ET_NAME_PROPERTY, 
-            HOST_PROPERTY, 
-            PORT_PROPERTY, 
-            BLOCKING_PROPERTY, 
-            VERBOSE_PROPERTY, 
-            STATION_NAME_PROPERTY, 
-            CHUNK_SIZE_PROPERTY, 
-            QUEUE_SIZE_PROPERTY, 
-            STATION_POSITION_PROPERTY, 
-            WAIT_MODE_PROPERTY, 
-            WAIT_TIME_PROPERTY, 
-            PRESCALE_PROPERTY,
-
-            // GUI layout
-            SAVE_LAYOUT_PROPERTY, 
-            MONITORING_APPLICATION_LAYOUT_PROPERTY, 
-            PLOT_FRAME_LAYOUT_PROPERTY, 
-            SYSTEM_STATUS_FRAME_LAYOUT_PROPERTY };
-
-    String detectorName;
-
+   
+    static final String[] CONFIG_PROPERTIES = AbstractModel.getPropertyNames(ConfigurationModel.class);
+        
     public ConfigurationModel() {
         this.config = new Configuration();
     }
@@ -185,7 +141,7 @@ public final class ConfigurationModel extends AbstractModel {
     
     public void setDetectorAlias(String detectorAlias) {
         String oldValue = null;
-        if (hasPropertyValue(DETECTOR_ALIAS_PROPERTY)) {
+        if (hasPropertyKey(DETECTOR_ALIAS_PROPERTY)) {
             oldValue = getDetectorAlias();
         }
         config.set(DETECTOR_ALIAS_PROPERTY, detectorAlias);
@@ -208,7 +164,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setLogToFile(boolean logToFile) {
-        boolean oldValue = getLogToFile();
+        Boolean oldValue = getLogToFile();
         config.set(LOG_TO_FILE_PROPERTY, logToFile);
         firePropertyChange(LOG_TO_FILE_PROPERTY, oldValue, getLogToFile());
     }
@@ -228,7 +184,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setAidaAutoSave(boolean aidaAutoSave) {
-        boolean oldValue = getAidaAutoSave();
+        Boolean oldValue = getAidaAutoSave();
         config.set(AIDA_AUTO_SAVE_PROPERTY, aidaAutoSave);
         firePropertyChange(AIDA_AUTO_SAVE_PROPERTY, oldValue, aidaAutoSave);
     }
@@ -248,7 +204,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setDisconnectOnError(boolean disconnectOnError) {
-        boolean oldValue = getDisconnectOnError();
+        Boolean oldValue = getDisconnectOnError();
         config.set(DISCONNECT_ON_ERROR_PROPERTY, disconnectOnError);
         firePropertyChange(DISCONNECT_ON_ERROR_PROPERTY, oldValue, getDisconnectOnError());
     }
@@ -258,7 +214,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setDisconnectOnEndRun(boolean disconnectOnEndRun) {
-        boolean oldValue = getDisconnectOnEndRun();
+        Boolean oldValue = getDisconnectOnEndRun();
         config.set(DISCONNECT_ON_END_RUN_PROPERTY, disconnectOnEndRun);
         firePropertyChange(DISCONNECT_ON_END_RUN_PROPERTY, oldValue, getDisconnectOnEndRun());
     }
@@ -320,7 +276,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setPort(int port) {
-        int oldValue = getPort();
+        Integer oldValue = getPort();
         config.set(PORT_PROPERTY, port);
         firePropertyChange(PORT_PROPERTY, oldValue, getPort());
     }
@@ -330,7 +286,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setBlocking(boolean blocking) {
-        boolean oldValue = getBlocking();
+        Boolean oldValue = getBlocking();
         config.set(BLOCKING_PROPERTY, blocking);
         firePropertyChange(BLOCKING_PROPERTY, oldValue, getBlocking());
     }
@@ -340,7 +296,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setVerbose(boolean verbose) {
-        boolean oldValue = getVerbose();
+        Boolean oldValue = getVerbose();
         config.set(VERBOSE_PROPERTY, verbose);
         firePropertyChange(VERBOSE_PROPERTY, oldValue, getVerbose());
     }
@@ -360,7 +316,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setChunkSize(int chunkSize) {
-        int oldValue = getChunkSize();
+        Integer oldValue = getChunkSize();
         config.set(CHUNK_SIZE_PROPERTY, chunkSize);
         firePropertyChange(CHUNK_SIZE_PROPERTY, oldValue, getChunkSize());
     }
@@ -370,7 +326,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setQueueSize(int queueSize) {
-        int oldValue = getQueueSize();
+        Integer oldValue = getQueueSize();
         config.set(QUEUE_SIZE_PROPERTY, queueSize);
         firePropertyChange(QUEUE_SIZE_PROPERTY, oldValue, getQueueSize());
     }
@@ -380,7 +336,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setStationPosition(int stationPosition) {
-        int oldValue = getStationPosition();
+        Integer oldValue = getStationPosition();
         config.set(STATION_POSITION_PROPERTY, stationPosition);
         firePropertyChange(STATION_POSITION_PROPERTY, oldValue, getStationPosition());
     }
@@ -400,7 +356,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setWaitTime(int waitTime) {
-        int oldValue = getWaitTime();
+        Integer oldValue = getWaitTime();
         config.set(WAIT_TIME_PROPERTY, waitTime);
         firePropertyChange(WAIT_TIME_PROPERTY, oldValue, getWaitTime());
     }
@@ -410,14 +366,14 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setPrescale(int prescale) {
-        int oldValue = getPrescale();
+        Integer oldValue = getPrescale();
         config.set(PRESCALE_PROPERTY, prescale);
         firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
     }
     
     public void setUserRunNumber(Integer userRunNumber) {
         Integer oldValue = null;
-        if (hasPropertyValue(USER_RUN_NUMBER_PROPERTY)) {
+        if (hasPropertyKey(USER_RUN_NUMBER_PROPERTY)) {
             oldValue = getUserRunNumber();
         }
         config.set(USER_RUN_NUMBER_PROPERTY, userRunNumber);
@@ -430,7 +386,7 @@ public final class ConfigurationModel extends AbstractModel {
     
     public void setFreezeConditions(boolean freezeConditions) {
         Boolean oldValue = null;
-        if (hasPropertyValue(FREEZE_CONDITIONS_PROPERTY)) {
+        if (hasPropertyKey(FREEZE_CONDITIONS_PROPERTY)) {
             oldValue = getFreezeConditions();
         }
         config.set(FREEZE_CONDITIONS_PROPERTY, freezeConditions);
@@ -446,7 +402,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void setSaveLayout(boolean saveLayout) {
-        boolean oldValue = getSaveLayout();
+        Boolean oldValue = getSaveLayout();
         config.set(SAVE_LAYOUT_PROPERTY, saveLayout);
         firePropertyChange(SAVE_LAYOUT_PROPERTY, oldValue, getSaveLayout());
     }
@@ -480,6 +436,17 @@ public final class ConfigurationModel extends AbstractModel {
         config.set(PLOT_FRAME_LAYOUT_PROPERTY, layout);
         firePropertyChange(PLOT_FRAME_LAYOUT_PROPERTY, oldValue, getPlotFrameLayout());
     }
+    
+    public void setMaxEvents(long maxEvents) {
+        //System.out.println("ConfigurationModel.setMaxEvents - " + maxEvents);
+        Long oldValue = getMaxEvents();
+        config.set(MAX_EVENTS_PROPERTY, maxEvents);
+        firePropertyChange(MAX_EVENTS_PROPERTY, oldValue, getMaxEvents());
+    }
+    
+    public Long getMaxEvents() {
+        return config.getLong(MAX_EVENTS_PROPERTY);
+    }
 
     public void remove(String property) {
         Object oldValue = config.get(property);
@@ -489,7 +456,7 @@ public final class ConfigurationModel extends AbstractModel {
         }
     }
     
-    public boolean hasPropertyValue(String key) {
+    public boolean hasPropertyKey(String key) {
         return config.hasKey(key);
     }
     

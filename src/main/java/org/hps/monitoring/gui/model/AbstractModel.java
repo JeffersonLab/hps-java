@@ -3,8 +3,13 @@ package org.hps.monitoring.gui.model;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import javassist.Modifier;
 
 /**
  * An abstract class which updates a set of listeners when there are property changes to a backing model.
@@ -89,5 +94,30 @@ public abstract class AbstractModel {
                 throw new RuntimeException(e);
             }
         }
+    }
+    
+    /**
+     * This method will statically extract property names from a class, which in 
+     * this package's conventions are statically declared, public strings that
+     * end with "_PROPERTY".
+     * 
+     * @param type The class with the properties.
+     * @return The list of property names.
+     */
+    protected static String[] getPropertyNames(Class<? extends AbstractModel> type) {
+        List<String> fields = new ArrayList<String>();
+        for (Field field : type.getDeclaredFields()) {
+            int modifiers = field.getModifiers();
+            if (Modifier.isStatic(modifiers) 
+                    && Modifier.isPublic(modifiers) 
+                    && field.getName().endsWith("_PROPERTY")) {
+                try {
+                    fields.add((String) field.get(null));
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }            
+        }
+        return fields.toArray(new String[]{});
     }
 }
