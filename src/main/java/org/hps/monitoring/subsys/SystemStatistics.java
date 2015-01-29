@@ -41,7 +41,7 @@ public interface SystemStatistics {
      * Get the number of millis since the session started.
      * @return The number of millis since session start.
      */
-    long getTimeElapsedMillis();
+    long getTotalElapsedMillis();
 
     /**
      * Get the Unix start time of the session.
@@ -59,13 +59,13 @@ public interface SystemStatistics {
      * Get the number of events in the current tick.
      * @return The number of events in the current tick.
      */
-    long getEventsInTick();
+    long getEventsReceived();
 
     /**
      * Get the total number of events processed thusfar.
      * @return The total number of events processed so far.
      */
-    long getCumulativeEvents();
+    long getTotalEvents();
 
     /**
      * Get the average number of events per second in the session. It simply divides the number of
@@ -78,34 +78,34 @@ public interface SystemStatistics {
      * Get the number of bytes received in the current tick.
      * @return The number of bytes received in the tick.
      */
-    long getBytesInTick();
+    long getBytesReceived();
 
     /**
      * Get the total number of megabytes of data received thusfar.
      * @return The amount of data in megabytes received in the session.
      */
-    double getCumulativeMb();
+    double getTotalMegabytes();
 
     /**
      * Get the average Mb per second of the session, which is the total amount of data divided by
      * the total time.
      * @return The average megabytes per second.
      */
-    double getAverageMbPerSecond();
+    double getAverageMegabytesPerSecond();
 
     /**
      * Get the immediate event rate which is the number of events received in the current tick over
      * the time elapsed in the tick.
      * @return The event rate in [events/second].
      */
-    double getEventRate();
+    double getEventsPerSecond();
 
     /**
      * Get the immediate data rate which is the amount of data in bytes received in the current tick
      * over the tim elapsed in the tick.
      * @return The data rate in [bytes/second].
      */
-    public double getDataRateBytes();
+    public double getBytesPerSecond();
 
     /**
      * Get the number of milliseconds since the last tick.
