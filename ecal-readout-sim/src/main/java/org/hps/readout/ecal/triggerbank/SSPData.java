@@ -96,14 +96,27 @@ public class SSPData extends AbstractIntData {
                 clusterE.add(this_clusterE);
 
                 this_clusterY = (this_word >> 6) & 0xf;
+                /*Need to do hand-made 2 complement, since this is a 4-bit word (and not a 32-bit integer!)*/
+                if (((this_clusterY >> 3) & 0x1) == 0x1){ /*Negative number*/  	
+                	this_clusterY = this_clusterY ^ (0xf); /*bit-wise inversion*/
+                	this_clusterY += 1;
+                	this_clusterY *=-1;
+                }
                 clusterY.add(this_clusterY);
+                
                 if (this_clusterY > 0) {
                     nClusterTop++;
                 } else if (this_clusterY < 0) {
                     nClusterBottom++;
                 }
 
-                this_clusterX = (this_word) & 0x3f;
+                this_clusterX = (this_word) & 0x3f;    
+                /*Need to do hand-made 2 complement, since this is a 6-bit word (and not a 32-bit integer!)*/
+                if (((this_clusterX >> 5) & 0x1) == 0x1){ /*Negative number*/  	
+                	this_clusterX = this_clusterX ^ (0x3f); /*bit-wise inversion*/
+                	this_clusterX += 1;
+                	this_clusterX *=-1;
+                }             
                 clusterX.add(this_clusterX);
 
                 this_clusterT = (bank[ii + 1]) & 0x3ff;
