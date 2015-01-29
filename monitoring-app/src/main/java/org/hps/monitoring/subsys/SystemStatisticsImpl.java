@@ -29,7 +29,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     static final long Kb = 1 * 1024;
     static final long Mb = Kb * 1024;
     static final double milliToSecond = 0.001;
-    static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    static final DecimalFormat decimalFormat = new DecimalFormat("#.####");
     Timer timer;
     List<TimerTask> subtasks = new ArrayList<TimerTask>();
 
@@ -51,7 +51,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public long getTimeElapsedMillis() {
+    public long getTotalElapsedMillis() {
         return sessionElapsedMillis;
     }
 
@@ -64,52 +64,28 @@ public class SystemStatisticsImpl implements SystemStatistics {
     public long getStopTimeMillis() {
         return this.stopTimeMillis;
     }
-
-    @Override
-    public long getCumulativeEvents() {
-        return totalEvents;
-    }
-
-    @Override
-    public double getAverageEventsPerSecond() {
-        try {
-            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getTimeElapsedMillis())));
-        } catch (NumberFormatException e) {
-            return Double.NaN;
-        }
-    }
-
-    @Override
-    public double getCumulativeMb() {
-        return bytesToMb(totalBytes);
-    }
-
-    @Override
-    public double getAverageMbPerSecond() {
-        try {
-            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getTimeElapsedMillis())));
-        } catch (NumberFormatException e) {
-            return Double.NaN;
-        }
-    }
-
-    @Override
-    public long getEventsInTick() {
-        return eventsSinceTick;
-    }
-
-    @Override
-    public long getBytesInTick() {
-        return bytesSinceTick;
-    }
-
+    
     @Override
     public long getTickElapsedMillis() {
         return tickElapsedMillis;
     }
 
+    /**
+     * Event statistics.
+     */
+    
     @Override
-    public double getEventRate() {
+    public long getEventsReceived() {
+        return eventsSinceTick;
+    }
+     
+    @Override
+    public long getTotalEvents() {
+        return totalEvents;
+    }
+    
+    @Override
+    public double getEventsPerSecond() {
         if (eventsSinceTick > 0 && tickElapsedMillis > 0)
             return (double) eventsSinceTick / millisToSeconds(tickElapsedMillis);
         else
@@ -117,7 +93,39 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public double getDataRateBytes() {
+    public double getAverageEventsPerSecond() {
+        try {
+            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getTotalElapsedMillis())));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    
+    /**
+     * Data statistics.
+     */
+    
+    @Override
+    public long getBytesReceived() {
+        return bytesSinceTick;
+    }
+    
+    @Override
+    public double getTotalMegabytes() {
+        return bytesToMb(totalBytes);
+    }
+
+    @Override
+    public double getAverageMegabytesPerSecond() {
+        try {
+            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getTotalElapsedMillis())));
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+   
+    @Override
+    public double getBytesPerSecond() {
         if (bytesSinceTick > 0 && tickElapsedMillis > 0)
             return (double) bytesSinceTick / millisToSeconds(tickElapsedMillis);
         else
@@ -163,10 +171,10 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public void printSession(PrintStream ps) {
         ps.println("session statistics ...");
-        ps.println("  timeElapsedMillis = " + this.getTimeElapsedMillis());
-        ps.println("  cumulativeEvents = " + this.getCumulativeEvents());
+        ps.println("  timeElapsedMillis = " + this.getTotalElapsedMillis());
+        ps.println("  cumulativeEvents = " + this.getTotalEvents());
         ps.println("  averageEventsPerSecond = " + this.getAverageEventsPerSecond());
-        ps.println("  averageMegaBytesPerSecond = " + this.getAverageMbPerSecond());
+        ps.println("  averageMegaBytesPerSecond = " + this.getAverageMegabytesPerSecond());
 
     }
 
@@ -174,8 +182,8 @@ public class SystemStatisticsImpl implements SystemStatistics {
     public void printTick(PrintStream ps) {
         ps.println("tick statistics ...");
         ps.println("  tickElapsedMillis = " + this.getTickElapsedMillis());
-        ps.println("  eventsSinceTick = " + this.getEventsInTick());
-        ps.println("  bytesSinceTick = " + this.getBytesInTick());
+        ps.println("  eventsSinceTick = " + this.getEventsReceived());
+        ps.println("  bytesSinceTick = " + this.getBytesReceived());
     }
 
     @Override
@@ -213,70 +221,79 @@ public class SystemStatisticsImpl implements SystemStatistics {
         tickElapsedMillis = 0;
         tickStartMillis = System.currentTimeMillis();
     }
-
+    
     public abstract class SystemStatisticsUpdater extends StripChartUpdater {
         SystemStatisticsUpdater() {
             addSubTask(this);
         }
     }
-
-    public class AverageEventRateUpdater extends SystemStatisticsUpdater {
+    
+    public class AverageEventsPerSecondUpdater extends SystemStatisticsUpdater {
 
         @Override
         public float nextValue() {
             return (float) getAverageEventsPerSecond();
         }
     }
-
-    public class EventsInTickUpdater extends SystemStatisticsUpdater {
-
-        @Override
-        public float nextValue() {
-            return getEventsInTick();
-        }
-    }
-
-    public class CumulativeEventsUpdater extends SystemStatisticsUpdater {
-        @Override
-        public float nextValue() {
-            return getCumulativeEvents();
-        }
-    }
-
-    public class BytesInTickUpdater extends SystemStatisticsUpdater {
-        @Override
-        public float nextValue() {
-            return getBytesInTick();
-        }
-    }
-
-    public class AverageMbUpdater extends SystemStatisticsUpdater {
-        @Override
-        public float nextValue() {
-            return (float) getAverageMbPerSecond();
-        }
-    }
-
-    public class CumulativeMbUpdater extends SystemStatisticsUpdater {
-        @Override
-        public float nextValue() {
-            return (float) getCumulativeMb();
-        }
-    }
-
-    public class EventRateUpdater extends SystemStatisticsUpdater {
+    
+    public class EventsPerSecondUpdater extends SystemStatisticsUpdater {
 
         @Override
         public float nextValue() {
-            return (float) getEventRate();
+            return (float) getEventsPerSecond();
         }
     }
-
-    public class DataRateUpdater extends SystemStatisticsUpdater {
+            
+    public class EventsReceivedUpdater extends SystemStatisticsUpdater {
 
         @Override
         public float nextValue() {
-            return (float) getDataRateBytes();
+            return getEventsReceived();
         }
     }
+
+    public class TotalEventsUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return getTotalEvents();
+        }
+    }
+
+    public class BytesReceivedUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return getBytesReceived();
+        }
+    }
+
+    public class AverageMegabytesPerSecondUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return (float) getAverageMegabytesPerSecond();
+        }
+    }
+
+    public class TotalMegabytesUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return (float) getTotalMegabytes();
+        }
+    }
+    
+    public class BytesPerSecondUpdater extends SystemStatisticsUpdater {
+
+        @Override
+        public float nextValue() {
+            return (float) getBytesPerSecond();
+        }
+    }
+    
+    public class MegabytesPerSecondUpdater extends SystemStatisticsUpdater {
+        @Override
+        public float nextValue() {
+            return (float) getBytesPerSecond() / 1000000;
+        }
+    }
+    
+    
 }
