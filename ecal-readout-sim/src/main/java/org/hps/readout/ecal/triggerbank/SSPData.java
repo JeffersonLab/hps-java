@@ -116,6 +116,7 @@ public class SSPData extends AbstractIntData {
                 	this_clusterX = this_clusterX ^ (0x3f); /*bit-wise inversion*/
                 	this_clusterX += 1;
                 	this_clusterX *=-1;
+			this_clusterX -= 1; //A.C. Correction due to X= -23 .. (0  excluded) ... + 23
                 }             
                 clusterX.add(this_clusterX);
 
