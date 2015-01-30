@@ -1,6 +1,7 @@
 package org.hps.readout.ecal;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -24,12 +25,14 @@ import org.lcsim.lcio.LCIOWriter;
  */
 public abstract class TriggerDriver extends TriggerableDriver {
 
-    private boolean _DEBUG = false;
+    private final boolean _DEBUG = false;
     protected String outputFileName = null;
     protected PrintWriter outputStream = null;
     protected int numTriggers;
     private static int lastTrigger = Integer.MIN_VALUE;
     private int deadTime = 0;
+    private int prescale = 1;
+    private int prescaleCounter = 0;
     private static boolean triggerBit = false;
     private String lcioFile = null;
     LCIOWriter lcioWriter = null;
@@ -52,6 +55,16 @@ public abstract class TriggerDriver extends TriggerableDriver {
         this.deadTime = deadTime;
     }
 
+    /**
+     * Set prescale. Only trigger on every Nth event that passes the trigger
+     * decision. The default is 1 (no prescale - trigger on every event).
+     *
+     * @param prescale
+     */
+    public void setPrescale(int prescale) {
+        this.prescale = prescale;
+    }
+
     public void setOutputFileName(String outputFileName) {
         this.outputFileName = outputFileName;
     }
@@ -63,7 +76,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
         if (outputFileName != null) {
             try {
                 outputStream = new PrintWriter(new PrintStream(outputFileName), true);
-            } catch (IOException ex) {
+            } catch (FileNotFoundException ex) {
                 throw new RuntimeException("Invalid outputFilePath!");
             }
         } else {
@@ -88,37 +101,41 @@ public abstract class TriggerDriver extends TriggerableDriver {
 //        triggerBit = false; //reset trigger
         //System.out.println(this.getClass().getCanonicalName() + " - process");
         if ((lastTrigger == Integer.MIN_VALUE || ClockSingleton.getClock() - lastTrigger > deadTime) && triggerDecision(event)) {
-            sendTrigger();
-            this.addTrigger();
-            for (TriggerableDriver triggerable : triggerables) {
-                ReadoutTimestamp.addTimestamp(triggerable, event);
-            }
-            ReadoutTimestamp.addTimestamp(this, event);
-            triggerBit = true;
-            lastTrigger = ClockSingleton.getClock();
-            numTriggers++;
-            if (_DEBUG) {
-                System.out.printf(this.getClass().getSimpleName() + ": Trigger on event %d\n", event.getEventNumber());
-            }
-            if (outputStream != null) {
-                outputStream.printf("Trigger on event %d\n", event.getEventNumber());
-            }
+            prescaleCounter++;
+            if (prescaleCounter == prescale) {
+                prescaleCounter = 0;
+                sendTrigger();
+                this.addTrigger();
+                for (TriggerableDriver triggerable : triggerables) {
+                    ReadoutTimestamp.addTimestamp(triggerable, event);
+                }
+                ReadoutTimestamp.addTimestamp(this, event);
+                triggerBit = true;
+                lastTrigger = ClockSingleton.getClock();
+                numTriggers++;
+                if (_DEBUG) {
+                    System.out.printf(this.getClass().getSimpleName() + ": Trigger on event %d\n", event.getEventNumber());
+                }
+                if (outputStream != null) {
+                    outputStream.printf("Trigger on event %d\n", event.getEventNumber());
+                }
 
-            // If an ECal trigger signal has been sent store the trigger
-            // time offset by the trigger latencies
-            if (_DEBUG) {
-                System.out.println(this.getClass().getSimpleName() + ": Trigger added on event " + event.getEventNumber());
-            }
+                // If an ECal trigger signal has been sent store the trigger
+                // time offset by the trigger latencies
+                if (_DEBUG) {
+                    System.out.println(this.getClass().getSimpleName() + ": Trigger added on event " + event.getEventNumber());
+                }
 
-            if (outputStream != null) {
-                outputStream.printf("trigger sent to ET event builder on event %d\n", event.getEventNumber());
-            }
-            makeTriggerData(event, "TriggerStatus");
-            if (lcioWriter != null) {
-                try {
-                    lcioWriter.write(event);
-                } catch (IOException ex) {
-                    Logger.getLogger(TriggerDriver.class.getName()).log(Level.SEVERE, null, ex);
+                if (outputStream != null) {
+                    outputStream.printf("trigger sent to ET event builder on event %d\n", event.getEventNumber());
+                }
+                makeTriggerData(event, "TriggerStatus");
+                if (lcioWriter != null) {
+                    try {
+                        lcioWriter.write(event);
+                    } catch (IOException ex) {
+                        Logger.getLogger(TriggerDriver.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -188,6 +205,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
         triggerBit = false;
     }
 
+    @Override
     public int getTimestampType() {
         return ReadoutTimestamp.SYSTEM_TRIGGERBITS;
     }
