@@ -29,8 +29,7 @@ public final class SSPCluster {
 	 * @param iy - The y-index of the cluster.
 	 * @param energy - The cluster energy in MeV.
 	 * @param hits - The cluster hit count.
-	 * @param time - The time at which the cluster occurred in 4 ns
-	 * clock-cycles.
+	 * @param time - The time at which the cluster occurred in ns.
 	 */
 	public SSPCluster(int ix, int iy, int energy, int hits, int time) {
 		// Make sure that the input values are valid.
@@ -50,7 +49,7 @@ public final class SSPCluster {
 		this.ix = ix;
 		this.iy = iy;
 		this.e = energy / 1000.0;
-		this.t = 4 * time;
+		this.t = time;
 		this.n = hits;
 		
 		// Indicate that the cluster was made.

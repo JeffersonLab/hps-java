@@ -26,8 +26,7 @@ public class SSPTrigger {
 	 * Instantiates a new <code>SSPTrigger</code> with the indicated
 	 * trigger data.
 	 * @param type - The type of trigger.
-	 * @param time - The time at which the trigger occurred in 4 ns
-	 * clock-cycles.
+	 * @param time - The time at which the trigger occurred in ns.
 	 * @param data - The trigger bit data.
 	 */
 	public SSPTrigger(int type, int time, int data) {
@@ -38,7 +37,7 @@ public class SSPTrigger {
 		
 		// Store the trigger data.
 		this.type = type;
-		this.time = 4 * time;
+		this.time = time;
 		this.data = data;
 		
 		// Note that a trigger was made.
