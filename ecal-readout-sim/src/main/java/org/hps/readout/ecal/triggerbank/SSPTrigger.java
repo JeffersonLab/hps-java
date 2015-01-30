@@ -46,28 +46,6 @@ public class SSPTrigger {
 	}
 	
 	/**
-	 * Indicates whether the trigger was reported by the bottom SSP
-	 * crate or not.
-	 * @return Returns <code>true</code> if the trigger was reported
-	 * by the bottom crate and <code>false</code> if it was reported
-	 * by the top crate.
-	 */
-	public boolean isBottom() {
-		return false;
-	}
-	
-	/**
-	 * Indicates whether the trigger was reported by the top SSP
-	 * crate or not.
-	 * @return Returns <code>true</code> if the trigger was reported
-	 * by the top crate and <code>false</code> if it was reported by
-	 * the bottom crate.
-	 */
-	public boolean isTop() {
-		return false;
-	}
-	
-	/**
 	 * Gets the raw, unparsed trigger data bank for this trigger.
 	 * @return Returns the trigger data bank as an <code>int</code>.
 	 */

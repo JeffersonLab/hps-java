@@ -19,9 +19,21 @@ public class SSPCosmicTrigger extends SSPTrigger {
 		super(isTop ? SSPData.TRIG_TYPE_COSMIC_TOP : SSPData.TRIG_TYPE_COSMIC_BOT, time, 0);
 	}
 	
-	@Override
+	/**
+	 * Indicates whether the trigger was reported by the bottom SSP
+	 * crate or not.
+	 * @return Returns <code>true</code> if the trigger was reported
+	 * by the bottom crate and <code>false</code> if it was reported
+	 * by the top crate.
+	 */
 	public boolean isBottom() { return type == SSPData.TRIG_TYPE_COSMIC_BOT; }
 	
-	@Override
+	/**
+	 * Indicates whether the trigger was reported by the top SSP
+	 * crate or not.
+	 * @return Returns <code>true</code> if the trigger was reported
+	 * by the top crate and <code>false</code> if it was reported by
+	 * the bottom crate.
+	 */
 	public boolean isTop() { return type == SSPData.TRIG_TYPE_COSMIC_TOP; }
 }

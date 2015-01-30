@@ -25,12 +25,24 @@ public class SSPSinglesTrigger extends SSPTrigger {
 				time, data);
 	}
 	
-	@Override
+	/**
+	 * Indicates whether the trigger was reported by the bottom SSP
+	 * crate or not.
+	 * @return Returns <code>true</code> if the trigger was reported
+	 * by the bottom crate and <code>false</code> if it was reported
+	 * by the top crate.
+	 */
 	public boolean isBottom() {
 		return (type == SSPData.TRIG_TYPE_SINGLES0_BOT || type == SSPData.TRIG_TYPE_SINGLES1_BOT);
 	}
 	
-	@Override
+	/**
+	 * Indicates whether the trigger was reported by the top SSP
+	 * crate or not.
+	 * @return Returns <code>true</code> if the trigger was reported
+	 * by the top crate and <code>false</code> if it was reported by
+	 * the bottom crate.
+	 */
 	public boolean isTop() {
 		return (type == SSPData.TRIG_TYPE_SINGLES0_TOP || type == SSPData.TRIG_TYPE_SINGLES1_TOP);
 	}

@@ -19,12 +19,6 @@ public class SSPPairTrigger extends SSPTrigger {
 		super(isFirstTrigger ? SSPData.TRIG_TYPE_PAIR0 : SSPData.TRIG_TYPE_PAIR1, time, data);
 	}
 	
-	@Override
-	public boolean isBottom() { return true; }
-	
-	@Override
-	public boolean isTop() { return true; }
-	
 	/**
 	 * Indicates whether the trigger passed the pair energy sum cut
 	 * or not.
