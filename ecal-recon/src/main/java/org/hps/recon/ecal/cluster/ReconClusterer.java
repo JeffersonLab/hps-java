@@ -445,7 +445,7 @@ public class ReconClusterer extends AbstractClusterer {
             isSeed = false;
         } else if ((hE == nE) && (hiy > niy)) {
             isSeed = false;
-        } else if ((hE == nE) && (hiy == niy) && (hix > nix)) {
+        } else if ((hE == nE) && (hiy == niy) && (hix < nix)) {
             isSeed = false;
         }
         return isSeed;
