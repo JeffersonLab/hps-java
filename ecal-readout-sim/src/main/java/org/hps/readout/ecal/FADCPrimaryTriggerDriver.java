@@ -3,12 +3,9 @@ package org.hps.readout.ecal;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
-import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import org.hps.recon.ecal.ECalUtils;
@@ -98,9 +95,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     
-    private Map<Point, IHistogram1D> singleChannelSeedEnergyMap = new HashMap<Point, IHistogram1D>();
-    private Point channel = new Point(0, 0);
-    
     // ==================================================================
     // ==== Hardware Diagnostic Variables ===============================
     // ==================================================================
@@ -181,8 +175,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 double clusterEnergy = cluster.getEnergy();
                 int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
-                channel.x = ix;
-                channel.y = iy;
                 
                 // VERBOSE :: Note that a cluster is being processed.
                 if(verbose) {
@@ -211,12 +203,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 int plotIndex = iy > 0 ? 0 : 1;
                 diagTotalEnergy[plotIndex].fill(clusterEnergy, 1);
                 diagHitCount[plotIndex].fill(hitCount < 8 ? hitCount : 7, 1);
-                
-                // Populate the single channel plot if it exists.
-                IHistogram1D singleChannelPlot = singleChannelSeedEnergyMap.get(channel);
-                if(singleChannelPlot != null) {
-                	singleChannelPlot.fill(seedEnergy, 1);
-                }
                 
                 // ==== Seed Hit Energy Cut ====================================
                 // =============================================================
@@ -441,21 +427,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         
         // If a background level has been set, pick the correct cuts.
         if(backgroundLevel != -1) { setBackgroundCuts(backgroundLevel); }
-        
-        // Create some single channel seed energy plots.
-        Point[] channels = {
-        		new Point(-11, 2), new Point(-10, 2), new Point(-9, 2), new Point(-8, 2), new Point(-7, 2),
-        		new Point(-6, 2), new Point(-5, 2), new Point(-4, 2), new Point(-3, 2), new Point(-2, 2),
-        		new Point(-1, 2), new Point(-11, 1), new Point(-1, 1),
-        		new Point(-11, -2), new Point(-10, -2), new Point(-9, -2), new Point(-8, -2), new Point(-7, -2),
-        		new Point(-6, -2), new Point(-5, -2), new Point(-4, -2), new Point(-3, -2), new Point(-2, -2),
-        		new Point(-1, -2), new Point(-11, -1), new Point(-1, -1),
-        };
-        for(Point channel : channels) {
-        	String name = String.format("Channel Plots :: Cluster Seed Energy Distribution (%d, %d)", channel.x, channel.y);
-            IHistogram1D channelSeedPlot = aida.histogram1D(name, 176, 0.0, 2.2);
-            singleChannelSeedEnergyMap.put(channel, channelSeedPlot);
-        }
         
         // Run the superclass method.
         super.startOfData();
