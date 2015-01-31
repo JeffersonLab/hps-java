@@ -192,6 +192,7 @@ public class SSPData extends AbstractIntData {
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    @Deprecated
     public int getOrTrig() {
         int TopTime = this.getTopTrig();
         int BotTime = this.getBotTrig();
@@ -210,6 +211,7 @@ public class SSPData extends AbstractIntData {
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    @Deprecated
     public int getTopTrig() {
     	// Store the smallest found time. The time is a 10 bit value,
     	// so it must always be less than 1024. Multiply by 4 to convert
@@ -238,6 +240,7 @@ public class SSPData extends AbstractIntData {
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    @Deprecated
     public int getBotTrig() {
     	// Store the smallest found time. The time is a 10 bit value,
     	// so it must always be less than 1024. Multiply by 4 to convert
@@ -261,6 +264,7 @@ public class SSPData extends AbstractIntData {
     
     // TODO: This does not seem to do anything. Can it be deleted? It
     //        is also not used anywhere.
+    @Deprecated
     public int getAndTrig() {
     	return 0;
     }
