@@ -2,7 +2,6 @@ package org.hps.readout.ecal.triggerbank;
 
 import java.util.logging.Logger;
 
-import org.hps.recon.ecal.cluster.ClusterDriver;
 import org.lcsim.util.log.BasicFormatter;
 import org.lcsim.util.log.LogUtil;
 

@@ -34,21 +34,6 @@ public class SSPData extends AbstractIntData {
     public static final int TRIG_TYPE_PAIR0 = 0x6;
     public static final int TRIG_TYPE_PAIR1 = 0x7;
     
-    // TODO: These should not be persisted past their use in initial
-    //        bank parsing They are now superseded by the SSPCluster
-    //        and SSPTrigger objects, which contain the same information
-    //        in a more user-friendly fashion. These should be removed
-    //        once all functions calling on them have been modified to
-    //        use the SSPCluster and SSPTrigger collections instead.
-    private final List<Integer> clusterX = new ArrayList<Integer>();
-    private final List<Integer> clusterY = new ArrayList<Integer>();
-    private final List<Integer> clusterE = new ArrayList<Integer>();
-    private final List<Integer> clusterT = new ArrayList<Integer>();
-    private final List<Integer> clusterNhits = new ArrayList<Integer>();
-    private final List<Integer> trigType = new ArrayList<Integer>();
-    private final List<Integer> trigTypeData = new ArrayList<Integer>();
-    private final List<Integer> trigTypeTime = new ArrayList<Integer>(); //SSP can report more than 1 trigger type (if the event satisfies more than 1 trigger equation)
-    
     // Collections for storing the decoded SSP bank data.
     private final List<SSPCluster> clusterList = new ArrayList<SSPCluster>();
     private final List<SSPTrigger> triggerList = new ArrayList<SSPTrigger>();
@@ -84,8 +69,6 @@ public class SSPData extends AbstractIntData {
         return BANK_TAG;
     }
     
-    // NOTE :: Cluster time is already corrected to be in ns; trigger
-    //         time was left in units of clock-cycles!
     @Override
     protected final void decodeData() {
         // Parse over the integer EVIO words and handle each type. Block
@@ -110,11 +93,6 @@ public class SSPData extends AbstractIntData {
             	int type = (bank[ii] >> 23) & 0xf;
             	int data = (bank[ii] >> 16) & 0x7f;
             	int time = (bank[ii]) & 0x3ff; 
-            	
-            	// Add the trigger data to the trigger lists.
-                trigType.add(type);
-                trigTypeData.add(data);
-                trigTypeTime.add(time);
                 
                 // Create an SSPTrigger and add it to the list.
             	SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
@@ -126,12 +104,10 @@ public class SSPData extends AbstractIntData {
                 // Get the number of hits in the cluster and add it
             	// to the cluster hits list.
             	int hits = (bank[ii] >> 23) & 0xf;
-                clusterNhits.add(hits);
                 
                 // Get the cluster energy (which is in MeV) and add it
                 // to the cluster energy list.
                 int energy = (bank[ii] >> 10) & 0x1fff;
-                clusterE.add(energy);
                 
                 // Get the cluster y-index.
                 int iy = (bank[ii] >> 6) & 0xf;
@@ -146,9 +122,6 @@ public class SSPData extends AbstractIntData {
                 	iy += 1;
                 	iy *=-1;
                 }
-                
-                // Add the y-index to the list of y-indices.
-                clusterY.add(iy);
                 
                 // Get the x-index of the cluster.
                 int ix = (bank[ii]) & 0x3f;
@@ -170,16 +143,8 @@ public class SSPData extends AbstractIntData {
                 	ix -= 1;
                 }
                 
-                // Add the x-index to the list of x-indices.
-                clusterX.add(ix);
-                
                 // Get the cluster time. Time is 4 ns clock-cycles.
                 int time = (bank[ii + 1]) & 0x3ff;
-                
-                // Add the time to the cluster list. Also, multiply
-                // by 4 nanoseconds to convert from clock-cycles into
-                // proper nanoseconds.
-                clusterT.add(time * 4);
                 
                 // Create an SSPCluster from the parsed information
                 // and add it to the cluster list.
@@ -221,8 +186,8 @@ public class SSPData extends AbstractIntData {
     public int getEventNumber() { return eventNumber; }
     
     /*
-     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) (any crate)
-     * Returns in ns.
+     * Returns the trigger time, relative to the SSP window, of the
+     * FIRST Cluster singles trigger (0/1) (any crate). Returns in ns.
      */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
@@ -239,37 +204,59 @@ public class SSPData extends AbstractIntData {
     }
     
     /*
-     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) from TOP crate 
-     * Returns in ns.
+     * Returns the trigger time, relative to the SSP window, of the
+     * FIRST Cluster singles trigger (0/1) from TOP crate. Returns in ns.
      */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
     public int getTopTrig() {
-        int TopTime = 1025; //time is 10 bits, so is always smaller than 1024.
-        for (int ii = 0; ii < trigType.size(); ii++) {
-            if (((trigType.get(ii) == TRIG_TYPE_SINGLES0_TOP) || (trigType.get(ii) == TRIG_TYPE_SINGLES1_TOP)) && (trigTypeTime.get(ii) < TopTime)) {
-                TopTime = trigTypeTime.get(ii);
-            }
+    	// Store the smallest found time. The time is a 10 bit value,
+    	// so it must always be less than 1024. Multiply by 4 to convert
+    	// from clock-cycles to nanoseconds.
+        int topTime = 1025 * 4;
+        
+        // Iterate over all triggers.
+        for(SSPTrigger trigger : triggerList) {
+        	// Select only singles triggers from the top crate.
+        	if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isTop()) {
+        		// Store the smallest trigger time found.
+        		if(trigger.getTime() < topTime) {
+        			topTime = trigger.getTime();
+        		}
+        	}
         }
-        return TopTime * 4;
+        
+        // Return the smallest found time.
+        return topTime;
     }
     
     /*
-     * Returns the trigger time, relative to the SSP window, of the FIRST Cluster singles trigger (0/1) from BOT crate 
-     * Returns in ns.
+     * Returns the trigger time, relative to the SSP window, of the
+     * FIRST Cluster singles trigger (0/1) from BOT crate. Returns in ns.
      */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
     public int getBotTrig() {
-        int BotTime = 1025; //time is 10 bits, so is always smaller than 1024.
-        for (int ii = 0; ii < trigType.size(); ii++) {
-            if (((trigType.get(ii) == TRIG_TYPE_SINGLES0_BOT) || (trigType.get(ii) == TRIG_TYPE_SINGLES1_BOT)) && (trigTypeTime.get(ii) < BotTime)) {
-                BotTime = trigTypeTime.get(ii);
-            }
+    	// Store the smallest found time. The time is a 10 bit value,
+    	// so it must always be less than 1024. Multiply by 4 to convert
+    	// from clock-cycles to nanoseconds.
+        int bottomTime = 1025 * 4;
+        
+        // Iterate over all triggers.
+        for(SSPTrigger trigger : triggerList) {
+        	// Select only singles triggers from the bottom crate.
+        	if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isBottom()) {
+        		// Store the smallest trigger time found.
+        		if(trigger.getTime() < bottomTime) {
+        			bottomTime = trigger.getTime();
+        		}
+        	}
         }
-        return BotTime * 4;
+        
+        // Return the smallest found time.
+        return bottomTime;
     }
     
     // TODO: This does not seem to do anything. Can it be deleted? It
