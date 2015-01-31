@@ -53,7 +53,7 @@ public final class SSPCluster {
 		this.n = hits;
 		
 		// Indicate that the cluster was made.
-		logger.fine(String.format("Instance instantiated at (%3d, %3d) at time %3d ns with energy %4d MeV and %d hits.",
+		logger.fine(String.format("Constructed cluster at (%3d, %3d) at time %3d ns with energy %4d MeV and %d hits.",
 				ix, iy, time, energy, hits));
 	}
 	

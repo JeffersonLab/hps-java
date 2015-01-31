@@ -88,74 +88,104 @@ public class SSPData extends AbstractIntData {
     //         time was left in units of clock-cycles!
     @Override
     protected final void decodeData() {
-        /*A. C.: decode here the trigger bank*/
-        /*We do not need to handle block header, block trailer since these are disentagled in the secondary CODA readout list*/
-        int this_word;
-        int this_clusterX, this_clusterY, this_clusterE, this_clusterT, this_clusterNhits;
-
+        // Parse over the integer EVIO words and handle each type. Block
+    	// headers and block trailers can be ignored because these are
+    	// disentangled in the secondary CODA readout list.
         for (int ii = 0; ii < bank.length; ii++) {
-            this_word = bank[ii];
-
-            //event header
-            if (((this_word >> 27) & (0x1f)) == TRIG_HEADER) {
-            	eventNumber = this_word & 0x7FFFFFF;
+            // Process the event number.
+            if (((bank[ii] >> 27) & (0x1f)) == TRIG_HEADER) {
+            	eventNumber = bank[ii] & 0x7FFFFFF;
             }
-            //trigger time
-            else if (((this_word >> 27) & (0x1f)) == TRIG_TIME) {
-            	triggerTime = (bank[ii + 1] << 24) | (this_word & 0xffffff);
-            } //trigger type
-            else if (((this_word >> 27) & (0x1f)) == TRIG_TYPE) {
-                trigType.add((this_word >> 23) & 0xf); //this is the trigbit, from 0 to 7
-                trigTypeData.add((this_word >> 16) & 0x7f);
-                trigTypeTime.add((this_word) & 0x3ff);
-            } //cluster 
-            else if (((this_word >> 27) & (0x1f)) == CLUSTER_TYPE) {
-                this_clusterNhits = (this_word >> 23) & 0xf;
-                clusterNhits.add(this_clusterNhits);
-
-                this_clusterE = (this_word >> 10) & 0x1fff;
-                clusterE.add(this_clusterE);
-
-                this_clusterY = (this_word >> 6) & 0xf;
-                /*Need to do hand-made 2 complement, since this is a 4-bit word (and not a 32-bit integer!)*/
-                if (((this_clusterY >> 3) & 0x1) == 0x1){ /*Negative number*/  	
-                	this_clusterY = this_clusterY ^ (0xf); /*bit-wise inversion*/
-                	this_clusterY += 1;
-                	this_clusterY *=-1;
+            
+            // Process the trigger time.
+            else if (((bank[ii] >> 27) & (0x1f)) == TRIG_TIME) {
+            	triggerTime = (bank[ii + 1] << 24) | (bank[ii] & 0xffffff);
+            }
+            
+            // Process SSP trigger data.
+            else if (((bank[ii] >> 27) & (0x1f)) == TRIG_TYPE) {
+            	// Parse the trigger information. Note that type is
+            	// the trigger identification bits and ranges from
+            	// zero to seven.
+            	int type = (bank[ii] >> 23) & 0xf;
+            	int data = (bank[ii] >> 16) & 0x7f;
+            	int time = (bank[ii]) & 0x3ff; 
+            	
+            	// Add the trigger data to the trigger lists.
+                trigType.add(type);
+                trigTypeData.add(data);
+                trigTypeTime.add(time);
+                
+                // Create an SSPTrigger and add it to the list.
+            	SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
+            	triggerList.add(trigger);
+            }
+            
+            // Process SSP clusters.
+            else if (((bank[ii] >> 27) & (0x1f)) == CLUSTER_TYPE) {
+                // Get the number of hits in the cluster and add it
+            	// to the cluster hits list.
+            	int hits = (bank[ii] >> 23) & 0xf;
+                clusterNhits.add(hits);
+                
+                // Get the cluster energy (which is in MeV) and add it
+                // to the cluster energy list.
+                int energy = (bank[ii] >> 10) & 0x1fff;
+                clusterE.add(energy);
+                
+                // Get the cluster y-index.
+                int iy = (bank[ii] >> 6) & 0xf;
+                
+                // If the first bit of the index is 1, then it is a
+                // negative number and needs to be converted using
+                // two's complement to get the proper value.
+                if(((iy >> 3) & 0x1) == 0x1) {  	
+                	// Perform the two's complement. ('^' is the bit
+                	// wise inversion operator).
+                	iy = iy ^ (0xf);
+                	iy += 1;
+                	iy *=-1;
                 }
-                clusterY.add(this_clusterY);
-
-                this_clusterX = (this_word) & 0x3f;    
-                /*Need to do hand-made 2 complement, since this is a 6-bit word (and not a 32-bit integer!)*/
-                if (((this_clusterX >> 5) & 0x1) == 0x1){ /*Negative number*/  	
-                	this_clusterX = this_clusterX ^ (0x3f); /*bit-wise inversion*/
-                	this_clusterX += 1;
-                	this_clusterX *=-1;
-			this_clusterX -= 1; //A.C. Correction due to X= -23 .. (0  excluded) ... + 23
-                }             
-                clusterX.add(this_clusterX);
-
-                this_clusterT = (bank[ii + 1]) & 0x3ff;
-                clusterT.add(this_clusterT * 4); //*4 since the time is reported in 4 ns ticks
+                
+                // Add the y-index to the list of y-indices.
+                clusterY.add(iy);
+                
+                // Get the x-index of the cluster.
+                int ix = (bank[ii]) & 0x3f;
+                
+                // If the first bit of the index is 1, then it is a
+                // negative number and needs to be converted using
+                // two's complement to get the proper value.
+                if(((ix >> 5) & 0x1) == 0x1) {
+                	// Perform the two's complement. ('^' is the bit
+                	// wise inversion operator).
+                	ix = ix ^ (0x3f);
+                	ix += 1;
+                	ix *=-1;
+                	
+                	// Values are encoded from -22 to 23; since LCSIM
+                	// defines them from -23 to -1 and 1 to 23, negative
+                	// values need to be shifted down by an additional
+                	// step to be accurate.
+                	ix -= 1;
+                }
+                
+                // Add the x-index to the list of x-indices.
+                clusterX.add(ix);
+                
+                // Get the cluster time. Time is 4 ns clock-cycles.
+                int time = (bank[ii + 1]) & 0x3ff;
+                
+                // Add the time to the cluster list. Also, multiply
+                // by 4 nanoseconds to convert from clock-cycles into
+                // proper nanoseconds.
+                clusterT.add(time * 4);
+                
+                // Create an SSPCluster from the parsed information
+                // and add it to the cluster list.
+            	SSPCluster cluster = new SSPCluster(ix, iy, energy, hits, time * 4);
+            	clusterList.add(cluster);
             }
-        }
-        
-        // Convert the cluster lists into a single list of SSPCluster
-        // objects and place them into the cluster list.
-        int clusters = clusterX.size();
-        for(int i = 0; i < clusters; i++) {
-        	SSPCluster cluster = new SSPCluster(clusterX.get(i), clusterY.get(i),
-        			clusterE.get(i), clusterNhits.get(i), clusterT.get(i));
-        	clusterList.add(cluster);
-        }
-        
-        // Convert the trigger lists into a single list of SSPTrigger
-        // objects and place them into the trigger list.
-        int triggers = trigType.size();
-        for(int i = 0; i < triggers; i++) {
-        	SSPTrigger trigger = SSPTriggerFactory.makeTrigger(trigType.get(i),
-        			trigTypeTime.get(i) * 4, trigTypeData.get(i));
-        	triggerList.add(trigger);
         }
     }
     
@@ -206,7 +236,6 @@ public class SSPData extends AbstractIntData {
         } else {
             return BotTime;
         }
-
     }
     
     /*
@@ -243,8 +272,9 @@ public class SSPData extends AbstractIntData {
         return BotTime * 4;
     }
     
-    // TODO: This does not seem to do anything. Can it be deleted?
+    // TODO: This does not seem to do anything. Can it be deleted? It
+    //        is also not used anywhere.
     public int getAndTrig() {
-        return 0;
+    	return 0;
     }
 }

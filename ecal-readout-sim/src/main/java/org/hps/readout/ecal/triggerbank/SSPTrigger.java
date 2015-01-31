@@ -20,7 +20,7 @@ public class SSPTrigger {
 	protected final int data;
 	
 	// Logger to output status messages.
-	protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(SSPCluster.class.getSimpleName()));
+	protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(SSPTrigger.class.getSimpleName()));
 	
 	/**
 	 * Instantiates a new <code>SSPTrigger</code> with the indicated
@@ -41,7 +41,7 @@ public class SSPTrigger {
 		this.data = data;
 		
 		// Note that a trigger was made.
-		logger.fine(String.format("A trigger of type %d occurred at time %3d with data %d.",
+		logger.fine(String.format("Constructed trigger of type %d occurred at time %3d with data %d.",
 				type, time, data));
 	}
 	
