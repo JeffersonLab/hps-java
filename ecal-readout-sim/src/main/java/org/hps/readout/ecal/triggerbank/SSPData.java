@@ -15,7 +15,7 @@ import java.util.List;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPData extends AbstractIntData {
-	// The EVIO header tag for SSP trigger banks.
+    // The EVIO header tag for SSP trigger banks.
     public static final int BANK_TAG = 0xe10c;
     
     // EVIO 5-bit word identifiers for cluster parameters.
@@ -72,38 +72,38 @@ public class SSPData extends AbstractIntData {
     @Override
     protected final void decodeData() {
         // Parse over the integer EVIO words and handle each type. Block
-    	// headers and block trailers can be ignored because these are
-    	// disentangled in the secondary CODA readout list.
+        // headers and block trailers can be ignored because these are
+        // disentangled in the secondary CODA readout list.
         for (int ii = 0; ii < bank.length; ii++) {
             // Process the event number.
             if (((bank[ii] >> 27) & (0x1f)) == TRIG_HEADER) {
-            	eventNumber = bank[ii] & 0x7FFFFFF;
+                eventNumber = bank[ii] & 0x7FFFFFF;
             }
             
             // Process the trigger time.
             else if (((bank[ii] >> 27) & (0x1f)) == TRIG_TIME) {
-            	triggerTime = (bank[ii + 1] << 24) | (bank[ii] & 0xffffff);
+                triggerTime = (bank[ii + 1] << 24) | (bank[ii] & 0xffffff);
             }
             
             // Process SSP trigger data.
             else if (((bank[ii] >> 27) & (0x1f)) == TRIG_TYPE) {
-            	// Parse the trigger information. Note that type is
-            	// the trigger identification bits and ranges from
-            	// zero to seven.
-            	int type = (bank[ii] >> 23) & 0xf;
-            	int data = (bank[ii] >> 16) & 0x7f;
-            	int time = (bank[ii]) & 0x3ff; 
+                // Parse the trigger information. Note that type is
+                // the trigger identification bits and ranges from
+                // zero to seven.
+                int type = (bank[ii] >> 23) & 0xf;
+                int data = (bank[ii] >> 16) & 0x7f;
+                int time = (bank[ii]) & 0x3ff; 
                 
                 // Create an SSPTrigger and add it to the list.
-            	SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
-            	triggerList.add(trigger);
+                SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
+                triggerList.add(trigger);
             }
             
             // Process SSP clusters.
             else if (((bank[ii] >> 27) & (0x1f)) == CLUSTER_TYPE) {
                 // Get the number of hits in the cluster and add it
-            	// to the cluster hits list.
-            	int hits = (bank[ii] >> 23) & 0xf;
+                // to the cluster hits list.
+                int hits = (bank[ii] >> 23) & 0xf;
                 
                 // Get the cluster energy (which is in MeV) and add it
                 // to the cluster energy list.
@@ -115,12 +115,12 @@ public class SSPData extends AbstractIntData {
                 // If the first bit of the index is 1, then it is a
                 // negative number and needs to be converted using
                 // two's complement to get the proper value.
-                if(((iy >> 3) & 0x1) == 0x1) {  	
-                	// Perform the two's complement. ('^' is the bit
-                	// wise inversion operator).
-                	iy = iy ^ (0xf);
-                	iy += 1;
-                	iy *=-1;
+                if(((iy >> 3) & 0x1) == 0x1) {      
+                    // Perform the two's complement. ('^' is the bit
+                    // wise inversion operator).
+                    iy = iy ^ (0xf);
+                    iy += 1;
+                    iy *=-1;
                 }
                 
                 // Get the x-index of the cluster.
@@ -130,17 +130,17 @@ public class SSPData extends AbstractIntData {
                 // negative number and needs to be converted using
                 // two's complement to get the proper value.
                 if(((ix >> 5) & 0x1) == 0x1) {
-                	// Perform the two's complement. ('^' is the bit
-                	// wise inversion operator).
-                	ix = ix ^ (0x3f);
-                	ix += 1;
-                	ix *=-1;
-                	
-                	// Values are encoded from -22 to 23; since LCSIM
-                	// defines them from -23 to -1 and 1 to 23, negative
-                	// values need to be shifted down by an additional
-                	// step to be accurate.
-                	ix -= 1;
+                    // Perform the two's complement. ('^' is the bit
+                    // wise inversion operator).
+                    ix = ix ^ (0x3f);
+                    ix += 1;
+                    ix *=-1;
+                    
+                    // Values are encoded from -22 to 23; since LCSIM
+                    // defines them from -23 to -1 and 1 to 23, negative
+                    // values need to be shifted down by an additional
+                    // step to be accurate.
+                    ix -= 1;
                 }
                 
                 // Get the cluster time. Time is 4 ns clock-cycles.
@@ -148,8 +148,8 @@ public class SSPData extends AbstractIntData {
                 
                 // Create an SSPCluster from the parsed information
                 // and add it to the cluster list.
-            	SSPCluster cluster = new SSPCluster(ix, iy, energy, hits, time * 4);
-            	clusterList.add(cluster);
+                SSPCluster cluster = new SSPCluster(ix, iy, energy, hits, time * 4);
+                clusterList.add(cluster);
             }
         }
     }
@@ -160,7 +160,7 @@ public class SSPData extends AbstractIntData {
      * of <code>SSPCluster</code> objects.
      */
     public List<SSPCluster> getClusters() {
-    	return clusterList;
+        return clusterList;
     }
     
     /**
@@ -170,7 +170,7 @@ public class SSPData extends AbstractIntData {
      * subclass they are, as appropriate to their type code.
      */
     public List<SSPTrigger> getTriggers() {
-    	return triggerList;
+        return triggerList;
     }
     
     /**
@@ -185,77 +185,88 @@ public class SSPData extends AbstractIntData {
      */
     public int getEventNumber() { return eventNumber; }
     
-    /*
-     * Returns the trigger time, relative to the SSP window, of the
-     * FIRST Cluster singles trigger (0/1) (any crate). Returns in ns.
-     */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    /**
+     * Gets the first singles trigger that occurred in either crate.
+     * If no singles triggered occurred, a value of <code>1025 * 4 =
+     * 4100</code> will be returned.
+     * @return Returns the time in nanoseconds of the earliest singles
+     * trigger that occurred, or <code>4100</code> if no singles trigger
+     * has occurred.
+     */
     @Deprecated
     public int getOrTrig() {
-        int TopTime = this.getTopTrig();
-        int BotTime = this.getBotTrig();
-
-        if (TopTime <= BotTime) {
-            return TopTime;
-        } else {
-            return BotTime;
-        }
+        // Get the earliest time for both the top and bottom triggers.
+        int topTime = getTopTrig();
+        int bottomTime = getBotTrig();
+        
+        // Return whichever crate had the earliest trigger.
+        if (topTime <= bottomTime) { return topTime; }
+        else { return bottomTime; }
     }
     
-    /*
-     * Returns the trigger time, relative to the SSP window, of the
-     * FIRST Cluster singles trigger (0/1) from TOP crate. Returns in ns.
-     */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    /**
+     * Gets the first singles trigger that occurred in the top crate.
+     * If no singles triggered occurred, a value of <code>1025 * 4 =
+     * 4100</code> will be returned.
+     * @return Returns the time in nanoseconds of the earliest singles
+     * trigger that occurred, or <code>4100</code> if no singles trigger
+     * has occurred.
+     */
     @Deprecated
     public int getTopTrig() {
-    	// Store the smallest found time. The time is a 10 bit value,
-    	// so it must always be less than 1024. Multiply by 4 to convert
-    	// from clock-cycles to nanoseconds.
+        // Store the smallest found time. The time is a 10 bit value,
+        // so it must always be less than 1024. Multiply by 4 to convert
+        // from clock-cycles to nanoseconds.
         int topTime = 1025 * 4;
         
         // Iterate over all triggers.
         for(SSPTrigger trigger : triggerList) {
-        	// Select only singles triggers from the top crate.
-        	if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isTop()) {
-        		// Store the smallest trigger time found.
-        		if(trigger.getTime() < topTime) {
-        			topTime = trigger.getTime();
-        		}
-        	}
+            // Select only singles triggers from the top crate.
+            if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isTop()) {
+                // Store the smallest trigger time found.
+                if(trigger.getTime() < topTime) {
+                    topTime = trigger.getTime();
+                }
+            }
         }
         
         // Return the smallest found time.
         return topTime;
     }
     
-    /*
-     * Returns the trigger time, relative to the SSP window, of the
-     * FIRST Cluster singles trigger (0/1) from BOT crate. Returns in ns.
-     */
     // TODO: Get information from Andrea on what this is for. It seems
     //       to be something specialized. Maybe it should be placed in
     //       the analysis driver in which it is used?
+    /**
+     * Gets the first singles trigger that occurred in the bottom crate.
+     * If no singles triggered occurred, a value of <code>1025 * 4 =
+     * 4100</code> will be returned.
+     * @return Returns the time in nanoseconds of the earliest singles
+     * trigger that occurred, or <code>4100</code> if no singles trigger
+     * has occurred.
+     */
     @Deprecated
     public int getBotTrig() {
-    	// Store the smallest found time. The time is a 10 bit value,
-    	// so it must always be less than 1024. Multiply by 4 to convert
-    	// from clock-cycles to nanoseconds.
+        // Store the smallest found time. The time is a 10 bit value,
+        // so it must always be less than 1024. Multiply by 4 to convert
+        // from clock-cycles to nanoseconds.
         int bottomTime = 1025 * 4;
         
         // Iterate over all triggers.
         for(SSPTrigger trigger : triggerList) {
-        	// Select only singles triggers from the bottom crate.
-        	if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isBottom()) {
-        		// Store the smallest trigger time found.
-        		if(trigger.getTime() < bottomTime) {
-        			bottomTime = trigger.getTime();
-        		}
-        	}
+            // Select only singles triggers from the bottom crate.
+            if(trigger instanceof SSPSinglesTrigger && ((SSPSinglesTrigger) trigger).isBottom()) {
+                // Store the smallest trigger time found.
+                if(trigger.getTime() < bottomTime) {
+                    bottomTime = trigger.getTime();
+                }
+            }
         }
         
         // Return the smallest found time.
@@ -266,6 +277,6 @@ public class SSPData extends AbstractIntData {
     //        is also not used anywhere.
     @Deprecated
     public int getAndTrig() {
-    	return 0;
+        return 0;
     }
 }
