@@ -399,6 +399,15 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     }
     
     /**
+     * Sets the value of F in the energy slope equation <code>E_min +
+     * R_min * F</code>.
+     * @param f - The new energy slope parameter.
+     */
+    public void setEnergySlopeParamF(double f) {
+    	energySlopeParamF = f;
+    }
+    
+    /**
      * Initializes the cluster pair queues and other variables.
      */
     @Override
