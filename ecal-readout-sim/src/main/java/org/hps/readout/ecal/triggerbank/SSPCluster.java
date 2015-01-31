@@ -21,7 +21,7 @@ public final class SSPCluster {
 	private final double e;
 	
 	// Output potential errors or messages.
-	private static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(SSPCluster.class.getSimpleName()));
+	private static Logger logger = LogUtil.create(SSPCluster.class, new BasicFormatter(SSPCluster.class.getSimpleName()));
 	
 	/**
 	 * Creates a new <code>SSPCluster</code> object.

@@ -20,7 +20,7 @@ public class SSPTrigger {
 	protected final int data;
 	
 	// Logger to output status messages.
-	protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(SSPTrigger.class.getSimpleName()));
+	protected static Logger logger = LogUtil.create(SSPTrigger.class, new BasicFormatter(SSPTrigger.class.getSimpleName()));
 	
 	/**
 	 * Instantiates a new <code>SSPTrigger</code> with the indicated
