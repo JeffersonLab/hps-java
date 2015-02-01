@@ -53,6 +53,7 @@ public class ECalRunningPedestalDriver extends Driver {
     private List<Integer>[] eventPedestals = (ArrayList<Integer>[]) new ArrayList[nChannels];
     private List<Long>[] eventTimestamps = (ArrayList<Long>[]) new ArrayList[nChannels];
 
+    private boolean debug = false;
     private EcalConditions ecalConditions = null;
 
     
@@ -61,7 +62,7 @@ public class ECalRunningPedestalDriver extends Driver {
         for (int ii = 0; ii < nChannels; ii++) {
             eventPedestals[ii] = new ArrayList<>();
             eventTimestamps[ii] = new ArrayList<>();
-            runningPedestals.add(-1.); // would like to initialize with DB pedestals, but they're not available yet
+            runningPedestals.add(-1.);
         }
     }
     @Override
@@ -73,27 +74,38 @@ public class ECalRunningPedestalDriver extends Driver {
         ecalConditions = ConditionsManager.defaultInstance()
                 .getCachedConditions(EcalConditions.class,TableConstants.ECAL_CONDITIONS)
                 .getCachedData();
+        for (int ii=0; ii<nChannels; ii++) {
+            runningPedestals.set(ii,getStaticPedestal(ii+1));
+        }
+        if (debug){
+            printPedestals();
+        }
     }
     public void setMinLookbackEvents(int nev) {
+        if (nev<1){
+            System.err.println(
+                    "ECalRunningPedestalDriver:  MinLookbackEvents too small.  Setting to 1.");
+            nev=1;
+        }
         minLookbackEvents = nev;
     }
     public void setMaxLookbackEvents(int nev) {
+        if (nev>limitLookbackEvents){
+            System.err.println(
+                    "ECalRunningPedestalDriver:  MaxLookbackEvents too big.  Setting to "
+                     +limitLookbackEvents+".");
+            nev=limitLookbackEvents;
+        }
         maxLookbackEvents = nev;
     }
     public void setMaxLookbackTime(int time) {
         maxLookbackTime = time;
     }
 
-
-    public double getPedestal(int channel_id) {
-        final int nped = eventPedestals[channel_id - 1].size();
-        if (nped < minLookbackEvents) return getStaticPedestal(channel_id);
-        else                          return runningPedestals.get(channel_id - 1);
-    }
-
     public void printPedestals() {
         for (int ii = 0; ii < nChannels; ii++) {
-            System.out.printf("(%d,%.2f,%.2f) ",ii,runningPedestals.get(ii),getStaticPedestal(ii + 1));
+            System.out.printf("(%d,%.2f,%.2f) ",ii,runningPedestals.get(ii),
+                    getStaticPedestal(ii + 1));
         }
         System.out.printf("\n");
     }
@@ -109,25 +121,19 @@ public class ECalRunningPedestalDriver extends Driver {
             GenericObject extraData = (GenericObject) rel.getTo();
             updatePedestal(event,hit,extraData);
         }
-
-        // quick fix until I know how to read from DB before 'process':
-        List<Double> peds = new ArrayList<Double>(nChannels);
-        for (int ii=0; ii<nChannels; ii++){
-            peds.add(ii,getPedestal(ii+1));
-        }
         
         //
-        // don't care right now whether this persists in output slcio,
+        // Don't care right now whether this persists in output slcio,
         // just that it is accessible during reconstruction (and it is)
         //
         // Another option would be to put hits' running pedestals into HitExtraData.Mode7Data
-        // Or create another LCRelation
-        // Either would also remove the need for indexing later.
+        // Or create another LCRelation.  Either would also remove the need for indexing later.
         //
-        event.put(runningPedestalsName,peds,Double.class,1,"dog");
-//        event.put(runningPedestalsName,runningPedestals,Double.class,1,"dog");
+        event.put(runningPedestalsName,runningPedestals,Double.class,1,"dog");
 
-//        printPedestals();
+        if (debug) {
+            printPedestals();
+        }
     }
 
     public void updatePedestal(EventHeader event, RawCalorimeterHit hit, GenericObject mode7data) {
@@ -160,7 +166,7 @@ public class ECalRunningPedestalDriver extends Driver {
 
         if (eventPedestals[ii].size() > 1) {
 
-            // remove oldest pedestal if we surpassed limit on #events:
+            // remove oldest pedestal if surpassed limit on #events:
             if (eventPedestals[ii].size() > limitLookbackEvents
                     || (maxLookbackEvents > 0 && eventPedestals[ii].size() > maxLookbackEvents)) {
                 eventPedestals[ii].remove(0);
@@ -181,7 +187,7 @@ public class ECalRunningPedestalDriver extends Driver {
         }
 
         // Update running pedestal average:
-        if (eventPedestals[ii].size() > 0) {
+        if (eventPedestals[ii].size() >= minLookbackEvents) {
             double avg = 0;
             for (int jj = 0; jj < eventPedestals[ii].size(); jj++) {
                 avg += eventPedestals[ii].get(jj);
@@ -192,6 +198,12 @@ public class ECalRunningPedestalDriver extends Driver {
         }
     }
 
+    public double getPedestal(int channel_id) {
+        return runningPedestals.get(channel_id-1);
+//        final int nped = eventPedestals[channel_id - 1].size();
+//        if (nped < minLookbackEvents) return getStaticPedestal(channel_id);
+//        else                          return runningPedestals.get(channel_id - 1);
+    }
     public double getPedestal(RawCalorimeterHit hit) {
         return getPedestal(getChannelID(hit));
     }
