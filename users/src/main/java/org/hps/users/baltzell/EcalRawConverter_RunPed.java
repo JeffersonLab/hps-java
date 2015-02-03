@@ -1,6 +1,7 @@
 package org.hps.users.baltzell;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalCalibration;
@@ -56,24 +57,21 @@ public class EcalRawConverter_RunPed {
    
     // NAB January 2015
     // Choose whether to use static pedestal from database or running pedestal:
-    public double getPedestal(EventHeader event, long cellID) {
-        EcalCalibration calib = findChannel(cellID).getCalibration();
+    public double getPedestal(EventHeader event,RawCalorimeterHit hit)
+    {
         if (useRunningPedestal) {
-            // works, but remove indexing by using LCRelation or adding to Mode7Data
             if (event.hasCollection(Double.class,"EcalRunningPedestals")) {
-                List<Double> peds = event.get(Double.class,"EcalRunningPedestals");
-                final int cid = calib.getChannelId()-1;
-                if (cid < 0 || cid>=peds.size()) {
-                    // logger, or throw exception, ...
-                    System.err.println("EcalRawConverter::getPedestal Bad Channel_id: "+cid);
+                Map<RawCalorimeterHit, Double> runningPedMap=
+                        (Map<RawCalorimeterHit, Double>)
+                        event.get("EcalRunningPedestals");
+                if (!runningPedMap.containsKey(hit)){
+                    System.err.println("Missing Key Dog");
                 } else {
-                    // System.out.println(String.format("%d -  %.2f",channel_id-1,peds.get(cid)));
-                    return peds.get(cid);
+                    return runningPedMap.get(hit);
                 }
             }
         }
-        // pedestal from database:
-        return calib.getPedestal();
+        return findChannel(hit.getCellID()).getCalibration().getPedestal();
     }
 
     public short sumADC(RawTrackerHit hit) {
@@ -112,11 +110,7 @@ public class EcalRawConverter_RunPed {
     public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
         double time = hit.getTimeStamp() / 16.0; //timestamps use the full 62.5 ps resolution
         long id = hit.getCellID();
-//        // Get the channel data.
-        EcalChannelConstants channelData = findChannel(id);
-//        double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
-//        double adcSum = hit.getAmplitude() - window * Mode7Data.getAmplLow(mode7Data);                              //A.C. is this the proper way to pedestal subtract in mode 7?
-        double adcSum = hit.getAmplitude() - window * getPedestal(event,id);
+        double adcSum = hit.getAmplitude() - window * getPedestal(event,hit);
         double rawEnergy = adcToEnergy(adcSum, id);        
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
                        
