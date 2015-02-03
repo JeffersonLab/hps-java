@@ -16,7 +16,6 @@
     <execute>
         <driver name="EventMarkerDriver" />
         <driver name="EcalRawConverter" />
-        <!-- <driver name="LegacyClusterer" /> -->
         <driver name="ReconClusterer" />
         <driver name="GTPOnlineClusterer" />
         <driver name="LCIOWriter" />
@@ -31,30 +30,13 @@
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
-        </driver>
-        <!--
-        Uncomment to include legacy clustering from Test Run proposal algorithm.  
-        <driver name="LegacyClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
-            <logLevel>WARNING</logLevel>
-            <outputClusterCollectionName>EcalClustersLegacy</outputClusterCollectionName>
-            <clustererName>LegacyClusterer</clustererName>            
-            <cuts>0.1 0.01</cuts>
-        </driver>
-        -->
+        </driver>       
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
-<!--              
-            <calculateProperties>false</calculateProperties>
-            <applyCorrections>true</applyCorrections>
--->            
-            <!--  
-            <minTime></minTime> 
-            <timeWindow></timeWindow>
-            --> 
             <useTimeCut>false</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
@@ -64,14 +46,8 @@
             <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>
             <!-- seedMinEnergy -->
             <cuts>0.100</cuts>
-<!--              
-            <calculateProperties>true</calculateProperties>
-            <applyCorrections>false</applyCorrections>
--->            
         </driver>        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <!-- Uncomment if you only want specific collections in the output. -->
-            <!-- <writeOnlyCollections>EcalCalHits EcalClusters EcalClustersGTP</writeOnlyCollections> -->
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
