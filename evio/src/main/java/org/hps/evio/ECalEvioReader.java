@@ -97,9 +97,8 @@ public class ECalEvioReader extends EvioReader {
         genericHits = new ArrayList<FADCGenericHit>();
         extraDataList = new ArrayList<HitExtraData>();
         extraDataRelations = new ArrayList<LCRelation>();
-        hitClass = Object.class;
         int flags = 0;
-        for (BaseStructure bank : event.getChildren()) {
+        for (BaseStructure bank : event.getChildrenList()) {
             BaseStructureHeader header = bank.getHeader();
             int crateBankTag = header.getTag();
             int crate = 0;
@@ -115,7 +114,7 @@ public class ECalEvioReader extends EvioReader {
                         System.out.println("ECal bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
                     try {
-                        for (BaseStructure slotBank : bank.getChildren()) {
+                        for (BaseStructure slotBank : bank.getChildrenList()) {
 //                            if (isTriggerBank(slotBank.getHeader().getTag(), lcsimEvent.getRunNumber()) != 0) {
 //                                if (debug) {
 //                                    int[] data = slotBank.getIntData();

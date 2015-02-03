@@ -99,7 +99,7 @@ public class SVTEvioReader extends EvioReader {
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
 
         boolean foundBank = false;
-        for (BaseStructure crateBank : event.getChildren()) {
+        for (BaseStructure crateBank : event.getChildrenList()) {
             int crateTag = crateBank.getHeader().getTag();
 
             // Process only events inside the SVT Bank

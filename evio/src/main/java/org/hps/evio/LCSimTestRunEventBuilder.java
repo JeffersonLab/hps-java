@@ -115,7 +115,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         List<AbstractIntData> triggerList = getTriggerData(evioEvent);
 
         if (evioEvent.getChildCount() > 0) {
-            for (BaseStructure bank : evioEvent.getChildren()) {
+            for (BaseStructure bank : evioEvent.getChildrenList()) {
                 if (bank.getHeader().getTag() == EvioEventConstants.EVENTID_BANK_TAG) {
                     eventID = bank.getIntData();
                 }

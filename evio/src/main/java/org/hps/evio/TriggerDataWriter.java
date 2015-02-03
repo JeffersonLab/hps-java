@@ -29,7 +29,7 @@ public class TriggerDataWriter implements HitWriter {
         // Make a new bank for this crate.
         BaseStructure topBank = null;
         // Does this bank already exist?
-        for (BaseStructure bank : builder.getEvent().getChildren()) {
+        for (BaseStructure bank : builder.getEvent().getChildrenList()) {
             if (bank.getHeader().getTag() == EventConstants.ECAL_TOP_BANK_TAG) {
                 topBank = bank;
                 break;

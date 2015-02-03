@@ -129,7 +129,7 @@ public class ECalHitWriter implements HitWriter {
         BaseStructure topBank = null;
         BaseStructure botBank = null;
         // Do these banks already exist?
-        for (BaseStructure bank : builder.getEvent().getChildren()) {
+        for (BaseStructure bank : builder.getEvent().getChildrenList()) {
             switch (bank.getHeader().getTag()) {
                 case ECAL_TOP_BANK_TAG:
                     topBank = bank;

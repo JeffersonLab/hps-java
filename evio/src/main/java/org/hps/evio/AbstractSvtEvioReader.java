@@ -149,7 +149,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		}
 
 		// Loop over the SVT data banks
-		for (BaseStructure dataBank : svtBanks.get(0).getChildren()) {
+		for (BaseStructure dataBank : svtBanks.get(0).getChildrenList()) {
 
 			// Get the bank tag and check whether it's within the allowable
 			// ranges. If not, throw an exception

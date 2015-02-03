@@ -55,7 +55,7 @@ public class BasicEvioFileReader {
         System.out.println(indent + "Bank has " + bank.getChildCount() + " sub-banks.");
         System.out.format(indent + "Bank tag: 0x%x length: %d type: %s num: %d\n", bank.getHeader().getTag(), bank.getHeader().getLength(), bank.getHeader().getDataType(), bank.getHeader().getNumber());
         if (bank.getChildCount() > 0) {
-            for (BaseStructure child : bank.getChildren()) {
+            for (BaseStructure child : bank.getChildrenList()) {
                 printBank(child, indent + "\t");
             }
         }
