@@ -316,8 +316,8 @@ public class GBLOutput {
                 		for (MCParticle particle : hit.getMCParticles())  System.out.printf("%s: %d p %s \n",this.getClass().getSimpleName(),particle.getPDGID(),particle.getMomentum().toString());
                 		System.out.printf("%s: these are sim hits in the event:\n",this.getClass().getSimpleName());
                 		for (SimTrackerHit simhit : simTrackerHits) System.out.printf("%s sim hit at %s with MC particle pdgid %d with p %s \n",this.getClass().getSimpleName(),simhit.getPositionVec().toString(),simhit.getMCParticle().getPDGID(),simhit.getMCParticle().getMomentum().toString());
-                		System.out.printf("%s: these are all the MC particles in the event:\n",this.getClass().getSimpleName());
-                		System.exit(1);
+                		//System.out.printf("%s: these are all the MC particles in the event:\n",this.getClass().getSimpleName());
+                		//System.exit(1);
                 	}
 
                 	if(_debug>0) {

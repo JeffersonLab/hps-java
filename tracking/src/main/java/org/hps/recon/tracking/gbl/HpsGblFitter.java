@@ -66,12 +66,14 @@ public class HpsGblFitter {
     }
 
     public HpsGblFitter(double Bz, MultipleScattering scattering, boolean isMCFlag) {
+        System.out.printf("%s: Constructor\n",getClass().getSimpleName());
         isMC = isMCFlag;
         _B = Bz;
         _bfac = Bz * Constants.fieldConversion;
         _trackHitUtils = new TrackerHitUtils();
         _scattering = scattering;
-        System.out.println("Constructor");
+        System.out.printf("%s: b-field set to %f (%f)\n",getClass().getSimpleName(), _B, _bfac);
+        System.out.printf("%s: Constructor end\n",getClass().getSimpleName());
     }
 
     public void setMilleBinary(MilleBinary mille) {

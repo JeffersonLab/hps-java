@@ -2,16 +2,19 @@ package org.hps.recon.tracking.gbl;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
+import org.lcsim.recon.tracking.seedtracker.MakeTracks;
 import org.lcsim.util.Driver;
 
 import static java.lang.Math.sin;
@@ -33,7 +36,7 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
  */
 public class HpsGblRefitter extends Driver
 {
-
+    private enum gblFitResult {SUCCESS, FAILURE};
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -42,6 +45,8 @@ public class HpsGblRefitter extends Driver
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
     private boolean writeMilleBinary = false;
+    
+    private MakeGblTracks _makeTracks = null;
 
     public void setDebug(boolean debug)
     {
@@ -60,6 +65,7 @@ public class HpsGblRefitter extends Driver
 
     public HpsGblRefitter()
     {
+        _makeTracks = new MakeGblTracks();
     }
 
     @Override
@@ -81,9 +87,9 @@ public class HpsGblRefitter extends Driver
     @Override
     protected void process(EventHeader event)
     {
-        Hep3Vector bfield = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
-        double By = bfield.y();
-        double bfac = 0.0002998 * By;
+        Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
+        double bfield = bfieldvec.y();
+        double bfac = 0.0002998 * bfield;
         // get the tracks
 //        List<Track> tracks = null;
         if (event.hasCollection(Track.class, trackCollectionName)) {
@@ -116,13 +122,16 @@ public class HpsGblRefitter extends Driver
         List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
         //need a map of GBLTrackData keyed on the Generic object from which it created
         Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
-
+        //need a map of SeedTrack to GBLTrackData keyed on the track object from which it created
+        Map<GBLTrackData, Track> gblToSeedMap  = new HashMap<GBLTrackData, Track>();
+        
         // loop over the relations
         for (LCRelation relation : track2GblTrackRelations) {
             Track t = (Track) relation.getFrom();
             GenericObject gblTrackObject = (GenericObject) relation.getTo();
             GBLTrackData gblT = new GBLTrackData(gblTrackObject);
             gblObjMap.put(gblTrackObject, gblT);
+            gblToSeedMap.put(gblT, t);
         } //end of loop over tracks
 
         //get the strip hit relations
@@ -144,16 +153,29 @@ public class HpsGblRefitter extends Driver
             }
         }
 
-        Set<GBLTrackData> keys = stripsGblMap.keySet();
+        Map<GblTrajectory,Track> trackFits = new HashMap<GblTrajectory,Track>();
         int trackNum = 0;
-        for (GBLTrackData t : keys) {
-            int stat = fit(t, stripsGblMap.get(t), bfac);
+        for (GBLTrackData t : stripsGblMap.keySet()) {
+            GblTrajectory traj = fit(t, stripsGblMap.get(t), bfac);
             ++trackNum;
+            if(traj!=null) {
+                if(_debug) System.out.printf("%s: GBL fit successful.\n",getClass().getSimpleName());
+                Track seed = gblToSeedMap.get(t);
+                trackFits.put(traj, seed);
+            } else {
+                if(_debug) System.out.printf("%s: GBL fit failed.\n",getClass().getSimpleName());                
+            }
         }
+        if(_debug) System.out.printf("%s: Save %d/%d GBL fitted tracks in this event.\n",getClass().getSimpleName(),trackFits.size(), trackNum);    
+        
+        _makeTracks.Process(event, trackFits, bfield);
 
+        if(_debug) System.out.printf("%s: Done.\n",getClass().getSimpleName());
+        
+        
     }
 
-    private int fit(GBLTrackData track, List<GBLStripClusterData> hits, double bfac)
+    private GblTrajectory fit(GBLTrackData track, List<GBLStripClusterData> hits, double bfac)
     {
         // path length along trajectory
         double s = 0.;
@@ -381,7 +403,7 @@ public class HpsGblRefitter extends Driver
 
         if (!traj.isValid()) {
             System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
-            return 1;//INVALIDTRAJ;
+            return null; //1;//INVALIDTRAJ;
         }
 
         // print the trajectory
@@ -414,7 +436,7 @@ public class HpsGblRefitter extends Driver
             traj.milleOut(mille);
         }
 //
-        return 0;
+        return traj;
     }
 
     @Override

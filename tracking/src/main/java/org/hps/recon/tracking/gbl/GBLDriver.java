@@ -35,20 +35,24 @@ public class GBLDriver extends Driver {
 		_debug = debug;
 	}
 	
-	public void setMC(boolean mcflag) {
+	public void setIsMC(boolean mcflag) {
 		_isMC = mcflag;
 	}
 	
 	protected void detectorChanged(Detector det) {
-		 Hep3Vector bfield = det.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
+	    System.out.printf("%s: detectorChanged\n",getClass().getSimpleName());
+        Hep3Vector bfieldvec = det.getFieldMap().getField(new BasicHep3Vector(0., 1., 0.));
+        double bfield = bfieldvec.y();
+        System.out.printf("%s: b-field %s\n",getClass().getSimpleName(),bfieldvec.toString());
 		 _materialManager = new MaterialSupervisor();
 		 _scattering = new MultipleScattering(_materialManager);
 		 _materialManager.buildModel(det);
-		 _scattering.setBField(Math.abs(bfield.z())); // only absolute of B is needed as it's used for momentum calculation only
-		 _gbl_fitter = new HpsGblFitter(bfield.z(), _scattering, _isMC);
+		 _scattering.setBField(Math.abs(bfield)); // only absolute of B is needed as it's used for momentum calculation only
+		 _gbl_fitter = new HpsGblFitter(bfield, _scattering, _isMC);
 		 if(!milleBinaryName.equalsIgnoreCase("")) {
 			 _gbl_fitter.setMilleBinary(new MilleBinary());
 		 }
+		 System.out.printf("%s: detectorChanged end\n",getClass().getSimpleName());
 	}
 
 	protected void process(EventHeader event) {
