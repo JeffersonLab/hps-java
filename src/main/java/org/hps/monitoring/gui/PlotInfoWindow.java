@@ -8,10 +8,12 @@ import hep.aida.IDataPointSet;
 import hep.aida.IFunction;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import hep.aida.jfree.plotter.ObjectStyle;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.event.AIDAListener;
 import hep.aida.ref.event.AIDAObservable;
+import hep.aida.ref.function.FunctionChangedEvent;
+import hep.aida.ref.function.FunctionDispatcher;
+import hep.aida.ref.function.FunctionListener;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -37,16 +39,12 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  * <p>
- * This is a GUI component for showing the statistics and other information about an AIDA plot.
+ * This is a GUI component for showing the statistics and other information about an AIDA plot
+ * when it is clicked on in the monitoring app.
  * <p>
- * This information is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
+ * The information is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
  */
-// FIXME: Add addRows for all types of AIDA objects (only Histogram1D implemented so far).
-// FIXME: Columns disappear when rebuilding table.
-// TODO: Add sorting of info table.
-// TODO: Probably this should be moved out of monitoring application as it is generically applicable
-// to AIDA objects.
-public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListener {
+public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListener, FunctionListener {
 
     JComboBox<Object> plotComboBox;
     JTable infoTable = new JTable();
@@ -59,7 +57,7 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
 
     static final String[] COLUMN_NAMES = { "Field", "Value" };
 
-    static final String PLOT_SELECTED = "PLOT_SELECTED";
+    static final String PLOT_SELECTED = "PlotSelected";
 
     Timer timer = new Timer();
 
@@ -125,12 +123,13 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
      */
     @Override
     public void stateChanged(final EventObject evt) {
-
+               
         // Make a timer task for running the update.
         TimerTask task = new TimerTask() {
             public void run() {
+                                
                 // Is the state change from the current AIDAObservable?
-                if (evt.getSource() != PlotInfoWindow.this.currentObject) {
+                if (evt.getSource() != currentObject) {
                     // Assume this means that a different AIDAObservable was selected in the GUI.
                     return;
                 }
@@ -157,17 +156,18 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Was a new item selected in the combo box?
+        // Is there a new item selected in the combo box?
         if (PLOT_SELECTED.equals(e.getActionCommand())) {
             if (plotComboBox.getSelectedItem() != null) {
-                // Set the current object from the combo box to update the GUI state.
+                // Set the current object from the combo box value, to update the GUI state.
                 setCurrentObject(plotComboBox.getSelectedItem());
             }
         }
     }
 
     /**
-     * Get the title of an AIDA object. Unfortunately there is not base type with this information.
+     * Get the title of an AIDA object.  Unfortunately there is no base type with this information,
+     * so it is gotten manually from each possible type.
      * @param object The AIDA object.
      * @return The title of the object from its title method or value of its toString method, if
      *         none exists.
@@ -230,6 +230,8 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
             if (((ICloud1D) currentObject).isConverted()) {
                 addRows(((ICloud1D) currentObject).histogram());
             }
+        } else if (currentObject instanceof IFunction) {
+            addRows((IFunction) currentObject);
         }
     }
 
@@ -252,7 +254,7 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
         List<Object> objects = currentRegion.getPlottedObjects();
         for (Object object : objects) {
             if (isValidObject(object)) {
-                this.plotComboBox.addItem(object);
+                plotComboBox.addItem(object);
             }
         }
     }
@@ -262,9 +264,8 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
             return false;
         if (object instanceof IBaseHistogram || object instanceof IFunction || object instanceof IDataPointSet) {
             return true;
-        } else {
-            return false;
-        }
+        } 
+        return false;
     }
 
     /**
@@ -321,7 +322,20 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
         addRow("x rms", String.format("%.10f%n", cloud.rmsX()));
         addRow("y rms", String.format("%.10f%n", cloud.rmsY()));
     }
-
+    
+    /**
+     * Add rows to the info table from the state of a 2D cloud.
+     * @param cloud The AIDA object.
+     */
+    void addRows(IFunction function) {
+        addRow("title", function.title());
+        
+        // Add generically the values of all function parameters.
+        for (String parameter : function.parameterNames()) {
+            addRow(parameter, function.parameter(parameter));
+        }
+    }
+    
     /**
      * Add a row to the info table.
      * @param field The field name.
@@ -336,10 +350,10 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
      * @param object The backing AIDA object.
      */
     synchronized void setCurrentObject(Object object) {
-
+        
         if (object == null)
             throw new IllegalArgumentException("The object arg is null!");
-
+        
         if (object == currentObject)
             return;
 
@@ -359,13 +373,17 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
     }
 
     /**
-     * Remove this object as an <code>AIDAListener</code> on the current <code>AIDAObservable</code>
-     * .
+     * Remove this as a listener on the current AIDA object.
      */
     void removeListener() {
         if (currentObject != null) {
-            // Remove this object as a listener on the current observable.
-            ((AIDAObservable) currentObject).removeListener(this);
+            if (currentObject instanceof AIDAObservable && !(currentObject instanceof IFunction)) {
+                // Remove this object as an listener on the AIDA observable.
+                ((AIDAObservable) currentObject).removeListener(this);
+            } else if (currentObject instanceof FunctionDispatcher) {
+                // Remove this object as function listener.
+                ((FunctionDispatcher)currentObject).removeFunctionListener(this);
+            }
         }
     }
 
@@ -373,12 +391,29 @@ public class PlotInfoWindow extends JFrame implements AIDAListener, ActionListen
      * Add this object as an <code>AIDAListener</code> on the current <code>AIDAObservable</code>.
      */
     void addListener() {
-        if (currentObject instanceof AIDAObservable) {
+        if (currentObject instanceof AIDAObservable && !(currentObject instanceof FunctionDispatcher)) {
             // Setup a listener on the current AIDA object.
             AIDAObservable observable = (AIDAObservable) currentObject;
             observable.addListener(this);
             observable.setValid(this);
             observable.setConnected(true);
+        } else if (currentObject instanceof IFunction) {
+            if (currentObject instanceof FunctionDispatcher) {
+                ((FunctionDispatcher)currentObject).addFunctionListener(this);
+            }
+        }
+    }
+
+    /**
+     * Callback for updating from changed to <code>IFunction</code> object.
+     * @param event The change event (unused in this method).
+     */
+    @Override
+    public void functionChanged(FunctionChangedEvent event) {
+        try {
+            runUpdateTable();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
