@@ -449,10 +449,12 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public void remove(String property) {
-        Object oldValue = config.get(property);
-        if (oldValue != null) {
-            config.remove(property);
-            firePropertyChange(property, oldValue, null);
+        if (hasPropertyKey(property)) {
+            Object oldValue = config.get(property);
+            if (oldValue != null) {
+                config.remove(property);
+                firePropertyChange(property, oldValue, null);
+            }
         }
     }
     
