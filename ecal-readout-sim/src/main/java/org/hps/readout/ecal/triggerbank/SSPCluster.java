@@ -1,5 +1,6 @@
 package org.hps.readout.ecal.triggerbank;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.util.log.BasicFormatter;
@@ -21,6 +22,9 @@ public final class SSPCluster {
     
     // Output potential errors or messages.
     private static Logger logger = LogUtil.create(SSPCluster.class, new BasicFormatter(SSPCluster.class.getSimpleName()));
+    static {
+        logger.setLevel(Level.WARNING);
+    }
     
     /**
      * Creates a new <code>SSPCluster</code> object.
