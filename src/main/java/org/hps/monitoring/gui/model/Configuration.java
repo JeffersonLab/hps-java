@@ -85,9 +85,11 @@ public final class Configuration {
      */
     String get(String key) {
         if (checkKey(key)) {
+            // Return the key value for properties that are set.
             return properties.getProperty(key);
         } else {
-            throw new IllegalArgumentException("The key " + key + " does not exist in this configuration with a valid value.");
+            // Return null for unset properties.
+            return null;
         }
     }
 

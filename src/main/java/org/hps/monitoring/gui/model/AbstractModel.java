@@ -54,9 +54,11 @@ public abstract class AbstractModel {
 
     // FIXME: This method is kind of a hack. Any other good way to do this?
     public void fireAllChanged() {
+        System.out.println("AbstractModel.fireAllChanged");
         if (!listenersEnabled)
             return;
-       propertyLoop: for (String property : getPropertyNames()) {            
+       propertyLoop: for (String property : getPropertyNames()) {
+           System.out.println("  prop = " + property);
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
@@ -68,12 +70,13 @@ public abstract class AbstractModel {
                 Object value = null;
                 try {
                     value = getMethod.invoke(this, (Object[]) null);
+                    System.out.println("  value = " + value);
                 } catch (NullPointerException e) {
                     // This means there is no get method for the property which is a throwable error.
                     throw new RuntimeException("Property " + property + " is missing a get method.", e);
                 } catch (InvocationTargetException e) {
                     // Is the cause of the problem an illegal argument to the method?
-                    System.out.println("cause: " + e.getCause().getClass().getCanonicalName());
+                    System.out.println("cause: " + e.getCause().getMessage());
                     if (e.getCause() instanceof IllegalArgumentException) {
                         // For this error, assume that the key itself is missing from the configuration which is a warning.
                         System.err.println("The key " + property + " is not set in the configuration.");
@@ -82,18 +85,18 @@ public abstract class AbstractModel {
                         throw new RuntimeException(e);
                     }
                 }
-                // Is the value non-null?  Null values are actually okay.
-                //if (value != null) {
-                firePropertyChange(property, value, value);
-                for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
-                    // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!
-                    listener.propertyChange(new PropertyChangeEvent(this, property, value, value));
+                if (value != null) {
+                    firePropertyChange(property, value, value);
+                    for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
+                        // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!
+                        listener.propertyChange(new PropertyChangeEvent(this, property, value, value));
+                    }
                 }
-                //}
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw new RuntimeException(e);
             }
-        }
+            System.out.println();
+        }                
     }
     
     /**
