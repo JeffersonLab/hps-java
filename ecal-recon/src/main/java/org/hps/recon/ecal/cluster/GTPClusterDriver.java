@@ -15,11 +15,11 @@ package org.hps.recon.ecal.cluster;
  */
 public class GTPClusterDriver extends ClusterDriver {
     // The GTP clustering algorithm.
-	private final GTPClusterer gtp;
-	
-	/**
-	 * Instantiates a new <code>GTPClusterer</code>.
-	 */
+    private final GTPClusterer gtp;
+    
+    /**
+     * Instantiates a new <code>GTPClusterer</code>.
+     */
     public GTPClusterDriver() {
         clusterer = ClustererFactory.create("GTPClusterer");
         gtp = (GTPClusterer) clusterer;
@@ -37,7 +37,7 @@ public class GTPClusterDriver extends ClusterDriver {
     @Deprecated
     void setLimitClusterRange(boolean limitClusterRange) {
         gtp.setLimitClusterRange(limitClusterRange);
-    }        
+    }
     
     /**
      * Sets the number of clock-cycles (4 ns) before and after a hit
@@ -58,7 +58,7 @@ public class GTPClusterDriver extends ClusterDriver {
      * @param seedEnergyThreshold - The minimum seed energy in GeV.
      */
     public void setSeedEnergyThreshold(double seedEnergyThreshold) {
-    	gtp.getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
+        gtp.getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
     }
     
     /**
@@ -73,7 +73,7 @@ public class GTPClusterDriver extends ClusterDriver {
      * should not.
      */
     public void setAsymmetricWindow(boolean asymmetricWindow) {
-    	gtp.setLimitClusterRange(asymmetricWindow);
+        gtp.setLimitClusterRange(asymmetricWindow);
     }
     
     /**
@@ -83,6 +83,6 @@ public class GTPClusterDriver extends ClusterDriver {
      * output diagnostic text and <code>false</code> that it should not.
      */
     public void setVerbose(boolean verbose) {
-    	gtp.setVerbose(verbose);
+        gtp.setVerbose(verbose);
     }
 }

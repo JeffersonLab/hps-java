@@ -36,9 +36,8 @@ import org.lcsim.event.base.BaseCluster;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-// TODO: Handle time window arguments.
 public class GTPOnlineClusterer extends AbstractClusterer {
-
+    
     // The size of the temporal window in nanoseconds. By default,
     // this is 1 clock-cycle before and 3 clock-cycles after.
     private double timeBefore = 4;
@@ -48,19 +47,18 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     // Cluster formation energy thresholds. Currently, the hardware
     // only supports a lower bound seed energy. Units are in GeV.
     private double seedThreshold = 0.050;
-
+    
     // Internal variables.
     private boolean verbose = false;
     
     GTPOnlineClusterer() {
-        super(new String[] { "seedThreshold" }, 
-                new double[] { 0.050 });
+        super(new String[] { "seedThreshold" }, new double[] { 0.050 });
     }
-
+    
     public void initialize() {
         seedThreshold = getCuts().getValue("seedThreshold");
     }
-
+    
     /**
      * Reads in hits and processes them into clusters as per the GTP
      * clustering algorithm implemented in the hardware.
@@ -68,13 +66,13 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      */
     @Override
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitList) {
-
+    	
         // Track the valid clusters.
         List<Cluster> clusterList = new ArrayList<Cluster>();
-
+        
         // VERBOSE :: Indicate whether the event has hits.
         //if(verbose) { System.out.printf("Event %7d :: Has hits [%5b]%n", event.getEventNumber(), hasHits); }
-
+        
         // Sort the hits by time in reverse order.
         Collections.sort(hitList, new Comparator<CalorimeterHit>() {
             @Override
@@ -82,7 +80,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 return Double.compare(secondHit.getTime(), firstHit.getTime());
             }
         }); 
-
+        
         // VERBOSE :: Print the hit information.
         if(verbose) { 
             for(CalorimeterHit hit : hitList) {
@@ -90,18 +88,18 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 int iy = hit.getIdentifierFieldValue("iy");
                 double energy = hit.getCorrectedEnergy();
                 double time = hit.getTime();
-
+                
                 System.out.printf("\tHit --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
             }
         }
-
+        
         // A seed hit is a hit that is the largest both within its
         // spatial range (+/- 1 in the ix and iy direction) and
         // within a certain temporal window. If a hit is a seed, all
         // hits within the 3x3 spatial range around it that are also
         // within the temporal window are considered part of the
         // cluster.
-
+        
         // Iterate over each hit and see if it qualifies as a seed hit.
         seedLoop:
             for(CalorimeterHit seed : hitList) {
@@ -110,26 +108,26 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 if(seed.getCorrectedEnergy() < seedThreshold) {
                     continue seedLoop;
                 }
-
+                
                 // Create a cluster for the potential seed.
                 BaseCluster protoCluster = createBasicCluster();
                 protoCluster.addHit(seed);
                 protoCluster.setPosition(seed.getDetectorElement().getGeometry().getPosition().v());
                 protoCluster.setNeedsPropertyCalculation(false);
-
+                
                 // Iterate over the other hits and if the are within
                 // the clustering spatiotemporal window, compare their
                 // energies.
                 for(CalorimeterHit hit : hitList) {
                     // Do not perform the comparison if the hit is the
                     // current potential seed.
-                    if (hit != seed) {
+                    if(hit != seed) {
                         // Check if the hit is within the spatiotemporal
                         // clustering window.
-                        if (withinTimeVerificationWindow(seed, hit) && withinSpatialWindow(seed, hit)) {
+                        if(withinTimeVerificationWindow(seed, hit) && withinSpatialWindow(seed, hit)) {
                             // Check if the hit invalidates the potential
                             // seed.
-                            if (isValidSeed(seed, hit)) {
+                            if(isValidSeed(seed, hit)) {
                                 // Make sure that the hit is also within
                                 // the hit add window; this may not be
                                 // the same as the verification window
@@ -138,7 +136,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                                     protoCluster.addHit(hit);
                                 }
                             }
-
+                            
                             // If it is not, then skip the rest of the
                             // loop; the potential seed is not really
                             // a seed.
@@ -147,13 +145,13 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                     }
                 }
                 
-
+                
                 // If this point is reached, then the seed was not
                 // invalidated by any of the other hits and is really
                 // a cluster center. Add the cluster to the list.
                 clusterList.add(protoCluster);
             }
-
+        
         // VERBOSE :: Print out all the clusters in the event.
         if(verbose) { 
             for(Cluster cluster : clusterList) {
@@ -162,9 +160,9 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 int iy = seedHit.getIdentifierFieldValue("iy");
                 double energy = cluster.getEnergy();
                 double time = seedHit.getTime();
-
+                
                 System.out.printf("\tCluster --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
-
+                
                 for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     int hix = hit.getIdentifierFieldValue("ix");
                     int hiy = hit.getIdentifierFieldValue("iy");
@@ -174,13 +172,13 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 }
             }
         }
-                
+        
         // VERBOSE :: Print a new line.
         if(verbose) { System.out.println(); }
-
+        
         return clusterList;
     }
-
+    
     /**
      * Checks whether the hit <code>hit</code> keeps the hit <code>seed
      * </code> from meeting the criteria for being a seed hit. Note that
@@ -196,24 +194,24 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Get the hit and seed energies.
         double henergy = hit.getCorrectedEnergy();
         double senergy = seed.getCorrectedEnergy();
-
+        
         // If the hit energy is less than the seed, the seed is valid.
         if(henergy < senergy) {
             return true;
         }
-
+        
         // If the hit energy is the same as the seed energy, spatial
         // comparisons are used to ensure the uniqueness of the seed.
         if(henergy == senergy) {
             // Get the x-indices of the hits.
             int six = seed.getIdentifierFieldValue("ix");
             int hix = hit.getIdentifierFieldValue("ix");
-
+            
             // The hit closest to the electron-side of the detector
             // is considered the seed.
             if(six < hix) { return true; }
             else if(six > hix) { return false; }
-
+            
             // If both hits are at the same x-index, compare how close
             // they are to the beam gap.
             else {
@@ -222,11 +220,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 // to the beam gap.
                 int siy = Math.abs(seed.getIdentifierFieldValue("iy"));
                 int hiy = Math.abs(seed.getIdentifierFieldValue("iy"));
-
+                
                 // If the seed is closer, it is valid.
                 if(siy < hiy) { return true; }
                 else if(siy > hiy) { return false; }
-
+                
                 // If the y-index is the same, these are the same hit.
                 // This case shouldn't really ever happen, but for the
                 // compiler's sake, it returns true. A hit can not render
@@ -234,11 +232,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 else { return true; }
             }
         }
-
+        
         // Otherwise, the seed is invalid.
         else { return false; }
     }
-
+    
     /**
      * Checks whether the hit <code>hit</code> falls within the spatial
      * window of the hit <code>Seed</code>. This is defined as within
@@ -255,23 +253,23 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Get the x-indices of each hit.
         int six = seed.getIdentifierFieldValue("ix");
         int hix = hit.getIdentifierFieldValue("ix");
-
+        
         // Check that the x indices are either the same or within a
         // range of one of one another.
         if((six == hix) || (six + 1 == hix) || (six - 1 == hix)) {
             // Get the y-indices of each hit.
             int siy = seed.getIdentifierFieldValue("iy");
             int hiy = hit.getIdentifierFieldValue("iy");
-
+            
             // Ensure that the y-indices are either the same or are
             // within one of one another.
             return (siy == hiy) || (siy + 1 == hiy) || (siy - 1 == hiy);
         }
-
+        
         // If the x-index comparison fails, return false.
         return false;
     }
-
+    
     /**
      * Checks whether the hit <code>hit</code> is within the temporal
      * window of the hit <code>seed</code> for the purpose of seed
@@ -287,11 +285,11 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         if(Math.abs(seed.getTime() - hit.getTime()) <= timeWindow) {
             return true;
         }
-
+        
         // Otherwise, they are not.
         else { return false; }
     }
-
+    
     /**
      * Checks whether the hit <code>hit</code> is within the temporal
      * window of the hit <code>seed</code> for the purpose of adding
@@ -306,25 +304,25 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Get the hit time and seed time.
         double hitTime = hit.getTime();
         double seedTime = seed.getTime();
-
+        
         // If the hit is before the seed, use the before window.
         if(hitTime < seedTime) {
             return (seedTime - hitTime) <= timeBefore;
         }
-
+        
         // If the hit occurs after the seed, use the after window.
         else if(hitTime > seedTime) {
             return (hitTime - seedTime) <= timeAfter;
         }
-
+        
         // If the times are the same, the are within the window.
         if(hitTime == seedTime) { return true; }
-
+        
         // Otherwise, one or both times is undefined and should not be
         // treated as within time.
         else { return false; }
     }
- 
+    
     /**
      * Sets the minimum energy a hit must have before it will be
      * considered for cluster formation.
@@ -333,7 +331,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     public void setSeedLowThreshold(double seedThreshold) {
         this.seedThreshold = seedThreshold;
     }
-
+    
     /**
      * Sets the number of clock-cycles to include in the clustering
      * window before the seed hit. One clock-cycle is four nanoseconds.
@@ -344,7 +342,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         timeBefore = cyclesBefore * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
     }
-
+    
     /**
      * Sets the number of clock-cycles to include in the clustering
      * window after the seed hit. One clock-cycle is four nanoseconds.
@@ -355,7 +353,17 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         timeAfter = cyclesAfter * 4;
         timeWindow = Math.max(timeBefore, timeAfter);
     }
-
+    
+    /**
+     * Sets whether the clusterer should output diagnostic text or not.
+     * @param verbose - <code>true</code> indicates that the clusterer
+     * should output diagnostic text and <code>false</code> that it
+     * should not.
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+    
     @Override
     public ClusterType getClusterType() {
         return ClusterType.GTP_ONLINE;
