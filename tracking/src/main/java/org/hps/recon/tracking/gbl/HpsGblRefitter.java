@@ -1,5 +1,8 @@
 package org.hps.recon.tracking.gbl;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -7,23 +10,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.logging.Logger;
 
+import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.seedtracker.MakeTracks;
 import org.lcsim.util.Driver;
-
-import static java.lang.Math.sin;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.abs;
-
-import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
-import org.hps.recon.tracking.gbl.matrix.Vector;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
@@ -36,7 +34,7 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
  */
 public class HpsGblRefitter extends Driver
 {
-    private enum gblFitResult {SUCCESS, FAILURE};
+    private static Logger logger = LogUtil.create(HpsGblRefitter.class);
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -153,16 +151,19 @@ public class HpsGblRefitter extends Driver
             }
         }
 
-        Map<GblTrajectory,Track> trackFits = new HashMap<GblTrajectory,Track>();
+        List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
         int trackNum = 0;
         for (GBLTrackData t : stripsGblMap.keySet()) {
-            GblTrajectory traj = fit(t, stripsGblMap.get(t), bfac);
+            FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac);
             ++trackNum;
             if(traj!=null) {
+                logger.info("GBL fit successful");
                 if(_debug) System.out.printf("%s: GBL fit successful.\n",getClass().getSimpleName());
-                Track seed = gblToSeedMap.get(t);
-                trackFits.put(traj, seed);
+                traj.set_seed(gblToSeedMap.get(t));
+                traj.set_track_data(t);
+                trackFits.add(traj);
             } else {
+                logger.info("GBL fit failed");
                 if(_debug) System.out.printf("%s: GBL fit failed.\n",getClass().getSimpleName());                
             }
         }
@@ -175,7 +176,7 @@ public class HpsGblRefitter extends Driver
         
     }
 
-    private GblTrajectory fit(GBLTrackData track, List<GBLStripClusterData> hits, double bfac)
+    private FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac)
     {
         // path length along trajectory
         double s = 0.;
@@ -211,7 +212,7 @@ public class HpsGblRefitter extends Driver
             // Path length step for this cluster
             double step = strip.getPath3D() - s;
             if (_debug) {
-                System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath());
+                System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
             }
             // Measurement direction (perpendicular and parallel to strip direction)
             Matrix mDir = new Matrix(2, 3);
@@ -297,7 +298,7 @@ public class HpsGblRefitter extends Driver
                 System.out.println("HpsGblFitter: " + "measPrec:");
                 measPrec.print(4, 6);
             }
-
+            
             //Find the Jacobian to be able to propagate the covariance matrix to this strip position
             jacPointToPoint = gblSimpleJacobianLambdaPhi(step, cosLambda, abs(bfac));
 
@@ -389,10 +390,8 @@ public class HpsGblRefitter extends Driver
              ##### 
 
              */
-            if (_debug) {
-                System.out.println("HpsGblFitter: " + "uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
-            }
-
+            logger.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+            
             //go to next point
             s += step;
 
@@ -417,10 +416,7 @@ public class HpsGblRefitter extends Driver
         double[] dVals = new double[2];
         int[] iVals = new int[1];
         traj.fit(dVals, iVals, "");
-        if (_debug) {
-            System.out.println("HpsGblFitter: Chi2 " + " Fit: " + dVals[0] + ", " + iVals[0] + ", " + dVals[1]);
-        }
-
+        logger.info("fit result: Chi2="+ dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
         Vector aCorrection = new Vector(5);
         SymMatrix aCovariance = new SymMatrix(5);
         traj.getResults(1, aCorrection, aCovariance);
@@ -431,12 +427,14 @@ public class HpsGblRefitter extends Driver
             aCovariance.print(6, 4);
         }
 
+        logger.info("locPar " + aCorrection.toString());
+        
 //	// write to MP binary file
         if (writeMilleBinary) {
             traj.milleOut(mille);
         }
 //
-        return traj;
+        return new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
     }
 
     @Override
@@ -471,6 +469,56 @@ public class HpsGblRefitter extends Driver
         jac.set(3, 2, ds * cosl);
         jac.set(4, 1, ds);
         return jac;
+    }
+    
+    public static class FittedGblTrajectory {
+        public static enum GBLPARIDX {
+            QOVERP(0),XTPRIME(1),YTPRIME(2),XT(3),YT(3);
+            private int _value;
+            private GBLPARIDX(int value) {
+                _value = value;
+            }
+            public int getValue() {
+                return _value;
+            }
+        };
+        private GblTrajectory _traj;
+        private double _chi2;
+        private double _lost;
+        private int _ndf;
+        private Track _seed = null;
+        private GBLTrackData _t = null;
+        public FittedGblTrajectory(GblTrajectory traj, double chi2, int ndf, double lost) {
+            _traj = traj;
+            _chi2 = chi2;
+            _ndf = ndf;
+            _lost = lost;
+        }
+        public void set_track_data(GBLTrackData t) {
+           _t  = t;
+        }
+        public GBLTrackData get_track_data() {
+            return _t;
+        }
+        public void set_seed(Track seed) {
+            _seed = seed;
+        }
+        public Track get_seed() {
+            return _seed;
+        }
+        public GblTrajectory get_traj() {
+            return _traj;
+        }
+        public double get_chi2() {
+            return _chi2;
+        }
+        public double get_lost() {
+            return _lost;
+        }
+        public int get_ndf() {
+            return _ndf;
+        }
+        
     }
 
 }
