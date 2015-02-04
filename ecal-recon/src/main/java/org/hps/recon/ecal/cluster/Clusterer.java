@@ -21,6 +21,8 @@ public interface Clusterer extends ConditionsListener {
 
     /**
      * Create a list of output clusters from input hits.
+     * The clustering algorithm may modify the list of hits as it is copied
+     * from the master list in the event.
      * @param event The current LCSim event.
      * @param hits The list of hits.
      * @return The output clusters.
