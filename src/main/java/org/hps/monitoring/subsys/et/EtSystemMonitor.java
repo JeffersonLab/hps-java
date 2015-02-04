@@ -18,7 +18,8 @@ public final class EtSystemMonitor extends EtEventProcessor {
     SystemStatus systemStatus;
     int events = 0;
     long eventReceivedMillis = 0;
-    long warningIntervalMillis = 1000; /* default of 1 second */
+    long warningIntervalMillis = 10000;
+    int timerInterval = 10000;
     Timer timer = new Timer("ET Event Monitor");
 
     public EtSystemMonitor() {
@@ -28,6 +29,10 @@ public final class EtSystemMonitor extends EtEventProcessor {
 
     public void setWarningIntervalMillis(long warningIntervalMillis) {
         this.warningIntervalMillis = warningIntervalMillis;
+    }
+    
+    public void setTimerInterval(int timerInterval) {
+        this.timerInterval = timerInterval;
     }
 
     public void startJob() {
@@ -50,7 +55,7 @@ public final class EtSystemMonitor extends EtEventProcessor {
             }
         };
 
-        timer.schedule(task, 0, 1000);
+        timer.schedule(task, 0, timerInterval);
     }
 
     public void process(EtEvent event) {
