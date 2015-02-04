@@ -1,5 +1,6 @@
 package org.hps.recon.ecal.cluster;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -31,9 +32,9 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ClusterDriver extends Driver {
     
-    protected static Logger logger = LogUtil.create(ClusterDriver.class, new BasicFormatter(ClusterDriver.class.getSimpleName()));
+    Logger logger;
     
-    protected String ecalName = "Ecal";    
+    protected String ecalName = "Ecal";
     protected HPSEcal3 ecal;
     protected NeighborMap neighborMap;
     protected String outputClusterCollectionName = "EcalClusters";
@@ -49,11 +50,13 @@ public class ClusterDriver extends Driver {
     protected boolean calculateProperties = false;
     protected boolean applyCorrections = false;
     protected boolean sortHits = false;
+    protected boolean validateClusters = false;
     
     /**
      * No argument constructor.
      */
     public ClusterDriver() {
+        logger = LogUtil.create(getClass().getSimpleName(), new BasicFormatter(getClass().getSimpleName()));
     }
     
     /**
@@ -180,6 +183,14 @@ public class ClusterDriver extends Driver {
     }
     
     /**
+     * Set whether to validate the output.
+     * @param validateClusters True to validate output.
+     */
+    public void setValidateClusters(boolean validateClusters) {
+        this.validateClusters = validateClusters;
+    }
+    
+    /**
      * Setup conditions specific configuration.
      */
     public void detectorChanged(Detector detector) {
@@ -222,7 +233,10 @@ public class ClusterDriver extends Driver {
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
             logger.fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
-            List<Cluster> clusters = clusterer.createClusters(event, hits);
+            
+            // Cluster the hits, copying the list from the event in case the clustering algorithm modifies it.
+            List<Cluster> clusters = clusterer.createClusters(event, new ArrayList<CalorimeterHit>(hits));
+            
             if (clusters == null) {
                 throw new RuntimeException("The clusterer returned a null list from its createClusters method.");
             }
@@ -258,6 +272,11 @@ public class ClusterDriver extends Driver {
                     logger.finer("Collection is set to transient and will not be persisted.");
                     event.getMetaData(clusters).setTransient(true);
                 }
+                
+                if (validateClusters) {
+                    // Perform basic validation checks.
+                    this.validateClusters(event);
+                }
             }
         } else {
             this.getLogger().severe("The input hit collection " + this.inputHitCollectionName + " is missing from the event.");
@@ -277,12 +296,59 @@ public class ClusterDriver extends Driver {
     }
     
     /**
-     * Get a Clusterer using type inference for the concrete type.
+     * Get a {@link Clusterer} using type inference for the concrete type.
      * @return The Clusterer object.
      */
     @SuppressWarnings("unchecked")
     <ClustererType extends Clusterer> ClustererType getClusterer() {
         // Return the Clusterer and cast it to the type provided by the caller.
         return (ClustererType) clusterer;
+    }
+
+    /**
+     * Perform basic validation of the cluster output collection, including checking
+     * that the cluster collection was created, clusters are not null, 
+     * none of the clustered hits are null, and each hit exists in the input 
+     * hit collection.
+     * @param event The LCSim event.
+     */
+    void validateClusters(EventHeader event) {
+        if (!event.hasCollection(Cluster.class, outputClusterCollectionName)) {
+            throw new RuntimeException("Cluster collection " + outputClusterCollectionName + " is missing.");
+        }
+        List<Cluster> clusters = event.get(Cluster.class, outputClusterCollectionName);
+        List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputHitCollectionName);
+        for (int clusterIndex = 0; clusterIndex < clusters.size(); clusterIndex++) {
+            logger.finest("checking cluster " + clusterIndex);
+            Cluster cluster = clusters.get(clusterIndex);
+            if (clusters.get(clusterIndex) == null) {
+                throw new RuntimeException("The Cluster at index " + clusterIndex + " is null.");
+            }
+            List<CalorimeterHit> clusterHits = cluster.getCalorimeterHits();
+            logger.finest("cluster has " + clusterHits.size() + " hits");
+            for (int hitIndex = 0; hitIndex < clusterHits.size(); hitIndex++) {
+                logger.finest("checking cluster hit " + hitIndex);                              
+                CalorimeterHit clusterHit = clusterHits.get(hitIndex);
+                if (clusterHit == null) {
+                    throw new RuntimeException("The CalorimeterHit at index " + hitIndex + " in the cluster is null.");
+                }
+                if (!inputHitCollection.contains(clusterHit)) {
+                    logger.severe("The CalorimeterHit at index " + hitIndex + " with ID " + clusterHit.getIdentifier().toHexString() + " is missing from the input hit collection.");
+                    printHitIDs(inputHitCollection);
+                    throw new RuntimeException("The CalorimeterHit at index " + hitIndex + " in the cluster is missing from the input hit collection.");
+                }
+            }
+        }
+    }
+    
+    void printHitIDs(List<CalorimeterHit> hits) {        
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("hit IDs");
+        buffer.append('\n');
+        for (CalorimeterHit hit : hits) {            
+            buffer.append(hit.getIdentifier().toHexString());
+            buffer.append('\n');
+        }
+        logger.finest(buffer.toString());        
     }
 }
