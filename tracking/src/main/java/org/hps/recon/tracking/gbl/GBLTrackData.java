@@ -1,5 +1,8 @@
 package org.hps.recon.tracking.gbl;
 
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.Hep3Matrix;
+
 import org.hps.recon.tracking.gbl.GBLOutput.PerigeeParams;
 import org.lcsim.event.GenericObject;
 
@@ -91,7 +94,21 @@ public class GBLTrackData implements GenericObject {
 		}
 		this.bank_double[idx+5] = val;
 	}
-	
+
+	public Hep3Matrix getPrjPerToCl() {
+	    BasicHep3Matrix matrix = new BasicHep3Matrix();
+	    for(int row=0; row<3; ++row) {
+	        for(int col=0; col<3; ++ col) {
+	            matrix.setElement(row, col, getPrjPerToClVal(row, col));
+	        }
+	    }
+	    return matrix;
+	}
+
+	private double getPrjPerToClVal(int row, int col) {
+	    int idx = col + row*3;
+        return this.bank_double[idx+5];
+    }
 
 	/*
 	 * The functions below are all overide from 
@@ -125,5 +142,7 @@ public class GBLTrackData implements GenericObject {
 	public boolean isFixedSize() {
 		return false;
 	}
+
+    
 
 }
