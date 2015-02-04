@@ -99,22 +99,18 @@ public class ReconClusterer extends AbstractClusterer {
         return this.rejectedHitList;
     }
 
-    public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hits) {
-
-        // I am pretty sure this map must be cleared between events. --JM
+    public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitList) {
+                        
+        // Clear the position map.
         correctedPositionMap.clear();
-
-        // Create a list to store the event hits in.
-        List<CalorimeterHit> hitList = hits;
-
-        // Create a list to store the newly created clusters in.
-        ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
-
-        // Create a list to store the rejected hits in.
-        // ArrayList<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
+        
+        // Clear the rejected hit list.
         rejectedHitList = new ArrayList<CalorimeterHit>();
 
-        // Sort the list of hits by energy.
+        // Create a list for the created clusters.
+        ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
+
+        // Sort the input hit list by energy.
         ClusterUtilities.sortHitsUniqueEnergy(hitList);
 
         // Filter the hit list of any hits that fail to pass the
