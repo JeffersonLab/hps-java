@@ -1,6 +1,7 @@
 package org.hps.monitoring.gui;
 
 import static org.hps.monitoring.gui.Commands.*;
+import static org.hps.monitoring.gui.model.ConfigurationModel.MAX_EVENTS_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.MONITORING_APPLICATION_LAYOUT_PROPERTY;
 import static org.hps.monitoring.gui.model.ConfigurationModel.SAVE_LAYOUT_PROPERTY;
 import hep.aida.jfree.AnalysisFactory;
@@ -1325,13 +1326,15 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
 
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration().setStopOnEndRun(configurationModel.getDisconnectOnEndRun()).setStopOnErrors(configurationModel.getDisconnectOnError()).setDataSourceType(configurationModel.getDataSourceType()).setProcessingStage(configurationModel.getProcessingStage()).setEtConnection(connection).setFilePath(configurationModel.getDataSourcePath()).setLCSimEventBuilder(eventBuilder).setDetectorName(configurationModel.getDetectorName());
 
-        long maxEvents = configurationModel.getMaxEvents();
-        if (maxEvents > 0L) {
-            log(Level.CONFIG, "maxEvents <" + maxEvents + ">");
-            loopConfig.setMaxRecords(maxEvents);
+        if (configurationModel.hasValidProperty(MAX_EVENTS_PROPERTY)) {
+            long maxEvents = configurationModel.getMaxEvents();
+            if (maxEvents > 0L) {
+                log(Level.CONFIG, "maxEvents <" + maxEvents + ">");
+                loopConfig.setMaxRecords(maxEvents);
+            }
         }
         
-        // Add all Drivers from the pre-configured JobManager.
+        // Add all Drivers from the JobManager.
         for (Driver driver : jobManager.getDriverExecList()) {
             loopConfig.add(driver);
         }
@@ -1612,8 +1615,8 @@ public final class MonitoringApplication extends ApplicationWindow implements Ac
                 saveLayoutConfiguration();
             } else {
                 // Remove any GUI settings from the configuration.
-            clearLayoutConfiguration();
-        }
+                clearLayoutConfiguration();
+            }
         }
     }
 
