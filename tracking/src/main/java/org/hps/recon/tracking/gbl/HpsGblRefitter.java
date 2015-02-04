@@ -473,7 +473,7 @@ public class HpsGblRefitter extends Driver
     
     public static class FittedGblTrajectory {
         public static enum GBLPARIDX {
-            QOVERP(0),XTPRIME(1),YTPRIME(2),XT(3),YT(3);
+            QOVERP(0),XTPRIME(1),YTPRIME(2),XT(3),YT(4);
             private int _value;
             private GBLPARIDX(int value) {
                 _value = value;
