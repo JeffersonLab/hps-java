@@ -83,7 +83,7 @@ class DataSourcePanel extends AbstractFieldsPanel {
         
         @Override
         public boolean accept(File pathname) {
-            if (pathname.getName().contains(".evio")) {
+            if (pathname.getName().contains(".evio") || pathname.isDirectory()) {
                 return true;
             } else {
                 return false;
