@@ -83,7 +83,7 @@ public class EcalMonitoringPlots extends Driver {
        if (accumulateHits)  hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Count (accumulated)";
        else hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Count (refreshed)";
        
-    	   hitCountDrawPlot = aida.histogram2D(hitCountDrawPlotTitle, 47, -23.5, 23.5, 11, -5.5, 5.5);
+       hitCountDrawPlot = aida.histogram2D(hitCountDrawPlotTitle, 47, -23.5, 23.5, 11, -5.5, 5.5);
        hitCountFillPlot = makeCopy(hitCountDrawPlot);
         occupancyDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy", 47, -23.5, 23.5, 11, -5.5, 5.5);
         clusterCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollection + " : Cluster Center Count", 47, -23.5, 23.5, 11, -5.5, 5.5);
@@ -211,7 +211,7 @@ public class EcalMonitoringPlots extends Driver {
                 occupancyDrawPlot.fill(column, row, mean);
         }
         plotter.region(2).clear();
-        plotter.region(2).plot(occupancyDrawPlot);
+        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
         plotter.region(2).refresh();
     }
 
