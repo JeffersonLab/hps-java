@@ -19,21 +19,31 @@
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
-            <clustererName>LegacyClusterer</clustererName>
-        </driver>             
+        
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
+            <verbose>false</verbose>
+            <logLevel>WARNING</logLevel>
+            <windowAfter>2</windowAfter>
+            <windowBefore>2</windowBefore>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold>
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-         <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
+        
+        <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
             <inputCollection>EcalCalHits</inputCollection>         
         </driver>
+        
         <driver name="EcalWindowPlots" type="org.hps.monitoring.ecal.plots.EcalWindowPlotsXY">
             <inputCollection>EcalReadoutHits</inputCollection>
-        </driver>     
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+        </driver>
+        
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>       
     </drivers>

@@ -32,8 +32,14 @@
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
-            <clustererName>LegacyClusterer</clustererName>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
+            <verbose>false</verbose>
+            <logLevel>WARNING</logLevel>
+            <windowAfter>2</windowAfter>
+            <windowBefore>2</windowBefore>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold>
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>

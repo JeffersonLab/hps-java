@@ -2,8 +2,7 @@
   Offline reconstruction for test run (photon) data.
   @author Sho Uemura <meeg@slac.stanford.edu>
 -->
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>   
         <driver name="SvtSensorSetup" />
@@ -22,37 +21,49 @@
     </execute>    
     <drivers>    
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
+        
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
-        </driver>        
+        </driver>
+        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
+        
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" /> 
+        
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>true</correctT0Shift>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />     
+        
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />
+        
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
+        
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-		    <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
-        </driver>        
+		 <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
+        </driver>
+        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
+        
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">            
             <clustererName>LegacyClusterer</clustererName>
         </driver>
-        <driver name="ReconParticle" type="org.hps.recon.particle.TestRunReconParticleDriver">          
-        </driver>
+        
+        <driver name="ReconParticle" type="org.hps.recon.particle.TestRunReconParticleDriver" />  
+        
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
+        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
     </drivers>
 </lcsim>
