@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hps.readout.ecal.triggerbank.AbstractIntData;
 import org.hps.readout.ecal.triggerbank.SSPData;
 import org.hps.readout.ecal.triggerbank.TIData;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
+import org.hps.readout.ecal.triggerbank.TriggerConfig;
 import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
@@ -50,7 +53,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = getEventData(evioEvent);
-
+      
+        // Put DAQ Configuration info into lcsimEvent (NAB Feb 5, 2015):
+        //getDAQConfig(evioEvent,lcsimEvent);
+        
         // Make RawCalorimeterHit collection, combining top and bottom section
         // of ECal into one list.
         try {
@@ -69,4 +75,20 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // }
         return lcsimEvent;
     }
+
+    // NAB Feb 5, 2015: 
+    public void getDAQConfig(EvioEvent evioEvent, EventHeader lcsimEvent) {
+        List <TriggerConfig> trigconf=new ArrayList<TriggerConfig>();
+        for (BaseStructure bank : evioEvent.getChildrenList()) {
+            if (bank.getChildCount()<=0) continue;
+            for (BaseStructure subBank : bank.getChildrenList()) {
+                if (subBank.getHeader().getTag() == 0xE10E) {
+                    if (subBank.getStringData() == null) continue; // unfortunately necessary
+                    trigconf.add(new TriggerConfig(subBank.getStringData()));
+                }
+            }
+        }
+        lcsimEvent.put("TriggerConfig",trigconf,TriggerConfig.class,0);
+    }        
+        
 }
