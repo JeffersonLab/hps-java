@@ -22,45 +22,35 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>100</eventInterval>
         </driver>
-        
         <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <debug>0</debug>
             <isMC>${isMC}</isMC>
             <gblFileName>gblinput.txt</gblFileName>
         </driver>
-        
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
-        
         <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         
         <!-- Reconstruction drivers below -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-        
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />
-        
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <correctT0Shift>false</correctT0Shift>
         </driver>
-        
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />
-        
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
         </driver>
-        
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-TestRun-357.xml</strategyResource>
             <!-- <strategyResource>/org/hps/recon/tracking/strategies/${strategy}.xml</strategyResource>-->
         </driver>
-        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
         </driver>
-        
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <verbose>false</verbose>
             <logLevel>WARNING</logLevel>
@@ -70,7 +60,6 @@
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver>
-        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
     </drivers>
 </lcsim>

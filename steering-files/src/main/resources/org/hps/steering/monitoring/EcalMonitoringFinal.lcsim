@@ -7,32 +7,27 @@
     </control>
     <execute>
         <!-- <driver name="EventMarkerDriver"/> -->
-        
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="EcalMonitoringPlots" />      <!-- General plots -->
         <driver name="EcalHitPlots" />             <!-- Single hit distributions -->
         <driver name="EcalClusterPlots" />         <!-- Clusters distributions -->
         <driver name="EcalDaqPlots" />             <!-- DAQ Plots -->
-        <driver name="EcalEventDisplay" />         <!-- Ecal event display -->
-        
+        <driver name="EcalEventDisplay" />         <!-- Ecal event display -->        
         <!-- <driver name="EcalWindowPlots"/>  -->
         <!-- <driver name="EcalEvsX"/>         -->           
         <!-- <driver name="TriggerPlots"/>     -->
         <!-- <driver name="EcalEventMonitor"/> -->
         <!-- <driver name="AidaSaveDriver"/>   -->
-    </execute>   
-    
+    </execute>
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
-            <use2014Gain>false</use2014Gain> 
+            <use2014Gain>false</use2014Gain>
         </driver>
-        
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <verbose>false</verbose>
             <logLevel>WARNING</logLevel>
@@ -42,28 +37,23 @@
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver>
-        
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <eventRefreshRate>5</eventRefreshRate>
             <accumulateHits>false</accumulateHits>
         </driver>
-        
         <driver name="EcalHitPlots" type="org.hps.monitoring.ecal.plots.EcalHitPlots">
             <inputCollection>EcalCalHits</inputCollection>
             <maxE>2.0</maxE>
             <logScale>false</logScale>
         </driver>
-        
         <driver name="EcalClusterPlots" type="org.hps.monitoring.ecal.plots.EcalClusterPlots">
             <maxE>2.0</maxE>
             <logScale>false</logScale>
         </driver>
-        
         <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
             <inputCollection>EcalCalHits</inputCollection>
         </driver>
-        
         <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
@@ -72,8 +62,7 @@
             <maxEch>2.0</maxEch>
             <minEch>0.005</minEch>
             <eventRefreshRate>1</eventRefreshRate>
-        </driver>
-        
+        </driver>        
         <!--<driver name="EcalClusterer" type="org.hps.recon.ecal.HPSEcalCTPClusterer"> -->
         
         <!--  <driver name="EcalEvsX" type="org.hps.monitoring.ecal.EcalEvsX">

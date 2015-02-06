@@ -9,12 +9,10 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>
         </driver>
-        
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <verbose>false</verbose>
             <logLevel>WARNING</logLevel>
@@ -24,7 +22,6 @@
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver>
-        
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.BasicMonitoringPlotsDriver" />
     </drivers>
 </lcsim>

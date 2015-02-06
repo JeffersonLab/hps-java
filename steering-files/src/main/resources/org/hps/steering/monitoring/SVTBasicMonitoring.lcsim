@@ -1,16 +1,15 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalClusterer"/>
-        <driver name="RawTrackerHitFitterDriver"/>
-        <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackerReconDriver"/>
-        <driver name="SVTBasicMonitoringPlots"/>
-        <driver name="CleanupDriver"/>
-    </execute>    
+        <driver name="EventMarkerDriver" />
+        <driver name="EcalRawConverter" />
+        <driver name="EcalClusterer" />
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver" />
+        <driver name="HelicalTrackHitDriver" />
+        <driver name="TrackerReconDriver" />
+        <driver name="SVTBasicMonitoringPlots" />
+        <driver name="CleanupDriver" />
+    </execute>
     <drivers>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -27,7 +26,7 @@
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver"/>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver>

@@ -1,14 +1,13 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">       
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
         <printInputFiles>true</printInputFiles>
         <printDriversDetailed>true</printDriversDetailed>
-    </control>    
+    </control>
     <execute>
-        <driver name="EventMarkerDriver"/>
-        <driver name="EcalRawConverter"/>
-        <driver name="EcalTriggerFilter"/>
-        <driver name="EcalClusterer"/>
+        <driver name="EventMarkerDriver" />
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTriggerFilter" />
+        <driver name="EcalClusterer" />
 <!--        <driver name="EcalPedestalPlots"/>-->
 <!--        <driver name="EcalMonitoringPlots"/>-->
 <!--        <driver name="EcalHitPlots"/>-->
@@ -20,7 +19,7 @@
         <driver name="EcalDaqPlots"/>
 -->
         <!--<driver name="AidaSaveDriver"/>-->
-    </execute>    
+    </execute>
     <drivers>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalReadoutToTriggerConverterDriver">
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
@@ -33,7 +32,7 @@
         <driver name="EcalTriggerFilter" type="org.hps.recon.ecal.EcalTriggerFilterDriver">
             <inputCollection>EcalCalHits</inputCollection>
             <outputCollection>EcalFilteredHits</outputCollection>
-        </driver>        
+        </driver>
         <driver name="EcalDaqPlots" type="org.hps.monitoring.ecal.plots.EcalDaqPlots">
         </driver>
         <driver name="EcalMonitoringPlots" type="org.hps.monitoring.ecal.plots.EcalMonitoringPlots">
@@ -49,9 +48,8 @@
             <maxE>10000</maxE>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
--->        
-        <driver name="EventMarkerDriver"
-                type="org.lcsim.job.EventMarkerDriver">
+-->
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
@@ -68,7 +66,7 @@
             <clusterEnergyCut>1280</clusterEnergyCut>
             <eventRefreshRate>10000</eventRefreshRate>
         </driver>
- -->        
+ -->
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>triggerPlots</outputFileName>
         </driver>
