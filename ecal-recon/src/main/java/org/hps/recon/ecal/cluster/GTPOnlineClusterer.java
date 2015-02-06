@@ -1,5 +1,8 @@
 package org.hps.recon.ecal.cluster;
 
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,6 +12,7 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseCluster;
+import org.lcsim.util.aida.AIDA;
 
 /**
  * Class <code>GTPOnlineClusterer</code> is an implementation of the
@@ -51,10 +55,27 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     // Internal variables.
     private boolean verbose = false;
     
+    // Diagnostic plots.
+    private AIDA aida = AIDA.defaultInstance();
+    IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Hit Energy Distribution", 256, -1.0, 2.2);
+    IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+    IHistogram1D clusterHitCount = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Hit Count Distribution", 9, 1, 10);
+    IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
+    IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots :: Hit Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    IHistogram1D energyDistribution = aida.histogram1D("GTP(O) Cluster Plots :: Percent Negative Energy Distribution", 100, 0.0, 1.0);
+    
+    /**
+     * Instantiates a new instance of a readout GTP clustering algorithm.
+     */
     GTPOnlineClusterer() {
         super(new String[] { "seedThreshold" }, new double[] { 0.050 });
     }
     
+    /**
+     * Gets any relevant cuts from the superclass and sets the local
+     * clusterer variables accordingly. 
+     */
     public void initialize() {
         seedThreshold = getCuts().getValue("seedThreshold");
     }
@@ -82,15 +103,28 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         }); 
         
         // VERBOSE :: Print the hit information.
-        if(verbose) { 
+        if(verbose) {
+        	Collections.sort(hitList, new Comparator<CalorimeterHit>() {
+				@Override
+				public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
+					int[] ix = { firstHit.getIdentifierFieldValue("ix"), secondHit.getIdentifierFieldValue("ix") };
+					if(ix[0] != ix[1]) { return Integer.compare(ix[0], ix[1]); }
+					else {
+						int iy[] = { firstHit.getIdentifierFieldValue("iy"), secondHit.getIdentifierFieldValue("iy") };
+						return Integer.compare(iy[0], iy[1]);
+					}
+				}
+        	});
+        	System.out.println("Event Hit Collection:");
             for(CalorimeterHit hit : hitList) {
                 int ix = hit.getIdentifierFieldValue("ix");
                 int iy = hit.getIdentifierFieldValue("iy");
                 double energy = hit.getCorrectedEnergy();
                 double time = hit.getTime();
                 
-                System.out.printf("\tHit --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
+                System.out.printf("\tHit --> %6.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
             }
+            System.out.println();
         }
         
         // A seed hit is a hit that is the largest both within its
@@ -103,6 +137,10 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // Iterate over each hit and see if it qualifies as a seed hit.
         seedLoop:
             for(CalorimeterHit seed : hitList) {
+            	// Put the hit energy into the hit energy distribution.
+            	hitEnergy.fill(seed.getCorrectedEnergy());
+            	hitDistribution.fill(seed.getIdentifierFieldValue("ix"), seed.getIdentifierFieldValue("iy"));
+            	
                 // Check whether the potential seed passes the seed
                 // energy cut.
                 if(seed.getCorrectedEnergy() < seedThreshold) {
@@ -145,15 +183,32 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                     }
                 }
                 
-                
                 // If this point is reached, then the seed was not
                 // invalidated by any of the other hits and is really
                 // a cluster center. Add the cluster to the list.
                 clusterList.add(protoCluster);
+                
+                // Populate the cluster distribution plots.
+                clusterSeedEnergy.fill(protoCluster.getCalorimeterHits().get(0).getCorrectedEnergy());
+                clusterTotalEnergy.fill(protoCluster.getEnergy());
+                clusterHitCount.fill(protoCluster.getCalorimeterHits().size());
+                clusterDistribution.fill(protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
+                		protoCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
+                
+                // Determine how much energy in the cluster is negative
+                // and how is positive.
+                double nenergy = 0.0;
+                double penergy = 0.0;
+                for(CalorimeterHit hit : protoCluster.getCalorimeterHits()) {
+                	if(hit.getCorrectedEnergy() > 0) { penergy += hit.getCorrectedEnergy(); }
+                	else { nenergy += hit.getCorrectedEnergy(); }
+                }
+                energyDistribution.fill(Math.abs(nenergy) / (penergy + Math.abs(nenergy)));
             }
         
         // VERBOSE :: Print out all the clusters in the event.
-        if(verbose) { 
+        if(verbose) {
+        	System.out.println("Event Cluster Collection:");
             for(Cluster cluster : clusterList) {
                 CalorimeterHit seedHit = cluster.getCalorimeterHits().get(0);
                 int ix = seedHit.getIdentifierFieldValue("ix");
@@ -161,7 +216,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 double energy = cluster.getEnergy();
                 double time = seedHit.getTime();
                 
-                System.out.printf("\tCluster --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
+                System.out.printf("\tCluster --> %6.3f GeV at (%3d, %3d) and at t = %.2f%n", energy, ix, iy, time);
                 
                 for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
                     int hix = hit.getIdentifierFieldValue("ix");
@@ -171,6 +226,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                     System.out.printf("\t\tCompHit --> %.3f GeV at (%3d, %3d) and at t = %.2f%n", henergy, hix, hiy, htime);
                 }
             }
+        	System.out.println();
         }
         
         // VERBOSE :: Print a new line.

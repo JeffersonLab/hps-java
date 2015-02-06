@@ -7,7 +7,7 @@ package org.hps.recon.ecal.cluster;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class GTPOnlineClusterDriver extends ClusterDriver {
-    // Store the cluistering algorithm.
+    // Store the clustering algorithm.
     private final GTPOnlineClusterer gtp;
     
     /**
@@ -26,7 +26,7 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
      * GeV.
      */
     public void setSeedEnergyThreshold(double seedEnergyThreshold) {
-        gtp.getCuts().setValue("seedEnergyThreshold", seedEnergyThreshold);
+        getClusterer().getCuts().setValue("seedThreshold", seedEnergyThreshold);
         gtp.setSeedLowThreshold(seedEnergyThreshold);
     }
     
