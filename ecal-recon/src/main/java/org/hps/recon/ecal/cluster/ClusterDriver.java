@@ -32,7 +32,10 @@ import org.lcsim.util.log.LogUtil;
  */
 public class ClusterDriver extends Driver {
     
-    Logger logger;
+    static Logger logger;
+    static {
+        logger = LogUtil.create(ClusterDriver.class.getSimpleName(), new BasicFormatter(ClusterDriver.class.getSimpleName()));
+    }
     
     protected String ecalName = "Ecal";
     protected HPSEcal3 ecal;
@@ -55,8 +58,7 @@ public class ClusterDriver extends Driver {
     /**
      * No argument constructor.
      */
-    public ClusterDriver() {
-        logger = LogUtil.create(getClass().getSimpleName(), new BasicFormatter(getClass().getSimpleName()));
+    public ClusterDriver() {        
     }
     
     /**
