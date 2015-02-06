@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.hps.recon.tracking.gbl.HpsGblRefitter.FittedGblTrajectory;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -25,6 +24,13 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
+
+/**
+ * A class that creates track objects from fitted GBL trajectories and adds them into the event.
+ * 
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ *
+ */
 public class MakeGblTracks {
 
 
