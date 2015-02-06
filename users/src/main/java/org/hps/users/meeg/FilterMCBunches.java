@@ -294,7 +294,7 @@ public class FilterMCBunches {
         @Override
         public boolean goodEvent(EventHeader event) {
 //            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
-            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+            List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
 
             Set<Integer> topLayers = new HashSet<Integer>();
             Set<Integer> botLayers = new HashSet<Integer>();
@@ -323,7 +323,7 @@ public class FilterMCBunches {
 
         @Override
         public boolean goodEvent(EventHeader event) {
-            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
+            List<SimCalorimeterHit> ecalHits = event.get(SimCalorimeterHit.class, "EcalHits");
 //            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
 
             double maxE = 0;
@@ -353,7 +353,7 @@ public class FilterMCBunches {
 
         @Override
         public boolean goodEvent(EventHeader event) {
-            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
+            List<SimCalorimeterHit> ecalHits = event.get(SimCalorimeterHit.class, "EcalHits");
 //            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
 
             double topE = 0, botE = 0;
@@ -384,7 +384,7 @@ public class FilterMCBunches {
         @Override
         public boolean goodEvent(EventHeader event) {
 //            List<SimCalorimeterHit> ecalHits = event.getSimCalorimeterHits("EcalHits");
-            List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+            List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
             List<MCParticle> mcParticles = event.getMCParticles();
 
             Map<MCParticle, Set<Integer>> particleMap = new HashMap<MCParticle, Set<Integer>>();

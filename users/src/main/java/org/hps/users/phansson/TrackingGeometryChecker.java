@@ -90,7 +90,7 @@ public class TrackingGeometryChecker extends Driver {
 	
 	protected void process(EventHeader event) {
 		
-		List<SimTrackerHit> simTrackerHits = event.getSimTrackerHits("TrackerHits");
+		List<SimTrackerHit> simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
         if (simTrackerHits == null) {
             throw new RuntimeException("Missing SimTrackerHit collection");
         }

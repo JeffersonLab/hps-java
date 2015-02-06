@@ -246,7 +246,7 @@ public class DetailedAnalysisDriver extends Driver {
         // dump SThit information      
         String[] input_hit_collections = {"TrackerHits"};
         for (String input : input_hit_collections) {
-            List<SimTrackerHit> sthits = event.getSimTrackerHits(input);
+            List<SimTrackerHit> sthits = event.get(SimTrackerHit.class, input);
             int[] nhits = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             for (SimTrackerHit st : sthits) {
                 String detector = st.getDetectorElement().getName();

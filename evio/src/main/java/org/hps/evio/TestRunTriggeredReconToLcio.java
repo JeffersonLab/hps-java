@@ -158,10 +158,10 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
 
     @Override
     protected void process(EventHeader event) {
-        if (event.hasCollection(SimCalorimeterHit.class, ecalCollectionName) && !event.getSimCalorimeterHits(ecalCollectionName).isEmpty()) {
+        if (event.hasCollection(SimCalorimeterHit.class, ecalCollectionName) && !event.get(SimCalorimeterHit.class, ecalCollectionName).isEmpty()) {
             mcParticles = event.getMCParticles();
-            ecalHits = event.getSimCalorimeterHits(ecalCollectionName);
-            trackerHits = event.getSimTrackerHits(trackerCollectionName);
+            ecalHits = event.get(SimCalorimeterHit.class, ecalCollectionName);
+            trackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
             if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                 ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
             }
@@ -169,8 +169,8 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
         if (ClockSingleton.getClock() % triggerSpacing == 0) {
             if (event.hasCollection(MCParticle.class)) {
                 triggerMCParticles = event.getMCParticles();
-                triggerECalHits = event.getSimCalorimeterHits(ecalCollectionName);
-                triggerTrackerHits = event.getSimTrackerHits(trackerCollectionName);
+                triggerECalHits = event.get(SimCalorimeterHit.class, ecalCollectionName);
+                triggerTrackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
                 if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                     triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
                 }
@@ -216,7 +216,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
             if (rejectBackground && queuedEvent.hasCollection(LCRelation.class, relationCollectionName)) {
                 writeThisEvent = false;
                 List<LCRelation> trueHitRelations = queuedEvent.get(LCRelation.class, relationCollectionName);
-                List<SimTrackerHit> trueHits = queuedEvent.getSimTrackerHits(trackerCollectionName);
+                List<SimTrackerHit> trueHits = queuedEvent.get(SimTrackerHit.class, trackerCollectionName);
                 for (LCRelation relation : trueHitRelations) {
                     if (trueHits.contains((SimTrackerHit) relation.getTo())) {
                         writeThisEvent = true;

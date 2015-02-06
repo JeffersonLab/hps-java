@@ -93,7 +93,7 @@ public class GBLOutputDriver extends Driver {
 
         List<SimTrackerHit> simTrackerHits = new ArrayList<SimTrackerHit>();
         if (event.hasCollection(SimTrackerHit.class, "TrackerHits")) {
-        	simTrackerHits = event.getSimTrackerHits("TrackerHits");
+        	simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
         }
         
         if(isMC) {

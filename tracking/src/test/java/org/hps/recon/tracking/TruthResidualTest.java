@@ -107,7 +107,7 @@ public class TruthResidualTest extends TestCase {
 				mcParticles = event.get(MCParticle.class,"MCParticle");
 	        } 
 	            
-	        List<SimTrackerHit> simTrackerHits = event.getSimTrackerHits("TrackerHits");
+	        List<SimTrackerHit> simTrackerHits = event.get(SimTrackerHit.class, "TrackerHits");
 	        
 	        
 	        if(simTrackerHits != null && mcParticles != null) {

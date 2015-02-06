@@ -227,7 +227,7 @@ public class EcalClusterICPosition extends Driver {
             	mcList.add(m);
             }
             
-            List<SimTrackerHit> trHit = event.getSimTrackerHits(trackerCollectionName);
+            List<SimTrackerHit> trHit = event.get(SimTrackerHit.class, trackerCollectionName);
             for (SimTrackerHit t : trHit){
             	trackHits.add(t);
             }

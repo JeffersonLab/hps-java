@@ -106,7 +106,7 @@ public class KinkAnalysisDriver extends Driver {
         }
 
 
-        List<SimTrackerHit> trackerHits = event.getSimTrackerHits("TrackerHits");
+        List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
 
 //        Map<MCParticle, List<SimTrackerHit>> hitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
         Map<MCParticle, Map<Integer, SimTrackerHit>> trackMap = new HashMap<MCParticle, Map<Integer, SimTrackerHit>>();
