@@ -233,7 +233,7 @@ public class ClustererTest extends TestCase {
         
         // Setup event number print outs.
         EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();
-        eventMarkerDriver.setEventInterval(100);
+        eventMarkerDriver.setEventInterval(1);
         loop.add(eventMarkerDriver);
         
         // Configure the ClusterDriver and add it to the loop.
@@ -372,11 +372,13 @@ public class ClustererTest extends TestCase {
             positionXH1D.fill(Math.abs(cluster.getPosition()[0]));
             positionYH1D.fill(Math.abs(cluster.getPosition()[1]));
             positionZH1D.fill(Math.abs(cluster.getPosition()[2]));
-            //shapeParam1H1D.fill(cluster.getShape()[0]);
-            //shapeParam2H1D.fill(cluster.getShape()[1]);
-            //shapeParam3H1D.fill(cluster.getShape()[2]);
-            //iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
-            //ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));                                
+            if (cluster.getShape() != null) {
+                shapeParam1H1D.fill(cluster.getShape()[0]);
+                shapeParam2H1D.fill(cluster.getShape()[1]);
+                shapeParam3H1D.fill(cluster.getShape()[2]);
+            }
+            iphiC1D.fill(Math.toDegrees(cluster.getIPhi()));
+            ithetaC1D.fill(Math.toDegrees(cluster.getITheta()));                                
             clusterPositionC2D.fill(cluster.getPosition()[0], cluster.getPosition()[1]);
             
             //Map<MCParticle, List<SimCalorimeterHit>> particleHitMap = ClusterUtilities.createParticleHitMap(cluster);
