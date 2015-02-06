@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hps.conditions.database.TableConstants;
-import org.hps.conditions.ecal.EcalCalibration;
+import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
@@ -60,15 +60,24 @@ public class EcalRawConverter_RunPed {
     public double getPedestal(EventHeader event,RawCalorimeterHit hit)
     {
         if (useRunningPedestal) {
-            if (event.hasCollection(Double.class,"EcalRunningPedestals")) {
-                Map<RawCalorimeterHit, Double> runningPedMap=
-                        (Map<RawCalorimeterHit, Double>)
+            if (event.hasItem("EcalRunningPedestals")) {
+                Map<EcalChannel, Double> runningPedMap=
+                        (Map<EcalChannel, Double>)
                         event.get("EcalRunningPedestals");
-                if (!runningPedMap.containsKey(hit)){
-                    System.err.println("Missing Key Dog");
+                EcalChannel chan = ecalConditions.getChannelCollection().
+                        findGeometric(hit.getCellID());
+                //System.err.println(" %%%%%%%%%%%%%%%%% "+chan.getChannelId()+" "+runningPedMap.get(chan));
+                if (!runningPedMap.containsKey(chan)){
+                    System.err.println("************** Missing Pedestal");
                 } else {
-                    return runningPedMap.get(hit);
+                    return runningPedMap.get(chan);
                 }
+            } else {
+                System.err.println("*****************************************************************");
+                System.err.println("**  You Requested a Running Pedestal, but it is NOT available. **");
+                System.err.println("**     Reverting to the database. Only printing this ONCE.     **");
+                System.err.println("*****************************************************************");
+                useRunningPedestal = false;
             }
         }
         return findChannel(hit.getCellID()).getCalibration().getPedestal();

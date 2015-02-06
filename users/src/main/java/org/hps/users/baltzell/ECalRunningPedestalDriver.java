@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
-import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.HitExtraData;
 import org.lcsim.conditions.ConditionsManager;
@@ -19,9 +18,10 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * Calculate a running pedestal average for every channel from Mode7 FADCs.
+ * Calculate a running pedestal average for every channel from Mode7 FADCs. Uses
+ * pedestals from the database if not available from the data.
  * 
- * @version $Id: ECalRunningPedestalDriver.java,v 0.0 2015/01/31 00:00:00
+ * @version $Id: ECalRunningPedestalDriver.java,v 1.0 2015/02/06 00:00:00
  * @author <baltzell@jlab.org>
  */
 public class ECalRunningPedestalDriver extends Driver {
@@ -49,22 +49,16 @@ public class ECalRunningPedestalDriver extends Driver {
     private final int nChannels = 442;
 
     // running pedestal averages, one for each channel:
-    private List<Double> runningPedestals = new ArrayList<Double>(nChannels);
+    private Map<EcalChannel, Double> runningPedestals = new HashMap<EcalChannel, Double>(nChannels);
 
-    // FIXME:
     // recent event-by-event pedestals and timestamps:
-    private List<Integer>[] eventPedestals = (ArrayList<Integer>[]) new ArrayList[nChannels];
-    private List<Long>[] eventTimestamps = (ArrayList<Long>[]) new ArrayList[nChannels];
+    private Map<EcalChannel, List<Integer>> eventPedestals = new HashMap<EcalChannel, List<Integer>>();
+    private Map<EcalChannel, List<Long>> eventTimestamps = new HashMap<EcalChannel, List<Long>>();
 
     private boolean debug = false;
     private EcalConditions ecalConditions = null;
 
     public ECalRunningPedestalDriver() {
-        for (int ii = 0; ii < nChannels; ii++) {
-            eventPedestals[ii] = new ArrayList<>();
-            eventTimestamps[ii] = new ArrayList<>();
-            runningPedestals.add(-1.);
-        }
     }
 
     @Override
@@ -77,7 +71,10 @@ public class ECalRunningPedestalDriver extends Driver {
                 .getCachedConditions(EcalConditions.class,TableConstants.ECAL_CONDITIONS)
                 .getCachedData();
         for (int ii = 0; ii < nChannels; ii++) {
-            runningPedestals.set(ii,getStaticPedestal(ii + 1));
+            EcalChannel chan = findChannel(ii + 1);
+            runningPedestals.put(chan,getStaticPedestal(chan));
+            eventPedestals.put(chan,new ArrayList<Integer>());
+            eventTimestamps.put(chan,new ArrayList<Long>());
         }
         if (debug) {
             System.out.println("Running and static pedestals better match here:");
@@ -109,9 +106,14 @@ public class ECalRunningPedestalDriver extends Driver {
     }
 
     public void printPedestals() {
-        for (int ii = 0; ii < nChannels; ii++) {
-            System.out.printf("(%d,%.2f,%.2f) ",ii,runningPedestals.get(ii),
-                    getStaticPedestal(ii + 1));
+        for (int ii = 1; ii <= nChannels; ii++) {
+            EcalChannel chan = findChannel(ii);
+            if (!runningPedestals.containsKey(chan)) {
+                System.err.println("printPedestals:   Missing Channel:  " + ii);
+                continue;
+            }
+            System.out.printf("(%d,%.2f,%.2f) ",chan.getChannelId(),runningPedestals.get(chan),
+                    getStaticPedestal(chan));
         }
         System.out.printf("\n");
     }
@@ -119,32 +121,22 @@ public class ECalRunningPedestalDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
 
-        if (!event.hasCollection(RawCalorimeterHit.class,rawCollectionName))
-            return;
-        if (!event.hasCollection(LCRelation.class,extraDataRelationsName))
-            return;
-
-        Map<RawCalorimeterHit, Double> pedMap = new HashMap<RawCalorimeterHit, Double>();
-
-        for (LCRelation rel : event.get(LCRelation.class,extraDataRelationsName)) {
-            RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
-            GenericObject extraData = (GenericObject) rel.getTo();
-            updatePedestal(event,hit,extraData);
-            if (!pedMap.containsKey(hit))
-                pedMap.put(hit,getPedestal(hit));
+        if (!event.hasCollection(RawCalorimeterHit.class,rawCollectionName)) {
+            if (!event.hasCollection(LCRelation.class,extraDataRelationsName)) {
+                for (LCRelation rel : event.get(LCRelation.class,extraDataRelationsName)) {
+                    RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
+                    GenericObject extraData = (GenericObject) rel.getTo();
+                    updatePedestal(event,hit,extraData);
+                }
+            }
         }
-        event.put(runningPedestalsName,pedMap);
+        event.put(runningPedestalsName,runningPedestals);
         if (debug) {
             printPedestals();
         }
     }
 
     private void updatePedestal(EventHeader event, RawCalorimeterHit hit, GenericObject mode7data) {
-        final int ii = getChannelID(hit) - 1;
-        if (ii < 0 || ii >= nChannels) {
-            System.err.println(String.format("Event #%d, Invalid id: %d/%d ",
-                    event.getEventNumber(),ii + 1,+hit.getCellID()));
-        }
 
         final long timestamp = event.getTimeStamp();
         final int min = ((HitExtraData.Mode7Data) mode7data).getAmplLow();
@@ -154,35 +146,43 @@ public class ECalRunningPedestalDriver extends Driver {
         if (max <= 0)
             return;
 
+        EcalChannel chan = findChannel(hit);
+        if (chan == null) {
+            System.err.println("hit doesn't correspond to ecalchannel");
+            return;
+        }
+        List<Integer> peds = eventPedestals.get(chan);
+        List<Long> times = eventTimestamps.get(chan);
+
         // If new timestamp is older than previous one, restart pedestals.
         // This should never happen unless firmware counter cycles back to zero,
         // in which case it could be dealt with if max timestamp is known.
-        if (eventTimestamps[ii].size() > 0 && eventTimestamps[ii].get(0) > timestamp) {
+        if (times.size() > 0 && times.get(0) > timestamp) {
             System.err.println(String.format("Event #%d, Old Timestamp:  %d < %d",
-                    event.getEventNumber(),timestamp,eventTimestamps[ii].get(0)));
-            eventPedestals[ii].clear();
-            eventTimestamps[ii].clear();
+                    event.getEventNumber(),timestamp,times.get(0)));
+            peds.clear();
+            times.clear();
         }
 
         // add pedestal to the list:
-        eventPedestals[ii].add(min);
-        eventTimestamps[ii].add(timestamp);
+        peds.add(min);
+        times.add(timestamp);
 
-        if (eventPedestals[ii].size() > 1) {
+        if (peds.size() > 1) {
 
             // remove oldest pedestal if surpassed limit on #events:
-            if (eventPedestals[ii].size() > limitLookbackEvents
-                    || (maxLookbackEvents > 0 && eventPedestals[ii].size() > maxLookbackEvents)) {
-                eventPedestals[ii].remove(0);
-                eventTimestamps[ii].remove(0);
+            if (peds.size() > limitLookbackEvents
+                    || (maxLookbackEvents > 0 && peds.size() > maxLookbackEvents)) {
+                peds.remove(0);
+                times.remove(0);
             }
 
             // remove old pedestals surpassing limit on lookback time:
             if (maxLookbackTime > 0) {
-                while (eventTimestamps[ii].size() > 0) {
-                    if (eventTimestamps[ii].get(0) < timestamp - maxLookbackTime * 1e6) {
-                        eventTimestamps[ii].remove(0);
-                        eventPedestals[ii].remove(0);
+                while (times.size() > 1) {
+                    if (times.get(0) < timestamp - maxLookbackTime * 1e6) {
+                        times.remove(0);
+                        peds.remove(0);
                     } else {
                         break;
                     }
@@ -191,44 +191,73 @@ public class ECalRunningPedestalDriver extends Driver {
         }
 
         // Update running pedestal average:
-        if (eventPedestals[ii].size() >= minLookbackEvents) {
-            double avg = 0;
-            for (int jj = 0; jj < eventPedestals[ii].size(); jj++) {
-                avg += eventPedestals[ii].get(jj);
+        double ped = 0;
+        if (peds.size() >= minLookbackEvents) {
+            for (int jj = 0; jj < peds.size(); jj++) {
+                ped += peds.get(jj);
             }
-            runningPedestals.set(ii,avg / eventPedestals[ii].size());
+            ped /= peds.size();
         } else {
-            runningPedestals.set(ii,getStaticPedestal(ii + 1));
+            ped = getStaticPedestal(chan);
         }
+        runningPedestals.put(chan,ped);
+
     }
 
-    public double getPedestal(int channel_id) {
-        return runningPedestals.get(channel_id - 1);
-        // final int nped = eventPedestals[channel_id - 1].size();
-        // if (nped < minLookbackEvents) return getStaticPedestal(channel_id);
-        // else return runningPedestals.get(channel_id - 1);
+    public double getStaticPedestal(EcalChannel chan) {
+        return ecalConditions.getChannelConstants(chan).getCalibration().getPedestal();
     }
 
-    public double getPedestal(RawCalorimeterHit hit) {
-        return getPedestal(getChannelID(hit));
+    public EcalChannel findChannel(int channel_id) {
+        return ecalConditions.getChannelCollection().findChannel(channel_id);
     }
 
-    private double getStaticPedestal(int channel_id) {
-        EcalChannel cc = ecalConditions.getChannelCollection().findChannel(channel_id);
-        return ecalConditions.getChannelConstants(cc).getCalibration().getPedestal();
+    public EcalChannel findChannel(RawCalorimeterHit hit) {
+        return ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
     }
 
-    private double getStaticPedestal(RawCalorimeterHit hit) {
-        return getStaticPedestal(getChannelID(hit));
-    }
-
-    public int getChannelID(RawCalorimeterHit hit) {
-        return findChannel(hit.getCellID()).getCalibration().getChannelId();
-    }
-
-    public EcalChannelConstants findChannel(long cellID) {
-        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection()
-                .findGeometric(cellID));
-    }
+    /*
+     * public double getPedestal(EcalChannel chan) { if
+     * (runningPedestals.containsKey(chan)) { return runningPedestals.get(chan);
+     * } else {
+     * System.err.println("RunningPedestalDriver:getPedestal:  Missing channel"
+     * ); return getStaticPedestal(chan); } } public double getPedestal(int
+     * channel_id) { return getPedestal(findChannel(channel_id)); } public
+     * double getPedestal(RawCalorimeterHit hit) { return
+     * getPedestal(getChannelID(hit)); }
+     * 
+     * private double getStaticNoise(int channel_id) { return
+     * getStaticCalibration(channel_id).getNoise(); }
+     * 
+     * private double getStaticPedestal(int channel_id) { return
+     * getStaticCalibration(channel_id).getPedestal(); } private double
+     * getStaticPedestal(RawCalorimeterHit hit) { return
+     * getStaticPedestal(getChannelID(hit)); }
+     * 
+     * private EcalCalibration getStaticCalibration(EcalChannel chan) { return
+     * ecalConditions.getChannelConstants(chan).getCalibration(); } private
+     * EcalCalibration getStaticCalibration(int channel_id) { return
+     * getStaticCalibration(findChannel(channel_id)); } private EcalCalibration
+     * getStaticCalibration(long cellID) { return
+     * getStaticCalibration(findChannel(cellID)); }
+     * 
+     * public int getChannelID(RawCalorimeterHit hit) { return
+     * findChannelConstants(hit.getCellID()).getCalibration().getChannelId(); }
+     * 
+     * public EcalChannelConstants findChannelConstants(long cellID) { return
+     * ecalConditions.getChannelConstants(findChannel(cellID)); }
+     * 
+     * public EcalChannelConstants findChannelConstants(int channel_id) { return
+     * ecalConditions.getChannelConstants(findChannel(channel_id)); }
+     * 
+     * public EcalChannel findChannel(long cellID) { return
+     * ecalConditions.getChannelCollection().findGeometric(cellID); }
+     * 
+     * public EcalChannel findChannel(int channel_id) { return
+     * ecalConditions.getChannelCollection().findChannel(channel_id); }
+     * 
+     * public EcalChannel findChannel(RawCalorimeterHit hit) { return
+     * findChannel(hit.getCellID()); }
+     */
 
 }
