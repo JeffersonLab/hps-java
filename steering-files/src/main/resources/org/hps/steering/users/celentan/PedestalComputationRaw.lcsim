@@ -18,8 +18,6 @@
        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-
-      
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver"/>   
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
 <!--            <threshold>150</threshold>-->
