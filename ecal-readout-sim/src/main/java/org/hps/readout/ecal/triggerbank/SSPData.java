@@ -115,7 +115,7 @@ public class SSPData extends AbstractIntData {
                 // If the first bit of the index is 1, then it is a
                 // negative number and needs to be converted using
                 // two's complement to get the proper value.
-                if(((iy >> 3) & 0x1) == 0x1) {      
+                if(((iy >> 3) & 0x1) == 0x1) {
                     // Perform the two's complement. ('^' is the bit
                     // wise inversion operator).
                     iy = iy ^ (0xf);
@@ -135,13 +135,13 @@ public class SSPData extends AbstractIntData {
                     ix = ix ^ (0x3f);
                     ix += 1;
                     ix *=-1;
-                    
-                    // Values are encoded from -22 to 23; since LCSIM
-                    // defines them from -23 to -1 and 1 to 23, negative
-                    // values need to be shifted down by an additional
-                    // step to be accurate.
-                    ix -= 1;
                 }
+                
+                // X-index values are encoded from -22 to 23; since
+                // LCSIM defines these values in a range from -23 to
+                // 23, zero and negative values need be shifted down
+                // by an additional step to be accurate.
+                if(ix <= 0) { ix -= 1; }
                 
                 // Get the cluster time. Time is 4 ns clock-cycles.
                 int time = (bank[ii + 1]) & 0x3ff;
