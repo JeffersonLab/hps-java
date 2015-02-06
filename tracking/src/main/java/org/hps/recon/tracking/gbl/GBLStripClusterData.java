@@ -210,7 +210,7 @@ public class GBLStripClusterData implements GenericObject {
 		return getDoubleVal(GBLDOUBLE.TDIRY);
 	}
 	public double getTz() {
-		return getDoubleVal(GBLDOUBLE.TDIRY);
+		return getDoubleVal(GBLDOUBLE.TDIRZ);
 	}
 
 	public void setTrackPhi(double phi) {
