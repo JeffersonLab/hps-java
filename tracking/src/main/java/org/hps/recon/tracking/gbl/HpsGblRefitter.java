@@ -5,6 +5,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.util.Driver;
 import org.lcsim.util.log.LogUtil;
 
@@ -29,6 +31,7 @@ import org.lcsim.util.log.LogUtil;
  * be present in the event.
  *
  * @author Norman A Graf
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  * @version $Id$
  */
@@ -214,14 +217,21 @@ public class HpsGblRefitter extends Driver
             if (_debug) {
                 System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
             }
+            
+            // get measurement frame unit vectors
+            Hep3Vector u = strip.getU();
+            Hep3Vector v = strip.getV();
+            Hep3Vector w = strip.getW();
+            
+            
             // Measurement direction (perpendicular and parallel to strip direction)
             Matrix mDir = new Matrix(2, 3);
-            mDir.set(0, 0, strip.getUx());
-            mDir.set(0, 1, strip.getUy());
-            mDir.set(0, 2, strip.getUz());
-            mDir.set(1, 0, strip.getVx());
-            mDir.set(1, 1, strip.getVy());
-            mDir.set(1, 2, strip.getVz());
+            mDir.set(0, 0, u.x());
+            mDir.set(0, 1, u.y());
+            mDir.set(0, 2, u.z());
+            mDir.set(1, 0, v.x());
+            mDir.set(1, 1, v.y());
+            mDir.set(1, 2, v.z());
             if (_debug) {
                 System.out.println("HpsGblFitter: " + "mDir");
                 mDir.print(4, 6);
@@ -359,37 +369,85 @@ public class HpsGblRefitter extends Driver
             msCov.set(1, 1, msCov.get(1, 1) + scatErr.get(0) * scatErr.get(0));
             msCov.set(2, 2, msCov.get(2, 2) + scatErr.get(1) * scatErr.get(1));
 
+            
+              
+             //// Calculate global derivatives for this point
+             
+            // track direction in tracking/global frame
+            Hep3Vector tDirGlobal = new BasicHep3Vector(cosPhi * cosLambda, sinPhi * cosLambda, sinLambda); 
+            
+            // Cross-check that the input is consistent
+             if( VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
+                 throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+             }
+             // rotate track direction to measurement frame     
+             Hep3Vector tDirMeas = new BasicHep3Vector(VecOp.dot(tDirGlobal, u), VecOp.dot(tDirGlobal, v), VecOp.dot(tDirGlobal, w));
+             // TODO this is a trivial one. Fix it.
+             Hep3Vector normalMeas = new BasicHep3Vector(VecOp.dot(w, u), VecOp.dot(w, v), VecOp.dot(w, w));
+             
+             // vector coplanar with measurement plane from origin to prediction
+             Hep3Vector tPosMeas = strip.getTrackPos();
+             
+             // measurements: non-measured directions 
+             double vmeas = 0.;
+             double wmeas = 0.;
+             
+             // calculate and add derivatives to point
+             GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, tPosMeas, normalMeas); 
+             
+             //TODO find a more robust way to get half.
+             boolean isTop = Math.sin(strip.getTrackLambda()) > 0 ? true : false;
+             
+             // Get the list of millepede parameters
+             List<MilleParameter> milleParameters = glDers.getDers(isTop);
+             
+             // need to make vector and matrices for interface
+             List<Integer> labGlobal = new ArrayList<Integer>();
+             Matrix addDer = new Matrix(1, milleParameters.size());
+             for(int i=0; i < milleParameters.size(); ++i) {
+                 labGlobal.add(milleParameters.get(i).getId());
+                 addDer.set(0, i, milleParameters.get(i).getValue());
+             }
+             point.addGlobals(labGlobal, addDer);
+
+             for(int i=0; i < milleParameters.size(); ++i) {
+                 logger.info(labGlobal.get(i) + "\t" + addDer.get(0, i));
+             }
+
+             
+            
             /*
+            ##### 
+            ## Calculate global derivatives for this point
+            # track direction in tracking/global frame
+            tDirGlobal = np.array( [ [cosPhi * cosLambda, sinPhi * cosLambda, sinLambda] ] )        
+            # Cross-check that the input is consistent
+            if( np.linalg.norm( tDirGlobal - strip.tDir) > 0.00001):
+            print 'ERROR: tDirs are not consistent!'
+            sys.exit(1)
+            # rotate track direction to measurement frame          
+            tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]) )
+            #tDirMeas = utils.rotateGlToMeas(strip,tDirGlobal)
+            normalMeas = np.dot( strip.w , np.array([strip.u, strip.v, strip.w]) ) 
+            #normalMeas = utils.rotateGlToMeas(strip,strip.w) 
+            # non-measured directions 
+            vmeas = 0.
+            wmeas = 0.
+            # calculate and add derivatives to point
+            glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,normalMeas)
+            ders = glDers.getDers(track.isTop())
+            labGlobal = ders['labels']
+            addDer = ders['ders']
+            if debug:
+            print 'global derivatives:'
+            print labGlobal
+            print addDer
+            point.addGlobals(labGlobal, addDer)
+            ##### 
 
-             ##### 
-             ## Calculate global derivatives for this point
-             # track direction in tracking/global frame
-             tDirGlobal = np.array( [ [cosPhi * cosLambda, sinPhi * cosLambda, sinLambda] ] )        
-             # Cross-check that the input is consistent
-             if( np.linalg.norm( tDirGlobal - strip.tDir) > 0.00001):
-             print 'ERROR: tDirs are not consistent!'
-             sys.exit(1)
-             # rotate track direction to measurement frame          
-             tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]) )
-             #tDirMeas = utils.rotateGlToMeas(strip,tDirGlobal)
-             normalMeas = np.dot( strip.w , np.array([strip.u, strip.v, strip.w]) ) 
-             #normalMeas = utils.rotateGlToMeas(strip,strip.w) 
-             # non-measured directions 
-             vmeas = 0.
-             wmeas = 0.
-             # calculate and add derivatives to point
-             glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,normalMeas)
-             ders = glDers.getDers(track.isTop())
-             labGlobal = ders['labels']
-             addDer = ders['ders']
-             if debug:
-             print 'global derivatives:'
-             print labGlobal
-             print addDer
-             point.addGlobals(labGlobal, addDer)
-             ##### 
-
-             */
+            */
+            
+            
             logger.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             
             //go to next point
@@ -471,54 +529,253 @@ public class HpsGblRefitter extends Driver
         return jac;
     }
     
-    public static class FittedGblTrajectory {
-        public static enum GBLPARIDX {
-            QOVERP(0),XTPRIME(1),YTPRIME(2),XT(3),YT(4);
-            private int _value;
-            private GBLPARIDX(int value) {
-                _value = value;
-            }
-            public int getValue() {
-                return _value;
-            }
-        };
-        private GblTrajectory _traj;
-        private double _chi2;
-        private double _lost;
-        private int _ndf;
-        private Track _seed = null;
-        private GBLTrackData _t = null;
-        public FittedGblTrajectory(GblTrajectory traj, double chi2, int ndf, double lost) {
-            _traj = traj;
-            _chi2 = chi2;
-            _ndf = ndf;
-            _lost = lost;
-        }
-        public void set_track_data(GBLTrackData t) {
-           _t  = t;
-        }
-        public GBLTrackData get_track_data() {
-            return _t;
-        }
-        public void set_seed(Track seed) {
-            _seed = seed;
-        }
-        public Track get_seed() {
-            return _seed;
-        }
-        public GblTrajectory get_traj() {
-            return _traj;
-        }
-        public double get_chi2() {
-            return _chi2;
-        }
-        public double get_lost() {
-            return _lost;
-        }
-        public int get_ndf() {
-            return _ndf;
-        }
-        
-    }
+    
+    private static class GlobalDers {
+        private int _layer;
+        private double _umeas; // measurement direction
+        private double _vmeas; // unmeasured direction
+        private double _wmeas; // normal to plane
+        private Hep3Vector _t; // track direction
+        private Hep3Vector _p; // track prediction
+        private Hep3Vector _n; // normal to plane
+        private Matrix _dm_dg; //Global derivaties of the local measurements
+        private Matrix _dr_dm; //Derivatives of residuals w.r.t. measurement
+        private Matrix _dr_dg; //Derivatives of residuals w.r.t. global parameters
 
+        public GlobalDers(int layer,double umeas, double vmeas, double wmeas, Hep3Vector tDir, Hep3Vector tPred, Hep3Vector normal) {
+            _layer = layer;
+            _umeas = umeas;
+            _vmeas = vmeas;
+            _wmeas = wmeas;
+            _t = tDir;
+            _p = tPred;
+            _n = normal;
+            // Derivatives of residuals w.r.t. perturbed measurement 
+            _dr_dm = getResDers();
+            // Derivatives of perturbed measurement w.r.t. global parameters
+            _dm_dg = getMeasDers();
+            // Calculate, by chain rule, derivatives of residuals w.r.t. global parameters
+            _dr_dg = _dr_dm.times(_dm_dg); 
+            //print 'dm_dg'
+            //print dm_dg
+            //print 'dr_dm'
+            //print dr_dm
+            //print 'dr_dg'
+            //print self.dr_dg
+        }
+
+
+        /**
+         * Derivative of mt, the perturbed measured coordinate vector m w.r.t. to global parameters: u,v,w,alpha,beta,gamma
+         */
+        private Matrix getMeasDers() {
+
+            //Derivative of the local measurement for a translation in u
+            double dmu_du = 1.;
+            double dmv_du = 0.;
+            double dmw_du = 0.;
+            // Derivative of the local measurement for a translation in v
+            double dmu_dv = 0.;
+            double dmv_dv = 1.;
+            double dmw_dv = 0.;
+            // Derivative of the local measurement for a translation in w
+            double dmu_dw = 0.;
+            double dmv_dw = 0.;
+            double dmw_dw = 1.;
+            // Derivative of the local measurement for a rotation around u-axis (alpha)
+            double dmu_dalpha = 0.;
+            double dmv_dalpha = _p.z(); // self.wmeas
+            double dmw_dalpha = -1.0 * _p.y(); // -1.0 * self.vmeas
+            // Derivative of the local measurement for a rotation around v-axis (beta)
+            double dmu_dbeta = -1.0 * _p.z(); //-1.0 * self.wmeas
+            double dmv_dbeta = 0.;
+            double dmw_dbeta = _p.x(); //self.umeas
+            // Derivative of the local measurement for a rotation around w-axis (gamma)
+            double dmu_dgamma = _p.y(); // self.vmeas
+            double dmv_dgamma = -1.0 * _p.x();  // -1.0 * self.umeas 
+            double dmw_dgamma = 0.;
+            // put into matrix
+            Matrix dm_dg = new Matrix(3, 6);
+            dm_dg.set(0, 0, dmu_du);
+            dm_dg.set(0, 1, dmu_dv);
+            dm_dg.set(0, 2, dmu_dw);
+            dm_dg.set(0, 3, dmu_dalpha);
+            dm_dg.set(0, 4, dmu_dbeta);
+            dm_dg.set(0, 5, dmu_dgamma);
+            dm_dg.set(1, 0, dmv_du);
+            dm_dg.set(1, 1, dmv_dv);
+            dm_dg.set(1, 2, dmv_dw);
+            dm_dg.set(1, 3, dmv_dalpha);
+            dm_dg.set(1, 4, dmv_dbeta);
+            dm_dg.set(1, 5, dmv_dgamma);
+            dm_dg.set(2, 0, dmw_du);
+            dm_dg.set(2, 1, dmw_dv);
+            dm_dg.set(2, 2, dmw_dw);
+            dm_dg.set(2, 3, dmw_dalpha);
+            dm_dg.set(2, 4, dmw_dbeta);
+            dm_dg.set(2, 5, dmw_dgamma);
+            //dmdg = np.array([[dmu_du, dmu_dv, dmu_dw, dmu_dalpha, dmu_dbeta, dmu_dgamma],[dmv_du, dmv_dv, dmv_dw, dmv_dalpha, dmv_dbeta, dmv_dgamma],[dmw_du, dmw_dv, dmw_dw, dmw_dalpha, dmw_dbeta, dmw_dgamma]])
+            return dm_dg;
+        }
+
+        /**
+         * Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
+         */
+        private Matrix getResDers() {
+            double tdotn =  VecOp.dot(_t, _n); 
+            Matrix dr_dm = Matrix.identity(3,3);
+            //print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
+            double delta, val;
+            for(int i=0; i<3; ++i) {
+                for(int j=0; j<3; ++j) {
+                    delta = i==j ? 1. : 0.;
+                    val = delta - _t.v()[i] * _n.v()[j]/tdotn;
+                    dr_dm.set(i, j, val);
+                }
+            }
+            return dr_dm;
+        }
+
+
+        /**
+         * Turn derivative matrix into @Milleparameter
+         * @param isTop - top or bottom track
+         * @return list of @Milleparameters
+         */
+        private List<MilleParameter> getDers(boolean isTop) {
+            int transRot;
+            int direction;
+            int label;
+            double value;
+            List<MilleParameter> milleParameters = new ArrayList<MilleParameter>();
+            int topBot = isTop == true ? 1 : 2;
+            for(int ip=1; ip<7; ++ip) {
+                if(ip > 3) {
+                    transRot = 2;
+                    direction = ((ip-1) % 3) + 1;
+                } else {
+                    transRot = 1;
+                    direction = ip;
+                }
+                label = topBot * MilleParameter.half_offset + transRot * MilleParameter.type_offset + direction * MilleParameter.dimension_offset + _layer;
+                value = _dr_dg.get(0, ip-1);
+                MilleParameter milleParameter = new MilleParameter(label, value, 0.0);
+                milleParameters.add(milleParameter);
+            }
+            return milleParameters;
+        }
+
+
+        /*
+
+    class globalDers:
+        def __init__(self,layer,umeas,vmeas,wmeas, tDir, tPred, normal):
+            self.layer = layer # measurement direction
+            self.umeas = umeas # measurement direction
+            self.vmeas = vmeas # unmeasured direction
+            self.wmeas = wmeas # normal to plane
+            self.t = tDir # track direction
+            self.p = tPred # track prediction
+            self.n = normal # normal to plane
+            # Global derivaties of the local measurements
+            self.dm_dg = self.getMeasDers()
+            # Derivatives of residuals w.r.t. measurement 
+            self.dr_dm = self.getResDers()
+            # Derivatives of residuals w.r.t. global parameters
+            self.dr_dg = np.dot(self.dr_dm, self.dm_dg)
+            #print 'dm_dg'
+            #print dm_dg
+            #print 'dr_dm'
+            #print dr_dm
+            #print 'dr_dg'
+            #print self.dr_dg
+
+        def dump(self):
+            print 'globalDers:'
+            print 'layer ', self.layer
+            print 'umeas ', self.umeas, ' vmeas ', self.vmeas, ' wmeas ', self.wmeas
+            print 't ', self.t, ' p ', self.p, ' n ', self.n
+            print 'dm_dg\n',self.dm_dg, '\ndr_dm\n',self.dr_dm,'\ndr_dg\n',self.dr_dg
+
+        def getDers(self,isTop):
+            half_offset = 10000 
+            translation_offset = 1000
+            direction_offset = 100
+            topBot = 1
+            transRot = 1
+            direction = 1
+            if not isTop:
+                topBot = 2
+            res = {}
+            labels = []
+            ders = []
+            for ip, name in global_params.iteritems():
+                if ip > 3:
+                    transRot = 2
+                    direction = ((ip-1) % 3) + 1
+                else:
+                    direction = ip
+                label = (int)(topBot * half_offset + transRot * translation_offset + direction * direction_offset + self.layer)
+                labels.append(label)
+                ders.append(self.dr_dg[0,ip-1])
+
+            return {'labels':np.array([labels]) , 'ders':np.array([ders])}
+
+
+
+
+        def getResDers(self):
+            # Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
+            tdotn = np.dot(self.t.T,self.n)
+            drdg = np.eye(3)
+            #print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
+            for i in range(3):
+                for j in range(3):
+                    delta = 0.
+                    if i==j:
+                        delta = 1.       
+                    drdg[i][j] = delta - self.t[i]*self.n[j]/tdotn[0]
+            return drdg
+
+
+
+
+        def getMeasDers(self):
+            # Derivative of mt, the perturbed measured coordinate vector m 
+            # w.r.t. to global parameters: u,v,w,alpha,beta,gamma
+
+            # Derivative of the local measurement for a translation in u
+            dmu_du = 1.
+            dmv_du = 0.
+            dmw_du = 0.
+            # Derivative of the local measurement for a translation in v
+            dmu_dv = 0.
+            dmv_dv = 1.
+            dmw_dv = 0.
+            # Derivative of the local measurement for a translation in w
+            dmu_dw = 0.
+            dmv_dw = 0.
+            dmw_dw = 1.
+            # Derivative of the local measurement for a rotation around u-axis (alpha)
+            dmu_dalpha = 0.
+            dmv_dalpha = self.p[2] # self.wmeas
+            dmw_dalpha = -1.0 * self.p[1] # -1.0 * self.vmeas
+            # Derivative of the local measurement for a rotation around v-axis (beta)
+            dmu_dbeta = -1.0 * self.p[2] #-1.0 * self.wmeas
+            dmv_dbeta = 0.
+            dmw_dbeta = self.p[0] #self.umeas
+            # Derivative of the local measurement for a rotation around w-axis (gamma)
+            dmu_dgamma = self.p[1] # self.vmeas
+            dmv_dgamma = -1.0 * self.p[0]  # -1.0 * self.umeas 
+            dmw_dgamma = 0.
+            # put into matrix
+            dmdg = np.array([[dmu_du, dmu_dv, dmu_dw, dmu_dalpha, dmu_dbeta, dmu_dgamma],[dmv_du, dmv_dv, dmv_dw, dmv_dalpha, dmv_dbeta, dmv_dgamma],[dmw_du, dmw_dv, dmw_dw, dmw_dalpha, dmw_dbeta, dmw_dgamma]])
+            #print dmw_dbeta
+            #dmdg = np.array([[dmu_du, dmu_dv],[dmu_dw, dmu_dalpha], [dmw_dbeta, dmw_dgamma]])
+            return dmdg
+         */
+    }
 }
+
+
+
