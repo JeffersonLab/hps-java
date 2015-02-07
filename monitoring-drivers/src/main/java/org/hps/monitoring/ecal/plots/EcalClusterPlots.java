@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.readout.ecal.SSPTriggerLogic;
+import org.hps.readout.ecal.TriggerModule;
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -259,10 +259,10 @@ public class EcalClusterPlots extends Driver {
     		// Iterate over each pair and calculate the pair cut values.
     		for(Cluster[] pair : pairList) {
     			// Get the energy slope value.
-    			double energySumValue = SSPTriggerLogic.getValueEnergySum(pair);
-    			double energyDifferenceValue = SSPTriggerLogic.getValueEnergyDifference(pair);
-    			double energySlopeValue = SSPTriggerLogic.getValueEnergySlope(pair, 0.005500);
-    			double coplanarityValue = SSPTriggerLogic.getValueCoplanarity(pair);
+    			double energySumValue = TriggerModule.getValueEnergySum(pair);
+    			double energyDifferenceValue = TriggerModule.getValueEnergyDifference(pair);
+    			double energySlopeValue = TriggerModule.getValueEnergySlope(pair, 0.005500);
+    			double coplanarityValue = TriggerModule.getValueCoplanarity(pair);
     			double xMean = ((pair[0].getEnergy() * pair[0].getPosition()[0]) +
     					(pair[1].getEnergy() * pair[1].getPosition()[0])) / energySumValue;
     			double yMean = ((pair[0].getEnergy() * pair[0].getPosition()[1]) +
