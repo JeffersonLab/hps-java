@@ -27,32 +27,19 @@ import org.lcsim.util.aida.AIDA;
  */
 public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
-    // ==== Trigger Cut Default Parameters ==============================
-    // ==================================================================
-    private int minHitCount = 1;                                  // Minimum required cluster hit count threshold. (Hits)            
-    private double seedEnergyHigh = Double.MAX_VALUE;             // Maximum allowed cluster seed energy. (GeV)
-    private double seedEnergyLow = Double.MIN_VALUE;              // Minimum required cluster seed energy. (GeV)
-    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;       // Maximum allowed cluster total energy. (GeV)
-    private double clusterEnergyLow = .1 * ECalUtils.GeV;         // Minimum required cluster total energy. (GeV)
-    private double energySumHigh = 1.9 * ECalUtils.GeV;           // Maximum allowed pair energy sum. (GeV)
-    private double energySumLow = 0.0 * ECalUtils.GeV;            // Minimum required pair energy sum. (GeV)
-    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;    // Maximum allowed pair energy difference. (GeV)
-    private double energySlopeLow = 1.1;                          // Minimum required pair energy slope value.
-    private double coplanarityHigh = 35;                          // Maximum allowed pair coplanarity deviation. (Degrees)
-    
-    // ==================================================================
     // ==== Trigger General Default Parameters ==========================
     // ==================================================================
     private String clusterCollectionName = "EcalClusters";        // Name for the LCIO cluster collection.
     private int pairCoincidence = 2;                              // Maximum allowed time difference between clusters. (4 ns clock-cycles)
-    private double energySlopeParamF = 0.005500;                  // A parameter value used for the energy slope calculation.
     private int backgroundLevel = -1;                             // Automatically sets the cuts to achieve a predetermined background rate.
+    private TriggerModule triggerModule = new TriggerModule(1.0, 0.050,
+    		6.600, 0.010, 6.600, 0.000, 13.200, 6.600, 0.0, 360, 0.0055);
     
     // ==================================================================
     // ==== Driver Internal Variables ===================================
     // ==================================================================
-    private Queue<List<Cluster>> topClusterQueue = null;    // Store clusters on the top half of the calorimeter.
-    private Queue<List<Cluster>> botClusterQueue = null;    // Store clusters on the bottom half of the calorimeter.
+    private Queue<List<Cluster>> topClusterQueue = null;           // Store clusters on the top half of the calorimeter.
+    private Queue<List<Cluster>> botClusterQueue = null;           // Store clusters on the bottom half of the calorimeter.
     private int allClusters = 0;                                   // Track the number of clusters processed.
     private int allPairs = 0;                                      // Track the number of cluster pairs processed.
     private int clusterTotalEnergyCount = 0;                       // Track the clusters which pass the total energy cut.
@@ -68,42 +55,42 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==== Trigger Distribution Plots ==================================
     // ==================================================================
     private AIDA aida = AIDA.defaultInstance();
-    IHistogram1D clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
-    IHistogram1D clusterSeedEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
-    IHistogram1D clusterSeedEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
-    IHistogram1D clusterSeedEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
-    IHistogram1D clusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution", 9, 1, 10);
-    IHistogram1D clusterHitCount100 = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Over 100 MeV)", 9, 1, 10);
-    IHistogram1D clusterHitCountSingle = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed Single Cuts)", 9, 1, 10);
-    IHistogram1D clusterHitCountAll = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed All Cuts)", 9, 1, 10);
-    IHistogram1D clusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
-    IHistogram1D clusterTotalEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
-    IHistogram1D clusterTotalEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
-    IHistogram1D clusterTotalEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+    private IHistogram1D clusterSeedEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
+    private IHistogram1D clusterSeedEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D clusterSeedEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D clusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution", 9, 1, 10);
+    private IHistogram1D clusterHitCount100 = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Over 100 MeV)", 9, 1, 10);
+    private IHistogram1D clusterHitCountSingle = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed Single Cuts)", 9, 1, 10);
+    private IHistogram1D clusterHitCountAll = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed All Cuts)", 9, 1, 10);
+    private IHistogram1D clusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
+    private IHistogram1D clusterTotalEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
+    private IHistogram1D clusterTotalEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D clusterTotalEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
     
-    IHistogram1D pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
-    IHistogram1D pairEnergySumAll = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution (Passed All Cuts)", 176, 0.0, 4.4);    
-    IHistogram1D pairEnergyDifference = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
-    IHistogram1D pairEnergyDifferenceAll = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution (Passed All Cuts)", 176, 0.0, 2.2);
-    IHistogram1D pairCoplanarity = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 360, 0.0, 180.0);
-    IHistogram1D pairCoplanarityAll = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution (Passed All Cuts)", 360, 0.0, 180.0);
-    IHistogram1D pairEnergySlope = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 400, 0.0, 4.0);
-    IHistogram1D pairEnergySlopeAll = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution (Passed All Cuts)", 400, 0.0, 4.0);
+    private IHistogram1D pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
+    private IHistogram1D pairEnergySumAll = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution (Passed All Cuts)", 176, 0.0, 4.4);    
+    private IHistogram1D pairEnergyDifference = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
+    private IHistogram1D pairEnergyDifferenceAll = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D pairCoplanarity = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 360, 0.0, 180.0);
+    private IHistogram1D pairCoplanarityAll = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution (Passed All Cuts)", 360, 0.0, 180.0);
+    private IHistogram1D pairEnergySlope = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 400, 0.0, 4.0);
+    private IHistogram1D pairEnergySlopeAll = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution (Passed All Cuts)", 400, 0.0, 4.0);
     
-    IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram2D clusterDistribution100 = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Over 100 MeV)", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistribution100 = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Over 100 MeV)", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     
     // ==================================================================
     // ==== Hardware Diagnostic Variables ===============================
     // ==================================================================
-    IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    IHistogram1D[] diagHitCount = {
+    private IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram1D[] diagHitCount = {
                 aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 8, 0, 8),
                 aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 8, 0, 8)
             };
-    IHistogram1D[] diagTotalEnergy = {
+    private IHistogram1D[] diagTotalEnergy = {
                 aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
                 aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
             };
@@ -131,17 +118,17 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         System.out.printf("\tTrigger Count :: %d%n", numTriggers);
         
         // Print the trigger cuts.
-        System.out.printf("%nCut Values:%n");
-        System.out.printf("\tSeed Energy Low        :: %.2f%n", seedEnergyLow);
-        System.out.printf("\tSeed Energy High       :: %.2f%n", seedEnergyHigh);
-        System.out.printf("\tCluster Energy Low     :: %.2f%n", clusterEnergyLow);
-        System.out.printf("\tCluster Energy High    :: %.2f%n", clusterEnergyHigh);
-        System.out.printf("\tCluster Hit Count      :: %d%n", minHitCount);
-        System.out.printf("\tPair Energy Sum Low    :: %.2f%n", energySumLow);
-        System.out.printf("\tPair Energy Sum High   :: %.2f%n", energySumHigh);
-        System.out.printf("\tPair Energy Difference :: %.2f%n", energyDifferenceHigh);
-        System.out.printf("\tPair Energy Slope      :: %.2f%n", energySlopeLow);
-        System.out.printf("\tPair Coplanarity       :: %.2f%n", coplanarityHigh);
+        System.out.printf("%nTrigger Module Cut Values:%n");
+        System.out.printf("\tSeed Energy Low        :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW));
+        System.out.printf("\tSeed Energy High       :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH));
+        System.out.printf("\tCluster Energy Low     :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW));
+        System.out.printf("\tCluster Energy High    :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH));
+        System.out.printf("\tCluster Hit Count      :: %.0f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW));
+        System.out.printf("\tPair Energy Sum Low    :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW));
+        System.out.printf("\tPair Energy Sum High   :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH));
+        System.out.printf("\tPair Energy Difference :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH));
+        System.out.printf("\tPair Energy Slope      :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW));
+        System.out.printf("\tPair Coplanarity       :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH));
         
         // Run the superclass method.
         super.endOfData();
@@ -209,12 +196,13 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // VERBOSE :: Print the seed energy comparison check.
                 if(verbose) {
                     System.out.printf("\tSeed Energy Cut    :: %.3f < %.3f < %.3f --> %b%n",
-                    		seedEnergyLow, seedEnergy, seedEnergyHigh,
-                    		SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh));
+                    		triggerModule.getCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW), seedEnergy,
+                    		triggerModule.getCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH),
+                    		triggerModule.clusterSeedEnergyCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh)) {
+                if(!triggerModule.clusterSeedEnergyCut(cluster)) {
                 	continue clusterLoop;
                 }
                 
@@ -225,12 +213,13 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the hit count comparison check.
                 if(verbose) {
-                    System.out.printf("\tHit Count Cut      :: %d >= %d --> %b%n",
-                    		hitCount, minHitCount, SSPTriggerLogic.clusterHitCountCut(cluster, minHitCount));
+                    System.out.printf("\tHit Count Cut      :: %.0f >= %d --> %b%n",
+                    		hitCount, triggerModule.getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW),
+                    		triggerModule.clusterHitCountCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!SSPTriggerLogic.clusterHitCountCut(cluster, minHitCount)) {
+                if(!triggerModule.clusterHitCountCut(cluster)) {
                 	continue clusterLoop;
                 }
                 
@@ -242,12 +231,13 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // VERBOSE :: Print the cluster energy comparison check.
                 if(verbose) {
                     System.out.printf("\tCluster Energy Cut :: %.3f < %.3f < %.3f --> %b%n",
-                    		clusterEnergyLow, clusterEnergy, clusterEnergyHigh,
-                    		SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh));
+                    		triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW), clusterEnergy,
+                    		triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH),
+                    		triggerModule.clusterTotalEnergyCut(cluster));
                 }
                 
                 // If the cluster fails the cut, skip to the next cluster.
-                if(!SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh)) {
+                if(!triggerModule.clusterTotalEnergyCut(cluster)) {
                 	continue clusterLoop;
                 }
                 
@@ -297,7 +287,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterEnergyHigh - The parameter value.
      */
     public void setClusterEnergyHigh(double clusterEnergyHigh) {
-        this.clusterEnergyHigh = clusterEnergyHigh * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH, clusterEnergyHigh * ECalUtils.GeV);
     }
     
     /**
@@ -307,7 +297,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterEnergyLow - The parameter value.
      */
     public void setClusterEnergyLow(double clusterEnergyLow) {
-        this.clusterEnergyLow = clusterEnergyLow * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW, clusterEnergyLow * ECalUtils.GeV);
     }
     
     /**
@@ -317,7 +307,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param maxCoplanarityAngle - The parameter value.
      */
     public void setCoplanarityHigh(double coplanarityHigh) {
-        this.coplanarityHigh = coplanarityHigh;
+        triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH, coplanarityHigh);
     }
     
     /**
@@ -327,7 +317,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energyDifferenceHigh - The parameter value.
      */
     public void setEnergyDifferenceHigh(double energyDifferenceHigh) {
-        this.energyDifferenceHigh = energyDifferenceHigh * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, energyDifferenceHigh * ECalUtils.GeV);
     }
     
     /**
@@ -336,7 +326,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySlopeLow - The parameter value.
      */
     public void setEnergySlopeLow(double energySlopeLow) {
-        this.energySlopeLow = energySlopeLow;
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW, energySlopeLow);
     }
     
     /**
@@ -346,7 +336,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumHigh(double energySumHigh) {
-        this.energySumHigh = energySumHigh * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH, energySumHigh * ECalUtils.GeV);
     }
     
     /**
@@ -356,7 +346,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumLow(double energySumLow) {
-        this.energySumLow = energySumLow * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW, energySumLow * ECalUtils.GeV);
     }
     
     /**
@@ -365,7 +355,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param minHitCount - The parameter value.
      */
     public void setMinHitCount(int minHitCount) {
-        this.minHitCount = minHitCount;
+        triggerModule.setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW, minHitCount);
     }
     
     /**
@@ -385,7 +375,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param seedEnergyHigh - The parameter value.
      */
     public void setSeedEnergyHigh(double seedEnergyHigh) {
-        this.seedEnergyHigh = seedEnergyHigh * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH, seedEnergyHigh * ECalUtils.GeV);
     }
     
     /**
@@ -395,7 +385,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param seedEnergyLow - The parameter value.
      */
     public void setSeedEnergyLow(double seedEnergyLow) {
-        this.seedEnergyLow = seedEnergyLow * ECalUtils.GeV;
+        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW, seedEnergyLow * ECalUtils.GeV);
     }
     
     /**
@@ -404,7 +394,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param f - The new energy slope parameter.
      */
     public void setEnergySlopeParamF(double f) {
-    	energySlopeParamF = f;
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F, f);
     }
     
     /**
@@ -516,63 +506,63 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         
         // Some cut values are almost always the same thing. Set those
         // here and only overwrite if necessary.
-    	seedEnergyLow        = 0.125;
-    	seedEnergyHigh       = 1.300;
-        clusterEnergyLow     = 0.200;
-        clusterEnergyHigh    = 1.700;
-        energySumLow         = 0.500;
-        energySumHigh        = 2.000;
-        energyDifferenceHigh = 1.200;
-        coplanarityHigh      = 30;
-        minHitCount          = 2;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW,     0.125);
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH,    1.300);
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    0.200);
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   1.700);
+    	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         0.500);
+    	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        2.000);
+    	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, 1.200);
+    	triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       30);
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       2);
         
         // Set the variable values.
         if(backgroundLevel == 1) {
-            energySumLow         = 1.000;
-            energySlopeLow       = 1.2;
-            coplanarityHigh      = 20;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         1.000);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       1.2);
+        	triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       20);
         } else if(backgroundLevel == 2) {
-            energySlopeLow       = 1.0;
-            coplanarityHigh      = 20;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       1.0);
+        	triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       20);
         } else if(backgroundLevel == 3) {
-            energySlopeLow       = 1.0;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       1.0);
         } else if(backgroundLevel == 4) {
-            energySlopeLow       = 0.8;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.8);
         } else if(backgroundLevel == 5) {
-            energySlopeLow       = 0.8;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.8);
         } else if(backgroundLevel == 6) {
-            energySlopeLow       = 0.6;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.6);
         } else if(backgroundLevel == 7) {
-            energySlopeLow       = 0.6;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.6);
         } else if(backgroundLevel == 8) {
-            clusterEnergyHigh    = 1.500;
-            energySlopeLow       = 0.4;
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   1.500);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.4);
         } else if(backgroundLevel == 9) {
-            energySlopeLow       = 0.4;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.4);
         } else if(backgroundLevel == 10) {
-            energySlopeLow       = 0.4;
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.4);
         } else if(backgroundLevel == 0) {
-            seedEnergyLow        = 0.100;
-            seedEnergyHigh       = 6.600;
-            clusterEnergyLow     = 0.100;
-            clusterEnergyHigh    = 1.500;
-            energySumLow         = 0.000;
-            energySumHigh        = 1.900;
-            energyDifferenceHigh = 2.200;
-            energySlopeLow       = 1.10;
-            coplanarityHigh      = 35;
-            minHitCount          = 1;
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW,     0.100);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH,    6.600);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    0.100);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   1.500);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         0.000);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        1.900);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, 2.200);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       1.1);
+        	triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       35);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       1);
         } else if(backgroundLevel == -1) {
-            seedEnergyLow        = 0.050;
-            seedEnergyHigh       = 6.600;
-            clusterEnergyLow     = 0.010;
-            clusterEnergyHigh    = 6.600;
-            energySumLow         = 0.000;
-            energySumHigh        = 13.200;
-            energyDifferenceHigh = 6.600;
-            energySlopeLow       = 0.00;
-            coplanarityHigh      = 360;
-            minHitCount          = 1;
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW,     0.050);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH,    6.600);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    0.010);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   6.600);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         0.000);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        13.200);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, 6.600);
+        	triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       0.0);
+        	triggerModule.setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       360);
+        	triggerModule.setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       1);
         }
     }
     
@@ -594,10 +584,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             allPairs++;
             
             // Get the plot values for the pair cuts.
-            double energySum = SSPTriggerLogic.getValueEnergySum(clusterPair);
-            double energyDifference = SSPTriggerLogic.getValueEnergyDifference(clusterPair);
-            double energySlope = SSPTriggerLogic.getValueEnergySlope(clusterPair, energySlopeParamF);
-            double coplanarity = SSPTriggerLogic.getValueCoplanarity(clusterPair);
+            double energySum = TriggerModule.getValueEnergySum(clusterPair);
+            double energyDifference = TriggerModule.getValueEnergyDifference(clusterPair);
+            double energySlope = TriggerModule.getValueEnergySlope(clusterPair, triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
+            double coplanarity = TriggerModule.getValueCoplanarity(clusterPair);
             
             // Fill the general plots.
             pairEnergySum.fill(energySum, 1);
@@ -608,10 +598,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Sum Cut ====================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairEnergySumCut(clusterPair, energySumLow, energySumHigh)) {
+            if(!triggerModule.pairEnergySumCut(clusterPair)) {
             	continue pairLoop;
             }
-            //if(!pairEnergySumCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairEnergySumCount++;
@@ -619,7 +608,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Difference Cut =============================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairEnergyDifferenceCut(clusterPair, energyDifferenceHigh)) {
+            if(!triggerModule.pairEnergyDifferenceCut(clusterPair)) {
             	continue pairLoop;
             }
             
@@ -629,10 +618,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairEnergySlopeCut(clusterPair, energySlopeLow, energySlopeParamF)) {
+            if(!triggerModule.pairEnergySlopeCut(clusterPair)) {
             	continue pairLoop;
             }
-            //if(!pairEnergySlopeCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairEnergySlopeCount++;
@@ -640,10 +628,9 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // ==== Pair Coplanarity Cut ===================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!SSPTriggerLogic.pairCoplanarityCut(clusterPair, coplanarityHigh)) {
+            if(!triggerModule.pairCoplanarityCut(clusterPair)) {
             	continue pairLoop;
             }
-            //if(!pairCoplanarityCut(clusterPair)) { continue pairLoop; }
             
             // Otherwise, note that it passed the cut.
             pairCoplanarityCount++;

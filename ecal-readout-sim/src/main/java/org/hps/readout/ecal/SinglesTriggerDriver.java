@@ -21,11 +21,8 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SinglesTriggerDriver extends TriggerDriver {
     // Cut Values
-    private int hitCountLow = 2;
-    private double seedEnergyLow = 0.125;
-    private double seedEnergyHigh = 6.6;
-    private double clusterEnergyLow = 0.200;
-    private double clusterEnergyHigh = 6.6;
+    private TriggerModule triggerModule = new TriggerModule(2.0, 0.125,
+    		6.600, 0.200, 6.600, 0.000, 13.200, 6.600, 0.0, 360, 0.0055);
     
     // LCIO Collection Names
     private String clusterCollectionName = "EcalClusters";
@@ -81,17 +78,17 @@ public class SinglesTriggerDriver extends TriggerDriver {
             triggerLoop:
             for(Cluster cluster : clusterList) {
                 // Perform the hit count cut.
-                if(!SSPTriggerLogic.clusterHitCountCut(cluster, hitCountLow)) {
+                if(!triggerModule.clusterHitCountCut(cluster)) {
                     continue triggerLoop;
                 }
                 
                 // Perform the seed hit cut.
-                if(!SSPTriggerLogic.clusterSeedEnergyCut(cluster, seedEnergyLow, seedEnergyHigh)) {
+                if(!triggerModule.clusterSeedEnergyCut(cluster)) {
                     continue triggerLoop;
                 }
                 
                 // Perform the cluster energy cut.
-                if(!SSPTriggerLogic.clusterTotalEnergyCut(cluster, clusterEnergyLow, clusterEnergyHigh)) {
+                if(!triggerModule.clusterTotalEnergyCut(cluster)) {
                     continue triggerLoop;
                 }
                 
@@ -119,7 +116,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      * @param hitCountThreshold - The value of the threshold.
      */
     public void setHitCountThreshold(int hitCountThreshold) {
-        hitCountLow = hitCountThreshold;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW, hitCountThreshold);
     }
     
     /**
@@ -128,7 +125,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      * @param seedEnergyLow - The value of the threshold.
      */
     public void setSeedEnergyLowThreshold(double seedEnergyLow) {
-        this.seedEnergyLow = seedEnergyLow;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW, seedEnergyLow);
     }
     
     /**
@@ -137,7 +134,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      * @param seedEnergyHigh - The value of the threshold.
      */
     public void setSeedEnergyHighThreshold(double seedEnergyHigh) {
-        this.seedEnergyHigh = seedEnergyHigh;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH, seedEnergyHigh);
     }
     
     /**
@@ -146,7 +143,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      * @param clusterEnergyLow - The value of the threshold.
      */
     public void setClusterEnergyLowThreshold(double clusterEnergyLow) {
-        this.clusterEnergyLow = clusterEnergyLow;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW, clusterEnergyLow);
     }
     
     /**
@@ -155,7 +152,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
      * @param clusterEnergyHigh - The value of the threshold.
      */
     public void setClusterEnergyHighThreshold(double clusterEnergyHigh) {
-        this.clusterEnergyHigh = clusterEnergyHigh;
+    	triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH, clusterEnergyHigh);
     }
     
     /**
