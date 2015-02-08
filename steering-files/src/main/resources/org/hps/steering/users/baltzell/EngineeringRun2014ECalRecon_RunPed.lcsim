@@ -16,47 +16,63 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
     xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver" />
+        <!-- <driver name="EventMarkerDriver" /> -->
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
+        <driver name="EcalRawConverter_RunPed" />
         <driver name="ReconClusterer" />
-        <driver name="GTPOnlineClusterer" />
+        <driver name="ReconClusterer_RunPed" />
+        <!-- <driver name="GTPOnlineClusterer" />-->
         <driver name="LCIOWriter" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver>
+
         <driver name="EcalRunningPedestal" type="org.hps.users.baltzell.ECalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>
             <maxLookbackTime>-1</maxLookbackTime>
         </driver>
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver>
+
         <driver name="EcalRawConverter" type="org.hps.users.baltzell.EcalRawConverterDriver_RunPed">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
             <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
-            <useRunningPedestal>true</useRunningPedestal>
+            <useRunningPedestal>false</useRunningPedestal>
         </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
-<!--              
-            <calculateProperties>false</calculateProperties>
-            <applyCorrections>true</applyCorrections>
--->            
-            <!--  
-            <minTime></minTime> 
-            <timeWindow></timeWindow>
-            --> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
             <useTimeCut>false</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
+
+        <driver name="EcalRawConverter_RunPed" type="org.hps.users.baltzell.EcalRawConverterDriver_RunPed">
+            <ecalCollectionName>EcalCalHits_RunPed</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+            <useRunningPedestal>true</useRunningPedestal>
+        </driver>
+        <driver name="ReconClusterer_RunPed" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <inputHitCollectionName>EcalCalHits_RunPed</inputHitCollectionName>
+            <outputClusterCollectionName>EcalClusters_RunPed</outputClusterCollectionName>
+            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
+            <useTimeCut>false</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>
+
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <logLevel>WARNING</logLevel>
             <clustererName>GTPOnlineClusterer</clustererName>
@@ -71,6 +87,8 @@
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <!-- Uncomment if you only want specific collections in the output. -->
             <!-- <writeOnlyCollections>EcalCalHits EcalClusters EcalClustersGTP</writeOnlyCollections> -->
+            <!--<writeOnlyCollections>EcalCalHits EcalClusters</writeOnlyCollections>-->
+            <writeOnlyCollections>EcalCalHits EcalClusters EcalCalHits_RunPed EcalClusters_RunPed</writeOnlyCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
