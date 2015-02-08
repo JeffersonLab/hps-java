@@ -11,7 +11,7 @@ __METADATAVARFILENAME='./CONFIGINFO/METADATA.txt'
 __SSCOLUMNS={'run':0,'tgt':5,'cur':6,'x':7,'y':8,'trig':9,
              'fadcmode':10,'fadcthresh':11,'fadcwindow':12,
              'seedthresh':13,'clusterthresh':14,'hitwindow':15,'pairwindow':16,
-             'desc1':19,'desc2':20,'nev':3}
+             'desc1':19,'desc2':20,'nev':3,'runbegin':1,'runend':2}
 
 # DAQ TRIGGER NUMBERING:
 __IOSRC={'20':'SINGLES_0_EN','21':'SINGLES_1_EN',
@@ -105,7 +105,7 @@ def GetMetadataFromDAQ(runno,mtd):
       # 3-column lines:
       if len(xx)==1:
         # config line messed up:
-        if re.match('SSP_HPS_SINGELS_NMIN',key)!=None:
+        if re.match('SSP_HPS_SINGLES_NMIN',key)!=None:
           continue
         mtd[key]=int(xx[0])
 
@@ -166,6 +166,15 @@ def GetMetadataFromRunSpreadsheet(runno,mtd):
       desc2=xx[col['desc2']]
       trig=xx[col['trig']].replace('\'','prime')
       mtd['Description']='%s , %s , %s'%(trig,desc1,desc2)
+
+#      if xx[col['runbegin']].find('/'):
+#        unix=ERU.ConvertSpreadsheetDate(xx[col['runbegin']])
+#        if (not unix==None):
+#          mtd['RunBegin']=int(time)
+#      if xx[col['runend']].find('/'):
+#        unix=ERU.ConvertSpreadsheetDate(xx[col['runend']])
+#        if (not unix==None):
+#          mtd['RunEnd']=int(time)
 
       if xx[col['nev']].find('M')>=0:
         mtd['Nevents']=float(xx[col['nev']].replace('M','').rstrip())
@@ -412,8 +421,6 @@ def GetPassMetadata(filename,mtd):
 #    mtd['Detector']='HPS-ECalCommissioning'
 #  else:
     sys.exit('GetPassMetadata:  Not Ready for this Pass:  '+npass)
-
-
 
 
 

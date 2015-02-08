@@ -14,7 +14,7 @@ SSHREG=0
 if len(sys.argv)!=3 and len(sys.argv)!=2:
   sys.exit(USAGE)
 
-FILEPATH=sys.argv[1].rstrip()
+FILEPATH=sys.argv[1].rstrip().rstrip('/')
 
 OUTFILE=None
 if len(sys.argv)==3:
@@ -41,6 +41,7 @@ DCLIST=ERU.ListDataCatalog(DCLISTCMD)
 
 # Get list of files to register:
 FILELIST=ERU.ListRealFiles(FILEPATH)
+
 
 if len(FILELIST)==0:
   sys.exit('No Files:  '+FILEPATH)

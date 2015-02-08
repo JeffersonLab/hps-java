@@ -152,7 +152,7 @@ def SortMetadataNamesForCatalog(metadatanames):
   mtdn=metadatanames
   mtdn.sort()
   first=['Run','FileNumber','Trigger','Description',
-         'BeamCurrent','Target','Nevents']
+         'BeamCurrent','Target','Nevents','RunBegin','RunEnd']
   first.reverse()
   for xx in first:
     if not xx in mtdn:
@@ -164,7 +164,7 @@ def SortMetadataNamesForCatalog(metadatanames):
 def SortMetadataNamesForTable(metadatanames):
   mtdn=metadatanames
   mtdn.sort()
-  first=['Run','FileNumber']
+  first=['Run','FileNumber','RunBegin','RunEnd']
   last=['Trigger','Description']
   first.reverse()
   for xx in first:
@@ -195,6 +195,25 @@ def DumpTable():
 def DumpNames():
   for key in __ALLMETADATANAMES:
     print key
+
+def ConvertSpreadsheetDate(ssdate):
+  unix=None
+  yy=ssdate.rstrip().lstrip().split(' ')
+  if len(yy) == 3:
+    date = yy[0]
+    time = yy[1]
+    ampm = yy[2]
+    time = time.split(':')
+    date = date.split('/')
+    if len(date)==3 and time==2 and (ampm=='AM' or ampm=='PM'):
+      month=int(date[0])
+      day=int(date[1])
+      year=2000+int(date[2])
+      hour=int(time[0])
+      minu=int(time[1])
+      unix=(datetime.datetime(year,month,day,hour,minu)).strftime('%s')
+  return unix
+
 
 #def GetDCOpts(filepath):
 #  return ' --site '+GetSite(filepath)
