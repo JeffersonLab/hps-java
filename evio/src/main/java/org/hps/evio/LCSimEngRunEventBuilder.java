@@ -84,7 +84,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             for (BaseStructure subBank : bank.getChildrenList()) {
                 if (subBank.getHeader().getTag() == 0xE10E) {
                     if (subBank.getStringData() == null) continue; // unfortunately necessary
-                    trigconf.add(new TriggerConfig(subBank.getStringData()));
+                    trigconf.add(new TriggerConfig(lcsimEvent.getRunNumber(),subBank.getStringData()));
                 }
             }
         }
