@@ -121,8 +121,8 @@ public class ECalRunningPedestalDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
 
-        if (!event.hasCollection(RawCalorimeterHit.class,rawCollectionName)) {
-            if (!event.hasCollection(LCRelation.class,extraDataRelationsName)) {
+        if (event.hasCollection(RawCalorimeterHit.class,rawCollectionName)) {
+            if (event.hasCollection(LCRelation.class,extraDataRelationsName)) {
                 for (LCRelation rel : event.get(LCRelation.class,extraDataRelationsName)) {
                     RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
                     GenericObject extraData = (GenericObject) rel.getTo();
