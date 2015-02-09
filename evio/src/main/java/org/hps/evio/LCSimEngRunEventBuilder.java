@@ -5,14 +5,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.EvioEvent;
+
+import org.lcsim.event.EventHeader;
+
 import org.hps.readout.ecal.triggerbank.AbstractIntData;
 import org.hps.readout.ecal.triggerbank.SSPData;
 import org.hps.readout.ecal.triggerbank.TIData;
 import org.hps.readout.ecal.triggerbank.TriggerConfig;
 import org.hps.record.evio.EvioEventUtilities;
-import org.jlab.coda.jevio.BaseStructure;
-import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.event.EventHeader;
+
 
 /**
  * Build LCSim events from EVIO data.
@@ -25,13 +28,13 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
+        svtReader = new SvtEvioReader(); 
         sspCrateBankTag = 0x2E; //A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
-        // svtReader = new SVTEvioReader();
     }
 
     @Override

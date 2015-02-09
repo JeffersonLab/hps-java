@@ -5,16 +5,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EvioEvent;
+import org.jlab.coda.jevio.IEvioFilter;
+import org.jlab.coda.jevio.IEvioStructure;
 import org.jlab.coda.jevio.StructureFinder;
 import org.jlab.coda.jevio.BaseStructure;
-
+import org.jlab.coda.jevio.StructureType;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
-
 import org.hps.util.Pair;
 
 /**
@@ -46,19 +49,27 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	private static final String READOUT_NAME = "TrackerHits";
 
 	/**
-	 *	Get the maximum data bank tag in the event.
+	 *	Get the minimum SVT ROC bank tag in the event.
 	 *
-	 * @return Maximum data bank tag
+	 *	@return Minimum SVT ROC bank tag
 	 */
-	abstract protected int getMaxDataBankTag();
+	abstract protected int getMinRocBankTag(); 
+	
+	/**
+	 *	Get the maximum SVT ROC bank tag in the event.
+	 *
+	 *	@return Maximum SVT ROC bank tag
+	 */
+	abstract protected int getMaxRocBankTag(); 
+	
 
 	/**
-	 *	Get the SVT bank tag
-	 *
-	 *	@return SVT bank tag 
+	 *	Get the SVT ROC bank number of the bank encapsulating the SVT samples.
+	 * 
+	 *	@return SVT ROC bank number 
 	 */
-	abstract protected int getSvtBankTag();
-
+	abstract protected int getRocBankNumber(); 
+	
 	/**
 	 *	Get the number of 32 bit integers composing the data block header
 	 *
@@ -91,14 +102,15 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 */
 	abstract protected HpsSiSensor getSensor(int[] data);
 
-	/**
-	 * 	Make a {@link RawTrackerHit} from a set of samples.
-	 * 
-	 *	@param data - sample block of data
-	 * 	@return A raw hit
-	 */
-	abstract protected RawTrackerHit makeHit(int[] data);
 
+	/**
+	 *	Check whether a data bank is valid i.e. contains SVT samples only.
+	 * 
+	 * 	@param dataBank - An EVIO bank containing integer data
+	 * 	@return true if the bank is valid, false otherwise
+	 */
+	abstract protected boolean isValidDataBank(BaseStructure dataBank); 	
+	
 	/**
 	 *	Process an EVIO event and extract all information relevant to the SVT.
 	 *	
@@ -107,8 +119,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 *	@return true if the EVIO was processed successfully, false otherwise 
 	 */
 	public boolean processEvent(EvioEvent event, EventHeader lcsimEvent) {
-		this.makeHits(event, lcsimEvent);
-		return true;
+		return this.makeHits(event, lcsimEvent);
 	}
 
 	/**
@@ -122,6 +133,8 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 */
 	public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
+		this.setDebug(true);
+		
 		// Setup the DAQ map if it's not setup
 		if (!this.isDaqMapSetup)
 			this.setupDaqMap(lcsimEvent.getDetector().getSubdetector(
@@ -130,66 +143,145 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		// Clear the list of raw tracker hits
 		rawHits.clear();
 
-		// Get the SVT data banks encapsulated by the physics event. There
-		// should only be a single SVT bank that contains all physics data.
-		// FIXME: Change the tag name so it's clear that we are referring to
-		// the data bank
-		List<BaseStructure> svtBanks = StructureFinder.getMatchingStructures(
-				event, this.getSvtBankTag());
-
-		// If there wasn't any SVT banks found, return false
-		if (svtBanks.isEmpty())
-			return false;
-
-		// Check that the SVT bank contains data banks. If not, throw an
-		// exception
-		if (svtBanks.get(0).getChildCount() == 0) {
-			throw new RuntimeException("[ " + this.getClass().getSimpleName()
-					+ " ]: SVT bank doesn't contain any data banks.");
-		}
-
-		// Loop over the SVT data banks
-		for (BaseStructure dataBank : svtBanks.get(0).getChildrenList()) {
-
-			// Get the bank tag and check whether it's within the allowable
-			// ranges. If not, throw an exception
-			int dataBankTag = dataBank.getHeader().getTag();
-			if (dataBankTag < MIN_DATA_BANK_TAG
-					|| dataBankTag > this.getMaxDataBankTag()) {
-				throw new RuntimeException("[ "
-						+ this.getClass().getSimpleName()
-						+ " ]: Unexpected data bank tag:  " + dataBankTag);
-			}
-
-			// Get the int data encapsulated by the data bank
-			int[] data = dataBank.getIntData();
-
-			// Check that a complete set of samples exist
-			int sampleCount = data.length - this.getDataHeaderLength()
-					- this.getDataTailLength();
-			//System.out.println("[ " + this.getClass().getSimpleName()
-			//		+ " ]: Sample count: " + sampleCount);
-			if (sampleCount % 4 != 0) {
-				throw new RuntimeException("[ "
-						+ this.getClass().getSimpleName()
-						+ " ]: Size of samples array is not divisible by 4");
-			}
-
-			// Loop through all of the samples and make hits
-			for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
-
-				int[] samples = new int[4];
-				System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
-				rawHits.add(this.makeHit(samples));
+		// Retrieve the ROC banks encapsulated by the physics bank.  The ROC
+		// bank range is set in the subclass.
+		List<BaseStructure> rocBanks = new ArrayList<BaseStructure>();
+		for (int rocBankTag = this.getMinRocBankTag(); 
+				rocBankTag <= this.getMaxRocBankTag(); rocBankTag++) { 
+			
+			this.printDebug("Retrieving ROC bank: " + rocBankTag);
+			if (this.getRocBankNumber() == -1) { 
+				rocBanks.addAll(this.getMatchingBanks(event, rocBankTag));
+			} else { 
+				rocBanks.addAll(StructureFinder.getMatchingBanks(event, rocBankTag, this.getRocBankNumber()));
 			}
 		}
+		this.printDebug("Total ROC banks found: " + rocBanks.size());
+		
+		// Return false if ROC banks weren't found
+		if (rocBanks.isEmpty()) return false;  
+	
+		// Loop over the SVT ROC banks and process all samples
+		for (BaseStructure rocBank : rocBanks) { 
+			
+			this.printDebug("ROC bank: " + rocBank.toString());
+			
+			this.printDebug("Processing ROC bank " + rocBank.getHeader().getTag());
+			
+			// If the ROC bank doesn't contain any data, raise an exception
+			if (rocBank.getChildCount() == 0) { 
+				throw new RuntimeException("[ " + this.getClass().getSimpleName() 
+						+ " ]: SVT bank doesn't contain any data banks.");
+			}
+			
+			// Get the data banks containing the SVT samples.  
+			List<BaseStructure> dataBanks = rocBank.getChildren(); 
+			this.printDebug("Total data banks found: " + dataBanks.size());
+			
+			// Loop over all of the data banks contained by the ROC banks and 
+			// processed them
+			for (BaseStructure dataBank : dataBanks) { 
+		
+				this.printDebug("Processing data bank: " + dataBank.toString());
+			
+				// Check that the bank is valid
+				if (!this.isValidDataBank(dataBank)) continue;
+				
+				// Get the int data encapsulated by the data bank
+				int[] data = dataBank.getIntData();
+				this.printDebug("Total number of integers contained by the data bank: " + data.length);
+		
+				// Check that a complete set of samples exist
+				int sampleCount = data.length - this.getDataHeaderLength()
+						- this.getDataTailLength();
+				this.printDebug("Total number of  samples: " + sampleCount);
+				if (sampleCount % 4 != 0) {
+					throw new RuntimeException("[ "
+							+ this.getClass().getSimpleName()
+							+ " ]: Size of samples array is not divisible by 4");
+				}
+
+				// Loop through all of the samples and make hits
+				for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
+
+					int[] samples = new int[4];
+					System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
+					rawHits.add(this.makeHit(samples));
+				}
+			}
+		}
+		
+		this.printDebug("Total number of RawTrackerHits created: " + rawHits.size());
 
 		// Turn on 64-bit cell ID.
 		int flag = LCIOUtil.bitSet(0, 31, true);
 		// Add the collection of raw hits to the LCSim event
-		lcsimEvent.put(SVT_HIT_COLLECTION_NAME, rawHits, RawTrackerHit.class,
-				flag, READOUT_NAME);
+		lcsimEvent.put(SVT_HIT_COLLECTION_NAME, rawHits, RawTrackerHit.class, flag, READOUT_NAME);
 
 		return true;
 	}
+
+	/**
+	 * 	Make a {@link RawTrackerHit} from a set of samples.
+	 * 
+	 *	@param data : sample block of data
+	 * 	@return A raw hit
+	 */
+	protected abstract RawTrackerHit makeHit(int[] data); 
+	
+	/**
+	 * 	Make a {@link RawTrackerHit} from a set of samples.
+	 * 
+	 *	@param data : Sample block of data
+	 *	@param channel : Channel number associated with these samples
+	 * 	@return A raw hit
+	 */
+	protected RawTrackerHit makeHit(int[] data, int channel) { 
+
+		// Get the sensor associated with this sample
+		HpsSiSensor sensor = this.getSensor(data);
+		//this.printDebug(sensor.toString());
+		
+		// Use the channel number to create the cell ID
+		long cellID = sensor.makeChannelID(channel);
+		
+		// Set the hit time.  For now this will be zero
+		int hitTime = 0;
+	
+		// Create and return a RawTrackerHit
+		return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
+	}
+	
+
+	/**
+	 *	Print a debug message
+	 * 
+	 * 	@param message : Debug message to print
+	 */
+	void printDebug(String message) { 
+		if (debug) System.out.println("[ " + this.getClass().getSimpleName() + " ]: " + message);
+	}
+	
+	/**
+	 *	Retrieve all the banks in an event that match the given tag in their
+	 *	header and are not data banks. 
+	 *
+	 * 	@param structure : The event/bank being queried
+	 * 	@param tag : The tag to match
+	 * 	@return A collection of all bank structures that pass the filter 
+	 * 			provided by the event
+	 */
+	// TODO: Move this to an EVIO utils class
+	private List<BaseStructure> getMatchingBanks(BaseStructure structure, final int tag) { 
+		IEvioFilter filter = new IEvioFilter() { 
+			public boolean accept(StructureType type, IEvioStructure struc) { 
+				return (type == StructureType.BANK) 
+						&& (tag == struc.getHeader().getTag())
+						&& (struc.getHeader().getDataType() == DataType.ALSOBANK);
+			}
+		};
+		return StructureFinder.getMatchingStructures(structure, filter);
+	}
+
+
 }

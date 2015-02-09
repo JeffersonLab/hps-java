@@ -13,16 +13,23 @@ public class SvtEvioUtils {
 	//-----------------//
 	
 	private static final int TOTAL_SAMPLES = 6;
+    public static final int  SAMPLE_MASK = 0xFFFF;
 	
-	// --- Test Run ---//
+	//--- Test Run ---//
 	private static final int TEST_RUN_SAMPLE_HEADER_INDEX = 0; 
     public static final int  FPGA_MASK = 0xFFFF;
     public static final int  HYBRID_MASK = 0x3;
     public static final int  TEST_RUN_CHANNEL_MASK = 0x7F;
-    public static final int  SAMPLE_MASK = 0x3FFF;
 
+    //--- Engineering Run ---//
+    private static final int ENG_RUN_SAMPLE_HEADER_INDEX = 3; 
+    private static final int FEB_MASK = 0xFF;
+    private static final int FEB_HYBRID_MASK = 0x3;
+    private static final int ENG_RUN_CHANNEL_MASK = 0x7F; 
+    
     /**
-     * 	Extract and return the FPGA ID associated with the samples
+     * 	Extract and return the FPGA ID associated with the samples.
+     * 	Note: This method should only be used when looking at test run data.
      * 
 	 *	@param data - sample block of data
      * 	@return An FPGA ID in the range 0-7
@@ -32,9 +39,10 @@ public class SvtEvioUtils {
 	}
 
     /**
-     * 	Extract and return the hybrid number associated with the samples 
+     * 	Extract and return the hybrid ID associated with the samples 
+     * 	Note: This method should only be used when looking at test run data.
      * 
-	 * 	@param data - sample block of data
+	 * 	@param data : sample block of data
      * 	@return A hybrid number in the range 0-2
      */
     public static int getHybridID(int[] data) {
@@ -43,19 +51,52 @@ public class SvtEvioUtils {
 	
     /**
      *	Extract and return the channel number associated with the samples
+     * 	Note: This method should only be used when looking at test run data.
      * 
-	 * 	@param data - sample block of data
+	 * 	@param data : sample block of data
+     * 	@return A channel number in the range 0-127
+     */
+    public static int getTestRunChannelNumber(int[] data) {
+        return (data[TEST_RUN_SAMPLE_HEADER_INDEX] >>> 16) & TEST_RUN_CHANNEL_MASK;
+    }
+    
+    /**
+     *	Extract and return the front end board (FEB) ID associated with the
+     *	samples
+     *	
+	 * 	@param data : sample block of data
+	 * 	@return A FEB ID in the range 0-10
+     */
+    public static int getFebID(int[] data) { 
+    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >> 8) & FEB_MASK; 
+    }
+    
+    /**
+     * 	Extract and return the front end board (FEB) hybrid ID associated with 
+     * 	the samples
+	 *
+	 * 	@param data : sample block of data
+	 * 	@return A FEB hybrid ID in the range 0-3
+     */
+    public static int getFebHybridID(int[] data) { 
+    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >> 26) & FEB_HYBRID_MASK; 
+    }
+
+    /**
+     *	Extract and return the channel number associated with the samples
+     * 
+	 * 	@param data : sample block of data
      * 	@return A channel number in the range 0-127
      */
     public static int getChannelNumber(int[] data) {
-        return (data[TEST_RUN_SAMPLE_HEADER_INDEX] >>> 16) & TEST_RUN_CHANNEL_MASK;
+        return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 16) & ENG_RUN_CHANNEL_MASK;
     }
-	
+    
     /**
      * 	Extract and return the nth SVT sample.
      * 
-     * 	@param sampleN - The sample number of interest. Valid values are 0 to 5
-	 * 	@param data - sample block of data
+     * 	@param sampleN : The sample number of interest. Valid values are 0 to 5
+	 * 	@param data : sample block of data
      * 	@throws RuntimeException if the sample number is out of range
      * 	@return ADC value of the nth sample
      * 
@@ -83,7 +124,7 @@ public class SvtEvioUtils {
     /**
      *	Extract and return all SVT samples as an array 
      * 
-	 * 	@param data - sample block of data
+	 * 	@param data : sample block of data
      * 	@return An array containing all SVT Shaper signal samples
      */
     public static short[] getSamples(int[] data) {
@@ -94,4 +135,9 @@ public class SvtEvioUtils {
         }
         return samples;
     }
+
+    /**
+     *	Private constructor to prevent the class from being instantiated.
+     */
+    private SvtEvioUtils(){}; 
 }

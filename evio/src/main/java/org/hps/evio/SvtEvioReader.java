@@ -4,38 +4,27 @@ import java.util.List;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.hps.util.Pair;
 
-import static org.hps.evio.EventConstants.TEST_RUN_SVT_BANK_TAG;
-
 /**
- *	Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
- *	objects.
+ *	SVT EVIO reader used to convert SVT bank integer data to LCIO objects.
  * 
  * 	@author Omar Moreno <omoreno1@ucsc.edu>
- * 	@date November 20, 2014
+ * 	@data February 03, 2015
  *
  */
-public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
+public final class SvtEvioReader extends AbstractSvtEvioReader {
 
 	//-----------------//
 	//--- Constants ---//
 	//-----------------//
-
-	private static final int DATA_HEADER_LENGTH = 7;
+	private static final int DATA_HEADER_LENGTH = 1;
 	private static final int DATA_TAIL_LENGTH = 1; 
-	private static final int MAX_FPGA_ID = 6;
-	private static final int ROC_BANK_TAG = 3;
-	private static final int ROC_BANK_NUMBER = -1; 
-	
-	/** 
-	 * Default Constructor
-	 */
-	public TestRunSvtEvioReader() { }; 
+	private static final int MIN_ROC_BANK_TAG = 11;
+	private static final int MAX_ROC_BANK_TAG = 17;
+	private static final int ROC_BANK_NUMBER = 0; 
 	
 	/**
 	 *	Get the minimum SVT ROC bank tag in the event.
@@ -44,7 +33,7 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected int getMinRocBankTag() { 
-		return ROC_BANK_TAG; 
+		return MIN_ROC_BANK_TAG; 
 	}
 
 	/**
@@ -54,7 +43,7 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override 
 	protected int getMaxRocBankTag() { 
-		return ROC_BANK_TAG; 
+		return MAX_ROC_BANK_TAG; 
 	}
 	
 	/**
@@ -66,23 +55,22 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	protected int getRocBankNumber() { 
 		return ROC_BANK_NUMBER; 
 	}
-	
+
 	/**
-	 *	Get the number of 32 bit integers composing the data block header. For
-	 * 	the test run, the header consisted of 7 32 bit integers.
+	 *	Get the number of 32 bit integers composing the data block header
 	 *
-	 *	@return The header length. 
+	 *	@return The header length
 	 */
 	@Override
 	protected int getDataHeaderLength() {
 		return DATA_HEADER_LENGTH;
 	}
-	
+
 	/**
-	 * 	Get the number of 32 bit integers composing the data block tail.  For
-	 * 	the test run, the tail consisted of a single 32 bit integer.
+	 *	Get the number of 32 bit integers composing the data block tail (the 
+	 *	data inserted after all sample blocks in a data block)
 	 * 
-	 *	@return The tail length
+	 *	@return The tail length 
 	 */
 	@Override
 	protected int getDataTailLength() {
@@ -90,28 +78,28 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	}
 
 	/**
-	 *	A method to setup a mapping between a DAQ pair (FPGA/Hybrid) and the 
+	 *	A method to setup a mapping between a DAQ pair (FEB/FEB Hybrid) and the 
 	 *	corresponding sensor.
 	 *
 	 *	@param subdetector : The tracker {@link Subdetector} object
 	 */
 	// TODO: This can probably be done when the conditions are loaded.
 	@Override
-	protected void setupDaqMap(Subdetector subdetector) { 
+	protected void setupDaqMap(Subdetector subdetector) {
 	
-        List<HpsTestRunSiSensor> sensors 
-        	= subdetector.getDetectorElement().findDescendants(HpsTestRunSiSensor.class);
-		for (HpsTestRunSiSensor sensor : sensors) { 
+		List<HpsSiSensor> sensors 
+			= subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
+		for (HpsSiSensor sensor : sensors) { 
 			Pair<Integer, Integer> daqPair 
-				= new Pair<Integer, Integer>(sensor.getFpgaID(), sensor.getHybridID());
+				= new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
 			daqPairToSensor.put(daqPair, sensor);
 		}
-		this.isDaqMapSetup = true;
+		this.isDaqMapSetup = true; 
 	}
 
 	/**
 	 *	Get the sensor associated with a set of samples.  The sample block of
-	 *	data is used to extract the FPGA ID and Hybrid ID corresponding to 
+	 *	data is used to extract the FEB ID and FEB Hybrid ID corresponding to 
 	 *	the samples. 
 	 *
 	 *	@param data : sample block of data
@@ -120,18 +108,19 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	@Override
 	protected HpsSiSensor getSensor(int[] data) {
 		
-		/*this.printDebug("FEB ID: " + SvtEvioUtils.getFpgaID(data) 
-				+ " Hybrid ID: " + SvtEvioUtils.getHybridID(data));*/
-
+		this.printDebug("FEB ID: " + SvtEvioUtils.getFebID(data) 
+				+ " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
+		
 		Pair<Integer, Integer> daqPair 
-        	= new Pair<Integer, Integer>(SvtEvioUtils.getFpgaID(data),
-        								 SvtEvioUtils.getHybridID(data));
+			= new Pair<Integer, Integer>(SvtEvioUtils.getFebID(data), 
+										 SvtEvioUtils.getFebHybridID(data));
+		
 		return daqPairToSensor.get(daqPair);
 	}
-
+	
 	/**
 	 *	Check whether a data bank is valid i.e. contains SVT samples only.  For
-	 *	the test run, a valid data bank has a tag in the range 0-6.
+	 *	the engineering run, a valid data bank has a tag of 1.
 	 * 
 	 * 	@param dataBank - An EVIO bank containing integer data
 	 * 	@return true if the bank is valid, false otherwise
@@ -139,12 +128,10 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected boolean isValidDataBank(BaseStructure dataBank) { 
-		if (dataBank.getHeader().getTag() < 0 
-				|| dataBank.getHeader().getTag() >= MAX_FPGA_ID) return false; 
+		if (dataBank.getHeader().getTag() != 1) return false; 
 		return true; 
 	}
-	
-	
+
 	/**
 	 * 	Make a {@link RawTrackerHit} from a set of samples.
 	 * 
@@ -153,7 +140,8 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected RawTrackerHit makeHit(int[] data) {
-		//this.printDebug("Channel: " + SvtEvioUtils.getTestRunChannelNumber(data));
-		return makeHit(data, SvtEvioUtils.getTestRunChannelNumber(data));
+		//this.printDebug("Channel: " + SvtEvioUtils.getChannelNumber(data));
+		return makeHit(data, SvtEvioUtils.getChannelNumber(data));
 	}
+
 }
