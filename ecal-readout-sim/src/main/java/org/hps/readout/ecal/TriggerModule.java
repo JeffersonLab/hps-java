@@ -198,6 +198,28 @@ public final class TriggerModule {
     }
     
     /**
+     * Checks whether the argument cluster seed hit falls below the
+     * allowed seed hit energy upper bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterSeedEnergyCutHigh(Cluster cluster) {
+    	return clusterSeedEnergyCutHigh(getValueClusterSeedEnergy(cluster));
+    }
+    
+    /**
+     * Checks whether the argument cluster seed hit falls above the
+     * allowed seed hit energy lower bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterSeedEnergyCutLow(Cluster cluster) {
+    	return clusterSeedEnergyCutLow(getValueClusterSeedEnergy(cluster));
+    }
+    
+    /**
      * Checks whether the argument cluster falls within the allowed
      * cluster total energy range.
      * @param cluster - The cluster to check.
@@ -209,6 +231,28 @@ public final class TriggerModule {
     }
     
     /**
+     * Checks whether the argument cluster falls below the allowed
+     * cluster total energy upper bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterTotalEnergyCutHigh(Cluster cluster) {
+    	return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
+    }
+    
+    /**
+     * Checks whether the argument cluster falls above the allowed
+     * cluster total energy lower bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterTotalEnergyCutLow(Cluster cluster) {
+    	return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
+    }
+    
+    /**
      * Checks whether the argument cluster falls within the allowed
      * cluster total energy range.
      * @param cluster - The cluster to check.
@@ -217,6 +261,28 @@ public final class TriggerModule {
      */
     public boolean clusterTotalEnergyCut(SSPCluster cluster) {
     	return clusterTotalEnergyCut(getValueClusterTotalEnergy(cluster));
+    }
+    
+    /**
+     * Checks whether the argument cluster falls below the allowed
+     * cluster total energy upper bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterTotalEnergyCutHigh(SSPCluster cluster) {
+    	return clusterTotalEnergyCutHigh(getValueClusterTotalEnergy(cluster));
+    }
+    
+    /**
+     * Checks whether the argument cluster falls above the allowed
+     * cluster total energy lower bound.
+     * @param cluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    public boolean clusterTotalEnergyCutLow(SSPCluster cluster) {
+    	return clusterTotalEnergyCutLow(getValueClusterTotalEnergy(cluster));
     }
     
     /**
@@ -419,14 +485,36 @@ public final class TriggerModule {
     }
     
     /**
-     * Checks if the sum of the energies of clusters making up a cluster
-     * pair is below an energy sum threshold.
+     * Checks if the sum of the energies of the clusters making up a
+     * cluster pair is within an energy sum threshold.
      * @param clusterPair - The cluster pair to check.
      * @return Returns <code>true</code> if the cluster pair passes
      * the cut and <code>false</code> if it does not.
      */
     public boolean pairEnergySumCut(Cluster[] clusterPair) {
     	return pairEnergySumCut(getValueEnergySum(clusterPair));
+    }
+    
+    /**
+     * Checks if the sum of the energies of the clusters making up a
+     * cluster pair is below the energy sum upper bound threshold.
+     * @param clusterPair - The cluster pair to check.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairEnergySumCutHigh(Cluster[] clusterPair) {
+    	return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
+    }
+    
+    /**
+     * Checks if the sum of the energies of the clusters making up a
+     * cluster pair is above the energy sum lower bound threshold.
+     * @param clusterPair - The cluster pair to check.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairEnergySumCutLow(Cluster[] clusterPair) {
+    	return pairEnergySumCutLow(getValueEnergySum(clusterPair));
     }
     
     /**
@@ -438,6 +526,28 @@ public final class TriggerModule {
      */
     public boolean pairEnergySumCut(SSPCluster[] clusterPair) {
     	return pairEnergySumCut(getValueEnergySum(clusterPair));
+    }
+    
+    /**
+     * Checks if the sum of the energies of the clusters making up a
+     * cluster pair is below the energy sum upper bound threshold.
+     * @param clusterPair - The cluster pair to check.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairEnergySumCutHigh(SSPCluster[] clusterPair) {
+    	return pairEnergySumCutHigh(getValueEnergySum(clusterPair));
+    }
+    
+    /**
+     * Checks if the sum of the energies of the clusters making up a
+     * cluster pair is above the energy sum lower bound threshold.
+     * @param clusterPair - The cluster pair to check.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairEnergySumCutLow(SSPCluster[] clusterPair) {
+    	return pairEnergySumCutLow(getValueEnergySum(clusterPair));
     }
     
     
@@ -477,7 +587,29 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterSeedEnergyCut(double seedEnergy) {
-        return (seedEnergy < cuts.get(CLUSTER_SEED_ENERGY_HIGH)) && (seedEnergy > cuts.get(CLUSTER_SEED_ENERGY_LOW));
+        return clusterSeedEnergyCutHigh(seedEnergy) && clusterSeedEnergyCutLow(seedEnergy);
+    }
+    
+    /**
+     * Checks whether the argument energy falls below the cluster seed
+     * energy upper bound cut.
+     * @param seedEnergy - The energy of the cluster seed.
+     * @return Returns <code>true</code> if the energy passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    private boolean clusterSeedEnergyCutHigh(double seedEnergy) {
+        return (seedEnergy < cuts.get(CLUSTER_SEED_ENERGY_HIGH));
+    }
+    
+    /**
+     * Checks whether the argument energy falls above the cluster seed
+     * energy lower bound cut.
+     * @param seedEnergy - The energy of the cluster seed.
+     * @return Returns <code>true</code> if the energy passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    private boolean clusterSeedEnergyCutLow(double seedEnergy) {
+        return (seedEnergy > cuts.get(CLUSTER_SEED_ENERGY_LOW));
     }
     
     /**
@@ -488,7 +620,29 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterTotalEnergyCut(double clusterEnergy) {
-        return (clusterEnergy < cuts.get(CLUSTER_TOTAL_ENERGY_HIGH)) && (clusterEnergy > cuts.get(CLUSTER_TOTAL_ENERGY_LOW));
+        return clusterTotalEnergyCutHigh(clusterEnergy) && clusterTotalEnergyCutLow(clusterEnergy);
+    }
+    
+    /**
+     * Checks whether the argument energy falls below the cluster total
+     * energy upper bound cut.
+     * @param clusterEnergy - The energy of the entire cluster.
+     * @return Returns <code>true</code> if the energy passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    private boolean clusterTotalEnergyCutHigh(double clusterEnergy) {
+        return (clusterEnergy < cuts.get(CLUSTER_TOTAL_ENERGY_HIGH));
+    }
+    
+    /**
+     * Checks whether the argument energy falls above the cluster total
+     * energy lower bound cut.
+     * @param clusterEnergy - The energy of the entire cluster.
+     * @return Returns <code>true</code> if the energy passes the cut
+     * and <code>false</code> if the cluster does not.
+     */
+    private boolean clusterTotalEnergyCutLow(double clusterEnergy) {
+        return (clusterEnergy > cuts.get(CLUSTER_TOTAL_ENERGY_LOW));
     }
     
     /**
@@ -621,6 +775,28 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySumCut(double energySum) {
-        return (energySum < cuts.get(PAIR_ENERGY_SUM_HIGH)) && (energySum > cuts.get(PAIR_ENERGY_SUM_LOW));
+        return pairEnergySumCutHigh(energySum) && pairEnergySumCutLow(energySum);
+    }
+    
+    /**
+     * Checks if the sum of the energies of clusters making up a cluster
+     * pair is below the pair energy sum upper bound cut.
+     * @param energySum - The sum of the cluster energies.
+     * @return Returns <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    private boolean pairEnergySumCutHigh(double energySum) {
+        return (energySum < cuts.get(PAIR_ENERGY_SUM_HIGH));
+    }
+    
+    /**
+     * Checks if the sum of the energies of clusters making up a cluster
+     * pair is above the pair energy sum lower bound cut.
+     * @param energySum - The sum of the cluster energies.
+     * @return Returns <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    private boolean pairEnergySumCutLow(double energySum) {
+        return (energySum > cuts.get(PAIR_ENERGY_SUM_LOW));
     }
 }
