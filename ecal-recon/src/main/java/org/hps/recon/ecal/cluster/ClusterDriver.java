@@ -2,7 +2,7 @@ package org.hps.recon.ecal.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -13,30 +13,25 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
-import org.lcsim.util.log.BasicFormatter;
-import org.lcsim.util.log.LogUtil;
 
 /**
  * <p>
- * This is a basic Driver that creates ECAL <code>Cluster</code> collections 
- * through the {@link Clusterer} interface.
+ * This is a {@link org.lcsim.util.Driver} that creates ECAL {@link org.lcsim.event.Cluster} 
+ * collections using the {@link Clusterer} interface.
  * <p>
  * A specific clustering engine can be created with the {@link #setClustererName(String)} method
  * which will use a factory to create it by name.  The cuts of the {@link Clusterer}
  * can be set generically with the {@link #setCuts(double[])} method.  
  * 
  * @see Clusterer
+ * @see NumericalCuts
  * @see org.lcsim.event.Cluster
+ * @see org.lcsim.util.Driver 
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ClusterDriver extends Driver {
-    
-    static Logger logger;
-    static {
-        logger = LogUtil.create(ClusterDriver.class.getSimpleName(), new BasicFormatter(ClusterDriver.class.getSimpleName()));
-    }
-    
+        
     protected String ecalName = "Ecal";
     protected HPSEcal3 ecal;
     protected NeighborMap neighborMap;
@@ -156,7 +151,7 @@ public class ClusterDriver extends Driver {
      */
     public void setClustererName(String name) {
         clusterer = ClustererFactory.create(name);
-        this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
+        getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
     /**
@@ -165,7 +160,7 @@ public class ClusterDriver extends Driver {
      */
     public void setClusterer(Clusterer clusterer) {
         this.clusterer = clusterer;
-        this.getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
+        getLogger().config("Clusterer was set to " + this.clusterer.getClass().getSimpleName());
     }
     
     /**
@@ -196,7 +191,6 @@ public class ClusterDriver extends Driver {
      * Setup conditions specific configuration.
      */
     public void detectorChanged(Detector detector) {
-        logger.finer("detectorChanged - " + detector.getDetectorName());
         Subdetector subdetector = detector.getSubdetector("Ecal");
         if (subdetector == null) {
             throw new RuntimeException("There is no subdetector called " + ecalName + " in the detector.");
@@ -212,19 +206,17 @@ public class ClusterDriver extends Driver {
      * Perform start of job initialization.
      */
     public void startOfData() {
-        logger.finer("startOfData");
         if (this.clusterer == null) {
             throw new RuntimeException("The clusterer was never initialized.");
         }
         if (this.cuts != null) {
-            logger.config("setting cuts on clusterer");
             this.clusterer.getCuts().setValues(cuts);
         } 
-        logger.config("Clusterer has the following cuts ...");
+        getLogger().config("Clusterer has the following cuts ...");
         for (int cutIndex = 0; cutIndex < clusterer.getCuts().getValues().length; cutIndex++) {
-            logger.config("  " + this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
+            getLogger().config("  " + this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
         }            
-        logger.config("initializing clusterer " + clusterer.getClass().getName());
+        getLogger().config("initializing clusterer " + clusterer.getClass().getName());
         this.clusterer.initialize();
     }
     
@@ -234,7 +226,7 @@ public class ClusterDriver extends Driver {
     public void process(EventHeader event) {               
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
-            logger.fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
+            getLogger().fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
             
             // Cluster the hits, copying the list from the event in case the clustering algorithm modifies it.
             List<Cluster> clusters = clusterer.createClusters(event, new ArrayList<CalorimeterHit>(hits));
@@ -243,7 +235,7 @@ public class ClusterDriver extends Driver {
                 throw new RuntimeException("The clusterer returned a null list from its createClusters method.");
             }
             if (clusters.isEmpty() && this.skipNoClusterEvents) {
-                logger.finer("skipping event with no clusters");
+                getLogger().finer("skipping event with no clusters");
                 throw new NextEventException();
             }
             if (event.hasCollection(Cluster.class, this.outputClusterCollectionName)) {
@@ -268,10 +260,10 @@ public class ClusterDriver extends Driver {
                     ClusterUtilities.applyCorrections(clusters);
                 }
                                                 
-                logger.finer("writing " + clusters.size() + " clusters to collection " + outputClusterCollectionName);
+                getLogger().finer("writing " + clusters.size() + " clusters to collection " + outputClusterCollectionName);
                 event.put(outputClusterCollectionName, clusters, Cluster.class, flags);
                 if (!this.writeClusterCollection) {
-                    logger.finer("Collection is set to transient and will not be persisted.");
+                    getLogger().finer("Collection is set to transient and will not be persisted.");
                     event.getMetaData(clusters).setTransient(true);
                 }
                 
@@ -286,17 +278,8 @@ public class ClusterDriver extends Driver {
                 throw new RuntimeException("The expected input hit collection is missing from the event.");
             }
         }
-        logger.getHandlers()[0].flush();
     }
-    
-    /**
-     * Get the logger for this Driver.
-     * @return The logger.
-     */
-    public Logger getLogger() {
-       return logger;
-    }
-    
+  
     /**
      * Get a {@link Clusterer} using type inference for the concrete type.
      * @return The Clusterer object.
@@ -321,21 +304,21 @@ public class ClusterDriver extends Driver {
         List<Cluster> clusters = event.get(Cluster.class, outputClusterCollectionName);
         List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputHitCollectionName);
         for (int clusterIndex = 0; clusterIndex < clusters.size(); clusterIndex++) {
-            logger.finest("checking cluster " + clusterIndex);
+            getLogger().finest("checking cluster " + clusterIndex);
             Cluster cluster = clusters.get(clusterIndex);
             if (clusters.get(clusterIndex) == null) {
                 throw new RuntimeException("The Cluster at index " + clusterIndex + " is null.");
             }
             List<CalorimeterHit> clusterHits = cluster.getCalorimeterHits();
-            logger.finest("cluster has " + clusterHits.size() + " hits");
+            getLogger().finest("cluster has " + clusterHits.size() + " hits");
             for (int hitIndex = 0; hitIndex < clusterHits.size(); hitIndex++) {
-                logger.finest("checking cluster hit " + hitIndex);                              
+                getLogger().finest("checking cluster hit " + hitIndex);                              
                 CalorimeterHit clusterHit = clusterHits.get(hitIndex);
                 if (clusterHit == null) {
                     throw new RuntimeException("The CalorimeterHit at index " + hitIndex + " in the cluster is null.");
                 }
                 if (!inputHitCollection.contains(clusterHit)) {
-                    logger.severe("The CalorimeterHit at index " + hitIndex + " with ID " + clusterHit.getIdentifier().toHexString() + " is missing from the input hit collection.");
+                    getLogger().severe("The CalorimeterHit at index " + hitIndex + " with ID " + clusterHit.getIdentifier().toHexString() + " is missing from the input hit collection.");
                     printHitIDs(inputHitCollection);
                     throw new RuntimeException("The CalorimeterHit at index " + hitIndex + " in the cluster is missing from the input hit collection.");
                 }
@@ -351,6 +334,6 @@ public class ClusterDriver extends Driver {
             buffer.append(hit.getIdentifier().toHexString());
             buffer.append('\n');
         }
-        logger.finest(buffer.toString());        
+        getLogger().finest(buffer.toString());
     }
 }
