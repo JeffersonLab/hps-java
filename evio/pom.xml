@@ -29,6 +29,7 @@
                 <configuration>
                     <excludes>
                         <exclude>org/hps/evio/LCSimEngRunEventBuilderTest.java</exclude>
+                        <exclude>org/hps/evio/SvtEvioReaderTest.java</exclude>
                     </excludes>
                     <trimStackTrace>true</trimStackTrace>
                 </configuration>
