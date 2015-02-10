@@ -70,11 +70,14 @@ public class EngRunConditionsTest extends TestCase {
     static class ConditionsCheckDriver extends Driver {
         
         boolean detectorChangedCalled = false;
-          
+        
+        EcalConditions ecalConditions;
+        
         public void detectorChanged(Detector detector) {
+                        
             assertEquals("Wrong run number.", runNumber, DatabaseConditionsManager.getInstance().getRun());
             
-            DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+            DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();                       
             
             EcalChannelCollection channels = conditionsManager.getCollection(EcalChannelCollection.class);
             assertEquals("Wrong number of channels.", nChannels, channels.size());
@@ -101,7 +104,7 @@ public class EngRunConditionsTest extends TestCase {
             assertEquals("Wrong LEDs collection ID.", 2, timeShifts.getConditionsRecord().getCollectionId());
             checkRunNumbers(timeShifts);
             
-            EcalConditions ecalConditions = conditionsManager.getConditionsData(EcalConditions.class, "ecal_conditions");
+            ecalConditions = conditionsManager.getConditionsData(EcalConditions.class, "ecal_conditions");
             Set<EcalChannelConstants> channelConstants = new LinkedHashSet<EcalChannelConstants>();
             for (EcalChannel channel : ecalConditions.getChannelCollection().sortedByChannelId()) {
                 channelConstants.add(ecalConditions.getChannelConstants(channel));
@@ -120,12 +123,25 @@ public class EngRunConditionsTest extends TestCase {
             assertEquals("Wrong run number.", runNumber, event.getRunNumber());
             if (event.hasCollection(CalorimeterHit.class, "EcalCalHits")) {
                 List<CalorimeterHit> calHits = event.get(CalorimeterHit.class, "EcalCalHits");
-                for (CalorimeterHit hit : calHits) {
+                for (CalorimeterHit hit : calHits) {                    
                     EcalCrystal crystal = (EcalCrystal) hit.getDetectorElement();
-                    assertEquals("Crystal and hit ID are different.", crystal.getIdentifier(), hit.getIdentifier());
-                    assertTrue("Crystal gain is invalid.", crystal.getGain() > 0.);
-                    assertTrue("Crystal pedestal is invalid.", crystal.getPedestal() > 0.);
-                    assertTrue("Crystal noise is invalid.", crystal.getNoise() > 0.);
+                    if (crystal == null) {
+                        throw new RuntimeException("EcalCrystal is null.");
+                    }
+                    if (crystal.getIdentifier() == null) {
+                        throw new RuntimeException("EcalCrystal ID is null.");
+                    }
+                    if (hit.getIdentifier() == null) {
+                        throw new RuntimeException("The hit ID is null.");
+                    }
+                    assertEquals("The crystal and hit ID are different.", crystal.getIdentifier(), hit.getIdentifier());
+                    
+                    EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getIdentifier().getValue());                    
+                    EcalChannelConstants constants = ecalConditions.getChannelConstants(channel);
+                    
+                    assertTrue("The crystal gain is invalid.", constants.getGain().getGain() > 0.);
+                    assertTrue("The crystal pedestal is invalid.", constants.getCalibration().getPedestal() > 0.);
+                    assertTrue("The crystal noise is invalid.", constants.getCalibration().getNoise() > 0.);
                 }
             }
         }

@@ -26,7 +26,6 @@ import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
 import org.hps.conditions.ecal.EcalConditionsConverter;
-import org.hps.conditions.ecal.EcalDetectorSetup;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDetectorSetup;
@@ -96,7 +95,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected String svtName = "Tracker";
     protected ConditionsConverter svtConverter;
     protected ConditionsConverter ecalConverter;
-    protected EcalDetectorSetup ecalSetup = new EcalDetectorSetup(ecalName);
     protected SvtDetectorSetup svtSetup = new SvtDetectorSetup(svtName);
     
     // Active conditions tag.
@@ -109,7 +107,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     
     // Configuration from XML settings.  These are the defaults.
     protected boolean setupSvtDetector = true;
-    protected boolean setupEcalDetector = true;
     protected boolean freezeAfterInitialize = false;
     protected boolean closeConnectionAfterInitialize = true;
     protected boolean cacheAllConditions = false;
@@ -135,7 +132,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             //logger.config("registering converter for " + converter.getType());
             registerConditionsConverter(converter);
         }
-        addConditionsListener(ecalSetup);
         addConditionsListener(svtSetup);
     }
     
@@ -335,7 +331,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         registerConverters();
     
-        ecalSetup.setEnabled(setupEcalDetector);
         svtSetup.setEnabled(setupSvtDetector);
 
         // Open the database connection.
@@ -577,7 +572,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
         
-        ecalSetup.setLogLevel(level);
         svtSetup.setLogLevel(level);
     }
 
@@ -664,7 +658,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             throw new IllegalArgumentException("The ecalName is null");
         }
         this.ecalName = ecalName;
-        ecalSetup.setEcalName(ecalName);
     }
     
     /**
@@ -814,6 +807,10 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     public TableMetaData findTableMetaData(Class<?> type) {
         return tableRegistry.findByCollectionType(type);
     }
+    
+    public String getEcalName() {
+        return ecalName;
+    }
 
     /*
      *******************************
@@ -918,13 +915,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             setupSvtDetector = Boolean.parseBoolean(element.getText());
             logger.config("setupSvtDetector = " + setupSvtDetector);
         }
-        
-        element = node.getChild("setupEcalDetector");
-        if (element != null) {
-            setupEcalDetector = Boolean.parseBoolean(element.getText());
-            logger.config("setupEcalDetector = " + setupEcalDetector);
-        }
-        
+                
         element = node.getChild("ecalName");
         if (element != null) {
             setEcalName(element.getText());

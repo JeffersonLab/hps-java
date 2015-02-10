@@ -14,6 +14,7 @@ import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 import org.hps.conditions.svt.AbstractSvtConditionsConverter;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -60,7 +61,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
         // Create the ECal conditions object that will be used to encapsulate
         // ECal conditions collections
-        EcalConditions conditions = new EcalConditions();
+        Detector detector = databaseConditionsManager.getDetectorObject();
+        EcalConditions conditions = new EcalConditions(detector.getSubdetector(databaseConditionsManager.getEcalName()));
 
         // Set the channel map.
         conditions.setChannelCollection(channels);

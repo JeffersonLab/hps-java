@@ -2,7 +2,6 @@
     <configuration>
         <isTestRun>true</isTestRun>
         <setupSvtDetector>true</setupSvtDetector>
-        <setupEcalDetector>true</setupEcalDetector>
         <cacheAllConditions>false</cacheAllConditions>
         <freezeAfterInitialize>false</freezeAfterInitialize>
     </configuration>

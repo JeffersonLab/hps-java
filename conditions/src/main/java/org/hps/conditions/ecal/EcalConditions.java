@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.lcsim.geometry.Subdetector;
 
 /**
  * This class provides access to all ECAL conditions from the database,
@@ -24,10 +25,16 @@ public final class EcalConditions {
     /** Map between channels and conditions data. */
     Map<EcalChannel, EcalChannelConstants> channelData = new HashMap<EcalChannel, EcalChannelConstants>();
 
+    Subdetector subdetector;
+    
     /**
      * Class constructor, which is package protected.
      */
-    EcalConditions() {
+    EcalConditions(Subdetector subdetector) {
+        if (subdetector == null) {
+            throw new IllegalArgumentException("The subdetector argument is null.");
+        }
+        this.subdetector = subdetector;
     }
 
     /**
@@ -35,7 +42,14 @@ public final class EcalConditions {
      * @param channels The channel map.
      */
     void setChannelCollection(EcalChannelCollection channelMap) {
+                
         this.channelMap = channelMap;
+        
+        // Get the full channel map created by the conditions system.
+        channelMap = getChannelCollection();
+                                
+        // Build the map of geometry IDs.
+        channelMap.buildGeometryMap(subdetector.getDetectorElement().getIdentifierHelper(), subdetector.getSystemID());
     }
 
     /**
@@ -45,7 +59,7 @@ public final class EcalConditions {
     public EcalChannelCollection getChannelCollection() {
         return channelMap;
     }
-
+        
     /**
      * Get the conditions constants for a specific channel. These will be
      * created if they do not exist for the given channel, BUT only channels in
