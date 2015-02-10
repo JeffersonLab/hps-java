@@ -34,14 +34,17 @@ public class TestRunSvtEvioReaderTest extends TestCase {
 		// Instantiate the SVT EVIO reader
 		//TestRunSvtEvioReader svtReader = new TestRunSvtEvioReader(); 
 
-		// Setup the database conditions 
+		// Configure conditions system
 		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager(); 
 		conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml"); 
+		
+	    // Instantiate the event builder
+        LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
+        conditionsManager.addConditionsListener(eventBuilder);
+	
+		// Activate conditions which will setup event builder 
 		conditionsManager.setDetector("HPS-TestRun-v5", 0);
 		
-		// Instantiate the event builder
-		LCSimEventBuilder eventBuilder = new LCSimTestRunEventBuilder();
-
 		// Check that the file contains the expected number of events
 		int eventCount = evioReader.getEventCount(); 
 		System.out.println("[ " + this.getClass().getSimpleName() + " ]: File " + evioFile 
