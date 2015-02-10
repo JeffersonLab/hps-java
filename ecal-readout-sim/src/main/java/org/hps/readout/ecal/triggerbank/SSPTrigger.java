@@ -3,7 +3,6 @@ package org.hps.readout.ecal.triggerbank;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.lcsim.util.log.BasicFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -20,7 +19,7 @@ public class SSPTrigger {
     protected final int data;
     
     // Logger to output status messages.
-    protected static Logger logger = LogUtil.create(SSPTrigger.class, new BasicFormatter(SSPTrigger.class.getSimpleName()));   
+    protected static Logger logger = LogUtil.create(SSPTrigger.class);   
     static {
         logger.setLevel(Level.WARNING);
     }

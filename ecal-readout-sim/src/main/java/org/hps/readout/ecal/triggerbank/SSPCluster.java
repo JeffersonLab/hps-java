@@ -3,7 +3,6 @@ package org.hps.readout.ecal.triggerbank;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.lcsim.util.log.BasicFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -21,7 +20,7 @@ public final class SSPCluster {
     private final double e;
     
     // Output potential errors or messages.
-    private static Logger logger = LogUtil.create(SSPCluster.class, new BasicFormatter(SSPCluster.class.getSimpleName()));
+    private static Logger logger = LogUtil.create(SSPCluster.class);
     static {
         logger.setLevel(Level.WARNING);
     }
