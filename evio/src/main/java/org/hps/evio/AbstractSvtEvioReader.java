@@ -133,8 +133,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 */
 	public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
-		this.setDebug(true);
-		
 		// Setup the DAQ map if it's not setup
 		if (!this.isDaqMapSetup)
 			this.setupDaqMap(lcsimEvent.getDetector().getSubdetector(
