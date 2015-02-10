@@ -2,7 +2,6 @@ package org.hps.recon.ecal.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -45,8 +44,6 @@ public class ClusterDriver extends Driver {
     protected boolean skipNoClusterEvents = false;
     protected boolean writeClusterCollection = true;
     protected boolean storeHits = true;
-    protected boolean calculateProperties = false;
-    protected boolean applyCorrections = false;
     protected boolean sortHits = false;
     protected boolean validateClusters = false;
     
@@ -71,7 +68,7 @@ public class ClusterDriver extends Driver {
      */
     public void setOutputClusterCollectionName(String outputClusterCollectionName) {        
         this.outputClusterCollectionName = outputClusterCollectionName;
-        this.getLogger().config("outputClusterCollectionName = " + this.outputClusterCollectionName);
+        getLogger().config("outputClusterCollectionName = " + this.outputClusterCollectionName);
     }
     
     /**
@@ -80,7 +77,7 @@ public class ClusterDriver extends Driver {
      */
     public void setInputHitCollectionName(String inputHitCollectionName) {
         this.inputHitCollectionName = inputHitCollectionName;
-        this.getLogger().config("inputClusterCollectionName = " + this.inputHitCollectionName);
+        getLogger().config("inputClusterCollectionName = " + this.inputHitCollectionName);
     }
     
     /**
@@ -89,7 +86,7 @@ public class ClusterDriver extends Driver {
      */
     public void setSkipNoClusterEvents(boolean skipNoClusterEvents) {
         this.skipNoClusterEvents = skipNoClusterEvents;       
-        this.getLogger().config("skipNoClusterEvents = " + this.skipNoClusterEvents);
+        getLogger().config("skipNoClusterEvents = " + this.skipNoClusterEvents);
     }
     
     /**
@@ -98,7 +95,7 @@ public class ClusterDriver extends Driver {
      */
     public void setWriteClusterCollection(boolean writeClusterCollection) {
         this.writeClusterCollection = writeClusterCollection;
-        this.getLogger().config("writeClusterCollection = " + this.writeClusterCollection);
+        getLogger().config("writeClusterCollection = " + this.writeClusterCollection);
     }
     
     /**
@@ -119,29 +116,13 @@ public class ClusterDriver extends Driver {
     }
     
     /**
-     * True to calculate cluster properties before writing to event.
-     * @param calculateProperties True to calculate cluster properties.
-     */
-    public void setCalculateProperties(boolean calculateProperties) {
-        this.calculateProperties = calculateProperties;
-    }
-    
-    /**
      * True to sort the clusters' hits before writing to event.
      * @param sortHits True to sort hits.
      */
     public void setSortHits(boolean sortHits) {
         this.sortHits = sortHits;
     }
-    
-    /**
-     * True to apply cluster position and energy corrections.
-     * @param applyCorrections True to apply corrections.
-     */
-    public void setApplyCorrections(boolean applyCorrections) {
-        this.applyCorrections = applyCorrections;
-    }
-    
+           
     /**
      * Set the Clusterer by name.  
      * This will use a factory method which first tries to use some hard-coded names from 
@@ -212,18 +193,22 @@ public class ClusterDriver extends Driver {
         if (this.cuts != null) {
             this.clusterer.getCuts().setValues(cuts);
         } 
-        getLogger().config("Clusterer has the following cuts ...");
+        StringBuffer sb = new StringBuffer();
+        sb.append("Clusterer has the following cuts ...");
+        sb.append('\n');
         for (int cutIndex = 0; cutIndex < clusterer.getCuts().getValues().length; cutIndex++) {
-            getLogger().config("  " + this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
-        }            
-        getLogger().config("initializing clusterer " + clusterer.getClass().getName());
+            sb.append(this.clusterer.getCuts().getNames()[cutIndex] + " = " + this.clusterer.getCuts().getValue(cutIndex));
+            sb.append('\n');
+        } 
+        getLogger().config(sb.toString());
         this.clusterer.initialize();
     }
     
     /**
      * This method implements the default clustering procedure based on input parameters.
      */
-    public void process(EventHeader event) {               
+    public void process(EventHeader event) {    
+                       
         if (event.hasCollection(CalorimeterHit.class, inputHitCollectionName)) {       
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, inputHitCollectionName);
             getLogger().fine("input hit collection " + inputHitCollectionName + " has " + hits.size() + " hits");
@@ -250,16 +235,7 @@ public class ClusterDriver extends Driver {
                 if (sortHits) {
                     // Sort the hits.
                     ClusterUtilities.sortReconClusterHits(clusters);
-                }
-                if (calculateProperties) {
-                    // Calculate properties using default property calculator.
-                    ClusterUtilities.calculateProperties(clusters);
-                }
-                if (applyCorrections) {
-                    // Apply additional position and energy corrections.
-                    ClusterUtilities.applyCorrections(clusters);
-                }
-                                                
+                }                                                           
                 getLogger().finer("writing " + clusters.size() + " clusters to collection " + outputClusterCollectionName);
                 event.put(outputClusterCollectionName, clusters, Cluster.class, flags);
                 if (!this.writeClusterCollection) {
@@ -273,7 +249,7 @@ public class ClusterDriver extends Driver {
                 }
             }
         } else {
-            this.getLogger().severe("The input hit collection " + this.inputHitCollectionName + " is missing from the event.");
+            getLogger().severe("The input hit collection " + this.inputHitCollectionName + " is missing from the event.");
             if (this.raiseErrorNoHitCollection) {
                 throw new RuntimeException("The expected input hit collection is missing from the event.");
             }
