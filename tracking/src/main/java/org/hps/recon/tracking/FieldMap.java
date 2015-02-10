@@ -13,8 +13,13 @@ import org.lcsim.conditions.ConditionsManager;
 import org.hps.util.Pair;
 
 /**
- * @author Mathew Graham <mgraham@slac.stanford.edu> 
+ * WARNING: This class does not work anymore and should not be used.  It needs to be replaced.  --JM
+ * 
+ * @author Mathew Graham <mgraham@slac.stanford.edu>
+ * 
+ * @deprecated use {@link org.lcsim.geometry.FieldMap#getField(double[], double[])} on a detector with a 3D field map enabled. 
  */
+@Deprecated  
 public class FieldMap {
 
     // TODO: Change all pairs such that FPGA is the fist value
