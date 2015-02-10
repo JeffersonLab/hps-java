@@ -42,7 +42,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         for (AbstractIntData data : triggerList) {
             if (data instanceof TIData) {
                 TIData tiData = (TIData) data;
-                return tiData.getTime() * 4;
+                return tiData.getTime();
             }
         }
         return 0;
