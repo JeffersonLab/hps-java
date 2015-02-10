@@ -114,13 +114,13 @@ public class ReconClusterDriver extends ClusterDriver {
             throw new RuntimeException("The rejectedHitList is null.");
         }
         int flag = 1 << LCIOConstants.CLBIT_HITS;
-        this.getLogger().finer("writing rejected hit list " + rejectedHitCollectionName + " with " + rejectedHitList.size() + " hits");
+        getLogger().finer("writing rejected hit list " + rejectedHitCollectionName + " with " + rejectedHitList.size() + " hits");
         event.put(rejectedHitCollectionName, rejectedHitList, CalorimeterHit.class, flag, ecal.getReadout().getName());
         // Flag the collection as a subset, because other collection's objects are being used.
         event.getMetaData(rejectedHitList).setSubset(true);
         // Are we writing this collection to the output LCIO file?
         if (!this.writeRejectedHitCollection) {
-            logger.finest("Rejected hit list is transient and will not be persisted.");
+            getLogger().finest("Rejected hit list is transient and will not be persisted.");
             // Flag as transient.
             event.getMetaData(rejectedHitList).setTransient(true);
         }   
