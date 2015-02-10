@@ -84,7 +84,7 @@ public class EcalDaqPlots extends Driver {
     	 // Get the channel information from the database.                
         channels = manager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();
 
-        List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
+        //List<EcalCrystal> crystals = detector.getDetectorElement().findDescendants(EcalCrystal.class);
         /*I do not want the ECAL Crates and Slots to be hard-coded. 
          * It is fine to assume that the FADC channels are from 0 to 15:
          * This is determined by JLAB FADC architecture
@@ -97,13 +97,13 @@ public class EcalDaqPlots extends Driver {
         slotsB=new ArrayList<Integer>();
         crates=new ArrayList<Integer>();
         
-        // Loop over crystals and get the list of slots-crates
-        for (EcalCrystal crystal : crystals) {
+        // Loop over channels and get the list of slots-crates
+        for (EcalChannel channel : channels) {
         
         	//y>0 means TOP, y<0 means BOTTOM      	       	
-        	int y = crystal.getY(); 
-            int slot = crystal.getSlot();
-            int crate = crystal.getCrate();
+        	int y = channel.getY(); 
+            int slot = channel.getSlot();
+            int crate = channel.getCrate();
             
             if (y>0){
             	if (!slotsT.contains(slot)) slotsT.add(slot);
