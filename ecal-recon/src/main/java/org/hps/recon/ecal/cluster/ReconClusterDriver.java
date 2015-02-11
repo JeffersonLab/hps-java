@@ -27,10 +27,8 @@ public class ReconClusterDriver extends ClusterDriver {
         // Setup the Clusterer with the correct type.
         clusterer = ClustererFactory.create("ReconClusterer");
         
-        // Apply default Driver settings for the ReconClusterer algorithm.
-        //this.applyCorrections = true;
-        this.calculateProperties = false; // Not needed if corrections will be applied.
-        this.sortHits = true; // Need this for correct seed hit position in list.
+        // Need this for correct seed hit position in list.
+        this.sortHits = true; 
     }
     
     public void setClusterer(Clusterer clusterer) {
