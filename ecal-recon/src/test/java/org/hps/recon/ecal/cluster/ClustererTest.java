@@ -234,9 +234,6 @@ public class ClustererTest extends TestCase {
             clusterDriver.setCuts(setup.cuts);
         }
         clusterDriver.getLogger().setLevel(Level.ALL);
-        System.out.println("ClusterDriver log level " + clusterDriver.getLogger().getLevel());
-        System.out.println("info is loggable " + clusterDriver.getLogger().isLoggable(Level.INFO));
-        System.out.println("finest is loggable " + clusterDriver.getLogger().isLoggable(Level.FINEST));
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
