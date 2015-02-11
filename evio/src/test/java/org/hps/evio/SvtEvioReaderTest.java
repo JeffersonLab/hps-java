@@ -30,7 +30,7 @@ public class SvtEvioReaderTest extends TestCase {
 		EvioReader evioReader = new EvioReader(evioFile); 
 	
 		// Instantiate the SVT EVIO reader
-		SvtEvioReader svtReader = new SvtEvioReader(); 
+		//SvtEvioReader svtReader = new SvtEvioReader(); 
 
 		// Setup the database conditions 
 		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager(); 
@@ -59,7 +59,7 @@ public class SvtEvioReaderTest extends TestCase {
 			System.out.println("[ " + this.getClass().getSimpleName() + " ]: Created LCSim event # " + lcsimEvent.getEventNumber()); 	
 
 			// Process the event using the SVT evio reader
-			svtReader.processEvent(evioEvent, lcsimEvent);  
+			//svtReader.processEvent(evioEvent, lcsimEvent);  
 		}
 	}
 }
