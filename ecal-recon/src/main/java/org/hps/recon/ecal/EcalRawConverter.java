@@ -1,14 +1,17 @@
 package org.hps.recon.ecal;
 
+import java.util.Map;
+
 import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
@@ -24,6 +27,7 @@ import org.lcsim.geometry.Detector;
  */
 public class EcalRawConverter {
 
+    private boolean useRunningPedestal = false;
     private boolean constantGain = false;
     private double gain;
     private boolean use2014Gain = true;
@@ -42,6 +46,36 @@ public class EcalRawConverter {
         this.use2014Gain = use2014Gain;
     }
 
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        this.useRunningPedestal=useRunningPedestal;
+    }
+   
+    // Choose whether to use static pedestal from database or running pedestal (NAB Feb 11, 2015):
+    public double getPedestal(EventHeader event,RawCalorimeterHit hit)
+    {
+        if (useRunningPedestal) {
+            if (event.hasItem("EcalRunningPedestals")) {
+                Map<EcalChannel, Double> runningPedMap=
+                        (Map<EcalChannel, Double>)
+                        event.get("EcalRunningPedestals");
+                EcalChannel chan = ecalConditions.getChannelCollection().
+                        findGeometric(hit.getCellID());
+                //System.err.println(" %%%%%%%%%%%%%%%%% "+chan.getChannelId()+" "+runningPedMap.get(chan));
+                if (!runningPedMap.containsKey(chan)){
+                    System.err.println("************** Missing Pedestal");
+                } else {
+                    return runningPedMap.get(chan);
+                }
+            } else {
+                System.err.println("*****************************************************************");
+                System.err.println("**  You Requested a Running Pedestal, but it is NOT available. **");
+                System.err.println("**     Reverting to the database. Only printing this ONCE.     **");
+                System.err.println("*****************************************************************");
+                useRunningPedestal = false;
+            }
+        }
+        return findChannel(hit.getCellID()).getCalibration().getPedestal();
+    }
     public short sumADC(RawTrackerHit hit) {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
         double pedestal = channelData.getCalibration().getPedestal();
@@ -74,14 +108,14 @@ public class EcalRawConverter {
         //return h2;
     }
 
-    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
+    public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
         double time = hit.getTimeStamp() / 16.0; //timestamps use the full 62.5 ps resolution
         long id = hit.getCellID();
-        // Get the channel data.
-        EcalChannelConstants channelData = findChannel(id);
-        double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
+//        // Get the channel data.
+//        EcalChannelConstants channelData = findChannel(id);
+//        double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
 //        double adcSum = hit.getAmplitude() - window * Mode7Data.getAmplLow(mode7Data);                              //A.C. is this the proper way to pedestal subtract in mode 7?
-
+        double adcSum = hit.getAmplitude() - window * getPedestal(event,hit);
         double rawEnergy = adcToEnergy(adcSum, id);        
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
                        

@@ -51,6 +51,10 @@ public class EcalRawConverterDriver extends Driver {
         converter.setUse2014Gain(use2014Gain);
     }
 
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        converter.setUseRunningPedestal(useRunningPedestal);
+    }
+
     public void setRunBackwards(boolean runBackwards) {
         this.runBackwards = runBackwards;
     }
@@ -203,7 +207,7 @@ public class EcalRawConverterDriver extends Driver {
                         }
                         GenericObject extraData = (GenericObject) rel.getTo();
                         CalorimeterHit newHit;
-                        newHit = converter.HitDtoA(hit, extraData, integralWindow, timeOffset);
+                        newHit = converter.HitDtoA(event,hit, extraData, integralWindow, timeOffset);
                         if (newHit.getRawEnergy() > threshold) {
                             if (applyBadCrystalMap && isBadCrystal(newHit)) {
                                 continue;
