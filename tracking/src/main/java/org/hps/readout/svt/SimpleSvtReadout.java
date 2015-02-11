@@ -65,7 +65,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     private String outputCollection = "SVTRawTrackerHits";
     private String relationCollection = "SVTTrueHitRelations";
 
-    private int verbosity = 1;
+    private int verbosity = 0;
 
     public SimpleSvtReadout() {
         add(readoutDriver);
