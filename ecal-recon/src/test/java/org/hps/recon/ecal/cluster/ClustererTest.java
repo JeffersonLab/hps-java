@@ -31,7 +31,7 @@ import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 /**
- * This test does basic sanity checks on the output from the Clusterer algorithms,
+ * This test does basic sanity checks on the output from the {@link Clusterer} algorithms,
  * and it creates an AIDA file with some useful plots, as well as optionally writes
  * an LCIO file with the event data plus the clusters.
  * 
@@ -39,7 +39,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ClustererTest extends TestCase {
     
-    static int nEvents = 100;
+    static int nEvents = 50;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
@@ -73,17 +73,7 @@ public class ClustererTest extends TestCase {
             checkSeedHit = true;
             return this;
         }
-        
-        ClustererTestSetup applyCorrections() {
-            applyCorrections = true;
-            return this;
-        }        
-        
-        ClustererTestSetup calculateProperties() {
-            calculateProperties = true;
-            return this;
-        }
-        
+                
         ClustererTestSetup sortHits() {
             sortHits = true;
             return this;
@@ -244,13 +234,13 @@ public class ClustererTest extends TestCase {
             clusterDriver.setCuts(setup.cuts);
         }
         clusterDriver.getLogger().setLevel(Level.ALL);
+        System.out.println("ClusterDriver log level " + clusterDriver.getLogger().getLevel());
+        System.out.println("info is loggable " + clusterDriver.getLogger().isLoggable(Level.INFO));
+        System.out.println("finest is loggable " + clusterDriver.getLogger().isLoggable(Level.FINEST));
         clusterDriver.setInputHitCollectionName("EcalHits");       
         clusterDriver.setOutputClusterCollectionName(clusterCollectionName);
         clusterDriver.setRaiseErrorNoHitCollection(true);
-        clusterDriver.setCalculateProperties(setup.calculateProperties);
         clusterDriver.setSortHits(setup.sortHits);              
-        clusterDriver.setApplyCorrections(setup.applyCorrections);
-        clusterDriver.getLogger().setLevel(Level.CONFIG);
         loop.add(clusterDriver);                         
         
         // This Driver generates plots and the output LCIO file.
