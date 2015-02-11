@@ -64,7 +64,7 @@ public class ReconClusterer extends AbstractClusterer {
     double minTime = 0.0;
 
     // Maximum time cut window range. Units in ns.
-    double timeWindow = 20.0;
+    double timeWindow = 25.0;
 
     // Make a map for quick calculation of the x-y position of crystal face
     Map<Point, double[]> correctedPositionMap = new HashMap<Point, double[]>();
@@ -73,7 +73,7 @@ public class ReconClusterer extends AbstractClusterer {
 
     ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "timeWindow" }, 
-                new double[] { 0.0075, 0.1, 0.3, 0.0, 20.0 });
+                new double[] { 0.0075, 0.1, 0.3, 0.0, 25.0 });
     }
 
     void setUseTimeCut(boolean useTimeCut) {
@@ -116,10 +116,8 @@ public class ReconClusterer extends AbstractClusterer {
         // Filter the hit list of any hits that fail to pass the
         // designated threshold.
         for (int index = hitList.size() - 1; index >= 0; index--) {
-            // If the hit is below threshold or outside of time window, kill it.
-            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) 
-            		|| (useTimeCut && (hitList.get(index).getTime() < minTime 
-            				|| hitList.get(index).getTime() > (minTime + timeWindow)))) {
+            // If the hit is below threshold, kill it.
+            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold)) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
@@ -382,13 +380,35 @@ public class ReconClusterer extends AbstractClusterer {
         for (CalorimeterHit ihit : hitList) {
             CalorimeterHit iseed = hitToSeed.get(ihit);
             BaseCluster icluster = seedToCluster.get(iseed);
-            icluster.addHit(ihit);
+            
+            // Consider time cut-is this hit in same time window as seed?
+            if (useTimeCut){
+            	if((ihit.getTime() - iseed.getTime()) < timeWindow)
+            	{	
+            		icluster.addHit(ihit);
+            	}
+            } // end of using time cut
+            else {icluster.addHit(ihit);}           
         }
 
         // Add common hits
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> commHit : commonHits.entrySet()) {
-            CalorimeterHit seedA = commHit.getValue().get(0);
+        	// Check that the common hit is in both time windows to their clusters
+        	CalorimeterHit seedA = commHit.getValue().get(0);
             CalorimeterHit seedB = commHit.getValue().get(1);
+        	
+            boolean inTimeWithA = false;
+            boolean inTimeWithB = false;
+        	// In time window with seedA?
+            if ((commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
+            	inTimeWithA = true;
+            }
+            
+            // In time window with seedB?
+            if ((commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
+            	inTimeWithB = true;
+            }
+                    	
             double eclusterA = seedToCluster.get(seedA).getEnergy();
             double eclusterB = seedToCluster.get(seedB).getEnergy();
             double fractionA = eclusterA / (eclusterA + eclusterB);
@@ -399,10 +419,31 @@ public class ReconClusterer extends AbstractClusterer {
             BaseCluster clusterA = seedToCluster.get(seedA);
             BaseCluster clusterB = seedToCluster.get(seedB);
 
-            clusterA.addHit(commHit.getKey(), hitcontributionA);
-            clusterB.addHit(commHit.getKey(), hitcontributionB);
+            if (useTimeCut){
+            	// Do this if the hit is in both cluster's windows
+            	if (inTimeWithA && inTimeWithB){
+            		clusterA.addHit(commHit.getKey(), hitcontributionA);
+            		clusterB.addHit(commHit.getKey(), hitcontributionB);
+            	}
+            
+            	//If the hit is only in 1 cluster's window, add the full contribution
+            	else if(inTimeWithA ^ inTimeWithB){
+            		if(inTimeWithA){
+            			clusterA.addHit(commHit.getKey());
+            		}
+            		else{
+            			clusterB.addHit(commHit.getKey());
+            		}
+            	}
+            } // end of using time cut
+            else{
+            	clusterA.addHit(commHit.getKey(), hitcontributionA);
+        		clusterB.addHit(commHit.getKey(), hitcontributionB);           	
+            }
+            
         }
 
+        
         // Remove clusters that do not pass cluster threshold and add to rejectedHitList.
         for (int j = 0; j <= clusterList.size() - 1; j++) {
             BaseCluster checkcluster = (BaseCluster) clusterList.get(j);
@@ -419,6 +460,7 @@ public class ReconClusterer extends AbstractClusterer {
                 continue;
             }
         }
+        //System.out.println("Number of clusters:"+clusterList.size());
         return clusterList;
     }
 
