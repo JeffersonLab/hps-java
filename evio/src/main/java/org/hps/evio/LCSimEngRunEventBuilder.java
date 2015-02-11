@@ -28,7 +28,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
-        //svtReader = new SvtEvioReader(); 
+        svtReader = new SvtEvioReader(); 
         sspCrateBankTag = 0x2E; //A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
@@ -68,7 +68,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making ECal hits", e);
         }
 
-        // Commented out for now while SVT is not implemented.  --JM
         // Make SVT RawTrackerHits
         // try {
         // svtReader.makeHits(evioEvent, lcsimEvent);
