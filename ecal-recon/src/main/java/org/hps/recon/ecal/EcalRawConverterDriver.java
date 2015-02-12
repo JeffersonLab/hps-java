@@ -51,6 +51,9 @@ public class EcalRawConverterDriver extends Driver {
         converter.setUse2014Gain(use2014Gain);
     }
 
+    public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
+        converter.setUseTimeWalkCorrection(useTimeWalkCorrection);
+    }
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         converter.setUseRunningPedestal(useRunningPedestal);
     }

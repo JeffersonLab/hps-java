@@ -27,6 +27,7 @@ import org.lcsim.geometry.Detector;
  */
 public class EcalRawConverter {
 
+    private boolean useTimeWalkCorrection = false;
     private boolean useRunningPedestal = false;
     private boolean constantGain = false;
     private double gain;
@@ -49,9 +50,17 @@ public class EcalRawConverter {
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         this.useRunningPedestal=useRunningPedestal;
     }
-   
-    // Choose whether to use static pedestal from database or running pedestal (NAB Feb 11, 2015):
-    public double getPedestal(EventHeader event,RawCalorimeterHit hit)
+    
+    public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
+        this.useTimeWalkCorrection=useTimeWalkCorrection;
+    }
+  
+    /*
+     * NAB 2015/02/11 
+     * Choose whether to use static pedestal from database or running pedestal.
+     * This can only used for Mode-7 data.
+     */
+    public double getMode7Pedestal(EventHeader event,RawCalorimeterHit hit)
     {
         if (useRunningPedestal) {
             if (event.hasItem("EcalRunningPedestals")) {
@@ -94,32 +103,37 @@ public class EcalRawConverter {
         return CalorimeterHitUtilities.create(rawEnergy, time, id);
     }
 
+    /*
+     * This HitDtoA is for Mode-3 data at least, but definitely not Mode-7.
+     * A time-walk correction can be applied.  (NAB 2015/02/11).
+     */
     public CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double timeOffset) {
         if (hit.getTimeStamp() % 64 != 0) {
             System.out.println("unexpected timestamp " + hit.getTimeStamp());
         }
         double time = hit.getTimeStamp() / 16.0;
         long id = hit.getCellID();
-        // Get the channel data.
         EcalChannelConstants channelData = findChannel(id);
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
         double rawEnergy = adcToEnergy(adcSum, id);
+        if (useTimeWalkCorrection) {
+           time = EcalTimeWalk.correctTimeWalk(time,rawEnergy);
+        }
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
-        //return h2;
     }
 
+    /*
+     * This HitDtoA is exclusively for Mode-7 data, hence the GenericObject parameter.
+     * The decision to call this method is made in EcalRawConverterDriver based on the
+     * format of the input EVIO data.  EventHeader is also passed in order to allow access
+     * to running pedestals, which is only applicable to Mode-7 data.  (NAB, 2015/02/11)
+     */
     public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
         double time = hit.getTimeStamp() / 16.0; //timestamps use the full 62.5 ps resolution
         long id = hit.getCellID();
-//        // Get the channel data.
-//        EcalChannelConstants channelData = findChannel(id);
-//        double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
-//        double adcSum = hit.getAmplitude() - window * Mode7Data.getAmplLow(mode7Data);                              //A.C. is this the proper way to pedestal subtract in mode 7?
-        double adcSum = hit.getAmplitude() - window * getPedestal(event,hit);
+        double adcSum = hit.getAmplitude() - window * getMode7Pedestal(event,hit);
         double rawEnergy = adcToEnergy(adcSum, id);        
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
-                       
-        //return h2;
     }
 
     public RawCalorimeterHit HitAtoD(CalorimeterHit hit, int window) {
