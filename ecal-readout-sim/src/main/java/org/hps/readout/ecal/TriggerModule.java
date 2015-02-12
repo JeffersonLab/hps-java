@@ -62,6 +62,9 @@ public final class TriggerModule {
      * of the difference between the energies of the cluster pair must
      * be below this value to pass the cut. */
     public static final String PAIR_ENERGY_DIFFERENCE_HIGH = "pairEnergyDifferenceHigh";
+    /** The maximum amount of time by which two clusters are allowed
+     * to be separated. */
+    public static final String PAIR_TIME_COINCIDENCE = "pairTimeCoincidence";
     
     // Trigger cut settings map.
     private final Map<String, Double> cuts = new HashMap<String, Double>(11);
@@ -84,6 +87,7 @@ public final class TriggerModule {
     	cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
     	cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
     	cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
+    	cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
     	
     	// Set the default value of the energy slope parameter F.
     	cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
@@ -440,6 +444,35 @@ public final class TriggerModule {
     }
     
     /**
+     * Calculates the value used by the time coincidence cut.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @return Returns the absolute difference in the cluster times..
+     */
+    public static double getValueTimeCoincidence(Cluster[] clusterPair) {
+    	// Get the variables used by the calculation.
+    	double[] time = { clusterPair[0].getCalorimeterHits().get(0).getTime(),
+    			clusterPair[1].getCalorimeterHits().get(0).getTime() };
+    	
+    	// Perform the calculation.
+    	return getValueTimeCoincidence(time);
+    }
+    
+    /**
+     * Calculates the value used by the time coincidence cut.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @return Returns the absolute difference in the cluster times..
+     */
+    public static double getValueTimeCoincidence(SSPCluster[] clusterPair) {
+    	// Get the variables used by the calculation.
+    	double[] time = { clusterPair[0].getTime(), clusterPair[1].getTime() };
+    	
+    	// Perform the calculation.
+    	return getValueTimeCoincidence(time);
+    }
+    
+    /**
      * Checks if a cluster pair is coplanar to the beam within a given
      * angle.
      * @param clusterPair - The cluster pair to check.
@@ -550,9 +583,27 @@ public final class TriggerModule {
     	return pairEnergySumCutLow(getValueEnergySum(clusterPair));
     }
     
+    /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut.
+     * @param clusterPair - The cluster pair to check.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairTimeCoincidenceCut(Cluster[] clusterPair) {
+    	return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+    }
     
-    
-    
+    /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut.
+     * @param clusterPair - The cluster pair to check.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairTimeCoincidenceCut(SSPCluster[] clusterPair) {
+    	return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+    }
     
     
     
@@ -736,6 +787,17 @@ public final class TriggerModule {
     }
     
     /**
+     * Calculates the value used by the time coincidence cut.
+     * @param time - A two-dimensional array consisting of the first
+     * and second clusters' times.
+     * @return Returns the absolute difference between the times of
+     * the two clusters.
+     */
+    private static double getValueTimeCoincidence(double[] time) {
+    	return Math.abs(time[0] - time[1]);
+    }
+    
+    /**
      * Checks if a coplanarity angle is within threshold.
      * @param coplanarityAngle - The cluster coplanarity angle.
      * @return Returns <code>true</code> if the angle passes
@@ -798,5 +860,17 @@ public final class TriggerModule {
      */
     private boolean pairEnergySumCutLow(double energySum) {
         return (energySum > cuts.get(PAIR_ENERGY_SUM_LOW));
+    }
+    
+    /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut.
+     * @param timeDifference - The absolute difference in time between
+     * the clusters.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    private boolean pairTimeCoincidenceCut(double timeDifference) {
+    	return (timeDifference <= cuts.get(PAIR_TIME_COINCIDENCE));
     }
 }
