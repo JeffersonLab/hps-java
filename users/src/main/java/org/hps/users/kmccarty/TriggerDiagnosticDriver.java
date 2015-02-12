@@ -17,13 +17,10 @@ import org.hps.readout.ecal.triggerbank.SSPData;
 import org.hps.readout.ecal.triggerbank.SSPSinglesTrigger;
 import org.hps.readout.ecal.triggerbank.SSPTrigger;
 import org.hps.readout.ecal.triggerbank.TIData;
-import org.hps.recon.ecal.CalorimeterHitUtilities;
-import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.log.LogUtil;
 
@@ -47,8 +44,8 @@ public class TriggerDiagnosticDriver extends Driver {
 	private TriggerModule[] pairsTrigger = new TriggerModule[2];
 	
 	// Output text logger.
-	private static Level logLevel = Level.FINEST;
-	private static Logger logger = LogUtil.create(TriggerDiagnosticDriver.class);   
+	private static Logger logger = LogUtil.create(TriggerDiagnosticDriver.class);  
+	static { logger.setLevel(Level.ALL); }
 	
 	// Verification settings.
 	private int nsa = 100;
@@ -61,23 +58,6 @@ public class TriggerDiagnosticDriver extends Driver {
 	// Efficiency tracking variables.
 	private int reconClustersFound = 0;
 	private int reconClustersMatched = 0;
-	
-	/*
-	@Override
-	public void detectorChanged(Detector detector) {
-		if(detector == null) { return; }
-		for(EcalCrystal crystal : detector.getSubdetector("Ecal").getDetectorElement().findDescendants(EcalCrystal.class)) {
-			System.out.println(crystal.getIdentifier().getValue());
-			CalorimeterHit tempHit = CalorimeterHitUtilities.create(1.000, 10.0, crystal.getIdentifier().getValue());
-			
-			int ix = tempHit.getIdentifierFieldValue("ix");
-			int iy = tempHit.getIdentifierFieldValue("iy");
-			double[] xyz = tempHit.getPosition();
-			
-			System.out.printf("(%3d, %3d) --> (%.2f, %.2f)%n", ix, iy, xyz[0], xyz[1]);
-		}
-	}
-	*/
 	
 	/**
 	 * Define the trigger modules. This should be replaced by parsing
@@ -130,9 +110,6 @@ public class TriggerDiagnosticDriver extends Driver {
 			reconSinglesTriggers.add(new ArrayList<SinglesTrigger<Cluster>>());
 			sspSinglesTriggers.add(new ArrayList<SinglesTrigger<SSPCluster>>());
 		}
-		
-		// Set the logger level.
-		logger.setLevel(logLevel);
 		
 		// Print the initial settings.
 		logSettings();
