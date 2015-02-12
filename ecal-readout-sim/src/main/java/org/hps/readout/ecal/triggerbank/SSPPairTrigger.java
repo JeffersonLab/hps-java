@@ -20,6 +20,28 @@ public class SSPPairTrigger extends SSPTrigger {
     }
     
     /**
+     * Indicates whether the trigger was reported by the first of the
+     * pair triggers.
+     * @return <code>true</code> if the trigger was reported by the
+     * first trigger and <code>false</code> if it was reported by the
+     * second trigger.
+     */
+    public boolean isFirstTrigger() {
+    	return (type == SSPData.TRIG_TYPE_PAIR0);
+    }
+    
+    /**
+     * Indicates whether the trigger was reported by the second of
+     * the pair triggers.
+     * @return <code>true</code> if the trigger was reported by the
+     * second trigger and <code>false</code> if it was reported by
+     * the first trigger.
+     */
+    public boolean isSecondTrigger() {
+    	return (type == SSPData.TRIG_TYPE_PAIR1);
+    }
+    
+    /**
      * Indicates whether the trigger passed the pair energy sum cut
      * or not.
      * @return Returns <code>true</code> if the cut passed and

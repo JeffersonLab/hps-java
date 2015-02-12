@@ -33,7 +33,29 @@ public class SSPSinglesTrigger extends SSPTrigger {
      * by the top crate.
      */
     public boolean isBottom() {
-        return (type == SSPData.TRIG_TYPE_SINGLES0_BOT || type == SSPData.TRIG_TYPE_SINGLES1_BOT);
+        return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_BOT);
+    }
+    
+    /**
+     * Indicates whether the trigger was reported by the first of the
+     * singles triggers.
+     * @return <code>true</code> if the trigger was reported by the
+     * first trigger and <code>false</code> if it was reported by the
+     * second trigger.
+     */
+    public boolean isFirstTrigger() {
+    	return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES0_TOP);
+    }
+    
+    /**
+     * Indicates whether the trigger was reported by the second of
+     * the singles triggers.
+     * @return <code>true</code> if the trigger was reported by the
+     * second trigger and <code>false</code> if it was reported by
+     * the first trigger.
+     */
+    public boolean isSecondTrigger() {
+    	return (type == SSPData.TRIG_TYPE_SINGLES1_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_TOP);
     }
     
     /**
