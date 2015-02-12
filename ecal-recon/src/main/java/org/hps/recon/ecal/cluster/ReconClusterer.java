@@ -116,8 +116,8 @@ public class ReconClusterer extends AbstractClusterer {
         // Filter the hit list of any hits that fail to pass the
         // designated threshold.
         for (int index = hitList.size() - 1; index >= 0; index--) {
-            // If the hit is below threshold, kill it.
-            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold)) {
+            // If the hit is below threshold or below min time, kill it.
+            if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (hitList.get(index).getTime() < minTime)) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
@@ -383,7 +383,7 @@ public class ReconClusterer extends AbstractClusterer {
             
             // Consider time cut-is this hit in same time window as seed?
             if (useTimeCut){
-            	if((ihit.getTime() - iseed.getTime()) < timeWindow)
+            	if(Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow)
             	{	
             		icluster.addHit(ihit);
             	}
@@ -400,12 +400,12 @@ public class ReconClusterer extends AbstractClusterer {
             boolean inTimeWithA = false;
             boolean inTimeWithB = false;
         	// In time window with seedA?
-            if ((commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
+            if (Math.abs(commHit.getKey().getTime() - seedA.getTime()) < timeWindow){
             	inTimeWithA = true;
             }
             
             // In time window with seedB?
-            if ((commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
+            if (Math.abs(commHit.getKey().getTime() - seedB.getTime()) < timeWindow){
             	inTimeWithB = true;
             }
                     	
