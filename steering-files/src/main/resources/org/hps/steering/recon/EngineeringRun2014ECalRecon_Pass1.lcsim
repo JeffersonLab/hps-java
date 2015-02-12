@@ -46,7 +46,9 @@
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
-            <useTimeCut>false</useTimeCut>
+            <minTime>0.0</minTime>
+            <timeWindow>25.0</timeWindow>
+            <useTimeCut>true</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
         <driver name="GTPOnlineClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
