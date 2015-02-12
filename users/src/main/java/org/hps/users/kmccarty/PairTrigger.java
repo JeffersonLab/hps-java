@@ -9,6 +9,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	private static final String PAIR_ENERGY_DIFFERENCE_HIGH = TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH;
 	private static final String PAIR_ENERGY_SLOPE_LOW = TriggerModule.PAIR_ENERGY_SLOPE_LOW;
 	private static final String PAIR_COPLANARITY_HIGH = TriggerModule.PAIR_COPLANARITY_HIGH;
+    private static final String PAIR_TIME_COINCIDENCE = "pairTimeCoincidence";
 	
 	/**
 	 * Instantiates a new <code>PairTrigger</code> with all cut
@@ -27,6 +28,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 		addValidCut(PAIR_ENERGY_DIFFERENCE_HIGH);
 		addValidCut(PAIR_ENERGY_SLOPE_LOW);
 		addValidCut(PAIR_COPLANARITY_HIGH);
+		addValidCut(PAIR_TIME_COINCIDENCE);
 	}
 	
 	/**
@@ -85,12 +87,21 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	}
 	
 	/**
+	 * Gets whether the time coincidence cut was met.
+	 * @return Returns <code>true</code> if the cut was met and
+	 * <code>false</code> otherwise.
+	 */
+	public boolean getStateTimeCoincidence() {
+		return getCutState(PAIR_TIME_COINCIDENCE);
+	}
+	
+	/**
 	 * Sets whether the conditions for the pair energy sum lower bound
 	 * cut were met.
 	 * @param state - <code>true</code> indicates that the cut conditions
 	 * were met and <code>false</code> that they were not.
 	 */
-	public void getStateEnergySumLow(boolean state) {
+	public void setStateEnergySumLow(boolean state) {
 		setCutState(PAIR_ENERGY_SUM_LOW, state);
 	}
 	
@@ -100,7 +111,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param state - <code>true</code> indicates that the cut conditions
 	 * were met and <code>false</code> that they were not.
 	 */
-	public void getStateEnergySumHigh(boolean state) {
+	public void setStateEnergySumHigh(boolean state) {
 		setCutState(PAIR_ENERGY_SUM_HIGH, state);
 	}
 	
@@ -110,7 +121,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param state - <code>true</code> indicates that the cut conditions
 	 * were met and <code>false</code> that they were not.
 	 */
-	public void getStateEnergyDifference(boolean state) {
+	public void setStateEnergyDifference(boolean state) {
 		setCutState(PAIR_ENERGY_DIFFERENCE_HIGH, state);
 	}
 	
@@ -120,7 +131,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param state - <code>true</code> indicates that the cut conditions
 	 * were met and <code>false</code> that they were not.
 	 */
-	public void getStateEnergySlope(boolean state) {
+	public void setStateEnergySlope(boolean state) {
 		setCutState(PAIR_ENERGY_SLOPE_LOW, state);
 	}
 	
@@ -130,7 +141,17 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param state - <code>true</code> indicates that the cut conditions
 	 * were met and <code>false</code> that they were not.
 	 */
-	public void getStateCoplanarity(boolean state) {
+	public void setStateCoplanarity(boolean state) {
 		setCutState(PAIR_COPLANARITY_HIGH, state);
+	}
+	
+	/**
+	 * Sets whether the conditions for the time coincidence cut were
+	 * met.
+	 * @param state - <code>true</code> indicates that the cut conditions
+	 * were met and <code>false</code> that they were not.
+	 */
+	public void setStateTimeCoincidence(boolean state) {
+		setCutState(PAIR_TIME_COINCIDENCE, state);
 	}
 }
