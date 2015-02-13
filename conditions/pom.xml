@@ -8,12 +8,12 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.1-SNAPSHOT</version>
+        <version>0.0.3</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/conditions/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/conditions/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/conditions/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-0.0.3/conditions</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.3/conditions</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.3/conditions</developerConnection>
     </scm>
     <build>
         <plugins>

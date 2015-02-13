@@ -8,11 +8,11 @@
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>3.1-SNAPSHOT</version>
+        <version>0.0.3</version>
     </parent>
     <scm>
-        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/steering-files/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/steering-files/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/steering-files/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/tags/hps-modules-0.0.3/steering-files</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.3/steering-files</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/tags/hps-modules-0.0.3/steering-files</developerConnection>
     </scm>
 </project>
