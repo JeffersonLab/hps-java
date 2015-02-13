@@ -1,13 +1,16 @@
 package org.hps.users.jeremym;
 
 import java.util.List;
+import java.util.logging.Level;
 
+import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
 /**
+ * Simple Driver to check validity of CalorimeterHit objects in clusters.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
@@ -16,8 +19,12 @@ public class ClusterHitCheckDriver extends Driver {
     static String clusterCollectionName = "EcalClusters";
     static String hitCollectionName = "EcalCalHits"; 
     
+    public ClusterHitCheckDriver() {
+        getLogger().setLevel(Level.ALL);
+    }
+    
     public void process(EventHeader event) {
-        //System.out.println("ClusterHitCheckDriver - event #" + event.getEventNumber());
+        getLogger().info("ClusterHitCheckDriver - event #" + event.getEventNumber());
         
         if (event.hasCollection(CalorimeterHit.class, hitCollectionName)) {
             List<CalorimeterHit> hits = event.get(CalorimeterHit.class, hitCollectionName);
@@ -29,24 +36,32 @@ public class ClusterHitCheckDriver extends Driver {
         }
         
         if (event.hasCollection(Cluster.class, clusterCollectionName)) {
+            getLogger().info("checking clus collection " + clusterCollectionName);
             List<Cluster> clusters = event.get(Cluster.class, clusterCollectionName);
             for (Cluster cluster : clusters) { 
-                //System.out.println("checking Cluster " + cluster + " of type " + cluster.getClass().getCanonicalName());
-                //System.out.println("  iterating hit list...");
-                for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                    if (hit == null) {
-                        throw new RuntimeException("CalorimeterHit is null in cluster hit list!");
-                        //System.out.println("  WARNING: CalorimeterHit is null in cluster hit list!");
-                    }
-                }
                 List<CalorimeterHit> hits = cluster.getCalorimeterHits();
-                //System.out.println(hits.size() + " hits");
                 for (int i = 0; i < hits.size(); i++) {
+                    getLogger().info("checking hit @ index " + i);
                     CalorimeterHit hit = hits.get(i);
                     if (hit == null) {
-                        throw new RuntimeException("CalorimeterHit " + i + " is null in cluster hit list!");
-                        //System.out.println("  WARNING: CalorimeterHit " + i + " is null in cluster hit list!");
-                        //System.out.println("    pos in hit list = " + event.get(CalorimeterHit.class, hitCollectionName).indexOf(hit));
+                        throw new RuntimeException("CalorimeterHit @ index " + i + " is null in cluster hit list.");
+                    }
+                    
+                    EcalCrystal crystal = (EcalCrystal) hit.getDetectorElement();
+                    if (crystal == null) {
+                        throw new RuntimeException("Hit does not correctly point to crystal geometry.");
+                    }
+                    
+                    double[] hitPosition = hit.getPosition();
+                    getLogger().info("hit @ position " + hitPosition[0] + ", " + hitPosition[1] + ", " + hitPosition[2]);
+                    if (hitPosition[0] == 0) {
+                        throw new RuntimeException("Hit X position is zero for hit " + hit.getIdentifier().toHexString());
+                    }
+                    if (hitPosition[1] == 0) {
+                        throw new RuntimeException("Hit Y position is zero for hit " + hit.getIdentifier().toHexString());
+                    }
+                    if (hitPosition[2] == 0) {
+                        throw new RuntimeException("Hit Z position is zero for hit " + hit.getIdentifier().toHexString());
                     }
                 }
             }
