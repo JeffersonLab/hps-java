@@ -35,7 +35,7 @@ public final class CalorimeterHitUtilities {
     }    
     
     public static EcalCrystal findCrystal(CalorimeterHit hit) {
-        return (EcalCrystal)hit.getMetaData().getIDDecoder().getSubdetector().getDetectorElement().findDetectorElement(hit.getIdentifier());
+        return (EcalCrystal)hit.getSubdetector().getDetectorElement().findDetectorElement(hit.getIdentifier()).get(0);
     }
     
     public static IGeometryInfo findGeometryInfo(CalorimeterHit hit) {
