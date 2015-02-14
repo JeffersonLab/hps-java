@@ -17,6 +17,8 @@ import java.util.logging.Level;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.recon.ecal.CalorimeterHitUtilities;
+import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -39,7 +41,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  */
 public class ClustererTest extends TestCase {
     
-    static int nEvents = 50;
+    static int nEvents = -1;
     static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
@@ -51,7 +53,8 @@ public class ClustererTest extends TestCase {
         boolean applyCorrections;        
         boolean checkHitEnergy;
         boolean checkPropCalc;
-        boolean checkPosition;
+        boolean checkClusterPosition;
+        boolean checkHitPositions;
         boolean calculateProperties;
         boolean sortHits;
         double[] cuts = null;
@@ -95,7 +98,12 @@ public class ClustererTest extends TestCase {
         }
         
         ClustererTestSetup checkPosition() {
-            this.checkPosition = true;
+            this.checkClusterPosition = true;
+            return this;
+        }
+        
+        ClustererTestSetup checkHitPositions() {
+            this.checkHitPositions = true;
             return this;
         }
     }
@@ -127,7 +135,8 @@ public class ClustererTest extends TestCase {
                     .checkSeedHit()
                     .checkClusterType(ClusterType.RECON)
                     .checkHitEnergy()
-                    .checkPosition());
+                    .checkPosition()
+                    .checkHitPositions());
     }
     
     /**
@@ -412,11 +421,21 @@ public class ClustererTest extends TestCase {
                     assertTrue("Hit energy " + hit.getCorrectedEnergy() + " is <= 0.", hit.getCorrectedEnergy() > 0.);
                 }
             }
-            if (setup.checkPosition) {
+            if (setup.checkClusterPosition) {
                 double[] position = cluster.getPosition();
                 assertTrue("Position X is invalid.", Math.abs(position[0]) < 400. && position[0] != 0.);
                 assertTrue("Position Y is invalid.", Math.abs(position[1]) > 25. && Math.abs(position[1]) < 90.);
                 assertTrue("Position Z is invalid.", position[2] > 1385. && position[2] < 1480.);
+            }
+            if (setup.checkHitPositions) {
+                for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                    double[] hitPosition = hit.getPosition();
+                    assertTrue("Hit Position X is invalid.", hitPosition[0] != 0.);
+                    assertTrue("Hit Position Y is invalid.", hitPosition[1] != 0.);
+                    assertTrue("Hit Position Z is invalid.", hitPosition[2] != 0.);
+                    EcalCrystal crystal = CalorimeterHitUtilities.findCrystal(hit);
+                    assertTrue("Hit does not link correctly to geometry.", crystal != null);
+                }
             }
         }              
     }
