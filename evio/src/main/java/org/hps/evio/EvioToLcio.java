@@ -81,7 +81,10 @@ public class EvioToLcio {
     Options options = null;
 
     // The class's logger.
-    Logger logger = LogUtil.create(EvioToLcio.class);
+    static Logger logger = LogUtil.create(EvioToLcio.class);
+    static {
+        logger.setLevel(Level.INFO);
+    }
 
     // The LCSim event builder used to convert from EVIO.
     LCSimEventBuilder eventBuilder = null;
