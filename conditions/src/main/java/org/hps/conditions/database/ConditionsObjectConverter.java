@@ -114,6 +114,8 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         } catch (ConditionsObjectException e) {
             throw new RuntimeException(e);
         }
+
+        databaseConditionsManager.getLogger().info("loading conditions set..." + '\n' + conditionsRecord);
                                
         // Get the table name.
         String tableName = conditionsRecord.getTableName();

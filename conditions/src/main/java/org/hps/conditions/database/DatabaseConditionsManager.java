@@ -60,6 +60,10 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
+    static {
+        logger.setLevel(Level.FINE);
+        logger.getHandlers()[0].setLevel(Level.FINE);
+    }
 
     // Registry of conditions converters.
     protected ConverterRegistry converters = ConverterRegistry.create();
@@ -123,7 +127,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * manager as the global default.
      */
     public DatabaseConditionsManager() {
-        logger.setLevel(Level.INFO);
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
         ConditionsManager.setDefaultConditionsManager(this);
@@ -408,7 +411,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The conditions or null if does not exist.
      */
     public <T> T getConditionsData(Class<T> type, String name) {
-        logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
+        logger.info("getting conditions " + name + " of type " + type.getSimpleName());
         return getCachedConditions(type, name).getCachedData();
     }
 
@@ -571,7 +574,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.config("setting log level to " + level);
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
-        
         svtSetup.setLogLevel(level);
     }
 
@@ -597,7 +599,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         }
         if (foundConditionsRecords.size() > 0) {
             for (ConditionsRecord record : foundConditionsRecords) {
-                logger.fine("found ConditionsRecord with key " + name + '\n' + record.toString());
+                logger.info("found ConditionsRecord with key " + name + '\n' + record.toString());
             }
         }
         return foundConditionsRecords;
@@ -725,7 +727,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             String sql = QueryBuilder.buildPreparedInsert(tableMetaData.getTableName(), collection.iterator().next());
             preparedStatement = connection.prepareStatement(sql);
             logger.finest("using prepared statement: " + sql);
-            logger.finest("preparing updates ...");
             int collectionId = collection.getCollectionId();
             for (ConditionsObject object : collection) {
                 preparedStatement.setObject(1, collectionId);
@@ -736,7 +737,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
                 }
                 preparedStatement.executeUpdate();
             }
-            logger.finest("done preparing updates");
             connection.commit();
             logger.finest("committed transaction");
         } catch (Exception e) {
@@ -786,7 +786,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * if they do not have their own logger.
      * @return The Logger for this class.
      */
-    public Logger getLogger() {
+    public static Logger getLogger() {
         return logger;
     }
     
