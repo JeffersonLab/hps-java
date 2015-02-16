@@ -87,12 +87,17 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      */
     @Override
     public List<Cluster> createClusters(EventHeader event, List<CalorimeterHit> hitList) {
+    	// VERBOSE :: Print the driver header.
+    	if(verbose) {
+    		System.out.println();
+    		System.out.println();
+    		System.out.println("======================================================================");
+    		System.out.println("=== GTP Readout Clusterer ============================================");
+    		System.out.println("======================================================================");
+    	}
     	
         // Track the valid clusters.
         List<Cluster> clusterList = new ArrayList<Cluster>();
-        
-        // VERBOSE :: Indicate whether the event has hits.
-        //if(verbose) { System.out.printf("Event %7d :: Has hits [%5b]%n", event.getEventNumber(), hasHits); }
         
         // Sort the hits by time in reverse order.
         Collections.sort(hitList, new Comparator<CalorimeterHit>() {
@@ -378,6 +383,36 @@ public class GTPOnlineClusterer extends AbstractClusterer {
         // treated as within time.
         else { return false; }
     }
+    
+    /**
+     * Gets the seed energy lower bound threshold in units of GeV.
+     * @return Returns the seed energy lower bound threshold.
+     */
+    public double getSeedLowThreshold() { return seedThreshold; }
+    
+    /**
+     * Gets the number of nanoseconds before the seed hit time the
+     * clusterer will look to verify the seed hit.
+     * @return Returns the size of the time window before the seed
+     * hit time.
+     */
+    public double getWindowBefore() { return timeBefore; }
+    
+    /**
+     * Gets the number of nanoseconds after the seed hit time the
+     * clusterer will look to verify the seed hit.
+     * @return Returns the size of the time window after the seed
+     * hit time.
+     */
+    public double getWindowAfter() { return timeAfter; }
+    
+    /**
+     * Returns whether the clusterer will output verbose diagnostic
+     * information.
+     * @return Returns <code>true</code> if the clusterer will output
+     * diagnostic information and <code>false</code> otherwise.
+     */
+    public boolean isVerbose() { return verbose; }
     
     /**
      * Sets the minimum energy a hit must have before it will be

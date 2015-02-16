@@ -20,6 +20,27 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
     }
     
     /**
+     * Outputs the clusterer settings.
+     */
+    @Override
+    public void startOfData() {
+    	// VERBOSE :: Output the driver settings.
+    	if(gtp.isVerbose()) {
+			// Print the cluster driver header.
+			System.out.println();
+			System.out.println();
+			System.out.println("======================================================================");
+			System.out.println("=== GTP Readout Clusterer Settings ===================================");
+			System.out.println("======================================================================");
+			
+			// Output the driver settings.
+			System.out.printf("Seed Energy Threshold :: %.3f GeV%n", gtp.getSeedLowThreshold());
+			System.out.printf("Time Window (Before)  :: %.0f ns%n", gtp.getWindowBefore());
+			System.out.printf("Time Window (After)   :: %.0f ns%n", gtp.getWindowAfter());
+    	}
+    }
+    
+    /**
      * Sets the minimum seed energy needed for a hit to be considered
      * for forming a cluster.
      * @param seedEnergyThreshold - The minimum cluster seed energy in
