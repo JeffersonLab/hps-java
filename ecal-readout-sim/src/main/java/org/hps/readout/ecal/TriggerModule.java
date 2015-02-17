@@ -709,7 +709,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterSeedEnergyCutHigh(double seedEnergy) {
-        return (seedEnergy < cuts.get(CLUSTER_SEED_ENERGY_HIGH));
+        return (seedEnergy <= cuts.get(CLUSTER_SEED_ENERGY_HIGH));
     }
     
     /**
@@ -720,7 +720,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterSeedEnergyCutLow(double seedEnergy) {
-        return (seedEnergy > cuts.get(CLUSTER_SEED_ENERGY_LOW));
+        return (seedEnergy >= cuts.get(CLUSTER_SEED_ENERGY_LOW));
     }
     
     /**
@@ -742,7 +742,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterTotalEnergyCutHigh(double clusterEnergy) {
-        return (clusterEnergy < cuts.get(CLUSTER_TOTAL_ENERGY_HIGH));
+        return (clusterEnergy <= cuts.get(CLUSTER_TOTAL_ENERGY_HIGH));
     }
     
     /**
@@ -753,7 +753,7 @@ public final class TriggerModule {
      * and <code>false</code> if the cluster does not.
      */
     private boolean clusterTotalEnergyCutLow(double clusterEnergy) {
-        return (clusterEnergy > cuts.get(CLUSTER_TOTAL_ENERGY_LOW));
+        return (clusterEnergy >= cuts.get(CLUSTER_TOTAL_ENERGY_LOW));
     }
     
     /**
@@ -884,7 +884,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairCoplanarityCut(double coplanarityAngle) {
-        return (coplanarityAngle < cuts.get(PAIR_COPLANARITY_HIGH));
+        return (coplanarityAngle <= cuts.get(PAIR_COPLANARITY_HIGH));
     }
     
     /**
@@ -896,7 +896,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergyDifferenceCut(double energyDifference) {
-        return (energyDifference < cuts.get(PAIR_ENERGY_DIFFERENCE_HIGH));
+        return (energyDifference <= cuts.get(PAIR_ENERGY_DIFFERENCE_HIGH));
     }
     
     /**
@@ -906,7 +906,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySlopeCut(double energySlope) {
-        return (energySlope > cuts.get(PAIR_ENERGY_SLOPE_LOW));
+        return (energySlope >= cuts.get(PAIR_ENERGY_SLOPE_LOW));
     }
     
     /**
@@ -928,7 +928,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySumCutHigh(double energySum) {
-        return (energySum < cuts.get(PAIR_ENERGY_SUM_HIGH));
+        return (energySum <= cuts.get(PAIR_ENERGY_SUM_HIGH));
     }
     
     /**
@@ -939,7 +939,7 @@ public final class TriggerModule {
      * the cut and <code>false</code> if it does not.
      */
     private boolean pairEnergySumCutLow(double energySum) {
-        return (energySum > cuts.get(PAIR_ENERGY_SUM_LOW));
+        return (energySum >= cuts.get(PAIR_ENERGY_SUM_LOW));
     }
     
     /**
