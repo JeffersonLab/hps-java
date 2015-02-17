@@ -8,7 +8,11 @@ USAGE='Usage:  engrun_register.py filepath [outputfile]'
 DEBUG=0
 #DEBUG=1
 
+# no sshing, just print commands:
 SSHREG=0
+
+# one ssh for each file to register:
+# (do this for automating)
 #SSHREG=1
 
 if len(sys.argv)!=3 and len(sys.argv)!=2:
@@ -55,7 +59,8 @@ for filename in FILELIST:
     continue
 
   if filename in DCLIST:
-    sys.stderr.write('File already cataloged, Ignoring: '+filename+'\n')
+    if DEBUG:
+      sys.stderr.write('File already cataloged, Ignoring: '+filename+'\n')
     continue
 
   [fileformat,datatype]=ERU.GetDataType(filename)
