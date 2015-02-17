@@ -56,7 +56,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = getEventData(evioEvent);
-      
+     
         // Put DAQ Configuration info into lcsimEvent (NAB Feb 5, 2015):
         //getDAQConfig(evioEvent,lcsimEvent);
         
@@ -78,19 +78,27 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         return lcsimEvent;
     }
 
-    // NAB Feb 5, 2015: 
+    // NAB Feb 16, 2015:
     public void getDAQConfig(EvioEvent evioEvent, EventHeader lcsimEvent) {
         List <TriggerConfig> trigconf=new ArrayList<TriggerConfig>();
         for (BaseStructure bank : evioEvent.getChildrenList()) {
             if (bank.getChildCount()<=0) continue;
+            int crate=bank.getHeader().getTag();
             for (BaseStructure subBank : bank.getChildrenList()) {
-                if (subBank.getHeader().getTag() == 0xE10E) {
-                    if (subBank.getStringData() == null) continue; // unfortunately necessary
-                    trigconf.add(new TriggerConfig(lcsimEvent.getRunNumber(),subBank.getStringData()));
+                if (subBank.getHeader().getTag() == TriggerConfig.BANK_TAG) {
+                    //System.err.println("000000000000000000000000  "+crate);
+                    if (subBank.getStringData() == null) continue; // FIXME: Due to Crate 39 EVIO Format Error
+                    //System.err.println("111111111111111111111111  "+crate);
+                    if (trigconf.size()==0) trigconf.add(new TriggerConfig());
+                    trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
+//                    trigconf.add(new TriggerConfig(lcsimEvent.getRunNumber(),subBank.getStringData()));
                 }
             }
         }
-        lcsimEvent.put("TriggerConfig",trigconf,TriggerConfig.class,0);
+        if (trigconf.size()>0) {
+            //trigconf.get(0).printVars();
+            lcsimEvent.put("TriggerConfig",trigconf,TriggerConfig.class,0);
+        };
     }        
         
 }
