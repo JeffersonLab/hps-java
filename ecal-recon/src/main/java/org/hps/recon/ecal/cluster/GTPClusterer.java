@@ -146,20 +146,18 @@ public class GTPClusterer extends AbstractClusterer {
             if(verbose) {
 	            System.out.printf("Cluster Check:%n");
 	        	System.out.printf("\t(%3d, %3d) --> %.4f%n", currentHit.getIdentifierFieldValue("ix"),
-	        			currentHit.getIdentifierFieldValue("iy"), currentHit.getCorrectedEnergy(), currentHit.getRawEnergy());
+	        			currentHit.getIdentifierFieldValue("iy"), currentHit.getCorrectedEnergy());
             }
             
             // Store the energy of the current hit.
-            double currentEnergy = currentHit.getRawEnergy();
+            double currentEnergy = currentHit.getCorrectedEnergy();
             
             // If the hit energy is lower than the minimum threshold,
             // then we immediately reject this hit as a possible cluster.
             if (currentEnergy < seedEnergyThreshold) {
             	// VERBOSE :: Note the reason the potential seed was
             	//            rejected.
-            	if(verbose) {
-            		System.out.printf("\tREJECT :: Does not exceed seed threshold %.4f.%n", seedEnergyThreshold);
-            	}
+            	if(verbose) { System.out.printf("\tREJECT :: Does not exceed seed threshold %.4f.%n", seedEnergyThreshold); }
             	
             	// Skip to the next potential seed.
                 continue seedLoop;
