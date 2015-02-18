@@ -35,7 +35,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	// Store the lists of parsed objects.
 	private TIData tiBank;
 	private SSPData sspBank;
-	private List<Cluster> reconClusters;
+	private List<Cluster> reconClusters = new ArrayList<Cluster>();
 	private List<SSPCluster> sspClusters;
 	private List<List<PairTrigger<Cluster[]>>> reconPairsTriggers = new ArrayList<List<PairTrigger<Cluster[]>>>(2);
 	private List<List<PairTrigger<SSPCluster[]>>> sspPairsTriggers = new ArrayList<List<PairTrigger<SSPCluster[]>>>(2);
@@ -88,11 +88,30 @@ public class TriggerDiagnosticDriver extends Driver {
 	
 	// Diagnostic plots.
     private AIDA aida = AIDA.defaultInstance();
-    IHistogram1D clusterTimePlot;
-    IHistogram1D clusterEnergyDiffPlot;
-    IHistogram1D clusterHitDiffPlot;
-    IHistogram2D energyHitDiffPercentPlot;
+    IHistogram1D clusterTimePlotF;
+    IHistogram1D clusterEnergyDiffPlotF;
+    IHistogram1D clusterHitDiffPlotF;
+    IHistogram2D energyHitDiffPercentPlotF;
+    
+    IHistogram1D clusterTimePlotA;
+    IHistogram1D clusterEnergyDiffPlotA;
+    IHistogram1D clusterHitDiffPlotA;
+    IHistogram2D energyHitDiffPercentPlotA;
+    
+    IHistogram1D reconClusterTotalEnergyPlot;
+    IHistogram1D reconClusterHitCountPlot;
+    IHistogram1D reconClusterTimePlot;
+    IHistogram2D reconClusterDistribution;
+    IHistogram1D sspClusterTotalEnergyPlot;
+    IHistogram1D sspClusterHitCountPlot;
+    IHistogram2D sspClusterDistribution;
 	
+    // Internal state variables.
+    private static final int STATE_CLUSTER_UNDEFINED = -1;
+    private static final int STATE_CLUSTER_FAIL_ENERGY = 1;
+    private static final int STATE_CLUSTER_FAIL_HIT_COUNT = 2;
+    private static final int STATE_CLUSTER_SUCCESS_MATCH = 3;
+    
     // Verbose settings.
     private boolean clusterFail = false;
     private boolean singlesFail = false;
@@ -110,10 +129,23 @@ public class TriggerDiagnosticDriver extends Driver {
 	@Override
 	public void startOfData() {
 		// Instantiate the diagnostic plots.
-	    energyHitDiffPercentPlot = aida.histogram2D("Trigger Diagnostics :: Energy|Hit Difference (Percentage)", 11, -5, 6, 25, 0.75, 1.25);
-	    clusterTimePlot = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Time Distribution", 2 * windowWidth / 5, 0, windowWidth);
-	    clusterHitDiffPlot = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Hit Count Difference Distribution", 11, -5, 6);
-	    clusterEnergyDiffPlot = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Energy Difference Distribution", 25, 0.75, 1.25);
+	    energyHitDiffPercentPlotF = aida.histogram2D("Trigger Diagnostics :: Failed Cluster Energy-Hit Difference (Percentage)", 11, -5, 6, 25, 0.75, 1.25);
+	    clusterTimePlotF = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Time Distribution", 2 * windowWidth / 5, 0, windowWidth);
+	    clusterHitDiffPlotF = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Hit Count Difference Distribution", 11, -5, 6);
+	    clusterEnergyDiffPlotF = aida.histogram1D("Trigger Diagnostics :: Failed Cluster Energy Difference Distribution", 25, 0.75, 1.25);
+	    
+	    energyHitDiffPercentPlotA = aida.histogram2D("Trigger Diagnostics :: All Cluster Energy-Hit Difference (Percentage)", 11, -5, 6, 25, 0.75, 1.25);
+	    clusterTimePlotA = aida.histogram1D("Trigger Diagnostics :: All Cluster Time Distribution", 2 * windowWidth / 5, 0, windowWidth);
+	    clusterHitDiffPlotA = aida.histogram1D("Trigger Diagnostics :: All Cluster Hit Count Difference Distribution", 11, -5, 6);
+	    clusterEnergyDiffPlotA = aida.histogram1D("Trigger Diagnostics :: All Cluster Energy Difference Distribution", 25, 0.75, 1.25);
+	    
+	    reconClusterTotalEnergyPlot = aida.histogram1D("Trigger Diagnostics :: Recon Cluster Total Energy Distribution", 55, 0.0, 2.2);
+	    reconClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: Recon Cluster Hit Count Distribution", 10, 0, 10);
+	    reconClusterTimePlot = aida.histogram1D("Trigger Diagnostics :: Recon Cluster Time Distribution", 2 * windowWidth / 5, 0, windowWidth);
+	    reconClusterDistribution = aida.histogram2D("Trigger Diagnostics :: Recon Cluster Distribution", 46, -23, 23, 11, -5.5, 5.5);
+	    sspClusterTotalEnergyPlot = aida.histogram1D("Trigger Diagnostics :: SSP Cluster Total Energy Distribution", 55, 0.0, 2.2);
+	    sspClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: SSP Cluster Hit Count Distribution", 10, 0, 10);
+	    sspClusterDistribution = aida.histogram2D("Trigger Diagnostics :: SSP Cluster Distribution", 46, -23, 23, 11, -5.5, 5.5);
 		
 		// Print the cluster verification header.
 		System.out.println();
@@ -192,7 +224,7 @@ public class TriggerDiagnosticDriver extends Driver {
 		System.out.printf("\tFailed (Energy)    :: %d%n", globalEnergy);
 		System.out.printf("\tFailed (Hit Count) :: %d%n", globalHitCount);
 		if(globalFound == 0) { System.out.printf("\tCluster Efficiency :: N/A%n"); }
-		else { System.out.printf("\tCluster Efficiency :: %3.0f%%%n", 100.0 * globalMatched / globalFound); }
+		else { System.out.printf("\tCluster Efficiency :: %7.3f%%%n", 100.0 * globalMatched / globalFound); }
 		
 		// Print the singles trigger verification data.
 		System.out.println();
@@ -205,14 +237,14 @@ public class TriggerDiagnosticDriver extends Driver {
 			System.out.printf("\tInternal Efficiency        :: %d / %d (N/A)%n",
 					singlesInternalMatched, singlesSSPTriggers);
 		} else {
-			System.out.printf("\tInternal Efficiency        :: %d / %d (%3.0f%%)%n",
+			System.out.printf("\tInternal Efficiency        :: %d / %d (%7.3f%%)%n",
 					singlesInternalMatched, singlesSSPTriggers, (100.0 * singlesInternalMatched / singlesSSPTriggers));
 		}
 		if(singlesReconTriggers == 0) {
 			System.out.printf("\tTrigger Efficiency         :: %d / %d (N/A)%n",
 					singlesReconMatched, singlesReconTriggers);
 		} else {
-			System.out.printf("\tTrigger Efficiency         :: %d / %d (%3.0f%%)%n",
+			System.out.printf("\tTrigger Efficiency         :: %d / %d (%7.3f%%)%n",
 					singlesReconMatched, singlesReconTriggers, (100.0 * singlesReconMatched / singlesReconTriggers));
 		}
 		
@@ -225,11 +257,11 @@ public class TriggerDiagnosticDriver extends Driver {
 				System.out.printf("\tCluster Energy Upper Bound :: %d / %d%n", globalEnergyMaxCut[triggerNum], singlesSSPTriggers);
 				System.out.printf("\tCluster Hit Count          :: %d / %d%n", globalHitCountCut[triggerNum], singlesSSPTriggers);
 			} else {
-				System.out.printf("\tCluster Energy Lower Bound :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tCluster Energy Lower Bound :: %d / %d (%7.3f%%)%n",
 						globalEnergyMinCut[triggerNum], singlesSSPTriggers, (100.0 * globalEnergyMinCut[triggerNum] / singlesSSPTriggers));
-				System.out.printf("\tCluster Energy Upper Bound :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tCluster Energy Upper Bound :: %d / %d (%7.3f%%)%n",
 						globalEnergyMaxCut[triggerNum], singlesSSPTriggers, (100.0 * globalEnergyMaxCut[triggerNum] / singlesSSPTriggers));
-				System.out.printf("\tCluster Hit Count          :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tCluster Hit Count          :: %d / %d (%7.3f%%)%n",
 						globalHitCountCut[triggerNum], singlesSSPTriggers, (100.0 * globalHitCountCut[triggerNum] / singlesSSPTriggers));
 			}
 		}
@@ -245,14 +277,14 @@ public class TriggerDiagnosticDriver extends Driver {
 			System.out.printf("\tInternal Efficiency        :: %d / %d (N/A)%n",
 					pairInternalMatched, pairSSPTriggers);
 		} else {
-			System.out.printf("\tInternal Efficiency        :: %d / %d (%3.0f%%)%n",
+			System.out.printf("\tInternal Efficiency        :: %d / %d (%7.3f%%)%n",
 					pairInternalMatched, pairSSPTriggers, (100.0 * pairInternalMatched / pairSSPTriggers));
 		}
 		if(pairReconTriggers == 0) {
 			System.out.printf("\tTrigger Efficiency         :: %d / %d (N/A)%n",
 					pairReconMatched, pairReconTriggers);
 		} else {
-			System.out.printf("\tTrigger Efficiency         :: %d / %d (%3.0f%%)%n",
+			System.out.printf("\tTrigger Efficiency         :: %d / %d (%7.3f%%)%n",
 					pairReconMatched, pairReconTriggers, (100.0 * pairReconMatched / pairReconTriggers));
 		}
 		
@@ -267,15 +299,15 @@ public class TriggerDiagnosticDriver extends Driver {
 				System.out.printf("\tPair Coplanarity           :: %d / %d%n", globalCoplanarityCut[triggerNum], pairSSPTriggers);
 				System.out.printf("\tPair Trigger Time          :: %d / %d%n", globalPairTimeCut[triggerNum], pairSSPTriggers);
 			} else {
-				System.out.printf("\tPair Energy Sum            :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tPair Energy Sum            :: %d / %d (%7.3f%%)%n",
 						globalEnergySumCut[triggerNum], pairSSPTriggers, (100.0 * globalEnergySumCut[triggerNum] / pairSSPTriggers));
-				System.out.printf("\tPair Energy Difference     :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tPair Energy Difference     :: %d / %d (%7.3f%%)%n",
 						globalEnergyDiffCut[triggerNum], pairSSPTriggers, (100.0 * globalEnergyDiffCut[triggerNum] / pairSSPTriggers));
-				System.out.printf("\tPair Energy Slope          :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tPair Energy Slope          :: %d / %d (%7.3f%%)%n",
 						globalEnergySlopeCut[triggerNum], pairSSPTriggers, (100.0 * globalEnergySlopeCut[triggerNum] / pairSSPTriggers));
-				System.out.printf("\tPair Coplanarity           :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tPair Coplanarity           :: %d / %d (%7.3f%%)%n",
 						globalCoplanarityCut[triggerNum], pairSSPTriggers, (100.0 * globalCoplanarityCut[triggerNum] / pairSSPTriggers));
-				System.out.printf("\tPair Trigger Time          :: %d / %d (%3.0f%%)%n",
+				System.out.printf("\tPair Trigger Time          :: %d / %d (%7.3f%%)%n",
 						globalPairTimeCut[triggerNum], pairSSPTriggers, (100.0 * globalPairTimeCut[triggerNum] / pairSSPTriggers));
 			}
 		}
@@ -316,12 +348,34 @@ public class TriggerDiagnosticDriver extends Driver {
 		
 		// Get the reconstructed clusters.
 		if(event.hasCollection(Cluster.class, clusterCollectionName)) {
-			reconClusters = event.get(Cluster.class, clusterCollectionName);
-			if(reconClusters.size() == 1) {
-				println("1 reconstructed cluster found.");
-			} else {
-				printf("%d reconstructed clusters found.%n", reconClusters.size());
+			// Get the reconstructed clusters.
+			List<Cluster> allClusters = event.get(Cluster.class, clusterCollectionName);
+			
+			// Keep only the clusters that can be verified.
+			println();
+			println("Process cluster for verifiability:");
+			reconClusters.clear();
+			for(Cluster reconCluster : allClusters) {
+				// Check that the cluster is within the safe region of the
+				// FADC readout window. If it is not, it will likely have
+				// inaccurate energy or hit values and may not produce the
+				// expected results.
+				printf("\t%s", clusterToString(reconCluster));
+				if(isVerifiable(reconCluster)) {
+					reconClusters.add(reconCluster);
+					println(" [  verifiable  ]");
+				} else { println(" [ unverifiable ]"); }
+				
 			}
+			
+			// Output the number of verifiable clusters found.
+			if(reconClusters.size() == 1) { println("1 verifiable reconstructed cluster found."); }
+			else { printf("%d verifiable reconstructed clusters found.%n", reconClusters.size()); }
+			
+			// Output the number of unverifiable clusters found.
+			int unverifiableClusters = allClusters.size() - reconClusters.size();
+			if(unverifiableClusters == 1) { println("1 unverifiable reconstructed cluster found."); }
+			else { printf("%d unverifiable reconstructed clusters found.%n", unverifiableClusters); }
 		} else {
 			reconClusters = new ArrayList<Cluster>(0);
 			printf("No reconstructed clusters were found for collection \"%s\" in this event.%n", clusterCollectionName);
@@ -348,6 +402,11 @@ public class TriggerDiagnosticDriver extends Driver {
 				// Otherwise, if this is a TI bank, parse it.
 				else if(AbstractIntData.getTag(obj) == TIData.BANK_TAG) {
 					tiBank = new TIData(obj);
+					
+					if(tiBank.isPulserTrigger()) { println("Trigger type :: Pulser"); }
+					else if(tiBank.isSingle0Trigger() || tiBank.isSingle1Trigger()) { println("Trigger type :: Singles"); }
+					else if(tiBank.isPair0Trigger() || tiBank.isPair1Trigger()) { println("Trigger type :: Pair"); }
+					else if(tiBank.isCalibTrigger()) { println("Trigger type :: Cosmic"); }
 				}
 			}
 			
@@ -456,11 +515,6 @@ public class TriggerDiagnosticDriver extends Driver {
 			return;
 		}
 		
-		// Track reconstructed clusters that were excluded from the
-		// verification process they are outside the verification time
-		// range.
-		Set<Cluster> unverifiedClusters = new HashSet<Cluster>();
-		
 		// Track the number of cluster pairs that were matched and that
 		// failed by failure type.
 		int eventMatched = 0;
@@ -471,45 +525,24 @@ public class TriggerDiagnosticDriver extends Driver {
 		// Track the matched clusters.
 		StringBuffer eventMatchedText = new StringBuffer();
 		
+		
+		
 		// ==========================================================
 		// ==== Produce the Cluster Position Mappings ===============
 		// ==========================================================
 		
 		// Create maps to link cluster position to the list of clusters
 		// that were found at that location.
-		Map<Point, ArrayList<Cluster>> reconClusterMap = new HashMap<Point, ArrayList<Cluster>>(reconClusters.size());
-		Map<Point, ArrayList<SSPCluster>> sspClusterMap = new HashMap<Point, ArrayList<SSPCluster>>(reconClusters.size());
+		Map<Point, List<Cluster>> reconClusterMap = new HashMap<Point, List<Cluster>>(reconClusters.size());
+		Map<Point, List<SSPCluster>> sspClusterMap = new HashMap<Point, List<SSPCluster>>(reconClusters.size());
 		
 		// Populate the reconstructed cluster map.
-		println();
-		println("Testing clusters for verifiability...");
-		reconMapLoop:
 		for(Cluster reconCluster : reconClusters) {
-			printf("\t%s", reconClusterToString(reconCluster));
-			
-			// Check that the cluster is within the safe region of the
-			// FADC readout window. If it is not, it will likely have
-			// inaccurate energy or hit values and may not produce the
-			// expected results.
-			if(!isVerifiable(reconCluster)) {
-				// Add the cluster to the lists of clusters that
-				// can not be verified due to their time position
-				// and skip the cluster mapping.
-				unverifiedClusters.add(reconCluster);
-				println(" [ unapproved ]");
-				continue reconMapLoop;
-			}
-			
-			println(" [  approved  ]");
-			
 			// Get the cluster position.
-			Point position = new Point(
-					reconCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-					reconCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy")
-			);
+			Point position = new Point(getReconXIndex(reconCluster), getReconYIndex(reconCluster));
 			
 			// Get the list for this cluster position.
-			ArrayList<Cluster> reconList = reconClusterMap.get(position);
+			List<Cluster> reconList = reconClusterMap.get(position);
 			if(reconList == null) {
 				reconList = new ArrayList<Cluster>();
 				reconClusterMap.put(position, reconList);
@@ -519,21 +552,13 @@ public class TriggerDiagnosticDriver extends Driver {
 			reconList.add(reconCluster);
 		}
 		
-		// If all of the reconstructed clusters are invalid due to when
-		// the clusters occurred, there is nothing to verify. Skip the
-		// remainder of the process.
-		if(unverifiedClusters.size() == reconClusters.size()) {
-			println("No verifiable clusters are present. Skipping event...");
-			return;
-		}
-		
 		// Populate the SSP cluster map.
 		for(SSPCluster sspCluster : sspClusters) {
 			// Get the cluster position.
 			Point position = new Point(sspCluster.getXIndex(), sspCluster.getYIndex());
 			
 			// Get the list for this cluster position.
-			ArrayList<SSPCluster> sspList = sspClusterMap.get(position);
+			List<SSPCluster> sspList = sspClusterMap.get(position);
 			if(sspList == null) {
 				sspList = new ArrayList<SSPCluster>();
 				sspClusterMap.put(position, sspList);
@@ -552,25 +577,36 @@ public class TriggerDiagnosticDriver extends Driver {
 		// For each reconstructed cluster, attempt to match the clusters
 		// with SSP clusters at the same position.
 		positionLoop:
-		for(Entry<Point, ArrayList<Cluster>> clusterSet : reconClusterMap.entrySet()) {
+		for(Entry<Point, List<Cluster>> clusterSet : reconClusterMap.entrySet()) {
 			// Get the reconstructed and SSP clusters at this position.
-			ArrayList<Cluster> reconList = clusterSet.getValue();
-			ArrayList<SSPCluster> sspList = sspClusterMap.get(clusterSet.getKey());
+			List<Cluster> reconList = clusterSet.getValue();
+			List<SSPCluster> sspList = sspClusterMap.get(clusterSet.getKey());
 			
+			// Print the crystal position header.
 			println();
 			printf("Considering clusters at (%3d, %3d)%n", clusterSet.getKey().x, clusterSet.getKey().y);
 			
 			// If there are no SSP clusters, then matching fails by
 			// reason of position. The remainder of the loop may be
-			// skipped, since there is nothing to match.
+			// skipped, since there is nothing to check.
 			if(sspList == null || sspList.isEmpty()) {
 				eventPosition += reconList.size();
+				clusterFail = true;
 				continue positionLoop;
+			}
+			
+			// If there are more reconstructed clusters than there are
+			// SSP clusters, than a number equal to the difference must
+			// fail by means of positions.
+			if(sspList.size() < reconList.size()) {
+				clusterFail = true;
+				eventPosition += (sspList.size() - reconList.size());
 			}
 			
 			// Get all possible permutations of SSP clusters.
 			List<List<Pair>> permutations = getPermutations(reconList, sspList);
 			
+			// Print the information for this crystal position.
 			printf("\tRecon Clusters :: %d%n", reconList.size());
 			printf("\tSSP Clusters   :: %d%n", sspList.size());
 			printf("\tPermutations   :: %d%n", permutations.size());
@@ -582,15 +618,19 @@ public class TriggerDiagnosticDriver extends Driver {
 			StringBuffer positionMatchedText = new StringBuffer();
 			
 			// Track the plotted values for the current best permutation.
-			List<Double> positionTimes = new ArrayList<Double>();
-			List<Integer> positionHitDifference = new ArrayList<Integer>();
-			List<Double> positionEnergyDiffPercent = new ArrayList<Double>();
+			List<Double> positionAllTimes = new ArrayList<Double>();
+			List<Integer> positionAllHitDifference = new ArrayList<Integer>();
+			List<Double> positionAllEnergyDiffPercent = new ArrayList<Double>();
+			List<Double> positionFailTimes = new ArrayList<Double>();
+			List<Integer> positionFailHitDifference = new ArrayList<Integer>();
+			List<Double> positionFailEnergyDiffPercent = new ArrayList<Double>();
 			
 			// Iterate over the permutations and find the permutation
 			// that produces the best possible result when compared to
 			// the reconstructed clusters.
 			int permIndex = 0;
 			for(List<Pair> pairs : permutations) {
+				// Update the current permutation number.
 				permIndex++;
 				
 				// Track the results of this permutation.
@@ -600,15 +640,30 @@ public class TriggerDiagnosticDriver extends Driver {
 				StringBuffer permutationMatchedText = new StringBuffer();
 				
 				// Track the plot values for this permutation.
-				List<Double> permutationTimes = new ArrayList<Double>();
-				List<Integer> permutationHitDifference = new ArrayList<Integer>();
-				List<Double> permutationEnergyDiffPercent = new ArrayList<Double>();
+				List<Double> permutationAllTimes = new ArrayList<Double>();
+				List<Integer> permutationAllHitDifference = new ArrayList<Integer>();
+				List<Double> permutationAllEnergyDiffPercent = new ArrayList<Double>();
+				List<Double> permutationFailTimes = new ArrayList<Double>();
+				List<Integer> permutationFailHitDifference = new ArrayList<Integer>();
+				List<Double> permutationFailEnergyDiffPercent = new ArrayList<Double>();
 				
 				// Try to match each pair.
+				pairLoop:
 				for(Pair pair : pairs) {
+					// Track the state of the current pair.
+					int pairState = STATE_CLUSTER_UNDEFINED;
 					
-					printf("\tP%d :: %s --> %s", permIndex, reconClusterToString(pair.reconCluster),
-							sspClusterToString(pair.sspCluster));
+					// Print the current reconstructed/SSP cluster pair.
+					printf("\tP%d :: %s --> %s", permIndex,
+							pair.reconCluster == null ? "None" : clusterToString(pair.reconCluster),
+							pair.sspCluster == null ? "None" : clusterToString(pair.sspCluster));
+					
+					// If either cluster in the pair is null, there
+					// are not enough clusters to perform this match.
+					if(pair.reconCluster == null || pair.sspCluster == null) {
+						printf(" [ %18s ]%n", "failure: unpaired cluster");
+						continue pairLoop;
+					}
 					
 					// Check if the reconstructed cluster has an energy
 					// within the allotted threshold of the SSP cluster.
@@ -619,59 +674,61 @@ public class TriggerDiagnosticDriver extends Driver {
 						// cluster.
 						if(pair.sspCluster.getHitCount() >= pair.reconCluster.getCalorimeterHits().size() - hitAcceptance &&
 								pair.sspCluster.getHitCount() <= pair.reconCluster.getCalorimeterHits().size() + hitAcceptance) {
-							// Having passed the position, energy, and
-							// hit count tests, this cluster pair is
-							// designated a match.
-							permutationMatched++;
-							
-							// Output the matched cluster to a string
-							// to be printed in the event summary.
-							permutationMatchedText.append(String.format("\t%s --> %s%n",
-									reconClusterToString(pair.reconCluster),
-									sspClusterToString(pair.sspCluster)));
-							
-							printf(" [ %18s ]%n", "success: matched");
-						}
+							// Designate the pair as a match.
+							pairState = STATE_CLUSTER_SUCCESS_MATCH;
+						} else { pairState = STATE_CLUSTER_FAIL_HIT_COUNT; }
+					} else { pairState = STATE_CLUSTER_FAIL_ENERGY; }
+					
+					// Update the permutation variables based on the
+					// pair state.
+					if(pairState == STATE_CLUSTER_SUCCESS_MATCH) {
+						// Having passed the position, energy, and hit
+						// count tests, this cluster pair is designated
+						// a match.
+						permutationMatched++;
 						
-						// Otherwise, this results in an iteration-
-						// level match failure by reason of hit count.
-						else {
-							// Track the clusters that failed by reason
-							// of hit counts.
+						// Output the matched cluster to a string to be
+						// printed in the event summary.
+						permutationMatchedText.append(String.format("\t%s --> %s%n",
+								clusterToString(pair.reconCluster),
+								clusterToString(pair.sspCluster)));
+						printf(" [ %18s ]%n", "success: matched");
+					} else {
+						// Update the tracker variable and print the
+						// outcome appropriate to the failure type.
+						if(pairState == STATE_CLUSTER_FAIL_ENERGY) {
+							permutationEnergy++;
+							printf(" [ %18s ]%n", "failure: energy");
+						} else if(pairState == STATE_CLUSTER_FAIL_HIT_COUNT) {
 							permutationHitCount++;
 							printf(" [ %18s ]%n", "failure: hit count");
-							
-							// Track the plotted values.
-							permutationTimes.add(pair.reconCluster.getCalorimeterHits().get(0).getTime());
-							permutationHitDifference.add(pair.sspCluster.getHitCount() - pair.reconCluster.getCalorimeterHits().size());
-							permutationEnergyDiffPercent.add(Math.abs((pair.sspCluster.getEnergy() / pair.reconCluster.getEnergy())));
+						} else {
+							throw new IllegalArgumentException("Unknown cluster match state!");
 						}
+						
+						// Track the plotted values for failed pairs.
+						permutationFailTimes.add(getReconTime(pair.reconCluster));
+						permutationFailHitDifference.add(getHitCountDifference(pair.sspCluster, pair.reconCluster));
+						permutationFailEnergyDiffPercent.add(getEnergyPercentDifference(pair.sspCluster, pair.reconCluster));
 					}
 					
-					// Otherwise, this results in an iteration-level
-					// match failure by reason of energy.
-					else {
-						// Track the clusters that failed by reason
-						// of energy.
-						permutationEnergy++;
-						printf(" [ %18s ]%n", "failure: energy");
-						
-						// Track the plotted values.
-						permutationTimes.add(pair.reconCluster.getCalorimeterHits().get(0).getTime());
-						permutationHitDifference.add(pair.sspCluster.getHitCount() - pair.reconCluster.getCalorimeterHits().size());
-						permutationEnergyDiffPercent.add(Math.abs((pair.sspCluster.getEnergy() / pair.reconCluster.getEnergy())));
-						permutationEnergyDiffPercent.add(Math.abs((pair.sspCluster.getEnergy() - pair.reconCluster.getEnergy())));
-					}
-				}
+					// Track the plotted values for all pairs.
+					permutationAllTimes.add(getReconTime(pair.reconCluster));
+					permutationAllHitDifference.add(getHitCountDifference(pair.sspCluster, pair.reconCluster));
+					permutationAllEnergyDiffPercent.add(getEnergyPercentDifference(pair.sspCluster, pair.reconCluster));
+				} // End Pair Loop
 				
+				// Print the results of the permutation.
 				printf("\t\tPermutation Matched   :: %d%n", permutationMatched);
 				printf("\t\tPermutation Energy    :: %d%n", permutationEnergy);
 				printf("\t\tPermutation Hit Count :: %d%n", permutationHitCount);
 				
 				// Check whether the results from this permutation
 				// exceed the quality of the last best results. A
-				// greater number of matches is always better.
-				if(permutationMatched > positionMatched) {
+				// greater number of matches is always better. If the
+				// matches are the same, select the one with fewer
+				// failures due to energy.
+				if((permutationMatched > positionMatched) || (permutationMatched == positionMatched && permutationHitCount < postionEnergy)) {
 					// Update the statistics.
 					positionMatched = permutationMatched;
 					postionEnergy = permutationEnergy;
@@ -679,25 +736,16 @@ public class TriggerDiagnosticDriver extends Driver {
 					positionMatchedText = permutationMatchedText;
 					
 					// Set the plot values.
-					positionTimes = permutationTimes;
-					positionHitDifference = permutationHitDifference;
-					positionEnergyDiffPercent = permutationEnergyDiffPercent;
+					positionAllTimes = permutationAllTimes;
+					positionAllHitDifference = permutationAllHitDifference;
+					positionAllEnergyDiffPercent = permutationAllEnergyDiffPercent;
+					positionFailTimes = permutationFailTimes;
+					positionFailHitDifference = permutationFailHitDifference;
+					positionFailEnergyDiffPercent = permutationFailEnergyDiffPercent;
 				}
-				
-				// Otherwise, a lesser number that failed by reason
-				// of energy is considered better. If the same
-				// number of clusters matched and the same number
-				// failed due to energy, then by definition the same
-				// number failed due to hit count, so there is no
-				// need to further check for a better event.
-				else if(permutationHitCount < postionEnergy) {
-					positionMatched = permutationMatched;
-					postionEnergy = permutationEnergy;
-					postionHitCount = permutationHitCount;
-					positionMatchedText = permutationMatchedText;
-				}
-			}
+			} // End Permutation Loop
 			
+			// Print the final results for the position.
 			printf("\tPosition Matched   :: %d%n", positionMatched);
 			printf("\tPosition Energy    :: %d%n", postionEnergy);
 			printf("\tPosition Hit Count :: %d%n", postionHitCount);
@@ -710,20 +758,27 @@ public class TriggerDiagnosticDriver extends Driver {
 			eventMatchedText.append(positionMatchedText.toString());
 			
 			// Update the plots.
-			for(int index = 0; index < positionHitDifference.size(); index++) {
-				clusterTimePlot.fill(positionTimes.get(index));
-				clusterHitDiffPlot.fill(positionHitDifference.get(index));
-				clusterEnergyDiffPlot.fill(positionEnergyDiffPercent.get(index));
-				energyHitDiffPercentPlot.fill(positionHitDifference.get(index), positionEnergyDiffPercent.get(index));
+			for(int index = 0; index < positionFailHitDifference.size(); index++) {
+				// Update the fail plots.
+				clusterTimePlotF.fill(positionFailTimes.get(index));
+				clusterHitDiffPlotF.fill(positionFailHitDifference.get(index));
+				clusterEnergyDiffPlotF.fill(positionFailEnergyDiffPercent.get(index));
+				energyHitDiffPercentPlotF.fill(positionFailHitDifference.get(index), positionFailEnergyDiffPercent.get(index));
+				
+				// Update the all plots.
+				clusterTimePlotA.fill(positionAllTimes.get(index));
+				clusterHitDiffPlotA.fill(positionAllHitDifference.get(index));
+				clusterEnergyDiffPlotA.fill(positionAllEnergyDiffPercent.get(index));
+				energyHitDiffPercentPlotA.fill(positionAllHitDifference.get(index), positionAllEnergyDiffPercent.get(index));
 			}
-		}
+		} // End Crystal Position Loop
 		
 		// Add the event results to the global results.
 		globalMatched += eventMatched;
 		globalPosition += eventPosition;
 		globalEnergy += eventEnergy;
 		globalHitCount += eventHitCount;
-		globalFound += (reconClusters.size() - unverifiedClusters.size());
+		globalFound += reconClusters.size();
 		
 		
 		
@@ -731,32 +786,30 @@ public class TriggerDiagnosticDriver extends Driver {
 		// ==== Output Event Summary ================================
 		// ==========================================================
 		
-		// Print the valid reconstructed clusters.
+		// Print the valid reconstructed clusters and populate their
+		// distribution graphs.
 		println();
 		println("Verified Reconstructed Clusters:");
-		if(unverifiedClusters.size() != reconClusters.size()) {
+		if(!reconClusters.isEmpty()) {
 			for(Cluster reconCluster : reconClusters) {
-				if(!unverifiedClusters.contains(reconCluster)) {
-					printf("\t%s%n", reconClusterToString(reconCluster));
-				}
+				printf("\t%s%n", clusterToString(reconCluster));
+			    reconClusterTotalEnergyPlot.fill(reconCluster.getEnergy());
+			    reconClusterHitCountPlot.fill(getReconHitCount(reconCluster));
+			    reconClusterTimePlot.fill(getReconTime(reconCluster));
+			    int ix = getReconXIndex(reconCluster);
+			    reconClusterDistribution.fill(ix > 0 ? ix - 1 : ix, getReconYIndex(reconCluster));
 			}
 		} else { println("\tNone"); }
 		
-		// Print the unverified clusters.
-		println("Unverified Reconstructed Clusters:");
-		if(!unverifiedClusters.isEmpty()) {
-			for(Cluster reconCluster : reconClusters) {
-				if(unverifiedClusters.contains(reconCluster)) {
-					printf("\t%s%n", reconClusterToString(reconCluster));
-				}
-			}
-		} else { println("\tNone"); }
-		
-		// Print the SSP clusters.
+		// Print the SSP clusters and populate their distribution graphs.
 		println("SSP Clusters:");
 		if(!sspClusters.isEmpty()) {
 			for(SSPCluster sspCluster : sspClusters) {
-				printf("\t%s%n", sspClusterToString(sspCluster));
+				printf("\t%s%n", clusterToString(sspCluster));
+			    sspClusterTotalEnergyPlot.fill(sspCluster.getEnergy());
+			    sspClusterHitCountPlot.fill(sspCluster.getHitCount());
+			    int ix = sspCluster.getXIndex();
+			    sspClusterDistribution.fill(ix > 0 ? ix - 1 : ix, sspCluster.getYIndex());
 			}
 		} else { println("\tNone"); }
 		
@@ -769,15 +822,15 @@ public class TriggerDiagnosticDriver extends Driver {
 		// Print event statistics.
 		println();
 		println("Event Statistics:");
-		printf("\tRecon Clusters     :: %d%n", (reconClusters.size() - unverifiedClusters.size()));
+		printf("\tRecon Clusters     :: %d%n", reconClusters.size());
 		printf("\tClusters Matched   :: %d%n", eventMatched);
 		printf("\tFailed (Position)  :: %d%n", eventPosition);
 		printf("\tFailed (Energy)    :: %d%n", eventEnergy);
 		printf("\tFailed (Hit Count) :: %d%n", eventHitCount);
-		printf("\tCluster Efficiency :: %3.0f%%%n", 100.0 * eventMatched / (reconClusters.size() - unverifiedClusters.size()));
+		printf("\tCluster Efficiency :: %3.0f%%%n", 100.0 * eventMatched / reconClusters.size());
 		
 		// Note whether there was a cluster match failure.
-		if(eventMatched - (reconClusters.size() - unverifiedClusters.size()) != 0) {
+		if(eventMatched - reconClusters.size() != 0) {
 			clusterFail = true;
 		}
 	}
@@ -922,10 +975,6 @@ public class TriggerDiagnosticDriver extends Driver {
 			}
 		}
 		
-		// If all clusters were matched, there is no need to check for
-		// which specific cuts failed.
-		
-		
 		// Iterate over the unmatched simulated triggers again and the
 		// unmatched SSP reported trigger that most closely matches it.
 		reportedTriggerLoop:
@@ -1007,8 +1056,18 @@ public class TriggerDiagnosticDriver extends Driver {
 		println("Recon Cluster Trigger --> SSP Reported Trigger Match Status");
 		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
 			for(SinglesTrigger<Cluster> simTrigger : reconSinglesTriggers.get(triggerNum)) {
-				// Track whether the trigger was matched.
-				boolean matchedTrigger = false;
+				
+				printf("\tTrigger %d :: %s :: EClusterLow: %d; EClusterHigh %d; HitCount: %d%n",
+						(triggerNum + 1), reconClusterPositionString(simTrigger.getTriggerSource()),
+						simTrigger.getStateClusterEnergyLow() ? 1 : 0,
+						simTrigger.getStateClusterEnergyHigh() ? 1 : 0,
+						simTrigger.getStateHitCount() ? 1 : 0);
+				printf("\t\tCluster Energy :: %.3f GeV; Hit Count :: %d%n", simTrigger.getTriggerSource().getEnergy(),
+						simTrigger.getTriggerSource().getCalorimeterHits().size());
+				printf("\t\tCluster Energy Cut :: [ %.3f GeV, %.3f GeV ]; Hit Count :: [ %.0f, INF )%n",
+						singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW),
+						singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH),
+						singlesTrigger[triggerNum].getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW));
 				
 				// Iterate over the SSP reported triggers and compare
 				// them to the reconstructed cluster simulated trigger.
@@ -1019,26 +1078,48 @@ public class TriggerDiagnosticDriver extends Driver {
 						// Cast the trigger.
 						SSPSinglesTrigger sspSingles = (SSPSinglesTrigger) sspTrigger;
 						
+						printf("\t\t\tTrigger %d :: %3d ns :: EClusterLow: %d; EClusterHigh %d; HitCount: %d",
+								sspSingles.isFirstTrigger() ? 1 : 2,
+								sspSingles.getTime(),
+								sspSingles.passCutEnergyMin() ? 1 : 0,
+								sspSingles.passCutEnergyMax() ? 1 : 0,
+								sspSingles.passCutHitCount() ? 1 : 0);
+						
+						// Only compare triggers if they are from the
+						// same trigger source.
+						if((triggerNum == 0 && sspSingles.isSecondTrigger())
+								|| (triggerNum == 1 && sspSingles.isFirstTrigger())) {
+							print(" [ fail; source    ]%n");
+							continue matchLoop;
+						}
+						
 						// Only compare the singles trigger if it was
 						// not already matched to another trigger.
-						if(sspTriggerSet.contains(sspSingles)) { continue matchLoop; }
-						
-						// Compare the triggers.
-						if(compareReconSinglesTriggers(sspSingles, simTrigger)) {
-							reconTriggersMatched++;
-							matchedTrigger = true;
-							sspTriggerSet.add(sspSingles);
-							break matchLoop;
+						if(sspTriggerSet.contains(sspSingles)) {
+							print(" [ fail; matched   ]%n");
+							continue matchLoop;
 						}
+						
+						// Test each cut.
+						if(sspSingles.passCutEnergyMin() != simTrigger.getStateClusterEnergyLow()) {
+							print(" [ fail; E_min     ]%n");
+							continue matchLoop;
+						} if(sspSingles.passCutEnergyMax() != simTrigger.getStateClusterEnergyHigh()) {
+							print(" [ fail; E_max     ]%n");
+							continue matchLoop;
+						} if(sspSingles.passCutHitCount() != simTrigger.getStateHitCount()) {
+							print(" [ fail; hit count ]%n");
+							continue matchLoop;
+						}
+						
+						// If all the trigger flags match, then the
+						// triggers are a match.
+						reconTriggersMatched++;
+						sspTriggerSet.add(sspSingles);
+						print(" [ success         ]%n");
+						break matchLoop;
 					}
 				}
-				
-				// Print the trigger matching status.
-				printf("\tTrigger %d :: %s :: EClusterLow: %d; EClusterHigh %d; HitCount: %d :: Matched: %5b%n",
-						(triggerNum + 1), reconClusterPositionString(simTrigger.getTriggerSource()),
-						simTrigger.getStateClusterEnergyLow() ? 1 : 0,
-						simTrigger.getStateClusterEnergyHigh() ? 1 : 0,
-						simTrigger.getStateHitCount() ? 1 : 0, matchedTrigger);
 			}
 		}
 		
@@ -1337,7 +1418,7 @@ public class TriggerDiagnosticDriver extends Driver {
 				// If there was no match found, it means that there were
 				// no triggers that were both unmatched and at the same
 				// time as this simulated trigger.
-				else { eventTime[triggerNum]++; }
+				else { eventTime[triggerNum]++; pairFail = true; }
 			}
 		}
 		
@@ -1508,15 +1589,7 @@ public class TriggerDiagnosticDriver extends Driver {
 		
 		// Run the reconstructed clusters through the singles trigger
 		// to determine whether they pass it or not.
-		reconClusterLoop:
 		for(Cluster cluster : reconClusters) {
-			// Only produce simulated triggers for clusters that are
-			// verifiable. Otherwise, they are likely to invalid energy
-			// and may not produce the correct results.
-			if(!isVerifiable(cluster)) {
-				continue reconClusterLoop;
-			}
-			
 			// Simulate each of the cluster singles triggers.
 			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
 				// For a cluster to have formed it is assumed to have passed
@@ -1592,15 +1665,7 @@ public class TriggerDiagnosticDriver extends Driver {
 		}
 		
 		// Simulate the pair triggers and record the results.
-		reconClusterLoop:
 		for(Cluster[] reconPair : reconPairs) {
-			// Only produce simulated triggers for clusters that are
-			// verifiable. Otherwise, they are likely to invalid energy
-			// and may not produce the correct results.
-			if(!isVerifiable(reconPair[0]) || !isVerifiable(reconPair[1])) {
-				continue reconClusterLoop;
-			}
-			
 			// Simulate each of the cluster pair triggers.
 			reconTriggerLoop:
 			for(int triggerIndex = 0; triggerIndex < 2; triggerIndex++) {
@@ -1769,6 +1834,12 @@ public class TriggerDiagnosticDriver extends Driver {
 			if(hit.getTime() <= nsb || hit.getTime() >= (windowWidth - nsa)) {
 				return false;
 			}
+			
+			// Also check to make sure that the cluster does not have
+			// any negative energy hits. These are, obviously, wrong.
+			if(hit.getCorrectedEnergy() < 0.0) {
+				return false;
+			}
 		}
 		
 		// If all of the cluster hits pass the time cut, the cluster
@@ -1782,7 +1853,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * @param cluster - The cluster.
 	 * @return Returns the cluster information as a <code>String</code>.
 	 */
-	private static final String reconClusterToString(Cluster cluster) {
+	private static final String clusterToString(Cluster cluster) {
 		return String.format("Cluster at (%3d, %3d) with %.3f GeV and %d hits at %4.0f ns.",
 				cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
 				cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"),
@@ -1796,7 +1867,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * @param cluster - The cluster.
 	 * @return Returns the cluster information as a <code>String</code>.
 	 */
-	private static final String sspClusterToString(SSPCluster cluster) {
+	private static final String clusterToString(SSPCluster cluster) {
 		return String.format("Cluster at (%3d, %3d) with %.3f GeV and %d hits at %4d ns.",
 				cluster.getXIndex(), cluster.getYIndex(), cluster.getEnergy(),
 				cluster.getHitCount(), cluster.getTime());
@@ -1907,35 +1978,6 @@ public class TriggerDiagnosticDriver extends Driver {
 	
 	/**
 	 * Compares a trigger from the SSP bank to a trigger simulated on
-	 * a reconstructed cluster.
-	 * @param bankTrigger - The trigger from the SSP bank.
-	 * @param simTrigger - The trigger from the simulation.
-	 * @return Returns <code>true</code> if the triggers match and
-	 * <code>false</code> if they do not.
-	 */
-	private static final boolean compareReconSinglesTriggers(SSPSinglesTrigger bankTrigger, SinglesTrigger<Cluster> simTrigger) {
-		// Check that the trigger flags are all the same. Start with
-		// cluster energy low.
-		if(bankTrigger.passCutEnergyMin() != simTrigger.getStateClusterEnergyLow()) {
-			return false;
-		}
-		
-		// Check cluster energy high.
-		if(bankTrigger.passCutEnergyMax() != simTrigger.getStateClusterEnergyHigh()) {
-			return false;
-		}
-		
-		// Check cluster hit count.
-		if(bankTrigger.passCutHitCount() != simTrigger.getStateHitCount()) {
-			return false;
-		}
-		
-		// If all of the tests are successful, the triggers match.
-		return true;
-	}
-	
-	/**
-	 * Compares a trigger from the SSP bank to a trigger simulated on
 	 * an reconstructed cluster.
 	 * @param bankTrigger - The trigger from the SSP bank.
 	 * @param simTrigger - The trigger from the simulation.
@@ -1975,16 +2017,26 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * @param values - A collection of the entries to be permuted.
 	 * @return Returns a list of lists representing the permutations.
 	 */
-	private static final List<List<Pair>> getPermutations(ArrayList<Cluster> reconClusters, ArrayList<SSPCluster> sspClusters) {
+	private static final List<List<Pair>> getPermutations(List<Cluster> reconClusters, List<SSPCluster> sspClusters) {
 		// Store the SSP cluster permutations.
-		List<ArrayList<SSPCluster>> permList = new ArrayList<ArrayList<SSPCluster>>();
+		List<List<SSPCluster>> permList = new ArrayList<List<SSPCluster>>();
+		
+		// Make sure that the two lists are the same size.
+		int reconSize = reconClusters.size();
+		int sspSize = sspClusters.size();
+		while(sspClusters.size() < reconClusters.size()) {
+			sspClusters.add(null);
+		}
+		while(reconClusters.size() < sspClusters.size()) {
+			reconClusters.add(null);
+		}
 		
 		// Get the SSP cluster permutations.
 		permute(new ArrayList<SSPCluster>(0), sspClusters, permList);
 		
 		// Create pairs from the permutations.
 		List<List<Pair>> pairList = new ArrayList<List<Pair>>();
-		for(ArrayList<SSPCluster> permutation : permList) {
+		for(List<SSPCluster> permutation : permList) {
 			List<Pair> pairs = new ArrayList<Pair>(reconClusters.size());
 			
 			for(int clusterIndex = 0; (clusterIndex < reconClusters.size() && clusterIndex < permutation.size()); clusterIndex++) {
@@ -1994,6 +2046,11 @@ public class TriggerDiagnosticDriver extends Driver {
 			pairList.add(pairs);
 		}
 		
+		// Remove the extra values.
+		for(int i = sspClusters.size() - 1; i >= sspSize; i--) { sspClusters.remove(i); }
+		for(int i = reconClusters.size() - 1; i >= reconSize; i--) { reconClusters.remove(i); }
+		
+		// Return the pairs.
 		return pairList;
 	}
 	
@@ -2008,7 +2065,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * permuted.
 	 * @param permList - List to store completed permutations.
 	 */
-	private static final void permute(ArrayList<SSPCluster> permutedValues, ArrayList<SSPCluster> remainingValues, List<ArrayList<SSPCluster>> permList) {
+	private static final void permute(List<SSPCluster> permutedValues, List<SSPCluster> remainingValues, List<List<SSPCluster>> permList) {
 		// If the list of entries that still need to be sorted is empty,
 		// then there is nothing to sort. Just return and empty list.
 		if(remainingValues.isEmpty()) { return; }
@@ -2029,8 +2086,8 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Iterate over the entries that have not been permuted.
 			for(int i = 0; i < remainingValues.size(); i++) {
 				// Make new lists to contain the permutations.
-				ArrayList<SSPCluster> newPermList = new ArrayList<SSPCluster>(permutedValues.size() + 1);
-				ArrayList<SSPCluster> newRemainList = new ArrayList<SSPCluster>(remainingValues.size());
+				List<SSPCluster> newPermList = new ArrayList<SSPCluster>(permutedValues.size() + 1);
+				List<SSPCluster> newRemainList = new ArrayList<SSPCluster>(remainingValues.size());
 				
 				// Copy the current permuted entries to the new list
 				// and one value from the list of entries that have
@@ -2060,6 +2117,64 @@ public class TriggerDiagnosticDriver extends Driver {
 	private void println(String text) { printf(String.format("%s%n", text)); }
 	
 	private void print(String text) { printf(text); }
+	
+	/**
+	 * Gets the time stamp of the cluster in nanoseconds.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the time-stamp.
+	 */
+	private static final double getReconTime(Cluster reconCluster) {
+		return reconCluster.getCalorimeterHits().get(0).getTime();
+	}
+	
+	/**
+	 * Gets the x-index of the cluster's seed hit.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the x-index.
+	 */
+	private static final int getReconXIndex(Cluster reconCluster) {
+		return reconCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
+	}
+	
+	/**
+	 * Gets the y-index of the cluster's seed hit.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the y-index.
+	 */
+	private static final int getReconYIndex(Cluster reconCluster) {
+		return reconCluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
+	}
+	
+	/**
+	 * Gets the number of hits in a reconstructed cluster.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the number of hits in the cluster.
+	 */
+	private static final int getReconHitCount(Cluster reconCluster) {
+		return reconCluster.getCalorimeterHits().size();
+	}
+	
+	/**
+	 * Gets the difference in hit count between an SSP cluster and a
+	 * reconstructed cluster.
+	 * @param sspCluster - The SSP cluster.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the difference as an <code>int</code> primitive.
+	 */
+	private static final int getHitCountDifference(SSPCluster sspCluster, Cluster reconCluster) {
+		return sspCluster.getHitCount() - getReconHitCount(reconCluster);
+	}
+	
+	/**
+	 * Solves the equation <code>|E_ssp / E_recon|</code>.
+	 * @param sspCluster - The SSP cluster.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the solution to the equation as a <code>double
+	 * </code> primitive.
+	 */
+	private static final double getEnergyPercentDifference(SSPCluster sspCluster, Cluster reconCluster) {
+		return Math.abs((sspCluster.getEnergy() / reconCluster.getEnergy()));
+	}
 	
 	/**
 	 * Class <code>Pair</code> provides a convenient means of putting
