@@ -454,7 +454,11 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         Hep3Vector org = trans.transformed(_orgloc);
         Hep3Vector u = global.getMeasuredCoordinate();
         Hep3Vector v = global.getUnmeasuredCoordinate();
-
+        
+        if (_debug)
+            System.out.println(this.getClass().getSimpleName() + ": makeDigiStrip: org " + org.toString() + " and u " + u.toString() + " v " + v.toString());
+        
+        
         double umeas = local.getPosition()[0];
         double vmin = VecOp.dot(local.getUnmeasuredCoordinate(), local.getHitSegment().getStartPoint());
         double vmax = VecOp.dot(local.getUnmeasuredCoordinate(), local.getHitSegment().getEndPoint());
@@ -479,7 +483,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         }
 
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + ": produced HelicalTrackStrip with origin " + strip.origin().toString());
+            System.out.println(this.getClass().getSimpleName() + ": makeDigiStrip: produced HelicalTrackStrip with origin " + strip.origin().toString() + " and u " + strip.u().toString() + " v " + strip.v().toString() + " w " + strip.w().toString());
 
         return strip;
     }
@@ -513,6 +517,8 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 for (MCParticle p : strip.MCParticles())
                     newstrip.addMCParticle(p);
                 rotatedstriphits.add(newstrip);
+                if(_debug)
+                    System.out.printf("%s: adding rotated strip with origin %s and u %s v %s w %s \n", getClass().toString(), newstrip.origin().toString(), newstrip.u().toString(),newstrip.v().toString(),  newstrip.w().toString());
             }
             HelicalTrackCross newhit = new HelicalTrackCross(rotatedstriphits.get(0), rotatedstriphits.get(1));
             for (MCParticle mcp : cross.getMCParticles())
