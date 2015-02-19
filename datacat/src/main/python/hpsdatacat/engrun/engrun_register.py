@@ -3,16 +3,14 @@ import re,os,sys
 import engrun_util as ERU
 import engrun_metadata as ERM
 
+ERU.SetRunPeriod("engrun2014")
+
 USAGE='Usage:  engrun_register.py filepath [outputfile]'
 
 DEBUG=0
 #DEBUG=1
 
-# no sshing, just print commands:
 SSHREG=0
-
-# one ssh for each file to register:
-# (do this for automating)
 #SSHREG=1
 
 if len(sys.argv)!=3 and len(sys.argv)!=2:
@@ -28,7 +26,6 @@ if len(sys.argv)==3:
   else:
     OUTFILE=open(OUTFILE, 'w')
 
-
 # DATA CATALOG PATH MUST ALREADY EXIST (MAKE IT MANUALLY)
 DCPATH=ERU.GetDCPath(FILEPATH)
 
@@ -36,7 +33,7 @@ DCOPTS=' --site '+ERU.GetSite(FILEPATH)
 
 # THIS WILL NEED CHANGING TO RUN LOCALLY AT SLAC
 # WE CAN CHOOSE WHETHER TO SSH BASED ON FILEPATH, or HOSTNAME (see Jeremy's util.py)
-DCLISTCMD=ERU.__SSH+' '+ERU.__DATACAT+' find '+DCOPTS+' '+ERU.__DCSRCHOPTS+' '+DCPATH
+DCLISTCMD=ERU.__SSH+' '+ERU.__DATACAT+' find '+DCOPTS+' '+ERU.__DCSRCHOPTS+' '+'/HPS'#DCPATH
 
 DCREGCMD=ERU.__DATACAT+' registerDataset '+DCOPTS
 
@@ -46,6 +43,7 @@ DCLIST=ERU.ListDataCatalog(DCLISTCMD)
 # Get list of files to register:
 FILELIST=ERU.ListRealFiles(FILEPATH)
 
+NFILES2CATALOG=0;
 
 if len(FILELIST)==0:
   sys.exit('No Files:  '+FILEPATH)
@@ -74,6 +72,8 @@ for filename in FILELIST:
     if DEBUG>1:
       sys.stderr.write('Invalid File Number for '+filename+'\n')
     continue
+
+  NFILES2CATALOG += 1
 
   metadata={}
   metadata['Run']=runno
@@ -148,6 +148,9 @@ for filename in FILELIST:
   else:
     print >> OUTFILE, cmd
 
+
+if NFILES2CATALOG==0:
+  print 'All Files Already Cataloged'
 
 if DEBUG!=0:
   ERU.DumpTable()

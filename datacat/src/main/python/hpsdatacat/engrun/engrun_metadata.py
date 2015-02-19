@@ -64,7 +64,7 @@ def GetMetadataFromDAQ(runno,mtd):
     if isADC==1:
 
       # ignore SLOT lines:
-      if re.search('SLOT',key)!=None:
+      if key.find('SLOT')>=0:
         continue
 
       # may have SVT FADC later, so specify:
@@ -78,7 +78,7 @@ def GetMetadataFromDAQ(runno,mtd):
         mtd['SSP_HPS_'+__IOSRC[xx[1]]]=1
 
     # special case #2, interpret threshold:
-    elif isADC and re.search('ALLCH_PED',key)!=None:
+    elif isADC and key.find('ALLCH_PED')>=0:
 
       if prevthresh=='0':
         mtd['ECALFADC_THRESH']=0
@@ -86,7 +86,7 @@ def GetMetadataFromDAQ(runno,mtd):
         mtd['ECALFADC_THRESH']=int('%.0f'%(float(prevthresh)-float(xx[0])+1))
 
     # special case #3, save threshold:
-    elif isADC and re.search('ALLCH_TET',key)!=None:
+    elif isADC and key.find('ALLCH_TET')>=0:
       prevthresh=xx[0]
 
     # 2-column lines, only one possibility:

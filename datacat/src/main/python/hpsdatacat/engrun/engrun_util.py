@@ -6,10 +6,7 @@ __HPSMSSPATH='/mss/hallb/hps'
 
 __SSH='ssh hpscat@rhel6-64d.slac.stanford.edu'
 __DATACAT='~srs/datacat/prod/datacat-hps'
-__DCSRCHOPTS='--search-groups --show-non-ok-locations'
-
-__RUNMIN=2000
-__RUNMAX=4000
+__DCSRCHOPTS='--recurse --search-groups --show-non-ok-locations'
 
 __ALLRUNS=[]
 __ALLMETADATA=[]
@@ -17,6 +14,23 @@ __ALLMETADATANAMES=[]
 
 __RAWFILENAMEFORMAT='hps_%.6d.evio.%d'
 
+__HPSRUNPERIOD=None
+
+__HPSRUNPERIODS={'simulation':[-9999,100],
+                 'testrun2012':[100,2000],
+                 'engrun2014':[2000,4000],
+                 'engrun2015':[4000,9999]}
+
+def SetRunPeriod(runperiod):
+  global __HPSRUNPERIOD
+  if not __HPSRUNPERIODS.has_key(runperiod):
+    sys.exit('SetRunPeriod:  Missing run period:  '+runperiod)
+  __HPSRUNPERIOD=''.join(runperiod)
+
+#
+# For Reconstructed Files on Tape/Disk, path must match /pass\d+/.*
+# Everything before that will be ignored.
+#
 
 ##################################
 # CATALOG STRUCTURE (terminal directories are "GROUPS")
@@ -42,7 +56,7 @@ def GetRunList(filelist):
   return runlist
 
 
-# THIS NEEDS FIXING FOR OTHER TYPES (e.g. DQM):
+# Data Catalog Groups (RAW,RECON,DQM,DST,...):
 def GetGroup(filename):
   dt=GetDataType(filename)
   if dt==None:
@@ -51,50 +65,80 @@ def GetGroup(filename):
     return 'RAW'
   elif dt[1]=='SLCIO':
     return 'RECON'
-  elif dt[1]=='TEST':
-    return 'DST'
+  elif filename.lower().endswith('.root'):
+    if filename.lower().find('dqm')>=0:
+      return 'DQM'
+    elif filename.lower().find('dst')>=0:
+      return 'DST'
   else:
     sys.exit('GetGroup:  Not Ready for this DataType:  '+filename)
 
-# THESE WILL HAVE TO CHANGE FOR THE NEXT RUN
-# SHOULD DO IT AUTOMATICALLY BASED ON RUN NUMBER
-def GetDCRunPeriod(filepath):
-#  runno=GetRunNumber(filepath)
-  return 'engrun2014'
-def GetMSSRunPeriod(filepath):
-  return 'engrun'
 
-# ONLY READY FOR FILES AT JLAB, UPDATE FOR SLAC:
+## path stub on tape at JLab:
+#def GetMSSRunPeriod(filepath):
+#  runno=GetRunNumber(filepath)[0]
+#  if runno<10:
+#    return 'simulation'
+#  if runno<2500:
+#    return 'testrun2012'
+#  elif runno<4000:
+#    return 'engrun'
+#  else:
+#    return 'engrun2015'
+
+## path stub for the Data Catalog
+#def GetDCRunPeriod(filepath):
+#  runno=GetRunNumber(filepath)[0]
+#  hpsrp=__HPSRUNPERIODS
+#  for xx in hpsrp.keys():
+#    if runno>=hpsrp[xx][0] and runno<hpsrp[xx][1]:
+#      return xx
+#  return None
+
+# full path for the Data Catalog:
 def GetDCPath(filepath):
-  if re.match(__HPSMSSPATH,filepath)==None:
-    sys.exit('GetDCPath:  Must start with '+__HPSMSSPATH+':  '+filepath)
+
+  print __HPSRUNPERIOD
+  prefix=__HPSDCPATH+'/'+__HPSRUNPERIOD #GetDCRunPeriod(filepath)
+
   if not os.path.isdir(filepath):
     sys.exit('Directory does not exist:  '+filepath)
-  filepath=filepath.lstrip(__HPSMSSPATH).lstrip('/').rstrip('/')
-  prefix=__HPSDCPATH+'/'+GetDCRunPeriod(filepath)
-  if filepath=='data':
-    return prefix
-  else:
-    subdirs=filepath.split('/')
-    subdirs.reverse()
-    if subdirs.pop().find('engrun')>=0:
-      npass=GetPass(filepath)
-      if npass==None:
-        sys.exit('GetDCPath:  Unresolved Pass:  '+filepath)
-      return prefix+'/pass%d'%(npass)
-  sys.exit('GetDCPath: Not ready for this:  '+filepath)
+
+  # it's got to be a raw EVIO file:
+  if filepath.rstrip().rstrip('/') == __HPSMSSPATH+'/data':
+    # fix name for 2014 run:
+    if prefix.endswith('engrun2014'):
+      return __HPSDCPATH+'/engrun'
+
+  # throw away everything before '/pass#/'
+  tmp=re.search('/(pass\d+)/(.*)',filepath)
+  if (tmp == None):
+    sys.exit('GetDCPath:  Not raw data on tape, Not a pass#:\n'+filepath)
+
+  passN=tmp.group(1)
+
+  # No longer used:
+  #pathstub=tmp.group(2).lstrip('/').rstrip('/')
+  #subdirs=pathstub.split('/').reverse()
+  #if subdirs.pop()=='engrun':
+  #  return prefix+'/'+passN
+  #sys.exit('GetDCPath: Not ready for this:  '+filepath)
+
+  return prefix+'/'+passN+'/'
+
+
 
 # UPDATE THIS IF WE GET NEW DATATYPES AVAILABLE IN THE CATALOG:
 # Returns [fileformat,datatype] REQUIRED by the catalog
 def GetDataType(filename):
-  if re.search('evio',os.path.basename(filename))!=None:
+  basename=os.path.basename(filename).lower()
+  if basename.find('.evio')>0:
     return ['evio','EVIO']
-  elif re.search('slcio',os.path.basename(filename))!=None:
+  elif basename.endswith('.slcio')>0 or basename.endswith('.lcio')>0:
     return ['slcio','SLCIO']
-  elif re.search('dst',os.path.basename(filename))!=None:
+  elif basename.endswith('.root'):
     return ['root','TEST']
-  else:
-    return ['unspecified','TEST']
+  return ['unspecified','TEST']
 
 def GetPass(filename):
   match=re.search('pass\d+',filename)
@@ -104,6 +148,8 @@ def GetPass(filename):
 
 def GetSite(filepath):
   if re.match('/mss',filepath)!=None:
+    return 'JLAB'
+  elif re.match('/work',filepath)!=None:
     return 'JLAB'
   else:
     return 'SLAC'
@@ -133,7 +179,8 @@ def GetRunNumber(string):
     if integers[ii].lstrip('0')=='':
       continue
     xx=int(integers[ii].lstrip('0'))
-    if xx>__RUNMIN and xx<__RUNMAX:
+    if xx>=__HPSRUNPERIODS[__HPSRUNPERIOD][0] and \
+       xx< __HPSRUNPERIODS[__HPSRUNPERIOD][1]:
       runno=xx
       if ii<len(integers)-1:
         if integers[ii+1].lstrip('0')=='':
