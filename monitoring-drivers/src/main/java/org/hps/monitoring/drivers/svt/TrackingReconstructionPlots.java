@@ -916,7 +916,7 @@ public class TrackingReconstructionPlots extends Driver {
         String name;
         int l;
         int n[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        boolean ddd = true;
+        boolean ddd = false;
 
         if (ddd) {
             System.out.println("Get # hits per layer on side \"" + side + "\"");
