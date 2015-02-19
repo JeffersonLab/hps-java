@@ -25,7 +25,7 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @Table(names = {"ecal_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class EcalChannel extends AbstractConditionsObject {
 
     /**
