@@ -59,7 +59,7 @@ public class TrackerHitUtils {
         RawTrackerHit rth = (RawTrackerHit) strip.rawhits().get(0);
         IDetectorElement ide = rth.getDetectorElement();
         SiSensor sensor = ide.findDescendants(SiSensor.class).get(0);
-        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);        
         return electrodes.getGlobalToLocal();
     }
 
@@ -102,6 +102,8 @@ public class TrackerHitUtils {
             System.out.println(detToStrip.getRotation().toString());
             System.out.println("detToTrack Rotation:");
             System.out.println(detToTrackMatrix.toString());
+            System.out.println("inverse detToTrack Rotation:");
+            System.out.println(VecOp.inverse(detToTrackMatrix).toString());
         }
 
         return (Hep3Matrix) VecOp.mult(detToStripMatrix, VecOp.inverse(detToTrackMatrix));
