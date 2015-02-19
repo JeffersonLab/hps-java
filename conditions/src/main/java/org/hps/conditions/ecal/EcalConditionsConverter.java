@@ -99,11 +99,15 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
         // Get the ECal time shifts from the conditions database and add them to
         // the conditions set.
-        EcalTimeShiftCollection timeShifts = getEcalTimeShiftCollection(databaseConditionsManager);
-        for (EcalTimeShift timeShift : timeShifts) {
-            ChannelId channelId = new ChannelId(new int[] {timeShift.getChannelId()});
-            EcalChannel channel = channels.findChannel(channelId);
-            conditions.getChannelConstants(channel).setTimeShift(timeShift);
+        if (databaseConditionsManager.hasConditionsRecord("ecal_time_shifts")) {
+            EcalTimeShiftCollection timeShifts = getEcalTimeShiftCollection(databaseConditionsManager);
+            for (EcalTimeShift timeShift : timeShifts) {
+                ChannelId channelId = new ChannelId(new int[] {timeShift.getChannelId()});
+                EcalChannel channel = channels.findChannel(channelId);
+                conditions.getChannelConstants(channel).setTimeShift(timeShift);
+            }   
+        } else {
+            DatabaseConditionsManager.getLogger().warning("no ecal_time_shifts collection found");
         }
 
         // Return the conditions object to caller.
