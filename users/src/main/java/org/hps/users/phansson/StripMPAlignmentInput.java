@@ -20,8 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 
+
 //===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
@@ -126,7 +128,8 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
             if(_DEBUG) {
                 System.out.printf("%s: This hit has %d clusters msdrphi=%.4f msdz=%.4f\n",this.getClass().getSimpleName(),clusterlist.size(),msdrphi,msdz);
             }
-            for (HelicalTrackStrip cl : clusterlist) {
+            for (HelicalTrackStrip strip : clusterlist) {
+                HelicalTrackStripGbl cl = new HelicalTrackStripGbl(strip,false);
                     CalculateResidual(cl, msdrphi, msdz);
                     CalculateLocalDerivatives(cl);
                     CalculateGlobalDerivatives(cl);
@@ -140,12 +143,12 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
     }
 
     
-    private void CalculateLocalDerivatives(HelicalTrackStrip strip) {
+    private void CalculateLocalDerivatives(HelicalTrackStripGbl strip) {
         double xint = strip.origin().x();
         BasicMatrix dfdqGlobalOld = _oldAlignUtils.calculateLocalHelixDerivatives(_trk, xint);
         BasicMatrix dfdqGlobal = _alignUtils.calculateLocalHelixDerivatives(_trk, xint);
         BasicMatrix dfdqGlobalNum = this._numDerivatives.calculateLocalHelixDerivatives(_trk, xint);
-        Hep3Matrix trkToStrip = trackerHitUtil.getTrackToStripRotation(strip);
+        Hep3Matrix trkToStrip = trackerHitUtil.getTrackToStripRotation(strip.getStrip());
         _dfdq = (BasicMatrix) MatrixOp.mult(trkToStrip, dfdqGlobal);
         
         if (_DEBUG) {
@@ -175,7 +178,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
     
    
     
-    private void CalculateGlobalDerivatives(HelicalTrackStrip strip) {
+    private void CalculateGlobalDerivatives(HelicalTrackStripGbl strip) {
         
         /*
          * Residual in local sensor frame is defined as r = m_a-p
@@ -198,7 +201,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         TrackDirection trkdir = HelixUtils.CalculateTrackDirection(_trk, pathLengthToInterception);
         Hep3Vector t_TRACK = trkdir.Direction();
         Hep3Vector n_TRACK = strip.w();
-        Hep3Matrix T = trackerHitUtil.getTrackToStripRotation(strip);
+        Hep3Matrix T = trackerHitUtil.getTrackToStripRotation(strip.getStrip());
         Hep3Vector t = VecOp.mult(T, t_TRACK);
         Hep3Vector n = VecOp.mult(T, n_TRACK);
         
@@ -287,7 +290,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         
    
         int layer = strip.layer();
-        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
         //===> int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
         int side = sensor.isTopLayer() ? 10000 : 20000;
 
@@ -376,7 +379,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
     
     
     
-    private void CalculateResidual(HelicalTrackStrip strip, double msdrdphi, double msdz) {
+    private void CalculateResidual(HelicalTrackStripGbl strip, double msdrdphi, double msdz) {
         if(_DEBUG) System.out.printf("%s: --- CalculateResidual ---\n",this.getClass().getSimpleName());
         
         double bfield = Math.abs(this._bfield.z());
@@ -391,7 +394,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         _error[2] = res_local.get("wreserr");
         
         double vdiffy = res_local.get("vdiffTrky");
-        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
         String side = sensor.isTopLayer() ? "top" : "bottom";        
         //===> String side = SvtUtils.getInstance().isTopLayer((SiSensor)((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";
         //Fill residuals vs distrance from center of plane in the v directions
@@ -496,9 +499,9 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
     
     
 
-    private void PrintStripResiduals(HelicalTrackStrip strip) {
+    private void PrintStripResiduals(HelicalTrackStripGbl strip) {
         
-        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
         String side = sensor.isTopLayer() ? "top" : "bottom";        
         //===> String side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? "top" : "bottom";        
         
@@ -834,7 +837,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
     
     
     
-    private void CalculateGlobalDerivativesWRONG(HelicalTrackStrip strip) {
+    private void CalculateGlobalDerivativesWRONG(HelicalTrackStripGbl strip) {
        
         //Find interception with plane that the strips belongs to
         Hep3Vector x_vec = TrackUtils.getHelixPlaneIntercept(_trk, strip, Math.abs(this._bfield.z()));
@@ -858,7 +861,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         Hep3Vector corigin = strip.origin();
         double vmeas = corigin.y(); //THis is wrong
         int layer = strip.layer();
-        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement();
+        HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
         int side = sensor.isTopLayer() ? 10000 : 20000;
         //===> int side = SvtUtils.getInstance().isTopLayer((SiSensor) ((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement()) ? 10000 : 20000;
 
@@ -887,7 +890,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         
              
        //Rotation matrix from the tracking fram to the sensor/strip frame
-        Hep3Matrix T = trackerHitUtil.getTrackToStripRotation(strip);
+        Hep3Matrix T = trackerHitUtil.getTrackToStripRotation(strip.getStrip());
         
       
         
@@ -1069,7 +1072,7 @@ public class StripMPAlignmentInput extends MPAlignmentInputCalculator {
         //Put it into a matrix to be able to transform easily
         //BasicMatrix _dqp_da_TRACK = FillMatrix(dqp_da_TRACK, 3, 1);
         //Get transformation matrix from tracking frame to sensor frame where the residuals are calculated
-        Hep3Matrix trkToStrip = this.trackerHitUtil.getTrackToStripRotation(strip);
+        Hep3Matrix trkToStrip = this.trackerHitUtil.getTrackToStripRotation(strip.getStrip());
         if(_DEBUG) {
             System.out.println("Final transformation from tracking frame to strip frame:\n" + trkToStrip.toString());
         }

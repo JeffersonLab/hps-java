@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.Point3D;
@@ -149,7 +150,7 @@ public class TrackUtils {
      * @param bfield - magnetic field value
      * @return point at intercept
      */
-    public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, HelicalTrackStrip strip, double bfield) {
+    public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, HelicalTrackStripGbl strip, double bfield) {
         Hep3Vector point_on_plane = strip.origin();
         Hep3Vector unit_vec_normal_to_plane = VecOp.cross(strip.u(), strip.v());// strip.w();
         Hep3Vector intercept_point = getHelixPlaneIntercept(helfit, unit_vec_normal_to_plane, point_on_plane, bfield);
@@ -463,7 +464,7 @@ public class TrackUtils {
         return residuals;
     }
 
-    public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStrip strip, double bFieldInZ) {
+    public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStripGbl strip, double bFieldInZ) {
 
         SeedTrack st = (SeedTrack) track;
         SeedCandidate seed = st.getSeedCandidate();
@@ -474,7 +475,7 @@ public class TrackUtils {
         return calculateLocalTrackHitResiduals(_trk, strip, msdrdphi, msdz, bFieldInZ);
     }
 
-    public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStrip strip, double msdrdphi, double msdz, double bFieldInZ) {
+    public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStripGbl strip, double msdrdphi, double msdz, double bFieldInZ) {
 
         boolean debug = false;
         boolean includeMS = true;
@@ -508,7 +509,7 @@ public class TrackUtils {
 
         Hep3Vector vdiffTrk = VecOp.sub(trkpos, corigin);
         TrackerHitUtils thu = new TrackerHitUtils(debug);
-        Hep3Matrix trkToStrip = thu.getTrackToStripRotation(strip);
+        Hep3Matrix trkToStrip = thu.getTrackToStripRotation(strip.getStrip());
         Hep3Vector vdiff = VecOp.mult(trkToStrip, vdiffTrk);
 
         double umc = vdiff.x();

@@ -256,8 +256,8 @@ public class GBLOutput {
             HelicalTrackCross htc = (HelicalTrackCross) hit;
             List<HelicalTrackStrip> strips = htc.getStrips();
             
-            for(HelicalTrackStrip strip : strips) {
-                
+            for(HelicalTrackStrip stripOld : strips) {
+                HelicalTrackStripGbl strip = new HelicalTrackStripGbl(stripOld, true);
                 if(_debug>0) System.out.printf("%s: layer %d\n",this.getClass().getSimpleName(),strip.layer());
                 
                 if(textFile != null) {
@@ -379,7 +379,7 @@ public class GBLOutput {
                 Hep3Vector vdiffTrkTruth = VecOp.sub(trkposTruth, origin);
                 
                 // then find the rotation from tracking to measurement frame
-                Hep3Matrix trkToStripRot = _trackerHitUtils.getTrackToStripRotation(strip);
+                Hep3Matrix trkToStripRot = _trackerHitUtils.getTrackToStripRotation(strip.getStrip());
                 
                 // then rotate that vector into the measurement frame to get the predicted measurement position
                 Hep3Vector trkpos_meas = VecOp.mult(trkToStripRot, vdiffTrk);
@@ -397,6 +397,15 @@ public class GBLOutput {
                 //GBLDATA
                 stripData.setMeas(strip.umeas());
                 stripData.setTrackPos(trkpos_meas);
+                
+                if(_debug>1) { 
+                System.out.printf("%s: rotation matrix to meas frame\n%s\n", getClass().getSimpleName(), VecOp.toString(trkToStripRot));
+                System.out.printf("%s: tPosGlobal %s origin %s\n", getClass().getSimpleName(), trkpos.toString(), origin.toString());
+                System.out.printf("%s: tDiff %s\n", getClass().getSimpleName(), vdiffTrk.toString());
+                System.out.printf("%s: tPosMeas %s\n", getClass().getSimpleName(), trkpos_meas.toString());
+                }
+                
+                
                 
                 // residual in measurement frame
                 Hep3Vector res_meas = VecOp.sub(m_meas, trkpos_meas);
@@ -430,14 +439,14 @@ public class GBLOutput {
                 }	
                 
                 // find scattering angle
-                ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement());
+                ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit)strip.getStrip().rawhits().get(0)).getDetectorElement());
                 double scatAngle;
                 
                 if(scatter != null) {
                     scatAngle = scatter.getScatterAngle().Angle();
                 }
                 else {
-                    System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n",this.getClass(),((RawTrackerHit)strip.rawhits().get(0)).getDetectorElement().getName(),strip.origin().toString());
+                    System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n",this.getClass(),((RawTrackerHit)strip.getStrip().rawhits().get(0)).getDetectorElement().getName(),strip.origin().toString());
                     //can be edge case where helix is outside, but close to sensor, so use hack with the sensor origin closest to hit -> FIX THIS!
                     DetectorPlane closest = null;
                     double dx = 999999.9;
@@ -937,7 +946,6 @@ public class GBLOutput {
         }
         
     }
-
-
+	
 
 }

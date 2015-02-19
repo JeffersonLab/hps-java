@@ -160,7 +160,7 @@ public class HpsGblFitter {
         }
         for (int istrip = 0; istrip < stripClusters.size(); ++istrip) {
 
-            HelicalTrackStrip strip = stripClusters.get(istrip);
+            HelicalTrackStripGbl strip = new HelicalTrackStripGbl(stripClusters.get(istrip), true);
 
             if (_debug) {
                 System.out.printf(" layer %d origin %s\n", strip.layer(), strip.origin().toString());
@@ -235,7 +235,7 @@ public class HpsGblFitter {
             Hep3Vector vdiffTrk = VecOp.sub(trkpos, strip.origin());
 
             // then find the rotation from tracking to measurement frame
-            Hep3Matrix trkToStripRot = _trackHitUtils.getTrackToStripRotation(strip);
+            Hep3Matrix trkToStripRot = _trackHitUtils.getTrackToStripRotation(strip.getStrip());
 
             // then rotate that vector into the measurement frame to get the predicted measurement position
             Hep3Vector trkpos_meas = VecOp.mult(trkToStripRot, vdiffTrk);
@@ -300,13 +300,13 @@ public class HpsGblFitter {
             BasicMatrix scat = GblUtils.getInstance().zeroMatrix(0, 2);
 
             // find scattering angle
-            ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement());
+            ScatterPoint scatter = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
             double scatAngle;
 
             if (scatter != null) {
                 scatAngle = scatter.getScatterAngle().Angle();
             } else {
-                System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
+                System.out.printf("%s: WARNING cannot find scatter for detector %s with strip cluster at %s\n", this.getClass(), ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName(), strip.origin().toString());
                 //can be edge case where helix is outside, but close to sensor, so use hack with the sensor origin closest to hit
                 //TODO check if this really makes sense to do
                 DetectorPlane closest = null;

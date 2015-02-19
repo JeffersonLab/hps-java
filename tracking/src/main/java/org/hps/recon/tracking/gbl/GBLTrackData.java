@@ -22,7 +22,7 @@ public class GBLTrackData implements GenericObject {
 		public static final int ID = 0;
 		public static final int BANK_INT_SIZE = 1;
 	}
-	private static class GBLDOUBLE {
+	public static class GBLDOUBLE {
 		public static final int PERKAPPA =0;
 		public static final int PERTHETA = 1;
 		public static final int PERPHI = 2;
@@ -84,7 +84,8 @@ public class GBLTrackData implements GenericObject {
 		this.bank_double[GBLDOUBLE.PERD0] = perPar.getD0();
 		this.bank_double[GBLDOUBLE.PERZ0] = perPar.getZ0();
 	}
-
+	
+	
 	
 	public void setPrjPerToCl(int row, int col, double val) {
 		int idx = col + row*3;

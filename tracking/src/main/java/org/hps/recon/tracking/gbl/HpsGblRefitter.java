@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.recon.tracking.gbl.GBLTrackData.GBLDOUBLE;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -37,7 +39,8 @@ import org.lcsim.util.log.LogUtil;
  */
 public class HpsGblRefitter extends Driver
 {
-    private static Logger logger = LogUtil.create(HpsGblRefitter.class);
+    //private static Logger logger = LogUtil.create(HpsGblRefitter.class);
+    private Logger logger = getLogger();
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -157,6 +160,18 @@ public class HpsGblRefitter extends Driver
         List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
         int trackNum = 0;
         for (GBLTrackData t : stripsGblMap.keySet()) {
+            
+            if(Math.cos(t.getDoubleVal(GBLDOUBLE.PERTHETA))>0) {
+                //if(_debug) 
+                        logger.info(" top track");
+                        continue;
+                        
+            } else {
+                logger.info(" bot track");
+                
+            }
+            
+            
             FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac);
             ++trackNum;
             if(traj!=null) {
@@ -409,11 +424,11 @@ public class HpsGblRefitter extends Driver
                  addDer.set(0, i, milleParameters.get(i).getValue());
              }
              point.addGlobals(labGlobal, addDer);
-
+             String logders = "";
              for(int i=0; i < milleParameters.size(); ++i) {
-                 logger.info(labGlobal.get(i) + "\t" + addDer.get(0, i));
+                 logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
              }
-
+             logger.info("\n"+ logders);
              
             
             /*
@@ -556,6 +571,9 @@ public class HpsGblRefitter extends Driver
             _dm_dg = getMeasDers();
             // Calculate, by chain rule, derivatives of residuals w.r.t. global parameters
             _dr_dg = _dr_dm.times(_dm_dg); 
+
+            //logger.log(Level.FINER," dr_dm\n"+ _dr_dm.toString() + "\ndm_dg\n" + _dm_dg.toString() + "\ndr_dg\n" +_dr_dg.toString());
+            //logger.info("loglevel " + logger.getLevel().toString());
             //print 'dm_dg'
             //print dm_dg
             //print 'dr_dm'
@@ -625,6 +643,7 @@ public class HpsGblRefitter extends Driver
             double tdotn =  VecOp.dot(_t, _n); 
             Matrix dr_dm = Matrix.identity(3,3);
             //print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
+            //logger.info("t " + _t.toString() +" n " + _n.toString() + " dot(t,n) " + tdotn);
             double delta, val;
             for(int i=0; i<3; ++i) {
                 for(int j=0; j<3; ++j) {
