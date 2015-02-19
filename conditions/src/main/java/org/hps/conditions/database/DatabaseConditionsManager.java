@@ -580,7 +580,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     /**
      * Find a collection of conditions validity records by key name. The key
      * name is distinct from the table name, but they are usually set to the
-     * same value in the XML configuration.
+     * same value.
      * @param name The conditions key name.
      * @return The set of matching conditions records.
      */
@@ -603,6 +603,15 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }
         return foundConditionsRecords;
+    }
+    
+    /**
+     * True if there is a conditions record with the given name.
+     * @param name The conditions name.
+     * @return True if a conditions record exists with the given name.
+     */
+    public boolean hasConditionsRecord(String name) {
+        return !findConditionsRecords(name).isEmpty();
     }
 
     /**
