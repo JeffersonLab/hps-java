@@ -5,9 +5,13 @@ package org.hps.monitoring.ecal.plots;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
+ * @author <baltzell@jlab.org>
  */
 public final class EcalMonitoringUtilities {
 
+    final static int XOFFSET = 23;
+    final static int YOFFSET = 5;
+    
     private EcalMonitoringUtilities() {        
     }
     
@@ -31,5 +35,17 @@ public final class EcalMonitoringUtilities {
                 ret = true;
         }
         return ret;
+    }
+    
+    public static int getChannelIdFromRowColumn(int row, int col)
+    {
+        int ix = col + XOFFSET + (col>0 ? -1 : 0);
+        int iy = row + YOFFSET + (row>0 ? -1 : 0);
+        iy = YOFFSET*2 - iy - 1;
+        int cid = ix + 2*XOFFSET*iy + 1;
+        if      (row== 1 && col>-10) cid -= 9;
+        else if (row==-1 && col<-10) cid -= 9;
+        else if (row < 0)            cid -= 18;
+        return cid; 
     }
 }
