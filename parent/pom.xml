@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-        <lcsimVersion>3.0.9</lcsimVersion>
+        <lcsimVersion>3.1.0-SNAPSHOT</lcsimVersion>
         <skipSite>false</skipSite>
         <skipPlugin>false</skipPlugin>
     </properties>
@@ -331,8 +331,7 @@
 -->                    
                     <argLine>-Xmx1024m</argLine>
                     <forkMode>pertest</forkMode>
-                    <!-- This allows the cacheDir to be overridden by settings.xml, 
-                        e.g. for Hudson builds. -->
+                    <!-- This allows the cacheDir to be overridden by settings.xml for Hudson builds. -->
                     <systemProperties>
                         <property>
                             <name>org.lcsim.cacheDir</name>
