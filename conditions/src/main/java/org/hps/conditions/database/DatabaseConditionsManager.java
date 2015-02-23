@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -83,6 +81,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
     protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
     protected static final String ENGRUN_CONFIG = "/org/hps/conditions/config/conditions_database_engrun.xml";
+    
+    // Default connection properties resource.
+    protected static final String DEFAULT_CONNECTION_PROPERTIES_RESOURCE = "/org/hps/conditions/config/jlab_connection.prop";
     
     // Max run number for the Test Run.
     protected static final int TEST_RUN_MAX_RUN = 1365;
@@ -169,16 +170,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             // Do the connection parameters need to be figured out automatically?
             if (connectionParameters == null) {
                 // Setup the default read-only connection, which will choose a SLAC or JLab database.
-                connectionParameters = ConnectionParameters.fromResource(chooseConnectionPropertiesResource());
+                connectionParameters = ConnectionParameters.fromResource(DEFAULT_CONNECTION_PROPERTIES_RESOURCE);
             }
             
             if (!loggedConnectionParameters) {
                 // Print out detailed info to the log on first connection within the job.
-                logger.info("opening connection to " + connectionParameters.getConnectionString());
-                logger.info("host " + connectionParameters.getHostname());
-                logger.info("port " + connectionParameters.getPort());
-                logger.info("user " + connectionParameters.getUser());
-                logger.info("database " + connectionParameters.getDatabase());
+                logger.info("opening connection ... " + '\n' 
+                        + "connection: " + connectionParameters.getConnectionString() + '\n'
+                        + "host: " + connectionParameters.getHostname() + '\n'
+                        + "port: " + connectionParameters.getPort() + '\n'
+                        + "user: " + connectionParameters.getUser() + '\n'
+                        + "database: " + connectionParameters.getDatabase());
                 loggedConnectionParameters = true;
             }
 
@@ -840,32 +842,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }
      }
-        
-    /**
-     * Choose whether to use the JLAB or SLAC external database
-     * and return a connection properties resource with the appropriate
-     * connection information.
-     * @return The connection properties resource.
-     */
-    private String chooseConnectionPropertiesResource() {
-        String connectionName = "slac";
-        try {
-            // Is the JLAB database reachable?
-            if (InetAddress.getByName("jmysql.jlab.org").isReachable(5000)) {
-                connectionName = "jlab";
-            } 
-        } catch (UnknownHostException e) {
-            // This will actually print a warning if the JLAB server is unreachable.
-            // There is always a warning when running outside JLAB, so suppress it for now.
-            //logger.log(Level.WARNING, e.getMessage(), e);
-        } catch (IOException e) {
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e);            
-        }
-        logger.config("connection " + connectionName + " will be used");
-        return "/org/hps/conditions/config/" + connectionName + "_connection.prop";
-    }
-
+           
     /**
      * Configure this class from an <code>InputStream</code> which should point to an XML document.
      * @param in the InputStream which should be in XML format
