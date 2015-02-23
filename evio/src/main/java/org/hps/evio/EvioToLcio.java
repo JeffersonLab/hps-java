@@ -113,6 +113,7 @@ public class EvioToLcio {
         options.addOption(new Option("b", false, "enable headless mode which will not show plots OR allow writing them to graphics files"));
         options.addOption(new Option("v", false, "print EVIO XML for each event"));
         options.addOption(new Option("m", true, "set the max event buffer size"));
+        options.addOption(new Option("t", true, "specify a conditions system tag to use"));
         logger.setLevel(Level.FINE);
     }
 
@@ -285,6 +286,12 @@ public class EvioToLcio {
         if (cl.hasOption("R")) {
             runNumber = Integer.parseInt(cl.getOptionValue("R"));
             logger.config("User set run number to " + runNumber + " with command option.");
+        }
+        
+        // Set the conditions system tag.
+        if (cl.hasOption("t")) {
+            String tag = cl.getOptionValue("t");
+            DatabaseConditionsManager.getInstance().setTag(tag);
         }
 
         // Is there a run number from the command line options?
