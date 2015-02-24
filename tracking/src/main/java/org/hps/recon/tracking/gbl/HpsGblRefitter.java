@@ -18,6 +18,7 @@ import org.hps.recon.tracking.gbl.GBLTrackData.GBLDOUBLE;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
+import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
@@ -92,26 +93,19 @@ public class HpsGblRefitter extends Driver
     protected void process(EventHeader event)
     {
         Hep3Vector bfieldvec = event.getDetector().getFieldMap().getField(new BasicHep3Vector(0., 0., 1.));
+        
         double bfield = bfieldvec.y();
-        double bfac = 0.0002998 * bfield;
+        //double bfac = 0.0002998 * bfield;
+        double bfac = Constants.fieldConversion * bfield;
+        
         // get the tracks
-//        List<Track> tracks = null;
-        if (event.hasCollection(Track.class, trackCollectionName)) {
-//            tracks = event.get(Track.class, trackCollectionName);
-            if (_debug) {
-//                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), tracks.size());
-            }
-        } else {
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
             if (_debug) {
                 System.out.printf("%s: No tracks in Event %d \n", this.getClass().getSimpleName(), event.getEventNumber());
             }
             return;
         }
-//        System.out.println("Tracks from event " + event.getRunNumber());
-//        for (Track t : tracks) {
-//            System.out.println(t);
-//            System.out.println(t.getTrackStates().get(0));
-//        }
+
         //get the relations to the GBLtracks
         if (!event.hasItem(track2GblTrackRelationName)) {
             System.out.println("Need Relations " + track2GblTrackRelationName);
@@ -123,6 +117,7 @@ public class HpsGblRefitter extends Driver
             return;
         }
 
+        
         List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
         //need a map of GBLTrackData keyed on the Generic object from which it created
         Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
@@ -156,22 +151,12 @@ public class HpsGblRefitter extends Driver
                 stripsGblMap.get(gblT).add(sd);
             }
         }
-
+        
+                // loop over the tracks and do the GBL fit
         List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
         int trackNum = 0;
+        logger.info("Trying to fit " + stripsGblMap.size() + " tracks");
         for (GBLTrackData t : stripsGblMap.keySet()) {
-            
-            if(Math.cos(t.getDoubleVal(GBLDOUBLE.PERTHETA))>0) {
-                //if(_debug) 
-                        logger.info(" top track");
-                        continue;
-                        
-            } else {
-                logger.info(" bot track");
-                
-            }
-            
-            
             FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac);
             ++trackNum;
             if(traj!=null) {
@@ -185,7 +170,15 @@ public class HpsGblRefitter extends Driver
                 if(_debug) System.out.printf("%s: GBL fit failed.\n",getClass().getSimpleName());                
             }
         }
-        if(_debug) System.out.printf("%s: Save %d/%d GBL fitted tracks in this event.\n",getClass().getSimpleName(),trackFits.size(), trackNum);    
+        
+        logger.info(event.get(Track.class, trackCollectionName).size() + " tracks in collection \"" + trackCollectionName + "\"");
+        logger.info(gblObjMap.size() + " tracks in gblObjMap");
+        logger.info(gblToSeedMap.size() + " tracks in gblToSeedMap");
+        logger.info(stripsGblMap.size() + " tracks in stripsGblMap");
+        logger.info(trackFits.size() + " fitted GBL tracks before adding to event");
+        
+
+
         
         _makeTracks.Process(event, trackFits, bfield);
 
@@ -428,42 +421,9 @@ public class HpsGblRefitter extends Driver
              for(int i=0; i < milleParameters.size(); ++i) {
                  logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
              }
-             logger.info("\n"+ logders);
-             
+             logger.fine("\n"+ logders);
             
-            /*
-            ##### 
-            ## Calculate global derivatives for this point
-            # track direction in tracking/global frame
-            tDirGlobal = np.array( [ [cosPhi * cosLambda, sinPhi * cosLambda, sinLambda] ] )        
-            # Cross-check that the input is consistent
-            if( np.linalg.norm( tDirGlobal - strip.tDir) > 0.00001):
-            print 'ERROR: tDirs are not consistent!'
-            sys.exit(1)
-            # rotate track direction to measurement frame          
-            tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]) )
-            #tDirMeas = utils.rotateGlToMeas(strip,tDirGlobal)
-            normalMeas = np.dot( strip.w , np.array([strip.u, strip.v, strip.w]) ) 
-            #normalMeas = utils.rotateGlToMeas(strip,strip.w) 
-            # non-measured directions 
-            vmeas = 0.
-            wmeas = 0.
-            # calculate and add derivatives to point
-            glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,normalMeas)
-            ders = glDers.getDers(track.isTop())
-            labGlobal = ders['labels']
-            addDer = ders['ders']
-            if debug:
-            print 'global derivatives:'
-            print labGlobal
-            print addDer
-            point.addGlobals(labGlobal, addDer)
-            ##### 
-
-            */
-            
-            
-            logger.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+             logger.fine("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             
             //go to next point
             s += step;
@@ -500,7 +460,7 @@ public class HpsGblRefitter extends Driver
             aCovariance.print(6, 4);
         }
 
-        logger.info("locPar " + aCorrection.toString());
+        logger.fine("locPar " + aCorrection.toString());
         
 //	// write to MP binary file
         if (writeMilleBinary) {
