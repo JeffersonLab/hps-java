@@ -106,6 +106,13 @@ public class TriggerDiagnosticDriver extends Driver {
     IHistogram1D sspClusterHitCountPlot;
     IHistogram2D sspClusterDistribution;
 	
+    IHistogram1D cyclesRemoved;
+    IHistogram2D cyclesRemovedEnergy;
+    IHistogram2D cyclesRemovedSeed;
+    IHistogram2D[] hitsInCycle = new IHistogram2D[9];
+    IHistogram1D repeatedHitsPlot;
+    IHistogram2D cyclesRemovedEnergyPercent;
+    
     // Internal state variables.
     private static final int STATE_CLUSTER_UNDEFINED = -1;
     private static final int STATE_CLUSTER_FAIL_ENERGY = 1;
@@ -140,13 +147,23 @@ public class TriggerDiagnosticDriver extends Driver {
 	    clusterEnergyDiffPlotA = aida.histogram1D("Trigger Diagnostics :: All Cluster Energy Difference Distribution", 25, 0.75, 1.25);
 	    
 	    reconClusterTotalEnergyPlot = aida.histogram1D("Trigger Diagnostics :: Recon Cluster Total Energy Distribution", 55, 0.0, 2.2);
-	    reconClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: Recon Cluster Hit Count Distribution", 10, 0, 10);
+	    reconClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: Recon Cluster Hit Count Distribution", 10, -0.5, 9.5);
 	    reconClusterTimePlot = aida.histogram1D("Trigger Diagnostics :: Recon Cluster Time Distribution", 2 * windowWidth / 5, 0, windowWidth);
 	    reconClusterDistribution = aida.histogram2D("Trigger Diagnostics :: Recon Cluster Distribution", 46, -23, 23, 11, -5.5, 5.5);
 	    sspClusterTotalEnergyPlot = aida.histogram1D("Trigger Diagnostics :: SSP Cluster Total Energy Distribution", 55, 0.0, 2.2);
-	    sspClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: SSP Cluster Hit Count Distribution", 10, 0, 10);
+	    sspClusterHitCountPlot= aida.histogram1D("Trigger Diagnostics :: SSP Cluster Hit Count Distribution", 10, -0.5, 9.5);
 	    sspClusterDistribution = aida.histogram2D("Trigger Diagnostics :: SSP Cluster Distribution", 46, -23, 23, 11, -5.5, 5.5);
 		
+	    cyclesRemoved = aida.histogram1D("Trigger Diagnostics :: Hit Cycles Removed From Seed", 10, -0.5, 9.5);
+	    cyclesRemovedEnergy = aida.histogram2D("Trigger Diagnostics :: Energy Percent vs. Clock Cycles Removed", 10, -0.5, 9.5, 100, 0.0, 1.0);
+	    cyclesRemovedSeed = aida.histogram2D("Trigger Diagnostics :: Seed Percent vs. Clock Cycles Removed", 10, -0.5, 9.5, 100, 0.0, 1.5);
+	    
+	    repeatedHitsPlot = aida.histogram1D("Trigger Diagnostics :: Repeated Crystal Positions in Cluster", 16, -0.5, 15.5);
+	    cyclesRemovedEnergyPercent = aida.histogram2D("Trigger Diagnostics :: Cycle Energy Percent vs. Clock Cycles Removed", 10, -0.5, 9.5, 100, 0.0, 1.0);
+	    for(int i = 0; i < hitsInCycle.length; i++) {
+	    	hitsInCycle[i] = aida.histogram2D("Trigger Diagnostics :: Hits in Cycle vs. Cycles Removed (Cluster Size " + i + ")", 5, -0.5, 4.5, 10, -0.5, 9.5);
+	    }
+	    
 		// Print the cluster verification header.
 		System.out.println();
 		System.out.println();
@@ -364,6 +381,39 @@ public class TriggerDiagnosticDriver extends Driver {
 				if(isVerifiable(reconCluster)) {
 					reconClusters.add(reconCluster);
 					println(" [  verifiable  ]");
+					
+					int repeatedHits = 0;
+					double seedTime = getReconTime(reconCluster);
+					Map<Integer, Double> cycleMap = new HashMap<Integer, Double>();
+					Map<Integer, Integer> hitCountMap = new HashMap<Integer, Integer>();
+					Set<Point> hasHitSet = new HashSet<Point>();
+					for(CalorimeterHit hit : reconCluster.getCalorimeterHits()) {
+						double timeDiff = (hit.getTime() - seedTime) / 4.0;
+						cyclesRemoved.fill(timeDiff);
+						cyclesRemovedEnergy.fill(timeDiff, hit.getCorrectedEnergy() / reconCluster.getEnergy());
+						cyclesRemovedSeed.fill(timeDiff, hit.getCorrectedEnergy() / reconCluster.getCalorimeterHits().get(0).getCorrectedEnergy());
+						Point hitLocation = new Point(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"));
+						if(hasHitSet.contains(hitLocation)) { repeatedHits++; }
+						else { hasHitSet.add(hitLocation); }
+						Integer positionHits = hitCountMap.get((int) timeDiff);
+						if(positionHits != null) { hitCountMap.put((int) timeDiff, positionHits + 1); }
+						else { hitCountMap.put((int) timeDiff, 1); }
+						Double cycleEnergy = cycleMap.get((int) timeDiff);
+						if(cycleEnergy != null) { cycleMap.put((int) timeDiff, cycleEnergy + hit.getCorrectedEnergy()); }
+						else { cycleMap.put((int) timeDiff, hit.getCorrectedEnergy()); }
+					}
+					repeatedHitsPlot.fill(repeatedHits);
+					for(Entry<Integer, Double> entry : cycleMap.entrySet()) {
+						cyclesRemovedEnergyPercent.fill(entry.getKey(), entry.getValue());
+					}
+
+					int hitCount = reconCluster.getCalorimeterHits().size() - 1;
+					if(hitCount >= 0 && hitCount < 9) {
+						for(Entry<Integer, Integer> entry : hitCountMap.entrySet()) {
+							hitsInCycle[hitCount].fill(entry.getKey(), entry.getValue());
+						}
+					}
+					
 				} else { println(" [ unverifiable ]"); }
 				
 			}
