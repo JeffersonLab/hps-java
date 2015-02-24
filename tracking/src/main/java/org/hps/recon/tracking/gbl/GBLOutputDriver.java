@@ -106,7 +106,7 @@ public class GBLOutputDriver extends Driver {
         List<Track> selected_tracks = new ArrayList<Track>();
         for (Track trk : tracklist) {
             totalTracks++;            
-            if(TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.MEDIUM)) {
+            if(TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
                 if(_debug>0) System.out.printf("%s: Track failed selection\n", this.getClass().getSimpleName());
                 selected_tracks.add(trk);
             }
