@@ -8,10 +8,9 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.constants.Constants;
@@ -35,11 +34,23 @@ public class MakeGblTracks {
 
 
     private String _TrkCollectionName = "GblTracks";
-
+    private static final Logger logger = Logger.getLogger(MakeGblTracks.class.getName());
+    
     /**
      * Creates a new instance of MakeTracks.
      */
     public MakeGblTracks() {
+         //logger = Logger.getLogger(getClass().getName());
+         //logger.setUseParentHandlers(false);
+        //Handler handler = new StreamHandler(System.out, new SimpleFormatter());
+        //logger.addHandler(handler);
+        logger.setLevel(Level.INFO);
+//        try {
+//            logger.addHandler(new FileHandler(MakeGblTracks.class.getSimpleName()+".log"));
+//        } catch (SecurityException | IOException e) {
+//            e.printStackTrace();
+//        }
+
     }
     
     /**
@@ -52,6 +63,8 @@ public class MakeGblTracks {
     public void Process(EventHeader event, List<FittedGblTrajectory> gblTrajectories, double bfield) {
         
         List<Track> tracks = new ArrayList<Track>();
+        
+        logger.info("adding " + gblTrajectories.size() + " of fitted GBL tracks to the event");
         
         for(FittedGblTrajectory fittedTraj : gblTrajectories) {
             
@@ -73,12 +86,11 @@ public class MakeGblTracks {
             HelicalTrackFit helix = trackseed.getHelix();
             double gblParameters[] = getGblCorrectedHelixParameters(helix,fittedTraj, bfield);
             trk.setTrackParameters(gblParameters, bfield); // Sets first TrackState.
-            //trk.setTrackParameters(helix.parameters(), bfield); // Sets first TrackState.
-            SymmetricMatrix gblCovariance = getGblCorrectedHelixCovariance(helix, fittedTraj, bfield);
-            trk.setCovarianceMatrix(gblCovariance); // Modifies first TrackState.
-            //trk.setCovarianceMatrix(helix.covariance()); // Modifies first TrackState.
-            trk.setChisq(helix.chisqtot());
-            trk.setNDF(helix.ndf()[0]+helix.ndf()[1]);
+            //TODO Use GBL covariance matrix
+            //SymmetricMatrix gblCovariance = getGblCorrectedHelixCovariance(helix, fittedTraj, bfield);
+            trk.setCovarianceMatrix(helix.covariance()); // Modifies first TrackState.
+            trk.setChisq( fittedTraj.get_chi2());
+            trk.setNDF(fittedTraj.get_ndf());
 
             //  Flag that the fit was successful and set the reference point
             trk.setFitSuccess(true);
@@ -96,8 +108,18 @@ public class MakeGblTracks {
 
             //  Add the track to the list of tracks
             tracks.add((Track) trk);
+            System.out.println("level " + logger.getLevel().getName() + " fine: " + Integer.toString(Level.FINE.intValue())+ " info: " + Integer.toString(Level.INFO.intValue()) + " warning: " + Integer.toString(Level.WARNING.intValue()));
+            logger.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0]+helix.ndf()[1], trk.getChi2(), trk.getNDF()));
+            if(logger.getLevel().intValue()<= Level.INFO.intValue()) {
+                for(int i=0;i<5;++i) {
+                    logger.info(String.format("param %d: %.5f -> %.5f    helix-gbl= %f", i, helix.parameters()[i], trk.getTrackParameter(i), helix.parameters()[i]-trk.getTrackParameter(i)));
+                }
+            }
+            
         }
 
+        logger.info("adding " + Integer.toString(tracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
+        
         // Put the tracks back into the event and exit
         int flag = 1<<LCIOConstants.TRBIT_HITS;
         event.put(_TrkCollectionName, tracks, Track.class, flag);
@@ -143,42 +165,32 @@ public class MakeGblTracks {
         double xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
         double yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
         
-        // calculate new d0
-        // correct for different sign convention of d0 in curvilinear frame
+        // calculate new d0 and z0
         Hep3Matrix perToClPrj = traj.get_track_data().getPrjPerToCl();
         Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
-        Hep3Vector vec_out = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
-        //double d0_corr = -1.0 * self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))[1];
-        double d0_corr = -1.0*vec_out.y(); // correct for different sign convention of d0 in curvilinear frame
+        Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
+
+        //d0
+        double d0_corr = -1.0*corrPer.y(); // correct for different sign convention of d0 in curvilinear frame
         double d0_gbl = d0 + d0_corr;
         
-        // calculate new z0
-        //return self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))[2]
-        double z0_corr = vec_out.z();
+        //z0
+        double z0_corr = corrPer.z();
         double z0_gbl = z0 + z0_corr;
         
         // calculate new curvature
         //      return self.track.qOverP(bfac) + self.curvCorr()
         double qOverP_gbl = qOverP + qOverPCorr;
-        double p_gbl = traj.get_seed().getCharge()/qOverP_gbl;
-        double pt_gbl = p_gbl * helix.sth();
+        double pt_gbl = 1.0/qOverP_gbl * helix.sth();
         double C_gbl = Constants.fieldConversion * bfield / pt_gbl;
-        C_gbl = Math.signum(helix.curvature())*Math.abs(C_gbl); // fix sign, don't think I need to do all this
-        
-
-        // TODO Is the below really true?
+        //make sure sign is not changed
+        C_gbl = Math.signum(helix.curvature())*Math.abs(C_gbl); 
         
         //calculate new phi0
-        double phi0_gbl = phi0 + Math.atan(xTPrimeCorr);
-        // prorate by dip angle
-        phi0_gbl = phi0_gbl/Math.sin(Math.atan(slope));
-
+        double phi0_gbl = phi0 + xTPrimeCorr;
+        
         //calculate new slope
-        // A correction to track direction yT' in curvilinear frame is proportional 
-        // to a correction on the dip angle lambda
         double slope_gbl = Math.tan( Math.atan(helix.slope()) + yTPrimeCorr);
-        
-        
         
         double parameters_gbl[] = new double[5];
         parameters_gbl[HelicalTrackFit.dcaIndex] = d0_gbl;
@@ -186,7 +198,6 @@ public class MakeGblTracks {
         parameters_gbl[HelicalTrackFit.curvatureIndex] = C_gbl;
         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;
         parameters_gbl[HelicalTrackFit.phi0Index] = phi0_gbl;
-        
         return parameters_gbl;
     }
     
