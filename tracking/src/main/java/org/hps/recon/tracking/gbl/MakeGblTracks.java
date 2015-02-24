@@ -44,7 +44,7 @@ public class MakeGblTracks {
          //logger.setUseParentHandlers(false);
         //Handler handler = new StreamHandler(System.out, new SimpleFormatter());
         //logger.addHandler(handler);
-        logger.setLevel(Level.INFO);
+        logger.setLevel(Level.WARNING);
 //        try {
 //            logger.addHandler(new FileHandler(MakeGblTracks.class.getSimpleName()+".log"));
 //        } catch (SecurityException | IOException e) {
@@ -108,7 +108,6 @@ public class MakeGblTracks {
 
             //  Add the track to the list of tracks
             tracks.add((Track) trk);
-            System.out.println("level " + logger.getLevel().getName() + " fine: " + Integer.toString(Level.FINE.intValue())+ " info: " + Integer.toString(Level.INFO.intValue()) + " warning: " + Integer.toString(Level.WARNING.intValue()));
             logger.info(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helix.chisqtot(), helix.ndf()[0]+helix.ndf()[1], trk.getChi2(), trk.getNDF()));
             if(logger.getLevel().intValue()<= Level.INFO.intValue()) {
                 for(int i=0;i<5;++i) {
