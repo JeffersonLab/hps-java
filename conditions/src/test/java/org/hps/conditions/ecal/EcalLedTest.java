@@ -6,6 +6,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableConstants;
 //import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
+import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
@@ -15,12 +16,11 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  */
 public class EcalLedTest extends TestCase {
           
-
     DatabaseConditionsManager conditionsManager;
     public void setUp() {
         conditionsManager = DatabaseConditionsManager.getInstance();
         try {
-            conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 2000);
+            conditionsManager.setDetector("HPS-ECalCommissioning-v2", 2000);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -28,9 +28,17 @@ public class EcalLedTest extends TestCase {
 	
     public void testEcalLed() {
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        EcalLedCollection collection = manager.getConditionsData(EcalLedCollection.class, TableConstants.ECAL_LEDS);
-        for (EcalLed led : collection) {    	
+        
+        // LED channel information.
+        EcalLedCollection leds = manager.getConditionsData(EcalLedCollection.class, TableConstants.ECAL_LEDS);
+        for (EcalLed led : leds) {    	
         	System.out.println(led);
+        }
+        
+        // LED calibration data.
+        EcalLedCalibrationCollection calibrations = manager.getCollection(EcalLedCalibrationCollection.class);
+        for (EcalLedCalibration calibration : calibrations) {        
+            System.out.println(calibration);
         }
     }
 }
