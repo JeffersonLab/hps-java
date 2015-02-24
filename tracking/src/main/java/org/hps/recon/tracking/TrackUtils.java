@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.recon.tracking.EventQuality.Quality;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
@@ -631,16 +632,18 @@ public class TrackUtils {
 
     public static int passTrackSelections(Track track, List<Track> tracklist, EventQuality.Quality trk_quality) {
         int cuts[] = { 0 };
-        if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
-            cut(cuts, EventQuality.Cut.PZ);
-        if (track.getChi2() >= EventQuality.instance().getCutValue(EventQuality.Cut.CHI2, trk_quality))
-            cut(cuts, EventQuality.Cut.CHI2);
-        if (numberOfSharedHits(track, tracklist) > ((int) Math.round(EventQuality.instance().getCutValue(EventQuality.Cut.SHAREDHIT, trk_quality))))
-            cut(cuts, EventQuality.Cut.SHAREDHIT);
-        if (hasTopBotHit(track))
-            cut(cuts, EventQuality.Cut.TOPBOTHIT);
-        if (track.getTrackerHits().size() < ((int) Math.round(EventQuality.instance().getCutValue(EventQuality.Cut.NHITS, trk_quality))))
-            cut(cuts, EventQuality.Cut.NHITS);
+        if(trk_quality.compareTo(Quality.NONE) != 0) {
+            if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
+                cut(cuts, EventQuality.Cut.PZ);
+            if (track.getChi2() >= EventQuality.instance().getCutValue(EventQuality.Cut.CHI2, trk_quality))
+                cut(cuts, EventQuality.Cut.CHI2);
+            if (numberOfSharedHits(track, tracklist) > ((int) Math.round(EventQuality.instance().getCutValue(EventQuality.Cut.SHAREDHIT, trk_quality))))
+                cut(cuts, EventQuality.Cut.SHAREDHIT);
+            if (hasTopBotHit(track))
+                cut(cuts, EventQuality.Cut.TOPBOTHIT);
+            if (track.getTrackerHits().size() < ((int) Math.round(EventQuality.instance().getCutValue(EventQuality.Cut.NHITS, trk_quality))))
+                cut(cuts, EventQuality.Cut.NHITS);
+        }
         return cuts[0];
     }
 

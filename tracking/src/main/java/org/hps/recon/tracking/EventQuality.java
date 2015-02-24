@@ -17,7 +17,7 @@ public class EventQuality {
     private static EventQuality _instance = null;
 
     public static enum Quality {
-        LOOSE, MEDIUM, TIGHT
+        LOOSE, MEDIUM, TIGHT, NONE
     }
 
     public static enum Cut {
