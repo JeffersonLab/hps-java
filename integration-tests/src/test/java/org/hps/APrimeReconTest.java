@@ -106,6 +106,8 @@ public class APrimeReconTest extends TestCase
             assertEquals("didn't find one electron", 1, nelectron);
             assertEquals("didn't find one positron", 1, npositron);
 
+            //TODO fix this, as there may be more electrons in the generator final state list.
+            //TODO get the track hits, check their MC parentage, check their purity.
             MCParticle electronMC = null;
             MCParticle positronMC = null;
             List<MCParticle> mcps = event.getMCParticles();
