@@ -10,13 +10,17 @@ import java.util.Map;
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.AbstractIdentifier;
+import org.hps.conditions.database.ConditionsObjectConverter;
 import org.hps.conditions.database.Converter;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
+import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.geometry.Subdetector;
 
 /**
  * This class encapsulates all the information about a single ECal channel,
@@ -25,9 +29,25 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @Table(names = {"ecal_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED, converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends AbstractConditionsObject {
+    
+    public static final class EcalChannelConverter extends ConditionsObjectConverter<EcalChannelCollection> {
+               
+        @Override
+        public EcalChannelCollection getData(ConditionsManager conditionsManager, String name) {
+            EcalChannelCollection collection = super.getData(conditionsManager, name);
+            Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
+            collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
+            return collection;
+        }
 
+        @Override
+        public Class<EcalChannelCollection> getType() {
+            return EcalChannelCollection.class;
+        }        
+    }
+    
     /**
      * The <code>DaqId</code> is the combination of crate, slot and channel that
      * specify the channel's DAQ configuration.

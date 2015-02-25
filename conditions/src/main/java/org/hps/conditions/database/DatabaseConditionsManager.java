@@ -38,6 +38,8 @@ import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
+import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 import org.lcsim.util.loop.DetectorConditionsConverter;
 
@@ -59,11 +61,8 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 @SuppressWarnings("rawtypes")
 public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
-    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class);
-    static {
-        logger.setLevel(Level.FINE);
-        logger.getHandlers()[0].setLevel(Level.FINE);
-    }
+    // Initialize logger.
+    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.FINER);
 
     // Registry of conditions converters.
     protected ConverterRegistry converters = ConverterRegistry.create();
@@ -142,6 +141,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     }
     
     /**
+     * Set the log level.
+     * @param level The log level.
+     */
+    public void setLogLevel(Level level) {        
+        logger.config("setting log level to " + level);
+        logger.setLevel(level);
+        logger.getHandlers()[0].setLevel(level);
+        svtSetup.setLogLevel(level);
+    }
+    
+    /**
      * Get the static instance of this class.
      * @return The static instance of the manager.
      */
@@ -149,11 +159,11 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
         // Is there no manager installed yet?
         if (!ConditionsManager.isSetup()) {
-            // Perform default setup if necessary.
+            // Create a new instance if necessary.
             new DatabaseConditionsManager();
         }
 
-        // Get the instance of the manager from the conditions system and check that the type is valid.
+        // Get the instance back from the default conditions system and check that the type is correct.
         ConditionsManager manager = ConditionsManager.defaultInstance();
         if (!(manager instanceof DatabaseConditionsManager)) {
             throw new RuntimeException("The default ConditionsManager has the wrong type.");
@@ -272,6 +282,17 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         CollectionType conditionsCollection = getCachedConditions(type, tableName).getCachedData();
         return conditionsCollection;
     }
+    
+    /**
+     * Get conditions data by class and name.
+     * @param type The class of the conditions.
+     * @param name The name of the conditions set.
+     * @return The conditions or null if does not exist.
+     */
+    public <T> T getConditionsData(Class<T> type, String name) {
+        logger.info("getting conditions " + name + " of type " + type.getSimpleName());
+        return getCachedConditions(type, name).getCachedData();
+    }
 
     /**
      * This method handles changes to the detector name and run number.
@@ -324,7 +345,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         // Is not configured yet?
         if (!isConfigured) {
             if (isTestRun(runNumber)) {
-                logger.config("using Test Run configuration");
                 // This looks like the Test Run so use the custom configuration for it.
                 setXmlConfig(DatabaseConditionsManager.TEST_RUN_CONFIG);
             } else if (runNumber > TEST_RUN_MAX_RUN) {
@@ -336,14 +356,16 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }
 
+        // Register the converters for this initialization.
         registerConverters();
     
+        // Enable or disable the setup of the SVT detector.
         svtSetup.setEnabled(setupSvtDetector);
 
         // Open the database connection.
         openConnection();
         
-        // Call the super class's setDetector method to construct the detector object and activate listeners.
+        // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
         super.setDetector(detectorName, runNumber);
                         
         // Should all conditions sets be cached?
@@ -406,17 +428,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public Detector getDetectorObject() {
         return getCachedConditions(Detector.class, "compact.xml").getCachedData();
-    }
-
-    /**
-     * Get conditions data by class and name.
-     * @param type The class of the conditions.
-     * @param name The name of the conditions set.
-     * @return The conditions or null if does not exist.
-     */
-    public <T> T getConditionsData(Class<T> type, String name) {
-        logger.info("getting conditions " + name + " of type " + type.getSimpleName());
-        return getCachedConditions(type, name).getCachedData();
     }
 
     /**
@@ -569,18 +580,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         closeConnection(openedConnection);        
         return keys;
     }
-
-    /**
-     * Set the log level.
-     * @param level The log level.
-     */
-    public void setLogLevel(Level level) {
-        logger.config("setting log level to " + level);
-        logger.setLevel(level);
-        logger.getHandlers()[0].setLevel(level);
-        svtSetup.setLogLevel(level);
-    }
-
+  
     /**
      * Find a collection of conditions validity records by key name. The key
      * name is distinct from the table name, but they are usually set to the
@@ -808,6 +808,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The Logger for this class.
      */
     public static Logger getLogger() {
+        //System.out.println("DatabaseConditionsManager.getLogger called from");
+        //new RuntimeException().printStackTrace();
         return logger;
     }
     
@@ -829,8 +831,20 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         return tableRegistry.findByCollectionType(type);
     }
     
+    /**
+     * Get the name of the ECAL in the detector geometry.
+     * @return The name of the ECAL.
+     */
     public String getEcalName() {
         return ecalName;
+    }
+    
+    /**
+     * Get the subdetector object of the ECAL.
+     * @return The ECAL subdetector.
+     */
+    public Subdetector getEcalSubdetector() {
+        return this.getDetectorObject().getSubdetector(ecalName);
     }
 
     /*

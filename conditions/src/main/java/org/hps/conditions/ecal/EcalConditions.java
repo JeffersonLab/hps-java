@@ -20,10 +20,10 @@ import org.lcsim.geometry.Subdetector;
 public final class EcalConditions {
 
     /** Channel map. */
-    EcalChannelCollection channelMap = new EcalChannelCollection();
+    EcalChannelCollection channelCollection = new EcalChannelCollection();
 
     /** Map between channels and conditions data. */
-    Map<EcalChannel, EcalChannelConstants> channelData = new HashMap<EcalChannel, EcalChannelConstants>();
+    Map<EcalChannel, EcalChannelConstants> channelConstants = new HashMap<EcalChannel, EcalChannelConstants>();
 
     Subdetector subdetector;
     
@@ -41,15 +41,8 @@ public final class EcalConditions {
      * Set the channel map.
      * @param channels The channel map.
      */
-    void setChannelCollection(EcalChannelCollection channelMap) {
-                
-        this.channelMap = channelMap;
-        
-        // Get the full channel map created by the conditions system.
-        channelMap = getChannelCollection();
-                                
-        // Build the map of geometry IDs.
-        channelMap.buildGeometryMap(subdetector.getDetectorElement().getIdentifierHelper(), subdetector.getSystemID());
+    void setChannelCollection(EcalChannelCollection channelCollection) {
+        this.channelCollection = channelCollection;        
     }
 
     /**
@@ -57,7 +50,7 @@ public final class EcalConditions {
      * @return The channel map.
      */
     public EcalChannelCollection getChannelCollection() {
-        return channelMap;
+        return channelCollection;
     }
         
     /**
@@ -71,15 +64,14 @@ public final class EcalConditions {
      */
     public EcalChannelConstants getChannelConstants(EcalChannel channel) {
         // This channel must come from the map.
-        if (!channelMap.contains(channel)) {
+        if (!channelCollection.contains(channel)) {
             System.err.println("Channel not found in map: " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
         // If channel has no data yet, then add it.
-        // FIXME: I'm not sure this should happen at all!
-        if (!channelData.containsKey(channel))
-            channelData.put(channel, new EcalChannelConstants());
-        return channelData.get(channel);
+        if (!channelConstants.containsKey(channel))
+            channelConstants.put(channel, new EcalChannelConstants());
+        return channelConstants.get(channel);
     }
 
     /**
@@ -123,7 +115,7 @@ public final class EcalConditions {
         buff.append('\n');
 
         // Loop over all channels.
-        for (EcalChannel channel : channelMap) {
+        for (EcalChannel channel : channelCollection) {
 
             EcalChannelConstants constants = getChannelConstants(channel);
 
