@@ -18,7 +18,7 @@ import javassist.Modifier;
 public abstract class AbstractModel {
 
     protected PropertyChangeSupport propertyChangeSupport;
-    protected boolean listenersEnabled = true;    
+    protected boolean listenersEnabled = true;
 
     public AbstractModel() {
         propertyChangeSupport = new PropertyChangeSupport(this);
@@ -54,11 +54,11 @@ public abstract class AbstractModel {
 
     // FIXME: This method is kind of a hack. Any other good way to do this?
     public void fireAllChanged() {
-        System.out.println("AbstractModel.fireAllChanged");
+        // System.out.println("AbstractModel.fireAllChanged");
         if (!listenersEnabled)
             return;
-       propertyLoop: for (String property : getPropertyNames()) {
-           System.out.println("  prop = " + property);
+        propertyLoop: for (String property : getPropertyNames()) {
+            //System.out.println("  prop = " + property);
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
@@ -70,7 +70,7 @@ public abstract class AbstractModel {
                 Object value = null;
                 try {
                     value = getMethod.invoke(this, (Object[]) null);
-                    System.out.println("  value = " + value);
+                    //System.out.println("  value = " + value);
                 } catch (NullPointerException e) {
                     // This means there is no get method for the property which is a throwable error.
                     throw new RuntimeException("Property " + property + " is missing a get method.", e);
@@ -96,13 +96,11 @@ public abstract class AbstractModel {
                 throw new RuntimeException(e);
             }
             System.out.println();
-        }                
+        }
     }
-    
+
     /**
-     * This method will statically extract property names from a class, which in 
-     * this package's conventions are statically declared, public strings that
-     * end with "_PROPERTY".
+     * This method will statically extract property names from a class, which in this package's conventions are statically declared, public strings that end with "_PROPERTY".
      * 
      * @param type The class with the properties.
      * @return The list of property names.
@@ -111,16 +109,14 @@ public abstract class AbstractModel {
         List<String> fields = new ArrayList<String>();
         for (Field field : type.getDeclaredFields()) {
             int modifiers = field.getModifiers();
-            if (Modifier.isStatic(modifiers) 
-                    && Modifier.isPublic(modifiers) 
-                    && field.getName().endsWith("_PROPERTY")) {
+            if (Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers) && field.getName().endsWith("_PROPERTY")) {
                 try {
                     fields.add((String) field.get(null));
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
-            }            
+            }
         }
-        return fields.toArray(new String[]{});
+        return fields.toArray(new String[] {});
     }
 }
