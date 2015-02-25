@@ -7,24 +7,17 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
+import org.hps.util.BasicLogFormatter;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -33,6 +26,7 @@ import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.util.Driver;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written
@@ -46,8 +40,8 @@ import org.lcsim.util.Driver;
  */
 public class HpsGblRefitter extends Driver
 {
-    //private static Logger logger = LogUtil.create(HpsGblRefitter.class);
-    private static final Logger logger = Logger.getLogger(HpsGblRefitter.class.getName());
+    private static Logger logger = LogUtil.create(HpsGblRefitter.class, new BasicLogFormatter());
+    //private static final Logger logger = Logger.getLogger(HpsGblRefitter.class.getName());
     private boolean _debug = false;
     private final String trackCollectionName = "MatchedTracks";
     private final String track2GblTrackRelationName = "TrackToGBLTrack";
@@ -77,9 +71,8 @@ public class HpsGblRefitter extends Driver
     public HpsGblRefitter()
     {
         _makeTracks = new MakeGblTracks();
-        Handler handler = new StreamHandler(System.out, new BasicLogFormatter());
-        logger.addHandler(handler);
-        logger.setLevel(Level.WARNING);
+        logger.setLevel(Level.INFO);
+        
     }
 
     @Override
@@ -762,36 +755,6 @@ public class HpsGblRefitter extends Driver
             #dmdg = np.array([[dmu_du, dmu_dv],[dmu_dw, dmu_dalpha], [dmw_dbeta, dmw_dgamma]])
             return dmdg
          */
-    }
-    
-    
-    public static class BasicLogFormatter extends Formatter {
-        private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-        public String format(LogRecord record) {
-            StringBuilder sb = new StringBuilder();
-            System.out.printf("%s: format called\n",getClass().getSimpleName());
-            sb.append(new Date(record.getMillis()))
-                .append(" KUK ")
-                .append(record.getLevel().getLocalizedName())
-                .append(": ")
-                .append(formatMessage(record))
-                .append(LINE_SEPARATOR);
-
-            if (record.getThrown() != null) {
-                try {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    record.getThrown().printStackTrace(pw);
-                    pw.close();
-                    sb.append(sw.toString());
-                } catch (Exception ex) {
-                    // ignore
-                }
-            }
-
-            return sb.toString();
-        }
-        
     }
 }
 
