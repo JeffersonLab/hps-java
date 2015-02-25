@@ -20,17 +20,6 @@
     </scm>
     <build>              
         <plugins>
-<!--    
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <skip>true</skip>
-                    <skipDeploy>true</skipDeploy>
-                </configuration>
-            </plugin>        
--->            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -71,7 +60,6 @@
         </plugins>
     </build>
     <dependencies>
-        <!-- This next dep pulls in analysis et al. transitively. -->
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-users</artifactId>
