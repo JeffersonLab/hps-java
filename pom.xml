@@ -107,14 +107,6 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-record-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-evio</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
         </dependency>       
         <dependency>
@@ -122,28 +114,8 @@
             <artifactId>hps-steering-files</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-users</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jfreechart-aida-experimental</groupId>
-            <artifactId>jfreechart-aida-experimental</artifactId>
-            <version>1.5</version>
-            <exclusions>
-                <exclusion>  
-                    <groupId>jdom</groupId>
-                    <artifactId>jdom</artifactId>
-                </exclusion>
-                <exclusion>  
-                    <groupId>commons-math</groupId>
-                    <artifactId>commons-math</artifactId>
-                </exclusion>
-            </exclusions>             
-        </dependency>
-        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.9.9-RC1</version>
         </dependency>
     </dependencies>
 </project>
