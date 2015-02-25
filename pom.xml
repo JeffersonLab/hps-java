@@ -138,8 +138,9 @@
         <module>ecal-recon</module>
         <module>evio</module>
         <module>integration-tests</module>
-        <module>monitoring-app</module>
+        <module>monitoring-util</module>
         <module>monitoring-drivers</module>
+        <module>monitoring-app</module>
         <module>parent</module>
         <module>plugin</module>
         <module>recon</module>

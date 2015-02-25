@@ -14,7 +14,6 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-util/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-util/</developerConnection>
     </scm>
-    <build>
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
@@ -27,17 +26,6 @@
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
             <artifactId>jfreechart-aida-experimental</artifactId>
-            <version>1.5</version>
-            <exclusions>
-                <exclusion>  
-                    <groupId>jdom</groupId>
-                    <artifactId>jdom</artifactId>
-                </exclusion>
-                <exclusion>  
-                    <groupId>commons-math</groupId>
-                    <artifactId>commons-math</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>
