@@ -1,39 +1,25 @@
 package org.hps.users.celentan;
 
 
+import hep.aida.ICloud1D;
+import hep.aida.IHistogram1D;
+
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.geometry.Detector;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawCalorimeterHit;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.base.BaseRawCalorimeterHit;
-
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
-import hep.aida.IPlotterFactory;
-import hep.aida.IHistogramFactory;
-import hep.aida.ICloud1D;
-import hep.aida.ICloud2D;
-
-
-import org.hps.recon.ecal.ECalUtils;
-import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
-import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalLed;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
+import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.Detector;
+import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 
 public class LedAnalysis extends Driver{
 	
@@ -84,8 +70,8 @@ public class LedAnalysis extends Driver{
 	    LedTopMap = new HashMap< Integer , Integer >(); //key: ecal channel ID. Value: 
 	    LedBotMap = new HashMap< Integer , Integer >();	
 		
-        ChannelCollection = conditionsManager.getCachedConditions(EcalChannel.EcalChannelCollection.class, "ecal_channels").getCachedData();	
-		LedCollection = conditionsManager.getConditionsData(EcalLedCollection.class, TableConstants.ECAL_LEDS);
+        ChannelCollection = conditionsManager.getCollection(EcalChannelCollection.class);	
+		LedCollection = conditionsManager.getCollection(EcalLedCollection.class);
 		
 		for (EcalChannel channel : ChannelCollection){
 			chid = channel.getChannelId();

@@ -30,7 +30,7 @@ public class EcalLedTest extends TestCase {
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         
         // LED channel information.
-        EcalLedCollection leds = manager.getConditionsData(EcalLedCollection.class, TableConstants.ECAL_LEDS);
+        EcalLedCollection leds = manager.getCollection(EcalLedCollection.class);
         for (EcalLed led : leds) {    	
         	System.out.println(led);
         }

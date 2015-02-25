@@ -1,7 +1,5 @@
 package org.hps.conditions.beam;
 
-import static org.hps.conditions.database.TableConstants.BEAM_CURRENT;
-
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -11,7 +9,6 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.beam.BeamCurrent.BeamCurrentCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
@@ -78,7 +75,7 @@ public class BeamCurrentTest extends TestCase {
         public void process(EventHeader event) {
             if (currentRun != event.getRunNumber()) {
                 currentRun = event.getRunNumber();
-                BeamCurrentCollection collection = ConditionsManager.defaultInstance().getCachedConditions(BeamCurrentCollection.class, BEAM_CURRENT).getCachedData();
+                BeamCurrentCollection collection = DatabaseConditionsManager.getInstance().getCollection(BeamCurrentCollection.class);
                 BeamCurrent beamCurrent = collection.iterator().next();
                 System.out.println("Run " + event.getRunNumber() + " has integrated beam current " + beamCurrent.getIntegratedBeamCurrent() + " nC.");
                 assertEquals("Wrong beam current for run.", beamCurrentAnswerKey.get(currentRun), beamCurrent.getIntegratedBeamCurrent());
