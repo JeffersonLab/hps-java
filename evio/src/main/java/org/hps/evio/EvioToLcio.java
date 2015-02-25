@@ -153,8 +153,13 @@ public class EvioToLcio {
         // Set the log level.
         if (cl.hasOption("L")) {
             Level level = Level.parse(cl.getOptionValue("L").toUpperCase());
+            
+            // Set log level on this class.
             logger.config("setting log level to " + level);
             logger.setLevel(level);
+            
+            // Set log level on conditions manager.
+            DatabaseConditionsManager.getInstance().setLogLevel(level);
         }
 
         // Add all extra arguments to the EVIO file list.
