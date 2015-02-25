@@ -28,6 +28,8 @@ import org.hps.recon.tracking.MultipleScattering.ScatterPoints;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.lcsim.constants.Constants;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
@@ -43,15 +45,10 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
-/**
 
-* 
-* @author Per Hansson Adrian <phansson@slac.stanford.edu>
-* @version $Id: GBLOutput.java,v 1.17 2013/11/07 03:30:18 phansson Exp $ $Date: 2013/11/07 03:30:18 $ $Author: phansson $  
-* 
-*/
 /**
- * @author phansson
+ * Calculate the input needed for Millepede minimization.
+ * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  *
  */
 public class GBLOutput {
@@ -258,14 +255,26 @@ public class GBLOutput {
             
             for(HelicalTrackStrip stripOld : strips) {
                 HelicalTrackStripGbl strip = new HelicalTrackStripGbl(stripOld, true);
-                if(_debug>0) System.out.printf("%s: layer %d\n",this.getClass().getSimpleName(),strip.layer());
+                
+                // find Millepede layer definition from DetectorElement
+                IDetectorElement de = ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement();
+                HpsSiSensor sensor;
+                if( de instanceof HpsSiSensor) {
+                    sensor = (HpsSiSensor) de;
+                } else {
+                    throw new ClassCastException("Detector element " + de.getName() + " couldn't be casted to " + HpsSiSensor.class.getName());
+                }
+
+                int millepedeId = sensor.getMillepedeId();
+               
+                if(_debug>0) System.out.printf("%s: layer %d millepede %d (DE=\"%s\", origin %s) \n",this.getClass().getSimpleName(),strip.layer(), millepedeId, sensor.getName(), strip.origin().toString());
                 
                 if(textFile != null) {
-                	textFile.printStrip(istrip,strip.layer());
+                	textFile.printStrip(istrip,millepedeId);
                 }
                 
                 //GBLDATA
-                GBLStripClusterData stripData = new GBLStripClusterData(strip.layer());
+                GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
                 //Add to output list
                 stripClusterDataList.add(stripData);
                 
@@ -420,7 +429,7 @@ public class GBLOutput {
                 
                 
                 
-                if(_debug>0) System.out.printf("layer %d uRes %.10f\n",strip.layer(),res_meas.x());
+                if(_debug>0) System.out.printf("layer %d millePedeId %d uRes %.10f\n",strip.layer(), millepedeId ,res_meas.x());
                 
                 // sim hit residual
                 
