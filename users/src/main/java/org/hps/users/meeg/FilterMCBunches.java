@@ -40,6 +40,10 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  */
 public class FilterMCBunches {
 
+    static {
+        LCSimConditionsManagerImplementation.register();
+    }
+    
     /**
      * Defines command line options for this program.
      *
