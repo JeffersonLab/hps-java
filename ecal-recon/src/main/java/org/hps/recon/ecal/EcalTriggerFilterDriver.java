@@ -5,10 +5,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -72,8 +71,7 @@ public class EcalTriggerFilterDriver extends Driver {
         systemId = detector.getSubdetector("Ecal").getSystemID();
 
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 
         System.out.println("You are now using the database conditions for EcalTriggerFilterDriver.");
     }

@@ -3,10 +3,9 @@ package org.hps.recon.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
@@ -84,8 +83,7 @@ public class EcalReadoutToTriggerConverterDriver extends Driver {
     public void detectorChanged(Detector detector) {
 
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 
         System.out.println("You are now using the database conditions for EcalReadoutToTriggerConverterDriver.");
     }

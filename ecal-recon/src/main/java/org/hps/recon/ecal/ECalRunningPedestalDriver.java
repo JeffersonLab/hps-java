@@ -5,11 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.HitExtraData;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
@@ -80,10 +78,7 @@ public class ECalRunningPedestalDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-        ecalConditions = ConditionsManager
-                .defaultInstance()
-                .getCachedConditions(EcalConditions.class,
-                        TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         for (int ii = 0; ii < nChannels; ii++) {
             EcalChannel chan = findChannel(ii + 1);
             runningPedestals.put(chan,getStaticPedestal(chan));

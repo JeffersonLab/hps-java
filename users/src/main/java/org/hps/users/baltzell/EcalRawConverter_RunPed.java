@@ -1,15 +1,13 @@
 package org.hps.users.baltzell;
 
-import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.ECalUtils;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -171,8 +169,7 @@ public class EcalRawConverter_RunPed {
      */
     public void setDetector(Detector detector) {
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
     }
 
     /**

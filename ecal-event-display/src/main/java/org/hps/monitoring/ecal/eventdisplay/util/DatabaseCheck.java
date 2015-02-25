@@ -9,13 +9,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalLed;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
-import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 public class DatabaseCheck {
@@ -44,7 +42,7 @@ public class DatabaseCheck {
 		conditionsManager.setDetector(detectorName, runNumber);
 		
 		// Get ECAL conditions.
-		EcalConditions ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData(); 
+		EcalConditions ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions(); 
 		
 		// Get the list of EcalChannel objects.
 		EcalChannelCollection channels = ecalConditions.getChannelCollection();

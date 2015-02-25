@@ -22,11 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -87,7 +86,7 @@ public class EcalCosmicClusterPlotsDriver extends Driver {
     }
 
     public void detectorChanged(Detector detector) {
-        conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         channels = conditions.getChannelCollection();
         for (EcalChannel channel : conditions.getChannelCollection()) {
             IProfile1D profile = aida.profile1D(inputClusterCollectionName + "/ADC Values : Channel " + String.format("%03d", channel.getChannelId()), 100, 0, 100);

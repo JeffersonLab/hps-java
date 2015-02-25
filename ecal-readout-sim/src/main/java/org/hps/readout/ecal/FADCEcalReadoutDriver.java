@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
@@ -30,7 +30,6 @@ import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-import org.hps.util.RandomGaussian;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
@@ -476,8 +475,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         ecal = detector.getSubdetector(ecalName);
         
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
         resetFADCBuffers();
     }

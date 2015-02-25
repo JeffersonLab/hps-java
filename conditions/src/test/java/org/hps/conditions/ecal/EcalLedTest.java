@@ -3,7 +3,6 @@ package org.hps.conditions.ecal;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 //import org.hps.conditions.config.DevReadOnlyConfiguration;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
 import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;

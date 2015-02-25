@@ -6,10 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 
 public class TriggerConfig {
 
@@ -103,10 +102,7 @@ public class TriggerConfig {
     private List<EcalChannel> channels=new ArrayList<EcalChannel>();
     
     public TriggerConfig() {
-        ecalConditions = ConditionsManager
-                .defaultInstance()
-                .getCachedConditions(EcalConditions.class,
-                        TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         for (int ii = 0; ii < 442; ii++) {
             channels.add(findChannel(ii+1));
         } 

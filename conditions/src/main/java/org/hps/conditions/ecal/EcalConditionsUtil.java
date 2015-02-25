@@ -1,7 +1,6 @@
 package org.hps.conditions.ecal;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
@@ -30,7 +29,7 @@ public final class EcalConditionsUtil {
      * conditions manager instance.
      */
     public EcalConditionsUtil() {
-        conditions = DatabaseConditionsManager.getInstance().getConditionsData(EcalConditions.class, TableConstants.ECAL_CONDITIONS);
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();
     }
 
     /**

@@ -5,10 +5,9 @@ import hep.aida.IHistogram1D;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
@@ -78,9 +77,7 @@ public class EcalPedestalCalculator extends Driver {
         if (nDetectorChanges++ > 1) {
             throw new RuntimeException("No Detector Change Allowed.");
         }
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class,TableConstants.ECAL_CONDITIONS)
-                .getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 
         aida.tree().cd("/");
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {

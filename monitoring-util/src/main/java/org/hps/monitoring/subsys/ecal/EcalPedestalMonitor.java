@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
@@ -12,12 +12,10 @@ import org.hps.monitoring.plotting.StripChartUtil;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import hep.aida.IPlotterFactory;
 /*
  * Reads output of org.hps.recon.ecal.RunningPedestalDriver and makes strip charts.
  * Baltzell
@@ -51,9 +49,7 @@ public class EcalPedestalMonitor extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class,TableConstants.ECAL_CONDITIONS)
-                .getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         /*
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             final int crate = cc.getCrate();

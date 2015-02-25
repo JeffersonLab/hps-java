@@ -7,21 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.DaqId;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
-import org.hps.recon.ecal.HitExtraData.Mode7Data;
 import org.hps.recon.ecal.HitExtraData;
+import org.hps.recon.ecal.HitExtraData.Mode7Data;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
@@ -77,9 +76,6 @@ public class ECalEvioReader extends EvioReader {
         hitCollectionName = "EcalReadoutHits";
 
         logger.setLevel(Level.FINE);
-        //System.out.println("You are now using the database conditions for ECalEvioReader.java");
-        // ID helper.
-//        helper = detector.getSubdetector("Ecal").getDetectorElement().getIdentifierHelper();
     }
 
     public void setTopBankTag(int topBankTag) {
@@ -418,8 +414,7 @@ public class ECalEvioReader extends EvioReader {
         subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
 
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 
         helper = subDetector.getDetectorElement().getIdentifierHelper();
     }

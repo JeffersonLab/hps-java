@@ -7,36 +7,23 @@
 package org.hps.users.luca;
 
 
-import org.lcsim.util.Driver;
 import hep.aida.IHistogram1D;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.hps.conditions.database.TableConstants;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.readout.ecal.FADCEcalReadoutDriver;
-import org.hps.readout.ecal.RingBuffer;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 
@@ -79,11 +66,9 @@ public class Pass2CalibAnalyzer extends Driver  {
         
       /*  // ECAL combined conditions object.
         ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();*/
-        
-        
-        
-        ecalConditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();*/        
+                
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
          channels = ecalConditions.getChannelCollection();
     }  
    @Override   

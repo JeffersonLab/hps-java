@@ -11,12 +11,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.EcalRawConverter;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -41,7 +40,7 @@ public class EcalADCSumPlotsDriver extends Driver {
 
     public void detectorChanged(Detector detector) {
 
-        conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
         ecalRawConverter = new EcalRawConverter();
         ecalRawConverter.setDetector(null);

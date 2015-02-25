@@ -1,11 +1,17 @@
 package org.hps.evio;
 
+import static org.hps.evio.EventConstants.ECAL_BANK_NUMBER;
+import static org.hps.evio.EventConstants.ECAL_BOTTOM_BANK_TAG;
+import static org.hps.evio.EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG;
+import static org.hps.evio.EventConstants.ECAL_PULSE_INTEGRAL_FORMAT;
+import static org.hps.evio.EventConstants.ECAL_TOP_BANK_TAG;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalConditions;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.CompositeData;
@@ -13,7 +19,6 @@ import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
@@ -21,8 +26,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
-
-import static org.hps.evio.EventConstants.*;
 
 /**
  *
@@ -55,8 +58,7 @@ public class ECalHitWriter implements HitWriter {
         subDetector = detector.getSubdetector(subdetectorName);
 
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
 
         System.out.println("You are now using the database conditions for ECalHitWriter.java");
     }

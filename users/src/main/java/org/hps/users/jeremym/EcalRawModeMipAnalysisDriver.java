@@ -8,12 +8,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
@@ -43,7 +42,7 @@ public class EcalRawModeMipAnalysisDriver extends Driver {
     int minNeighbors = 1;
     
     public void detectorChanged(Detector detector) {
-        conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();        
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();        
         channels = conditions.getChannelCollection();
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
         if (ecal == null) {

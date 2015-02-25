@@ -22,7 +22,6 @@ import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.FieldValueMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableConstants;
 import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.ecal.EcalCalibration;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
@@ -137,7 +136,7 @@ public class EcalCalibrationsDriver extends Driver {
     @Override
     public void detectorChanged(Detector detector) {        
         conditionsManager = DatabaseConditionsManager.getInstance();
-        ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
         // Create a histogram for every ECAL channel.
         for (EcalChannel channel : ecalConditions.getChannelCollection()) {

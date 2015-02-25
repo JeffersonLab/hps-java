@@ -2,10 +2,10 @@ package org.hps.users.baltzell;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.hps.conditions.database.TableConstants;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -113,8 +113,7 @@ public class EcalRawConverterDriver_RunPed extends Driver {
         converter.setDetector(detector);
 
         // ECAL combined conditions object.
-        ecalConditions = ConditionsManager.defaultInstance()
-                .getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
     }
 
     /**

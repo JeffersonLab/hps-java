@@ -7,11 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -36,7 +35,7 @@ public class RawModeADCProfileDriver extends Driver {
     }
         
     public void detectorChanged(Detector detector) {
-        conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         channels = conditions.getChannelCollection();
         for (EcalChannel channel : conditions.getChannelCollection()) {            
             // Create ADC profile histogram, assuming ADC sample values of 0 to 99, with profile range -0.5 to 99.5, so bins are centered.

@@ -5,12 +5,11 @@ import hep.aida.IAnalysisFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.conditions.database.TableConstants;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -83,7 +82,7 @@ public class RawModeHitSelectionDriver extends Driver {
      */
     public void detectorChanged(Detector detector) {
         ecal = (HPSEcal3)detector.getSubdetector(ecalName);
-        conditions = ConditionsManager.defaultInstance().getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+        conditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         channels = conditions.getChannelCollection();
     }
 
