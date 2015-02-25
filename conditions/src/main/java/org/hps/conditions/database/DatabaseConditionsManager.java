@@ -23,8 +23,10 @@ import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.api.ConditionsSeries;
+import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
+import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.SvtDetectorSetup;
 import org.hps.conditions.svt.TestRunSvtConditionsConverter;
@@ -632,6 +634,14 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
             }
         }        
         return conditionsRecords;
+    }
+    
+    public EcalConditions getEcalConditions() {
+        return this.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
+    }
+    
+    public SvtConditions getSvtConditions() {
+        return this.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
     }
     
     /**
