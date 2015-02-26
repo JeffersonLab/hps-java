@@ -15,7 +15,10 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10000</eventInterval>            
         </driver>
-        <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis"/>         
+        <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
+           <useRawEnergy>true</useRawEnergy>
+        </driver>
+             
         <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}</outputFilePath>
         </driver>
