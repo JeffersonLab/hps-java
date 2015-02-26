@@ -111,7 +111,7 @@ public class LedAnalysis extends Driver{
         ChannelCollection = conditionsManager.getCollection(EcalChannelCollection.class);	
 		LedCollection = conditionsManager.getCollection(EcalLedCollection.class);
 	//	ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-		ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
+		ecalConditions = conditionsManager.getEcalConditions();
 		
 		
 		for (EcalChannel channel : ChannelCollection){
