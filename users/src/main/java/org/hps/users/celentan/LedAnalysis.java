@@ -3,6 +3,16 @@ package org.hps.users.celentan;
 
 import hep.aida.ICloud1D;
 import hep.aida.IHistogram1D;
+import hep.aida.IProfile1D;
+import hep.aida.ITuple;
+import hep.aida.IFunction;
+import hep.aida.IPlotter;
+import hep.aida.IFitter;
+import hep.aida.IFitResult;
+
+
+import hep.aida.IFunctionFactory;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,8 +22,12 @@ import java.util.Map;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalLed;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.recon.ecal.ECalUtils;
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -96,7 +110,8 @@ public class LedAnalysis extends Driver{
 		
         ChannelCollection = conditionsManager.getCollection(EcalChannelCollection.class);	
 		LedCollection = conditionsManager.getCollection(EcalLedCollection.class);
-		ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+	//	ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+		ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
 		
 		
 		for (EcalChannel channel : ChannelCollection){
