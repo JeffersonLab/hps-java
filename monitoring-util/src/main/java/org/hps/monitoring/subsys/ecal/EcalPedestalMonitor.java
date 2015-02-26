@@ -18,22 +18,34 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 /*
  * Reads output of org.hps.recon.ecal.RunningPedestalDriver and makes strip charts.
+ * 
+ * Are we going to lose/reinitialize these plots when run ends?
+ * Or can we keep on going off ET-ring across runs?
+ * 
  * Baltzell
  */
 public class EcalPedestalMonitor extends Driver {
 
+    long previousTime;
+    long currentTime;
+    int refreshRate=1000; // units = ms
+   
+    int nDetectorChanges=0;
+   
     int maxAge = 999999999;
     int maxCount = 100000;
     int rangeSize = 100000;
+   
+    // None of this "works":
+    //int maxAge = 86400000; // 1 day (units ms)
+    //int maxCount = 999999999;//(int)maxAge/refreshRate;
+    //int rangeSize = 999999999;//maxAge; // what is this?
    
     final int crates[]={1,2};
     final int slots[]={3,4,5,6,7,8,9,14,15,16,17,18,19,20};
     
     String collectionName = "EcalRunningPedestals";
     
-//    static {
-//        org.hps.monitoring.plotting.MonitoringAnalysisFactory.register();
-//    }
     MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance()
             .analysisFactory().createPlotterFactory("ECal Pedestal Monitoring");
 
@@ -45,38 +57,36 @@ public class EcalPedestalMonitor extends Driver {
     public void startOfData() {
         //plotFactory.createStripChart("X","Y",maxAge,maxCount,rangeSize);
         plotFactory.create().show();
+        
+        //System.out.println("----------------------------    "+maxCount);
     }
 
     @Override
     public void detectorChanged(Detector detector) {
+        
+        // this would defeat the purpose.
+        if (nDetectorChanges++ > 0) return;
+        
+        currentTime=0;
+        previousTime=0;
+        
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
-        /*
-        for (EcalChannel cc : ecalConditions.getChannelCollection()) {
-            final int crate = cc.getCrate();
-            final int slot = cc.getSlot();
-            if (!stripCharts.containsKey(crate)) {
-                stripCharts.put(crate,new HashMap<Integer, JFreeChart>());
-            }
-            if (!stripCharts2.containsKey(crate)) {
-                stripCharts2.put(crate,new HashMap<Integer, TimeSeries>());
-            }
-            if (!stripCharts.get(crate).containsKey(slot)) {
-                String name = String.format("C%dS%02d",crate,slot);
-                JFreeChart stripChart = plotFactory.createStripChart(name,"asdf",
-                        maxAge,maxCount,rangeSize);
-                stripCharts.get(crate).put(slot,stripChart);
-                stripCharts2.get(crate).put(slot,StripChartUtil.getTimeSeries(stripChart));
-            }
-        }
-        */
+        
         // put them in order:
         for (int crate : crates) {
             stripCharts.put(crate,new HashMap<Integer, JFreeChart>());
             stripCharts2.put(crate,new HashMap<Integer, TimeSeries>());
             for (int slot : slots) {
+                
+                final double ped=getAveragePedestal(crate,slot);
+                
                 String name = String.format("C%dS%02d",crate,slot);
                 JFreeChart stripChart = plotFactory.createStripChart(name,"asdf",
                         maxAge,maxCount,rangeSize);
+//                stripChart.getXYPlot().getRangeAxis().setRange(70,140);
+//                stripChart.getXYPlot().getRangeAxis().setFixedAutoRange(10);
+//                stripChart.getXYPlot().getRangeAxis().setAutoRange(true);
+                stripChart.getXYPlot().getRangeAxis().setRangeAboutValue(ped,10);
                 stripCharts.get(crate).put(slot,stripChart);
                 stripCharts2.get(crate).put(slot,StripChartUtil.getTimeSeries(stripChart));
             }
@@ -89,6 +99,10 @@ public class EcalPedestalMonitor extends Driver {
         if (!event.hasItem(collectionName)) {
             return;
         }
+
+        currentTime=System.currentTimeMillis();
+        if (currentTime - previousTime < refreshRate) return;
+        previousTime=currentTime;
 
         // get the running pedestals:
         Map<EcalChannel, Double> peds = (Map<EcalChannel, Double>) event.get(collectionName);
@@ -125,5 +139,34 @@ public class EcalPedestalMonitor extends Driver {
             }
         }
 
+    }
+    
+    
+    public EcalChannel findChannel(int crate, int slot, int chan) {
+        for (EcalChannel cc : ecalConditions.getChannelCollection()) {
+            if (crate == cc.getCrate() && slot == cc.getSlot() && chan == cc.getChannel()) {
+                return cc;
+            }
+        }
+        throw new RuntimeException(String.format(
+                "Could not find channel:  (crate,slot,channel)=(%d,%d,%d)",crate,slot,chan));
+    }
+
+    public double getAveragePedestal(int crate,int slot)
+    {
+        int nsum=0;
+        double sum=0;
+        for (int chan=0; chan<16; chan++) {
+            for (EcalChannel cc : ecalConditions.getChannelCollection()) {
+                if (cc.getCrate()!=crate || cc.getSlot()!=slot || cc.getChannel()!=chan) continue;
+                sum += getStaticPedestal(crate,slot,chan);
+                nsum ++;
+            }
+        }
+        return (nsum>0 ? sum/nsum : sum);
+    }
+
+    public double getStaticPedestal(int crate, int slot, int chan) {
+        return ecalConditions.getChannelConstants(findChannel(crate,slot,chan)).getCalibration().getPedestal();
     }
 }
