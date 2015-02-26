@@ -21,6 +21,9 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+/* This is the driver used to determine the response of each calorimeter channel after a LED run
+ * @author Andrea Celentano  <andrea.celentano@ge.infn.it>
+ */
 public class LedAnalysis extends Driver{
 	
 	private static final int NUM_CHANNELS = 11 * 47;
@@ -31,10 +34,14 @@ public class LedAnalysis extends Driver{
 		
 	DatabaseConditionsManager conditionsManager;
 	
-	EcalChannelCollection ChannelCollection;	
-    EcalLedCollection LedCollection;
+	private EcalChannelCollection ChannelCollection;	
+    private EcalLedCollection LedCollection;
+    private EcalConditions ecalConditions;
+    
     Map < Integer,Integer > LedTopMap;
     Map < Integer,Integer > LedBotMap;
+    
+    private boolean useRawEnergy=false;
     
     private int id,row,column,chid,ledid,driverid;
     private int eventN = 0;
@@ -55,14 +62,31 @@ public class LedAnalysis extends Driver{
 			
 	private int[] iStep = new int[nDrivers];
 	private int[] nEvents = new int[NUM_CHANNELS];
+	
+	private double energy,rawEnergy;
+	private long cellID;
 	//Histograms
+	private ArrayList<ITuple> iTuple;
+	private ArrayList<IProfile1D> cProfile;
+	private ArrayList<IFunction> fFunction;
+	
 	private ArrayList<IHistogram1D> hRaw;
-	private ArrayList<ICloud1D> hStrip;
+	private ArrayList<IHistogram1D> hStrip;
+
+    public void setUseRawEnergy(boolean useRawEnergy) {
+        this.useRawEnergy=useRawEnergy;
+    }
+	
+	
 	
 	@Override
 	protected void detectorChanged(Detector detector) {
 		System.out.println("LedAnalysis::Detector changed was called");
 
+		for (int ii=0;ii<nDrivers;ii++){
+			iStep[ii]=-1;
+		}
+		
 		// Setup conditions
 		
 		conditionsManager = DatabaseConditionsManager.getInstance();
@@ -72,6 +96,8 @@ public class LedAnalysis extends Driver{
 		
         ChannelCollection = conditionsManager.getCollection(EcalChannelCollection.class);	
 		LedCollection = conditionsManager.getCollection(EcalLedCollection.class);
+		ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
+		
 		
 		for (EcalChannel channel : ChannelCollection){
 			chid = channel.getChannelId();
@@ -93,19 +119,20 @@ public class LedAnalysis extends Driver{
 		aida.tree().cd("/");
 		
 	  //  IPlotterFactory factory= aida.analysisFactory().createPlotterFactory("ECAL DAQ Plots");
+		iTuple = new ArrayList<ITuple>(NUM_CHANNELS);
+		cProfile= new ArrayList<IProfile1D>(NUM_CHANNELS);
+		fFunction= new ArrayList<IFunction>(NUM_CHANNELS);
 		
 		hRaw = new ArrayList<IHistogram1D>(NUM_CHANNELS);
-		hStrip = new ArrayList<ICloud1D>(NUM_CHANNELS);
+		hStrip = new ArrayList<IHistogram1D>(NUM_CHANNELS);
 		
 		
 		
 		for (int ii=0;ii<NUM_CHANNELS;ii++){
 			int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
-			int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
-			
-			// Initialize the histograms for the current crystal channel.
-			hRaw.add(aida.histogram1D("h1_"+ii, 1000, -1,30));
-			hStrip.add(aida.cloud1D("strip_"+ii,100000));
+			int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);	    
+	    	iTuple.add(aida.analysisFactory().createTupleFactory(aida.tree()).create("nTuple"+ii,"nTuple"+ii,"int fEvn=0 , double fCharge=0.",""));
+	    	
 		}
 		
 	}		
@@ -121,9 +148,19 @@ public class LedAnalysis extends Driver{
 				column = hit.getIdentifierFieldValue("ix");
 				row = hit.getIdentifierFieldValue("iy");
 				id = EcalMonitoringUtilities.getHistoIDFromRowColumn(row, column);
-							
+				cellID=hit.getCellID();
+				energy = hit.getCorrectedEnergy();
+				
+				if (useRawEnergy){
+					rawEnergy = getRawADCSum(energy,cellID);
+				}
+				else {
+					rawEnergy = energy;
+				}
+				
+				
 				//find the LED
-				chid = ChannelCollection.findGeometric(hit.getCellID()).getChannelId();
+				chid = ChannelCollection.findGeometric(cellID).getChannelId();
 				if (row>0){
 					ledid=LedTopMap.get(chid);
 				}
@@ -137,13 +174,22 @@ public class LedAnalysis extends Driver{
 				if (iStep[driverid]<(nSteps-1)){
 					if (ledid==LEDStep[driverid][iStep[driverid]+1]){
 						iStep[driverid]++;
-						System.out.println("LedAnalysis:: increment step "+driverid+" "+ledid+" "+column+" "+row+" "+id);
+						System.out.println("LedAnalysis:: increment step for driver "+driverid+" "+ledid+" "+column+" "+row+" "+id);
 					}	
 				}
+			
+				if (iStep[driverid]==-1) continue;
+				
 				/*Case 1: this led is the one in the corresponding step*/;
 				if (ledid==LEDStep[driverid][iStep[driverid]]){
-					hRaw.get(id).fill(hit.getCorrectedEnergy());
-					hStrip.get(id).fill(nEvents[id],hit.getCorrectedEnergy());
+					//hRaw.get(id).fill(rawEnergy);
+					//cStrip.get(id).fill(nEvents[id],rawEnergy);
+					
+					iTuple.get(id).fill(0,nEvents[id]);
+					iTuple.get(id).fill(1,rawEnergy);
+					iTuple.get(id).addRow();
+					
+				
 					nEvents[id]++;
 				}
 				else{	/*Case 2: this led is not one in the corresponding step (but maybe is the neighborhood??Ctalk??)*/;
@@ -153,10 +199,104 @@ public class LedAnalysis extends Driver{
 		   }		
 	   }		
 	}
+	
+	/*
+	 * The endOfData() method analises each ntuple to find the LED response.
+	 * We cannot simply fit a gaussian to the energy distribution, since there is a high-energy tail due to the LED being turned on:
+	 * When the LED turns on, it is "cold", and emits more light. Immediately, it starts to heat, and due to temperature effects the
+	 * emitted light is less. This is clearly visible if one plots the charge VS the event number: the trend is decreasing, toward a
+	 * plateau, that corresponds to the value at thermal equilibrium.
+	 * 
+	 * For (few) channels, the first charge values are close to 0, then charge grows rapidly, then it returns back to the plateau.
+	 * To handle these, I always cut the first 10% events
+	 * To properly handle this:
+	 * 
+	 * 1) First create a profile histogram, charge VS event number.
+	 * 2) Fit it with something like "A*exp(-event_number/N0)+C. The function does not need to be extra-accurate at this stage
+	 * 3) Cut the events with event_number < 5*N0.
+	 * 4) Fit the remaining events with a gaussian.
+	 */
 	@Override
 	public void endOfData() {
 		System.out.println("LedAnalysis::end of data");
-	}	
+		
+		
+		double e,eMin,eMax;
+		int n,nBins;
+		
+		double skip=0.1;
+		
+		IFunctionFactory fFactory=aida.analysisFactory().createFunctionFactory(aida.tree());
+		IPlotter pPlotter= aida.analysisFactory().createPlotterFactory().create();
+	    IFitResult fResult;
+		IFitter	   fFitter;
+	    
+		for (int id = 0; id < 11 * 47; id++) {
+	           
+			  eMin=9999;
+			  eMax=-9999;
+		      row = EcalMonitoringUtilities.getRowFromHistoID(id);
+              column = EcalMonitoringUtilities.getColumnFromHistoID(id);
+              
+			  /*Create the profile. Create it for all the channels, to keep sync.*/
+              nBins=nEvents[id]/100;
+              if (nBins<=0) nBins=1;
+              cProfile.add(aida.profile1D("strip_"+id,nBins,-0.5,nEvents[id]*(1-skip)+0.5));
+
+			  /*Create the function for the profile fit*/
+			  /* Create it for all the channels, to keep sync.*/
+			  fFunction.add(fFactory.createFunctionFromScript("fun0_"+id,1,"A*exp(-x[0]/tau)+B","A,tau,B","",null));
+
+              
+			  if (EcalMonitoringUtilities.isInHole(row,column)==true) continue;
+			  if (nEvents[id]==0) {
+				  //System.out.println("LedAnalysis: channel x= "+column+" y= "+row+" not found");
+				  continue;
+			  }			  
+			
+			  /*Fill the profile*/
+			  iTuple.get(id).start();
+			  iTuple.get(id).skip((int)(nEvents[id]*skip)); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+			  n=0;
+			  while ( iTuple.get(id).next() ){
+				  e=iTuple.get(id).getDouble(1);
+				  if (e>eMax) eMax=e;
+				  if (e<eMin) eMin=e;
+				  cProfile.get(id).fill(1.*n,e);
+				  n++;
+			  }			
+			  
+
+			  /*Init function parameters*/
+			  double[] initialPars= {eMax-eMin,1.*(nEvents[id]/10),eMin};
+			  fFunction.get(id).setParameters(initialPars);
+			  
+			  /*Do the fit*/
+			  fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","V");
+			  System.out.println("LedAnalysis:: do fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
+			  fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
+			  double[] fPars     = fResult.fittedParameters();
+			  double[] fParErrs  = fResult.errors();
+			  String[] fParNames = fResult.fittedParameterNames();			
+			  System.out.println("Chi2 = "+fResult.quality());
+			  for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
+				  System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
+			  }
+			  System.out.println("LedAnalysis:: fit "+id+" done \n");  
+			  /*plot*/
+			  pPlotter.region(0).clear();
+			  pPlotter.region(0).plot(cProfile.get(id));
+			  pPlotter.region(0).plot(fFunction.get(id));
+			//  plotter.show();
+			  
+			  if (useRawEnergy){
+				    	eMin=eMin/.2; //@TODO do this better
+				    	eMax=eMax/.2; //@TODO do this better
+			  }
+			  
+	 	}
+	}
+		  
 	
 	/**
 	 * This function returns the driver number (from 0 to 3) given the LED id.
@@ -170,5 +310,23 @@ public class LedAnalysis extends Driver{
 		else if ((led>=112)&&(led<168)) ret=2;
 		else if ((led>=168)&&(led<224)) ret=3;
 		return ret;
+	}
+	
+/**
+ * Very simple method to retreive the pedestal-subtracted raw Energy.
+ * If the gain changes (because we do a re-calibration), I do not want to include this in the LED analysis
+ * @param energy
+ * @param cellID
+ * @return
+ */
+	public double getRawADCSum(double energy,long cellID){
+		  EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
+		  double RawSum=energy / ECalUtils.GeV;
+		  double gain=channelData.getGain().getGain();
+		  double ret=RawSum/gain;
+		//  System.out.println("A:C "+RawSum+" "+ret);
+		  
+		  return ret;
+	
 	}
 }	
