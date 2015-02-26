@@ -283,12 +283,13 @@ public class LedAnalysis extends Driver{
 			  
 
 			  /*Init function parameters*/
-			  double[] initialPars= {eMax-eMin,1.*(nEvents[id]/10),eMin};
+			  double[] initialPars={eMax-eMin,1.*(nEvents[id]/5),eMin};
 			  fFunction.get(id).setParameters(initialPars);
 			  
 			  /*Do the fit*/
 			  fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","V");
 			  System.out.println("LedAnalysis:: do fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
+			  System.out.println("LedAnalysis:: parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
 			  fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
 			  double[] fPars     = fResult.fittedParameters();
 			  double[] fParErrs  = fResult.errors();
@@ -296,7 +297,8 @@ public class LedAnalysis extends Driver{
 			  System.out.println("Chi2 = "+fResult.quality());
 			  for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
 				  System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
-			  }
+			  }  
+			  fFunction.get(id).setParameters(fPars);
 			  System.out.println("LedAnalysis:: fit "+id+" done \n");  
 			  /*plot*/
 			  pPlotter.region(0).clear();
