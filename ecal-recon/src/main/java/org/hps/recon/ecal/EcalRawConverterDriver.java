@@ -20,6 +20,11 @@ import org.lcsim.util.Driver;
  *
  * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
  * phansson Exp $
+ *
+ * baltzell Feb 26, 2015:
+ * added firmware emulation for converting from Mode-1 readout (RawTrackerHit)
+ * to Mode-3 pulse (CalorimeterHit).  Turn it on with "emulateFirmware", else
+ * defaults to previous behavior.
  */
 public class EcalRawConverterDriver extends Driver {
 
@@ -43,6 +48,8 @@ public class EcalRawConverterDriver extends Driver {
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
 
+    private boolean emulateFirmware = false;
+    
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
     }
@@ -70,6 +77,19 @@ public class EcalRawConverterDriver extends Driver {
         this.threshold = threshold;
     }
 
+    public void setEmulateFirmware(boolean emulateFirmware) {
+        this.emulateFirmware = emulateFirmware;
+    }
+    public void setLeadingEdgeThreshold(double threshold) {
+        converter.setLeadingEdgeThreshold(threshold);
+    }
+    public void setNsa(int nsa) {
+        converter.setNSA(nsa);
+    }
+    public void setNsb(int nsb) {
+        converter.setNSB(nsb);
+    }
+    
     public void setGain(double gain) {
         converter.setGain(gain);
     }
@@ -182,7 +202,15 @@ public class EcalRawConverterDriver extends Driver {
                 List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
 
                 for (RawTrackerHit hit : hits) {
-                    CalorimeterHit newHit = converter.HitDtoA(hit);
+                    
+                    CalorimeterHit newHit = null;
+                    if (emulateFirmware) {
+                        newHit = converter.firmwareHitDtoA(hit);
+                        if (newHit==null) continue;
+                    } else {
+                        newHit = converter.HitDtoA(hit);
+                    }
+                
 
                     // Get the channel data.
                     EcalChannelConstants channelData = findChannel(newHit.getCellID());

@@ -23,6 +23,7 @@ import org.lcsim.geometry.Detector;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
+ * @author <baltzell@jlab.org>
  */
 public class EcalRawConverter {
 
@@ -32,11 +33,31 @@ public class EcalRawConverter {
     private double gain;
     private boolean use2014Gain = true;
 
+    
+    // Parameters for replicating the conversion of FADC Mode-1 readout into what
+    // the firmware would have reported for Mode-3 pulse.  Using the same conventions
+    // for these parameters used by the firmware configuration files.  This means
+    // NSA and NSB are in units nanoseconds and must be multiples of 4 ns.
+    private double leadingEdgeThreshold=-1; // above pedestal (units=ADC)
+    private int NSA=-1; // integration range after threshold crossing (units=ns)
+    private int NSB=-1; // integration range before threshold crossing (units=ns)
+    
+    
     private EcalConditions ecalConditions = null;
 
     public EcalRawConverter() {
     }
 
+    public void setLeadingEdgeThreshold(double thresh) {
+        leadingEdgeThreshold=thresh;
+    }
+    public void setNSA(int nsa) {
+        NSA=nsa;
+    }
+    public void setNSB(int nsb) {
+        NSB=nsb;
+    }
+    
     public void setGain(double gain) {
         constantGain = true;
         this.gain = gain;
@@ -99,6 +120,78 @@ public class EcalRawConverter {
         double time = hit.getTime();
         long id = hit.getCellID();
         double rawEnergy = adcToEnergy(sumADC(hit), id);
+        return CalorimeterHitUtilities.create(rawEnergy, time, id);
+    }
+
+    /*
+     * NAB 2015/02/26
+     * 
+     * This HitDtoA is for emulating the conversion of Mode-1 readout (RawTrackerHit)
+     * into a Mode-3 readout.  This currently only supports finding 1 pulse in the window.
+     * (NOTE: Looks like ADCs have already been converted to doubles.)
+     * 
+     * TODO: Special case when NSA+NSB is greater than the window size is not dealt
+     * with properly, yet.
+     */
+    public CalorimeterHit firmwareHitDtoA(RawTrackerHit hit) {
+     
+        final int nsPerSample=4; // TODO: Get this from somewhere else.
+        
+        if (NSA<0 || NSB<0 || leadingEdgeThreshold<0.0) {
+            throw new RuntimeException("You have to set NSA, NSB, and leadingEdgeThreshold to positive values if you want to emulate firmware.");
+        }
+        
+        // using convention for NSA and NSB in the DAQ config file:
+        if (NSA%nsPerSample !=0 || NSB%nsPerSample !=0) {
+            throw new RuntimeException("NSA/NSB must be multiples of 4ns.");
+        }
+        
+        long id = hit.getCellID();
+        short samples[] = hit.getADCValues();
+        if (samples.length==0) return null;
+        EcalChannelConstants channelData = findChannel(hit.getCellID());
+        double pedestal = channelData.getCalibration().getPedestal();
+
+        // find threshold crossing:
+        int thresholdCrossing = -1;
+        if (samples[0] > pedestal+leadingEdgeThreshold) {
+            // special case, first sample above threshold:
+            thresholdCrossing=0;
+        } else {
+            for (int ii = 1; ii < samples.length; ++ii) {
+                if ( samples[ii]   >pedestal+leadingEdgeThreshold &&
+                     samples[ii-1]<=pedestal+leadingEdgeThreshold)
+                {
+                    // found threshold crossing:
+                    thresholdCrossing = ii;
+                    // one pulse only:
+                    break;
+                }
+            }
+        }
+        if (thresholdCrossing < 0) return null;
+
+        // pulse time:
+        double time = thresholdCrossing*nsPerSample;
+       
+        // pulse integral:
+        short sum = 0;
+        for (int jj=thresholdCrossing-NSB/nsPerSample; jj<thresholdCrossing+NSA/nsPerSample; jj++) {
+            if (jj<0) continue;
+            if (jj>=samples.length) break;
+            sum += samples[jj];
+        }
+
+        //System.err.println("000000000000000000000000      "+thresholdCrossing+"   "+sum+"  "+pedestal+"  "+NSA+NSB);
+
+        // pedestal subtraction:
+        sum -= pedestal*(NSA+NSB)/nsPerSample;
+      
+        //System.err.println("1111111111111111111      "+thresholdCrossing+"   "+sum);
+        
+        // conversion of ADC to energy:
+        double rawEnergy = adcToEnergy(sum, id);
+        
         return CalorimeterHitUtilities.create(rawEnergy, time, id);
     }
 
