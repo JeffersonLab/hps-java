@@ -24,7 +24,9 @@ import org.hps.record.evio.EvioEventUtilities;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
-
+    
+    TriggerConfigEvioReader triggerConfigReader = null;
+    
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
@@ -35,6 +37,8 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
+        
+        triggerConfigReader = new TriggerConfigEvioReader();
     }
 
     @Override
@@ -57,8 +61,8 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = getEventData(evioEvent);
      
-        // Put DAQ Configuration info into lcsimEvent (NAB Feb 5, 2015):
-        //getDAQConfig(evioEvent,lcsimEvent);
+        // Put DAQ Configuration info into lcsimEvent
+        triggerConfigReader.getDAQConfig(evioEvent,lcsimEvent);
         
         // Make RawCalorimeterHit collection, combining top and bottom section
         // of ECal into one list.
@@ -78,27 +82,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         return lcsimEvent;
     }
 
-    // NAB Feb 16, 2015:
-    public void getDAQConfig(EvioEvent evioEvent, EventHeader lcsimEvent) {
-        List <TriggerConfig> trigconf=new ArrayList<TriggerConfig>();
-        for (BaseStructure bank : evioEvent.getChildrenList()) {
-            if (bank.getChildCount()<=0) continue;
-            int crate=bank.getHeader().getTag();
-            for (BaseStructure subBank : bank.getChildrenList()) {
-                if (subBank.getHeader().getTag() == TriggerConfig.BANK_TAG) {
-                    //System.err.println("000000000000000000000000  "+crate);
-                    if (subBank.getStringData() == null) continue; // FIXME: Due to Crate 39 EVIO Format Error
-                    //System.err.println("111111111111111111111111  "+crate);
-                    if (trigconf.size()==0) trigconf.add(new TriggerConfig());
-                    trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
-//                    trigconf.add(new TriggerConfig(lcsimEvent.getRunNumber(),subBank.getStringData()));
-                }
-            }
-        }
-        if (trigconf.size()>0) {
-            //trigconf.get(0).printVars();
-            lcsimEvent.put("TriggerConfig",trigconf,TriggerConfig.class,0);
-        };
-    }        
+    
         
 }
