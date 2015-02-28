@@ -1,0 +1,2721 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
+  <header>
+    <detector name="HPS-Proposal2014-v9-2pt2" />
+    <generator name="GeomConverter" version="1.0" file="detectors/HPS-Proposal2014-v9-2pt2/compact.xml" checksum="575673957" />
+    <author name="NONE" />
+    <comment>HPS detector for 2014 proposal w/ new tracker geometry @ 2.2GeV</comment>
+  </header>
+  <iddict>
+    <idspec name="TrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="TrackerHitsECal" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+  </iddict>
+  <sensitive_detectors>
+    <tracker name="Tracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
+      <idspecref ref="TrackerHits" />
+    </tracker>
+  </sensitive_detectors>
+  <limits />
+  <regions>
+    <region name="TrackingRegion" store_secondaries="true" kill_tracks="false" cut="10.0" lunit="mm" threshold="1.0" eunit="MeV" />
+  </regions>
+  <display>
+    <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
+    <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
+      <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
+    </vis>
+    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
+    <vis name="WorldVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
+    </vis>
+    <vis name="TrackingVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
+      <color R="1.0" G="0.0" B="0.0" alpha="1.0" />
+    </vis>
+  </display>
+  <gdml>
+    <define>
+      <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
+      <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <constant name="x_rot_bot" value="0.0" />
+      <constant name="y02b" value="-21.419865625949214" />
+      <constant name="world_side" value="5000.0" />
+      <constant name="z01t" value="138.815" />
+      <constant name="electronGapRightEdge" value="474.962" />
+      <constant name="tracking_region_radius" value="2000.0" />
+      <constant name="beam_angle" value="0.03052" />
+      <constant name="y_rot" value="0.03052" />
+      <constant name="pivot" value="791.0" />
+      <constant name="dipoleMagnetLength" value="1080.0" />
+      <constant name="electronGapLeftEdge" value="382.492" />
+      <constant name="x_rot_top_add" value="0.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="z01b" value="153.815" />
+      <constant name="dipoleMagnetHeight" value="1000.0" />
+      <constant name="y02t" value="21.419865625949214" />
+      <constant name="constBFieldY" value="-0.5" />
+      <constant name="y01b" value="-21.419865625949214" />
+      <constant name="x_rot_bot_add" value="0.0" />
+      <constant name="ecal_z" value="80.0" />
+      <constant name="dipoleMagnetPositionZ" value="457.2" />
+      <constant name="z02t" value="146.185" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="dipoleMagnetWidth" value="1000.0" />
+      <constant name="dipoleMagnetPositionX" value="21.17" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="ecal_dface" value="1393.0" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="scoringThickness" value="0.001" />
+      <constant name="x_rot_top" value="0.0" />
+      <constant name="y01t" value="21.419865625949214" />
+      <constant name="zst" value="1.0" />
+      <constant name="x_off" value="0.0" />
+      <constant name="SA2" value="0.05" />
+      <constant name="ecal_front" value="6.65" />
+      <constant name="SA1" value="0.1" />
+      <constant name="tracking_region_min" value="50.0" />
+      <constant name="PI" value="3.14159265359" />
+      <constant name="z02b" value="161.185" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="tracking_region_zmax" value="1318.0" />
+      <constant name="ecal_back" value="8.0" />
+      <constant name="moduleWidth" value="40.34" />
+      <position name="chamber_position" x="21.336" y="0.0" z="349.9358" unit="mm" />
+      <rotation name="chamber_rotation" x="1.5707963267948963" y="-0.0" z="0.0" unit="radian" />
+      <position name="base_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="base_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="base_plate_position" x="0.0" y="0.0" z="-82.423" unit="mm" />
+      <rotation name="base_plate_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="support_plate_bottom_L13_position" x="-43.1496763574283" y="133.28433943314081" z="-63.9855" unit="mm" />
+      <rotation name="support_plate_bottom_L13_rotation" x="0.0" y="-0.0" z="3.111052254139705" unit="radian" />
+      <position name="support_plate_top_L13_position" x="-43.16217751237359" y="133.2843380737047" z="63.9855" unit="mm" />
+      <rotation name="support_plate_top_L13_rotation" x="3.141592653589793" y="-0.0" z="0.03043330642417557" unit="radian" />
+      <position name="support_plate_bottom_L46_position" x="0.14270823091617224" y="-354.5345474665431" z="-65.573" unit="mm" />
+      <rotation name="support_plate_bottom_L46_rotation" x="0.0" y="-0.0" z="3.1111093540316292" unit="radian" />
+      <position name="support_plate_top_L46_position" x="0.14255566889328364" y="-354.53517226223204" z="65.573" unit="mm" />
+      <rotation name="support_plate_top_L46_rotation" x="3.141592653589793" y="-0.0" z="0.030483299558163937" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_position" x="-47.920818151170714" y="236.97025050299882" z="-24.08080000000001" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_position" x="-48.366253990406236" y="245.2940303888063" z="-20.2628632749804" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_position" x="-48.65884621753108" y="261.1680495816533" z="24.08080000000001" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_position" x="-48.59623701217009" y="252.83259489929478" z="20.2628632749804" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_position" x="-44.86725294267446" y="137.01688267821032" z="-25.58080000000001" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_position" x="-45.31268878190998" y="145.3406625640178" z="-21.7628632749804" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_position" x="-45.615985335135406" y="161.21435531450592" z="25.58080000000001" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_position" x="-45.55337612977442" y="152.87890063214735" z="21.7628632749804" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_position" x="-41.81368773417821" y="37.06351485342184" z="-27.08080000000001" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_position" x="-42.25912357341373" y="45.38729473922934" z="-23.2628632749804" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_position" x="-42.57312445273976" y="61.26066104735845" z="27.08080000000001" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_position" x="-42.51051524737878" y="52.9252063649999" z="23.2628632749804" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.48374999999999996" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_lamination_position" x="-2.414999999999999" y="0.5" z="-0.66875" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_cf_position" x="1.0850000000000009" y="0.0" z="-0.81875" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.14999999999999997" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_position" x="-56.217250308986" y="-162.97132249781242" z="-26.66020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_position" x="44.72623159126889" y="-159.89327863637723" z="-26.66020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_position" x="-56.38945519192267" y="-155.65717305182127" z="-29.20020000000001" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_position" x="44.452473909639814" y="-152.58222581398914" z="-24.1456" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_position" x="-56.924231591268885" y="-139.79172136362277" z="26.66020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_position" x="44.01925030898598" y="-136.71367750218758" z="26.66020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_position" x="-56.65047390963981" y="-147.10277418601086" z="29.20020000000001" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_position" x="44.19145519192265" y="-144.02782694817873" z="24.1456" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_hole_position" x="-50.12153455494366" y="-362.8784065379883" z="-29.66020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_slot_position" x="50.82194734531124" y="-359.8003626765531" z="-29.66020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_hole_position" x="-50.293739437880326" y="-355.56425709199715" z="-32.20020000000001" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_slot_position" x="50.54818966368216" y="-352.489309854165" z="-27.1456" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_hole_position" x="-50.82851583722654" y="-339.6988054037986" z="29.66020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_slot_position" x="50.11496606302833" y="-336.6207615423634" z="29.66020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_hole_position" x="-50.55475815559746" y="-347.00985822618674" z="32.20020000000001" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_slot_position" x="50.287170945964995" y="-343.9349109883546" z="27.1456" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L5t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L5t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_hole_position" x="-44.02581880090134" y="-562.7854905781641" z="-32.66020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_hole_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_slot_position" x="56.917663099353554" y="-559.7074467167289" z="-32.66020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_hole_position" x="-44.19802368383801" y="-555.4713411321728" z="-35.20020000000001" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_hole_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_slot_position" x="56.643905417724476" y="-552.3963938943408" z="-30.1456" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_hole_position" x="-44.732800083184195" y="-539.6058894439745" z="32.66020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_slot_position" x="56.21068181707067" y="-536.5278455825394" z="32.66020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.030483299558163958" z="1.5707963267948963" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_hole_position" x="-44.459042401555116" y="-546.9169422663626" z="35.20020000000001" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_hole_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_slot_position" x="56.38288670000734" y="-543.8419950285305" z="30.1456" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_slot_rotation" x="-1.5707963267948963" y="-0.030483299558163958" z="1.6207963267948968" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L6t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
+      <rotation name="module_L6t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <constant name="svt_chamber_box_z" value="609.6" />
+      <constant name="svt_chamber_flare1_z" value="1285.621" />
+      <constant name="svt_chamber_flare2_z" value="1478.407" />
+      <constant name="svt_chamber_flange_z" value="1614.297" />
+      <constant name="svt_chamber_x" value="21.17" />
+      <constant name="svt_chamber_z" value="1318-1623.822" />
+    </define>
+    <materials>
+      <element Z="1" formula="H" name="H">
+        <atom type="A" unit="g/mol" value="1.00794" />
+      </element>
+      <element Z="82" formula="Pb" name="Pb">
+        <atom type="A" unit="g/mol" value="207.217" />
+      </element>
+      <element Z="74" formula="W" name="W">
+        <atom type="A" unit="g/mol" value="183.842" />
+      </element>
+      <element Z="8" formula="O" name="O">
+        <atom type="A" unit="g/mol" value="15.9994" />
+      </element>
+      <material name="Vacuum">
+        <D type="density" unit="g/cm3" value="0.00000001" />
+        <fraction n="1" ref="H" />
+      </material>
+      <material name="WorldMaterial">
+        <D type="density" unit="g/cm3" value="0.0000000000000001" />
+        <fraction n="1.0" ref="Vacuum" />
+      </material>
+      <material name="TrackingMaterial">
+        <D type="density" unit="g/cm3" value="0.0000000000000001" />
+        <fraction n="1.0" ref="Vacuum" />
+      </material>
+      <material name="LeadTungstate">
+        <D value="8.28" unit="g/cm3" type="density" />
+        <composite n="1" ref="Pb" />
+        <composite n="1" ref="W" />
+        <composite n="4" ref="O" />
+      </material>
+      <element name="Al" formula="Al" Z="13">
+        <atom type="A" unit="g/mol" value="26.9815" />
+      </element>
+      <material name="Aluminum">
+        <RL type="X0" unit="cm" value="8.89632" />
+        <NIL type="lambda" unit="cm" value="38.8766" />
+        <D type="density" unit="g/cm3" value="2.699" />
+        <composite n="1" ref="Al" />
+      </material>
+      <element name="Si" formula="Si" Z="14">
+        <atom type="A" unit="g/mol" value="28.0854" />
+      </element>
+      <material name="Silicon">
+        <RL type="X0" unit="cm" value="9.36607" />
+        <NIL type="lambda" unit="cm" value="45.7531" />
+        <D type="density" unit="g/cm3" value="2.33" />
+        <composite n="1" ref="Si" />
+      </material>
+      <element name="C" formula="C" Z="6">
+        <atom type="A" unit="g/mol" value="12.0107" />
+      </element>
+      <element name="N" formula="N" Z="7">
+        <atom type="A" unit="g/mol" value="14.0068" />
+      </element>
+      <material name="Kapton">
+        <D value="1.43" unit="g/cm3" />
+        <composite n="22" ref="C" />
+        <composite n="10" ref="H" />
+        <composite n="2" ref="N" />
+        <composite n="5" ref="O" />
+      </material>
+      <material name="Epoxy">
+        <D type="density" value="1.3" unit="g/cm3" />
+        <composite n="44" ref="H" />
+        <composite n="15" ref="C" />
+        <composite n="7" ref="O" />
+      </material>
+      <material name="CarbonFiber">
+        <D type="density" value="1.5" unit="g/cm3" />
+        <fraction n="0.65" ref="C" />
+        <fraction n="0.35" ref="Epoxy" />
+      </material>
+      <element name="Cl" formula="Cl" Z="17">
+        <atom type="A" unit="g/mol" value="35.4526" />
+      </element>
+      <material name="Quartz">
+        <D type="density" value="2.2" unit="g/cm3" />
+        <composite n="1" ref="Si" />
+        <composite n="2" ref="O" />
+      </material>
+      <material name="G10">
+        <D type="density" value="1.7" unit="g/cm3" />
+        <fraction n="0.08" ref="Cl" />
+        <fraction n="0.773" ref="Quartz" />
+        <fraction n="0.147" ref="Epoxy" />
+      </material>
+      <element Z="26" formula="Fe" name="Iron">
+        <atom value="55.845" />
+      </element>
+      <element Z="24" formula="Cr" name="Chromium">
+        <atom value="51.9961" />
+      </element>
+      <element Z="28" formula="Ni" name="Nickel">
+        <atom value="58.6934" />
+      </element>
+      <material formula=" " name="Stainless_304">
+        <D value="8.00" />
+        <fraction n="0.733078" ref="Iron" />
+        <fraction n="0.191516" ref="Chromium" />
+        <fraction n="0.075406" ref="Nickel" />
+      </material>
+      <material Z="1" name="G4_Galactic" state="gas">
+        <T unit="K" value="2.73" />
+        <P unit="pascal" value="3e-18" />
+        <!-- <MEE unit="eV" value="21.8"/> -->
+        <D unit="g/cm3" value="2e-25" />
+        <atom unit="g/mole" value="1.01" />
+      </material>
+    </materials>
+    <solids>
+      <box name="world_box" x="world_x" y="world_y" z="world_z" />
+      <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
+      <box name="chamberBox" x="416.05199999999996" y="1356.36" z="177.79999999999998" />
+      <box name="baseBox" x="406.4" y="1282.6999999999998" z="171.196" />
+      <box name="base_plateBox" x="406.4" y="1282.6999999999998" z="6.35" />
+      <box name="support_plate_bottom_L13Box" x="234.95" y="406.4" z="9.524999999999999" />
+      <box name="support_plate_top_L13Box" x="234.95" y="406.4" z="9.524999999999999" />
+      <box name="support_plate_bottom_L46Box" x="342.9" y="533.4" z="12.7" />
+      <box name="support_plate_top_L46Box" x="342.9" y="533.4" z="12.7" />
+      <box name="module_L1b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L1b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L1b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L1b_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L1b_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L1b_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L1b_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L1b_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L1b_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L1b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L1b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L1b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L1t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L1t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L1t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L1t_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L1t_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L1t_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L1t_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L1t_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L1t_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L1t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L1t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L1t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L2b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L2b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L2b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L2b_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L2b_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L2b_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L2b_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L2b_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L2b_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L2b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L2b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L2b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L2t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L2t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L2t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L2t_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L2t_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L2t_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L2t_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L2t_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L2t_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L2t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L2t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L2t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L3b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L3b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L3b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L3b_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L3b_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L3b_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L3b_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L3b_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L3b_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L3b_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L3b_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L3b_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L3t_halfmodule_axialBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L3t_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L3t_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L3t_halfmodule_axial_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L3t_halfmodule_axial_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L3t_halfmodule_axial_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L3t_halfmodule_stereoBox" x="47.17" y="200.0" z="1.8875" />
+      <box name="module_L3t_halfmodule_stereo_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L3t_halfmodule_stereo_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L3t_halfmodule_stereo_laminationBox" x="40.0" y="184.0" z="0.05" />
+      <box name="module_L3t_halfmodule_stereo_cfBox" x="45.0" y="200.0" z="0.25" />
+      <box name="module_L3t_halfmodule_stereo_hybridBox" x="40.34" y="70.0" z="1.5875" />
+      <box name="module_L4b_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4b_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4b_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4b_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4b_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4b_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4b_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4b_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4b_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4b_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4b_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4t_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4t_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4t_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4t_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4t_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4t_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4t_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4t_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4t_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4t_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L4t_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L4t_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L4t_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L4t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5b_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5b_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5b_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5b_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5b_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5b_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5b_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5b_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5b_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5b_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5b_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5t_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5t_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5t_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5t_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5t_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5t_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5t_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5t_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5t_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5t_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L5t_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L5t_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L5t_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L5t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6b_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6b_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6b_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6b_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6b_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6b_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6b_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6b_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6b_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6b_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6b_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6b_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6b_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6b_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6b_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6b_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6t_halfmodule_axial_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6t_halfmodule_axial_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6t_halfmodule_axial_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6t_halfmodule_axial_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6t_halfmodule_axial_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6t_halfmodule_axial_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6t_halfmodule_axial_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6t_halfmodule_axial_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6t_halfmodule_stereo_holeBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6t_halfmodule_stereo_hole_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6t_halfmodule_stereo_hole_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6t_halfmodule_stereo_hole_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box name="module_L6t_halfmodule_stereo_slotBox" x="40.34" y="100.0" z="0.37" />
+      <box name="module_L6t_halfmodule_stereo_slot_sensorBox" x="40.34" y="100.0" z="0.32" />
+      <box name="module_L6t_halfmodule_stereo_slot_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
+      <box name="module_L6t_halfmodule_stereo_slot_laminationBox" x="40.34" y="100.0" z="0.05" />
+      <box lunit="mm" name="svt_chamber_outer_box" x="454.152" y="203.2" z="1219.2" />
+      <box lunit="mm" name="svt_chamber_inner_box" x="416.052" y="177.8" z="1221.2" />
+      <subtraction name="svt_chamber_box">
+        <first ref="svt_chamber_outer_box" />
+        <second ref="svt_chamber_inner_box" />
+      </subtraction>
+      <trd lunit="mm" name="svt_chamber_outer_flare1" x1="454.152" x2="454.152" y1="203.2" y2="254.832" z="132.842" />
+      <trd lunit="mm" name="svt_chamber_inner_flare1" x1="416.052" x2="416.052" y1="172.864" y2="234.368" z="158.242" />
+      <subtraction name="svt_chamber_flare1">
+        <first ref="svt_chamber_outer_flare1" />
+        <second ref="svt_chamber_inner_flare1" />
+      </subtraction>
+      <trd lunit="mm" name="svt_chamber_outer_flare2" x1="454.152" x2="679.704" y1="254.832" y2="353.06" z="252.73" />
+      <trd lunit="mm" name="svt_chamber_inner_flare2" x1="404.718" x2="652.938" y1="224.496" y2="332.596" z="278.13" />
+      <subtraction name="svt_chamber_flare2">
+        <first ref="svt_chamber_outer_flare2" />
+        <second ref="svt_chamber_inner_flare2" />
+      </subtraction>
+      <box lunit="mm" name="svt_chamber_outer_flange" x="768.35" y="457.2" z="19.05" />
+      <box lunit="mm" name="svt_chamber_inner_flange" x="654.05" y="342.9" z="25.4" />
+      <subtraction name="svt_chamber_flange">
+        <first ref="svt_chamber_outer_flange" />
+        <second ref="svt_chamber_inner_flange" />
+      </subtraction>
+      <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" />
+    </solids>
+    <structure>
+      <volume name="base_plate_volume">
+        <materialref ref="Aluminum" />
+        <solidref ref="base_plateBox" />
+      </volume>
+      <volume name="support_plate_bottom_L13_volume">
+        <materialref ref="Aluminum" />
+        <solidref ref="support_plate_bottom_L13Box" />
+      </volume>
+      <volume name="support_plate_top_L13_volume">
+        <materialref ref="Aluminum" />
+        <solidref ref="support_plate_top_L13Box" />
+      </volume>
+      <volume name="support_plate_bottom_L46_volume">
+        <materialref ref="Aluminum" />
+        <solidref ref="support_plate_bottom_L46Box" />
+      </volume>
+      <volume name="support_plate_top_L46_volume">
+        <materialref ref="Aluminum" />
+        <solidref ref="support_plate_top_L46Box" />
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1b_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1b_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L1b_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L1b_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L1b_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L1b_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1b_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1b_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L1b_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L1b_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L1b_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L1b_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L1b_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1t_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1t_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L1t_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L1t_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L1t_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L1t_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1t_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L1t_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L1t_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L1t_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L1t_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L1t_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L1t_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2b_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2b_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L2b_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L2b_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L2b_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L2b_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2b_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2b_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L2b_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L2b_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L2b_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L2b_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L2b_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2t_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2t_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L2t_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L2t_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L2t_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L2t_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2t_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L2t_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L2t_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L2t_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L2t_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L2t_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L2t_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3b_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3b_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L3b_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L3b_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L3b_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L3b_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3b_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3b_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L3b_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L3b_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L3b_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L3b_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L3b_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3t_halfmodule_axial_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3t_halfmodule_axial_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L3t_halfmodule_axial_laminationBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L3t_halfmodule_axial_cfBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L3t_halfmodule_axial_hybridBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_axial_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L3t_halfmodule_axialBox" />
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_lamination_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_lamination_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_cf_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_cf_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_hybrid_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_hybrid_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3t_halfmodule_stereo_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L3t_halfmodule_stereo_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L3t_halfmodule_stereo_laminationBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_cf_volume">
+        <materialref ref="CarbonFiber" />
+        <solidref ref="module_L3t_halfmodule_stereo_cfBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_hybrid_volume">
+        <materialref ref="G10" />
+        <solidref ref="module_L3t_halfmodule_stereo_hybridBox" />
+      </volume>
+      <volume name="module_L3t_halfmodule_stereo_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L3t_halfmodule_stereoBox" />
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_lamination_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_lamination_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_cf_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_cf_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_cf_rotation" />
+          <physvolid field_name="component" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_hybrid_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_hybrid_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_hybrid_rotation" />
+          <physvolid field_name="component" value="3" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4b_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4b_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4b_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L4b_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4b_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4b_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4b_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4b_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4b_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L4b_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4b_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4t_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4t_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4t_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L4t_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4t_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4t_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4t_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L4t_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L4t_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L4t_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L4t_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5b_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5b_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5b_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L5b_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5b_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5b_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5b_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5b_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5b_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L5b_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5b_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5t_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5t_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5t_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L5t_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5t_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5t_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5t_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L5t_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L5t_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L5t_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L5t_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6b_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6b_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6b_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L6b_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6b_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6b_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6b_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6b_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6b_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L6b_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6b_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_axial_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_axial_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_hole_sensor_active_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_hole_sensor_active_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6t_halfmodule_axial_hole_laminationBox" />
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6t_halfmodule_axial_holeBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_hole_sensor_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_hole_sensor_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_hole_lamination_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_hole_lamination_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_axial_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_axial_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_slot_sensor_active_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_slot_sensor_active_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6t_halfmodule_axial_slot_laminationBox" />
+      </volume>
+      <volume name="module_L6t_halfmodule_axial_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6t_halfmodule_axial_slotBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_slot_sensor_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_slot_sensor_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_slot_lamination_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_slot_lamination_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_hole_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_stereo_hole_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_hole_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_stereo_hole_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_hole_sensor_active_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_hole_sensor_active_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_hole_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_hole_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6t_halfmodule_stereo_hole_laminationBox" />
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_hole_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6t_halfmodule_stereo_holeBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_hole_sensor_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_hole_sensor_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_hole_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_hole_lamination_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_hole_lamination_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_hole_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_slot_sensor_active_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_stereo_slot_sensor_activeBox" />
+        <sdref ref="Tracker" />
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_slot_sensor_volume">
+        <materialref ref="Silicon" />
+        <solidref ref="module_L6t_halfmodule_stereo_slot_sensorBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_slot_sensor_active_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_slot_sensor_active_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_slot_sensor_active_rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_slot_lamination_volume">
+        <materialref ref="Kapton" />
+        <solidref ref="module_L6t_halfmodule_stereo_slot_laminationBox" />
+      </volume>
+      <volume name="module_L6t_halfmodule_stereo_slot_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="module_L6t_halfmodule_stereo_slotBox" />
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_slot_sensor_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_slot_sensor_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_slot_sensor_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_slot_lamination_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_slot_lamination_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_slot_lamination_rotation" />
+          <physvolid field_name="component" value="2" />
+        </physvol>
+      </volume>
+      <volume name="base_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="baseBox" />
+        <physvol>
+          <volumeref ref="base_plate_volume" />
+          <positionref ref="base_plate_position" />
+          <rotationref ref="base_plate_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_bottom_L13_volume" />
+          <positionref ref="support_plate_bottom_L13_position" />
+          <rotationref ref="support_plate_bottom_L13_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_top_L13_volume" />
+          <positionref ref="support_plate_top_L13_position" />
+          <rotationref ref="support_plate_top_L13_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_bottom_L46_volume" />
+          <positionref ref="support_plate_bottom_L46_position" />
+          <rotationref ref="support_plate_bottom_L46_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="support_plate_top_L46_volume" />
+          <positionref ref="support_plate_top_L46_position" />
+          <rotationref ref="support_plate_top_L46_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_axial_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1b_halfmodule_stereo_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_axial_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L1t_halfmodule_stereo_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_axial_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="4" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2b_halfmodule_stereo_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="3" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_axial_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="3" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L2t_halfmodule_stereo_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="4" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_axial_volume" />
+          <positionref ref="module_L3b_halfmodule_axial_position" />
+          <rotationref ref="module_L3b_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="6" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3b_halfmodule_stereo_volume" />
+          <positionref ref="module_L3b_halfmodule_stereo_position" />
+          <rotationref ref="module_L3b_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="5" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_axial_volume" />
+          <positionref ref="module_L3t_halfmodule_axial_position" />
+          <rotationref ref="module_L3t_halfmodule_axial_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="5" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L3t_halfmodule_stereo_volume" />
+          <positionref ref="module_L3t_halfmodule_stereo_position" />
+          <rotationref ref="module_L3t_halfmodule_stereo_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="6" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L4b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L4b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L4b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L4b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L4t_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L4t_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="7" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L4t_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L4t_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L4t_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="8" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L5b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L5b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L5b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L5b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L5t_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L5t_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="9" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L5t_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L5t_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L5t_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="10" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L6b_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L6b_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="1" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6b_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L6b_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L6b_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="3" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_hole_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_hole_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_axial_slot_volume" />
+          <positionref ref="module_L6t_halfmodule_axial_slot_position" />
+          <rotationref ref="module_L6t_halfmodule_axial_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="11" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_hole_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_hole_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_hole_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="2" />
+        </physvol>
+        <physvol>
+          <volumeref ref="module_L6t_halfmodule_stereo_slot_volume" />
+          <positionref ref="module_L6t_halfmodule_stereo_slot_position" />
+          <rotationref ref="module_L6t_halfmodule_stereo_slot_rotation" />
+          <physvolid field_name="system" value="1" />
+          <physvolid field_name="barrel" value="0" />
+          <physvolid field_name="layer" value="12" />
+          <physvolid field_name="module" value="0" />
+        </physvol>
+        <visref ref="TrackingVis" />
+      </volume>
+      <volume name="chamber_volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="chamberBox" />
+        <physvol>
+          <volumeref ref="base_volume" />
+          <positionref ref="base_position" />
+          <rotationref ref="base_rotation" />
+        </physvol>
+      </volume>
+      <volume name="svt_chamber_box_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_box" />
+      </volume>
+      <volume name="svt_chamber_flare1_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flare1" />
+      </volume>
+      <volume name="svt_chamber_flare2_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flare2" />
+      </volume>
+      <volume name="svt_chamber_flange_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flange" />
+      </volume>
+      <volume name="tracking_volume">
+        <materialref ref="TrackingMaterial" />
+        <solidref ref="tracking_cylinder" />
+        <physvol>
+          <volumeref ref="chamber_volume" />
+          <positionref ref="chamber_position" />
+          <rotationref ref="chamber_rotation" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_box_vol" />
+          <position name="svt_chamber_box_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_box_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flare1_vol" />
+          <position name="svt_chamber_flare1_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare1_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flare2_vol" />
+          <position name="svt_chamber_flare2_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare2_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flange_vol" />
+          <position name="svt_chamber_flange_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flange_z" />
+        </physvol>
+        <regionref ref="TrackingRegion" />
+        <visref ref="TrackingVis" />
+      </volume>
+      <volume name="world_volume">
+        <materialref ref="WorldMaterial" />
+        <solidref ref="world_box" />
+        <physvol>
+          <volumeref ref="tracking_volume" />
+          <positionref ref="identity_pos" />
+          <rotationref ref="identity_rot" />
+        </physvol>
+        <visref ref="WorldVis" />
+      </volume>
+    </structure>
+    <setup name="Default" version="1.0">
+      <world ref="world_volume" />
+    </setup>
+  </gdml>
+  <fields>
+    <box_dipole name="AnalyzingDipole" lunit="mm" funit="tesla" x="21.17" y="0.0" z="457.2" dx="500.0" dy="500.0" dz="540.0" bx="0.0" by="-0.5" bz="0.0" />
+  </fields>
+</lcdd>
+
