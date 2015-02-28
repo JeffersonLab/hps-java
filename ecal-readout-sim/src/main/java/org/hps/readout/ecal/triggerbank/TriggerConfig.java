@@ -14,22 +14,26 @@ public class TriggerConfig {
 
     /*
      * Read/Parse/Save the DAQ trigger configuration settings.
+     * These settings arrive in multiple banks, but they *should* be in the same event.
      *
-     * A hack in progress.
+     * Currently this is set up to read SSP and ECAL configurations,
+     * which is all that is currently available in EVIO as of Feb 28, 2015.
      * 
-     * Activate by uncommenting line 61 in LCSimEngRunEventBuilder.java
+     * GTP settings and Prescale factors will need to be added to this class when added to EVIO.
      *
      * TODO: Error in EVIO format for Crate 39 for 2014 data requires another JEVIO workaround (realized Feb 16).
+     *       ** This was fixed in EVIO for data after run 4044.
+     *       
      * TODO: Manually put in GTP settings based on run number for 2014 data.
      * TODO: Manually deal with change in format of SSP_HPS_SINGLES_NMIN (at 3312(?)).
      *
-     * TODO: This should probably be a Driver.
-     *
      * TODO: Restructure, clean up..
      *  
-     *  NAB 2015/02/16
+     *  @author <baltzell@jlab.org>
      */
-   
+  
+    public int nBanks=0;
+    
     public static final int BANK_TAG = 0xE10E;
   
     // need to know these in order to interpret DAQ strings:
@@ -44,7 +48,8 @@ public class TriggerConfig {
 	public Map<EcalChannel,Float> PEDESTAL=new HashMap<EcalChannel,Float>();
 	public Map<EcalChannel,Integer> THRESHOLD=new HashMap<EcalChannel,Integer>();
 	
-	private boolean debug=false;//true;
+//	private boolean debug=true;
+	private boolean debug=false;
 
 	// FADC Config:
 	public int fadcNSA=0;
@@ -109,12 +114,15 @@ public class TriggerConfig {
 	}
     
     public void parse(int crate,int runNumber,String[] dump) {
+        
+        nBanks++;
+        
         loadConfigMap(crate,dump); 
     	if (debug) printMap();
         fixConfigMap2014Run(runNumber);
         parseConfigMap();
-        // don't do this here, need to wait on more banks:
-        //if (debug) printVars();
+        
+        if (nBanks==3) printVars();
     }
 
     public void parseConfigMap()
@@ -285,7 +293,7 @@ public class TriggerConfig {
 	    System.err.println(String.format("FADC250_WIDTH: %d",fadcWIDTH));
 	    System.err.println(String.format("FADC250_OFFSET: %d",fadcOFFSET));
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
-            System.err.print(String.format("SLOT%d CHAN%d --",cc.getSlot(),cc.getChannel()));
+            //System.err.print(String.format("SLOT%d CHAN%d --",cc.getSlot(),cc.getChannel()));
             if (!PEDESTAL.containsKey(cc)) {
                 System.err.println("\nP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             }
@@ -295,8 +303,8 @@ public class TriggerConfig {
             if (!GAIN.containsKey(cc)) {
                 System.err.println("\nG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             }
-            System.err.println(String.format(" %f %d %f",
-                    PEDESTAL.get(cc),THRESHOLD.get(cc),GAIN.get(cc)));
+            //System.err.println(String.format(" %f %d %f",
+            //        PEDESTAL.get(cc),THRESHOLD.get(cc),GAIN.get(cc)));
         }
 	    System.err.println();
 	    for (int ii=0; ii<2; ii++)
