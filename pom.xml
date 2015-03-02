@@ -1,153 +1,121 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.hps</groupId>
-    <artifactId>hps-modules</artifactId>
-    <packaging>pom</packaging>
-    <name>HPS Java Project</name>
-    <description>HPS module build</description>
-    <url>http://www.lcsim.org/sites/hps/</url>
+    <artifactId>hps-monitoring-app</artifactId>
+    <name>monitoring-app</name>
+    <description>online monitoring application</description>
     <parent>
         <groupId>org.hps</groupId>
         <artifactId>hps-parent</artifactId>
-        <relativePath>parent/pom.xml</relativePath>
+        <relativePath>../parent/pom.xml</relativePath>
         <version>3.2-SNAPSHOT</version>
-    </parent>   
+    </parent>
     <scm>
-        <url>svn://svn.freehep.org/hps/java/trunk/</url>
-        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</connection>
-        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/</developerConnection>
+        <url>http://java.freehep.org/svn/repos/hps/list/java/trunk/monitoring-app/</url>
+        <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-app/</connection>
+        <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/monitoring-app/</developerConnection>
     </scm>
-    <distributionManagement>
-        <site>
-            <id>lcsim-site</id>
-            <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
-        </site>
-    </distributionManagement>
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <configuration>
-                        <siteDirectory>${basedir}/site/src/site/</siteDirectory>
-                        <outputDirectory>${basedir}/site/target/</outputDirectory>
-                        <chmod>false</chmod>
-                        <generateReports>true</generateReports>
-                        <generateSitemap>true</generateSitemap>
-                        <generateProjectInfo>true</generateProjectInfo>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-eclipse-plugin</artifactId>
-                    <version>2.9</version>
-                </plugin>
-            </plugins>            
-        </pluginManagement>
-    </build>
-    <reporting>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.7</version>
-                <reportSets>
-                    <reportSet>
-                        <id>aggregate</id>
-                        <reports>
-                            <report>cim</report>
-                            <report>dependency-convergence</report>
-                            <report>index</report>
-                            <report>issue-tracking</report>
-                            <report>mailing-list</report>
-                            <report>modules</report>
-                            <report>plugin-management</report>
-                            <report>plugins</report>
-                            <report>project-team</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>bin</shadedClassifierName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.hps.monitoring.gui.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>hep.testdata.aida:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/scripts</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.scriptSourceDirectory}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>           
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.16</version>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>chmod-scripts</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <target>
+                                <chmod file="target/scripts/*.sh" perm="755" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>                       
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <aggregate>true</aggregate>
-                    <reuseForks>false</reuseForks>
-                    <forkCount>1</forkCount>
+                    <excludes>
+                        <exclude>org/hps/monitoring/subsys/et/**.java</exclude>
+                    </excludes>
                 </configuration>
-            </plugin>
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changes-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <columnNames>Type,Key,Summary,Assignee,Status,Resolution,Fix
-                        Version,Created</columnNames>
-                    <sortColumnNames>Type,Key DESC</sortColumnNames>
-                    <statusIds>Resolved, Closed</statusIds>
-                    <maxEntries>9999</maxEntries>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>jira-report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <reportSets>
-                    <reportSet>
-                        <id>aggregate</id>
-                        <reports>
-                            <report>aggregate</report>
-                            <report>test-aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jxr-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <aggregate>true</aggregate>
-                    <linkJavadoc>true</linkJavadoc>
-                </configuration>
-            </plugin>
+            </plugin>                                            
         </plugins>
-    </reporting>
-    <modules>
-        <module>analysis</module>
-        <module>conditions</module>
-<!--        
-        <module>datacat</module>
--->        
-        <module>detector-data</module>
-        <module>distribution</module>
-        <module>ecal-event-display</module>
-        <module>ecal-readout-sim</module>
-        <module>ecal-recon</module>
-        <module>evio</module>
-        <module>integration-tests</module>
-        <module>monitoring-util</module>
-        <module>monitoring-drivers</module>
-        <module>monitoring-app</module>
-        <module>parent</module>
-        <module>plugin</module>
-        <module>recon</module>
-        <module>record-util</module>
-        <module>steering-files</module>
-        <module>tracking</module>
-        <module>users</module>
-        <module>util</module>
-    </modules>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-monitoring-drivers</artifactId>
+        </dependency>       
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-steering-files</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+        </dependency>
+    </dependencies>
 </project>

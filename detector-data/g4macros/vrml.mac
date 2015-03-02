@@ -1,4 +1,0 @@
-/vis/scene/create
-/vis/scene/add/volume
-/vis/open VRML2FILE
-/vis/viewer/flush

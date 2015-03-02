@@ -1,6 +1,0 @@
-/vis/scene/create
-/vis/scene/add/volume
-/vis/scene/add/hits
-/vis/scene/add/trajectories
-/vis/open OGLSX
-/vis/viewer/set/lineSegmentsPerCircle 60

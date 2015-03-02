@@ -1,9 +1,0 @@
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
-       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
-    <execute>
-        <driver name="ClusterHitCheckDriver"/>
-    </execute>        
-    <drivers>    
-        <driver name="ClusterHitCheckDriver" type="org.hps.users.jeremym.ClusterHitCheckDriver"/>
-    </drivers>
-</lcsim>
