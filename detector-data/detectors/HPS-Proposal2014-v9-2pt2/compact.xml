@@ -117,12 +117,28 @@
   
     <display>
         <vis name="ECALVis" r="0.8" g="0.5" b="0.1" />
-        <vis name="TrackerVis" r="1.0" g="0.0" b="0.0" />
+    
+    <vis name="ChamberVis" alpha="1.0" r="1.0" g="0.0" b="1.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="SvtBoxVis" alpha="1.0" r="1.0" g="1.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="SensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="ActiveSensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="CarbonFiberVis" alpha="1.0" r="0.88" g="0.88" b="0.88" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="KaptonVis" alpha="1.0" r="0.91" g="0.77" b="0.06" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="HybridVis" alpha="1.0" r="0.0" g="1.0" b="0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true"/>
+    <vis name="HalfModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="ColdBlockVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="ModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dotted" showDaughters="true" visible="true"/>
+    <vis name="SupportPlateVis" alpha="1.0" r="0.45" g="0.45" b="0.45" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="SupportVolumeVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="BasePlateVis" alpha="1.0" r="0.35" g="0.35" b="0.35" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true"/>
+    <vis name="LayerVis" alpha="0.0" r="0.0" g="0.0" b="1.0" drawingStyle="wireframe" showDaughters="true" visible="false"/>
+    <vis name="ComponentVis" alpha="0.0" r="0.0" g="0.2" b="0.4" drawingStyle="solid" showDaughters="false" visible="false"/>
+    <vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true"/>
     </display>
    
     <detectors>
        
-                <detector id="1" name="Tracker" type="HPSTracker2014" readout="TrackerHits" vis="TrackerVis">
+                <detector id="1" name="Tracker" type="HPSTracker2014" readout="TrackerHits">
         <!-- 
         <SurveyVolumes>
             <SurveyVolume name="base_plate">
