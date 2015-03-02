@@ -37,6 +37,8 @@ public class SSPData extends AbstractIntData {
     // Collections for storing the decoded SSP bank data.
     private final List<SSPCluster> clusterList = new ArrayList<SSPCluster>();
     private final List<SSPTrigger> triggerList = new ArrayList<SSPTrigger>();
+    private final List<SSPPairTrigger> pairList = new ArrayList<SSPPairTrigger>();
+    private final List<SSPSinglesTrigger> singlesList = new ArrayList<SSPSinglesTrigger>();
     
     // Other SSP bank information.
     private int eventNumber = 0;
@@ -96,6 +98,8 @@ public class SSPData extends AbstractIntData {
                 
                 // Create an SSPTrigger and add it to the list.
                 SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
+                if(trigger instanceof SSPSinglesTrigger) { singlesList.add((SSPSinglesTrigger) trigger); }
+                else if(trigger instanceof SSPPairTrigger) { pairList.add((SSPPairTrigger) trigger); }
                 triggerList.add(trigger);
             }
             
@@ -164,11 +168,30 @@ public class SSPData extends AbstractIntData {
     }
     
     /**
+     * Gets the list of pair triggers reported by the SSP.
+     * @return Returns the triggers as a <code>List</code> collection
+     * of <code>SSPPairTrigger</code> objects.
+     */
+    public List<SSPPairTrigger> getPairTriggers() {
+    	return pairList;
+    }
+    
+    /**
+     * Gets the list of singles triggers reported by the SSP.
+     * @return Returns the triggers as a <code>List</code> collection
+     * of <code>SSPSinglesTrigger</code> objects.
+     */
+    public List<SSPSinglesTrigger> getSinglesTriggers() {
+    	return singlesList;
+    }
+    
+    /**
      * Gets the list of triggers reported by the SSP.
      * @return Returns the triggers as a <code>List</code> collection
      * of <code>SSPTrigger</code> objects. These can vary in which
      * subclass they are, as appropriate to their type code.
      */
+    @Deprecated
     public List<SSPTrigger> getTriggers() {
         return triggerList;
     }
