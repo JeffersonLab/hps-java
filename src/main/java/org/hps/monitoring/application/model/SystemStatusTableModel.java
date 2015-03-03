@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui.model;
+package org.hps.monitoring.application.model;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

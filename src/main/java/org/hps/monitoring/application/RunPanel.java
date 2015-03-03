@@ -1,9 +1,20 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
-import static org.hps.monitoring.gui.model.RunModel.*;
+import static org.hps.monitoring.application.model.RunModel.DATA_RATE_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.DATA_RECEIVED_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.ELAPSED_TIME_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.END_DATE_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.EVENTS_RECEIVED_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.EVENT_NUMBER_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.EVENT_RATE_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.RUN_LENGTH_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.RUN_NUMBER_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.START_DATE_PROPERTY;
+import static org.hps.monitoring.application.model.RunModel.TOTAL_EVENTS_PROPERTY;
 
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
@@ -17,7 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
-import org.hps.monitoring.gui.model.RunModel;
+import org.hps.monitoring.application.model.RunModel;
 import org.hps.record.composite.CompositeRecord;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.evio.EvioEventUtilities;
@@ -29,7 +40,7 @@ import org.lcsim.event.EventHeader;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class RunPanel extends JPanel implements PropertyChangeListener {
+public class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
     DatePanel startDateField = new DatePanel("Run Start", "", 16, false);
@@ -43,32 +54,51 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel dataRateField = new FieldPanel("Data Rate [MB/s]", "", 12, false);
     FieldPanel eventRateField = new FieldPanel("Event Rate [evt/s]", "", 14, false);
 
-    RunModel model;
+    RunModel runModel;
     
     static final NumberFormat formatter = new DecimalFormat("#0.00"); 
 
-    RunPanel(RunModel model) {
-        this.model = model;
-        this.model.addPropertyChangeListener(this);
+    public RunPanel() {
+        build();
+    }
+    
+    public RunPanel(RunModel runModel) {
+        this.runModel = runModel;
+        this.runModel.addPropertyChangeListener(this);
+        build();
+    }
+    
+    private void build() {
+        
+        setLayout(new GridBagLayout());
 
-        setLayout(new FlowLayout(FlowLayout.LEFT));
-
-        TitledBorder titledBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");
+        TitledBorder titledBorder = BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");
         setBorder(titledBorder);
 
-        add(runNumberField);
-        add(startDateField);
-        add(endDateField);
-        add(lengthField);
-        add(totalEventsField);
-        add(elapsedTimeField);
-        add(eventsReceivedField);
-        add(dataReceivedField);
-        add(eventNumberField);
-        add(dataRateField);
-        add(eventRateField);
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.gridx = 0;                
+        add(runNumberField, c);
+        add(startDateField, c);
+        add(endDateField, c);
+        add(lengthField, c);
+        add(totalEventsField, c);
+        
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        add(elapsedTimeField, c);
+        add(eventsReceivedField, c);
+        add(dataReceivedField, c);
+        add(eventNumberField, c);
+        add(dataRateField, c);
+        add(eventRateField, c);
 
-        this.setMinimumSize(new Dimension(0, 240));
+        setMinimumSize(new Dimension(400, 240));
+    }
+    
+    public void setModel(RunModel runModel) {
+        this.runModel = runModel;
     }
 
     class RunModelUpdater extends CompositeRecordProcessor {
@@ -104,12 +134,12 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 System.out.println("megaBytesReceived = " + megaBytesReceived);
                 */
                 
-                model.setElapsedTime(elapsedTime);
-                model.setEventsReceived(totalEvents);
-                model.setDataRate(megaBytesReceived / tickLengthSeconds);
-                model.addDataReceived(megaBytesReceived);
-                model.setEventNumber(eventNumber);
-                model.setEventRate(eventsReceived / tickLengthSeconds);
+                runModel.setElapsedTime(elapsedTime);
+                runModel.setEventsReceived(totalEvents);
+                runModel.setDataRate(megaBytesReceived / tickLengthSeconds);
+                runModel.addDataReceived(megaBytesReceived);
+                runModel.setEventNumber(eventNumber);
+                runModel.setEventRate(eventsReceived / tickLengthSeconds);
                 
                 eventsReceived = 0;
                 bytesReceived = 0;
@@ -123,7 +153,7 @@ class RunPanel extends JPanel implements PropertyChangeListener {
         
         @Override
         public void startJob() {
-            model.reset();
+            runModel.reset();
             jobStartMillis = System.currentTimeMillis();
             
             // Start the timer to update GUI components about once per second.
@@ -174,8 +204,8 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 int headBankRun = headBank.getIntData()[1];
                 if (headBankRun != runNumber) {
                     runNumber = headBankRun;
-                    model.setRunNumber(headBankRun);
-                    model.setStartDate(new Date(headBank.getIntData()[3] * 1000));
+                    runModel.setRunNumber(headBankRun);
+                    runModel.setStartDate(new Date(headBank.getIntData()[3] * 1000));
                 }
             }
         }
@@ -189,9 +219,9 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 long endMillis = ((long) seconds) * 1000;
 
                 // Update the GUI.
-                model.setEndDate(new Date(endMillis));
-                model.computeRunLength();
-                model.setTotalEvents(eventCount);
+                runModel.setEndDate(new Date(endMillis));
+                runModel.computeRunLength();
+                runModel.setTotalEvents(eventCount);
             }
         }
 
@@ -203,15 +233,15 @@ class RunPanel extends JPanel implements PropertyChangeListener {
                 runNumber = data[1];
                 
                 // Update the GUI.
-                model.setRunNumber(runNumber);
-                model.setStartDate(new Date(seconds * 1000));
+                runModel.setRunNumber(runNumber);
+                runModel.setStartDate(new Date(seconds * 1000));
             }
         }
         
         private void startRun(EventHeader lcioEvent) {
-            model.setRunNumber(lcioEvent.getRunNumber());
+            runModel.setRunNumber(lcioEvent.getRunNumber());
             long seconds = lcioEvent.getTimeStamp() / 1000000000;
-            model.setStartDate(new Date((int)seconds));
+            runModel.setStartDate(new Date((int)seconds));
         }
         
         @Override

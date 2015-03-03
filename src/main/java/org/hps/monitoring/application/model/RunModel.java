@@ -1,9 +1,9 @@
-package org.hps.monitoring.gui.model;
+package org.hps.monitoring.application.model;
 
 import java.util.Date;
 
 /**
- * Backing model for run information that shows in the {@link org.hps.monitoring.gui.RunPanel}.
+ * Backing model for run information that shows in the {@link org.hps.monitoring.application.RunPanel}.
  */
 public final class RunModel extends AbstractModel {
 

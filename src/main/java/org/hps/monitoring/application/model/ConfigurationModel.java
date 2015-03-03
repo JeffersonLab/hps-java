@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui.model;
+package org.hps.monitoring.application.model;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -6,7 +6,7 @@ import java.util.logging.Level;
 
 import javassist.Modifier;
 
-import org.hps.monitoring.enums.SteeringType;
+import org.hps.monitoring.application.SteeringType;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.jlab.coda.et.enums.Mode;

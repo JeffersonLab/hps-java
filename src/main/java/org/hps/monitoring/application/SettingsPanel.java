@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -15,7 +15,7 @@ import javax.swing.JTabbedPane;
 /**
  * The container component with the tabs that have job and connection settings.
  */
-class SettingsPanel extends JPanel implements ActionListener {
+public class SettingsPanel extends JPanel implements ActionListener {
 
     JTabbedPane tabs;
     JobSettingsPanel jobPanel = new JobSettingsPanel();

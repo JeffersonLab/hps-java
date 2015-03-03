@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui.model;
+package org.hps.monitoring.application.model;
 
 /**
  * Mixin interface for classes that have an associated {@link ConfigurationModel}.

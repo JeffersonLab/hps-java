@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;

@@ -1,7 +1,7 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
-import static org.hps.monitoring.gui.Commands.*;
-import static org.hps.monitoring.gui.model.ConfigurationModel.*;
+import static org.hps.monitoring.application.Commands.*;
+import static org.hps.monitoring.application.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -13,7 +13,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 
-import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConfigurationModel;
 import org.jlab.coda.et.enums.Mode;
 
 /**

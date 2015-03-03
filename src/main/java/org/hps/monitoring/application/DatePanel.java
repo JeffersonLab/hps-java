@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

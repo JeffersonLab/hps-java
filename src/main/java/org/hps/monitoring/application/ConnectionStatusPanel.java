@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,8 +15,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-
-import org.hps.monitoring.enums.ConnectionStatus;
 
 /**
  * This is the panel for showing the current connection status (connected, disconnected, etc.).

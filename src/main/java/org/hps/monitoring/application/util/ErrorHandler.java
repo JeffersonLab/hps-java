@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application.util;
 
 import java.awt.Component;
 import java.util.logging.Level;
@@ -24,7 +24,7 @@ import javax.swing.SwingUtilities;
  * chained, where appropriate. Some methods are not available for chaining when it doesn't make
  * sense. </p>
  */
-class ErrorHandler {
+public class ErrorHandler {
 
     Logger logger;
     Component component;
@@ -36,7 +36,7 @@ class ErrorHandler {
      * @param component The GUI component to which this object is assigned.
      * @param logger The logger to which messages will be written.
      */
-    ErrorHandler(Component component, Logger logger) {
+    public ErrorHandler(Component component, Logger logger) {
         this.logger = logger;
         this.component = component;
     }
@@ -46,7 +46,7 @@ class ErrorHandler {
      * @param error The error which is a <code>Throwable</code>.
      * @return This object.
      */
-    ErrorHandler setError(Throwable error) {
+    public ErrorHandler setError(Throwable error) {
         this.error = error;
         this.message = error.getMessage();
         return this;
@@ -57,7 +57,7 @@ class ErrorHandler {
      * @param message The erro message.
      * @return This object.
      */
-    ErrorHandler setMessage(String message) {
+    public ErrorHandler setMessage(String message) {
         this.message = message;
         return this;
     }
@@ -66,7 +66,7 @@ class ErrorHandler {
      * Print the full stack trace of the error to System.err.
      * @return This object.
      */
-    ErrorHandler printStackTrace() {
+    public ErrorHandler printStackTrace() {
         error.printStackTrace();
         return this;
     }
@@ -75,7 +75,7 @@ class ErrorHandler {
      * Print the error message to System.err.
      * @return This object.
      */
-    ErrorHandler printMessage() {
+    public ErrorHandler printMessage() {
         System.err.println(message);
         return this;
     }
@@ -84,7 +84,7 @@ class ErrorHandler {
      * Log the error message to the <code>Logger</code>.
      * @return This object.
      */
-    ErrorHandler log() {
+    public ErrorHandler log() {
         logger.log(Level.SEVERE, message);
         return this;
     }
@@ -93,7 +93,7 @@ class ErrorHandler {
      * Show an error dialog with the message.
      * @return This object.
      */
-    ErrorHandler showErrorDialog() {
+    public ErrorHandler showErrorDialog() {
         final Runnable runnable = new Runnable() {
             public void run() {
                 JOptionPane.showMessageDialog(component, error.getMessage(), "Application Error", JOptionPane.ERROR_MESSAGE);
@@ -107,14 +107,14 @@ class ErrorHandler {
      * Rethrow the error as a <code>RuntimeException</code>. Additional methods cannot be chained to
      * this as they would not be executed.
      */
-    void raiseException() {
+    public void raiseException() {
         throw new RuntimeException(message, error);
     }
 
     /**
      * Exit the application. This is not chainable for obvious reasons.
      */
-    void exit() {
+    public void exit() {
         System.err.println("Fatal error.  Application will exit.");
         System.exit(1);
     }

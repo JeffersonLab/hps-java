@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -17,7 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.hps.monitoring.gui.model.HasConfigurationModel;
+import org.hps.monitoring.application.model.HasConfigurationModel;
 
 /**
  * A <code>JPanel</code> which has a number of fields with the labels in the first column and the

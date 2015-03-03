@@ -1,12 +1,12 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
-import static org.hps.monitoring.gui.Commands.CHOOSE_FILE_SOURCE;
-import static org.hps.monitoring.gui.Commands.DATA_SOURCE_TYPE_CHANGED;
-import static org.hps.monitoring.gui.Commands.PROCESSING_STAGE_CHANGED;
-import static org.hps.monitoring.gui.Commands.VALIDATE_DATA_FILE;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_PATH_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY;
-import static org.hps.monitoring.gui.model.ConfigurationModel.PROCESSING_STAGE_PROPERTY;
+import static org.hps.monitoring.application.Commands.CHOOSE_FILE_SOURCE;
+import static org.hps.monitoring.application.Commands.DATA_SOURCE_TYPE_CHANGED;
+import static org.hps.monitoring.application.Commands.PROCESSING_STAGE_CHANGED;
+import static org.hps.monitoring.application.Commands.VALIDATE_DATA_FILE;
+import static org.hps.monitoring.application.model.ConfigurationModel.DATA_SOURCE_PATH_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.PROCESSING_STAGE_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -22,7 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 

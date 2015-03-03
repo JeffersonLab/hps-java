@@ -1,4 +1,4 @@
-package org.hps.monitoring.gui.model;
+package org.hps.monitoring.application.model;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,7 +10,7 @@ import java.util.Properties;
 /**
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object. The
  * getter and setter methods for these values are not public, because the 
- * {@link org.hps.monitoring.gui.model.ConfigurationModel} class should be used instead
+ * {@link org.hps.monitoring.application.model.ConfigurationModel} class should be used instead
  * to get or set application configuration values.
  */
 public final class Configuration {

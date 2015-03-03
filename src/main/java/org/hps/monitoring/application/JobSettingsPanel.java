@@ -1,7 +1,7 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
-import static org.hps.monitoring.gui.Commands.*;
-import static org.hps.monitoring.gui.model.ConfigurationModel.*;
+import static org.hps.monitoring.application.Commands.*;
+import static org.hps.monitoring.application.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -32,8 +32,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
-import org.hps.monitoring.enums.SteeringType;
-import org.hps.monitoring.gui.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.record.LCSimEventBuilder;
 import org.jdom.Document;
 import org.jdom.Element;

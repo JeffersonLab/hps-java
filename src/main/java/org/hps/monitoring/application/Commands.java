@@ -1,10 +1,10 @@
-package org.hps.monitoring.gui;
+package org.hps.monitoring.application;
 
 /**
  * These strings are used to identify ActionEvents in the MonitoringApplication. A few commands
  * handled only by sub-components are not listed here.
  */
-final class Commands {
+public final class Commands {
 
     static final String AIDA_AUTO_SAVE = "aidaAutoSave";
     static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
