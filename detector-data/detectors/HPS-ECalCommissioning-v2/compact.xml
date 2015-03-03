@@ -220,10 +220,15 @@
     </define>
     
     <materials>
+        <!-- Set the world material to vacuum. -->
+        <material name="WorldMaterial">
+            <D type="density" unit="g/cm3" value="0.0000000000000001"/>
+            <fraction n="1.0" ref="Vacuum" />
+        </material>
         <!-- Set tracking material to vacuum. -->
         <material name="TrackingMaterial">
             <D type="density" unit="g/cm3" value="0.0000000000000001"/>
-            <fraction n="1.0" ref="Air" />
+            <fraction n="1.0" ref="Vacuum" />
         </material>
         <!-- ECal crystal material. -->
         <material name="LeadTungstate">
