@@ -7,7 +7,7 @@ package org.hps.readout.ecal.triggerbank;
  * 
  * @author Kyle McCarty <mccarty@jab.org>
  */
-public class SSPPairTrigger extends SSPTrigger {
+public class SSPPairTrigger extends SSPNumberedTrigger {
     /**
      * Instantiates a new <code>SSPPairTrigger</code>.
      * @param isFirstTrigger - Indicates whether the first or second
@@ -19,24 +19,12 @@ public class SSPPairTrigger extends SSPTrigger {
         super(isFirstTrigger ? SSPData.TRIG_TYPE_PAIR0 : SSPData.TRIG_TYPE_PAIR1, time, data);
     }
     
-    /**
-     * Indicates whether the trigger was reported by the first of the
-     * pair triggers.
-     * @return <code>true</code> if the trigger was reported by the
-     * first trigger and <code>false</code> if it was reported by the
-     * second trigger.
-     */
+    @Override
     public boolean isFirstTrigger() {
     	return (type == SSPData.TRIG_TYPE_PAIR0);
     }
     
-    /**
-     * Indicates whether the trigger was reported by the second of
-     * the pair triggers.
-     * @return <code>true</code> if the trigger was reported by the
-     * second trigger and <code>false</code> if it was reported by
-     * the first trigger.
-     */
+    @Override
     public boolean isSecondTrigger() {
     	return (type == SSPData.TRIG_TYPE_PAIR1);
     }
@@ -79,5 +67,13 @@ public class SSPPairTrigger extends SSPTrigger {
      */
     public boolean passCutCoplanarity() {
         return ((data & 8) >> 3) == 1;
+    }
+    
+    @Override
+    public String toString() {
+		return String.format("Trigger %d :: %3d ns :: ESum: %d, EDiff: %d, ESlope: %d, Coplanarity: %d",
+				isFirstTrigger() ? 1 : 2, getTime(), passCutEnergySum() ? 1 : 0,
+				passCutEnergyDifference() ? 1 : 0, passCutEnergySlope() ? 1 : 0,
+				passCutCoplanarity() ? 1 : 0);
     }
 }

@@ -7,7 +7,7 @@ package org.hps.readout.ecal.triggerbank;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class SSPSinglesTrigger extends SSPTrigger {
+public class SSPSinglesTrigger extends SSPNumberedTrigger {
     /**
      * Instantiates a new <code>SSPSinglesTrigger</code> object.
      * @param isTrigger0 - Indicates whether this is the first or second
@@ -36,24 +36,12 @@ public class SSPSinglesTrigger extends SSPTrigger {
         return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_BOT);
     }
     
-    /**
-     * Indicates whether the trigger was reported by the first of the
-     * singles triggers.
-     * @return <code>true</code> if the trigger was reported by the
-     * first trigger and <code>false</code> if it was reported by the
-     * second trigger.
-     */
+    @Override
     public boolean isFirstTrigger() {
     	return (type == SSPData.TRIG_TYPE_SINGLES0_BOT) || (type == SSPData.TRIG_TYPE_SINGLES0_TOP);
     }
     
-    /**
-     * Indicates whether the trigger was reported by the second of
-     * the singles triggers.
-     * @return <code>true</code> if the trigger was reported by the
-     * second trigger and <code>false</code> if it was reported by
-     * the first trigger.
-     */
+    @Override
     public boolean isSecondTrigger() {
     	return (type == SSPData.TRIG_TYPE_SINGLES1_BOT) || (type == SSPData.TRIG_TYPE_SINGLES1_TOP);
     }
@@ -97,5 +85,12 @@ public class SSPSinglesTrigger extends SSPTrigger {
      */
     public boolean passCutHitCount() {
         return ((data & 4) >> 2) == 1;
+    }
+    
+    @Override
+    public String toString() {
+		return String.format("Trigger %d :: %3d ns :: EClusterLow: %d; EClusterHigh %d; HitCount: %d",
+				isFirstTrigger() ? 1 : 2, getTime(), passCutEnergyMin() ? 1 : 0,
+				passCutEnergyMax() ? 1 : 0, passCutHitCount() ? 1 : 0);
     }
 }

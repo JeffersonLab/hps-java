@@ -38,6 +38,7 @@ public class SSPData extends AbstractIntData {
     private final List<SSPCluster> clusterList = new ArrayList<SSPCluster>();
     private final List<SSPTrigger> triggerList = new ArrayList<SSPTrigger>();
     private final List<SSPPairTrigger> pairList = new ArrayList<SSPPairTrigger>();
+    private final List<SSPCosmicTrigger> cosmicList = new ArrayList<SSPCosmicTrigger>();
     private final List<SSPSinglesTrigger> singlesList = new ArrayList<SSPSinglesTrigger>();
     
     // Other SSP bank information.
@@ -100,6 +101,7 @@ public class SSPData extends AbstractIntData {
                 SSPTrigger trigger = SSPTriggerFactory.makeTrigger(type, time * 4, data);
                 if(trigger instanceof SSPSinglesTrigger) { singlesList.add((SSPSinglesTrigger) trigger); }
                 else if(trigger instanceof SSPPairTrigger) { pairList.add((SSPPairTrigger) trigger); }
+                else if(trigger instanceof SSPCosmicTrigger) { cosmicList.add((SSPCosmicTrigger) trigger); }
                 triggerList.add(trigger);
             }
             
@@ -168,6 +170,15 @@ public class SSPData extends AbstractIntData {
     }
     
     /**
+     * Gets the list of cosmic triggers reported by the SSP.
+     * @return Returns the triggers as a <code>List</code> collection
+     * of <code>SSPCosmicTrigger</code> objects.
+     */
+    public List<SSPCosmicTrigger> getCosmicTriggers() {
+    	return cosmicList;
+    }
+    
+    /**
      * Gets the list of pair triggers reported by the SSP.
      * @return Returns the triggers as a <code>List</code> collection
      * of <code>SSPPairTrigger</code> objects.
@@ -186,7 +197,12 @@ public class SSPData extends AbstractIntData {
     }
     
     /**
-     * Gets the list of triggers reported by the SSP.
+     * Gets the list of triggers reported by the SSP.<br/>
+     * <br/>
+     * <b>Note:</b> This method is now deprecated. Singles triggers
+     * can be obtained with <code>getSinglesTriggers</code>, pair
+     * triggers with <code>getPairTriggers</code>, and cosmic triggers
+     * with <code>getCosmicTriggers</code>.
      * @return Returns the triggers as a <code>List</code> collection
      * of <code>SSPTrigger</code> objects. These can vary in which
      * subclass they are, as appropriate to their type code.

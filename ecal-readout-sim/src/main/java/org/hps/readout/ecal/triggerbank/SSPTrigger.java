@@ -6,9 +6,9 @@ import java.util.logging.Logger;
 import org.lcsim.util.log.LogUtil;
 
 /**
- * Abstract class <code>SSPTrigger</code> represents the data output
- * by the SSP for a trigger. Individual implementing classes are expected
- * to handle parsing the trigger bit data as appropriate for their type.
+ * Class <code>SSPTrigger</code> represents the data output by the SSP
+ * for a trigger. Individual implementing classes are expected to handle
+ * parsing the trigger bit data as appropriate for their type.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
