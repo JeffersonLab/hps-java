@@ -13,7 +13,7 @@ import hep.aida.IFitResult;
 
 import hep.aida.IFunctionFactory;
 
-
+ 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -91,7 +91,8 @@ public class LedAnalysis extends Driver{
         this.useRawEnergy=useRawEnergy;
     }
 	
-	
+
+    private double skipInitial=0.1;
 	
 	@Override
 	protected void detectorChanged(Detector detector) {
@@ -192,7 +193,8 @@ public class LedAnalysis extends Driver{
 						System.out.println("LedAnalysis:: increment step for driver "+driverid+" "+ledid+" "+column+" "+row+" "+id);
 					}	
 				}
-			
+				
+					
 				if (iStep[driverid]==-1) continue;
 				
 				/*Case 1: this led is the one in the corresponding step*/;
@@ -210,7 +212,11 @@ public class LedAnalysis extends Driver{
 				else{	/*Case 2: this led is not one in the corresponding step (but maybe is the neighborhood??Ctalk??)*/;
 					
 				}
-				
+		
+				/*Add a debug print */
+				if (eventN % 10000==0){
+					System.out.println("Debug. LED ID: "+ledid+" DRIVER ID: "+driverid+" ECAL ID: "+id+" ROW: "+row+" COLUMN: "+column);
+				}
 		   }		
 	   }		
 	}
@@ -239,7 +245,6 @@ public class LedAnalysis extends Driver{
 		double e,eMin,eMax;
 		int n,nBins;
 		
-		double skip=0.1;
 		
 		IFunctionFactory fFactory=aida.analysisFactory().createFunctionFactory(aida.tree());
 		IPlotter pPlotter= aida.analysisFactory().createPlotterFactory().create();
@@ -256,7 +261,7 @@ public class LedAnalysis extends Driver{
 			  /*Create the profile. Create it for all the channels, to keep sync.*/
               nBins=nEvents[id]/100;
               if (nBins<=0) nBins=1;
-              cProfile.add(aida.profile1D("strip_"+id,nBins,-0.5,nEvents[id]*(1-skip)+0.5));
+              cProfile.add(aida.profile1D("strip_"+id,nBins,-0.5,nEvents[id]*(1-skipInitial)+0.5));
 
 			  /*Create the function for the profile fit*/
 			  /* Create it for all the channels, to keep sync.*/
@@ -271,7 +276,7 @@ public class LedAnalysis extends Driver{
 			
 			  /*Fill the profile*/
 			  iTuple.get(id).start();
-			  iTuple.get(id).skip((int)(nEvents[id]*skip)); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+			  iTuple.get(id).skip((int)(nEvents[id]*skipInitial)); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
 			  n=0;
 			  while ( iTuple.get(id).next() ){
 				  e=iTuple.get(id).getDouble(1);
@@ -283,7 +288,7 @@ public class LedAnalysis extends Driver{
 			  
 
 			  /*Init function parameters*/
-			  double[] initialPars={eMax-eMin,1.*(nEvents[id]/5),eMin};
+			  double[] initialPars={eMax-eMin,1.*(nEvents[id]/5.),eMin};
 			  fFunction.get(id).setParameters(initialPars);
 			  
 			  /*Do the fit*/
@@ -306,10 +311,12 @@ public class LedAnalysis extends Driver{
 			  pPlotter.region(0).plot(fFunction.get(id));
 			//  plotter.show();
 			  
-			  if (useRawEnergy){
-				    	eMin=eMin/.2; //@TODO do this better
-				    	eMax=eMax/.2; //@TODO do this better
-			  }
+			 
+			  /*Now we have the "tau" parameter, that I use to skip the first 5*tau events.
+			   * As a cross-check, I ask that the number of skipped events is AT LEAST nEvents/2,
+			   * otherwise there may be something strange..
+			   */
+			  
 			  
 	 	}
 	}
