@@ -2,10 +2,18 @@ package org.hps.recon.ecal;
 
 import hep.aida.IHistogram1D;
 
+import java.io.Console;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
 
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableMetaData;
+import org.hps.conditions.ecal.EcalCalibration;
+import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.lcsim.event.EventHeader;
@@ -19,35 +27,42 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Calculate pedestals from Mode-7 Data.
  * 
- * To be used online with org.hps.monitoring.ecal.plots.EcalPedestalViewer
- * and ET-ring to create config files for DAQ and/or conditions DB.
+ * To be used online with org.hps.monitoring.ecal.plots.EcalPedestalViewer and
+ * ET-ring to create config files for DAQ and/or conditions DB.
  * 
  * When user clicks "Disconnect" in monitoring app (after confirming sufficient
- * statistics), endOfData is called and config files will be written.  Copying
- * files to proper location for DAQ must be done manually.
- *gg
- * TODO: Merge with EcalCalibrationDriver (which works on Mode-1).
+ * statistics), endOfData is called and config files will be written. Copying
+ * files to proper location for DAQ must be done manually. gg TODO: Merge with
+ * EcalCalibrationDriver (which works on Mode-1).
  * 
  * @version $Id: EcalPedestalCalculator.java,v 0.1 2015/02/20 00:00:00
  * @author <baltzell@jlab.org>
  */
 public class EcalPedestalCalculator extends Driver {
 
+    private static final String dbTag = "online";
+    private static final String dbTableName = "ecal_calibrations";
     private static final String rawCollectionName = "EcalReadoutHits";
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 
     private String histoNameFormat = "Ecal/Pedestals/Mode7/ped%3d";
+
+    private static final int minimumStats = 1000;
+    private static final DecimalFormat dbNumberFormat=new DecimalFormat("#.####");
     
-    private String outputFilePrefix = "";
     private static final String[] filenamesDAQ = { "fadc37.ped", "fadc39.ped" };
-    private static final String filenameDB = "EcalPedsForDB.txt";
-    
+    private static final String filenameDB = "hpsDB.txt";
+
     // The number of samples used by FADCs to report an event's pedestal.
     private int nSamples = 4;
+
+    private int runNumber = 0;
+    private static final int runNumberMax = 9999;
     
-    private boolean writeFileForDB=true;
-    private boolean writeFileForDAQ=true;
-    
+    private boolean writeFileForDB = true;
+    private boolean writeFileForDAQ = true;
+
+    private DatabaseConditionsManager conditionsManager = null;
     private EcalConditions ecalConditions = null;
 
     AIDA aida = AIDA.defaultInstance();
@@ -57,18 +72,41 @@ public class EcalPedestalCalculator extends Driver {
     public EcalPedestalCalculator() {
     }
 
-    public void setOutputFilePrefix(String prefix) {
-        outputFilePrefix = "_"+prefix;
-    }
-
     @Override
     protected void startOfData() {
     }
 
     @Override
     public void endOfData() {
-        if (writeFileForDAQ) writeFileForDAQ();
-        if (writeFileForDB)  writeFileForDB();
+        Console cc = System.console();
+        if (cc == null) {
+            System.err.println("No console.");
+            System.exit(1);
+        }
+      
+        System.err.println("\n\n\n***************************************************************\n");
+        String userInput="";
+        String outputFilePrefix="";
+        userInput=cc.readLine("Enter filename prefix, or just press RETURN ...");
+        if (userInput==null || userInput.length()==0 || userInput=="") {
+            String home=System.getenv().get("HOME");
+            outputFilePrefix = home+"/EcalPedestalCalculator_"+runNumber+"_";
+        } else {
+            outputFilePrefix = userInput;
+        }
+
+        if (writeFileForDAQ) writeFileForDAQ(outputFilePrefix);
+        if (writeFileForDB)  writeFileForDB(outputFilePrefix);
+        
+        System.err.println("\n\n***************************************************************\n");
+        userInput=cc.readLine(String.format("Enter 'YES' to write conditions database for run range [%s,%s] ...",runNumber,runNumberMax));
+        System.out.println("***********"+userInput+"********");
+        if (userInput!=null && userInput.equals("YES")) {
+            userInput=cc.readLine("Really?");
+            if (userInput!=null && userInput.equals("YES")) {
+                uploadToDB();
+            }
+        }
     }
 
     @Override
@@ -77,7 +115,9 @@ public class EcalPedestalCalculator extends Driver {
         if (nDetectorChanges++ > 1) {
             throw new RuntimeException("No Detector Change Allowed.");
         }
-        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        
+        conditionsManager = DatabaseConditionsManager.getInstance();
+        ecalConditions = conditionsManager.getEcalConditions();
 
         aida.tree().cd("/");
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
@@ -90,15 +130,56 @@ public class EcalPedestalCalculator extends Driver {
         return String.format(histoNameFormat,cc.getChannelId());
     }
 
-    private void writeFileForDB() {
+    private void uploadToDB() {
+        System.out.println(String.format("Uploading new pedestals to the database, runMin=%d, runMax=%d, tag=%s ....",
+                runNumber,runNumberMax,dbTag));
+      
+        EcalCalibrationCollection calibrations = new EcalCalibrationCollection();
+        TableMetaData tableMetaData = conditionsManager.findTableMetaData(dbTableName);
+        calibrations.setTableMetaData(tableMetaData);
+        
+        for (int cid = 1; cid <= 442; cid++) {
+            EcalChannel cc = findChannel(cid);
+            IHistogram1D hh = aida.histogram1D(getHistoName(cc));
+            if (hh.entries() < minimumStats) {
+                System.err.println("Insufficient Statistics, Not writing to database.  (channel_id="+cid+").");
+                return;
+            }
+            calibrations.add(new EcalCalibration(cid,
+                    Double.valueOf(dbNumberFormat.format(hh.mean())),
+                    Double.valueOf(dbNumberFormat.format(hh.rms()))));
+        }
+
+        int collectionId = conditionsManager.getNextCollectionID(dbTableName);
+        try {
+            calibrations.setCollectionId(collectionId);
+            
+            System.err.println("CollectionID:  "+collectionId);
+
+            calibrations.insert();
+            ConditionsRecord conditionsRecord = new ConditionsRecord(
+                    calibrations.getCollectionId(), runNumber, runNumberMax, dbTableName, dbTableName, 
+                    "Generated by EcalPedestalCalculator from Run #"+runNumber, dbTag);
+            conditionsRecord.insert();
+            
+        } catch (ConditionsObjectException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+        
+    }
+    
+    private void writeFileForDB(String outputFilePrefix) {
+        System.out.println("\nWriting pedestal file for HPS Conditions Database:\n"
+                + outputFilePrefix + filenameDB);
         FileWriter wout = null;
         try {
             wout = new FileWriter(outputFilePrefix + filenameDB);
-            for (int cid=1; cid<=442; cid++) {
-                EcalChannel cc= findChannel(cid);
+            wout.write("ecal_channel_id pedestal noise\n");
+            for (int cid = 1; cid <= 442; cid++) {
+                EcalChannel cc = findChannel(cid);
                 IHistogram1D hh = aida.histogram1D(getHistoName(cc));
-                wout.write(String.format("%3d %7.3f %7.3f\n",cid,
-                           hh.mean(),hh.rms()*Math.sqrt(nSamples)));
+                wout.write(String.format("%3d %7.3f %7.3f\n",cid,hh.mean(),
+                        hh.rms() * Math.sqrt(nSamples)));
             }
         } catch (IOException ee) {
             throw new RuntimeException("Error writing file.",ee);
@@ -112,7 +193,10 @@ public class EcalPedestalCalculator extends Driver {
             }
         }
     }
-    private void writeFileForDAQ() {
+
+    private void writeFileForDAQ(String outputFilePrefix) {
+        System.out.println("\nWriting pedestal files for Hall-B DAQ:\n" + outputFilePrefix
+                + filenamesDAQ[0] + "\n" + outputFilePrefix + filenamesDAQ[1]);
         FileWriter[] wout = { null, null };
         try {
             for (int crate = 1; crate <= 2; crate++) {
@@ -126,7 +210,7 @@ public class EcalPedestalCalculator extends Driver {
                         EcalChannel cc = findChannel(crate,slot,chan);
                         IHistogram1D hh = aida.histogram1D(getHistoName(cc));
                         wout[crate - 1].write(String.format("%2d %2d %7.3f %7.3f\n",slot,chan,
-                                hh.mean(),hh.rms()*Math.sqrt(nSamples)));
+                                hh.mean(),hh.rms() * Math.sqrt(nSamples)));
                     }
                 }
             }
@@ -148,6 +232,7 @@ public class EcalPedestalCalculator extends Driver {
 
     @Override
     protected void process(EventHeader event) {
+        runNumber = event.getRunNumber();
         if (event.hasCollection(RawCalorimeterHit.class,rawCollectionName)) {
             if (event.hasCollection(LCRelation.class,extraDataRelationsName)) {
                 for (LCRelation rel : event.get(LCRelation.class,extraDataRelationsName)) {
@@ -163,7 +248,8 @@ public class EcalPedestalCalculator extends Driver {
         final int min = ((HitExtraData.Mode7Data) mode7data).getAmplLow();
         final int max = ((HitExtraData.Mode7Data) mode7data).getAmplHigh();
         // ignore if pulse at beginning of window:
-        if (max <= 0) return;
+        if (max <= 0)
+            return;
         EcalChannel cc = findChannel(hit);
         if (cc == null) {
             System.err.println("Hit doesn't correspond to ecalchannel.");
@@ -182,9 +268,7 @@ public class EcalPedestalCalculator extends Driver {
 
     public EcalChannel findChannel(int crate, int slot, int chan) {
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
-            if (crate == cc.getCrate() && 
-                 slot == cc.getSlot()  && 
-                 chan == cc.getChannel()) {
+            if (crate == cc.getCrate() && slot == cc.getSlot() && chan == cc.getChannel()) {
                 return cc;
             }
         }
