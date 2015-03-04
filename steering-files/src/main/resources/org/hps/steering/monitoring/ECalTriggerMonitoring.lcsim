@@ -23,7 +23,9 @@
     <drivers>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalReadoutToTriggerConverterDriver">
             <rawCollectionName>EcalReadoutHits</rawCollectionName>
-            <integralWindow>35</integralWindow>
+            <!--<integralWindow>35</integralWindow> Deprecated, now use the equivalent in NSA/NSB-->
+            <nsa>120</nsa>
+            <nsb>20</nsb>
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <dropBadFADC>true</dropBadFADC>
             <tp>14.0</tp>

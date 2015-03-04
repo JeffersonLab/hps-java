@@ -21,10 +21,14 @@ import org.lcsim.util.Driver;
  * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
  * phansson Exp $
  *
- * baltzell Feb 26, 2015:
+ * baltzell: Feb 26, 2015:
  * added firmware emulation for converting from Mode-1 readout (RawTrackerHit)
  * to Mode-3 pulse (CalorimeterHit).  Turn it on with "emulateFirmware", else
- * defaults to previous behavior.
+ * defaults to previous behavior.  Removed integralWindow in favor of NSA and
+ * NSB in EcalRawConverter, so that all conversions can use the same window.
+ * March 3, 2015:  Removed integralWindow in favor of NSA/NSB in order to treat
+ * all modes uniformly.
+ * 
  */
 public class EcalRawConverterDriver extends Driver {
 
@@ -39,7 +43,6 @@ public class EcalRawConverterDriver extends Driver {
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 //    private static final String extraDataCollectionName = "EcalReadoutExtraData";
 
-    private int integralWindow = 30; //A.C. on 12/14/2014 8:44 after discussion with Nathan.
     private boolean debug = false;
     private double threshold = Double.NEGATIVE_INFINITY;
     private boolean applyBadCrystalMap = true;
@@ -92,10 +95,6 @@ public class EcalRawConverterDriver extends Driver {
     
     public void setGain(double gain) {
         converter.setGain(gain);
-    }
-
-    public void setIntegralWindow(int integralWindow) {
-        this.integralWindow = integralWindow;
     }
 
     public void setEcalCollectionName(String ecalCollectionName) {
@@ -237,7 +236,7 @@ public class EcalRawConverterDriver extends Driver {
                         }
                         GenericObject extraData = (GenericObject) rel.getTo();
                         CalorimeterHit newHit;
-                        newHit = converter.HitDtoA(event,hit, extraData, integralWindow, timeOffset);
+                        newHit = converter.HitDtoA(event,hit, extraData, timeOffset);
                         if (newHit.getRawEnergy() > threshold) {
                             if (applyBadCrystalMap && isBadCrystal(newHit)) {
                                 continue;
@@ -259,7 +258,7 @@ public class EcalRawConverterDriver extends Driver {
                             System.out.format("old hit energy %d\n", hit.getAmplitude());
                         }
                         CalorimeterHit newHit;
-                        newHit = converter.HitDtoA(hit, integralWindow, timeOffset);
+                        newHit = converter.HitDtoA(hit, timeOffset);
                         if (newHit.getRawEnergy() > threshold) {
                             if (applyBadCrystalMap && isBadCrystal(newHit)) {
                                 continue;
@@ -285,7 +284,7 @@ public class EcalRawConverterDriver extends Driver {
                     if (debug) {
                         System.out.format("old hit energy %f\n", hit.getRawEnergy());
                     }
-                    RawCalorimeterHit newHit = converter.HitAtoD(hit, integralWindow);
+                    RawCalorimeterHit newHit = converter.HitAtoD(hit);
                     if (newHit.getAmplitude() > 0) {
                         if (debug) {
                             System.out.format("new hit energy %d\n", newHit.getAmplitude());

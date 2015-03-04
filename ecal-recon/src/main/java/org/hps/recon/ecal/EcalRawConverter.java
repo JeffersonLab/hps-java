@@ -20,10 +20,14 @@ import org.lcsim.geometry.Detector;
  * information. It has methods to convert pedestal subtracted ADC counts to
  * energy.
  *
+ * TODO: Switch all mode's HitDtoAs to use a clipped pedestal for clipped pulses.
+ *       This requires another parameter, the window size.
+ *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author <baltzell@jlab.org>
+ * 
  */
 public class EcalRawConverter {
 
@@ -33,15 +37,28 @@ public class EcalRawConverter {
     private double gain;
     private boolean use2014Gain = true;
 
+    /*
+     * The time for one FADC sample (units = ns).
+     */
+    private static final int nsPerSample = 4;
     
-    // Parameters for replicating the conversion of FADC Mode-1 readout into what
-    // the firmware would have reported for Mode-3 pulse.  Using the same conventions
-    // for these parameters used by the firmware configuration files.  This means
-    // NSA and NSB are in units nanoseconds and must be multiples of 4 ns.
-    private double leadingEdgeThreshold=-1; // above pedestal (units=ADC)
-    private int NSA=-1; // integration range after threshold crossing (units=ns)
-    private int NSB=-1; // integration range before threshold crossing (units=ns)
+    /*
+     * The leading-edge threshold, relative to pedestal, for readout and pulse time
+     * determination.  Units = ADC.  This is used to convert mode-1 readout into
+     * mode-3/7 for clustering.
+     * 
+     * The default value of 12 is what we used for most of the 2014 run.
+     */
+    private double leadingEdgeThreshold=12;
     
+    /*
+     * Integration range after (NSA) and before (NSB) threshold crossing.  (units = ns)
+     * These must be multiples of 4 ns.
+     * 
+     * The default values of 20/100 are what we had during the entire 2014 run.
+     */
+    private int NSB=20;
+    private int NSA=100;
     
     private EcalConditions ecalConditions = null;
 
@@ -52,9 +69,15 @@ public class EcalRawConverter {
         leadingEdgeThreshold=thresh;
     }
     public void setNSA(int nsa) {
+        if (NSA%nsPerSample !=0 || NSA<0) {
+            throw new RuntimeException("NSA must be multiples of 4ns and non-negative.");
+        }
         NSA=nsa;
     }
     public void setNSB(int nsb) {
+        if (NSB%nsPerSample !=0 || NSB<0) {
+            throw new RuntimeException("NSB must be multiples of 4ns and non-negative.");
+        }
         NSB=nsb;
     }
     
@@ -89,7 +112,6 @@ public class EcalRawConverter {
                         event.get("EcalRunningPedestals");
                 EcalChannel chan = ecalConditions.getChannelCollection().
                         findGeometric(hit.getCellID());
-                //System.err.println(" %%%%%%%%%%%%%%%%% "+chan.getChannelId()+" "+runningPedMap.get(chan));
                 if (!runningPedMap.containsKey(chan)){
                     System.err.println("************** Missing Pedestal");
                 } else {
@@ -105,6 +127,7 @@ public class EcalRawConverter {
         }
         return findChannel(hit.getCellID()).getCalibration().getPedestal();
     }
+    
     public short sumADC(RawTrackerHit hit) {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
         double pedestal = channelData.getCalibration().getPedestal();
@@ -116,6 +139,10 @@ public class EcalRawConverter {
         return sum;
     }
 
+    /*
+     * This should this be replaced by firmwareHitDtoA, as that has the
+     * same functionality if NSA+NSB > window size. Left for now.
+     */
     public CalorimeterHit HitDtoA(RawTrackerHit hit) {
         double time = hit.getTime();
         long id = hit.getCellID();
@@ -125,42 +152,28 @@ public class EcalRawConverter {
 
     /*
      * NAB 2015/02/26
-     * 
      * This HitDtoA is for emulating the conversion of Mode-1 readout (RawTrackerHit)
-     * into a Mode-3 readout.  This currently only supports finding 1 pulse in the window.
-     * (NOTE: Looks like ADCs have already been converted to doubles.)
+     * into what EcalRawConverter would have created from a Mode-3 readout.
      * 
-     * TODO: Special case when NSA+NSB is greater than the window size is not dealt
-     * with properly, yet.
      */
     public CalorimeterHit firmwareHitDtoA(RawTrackerHit hit) {
      
-        final int nsPerSample=4; // TODO: Get this from somewhere else.
-        
-        if (NSA<0 || NSB<0 || leadingEdgeThreshold<0.0) {
-            throw new RuntimeException("You have to set NSA, NSB, and leadingEdgeThreshold to positive values if you want to emulate firmware.");
-        }
-        
-        // using convention for NSA and NSB in the DAQ config file:
-        if (NSA%nsPerSample !=0 || NSB%nsPerSample !=0) {
-            throw new RuntimeException("NSA/NSB must be multiples of 4ns.");
-        }
-        
         long id = hit.getCellID();
         short samples[] = hit.getADCValues();
         if (samples.length==0) return null;
         EcalChannelConstants channelData = findChannel(hit.getCellID());
         double pedestal = channelData.getCalibration().getPedestal();
-
+        double absoluteThreshold = pedestal+leadingEdgeThreshold;
+        
         // find threshold crossing:
         int thresholdCrossing = -1;
-        if (samples[0] > pedestal+leadingEdgeThreshold) {
+        if (samples[0] > absoluteThreshold) {
             // special case, first sample above threshold:
             thresholdCrossing=0;
         } else {
             for (int ii = 1; ii < samples.length; ++ii) {
-                if ( samples[ii]   >pedestal+leadingEdgeThreshold &&
-                     samples[ii-1]<=pedestal+leadingEdgeThreshold)
+                if ( samples[ii]   >absoluteThreshold &&
+                     samples[ii-1]<=absoluteThreshold)
                 {
                     // found threshold crossing:
                     thresholdCrossing = ii;
@@ -171,41 +184,52 @@ public class EcalRawConverter {
         }
         if (thresholdCrossing < 0) return null;
 
-        // pulse time:
-        double time = thresholdCrossing*nsPerSample;
-       
+        // choose integration range:
+        int firstSample,lastSample;
+        if ((NSA+NSB)/nsPerSample >= samples.length) {
+            // firmware treats this case specially:
+            firstSample = 0;
+            lastSample = samples.length-1;
+        } else {
+            firstSample = thresholdCrossing - NSB/nsPerSample;
+            lastSample  = thresholdCrossing + NSA/nsPerSample - 1;
+        }
+         
         // pulse integral:
         short sum = 0;
-        for (int jj=thresholdCrossing-NSB/nsPerSample; jj<thresholdCrossing+NSA/nsPerSample; jj++) {
+        for (int jj=firstSample; jj<=lastSample; jj++) {
             if (jj<0) continue;
             if (jj>=samples.length) break;
             sum += samples[jj];
         }
 
-        //System.err.println("000000000000000000000000      "+thresholdCrossing+"   "+sum+"  "+pedestal+"  "+NSA+NSB);
-
         // pedestal subtraction:
         sum -= pedestal*(NSA+NSB)/nsPerSample;
       
-        //System.err.println("1111111111111111111      "+thresholdCrossing+"   "+sum);
-        
         // conversion of ADC to energy:
         double rawEnergy = adcToEnergy(sum, id);
         
+        // pulse time:
+        double time = thresholdCrossing*nsPerSample;
+        if (useTimeWalkCorrection) {
+           time = EcalTimeWalk.correctTimeWalk(time,rawEnergy);
+        }
+
         return CalorimeterHitUtilities.create(rawEnergy, time, id);
     }
 
     /*
-     * This HitDtoA is for Mode-3 data at least, but definitely not Mode-7.
-     * A time-walk correction can be applied.  (NAB 2015/02/11).
+     * This HitDtoA is for Mode-3 data.
+     * A time-walk correction can be applied.
      */
-    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, int window, double timeOffset) {
+    public CalorimeterHit HitDtoA(RawCalorimeterHit hit, double timeOffset) {
         if (hit.getTimeStamp() % 64 != 0) {
             System.out.println("unexpected timestamp " + hit.getTimeStamp());
         }
         double time = hit.getTimeStamp() / 16.0;
         long id = hit.getCellID();
         EcalChannelConstants channelData = findChannel(id);
+        int window = (NSA+NSB)/nsPerSample;
         double adcSum = hit.getAmplitude() - window * channelData.getCalibration().getPedestal();
         double rawEnergy = adcToEnergy(adcSum, id);
         if (useTimeWalkCorrection) {
@@ -220,20 +244,26 @@ public class EcalRawConverter {
      * format of the input EVIO data.  EventHeader is also passed in order to allow access
      * to running pedestals, which is only applicable to Mode-7 data.  (NAB, 2015/02/11)
      */
-    public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, int window, double timeOffset) {
+    public CalorimeterHit HitDtoA(EventHeader event,RawCalorimeterHit hit, GenericObject mode7Data, double timeOffset) {
         double time = hit.getTimeStamp() / 16.0; //timestamps use the full 62.5 ps resolution
         long id = hit.getCellID();
+        int window = (NSA+NSB)/nsPerSample;
         double adcSum = hit.getAmplitude() - window * getMode7Pedestal(event,hit);
         double rawEnergy = adcToEnergy(adcSum, id);        
         return CalorimeterHitUtilities.create(rawEnergy, time + timeOffset, id);
     }
 
-    public RawCalorimeterHit HitAtoD(CalorimeterHit hit, int window) {
+    /*
+     * This converts a corrected pulse integral (pedestal-subtracted and gain-scaled)
+     * back into raw pulse integral with units ADC.
+     */
+    public RawCalorimeterHit HitAtoD(CalorimeterHit hit) {
         int time = (int) (Math.round(hit.getTime() / 4.0) * 64.0);
         long id = hit.getCellID();
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(id);
         int amplitude;
+        int window = (NSA+NSB)/nsPerSample;
         if (constantGain) {
             amplitude = (int) Math.round((hit.getRawEnergy() / ECalUtils.MeV) / gain + window * channelData.getCalibration().getPedestal());
         } else {
