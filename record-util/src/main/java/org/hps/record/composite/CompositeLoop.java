@@ -72,7 +72,8 @@ public final class CompositeLoop extends DefaultRecordLoop {
      */
     public void addAdapter(CompositeLoopAdapter adapter) {
         addLoopListener(adapter);
-        addRecordListener(adapter);        
+        addRecordListener(adapter);     
+        adapters.add(adapter);
     }
         
     /**
@@ -223,8 +224,9 @@ public final class CompositeLoop extends DefaultRecordLoop {
      */
     void setCompositeLoopConfiguration(CompositeLoopConfiguration config) {
         
-        if (this.config != null)
+        if (this.config != null) {
             throw new RuntimeException("CompositeLoop has already been configured.");
+        }
         
         this.config = config;
         
@@ -344,5 +346,9 @@ public final class CompositeLoop extends DefaultRecordLoop {
         if (config.maxRecords != -1) {            
             compositeAdapter.addProcessor(new MaxRecordsProcessor(config.maxRecords));
         }                 
-    }    
+    }        
+    
+    public List<CompositeLoopAdapter> getCompositeLoopAdapters() {
+        return adapters;
+    }
 }
