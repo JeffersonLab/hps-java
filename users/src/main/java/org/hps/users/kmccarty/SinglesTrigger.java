@@ -143,4 +143,11 @@ public class SinglesTrigger<E> extends Trigger<E> {
 	public void setStateClusterEnergyHigh(boolean state) {
 		setCutState(CLUSTER_TOTAL_ENERGY_HIGH, state);
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("EClusterLow: %d; EClusterHigh %d; HitCount: %d",
+				getStateClusterEnergyLow() ? 1 : 0, getStateClusterEnergyHigh() ? 1 : 0,
+				getStateHitCount() ? 1 : 0);
+	}
 }

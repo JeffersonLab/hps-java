@@ -154,4 +154,13 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	public void setStateTimeCoincidence(boolean state) {
 		setCutState(PAIR_TIME_COINCIDENCE, state);
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("EClusterLow: %d; EClusterHigh %d; HitCount: %d; ESumLow: %d, ESumHigh: %d, EDiff: %d, ESlope: %d, Coplanarity: %d",
+				getStateClusterEnergyLow() ? 1 : 0, getStateClusterEnergyHigh() ? 1 : 0,
+				getStateHitCount() ? 1 : 0, getStateEnergySumLow() ? 1 : 0,
+				getStateEnergySumHigh() ? 1 : 0, getStateEnergyDifference() ? 1 : 0,
+				getStateEnergySlope() ? 1 : 0, getStateCoplanarity() ? 1 : 0);
+	}
 }
