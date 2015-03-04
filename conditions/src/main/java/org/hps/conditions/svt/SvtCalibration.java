@@ -23,7 +23,23 @@ public final class SvtCalibration extends AbstractConditionsObject {
     }
 
     /**
+     *  Default Constructor
+     */
+    public SvtCalibration() { 
+    }
+    
+    /**
+     *  Constructor
+     *  
+     *  @param channelID : The SVT channel ID
+     */
+    public SvtCalibration(int channelID) { 
+       this.setChannelID(channelID); 
+    }
+    
+    /**
      * Get the channel ID.
+     * 
      * @return The channel ID.
      */
     @Field(names = {"svt_channel_id"})
@@ -32,8 +48,9 @@ public final class SvtCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the noise value.
-     * @return The noise value.
+     *  Get the noise value.
+     * 
+     *  @return The noise value.
      */
     @Field(names = {"noise_0", "noise_1", "noise_2", "noise_3", "noise_4", "noise_5"})
     public double getNoise(int sample) {
@@ -44,8 +61,9 @@ public final class SvtCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the pedestal value.
-     * @return The pedestal value.
+     *  Get the pedestal value.
+     * 
+     *  @return The pedestal value.
      */
     @Field(names = {"pedestal_0", "pedestal_1", "pedestal_2", "pedestal_3", "pedestal_4", "pedestal_5"})
     public double getPedestal(int sample) {
@@ -56,8 +74,40 @@ public final class SvtCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Convert this object to a human readable string.
-     * @return This object converted to a string.
+     *  Set the channel ID.
+     * 
+     *  @param channelID
+     */
+    public void setChannelID(int channelID) { 
+        this.setFieldValue("svt_channel_id", channelID);
+    }
+   
+    /**
+     *  Set the noise value for the given sample.
+     *  
+     *  @param sample
+     *  @param noise
+     */
+    public void setNoise(int sample, double noise) { 
+        String noiseField = "noise_" + Integer.toString(sample);
+        this.setFieldValue(noiseField, noise);
+    }
+   
+    /**
+     * Set the pedestal value for the given sample 
+     * 
+     * @param sample
+     * @param pedestal
+     */
+    public void setPedestal(int sample, double pedestal) { 
+        String pedestalField = "pedestal_" + Integer.toString(sample);
+        this.setFieldValue(pedestalField, pedestal);
+    }
+    
+    /**
+     *  Convert this object to a human readable string.
+     * 
+     *  @return This object converted to a string.
      */
     public String toString() {
         StringBuffer buffer = new StringBuffer();
