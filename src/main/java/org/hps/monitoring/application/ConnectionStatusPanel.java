@@ -6,20 +6,22 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+
+import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
  * This is the panel for showing the current connection status (connected, disconnected, etc.).
  */
-class ConnectionStatusPanel extends JPanel {
+class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
 
     JTextField statusField;
     JTextField dateField;
@@ -29,11 +31,16 @@ class ConnectionStatusPanel extends JPanel {
 
     private static final int PANEL_HEIGHT = 50;
     private static final int PANEL_WIDTH = 400;
+    
+    ConnectionStatusModel model;
 
     /**
      * Class constructor.
      */
-    ConnectionStatusPanel() {
+    ConnectionStatusPanel(ConnectionStatusModel model) {
+        
+        this.model = model;
+        this.model.addPropertyChangeListener(this);
 
         setMinimumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
 
@@ -43,13 +50,6 @@ class ConnectionStatusPanel extends JPanel {
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = c.weighty = 1.0;
-
-        // Bottom separator.
-        c.gridx = 0;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         // Connection status label.
         c = new GridBagConstraints();
@@ -96,15 +96,6 @@ class ConnectionStatusPanel extends JPanel {
         dateField.setFont(font);
         dateField.setMinimumSize(new Dimension(200, 50));
         add(dateField, c);
-
-        // Bottom separator.
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 2;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        c.insets = new Insets(10, 0, 0, 0);
-        add(new JSeparator(SwingConstants.HORIZONTAL), c);
     }
 
     void setConnectionStatus(final ConnectionStatus status) {
@@ -114,5 +105,18 @@ class ConnectionStatusPanel extends JPanel {
                 dateField.setText(dateFormat.format(new Date()));
             }
         });
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
+            final ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    statusField.setText(status.name());
+                    dateField.setText(dateFormat.format(new Date()));
+                }
+            }); 
+        }        
     }
 }

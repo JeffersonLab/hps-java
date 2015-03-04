@@ -117,5 +117,10 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.jlfgr</groupId>
+            <artifactId>jlfgr</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 </project>

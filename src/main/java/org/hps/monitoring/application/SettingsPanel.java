@@ -12,25 +12,41 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import org.hps.monitoring.application.model.ConfigurationModel;
+
 /**
  * The container component with the tabs that have job and connection settings.
  */
 public class SettingsPanel extends JPanel implements ActionListener {
 
     JTabbedPane tabs;
-    JobSettingsPanel jobPanel = new JobSettingsPanel();
-    ConnectionSettingsPanel connectionPanel = new ConnectionSettingsPanel();
-    DataSourcePanel dataSourcePanel = new DataSourcePanel();
+    JobSettingsPanel jobPanel;
+    ConnectionSettingsPanel connectionPanel;
+    DataSourcePanel dataSourcePanel;
     static final String OKAY_COMMAND = "settingsOkay";
 
-    JButton defaultsButton;
+    //JButton defaultsButton;
 
     JDialog parent;
 
-    SettingsPanel(JDialog parent) {
+    SettingsPanel(JDialog parent, ConfigurationModel configurationModel, ActionListener listener) {
 
         this.parent = parent;
-
+        
+        connectionPanel = new ConnectionSettingsPanel();        
+        jobPanel = new JobSettingsPanel();
+        dataSourcePanel = new DataSourcePanel();
+        
+        // Push configuration to sub-components.
+        connectionPanel.setConfigurationModel(configurationModel);
+        jobPanel.setConfigurationModel(configurationModel);
+        dataSourcePanel.setConfigurationModel(configurationModel);
+        
+        // Add ActionListener to sub-components.
+        connectionPanel.addActionListener(listener);
+        jobPanel.addActionListener(listener);
+        dataSourcePanel.addActionListener(listener);
+               
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
         tabs = new JTabbedPane();
@@ -43,14 +59,14 @@ public class SettingsPanel extends JPanel implements ActionListener {
         okayButton.setActionCommand(OKAY_COMMAND);
         okayButton.addActionListener(this);
 
-        defaultsButton = new JButton("Defaults");
-        defaultsButton.setActionCommand(Commands.LOAD_DEFAULT_CONFIG_FILE);
-        defaultsButton.addActionListener(this);
+        //defaultsButton = new JButton("Defaults");
+        //defaultsButton.setActionCommand(Commands.LOAD_DEFAULT_SETTINGS);
+        //defaultsButton.addActionListener(this);
 
         add(Box.createRigidArea(new Dimension(1, 5)));
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
-        buttonsPanel.add(defaultsButton);
+        //buttonsPanel.add(defaultsButton);
         buttonsPanel.setLayout(new FlowLayout());
         add(buttonsPanel);
         add(Box.createRigidArea(new Dimension(1, 5)));
@@ -80,7 +96,7 @@ public class SettingsPanel extends JPanel implements ActionListener {
      * the default configuration when the "Defaults" button is pushed from the settings panel.
      * @param listener
      */
-    void addActionListener(ActionListener listener) {
-        defaultsButton.addActionListener(listener);
-    }
+    //void addActionListener(ActionListener listener) {
+    //    defaultsButton.addActionListener(listener);
+    //}
 }

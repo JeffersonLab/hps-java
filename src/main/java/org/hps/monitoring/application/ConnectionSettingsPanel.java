@@ -1,11 +1,25 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.*;
-import static org.hps.monitoring.application.model.ConfigurationModel.*;
+import static org.hps.monitoring.application.Commands.BLOCKING_CHANGED;
+import static org.hps.monitoring.application.Commands.VERBOSE_CHANGED;
+import static org.hps.monitoring.application.Commands.WAIT_MODE_CHANGED;
+import static org.hps.monitoring.application.model.ConfigurationModel.BLOCKING_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.CHUNK_SIZE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.ET_NAME_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.HOST_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.PORT_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.PRESCALE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.QUEUE_SIZE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.STATION_NAME_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.STATION_POSITION_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.VERBOSE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.WAIT_MODE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.WAIT_TIME_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -34,9 +48,11 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
     private JTextField waitTimeField;
     private JTextField prescaleField;
 
-    static final String[] waitModes = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
-
-    ConfigurationModel configurationModel;
+    static final String[] waitModes = { 
+        Mode.SLEEP.name(), 
+        Mode.TIMED.name(), 
+        Mode.ASYNC.name() 
+    };
 
     /**
      * Class constructor.
@@ -44,7 +60,7 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
     ConnectionSettingsPanel() {
 
         super(new Insets(5, 5, 5, 5), true);
-
+                        
         setLayout(new GridBagLayout());
 
         etNameField = addField("ET Name", "", 20);
@@ -109,12 +125,19 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
     /**
      * Updates the GUI from changes in the ConfigurationModel.
      */
-    public class ConfigurationSettingsChangeListener implements PropertyChangeListener {
+    public class ConnectionSettingsChangeListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
+            System.out.println("ConnectionSettingsChangeListener.propertyChange");
+            System.out.println("  src: " + evt.getSource());
+            System.out.println("  propName: " + evt.getPropertyName());
+            System.out.println("  oldValue: " + evt.getOldValue());
+            System.out.println("  newValue: " + evt.getNewValue());
+            System.out.println("  newValue: " + evt.getPropagationId());
+            
+            //if (evt.getSource() instanceof ConfigurationModel) {
             Object value = evt.getNewValue();
-
             if (evt.getPropertyName().equals(ET_NAME_PROPERTY)) {
                 etNameField.setText((String) value);
             } else if (evt.getPropertyName().equals(HOST_PROPERTY)) {
@@ -148,30 +171,42 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-
-        if (evt.getPropertyName().equals("ancestor"))
+        
+        if (!accept(evt)) {
             return;
-
+        }
+        
+        System.out.println("ConnectionSettingsPanel.propertyChange");
+        System.out.println("  src: " + evt.getSource());
+        System.out.println("  propName: " + evt.getPropertyName());
+        System.out.println("  oldValue: " + evt.getOldValue());
+        System.out.println("  newValue: " + evt.getNewValue());
+        System.out.println("  propValue: " + evt.getPropagationId());
+        
         Object source = evt.getSource();
-
-        if (source.equals(etNameField)) {
-            configurationModel.setEtName(etNameField.getText());
-        } else if (source.equals(hostField)) {
-            configurationModel.setHost(hostField.getText());
-        } else if (source.equals(portField)) {
-            configurationModel.setPort(Integer.parseInt(portField.getText()));
-        } else if (source.equals(stationNameField)) {
-            configurationModel.setStationName(stationNameField.getText());
-        } else if (source.equals(chunkSizeField)) {
-            configurationModel.setChunkSize(Integer.parseInt(chunkSizeField.getText()));
-        } else if (source.equals(queueSizeField)) {
-            configurationModel.setQueueSize(Integer.parseInt(queueSizeField.getText()));
-        } else if (source.equals(stationPositionField)) {
-            configurationModel.setStationPosition(Integer.parseInt(stationPositionField.getText()));
-        } else if (source.equals(waitTimeField)) {
-            configurationModel.setWaitTime(Integer.parseInt(waitTimeField.getText()));
-        } else if (source.equals(prescaleField)) {
-            configurationModel.setPrescale(Integer.parseInt(prescaleField.getText()));
+        configurationModel.removePropertyChangeListener(this);
+        try {
+            if (source.equals(etNameField)) {
+                configurationModel.setEtName(etNameField.getText());
+            } else if (source.equals(hostField)) {
+                configurationModel.setHost(hostField.getText());
+            } else if (source.equals(portField)) {
+                configurationModel.setPort(Integer.parseInt(portField.getText()));
+            } else if (source.equals(stationNameField)) {
+                configurationModel.setStationName(stationNameField.getText());
+            } else if (source.equals(chunkSizeField)) {
+                configurationModel.setChunkSize(Integer.parseInt(chunkSizeField.getText()));
+            } else if (source.equals(queueSizeField)) {
+                configurationModel.setQueueSize(Integer.parseInt(queueSizeField.getText()));
+            } else if (source.equals(stationPositionField)) {
+                configurationModel.setStationPosition(Integer.parseInt(stationPositionField.getText()));
+            } else if (source.equals(waitTimeField)) {
+                configurationModel.setWaitTime(Integer.parseInt(waitTimeField.getText()));
+            } else if (source.equals(prescaleField)) {
+                configurationModel.setPrescale(Integer.parseInt(prescaleField.getText()));
+            }
+        } finally {
+            configurationModel.addPropertyChangeListener(this);
         }
     }
 
@@ -188,21 +223,11 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
             configurationModel.setVerbose(verboseCheckBox.isSelected());
         }
     }
-
-    @Override
-    public void setConfigurationModel(ConfigurationModel configurationModel) {
-        // Set the ConfigurationModel reference.
-        this.configurationModel = configurationModel;
-
-        // This listener pushes GUI values into the configuration.
-        this.configurationModel.addPropertyChangeListener(this);
-
+    
+    public void setConfigurationModel(ConfigurationModel model) {
+        super.setConfigurationModel(model);
+        
         // This listener updates the GUI from changes in the configuration.
-        this.configurationModel.addPropertyChangeListener(new ConfigurationSettingsChangeListener());
-    }
-
-    @Override
-    public ConfigurationModel getConfigurationModel() {
-        return configurationModel;
+        this.configurationModel.addPropertyChangeListener(new ConnectionSettingsChangeListener());
     }
 }

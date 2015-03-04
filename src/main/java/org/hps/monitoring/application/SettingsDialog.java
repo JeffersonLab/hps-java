@@ -14,10 +14,14 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  */
 public class SettingsDialog extends JDialog {
 
-    final SettingsPanel settingsPanel = new SettingsPanel(this);
+    final SettingsPanel settingsPanel;
 
-    public SettingsDialog() {
+    public SettingsDialog(ConfigurationModel configurationModel, ActionListener listener) {
 
+        // Initialize the GUI panel.
+        settingsPanel = new SettingsPanel(this, configurationModel, listener);
+        
+        // Configure the frame.
         setTitle("Settings");
         setContentPane(settingsPanel);
         setResizable(false);
@@ -25,26 +29,11 @@ public class SettingsDialog extends JDialog {
         setModalityType(ModalityType.APPLICATION_MODAL);
         pack();
 
+        // Add window listener for turning invisible when closing.
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 setVisible(false);
             }
-        });
+        });        
     }
-
-    public SettingsPanel getSettingsPanel() {
-        return settingsPanel;
-    }
-    
-    void addActionListener(ActionListener listener) {
-        settingsPanel.addActionListener(listener);
-        settingsPanel.getJobSettingsPanel().addActionListener(listener);
-        settingsPanel.getDataSourcePanel().addActionListener(listener);
-    }
-    
-    void setConfigurationModel(ConfigurationModel model) {
-        settingsPanel.getJobSettingsPanel().setConfigurationModel(model);
-        settingsPanel.getConnectionPanel().setConfigurationModel(model);
-        settingsPanel.getDataSourcePanel().setConfigurationModel(model);
-    }    
 }

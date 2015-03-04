@@ -261,33 +261,33 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         Object value = evt.getNewValue();
         if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
-            this.runNumberField.setValue((Integer) value);
+            runNumberField.setValue((Integer) value);
         } else if (START_DATE_PROPERTY.equals(evt.getPropertyName())) {
             if (value != null)
-                this.startDateField.setValue((Date) value);
+                startDateField.setValue((Date) value);
             else
-                this.startDateField.setValue("");
+                startDateField.setValue("");
         } else if (END_DATE_PROPERTY.equals(evt.getPropertyName())) {
             if (value != null)
-                this.endDateField.setValue((Date) value);
+                endDateField.setValue((Date) value);
             else
-                this.endDateField.setValue("");
+                endDateField.setValue("");
         } else if (RUN_LENGTH_PROPERTY.equals(evt.getPropertyName())) {
-            this.lengthField.setValue((Integer) value);
+            lengthField.setValue((Integer) value);
         } else if (TOTAL_EVENTS_PROPERTY.equals(evt.getPropertyName())) {
-            this.totalEventsField.setValue((Integer) value);
+            totalEventsField.setValue((Integer) value);
         } else if (EVENTS_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
-            this.eventsReceivedField.setValue((Integer) value);
+            eventsReceivedField.setValue((Integer) value);
         } else if (ELAPSED_TIME_PROPERTY.equals(evt.getPropertyName())) {
-            this.elapsedTimeField.setValue((Integer) value);
+            elapsedTimeField.setValue((Integer) value);
         } else if (DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
-            this.dataReceivedField.setValue(formatter.format((Double) value));
+            dataReceivedField.setValue(formatter.format((Double) value));
         } else if (EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
-            this.eventNumberField.setValue((Integer) value);
+            eventNumberField.setValue((Integer) value);
         } else if (DATA_RATE_PROPERTY.equals(evt.getPropertyName())) {
-            this.dataRateField.setValue(formatter.format((Double) value));
+            dataRateField.setValue(formatter.format((Double) value));
         } else if (EVENT_RATE_PROPERTY.equals(evt.getPropertyName())) {
-            this.eventRateField.setValue(formatter.format((Double) value));
+            eventRateField.setValue(formatter.format((Double) value));
         }
     }
 }

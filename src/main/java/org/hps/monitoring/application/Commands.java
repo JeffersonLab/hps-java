@@ -6,12 +6,21 @@ package org.hps.monitoring.application;
  */
 public final class Commands {
 
+    static final String SETTINGS_LOAD = "settingsLoad";
+    static final String SETTINGS_LOAD_DEFAULT = "settingsLoadDefault";
+    static final String SETTINGS_SAVE = "settingsSave";
+    static final String SETTINGS_SHOW = "settingsShow";
+    static final String OPEN_FILE = "openFile";
+    
+
+    ////////////////////////////////////////////
+    
     static final String AIDA_AUTO_SAVE = "aidaAutoSave";
     static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
-    static final String CHOOSE_FILE_SOURCE = "chooseFileSource";
+    
     static final String CHOOSE_STEERING_FILE = "chooseSteeringFile";
     static final String CONNECT = "connect";
     static final String CLEAR_LOG_TABLE = "clearLogTable";
@@ -24,7 +33,7 @@ public final class Commands {
     static final String EVENT_BUILDER_CHANGED = "eventBuilderChanged";
     static final String EXIT = "exit";
     static final String FREEZE_CONDITIONS_CHANGED = "freezeConditionsChanged";
-    static final String LOAD_DEFAULT_CONFIG_FILE = "loadDefaultConfigFile";
+    
     static final String LOG_LEVEL_CHANGED = "logLevelChanged";
     static final String LOG_TO_FILE = "logToFile";
     static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
@@ -35,15 +44,15 @@ public final class Commands {
     static final String RESET_PLOTS = "resetPlots";
     static final String RESTORE_DEFAULT_GUI_LAYOUT = "restoreDefaultGuiLayout";
     static final String RESUME = "resume";
-    static final String SAVE_CONFIG_FILE = "saveConfigFile";
+    
     static final String SAVE_LAYOUT = "saveLayout";
     static final String SAVE_LOG_TABLE = "saveLogTable";
     static final String SAVE_PLOTS = "savePlots";
     static final String SCREENSHOT = "screenshot";
-    static final String SELECT_CONFIG_FILE = "selectConfigFile";
+    
     static final String SELECT_LOG_FILE = "logToFile";
     static final String SET_STEERING_RESOURCE = "setSteeringResource";
-    static final String SHOW_SETTINGS = "showSettings";
+    
     static final String STEERING_TYPE_CHANGED = "steeringTypeChanged";
     static final String STEERING_RESOURCE_CHANGED = "steeringResourceChanged";
     static final String USER_RUN_NUMBER_CHANGED = "userRunNumberChanged";

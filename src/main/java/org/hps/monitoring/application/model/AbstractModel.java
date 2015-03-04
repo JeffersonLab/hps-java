@@ -35,26 +35,27 @@ public abstract class AbstractModel {
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
-
+       
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        if (listenersEnabled)
+        System.out.println("AbstractModel.firePropertyChange");
+        System.out.println("  propName: " + propertyName);
+        System.out.println("  oldValue: " + oldValue);
+        System.out.println("  newValue: " + newValue);
+        if (listenersEnabled) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-        // System.out.println("firePropertyChange");
-        // System.out.println("  name: " + propertyName);
-        // System.out.println("  old value: " + oldValue);
-        // System.out.println("  new value: " + newValue);
+        }
     }
 
     protected void firePropertyChange(PropertyChangeEvent evt) {
-        if (listenersEnabled)
+        if (listenersEnabled) {
             propertyChangeSupport.firePropertyChange(evt);
+        }
     }
 
     abstract public String[] getPropertyNames();
 
-    // FIXME: This method is kind of a hack. Any other good way to do this?
-    public void fireAllChanged() {
-        // System.out.println("AbstractModel.fireAllChanged");
+    public void fireModelChanged() {
+        //System.out.println("AbstractModel.fireModelChanged");
         if (!listenersEnabled)
             return;
         propertyLoop: for (String property : getPropertyNames()) {
@@ -76,7 +77,7 @@ public abstract class AbstractModel {
                     throw new RuntimeException("Property " + property + " is missing a get method.", e);
                 } catch (InvocationTargetException e) {
                     // Is the cause of the problem an illegal argument to the method?
-                    System.out.println("cause: " + e.getCause().getMessage());
+                    //System.out.println("cause: " + e.getCause().getMessage());
                     if (e.getCause() instanceof IllegalArgumentException) {
                         // For this error, assume that the key itself is missing from the configuration which is a warning.
                         System.err.println("The key " + property + " is not set in the configuration.");
@@ -100,7 +101,8 @@ public abstract class AbstractModel {
     }
 
     /**
-     * This method will statically extract property names from a class, which in this package's conventions are statically declared, public strings that end with "_PROPERTY".
+     * This method will statically extract property names from a class, which in this package's conventions are statically declared, 
+     * public strings that end with "_PROPERTY".
      * 
      * @param type The class with the properties.
      * @return The list of property names.

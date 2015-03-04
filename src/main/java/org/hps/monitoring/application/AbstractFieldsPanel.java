@@ -1,22 +1,22 @@
 package org.hps.monitoring.application;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.HasConfigurationModel;
 
 /**
@@ -25,18 +25,20 @@ import org.hps.monitoring.application.model.HasConfigurationModel;
  * for layout.
  */
 // TODO: This should use features of JFormattedTextField instead of plain JTextField.
-abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel, ActionListener {
+abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel, ActionListener, AddActionListener {
 
     private int currY = 0;
     private Insets insets;
     private boolean editable = false;
+    
+    protected ConfigurationModel configurationModel;
 
     /**
      * Class constructor.
      * @param insets The insets for the panel.
      * @param editable Editable setting.
      */
-    AbstractFieldsPanel(Insets insets, boolean editable) {
+    protected AbstractFieldsPanel(Insets insets, boolean editable) {
         this.insets = insets;
         this.editable = editable;
     }
@@ -44,7 +46,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Class constructor.
      */
-    AbstractFieldsPanel() {
+    protected AbstractFieldsPanel() {
         this.insets = new Insets(1, 1, 1, 1);
     }
 
@@ -255,6 +257,36 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
      * sub-components should attach this to individual components.
      * @param listener The AcitonListener to add.
      */
-    void addActionListener(ActionListener listener) {
+    @Override
+    public void addActionListener(ActionListener listener) {
+        // Sub-classes should add the listener to the appropriate child components.
     }
+    
+    /**
+     * Sub-classes should override this method to add their own listeners to update from the model.
+     */
+    @Override
+    public void setConfigurationModel(ConfigurationModel model) {
+        this.configurationModel = model;
+        
+        // This listener is used to push GUI values into the model.
+        this.configurationModel.addPropertyChangeListener(this);
+    }        
+    
+    @Override
+    public ConfigurationModel getConfigurationModel() {
+        return configurationModel;
+    }
+    
+    boolean accept(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("ancestor")) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {        
+    }    
 }

@@ -1,77 +1,74 @@
 package org.hps.monitoring.application;
 
+import static org.hps.monitoring.application.Commands.*;
+
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-import static org.hps.monitoring.application.Commands.*;
-
 public class MenuBar extends JMenuBar {
 
-    private JMenuItem savePlotsItem;
-    private JMenuItem logItem;
-    private JMenuItem terminalItem;
-    private JMenuItem saveLayoutItem;
+    //private JMenuItem savePlotsItem;
+    //private JMenuItem logItem;
+    //private JMenuItem terminalItem;
+    //private JMenuItem saveLayoutItem;
     
     MenuBar(ActionListener listener) {
 
-        JMenu applicationMenu = new JMenu("Application");
-        applicationMenu.setMnemonic(KeyEvent.VK_A);
-        add(applicationMenu);
-
-        JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
-        //loadConfigItem.addActionListener(listener);
-        loadConfigItem.setMnemonic(KeyEvent.VK_C);
-        loadConfigItem.setActionCommand(SELECT_CONFIG_FILE);
-        loadConfigItem.setToolTipText("Load application settings from a properties file");
-        applicationMenu.add(loadConfigItem);
-
-        JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
-        //saveConfigItem.addActionListener(listener);
-        saveConfigItem.setMnemonic(KeyEvent.VK_S);
-        saveConfigItem.setActionCommand(SAVE_CONFIG_FILE);
-        saveConfigItem.setToolTipText("Save settings to a properties file");
-        applicationMenu.add(saveConfigItem);
-
-        JMenuItem settingsItem = new JMenuItem("Show Settings ...");
-        settingsItem.setMnemonic(KeyEvent.VK_P);
-        settingsItem.setActionCommand(SHOW_SETTINGS);
-        //settingsItem.addActionListener(listener);
-        settingsItem.setToolTipText("Show application settings menu");
-        applicationMenu.add(settingsItem);
-
-        applicationMenu.addSeparator();
-
-        saveLayoutItem = new JCheckBoxMenuItem("Save GUI Layout");
-        saveLayoutItem.setActionCommand(SAVE_LAYOUT);
-        //saveLayoutItem.addActionListener(listener);
-        saveLayoutItem.setToolTipText("Include current GUI layout when saving settings.");
-        //if (configurationModel.hasPropertyKey(ConfigurationModel.SAVE_LAYOUT_PROPERTY)) {
-        //    saveLayoutItem.setSelected(configurationModel.getSaveLayout());
-        //}
-        //saveLayoutItem.addPropertyChangeListener(this); 
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        add(fileMenu);
         
-        applicationMenu.add(saveLayoutItem);
-
-        JMenuItem restoreLayoutItem = new JMenuItem("Restore Default GUI Layout");
-        restoreLayoutItem.setActionCommand(RESTORE_DEFAULT_GUI_LAYOUT);
-        //restoreLayoutItem.addActionListener(listener);
-        restoreLayoutItem.setToolTipText("Restore the GUI windows to their default positions and sizes");
-        applicationMenu.add(restoreLayoutItem);
-
-        applicationMenu.addSeparator();
-
+        JMenuItem openFileItem = new JMenuItem("Open File ...");
+        openFileItem.setMnemonic(KeyEvent.VK_P);
+        openFileItem.setActionCommand(OPEN_FILE);
+        openFileItem.addActionListener(listener);
+        openFileItem.setToolTipText("Open an EVIO or LCIO data file");
+        fileMenu.add(openFileItem);
+              
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.setActionCommand(EXIT);
-        //exitItem.addActionListener(listener);
+        exitItem.addActionListener(listener);
         exitItem.setToolTipText("Exit from the application");
-        applicationMenu.add(exitItem);
+        fileMenu.add(exitItem);
+                
+        JMenu settingsMenu = new JMenu("Settings");
+        settingsMenu.setMnemonic(KeyEvent.VK_S);
+        add(settingsMenu);
+        
+        JMenuItem settingsItem = new JMenuItem("Show Settings ...");
+        settingsItem.setMnemonic(KeyEvent.VK_P);
+        settingsItem.setActionCommand(SETTINGS_SHOW);
+        settingsItem.addActionListener(listener);
+        settingsItem.setToolTipText("Show settings dialog");
+        settingsMenu.add(settingsItem);
+        
+        JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
+        loadConfigItem.addActionListener(listener);
+        loadConfigItem.setMnemonic(KeyEvent.VK_C);
+        loadConfigItem.setActionCommand(SETTINGS_LOAD);
+        loadConfigItem.setToolTipText("Load settings from a properties file");
+        settingsMenu.add(loadConfigItem);
 
+        JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
+        saveConfigItem.addActionListener(listener);
+        saveConfigItem.setMnemonic(KeyEvent.VK_S);
+        saveConfigItem.setActionCommand(SETTINGS_SAVE);
+        saveConfigItem.setToolTipText("Save configuration to a properties file");
+        settingsMenu.add(saveConfigItem);
+        
+        JMenuItem defaultSettingsItem = new JMenuItem("Load Default Settings");
+        defaultSettingsItem.addActionListener(listener);
+        defaultSettingsItem.setMnemonic(KeyEvent.VK_D);
+        defaultSettingsItem.setActionCommand(SETTINGS_LOAD_DEFAULT);
+        defaultSettingsItem.setToolTipText("Load the default settings");
+        settingsMenu.add(defaultSettingsItem);
+                      
+        /*               
         JMenu plotsMenu = new JMenu("Plots");
         plotsMenu.setMnemonic(KeyEvent.VK_O);
         add(plotsMenu);
@@ -143,6 +140,7 @@ public class MenuBar extends JMenuBar {
         //screenshotItem.addActionListener(this);
         screenshotItem.setToolTipText("Save a screenshot to file");
         utilMenu.add(screenshotItem);
+        */
     }
     
 }

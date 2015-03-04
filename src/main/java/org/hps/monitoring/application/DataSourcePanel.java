@@ -1,6 +1,6 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.CHOOSE_FILE_SOURCE;
+import static org.hps.monitoring.application.Commands.OPEN_FILE;
 import static org.hps.monitoring.application.Commands.DATA_SOURCE_TYPE_CHANGED;
 import static org.hps.monitoring.application.Commands.PROCESSING_STAGE_CHANGED;
 import static org.hps.monitoring.application.Commands.VALIDATE_DATA_FILE;
@@ -32,9 +32,17 @@ import org.hps.record.enums.ProcessingStage;
  */
 class DataSourcePanel extends AbstractFieldsPanel {
 
-    static final String[] dataSourceTypes = { DataSourceType.ET_SERVER.description(), DataSourceType.EVIO_FILE.description(), DataSourceType.LCIO_FILE.description() };
-
-    static final String[] processingStages = { ProcessingStage.ET.name(), ProcessingStage.EVIO.name(), ProcessingStage.LCIO.name() };
+    static final String[] dataSourceTypes = { 
+        DataSourceType.ET_SERVER.description(), 
+        DataSourceType.EVIO_FILE.description(), 
+        DataSourceType.LCIO_FILE.description() 
+    };
+    
+    static final String[] processingStages = { 
+        ProcessingStage.ET.name(), 
+        ProcessingStage.EVIO.name(), 
+        ProcessingStage.LCIO.name() 
+    };
 
     JComboBox<?> dataSourceTypeComboBox;
     JTextField dataSourcePathField;
@@ -42,11 +50,10 @@ class DataSourcePanel extends AbstractFieldsPanel {
     JButton validateDataFileButton;
     JComboBox<?> processingStageComboBox;
 
-    ConfigurationModel configurationModel;
-
     DataSourcePanel() {
+        
         setLayout(new GridBagLayout());
-
+        
         dataSourceTypeComboBox = addComboBox("Data Source", dataSourceTypes);
         dataSourceTypeComboBox.setSelectedIndex(0);
         dataSourceTypeComboBox.setActionCommand(DATA_SOURCE_TYPE_CHANGED);
@@ -56,7 +63,7 @@ class DataSourcePanel extends AbstractFieldsPanel {
         dataSourcePathField.addPropertyChangeListener(this);
 
         fileSourceButton = addButton("Select data file");
-        fileSourceButton.setActionCommand(CHOOSE_FILE_SOURCE);
+        fileSourceButton.setActionCommand(OPEN_FILE);
         fileSourceButton.addActionListener(this);
 
         validateDataFileButton = addButton("Validate data file");
@@ -121,38 +128,28 @@ class DataSourcePanel extends AbstractFieldsPanel {
             }
         }
     }
-
-    @Override
-    public void setConfigurationModel(ConfigurationModel configurationModel) {
-        this.configurationModel = configurationModel;
-
-        // This listener pushes GUI values into the configuration.
-        this.configurationModel.addPropertyChangeListener(this);
-
-        // This listener updates the GUI from changes in the configuration.
-        this.configurationModel.addPropertyChangeListener(new DataSourceChangeListener());
-    }
-
-    @Override
-    public ConfigurationModel getConfigurationModel() {
-        return configurationModel;
-    }
-
-    @Override
+    
+    /**
+     * 
+     * @param e
+     */
+    @Override   
     public void actionPerformed(ActionEvent e) {
-        if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
-            DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
-            configurationModel.setDataSourceType(dataSourceType);
-            validateDataFileButton.setEnabled(dataSourceType.isFile());
-        } else if (PROCESSING_STAGE_CHANGED.equals(e.getActionCommand())) {
-            ProcessingStage processingStage = ProcessingStage.values()[processingStageComboBox.getSelectedIndex()];
-            configurationModel.setProcessingStage(processingStage);
-        } else if (CHOOSE_FILE_SOURCE.equals(e.getActionCommand())) {
-            chooseDataFile();
+        try {
+            configurationModel.removePropertyChangeListener(this);
+            if (DATA_SOURCE_TYPE_CHANGED.equals(e.getActionCommand())) {
+                DataSourceType dataSourceType = DataSourceType.values()[dataSourceTypeComboBox.getSelectedIndex()];
+                configurationModel.setDataSourceType(dataSourceType);
+                validateDataFileButton.setEnabled(dataSourceType.isFile());
+            } else if (PROCESSING_STAGE_CHANGED.equals(e.getActionCommand())) {
+                ProcessingStage processingStage = ProcessingStage.values()[processingStageComboBox.getSelectedIndex()];
+                configurationModel.setProcessingStage(processingStage);
+            } else if (OPEN_FILE.equals(e.getActionCommand())) {
+                chooseDataFile();
+            }
+        } finally {
+            configurationModel.addPropertyChangeListener(this);
         }
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
     }
 
     /**
@@ -165,12 +162,17 @@ class DataSourcePanel extends AbstractFieldsPanel {
             if (evt.getPropertyName().equals("ancestor"))
                 return;
             Object value = evt.getNewValue();
-            if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
-                dataSourceTypeComboBox.setSelectedIndex(((DataSourceType) evt.getNewValue()).ordinal());
-            } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
-                dataSourcePathField.setText((String) value);
-            } else if (PROCESSING_STAGE_PROPERTY.equals(evt.getPropertyName())) {
-                processingStageComboBox.setSelectedItem(value.toString());
+            configurationModel.removePropertyChangeListener(this);
+            try {
+                if (DATA_SOURCE_TYPE_PROPERTY.equals(evt.getPropertyName())) {
+                    dataSourceTypeComboBox.setSelectedIndex(((DataSourceType) evt.getNewValue()).ordinal());
+                } else if (DATA_SOURCE_PATH_PROPERTY.equals(evt.getPropertyName())) {
+                    dataSourcePathField.setText((String) value);
+                } else if (PROCESSING_STAGE_PROPERTY.equals(evt.getPropertyName())) {
+                    processingStageComboBox.setSelectedItem(value.toString());
+                }
+            } finally {
+                configurationModel.addPropertyChangeListener(this);
             }
         }
     }
@@ -178,5 +180,12 @@ class DataSourcePanel extends AbstractFieldsPanel {
     public void addActionListener(ActionListener listener) {
         // Hook the validate button to the main app where that task actually executes.
         validateDataFileButton.addActionListener(listener);
+    }
+    
+    @Override
+    public void setConfigurationModel(ConfigurationModel model) {
+        super.setConfigurationModel(model);
+        
+        model.addPropertyChangeListener(new DataSourceChangeListener());
     }
 }
