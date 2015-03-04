@@ -1,4 +1,4 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.util;
 
 import java.util.HashMap;
 import java.util.Map;

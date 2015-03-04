@@ -1,6 +1,8 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.event;
 
 import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.users.kmccarty.triggerdiagnostics.util.Pair;
+import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
 import org.lcsim.event.Cluster;
 
 /**
@@ -11,11 +13,9 @@ import org.lcsim.event.Cluster;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class ClusterMatchedPair {
+public class ClusterMatchedPair extends Pair<Cluster, SSPCluster> {
 	// CLass variables.
 	private final byte state;
-	private final Cluster reconCluster;
-	private final SSPCluster sspCluster;
 	
 	/**
 	 * Instantiates a new <code>ClusterMatchedPair</code> object from
@@ -26,8 +26,7 @@ public class ClusterMatchedPair {
 	 */
 	public ClusterMatchedPair(Cluster reconCluster, SSPCluster sspCluster, byte state) {
 		// Set the cluster pairs.
-		this.reconCluster = reconCluster;
-		this.sspCluster = sspCluster;
+		super(reconCluster, sspCluster);
 		
 		// If the state is defined, set it. Otherwise, it is unknown.
 		if(state == TriggerDiagnosticUtil.CLUSTER_STATE_MATCHED
@@ -46,7 +45,7 @@ public class ClusterMatchedPair {
 	 * object.
 	 */
 	public Cluster getReconstructedCluster() {
-		return reconCluster;
+		return getFirstElement();
 	}
 	
 	/**
@@ -55,7 +54,7 @@ public class ClusterMatchedPair {
 	 * object.
 	 */
 	public SSPCluster getSSPCluster() {
-		return sspCluster;
+		return getSecondElement();
 	}
 	
 	/**

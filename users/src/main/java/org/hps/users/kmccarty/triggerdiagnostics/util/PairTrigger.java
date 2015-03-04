@@ -1,4 +1,4 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.util;
 
 import org.hps.readout.ecal.TriggerModule;
 
@@ -18,7 +18,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param source - The object from which the trigger cut states
 	 * are derived.
 	 */
-	protected PairTrigger(E source) {
+	public PairTrigger(E source) {
 		// Instantiate the superclass.
 		super(source);
 		

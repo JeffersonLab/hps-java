@@ -1,23 +1,21 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.event;
 
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
 import org.lcsim.event.Cluster;
 
-public class ClusterMatchStatus {
-	// Track cluster statistics.
-	private int sspClusters   = 0;
-	private int reconClusters = 0;
-	private int matches       = 0;
-	private int failEnergy    = 0;
-	private int failPosition  = 0;
-	private int failHitCount  = 0;
-	
+/**
+ * Tracks the status of cluster matching for the purposes of trigger
+ * verification.
+ * 
+ * @author Kyle McCarty
+ */
+public class ClusterMatchStatus extends ClusterStatModule {
 	// Plot binning values.
 	private static final int TIME_BIN = 4;
 	private static final double ENERGY_BIN = 0.01;
@@ -102,11 +100,12 @@ public class ClusterMatchStatus {
 		
 		// Update the plotting information for SSP/reconstructed cluster
 		// pairs.
+		pairLoop:
 		for(ClusterMatchedPair pair : event.getMatchedPairs()) {
 			// If one of the pairs is null, then it is unmatched cluster
 			// and may be skipped.
 			if(pair.getReconstructedCluster() == null || pair.getSSPCluster() == null) {
-				continue;
+				continue pairLoop;
 			}
 			
 			// Populate the bins for the "all" plots.
@@ -146,17 +145,13 @@ public class ClusterMatchStatus {
     }
     
 	/**
-	 * Clears all statistical information and resets the object ot its
+	 * Clears all statistical information and resets the object of its
 	 * default, empty state.
 	 */
+    @Override
 	public void clear() {
 		// Clear statistical data.
-		sspClusters   = 0;
-		reconClusters = 0;
-		matches       = 0;
-		failEnergy    = 0;
-		failPosition  = 0;
-		failHitCount  = 0;
+		super.clear();
 		
 		// Clear plot collections.
 		sspHitCountBins.clear();
@@ -171,75 +166,15 @@ public class ClusterMatchStatus {
 		allTimeBins.clear();
 		failTimeBins.clear();
 	}
-	
-	/**
-	 * Gets the number of cluster pairs stored in this event that are
-	 * marked with energy fail states.
-	 * @return Returns the number of instances of this state as an
-	 * <code>int</code> primitive.
-	 */
-	public int getEnergyFailures() {
-		return failEnergy;
-	}
-	
-	/**
-	 * Gets the number of cluster pairs stored in this event that are
-	 * marked with hit count fail states.
-	 * @return Returns the number of instances of this state as an
-	 * <code>int</code> primitive.
-	 */
-	public int getHitCountFailures() {
-		return failHitCount;
-	}
-	
-	/**
-	 * Gets the number of cluster pairs stored in this event that are
-	 * marked with position fail states.
-	 * @return Returns the number of instances of this state as an
-	 * <code>int</code> primitive.
-	 */
-	public int getMatches() {
-		return matches;
-	}
-	
-	/**
-	 * Gets the number of cluster pairs stored in this event that are
-	 * marked with position fail states.
-	 * @return Returns the number of instances of this state as an
-	 * <code>int</code> primitive.
-	 */
-	public int getPositionFailures() {
-		return failPosition;
-	}
-	
-	/**
-	 * Gets the total number of verifiable reconstructed clusters seen.
-     * @return Returns the cluster count as an <code>int</code>
-     * primitive.
-	 */
-    public int getReconClusterCount() {
-    	return reconClusters;
-    }
     
     /**
-     * Gets the total number of SSP bank clusters seen.
-     * @return Returns the cluster count as an <code>int</code>
-     * primitive.
+     * Gets a copy of the statistical data stored in the object.
+     * @return Returns the data in a <code>ClusterStatModule</code>
+     * object.
      */
-    public int getSSPClusterCount() {
-    	return sspClusters;
+    public ClusterStatModule cloneStatModule() {
+    	return new ClusterStatModule(this);
     }
-    
-	/**
-	 * Gets the difference in hit count between an SSP cluster and a
-	 * reconstructed cluster.
-	 * @param sspCluster - The SSP cluster.
-	 * @param reconCluster - The reconstructed cluster.
-	 * @return Returns the difference as an <code>int</code> primitive.
-	 */
-	private static final int getHitCountDifference(SSPCluster sspCluster, Cluster reconCluster) {
-		return sspCluster.getHitCount() - TriggerDiagnosticUtil.getHitCount(reconCluster);
-	}
 	
 	/**
 	 * Solves the equation <code>|E_ssp / E_recon|</code>.
@@ -250,5 +185,16 @@ public class ClusterMatchStatus {
 	 */
 	private static final double getEnergyPercentDifference(SSPCluster sspCluster, Cluster reconCluster) {
 		return Math.abs((sspCluster.getEnergy() / reconCluster.getEnergy()));
+	}
+    
+	/**
+	 * Gets the difference in hit count between an SSP cluster and a
+	 * reconstructed cluster.
+	 * @param sspCluster - The SSP cluster.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @return Returns the difference as an <code>int</code> primitive.
+	 */
+	private static final int getHitCountDifference(SSPCluster sspCluster, Cluster reconCluster) {
+		return sspCluster.getHitCount() - TriggerDiagnosticUtil.getHitCount(reconCluster);
 	}
 }

@@ -1,8 +1,8 @@
-package org.hps.users.kmccarty.diagpanel;
+package org.hps.users.kmccarty.triggerdiagnostics.ui;
 
 import java.awt.Component;
 
-import org.hps.users.kmccarty.TriggerDiagnosticUtil;
+import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
 
 /**
  * Class <code>ComponentUtils</code> is a list of utility methods used

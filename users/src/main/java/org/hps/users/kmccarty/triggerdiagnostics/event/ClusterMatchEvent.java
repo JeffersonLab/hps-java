@@ -1,9 +1,10 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.event;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
 import org.lcsim.event.Cluster;
 
 /**

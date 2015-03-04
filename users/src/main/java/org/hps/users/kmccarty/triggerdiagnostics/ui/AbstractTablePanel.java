@@ -1,4 +1,4 @@
-package org.hps.users.kmccarty.diagpanel;
+package org.hps.users.kmccarty.triggerdiagnostics.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;

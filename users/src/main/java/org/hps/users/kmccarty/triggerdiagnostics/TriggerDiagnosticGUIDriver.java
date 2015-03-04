@@ -1,10 +1,10 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics;
 
 import java.util.List;
 
 import javax.swing.JFrame;
 
-import org.hps.users.kmccarty.diagpanel.ClusterTablePanel;
+import org.hps.users.kmccarty.triggerdiagnostics.ui.ClusterTablePanel;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 

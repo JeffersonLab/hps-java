@@ -1,6 +1,7 @@
-package org.hps.users.kmccarty.diagpanel;
+package org.hps.users.kmccarty.triggerdiagnostics.ui;
 
-import org.hps.users.kmccarty.DiagSnapshot;
+import org.hps.users.kmccarty.triggerdiagnostics.DiagSnapshot;
+import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterStatModule;
 
 /**
  * Class <code>ClusterTablePanel</code> is an implementation of class
@@ -55,24 +56,23 @@ public class ClusterTablePanel extends AbstractTablePanel {
 		
 		// Otherwise, populate the table with the diagnostic data.
 		else {
-			/*
-			 * This is disabled until the snapshot object is stable and
-			 * is subject to change. It will not work if enabled now.
+			// Get the cluster statistical banks.
+			ClusterStatModule lstat = snapshot.clusterLocalStatistics;
+			ClusterStatModule rstat = snapshot.clusterRunStatistics;
+			
 			// Get the largest number of digits in any of the values.
-			int mostDigits = 0;
-			for(int valueID = 0; valueID < DiagSnapshot.CL_BANK_SIZE; valueID++) {
-				int localDigits = ComponentUtils.getDigits(snapshot.getClusterValue(LOCAL, valueID));
-				int globalDigits = ComponentUtils.getDigits(snapshot.getClusterValue(GLOBAL, valueID));
-				mostDigits = ComponentUtils.max(mostDigits, localDigits, globalDigits);
-			}
+			int mostDigits = ComponentUtils.max(lstat.getReconClusterCount(), lstat.getSSPClusterCount(), lstat.getMatches(),
+					lstat.getPositionFailures(), lstat.getEnergyFailures(), lstat.getHitCountFailures(),
+					rstat.getReconClusterCount(), rstat.getSSPClusterCount(), rstat.getMatches(),
+					rstat.getPositionFailures(), rstat.getEnergyFailures(), rstat.getHitCountFailures());
 			
 			// Put the number of reconstructed and SSP clusters into
 			// the tables.
 			int[] clusterValue = {
-					snapshot.getClusterValue(LOCAL,  DiagSnapshot.CL_VALUE_RECON_CLUSTERS),
-					snapshot.getClusterValue(LOCAL,  DiagSnapshot.CL_VALUE_SSP_CLUSTERS),
-					snapshot.getClusterValue(GLOBAL, DiagSnapshot.CL_VALUE_RECON_CLUSTERS),
-					snapshot.getClusterValue(GLOBAL, DiagSnapshot.CL_VALUE_SSP_CLUSTERS)
+					lstat.getReconClusterCount(),
+					lstat.getSSPClusterCount(),
+					rstat.getReconClusterCount(),
+					rstat.getSSPClusterCount()
 			};
 			String countFormat = "%" + mostDigits + "d";
 			setLocalRowValue(ROW_RECON_COUNT,  String.format(countFormat, clusterValue[0]));
@@ -84,28 +84,27 @@ public class ClusterTablePanel extends AbstractTablePanel {
 			int total;
 			String percentFormat = "%" + mostDigits + "d / %" + mostDigits + "d (%7.3f)";
 			int[] statValue = {
-					snapshot.getClusterValue(DiagSnapshot.TYPE_LOCAL, DiagSnapshot.CL_VALUE_MATCHED),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_LOCAL, DiagSnapshot.CL_VALUE_FAIL_POSITION),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_LOCAL, DiagSnapshot.CL_VALUE_FAIL_ENERGY),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_LOCAL, DiagSnapshot.CL_VALUE_FAIL_HIT_COUNT),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_GLOBAL, DiagSnapshot.CL_VALUE_MATCHED),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_GLOBAL, DiagSnapshot.CL_VALUE_FAIL_POSITION),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_GLOBAL, DiagSnapshot.CL_VALUE_FAIL_ENERGY),
-					snapshot.getClusterValue(DiagSnapshot.TYPE_GLOBAL, DiagSnapshot.CL_VALUE_FAIL_HIT_COUNT)
+					lstat.getMatches(),
+					lstat.getPositionFailures(),
+					lstat.getEnergyFailures(),
+					lstat.getHitCountFailures(),
+					rstat.getMatches(),
+					rstat.getPositionFailures(),
+					rstat.getEnergyFailures(),
+					rstat.getHitCountFailures()
 			};
 			
-			total = snapshot.getClusterValue(DiagSnapshot.TYPE_LOCAL, DiagSnapshot.CL_VALUE_RECON_CLUSTERS);
+			total = lstat.getReconClusterCount();
 			setLocalRowValue(ROW_MATCHED,          String.format(percentFormat, statValue[0], total, 100.0 * statValue[0] / total));
 			setLocalRowValue(ROW_FAILED_POSITION,  String.format(percentFormat, statValue[1], total, 100.0 * statValue[1] / total));
 			setLocalRowValue(ROW_FAILED_ENERGY,    String.format(percentFormat, statValue[2], total, 100.0 * statValue[2] / total));
 			setLocalRowValue(ROW_FAILED_HIT_COUNT, String.format(percentFormat, statValue[3], total, 100.0 * statValue[3] / total));
 			
-			total = snapshot.getClusterValue(DiagSnapshot.TYPE_GLOBAL, DiagSnapshot.CL_VALUE_RECON_CLUSTERS);
+			total = rstat.getReconClusterCount();
 			setGlobalRowValue(ROW_MATCHED,          String.format(percentFormat, statValue[4], total, 100.0 * statValue[4] / total));
 			setGlobalRowValue(ROW_FAILED_POSITION,  String.format(percentFormat, statValue[5], total, 100.0 * statValue[5] / total));
 			setGlobalRowValue(ROW_FAILED_ENERGY,    String.format(percentFormat, statValue[6], total, 100.0 * statValue[6] / total));
 			setGlobalRowValue(ROW_FAILED_HIT_COUNT, String.format(percentFormat, statValue[7], total, 100.0 * statValue[7] / total));
-			*/
 		}
 	}
 }

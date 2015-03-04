@@ -1,6 +1,6 @@
-package org.hps.users.kmccarty.diagpanel;
+package org.hps.users.kmccarty.triggerdiagnostics.ui;
 
-import org.hps.users.kmccarty.DiagSnapshot;
+import org.hps.users.kmccarty.triggerdiagnostics.DiagSnapshot;
 
 /**
  * Interface <code>DiagnosticUpdatable</code> defines a class of objects

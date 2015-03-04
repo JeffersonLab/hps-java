@@ -1,4 +1,4 @@
-package org.hps.users.kmccarty;
+package org.hps.users.kmccarty.triggerdiagnostics.util;
 
 import org.hps.readout.ecal.TriggerModule;
 
@@ -17,7 +17,7 @@ public class SinglesTrigger<E> extends Trigger<E> {
 	 * @param source - The object from which the trigger cut states
 	 * are derived.
 	 */
-	protected SinglesTrigger(E source) {
+	public SinglesTrigger(E source) {
 		// Instantiate the superclass.
 		super(source);
 		

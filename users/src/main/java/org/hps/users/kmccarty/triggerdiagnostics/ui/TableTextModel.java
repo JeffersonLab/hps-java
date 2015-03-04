@@ -1,4 +1,4 @@
-package org.hps.users.kmccarty.diagpanel;
+package org.hps.users.kmccarty.triggerdiagnostics.ui;
 
 import javax.swing.table.AbstractTableModel;
 
