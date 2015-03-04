@@ -82,12 +82,14 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		localTable.setRowSelectionAllowed(false);
 		localTable.setColumnSelectionAllowed(false);
 		localTable.setCellSelectionEnabled(false);
+		localTable.setShowVerticalLines(false);
 		add(localTable);
 		
 		globalTable = new JTable(globalModel);
 		globalTable.setRowSelectionAllowed(false);
 		globalTable.setColumnSelectionAllowed(false);
 		globalTable.setCellSelectionEnabled(false);
+		globalTable.setShowVerticalLines(false);
 		add(globalTable);
 		
 		// Track when the component changes size and reposition the
