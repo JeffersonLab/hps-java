@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -25,8 +27,9 @@ public final class SvtChannel extends AbstractSvtChannel {
 
         /**
          * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
-         * @param pair The DAQ pair.
-         * @return The channels matching the DAQ pair or null if not found.
+         * 
+         * @param pair : The DAQ pair consiting of a FEB ID and FEB Hybrid ID.
+         * @return The channels matching the DAQ pair or null if ￼not found.
          */
         @Override
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
@@ -40,10 +43,33 @@ public final class SvtChannel extends AbstractSvtChannel {
             }
             return channels;
         }
+   
+        /**
+         *  Get the SVT channel ID associated with a given 
+         *  FEB ID/Hybrid ID/physical channel.
+         *
+         *  @param febID : The FEB ID
+         *  @param febHybridID : The FEB hybrid ID
+         *  @param channel : The physical channel number
+         *  @return The SVT channel ID 
+         *  @throws {@link RuntimeException} if the channel ID can't be found  
+         */
+        public int findChannelID(int febID, int febHybridID, int channel) { 
+            for (SvtChannel svtChannel : this) { 
+                if (svtChannel.getFebID() == febID 
+                        && svtChannel.getFebHybridID() == febHybridID
+                        && svtChannel.getChannel() == channel) { 
+                    return svtChannel.getChannelID(); 
+                }
+            } 
+            //throw new RuntimeException("Channel ID couldn't be found"); 
+            return -1;
+        }
     }
 
     /**
-     * Get the FEB ID.
+     * Get the FEB ID associated with this SVT channel ID.
+     * 
      * @return The FEB ID.
      */
     @Field(names = {"feb_id"})
@@ -52,7 +78,8 @@ public final class SvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Get the FEB hybrid ID.
+     * Get the FEB hybrid ID associated with this SVT channel ID.
+     * 
      * @return The FEB hybrid ID.
      */
     @Field(names = {"feb_hybrid_id"})
