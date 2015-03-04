@@ -58,7 +58,7 @@ public class SvtTimingInPlots extends Driver {
 				} else {
 					return 4*(sensor.getLayerNumber() - 7) + 3;
 				}
-			}
+				}
 		}
 		
 		return -1; 
@@ -95,7 +95,6 @@ public class SvtTimingInPlots extends Driver {
 			plotter.show();
 		}
 	}
-	
 	
 	public void process(EventHeader event) { 
 		
