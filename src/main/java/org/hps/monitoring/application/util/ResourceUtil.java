@@ -22,7 +22,7 @@ import org.reflections.Reflections;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
-public class ResourceUtil {
+public final class ResourceUtil {
 
     private ResourceUtil() {        
     }

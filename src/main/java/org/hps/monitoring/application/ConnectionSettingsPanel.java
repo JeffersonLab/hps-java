@@ -19,7 +19,6 @@ import static org.hps.monitoring.application.model.ConfigurationModel.WAIT_TIME_
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -127,41 +126,37 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
      */
     public class ConnectionSettingsChangeListener implements PropertyChangeListener {
         @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-
-            System.out.println("ConnectionSettingsChangeListener.propertyChange");
-            System.out.println("  src: " + evt.getSource());
-            System.out.println("  propName: " + evt.getPropertyName());
-            System.out.println("  oldValue: " + evt.getOldValue());
-            System.out.println("  newValue: " + evt.getNewValue());
-            System.out.println("  newValue: " + evt.getPropagationId());
-            
-            //if (evt.getSource() instanceof ConfigurationModel) {
-            Object value = evt.getNewValue();
-            if (evt.getPropertyName().equals(ET_NAME_PROPERTY)) {
-                etNameField.setText((String) value);
-            } else if (evt.getPropertyName().equals(HOST_PROPERTY)) {
-                hostField.setText((String) value);
-            } else if (evt.getPropertyName().equals(PORT_PROPERTY)) {
-                portField.setText(value.toString());
-            } else if (evt.getPropertyName().equals(BLOCKING_PROPERTY)) {
-                blockingCheckBox.setSelected((Boolean) value);
-            } else if (evt.getPropertyName().equals(VERBOSE_PROPERTY)) {
-                verboseCheckBox.setSelected((Boolean) value);
-            } else if (evt.getPropertyName().equals(STATION_NAME_PROPERTY)) {
-                stationNameField.setText((String) value);
-            } else if (evt.getPropertyName().equals(CHUNK_SIZE_PROPERTY)) {
-                chunkSizeField.setText(value.toString());
-            } else if (evt.getPropertyName().equals(QUEUE_SIZE_PROPERTY)) {
-                queueSizeField.setText(value.toString());
-            } else if (evt.getPropertyName().equals(STATION_POSITION_PROPERTY)) {
-                stationPositionField.setText(value.toString());
-            } else if (evt.getPropertyName().equals(WAIT_MODE_PROPERTY)) {
-                waitModeComboBox.setSelectedItem(((Mode) value).name());
-            } else if (evt.getPropertyName().equals(WAIT_TIME_PROPERTY)) {
-                waitTimeField.setText(value.toString());
-            } else if (evt.getPropertyName().equals(PRESCALE_PROPERTY)) {
-                prescaleField.setText(value.toString());
+        public void propertyChange(PropertyChangeEvent evt) {                       
+            configurationModel.removePropertyChangeListener(this);
+            try {
+                Object value = evt.getNewValue();
+                if (evt.getPropertyName().equals(ET_NAME_PROPERTY)) {
+                    etNameField.setText((String) value);
+                } else if (evt.getPropertyName().equals(HOST_PROPERTY)) {
+                    hostField.setText((String) value);
+                } else if (evt.getPropertyName().equals(PORT_PROPERTY)) {
+                    portField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(BLOCKING_PROPERTY)) {
+                    blockingCheckBox.setSelected((Boolean) value);
+                } else if (evt.getPropertyName().equals(VERBOSE_PROPERTY)) {
+                    verboseCheckBox.setSelected((Boolean) value);
+                } else if (evt.getPropertyName().equals(STATION_NAME_PROPERTY)) {
+                    stationNameField.setText((String) value);
+                } else if (evt.getPropertyName().equals(CHUNK_SIZE_PROPERTY)) {
+                    chunkSizeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(QUEUE_SIZE_PROPERTY)) {
+                    queueSizeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(STATION_POSITION_PROPERTY)) {
+                    stationPositionField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(WAIT_MODE_PROPERTY)) {
+                    waitModeComboBox.setSelectedItem(((Mode) value).name());
+                } else if (evt.getPropertyName().equals(WAIT_TIME_PROPERTY)) {
+                    waitTimeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(PRESCALE_PROPERTY)) {
+                    prescaleField.setText(value.toString());
+                }
+            } finally {
+                configurationModel.addPropertyChangeListener(this);
             }
         }
     }
@@ -176,12 +171,12 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
             return;
         }
         
-        System.out.println("ConnectionSettingsPanel.propertyChange");
-        System.out.println("  src: " + evt.getSource());
-        System.out.println("  propName: " + evt.getPropertyName());
-        System.out.println("  oldValue: " + evt.getOldValue());
-        System.out.println("  newValue: " + evt.getNewValue());
-        System.out.println("  propValue: " + evt.getPropagationId());
+        //System.out.println("ConnectionSettingsPanel.propertyChange");
+        //System.out.println("  src: " + evt.getSource());
+        //System.out.println("  propName: " + evt.getPropertyName());
+        //System.out.println("  oldValue: " + evt.getOldValue());
+        //System.out.println("  newValue: " + evt.getNewValue());
+        //System.out.println("  propValue: " + evt.getPropagationId());
         
         Object source = evt.getSource();
         configurationModel.removePropertyChangeListener(this);

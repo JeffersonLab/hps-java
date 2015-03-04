@@ -1,8 +1,10 @@
 package org.hps.monitoring.application;
 
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.freehep.record.loop.RecordLoop.Command;
@@ -15,6 +17,7 @@ import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeLoopConfiguration;
+import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
@@ -29,14 +32,20 @@ import org.lcsim.util.Driver;
  */
 public class EventProcessing {
     
+    MonitoringApplication application;
     SessionState state;
     ErrorHandler errorHandler;
     Logger logger;
+    List<CompositeRecordProcessor> processors;
     
-    EventProcessing(SessionState state, Logger logger, ErrorHandler errorHandler) {
-        this.state = state;
-        this.logger = logger;        
-        this.errorHandler = errorHandler;        
+    EventProcessing(
+            MonitoringApplication application, 
+            List<CompositeRecordProcessor> processors) {
+        this.application = application;
+        this.state = application.sessionState;
+        this.logger = MonitoringApplication.logger;        
+        this.errorHandler = application.errorHandler;        
+        this.processors = processors;
     }
 
     void setup(ConfigurationModel configurationModel) {
@@ -165,18 +174,17 @@ public class EventProcessing {
             loopConfig.add(new EtSystemStripCharts());
         }
 
-        // FIXME: Do this externally?
-        // RunPanel updater.
-        //loopConfig.add(frame.runPanel.new RunModelUpdater());
+        // Add extra CompositeRecordProcessors to the loop config.
+        for (CompositeRecordProcessor processor : processors) {
+            loopConfig.add(processor);   
+        }
                 
-        // Setup for conditions activation via EVIO events.
+        // Enable conditions system activation from EVIO event information.
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
 
         // Create the CompositeLoop with the configuration.
         state.loop = new CompositeLoop(loopConfig);        
     }    
-    
-    
     
     /**
      * Stop the event processing by executing a <code>STOP</code> command on the record loop and
@@ -233,13 +241,89 @@ public class EventProcessing {
     
     void start() {
         
-        // Create the processing thread.
+        // Start the event processing thread.
         state.processingThread = new EventProcessingThread(state.loop);
-
-        // Start the processing thread.
         state.processingThread.start();
+        
+        // Start the watchdog thread which will auto-disconnect when event processing is done.
+        state.sessionWatchdogThread = new SessionWatchdogThread(state.processingThread);
+        state.sessionWatchdogThread.start();        
     }
     
-
+    /**
+     * Notify the event processor to pause.
+     */
+    void pause() {
+        if (!application.connectionModel.getPaused()) {
+            state.loop.pause();
+            application.connectionModel.setPaused(true);
+        }
+    }
     
+    /**
+     * 
+     */
+    void next() {
+        if (application.connectionModel.getPaused()) {
+            application.connectionModel.setPaused(false);
+            state.loop.execute(Command.GO_N, 1L, true);
+            application.connectionModel.setPaused(true);
+        }
+    }
+    
+    /**
+     * Notify the event processor to resume processing events, if paused.
+     */
+    void resume() {
+        if (application.connectionModel.getPaused()) {
+            // Notify event processor to continue.
+            state.loop.resume();        
+            application.connectionModel.setPaused(false);
+        }
+    }
+    
+    void killWatchdogThread() {
+        // Is the session watchdog thread not null?
+        if (state.sessionWatchdogThread != null) {
+            // Is the thread still alive?
+            if (state.sessionWatchdogThread.isAlive()) {
+                // Interrupt the thread which should cause it to stop.
+                state.sessionWatchdogThread.interrupt();
+                try {
+                    // This should always work once the thread is interrupted.
+                    state.sessionWatchdogThread.join();
+                } catch (InterruptedException e) {
+                    // This should never happen.
+                    e.printStackTrace();
+                }
+            }
+            // Set the thread object to null.
+            state.sessionWatchdogThread = null;
+        }
+    }
+    
+    class SessionWatchdogThread extends Thread {
+
+        Thread processingThread;
+
+        SessionWatchdogThread(Thread processingThread) {
+            this.processingThread = processingThread;
+        }
+        
+        public void run() {
+            try {
+                // When the event processing thread finishes, the session should be stopped and a
+                // disconnect should occur.
+                processingThread.join();
+                                
+                // Activate a disconnect using the ActionEvent which is used by the disconnect button.
+                application.actionListener.actionPerformed(new ActionEvent(Thread.currentThread(), 0, Commands.DISCONNECT));
+
+            } catch (InterruptedException e) {
+                // This probably just means that the disconnect button was pushed, and this thread
+                // should no longer monitor the event processing.
+                e.printStackTrace();
+            }
+        }
+    }
 }

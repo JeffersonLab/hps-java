@@ -24,7 +24,7 @@ import javax.swing.SwingUtilities;
  * chained, where appropriate. Some methods are not available for chaining when it doesn't make
  * sense. </p>
  */
-public class ErrorHandler {
+public final class ErrorHandler {
 
     Logger logger;
     Component component;

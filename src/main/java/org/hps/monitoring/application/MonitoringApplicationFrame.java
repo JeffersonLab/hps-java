@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
-import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -19,9 +18,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
-import org.hps.monitoring.application.model.ConfigurationModel;
-import org.hps.monitoring.application.model.ConnectionStatusModel;
-import org.hps.monitoring.application.model.RunModel;
 
 /**
  * 
@@ -51,10 +47,7 @@ class MonitoringApplicationFrame extends JFrame {
      * @param listener
      */
     public MonitoringApplicationFrame(
-            ConfigurationModel configurationModel, 
-            RunModel runModel, 
-            ConnectionStatusModel connectionModel, 
-            ActionListener listener) {
+            MonitoringApplication application) {
                 
         // Create the content panel.
         JPanel contentPanel = new JPanel();
@@ -70,7 +63,7 @@ class MonitoringApplicationFrame extends JFrame {
         contentPanel.add(topPanel);
         
         // Create the connection status panel.
-        JPanel connectionPanel = new ConnectionStatusPanel(connectionModel);
+        JPanel connectionPanel = new ConnectionStatusPanel(application.connectionModel);
         topPanel.add(connectionPanel);
         
         // Add vertical separator.
@@ -79,7 +72,7 @@ class MonitoringApplicationFrame extends JFrame {
         topPanel.add(sep);
         
         // Create the buttons panel.
-        buttonsPanel = new EventButtonsPanel(connectionModel, listener);
+        buttonsPanel = new EventButtonsPanel(application.connectionModel, application.actionListener);
         topPanel.add(buttonsPanel);
         
         // Add vertical separator.
@@ -88,7 +81,7 @@ class MonitoringApplicationFrame extends JFrame {
         topPanel.add(sep);
         
         // Add the data source combo box.
-        JComboBox<DataSourceItem> dataSourceComboBox = new DataSourceComboBox(listener);
+        JComboBox<DataSourceItem> dataSourceComboBox = new DataSourceComboBox(application.connectionModel, application.actionListener);
         topPanel.add(dataSourceComboBox);
         
         // Create the bottom panel.
@@ -103,7 +96,7 @@ class MonitoringApplicationFrame extends JFrame {
         setProportionalSize(leftPanel, LEFT_PANEL_WIDTH, FULL_SIZE);
                         
         // Create the run dashboard.
-        runPanel = new RunPanel(runModel);
+        runPanel = new RunPanel(application.runModel);
 
         // Create the tabbed pane for content in bottom of left panel such as log table and system monitor.
         JTabbedPane tableTabbedPane = new JTabbedPane();
@@ -129,6 +122,7 @@ class MonitoringApplicationFrame extends JFrame {
                 
         // Create the plot panel.
         plotPanel = new PlotPanel();
+        plotPanel.setVisible(true); // DEBUG
         setProportionalSize(plotPanel, RIGHT_PANEL_WIDTH, PLOT_PANEL_HEIGHT);
         
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
@@ -142,7 +136,7 @@ class MonitoringApplicationFrame extends JFrame {
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
-        setJMenuBar(new MenuBar(listener));                
+        setJMenuBar(new MenuBar(application.actionListener));                
                         
         // Setup the frame now that all components have been added.        
         pack();
@@ -150,7 +144,7 @@ class MonitoringApplicationFrame extends JFrame {
         setVisible(true);
         
         // Setup the settings dialog box.
-        settingsDialog = new SettingsDialog(configurationModel, listener);
+        settingsDialog = new SettingsDialog(application.configurationModel, application.actionListener);
     }
     
     /**

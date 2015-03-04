@@ -3,7 +3,7 @@ package org.hps.monitoring.application.util;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.record.et.EtConnection;
 
-public class EtSystemUtil {
+public final class EtSystemUtil {
 
     private EtSystemUtil() {        
     }

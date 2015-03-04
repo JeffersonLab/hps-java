@@ -11,13 +11,12 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
- * This is the panel with buttons for connecting or disconnecting and controlling the app from pause
- * mode.
+ * This is the panel with buttons for connecting or disconnecting from the session
+ * and controlling the application from pause mode.
  */
 class EventButtonsPanel extends JPanel implements PropertyChangeListener {
 
@@ -66,46 +65,32 @@ class EventButtonsPanel extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {
+        System.out.println("EventButtonsPanel.propertyChange - " + evt.getPropertyName());
         if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setConnectionStatus((ConnectionStatus) evt.getNewValue());
-                }
-            });
+            setConnectionStatus((ConnectionStatus) evt.getNewValue());
         } else if (evt.getPropertyName().equals(ConnectionStatusModel.PAUSED_PROPERTY)) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setPaused((boolean) evt.getNewValue());
-                }
-            });
+            System.out.println("  setPaused: " + (boolean) evt.getNewValue());
+            setPaused((boolean) evt.getNewValue());
         }
     }
     
     void setConnectionStatus(final ConnectionStatus status) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                if (status.equals(ConnectionStatus.DISCONNECTED)) {
-                    nextButton.setEnabled(false);
-                    pauseButton.setEnabled(false);
-                    resumeButton.setEnabled(false);
-                    connectButton.setActionCommand(Commands.CONNECT);
-                    connectButton.setIcon(disconnectedIcon);
-                } else {
-                    pauseButton.setEnabled(true);
-                    connectButton.setActionCommand(Commands.DISCONNECT);
-                    connectButton.setIcon(connectedIcon);
-                }
-            }
-        });
+        if (status.equals(ConnectionStatus.DISCONNECTED)) {
+            nextButton.setEnabled(false);
+            pauseButton.setEnabled(false);
+            resumeButton.setEnabled(false);
+            connectButton.setActionCommand(Commands.CONNECT);
+            connectButton.setIcon(disconnectedIcon);
+        } else {
+            pauseButton.setEnabled(true);
+            connectButton.setActionCommand(Commands.DISCONNECT);
+            connectButton.setIcon(connectedIcon);
+        }
     }       
     
     void setPaused(final boolean paused) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                resumeButton.setEnabled(paused);
-                pauseButton.setEnabled(!paused);
-                nextButton.setEnabled(paused);
-            }
-        });
+        resumeButton.setEnabled(paused);
+        pauseButton.setEnabled(!paused);
+        nextButton.setEnabled(paused);
     }
 }

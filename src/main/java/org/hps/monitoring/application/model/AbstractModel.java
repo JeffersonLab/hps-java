@@ -18,14 +18,9 @@ import javassist.Modifier;
 public abstract class AbstractModel {
 
     protected PropertyChangeSupport propertyChangeSupport;
-    protected boolean listenersEnabled = true;
 
     public AbstractModel() {
         propertyChangeSupport = new PropertyChangeSupport(this);
-    }
-
-    public void setListenersEnabled(boolean listenersEnabled) {
-        this.listenersEnabled = listenersEnabled;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -37,29 +32,17 @@ public abstract class AbstractModel {
     }
        
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        System.out.println("AbstractModel.firePropertyChange");
-        System.out.println("  propName: " + propertyName);
-        System.out.println("  oldValue: " + oldValue);
-        System.out.println("  newValue: " + newValue);
-        if (listenersEnabled) {
-            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-        }
+        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
 
     protected void firePropertyChange(PropertyChangeEvent evt) {
-        if (listenersEnabled) {
-            propertyChangeSupport.firePropertyChange(evt);
-        }
+        propertyChangeSupport.firePropertyChange(evt);
     }
 
     abstract public String[] getPropertyNames();
 
     public void fireModelChanged() {
-        //System.out.println("AbstractModel.fireModelChanged");
-        if (!listenersEnabled)
-            return;
         propertyLoop: for (String property : getPropertyNames()) {
-            //System.out.println("  prop = " + property);
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
@@ -77,7 +60,6 @@ public abstract class AbstractModel {
                     throw new RuntimeException("Property " + property + " is missing a get method.", e);
                 } catch (InvocationTargetException e) {
                     // Is the cause of the problem an illegal argument to the method?
-                    //System.out.println("cause: " + e.getCause().getMessage());
                     if (e.getCause() instanceof IllegalArgumentException) {
                         // For this error, assume that the key itself is missing from the configuration which is a warning.
                         System.err.println("The key " + property + " is not set in the configuration.");
@@ -96,7 +78,6 @@ public abstract class AbstractModel {
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println();
         }
     }
 

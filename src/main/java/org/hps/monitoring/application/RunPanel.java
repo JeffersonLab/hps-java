@@ -101,7 +101,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         this.runModel = runModel;
     }
 
-    class RunModelUpdater extends CompositeRecordProcessor {
+    class RunPanelUpdater extends CompositeRecordProcessor {
 
         Timer timer;
         
@@ -117,7 +117,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         class RunTimerTask extends TimerTask {
             
             public void run() {                     
-                
+                                
                 double tickLengthSeconds = (System.currentTimeMillis() - lastTickMillis) / (double)millis;
                 int elapsedTime = (int) ((System.currentTimeMillis() - jobStartMillis) / (double)millis);
                 double megaBytesReceived = bytesReceived / 1000000;
@@ -163,7 +163,8 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
         }
 
         @Override
-        public void process(CompositeRecord event) {            
+        public void process(CompositeRecord event) {          
+            // FIXME: CompositeRecord number is always -1 here.
             if (event.getEvioEvent() != null) {
                 EvioEvent evioEvent = event.getEvioEvent();
                 bytesReceived += evioEvent.getTotalBytes();
@@ -259,6 +260,7 @@ public class RunPanel extends JPanel implements PropertyChangeListener {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+        //System.out.println("RunPanel.propertyChange - " + evt.getPropertyName());
         Object value = evt.getNewValue();
         if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
             runNumberField.setValue((Integer) value);

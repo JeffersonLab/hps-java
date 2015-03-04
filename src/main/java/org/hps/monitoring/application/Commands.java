@@ -41,13 +41,13 @@ public final class Commands {
     static final String NEXT = "next";
     static final String PAUSE = "pause";
     static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";
-    static final String RESET_PLOTS = "resetPlots";
+    static final String PLOTS_CLEAR = "resetPlots";
     static final String RESTORE_DEFAULT_GUI_LAYOUT = "restoreDefaultGuiLayout";
     static final String RESUME = "resume";
     
     static final String SAVE_LAYOUT = "saveLayout";
     static final String SAVE_LOG_TABLE = "saveLogTable";
-    static final String SAVE_PLOTS = "savePlots";
+    static final String PLOTS_SAVE = "savePlots";
     static final String SCREENSHOT = "screenshot";
     
     static final String SELECT_LOG_FILE = "logToFile";

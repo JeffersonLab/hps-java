@@ -25,8 +25,6 @@ public class SettingsPanel extends JPanel implements ActionListener {
     DataSourcePanel dataSourcePanel;
     static final String OKAY_COMMAND = "settingsOkay";
 
-    //JButton defaultsButton;
-
     JDialog parent;
 
     SettingsPanel(JDialog parent, ConfigurationModel configurationModel, ActionListener listener) {
@@ -89,14 +87,5 @@ public class SettingsPanel extends JPanel implements ActionListener {
         if (e.getActionCommand().equals(OKAY_COMMAND)) {
             parent.setVisible(false);
         }
-    }
-
-    /**
-     * This method is used to register a listener so that the Monitoring Application can reset to
-     * the default configuration when the "Defaults" button is pushed from the settings panel.
-     * @param listener
-     */
-    //void addActionListener(ActionListener listener) {
-    //    defaultsButton.addActionListener(listener);
-    //}
+    }    
 }

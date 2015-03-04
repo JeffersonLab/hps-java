@@ -1,16 +1,21 @@
 package org.hps.monitoring.application.model;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.hps.monitoring.application.ConnectionStatus;
 
 /**
+ * This model updates listeners when the connection status changes from disconnected
+ * to connected or vice versa.  It will also notify when the event processing is 
+ * paused.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
 public class ConnectionStatusModel extends AbstractModel {
     
     public static final String CONNECTION_STATUS_PROPERTY = "ConnectionStatus";
-    public static final String PAUSED_PROPERTY = "ConnectionStatus";
+    public static final String PAUSED_PROPERTY = "Paused";
     
     static final String[] propertyNames = new String[] { 
         CONNECTION_STATUS_PROPERTY, 
@@ -29,10 +34,10 @@ public class ConnectionStatusModel extends AbstractModel {
     }
     
     public void setConnectionStatus(ConnectionStatus connectionStatus) {
-        if (connectionStatus != this.connectionStatus) {
-            ConnectionStatus oldValue = connectionStatus;
-            this.connectionStatus = connectionStatus;
-            firePropertyChange(CONNECTION_STATUS_PROPERTY, oldValue, this.connectionStatus);
+        ConnectionStatus oldValue = connectionStatus;
+        this.connectionStatus = connectionStatus;
+        for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
+            listener.propertyChange(new PropertyChangeEvent(this, CONNECTION_STATUS_PROPERTY, oldValue, this.connectionStatus));
         }
     }        
     
@@ -41,10 +46,11 @@ public class ConnectionStatusModel extends AbstractModel {
     }
     
     public void setPaused(boolean paused) {
-        if (paused != this.paused) {
-            boolean oldValue = this.paused;
-            this.paused = paused;
-            firePropertyChange(PAUSED_PROPERTY, oldValue, paused);
+        System.out.println("ConnectionStatusModel.setPause - " + paused);
+        boolean oldValue = this.paused;
+        this.paused = paused;
+        for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
+            listener.propertyChange(new PropertyChangeEvent(this, PAUSED_PROPERTY, oldValue, this.paused));
         }
     }
 }

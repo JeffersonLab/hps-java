@@ -1,6 +1,13 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.*;
+import static org.hps.monitoring.application.Commands.EXIT;
+import static org.hps.monitoring.application.Commands.OPEN_FILE;
+import static org.hps.monitoring.application.Commands.PLOTS_SAVE;
+import static org.hps.monitoring.application.Commands.PLOTS_CLEAR;
+import static org.hps.monitoring.application.Commands.SETTINGS_LOAD;
+import static org.hps.monitoring.application.Commands.SETTINGS_LOAD_DEFAULT;
+import static org.hps.monitoring.application.Commands.SETTINGS_SAVE;
+import static org.hps.monitoring.application.Commands.SETTINGS_SHOW;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -10,12 +17,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 public class MenuBar extends JMenuBar {
-
-    //private JMenuItem savePlotsItem;
-    //private JMenuItem logItem;
-    //private JMenuItem terminalItem;
-    //private JMenuItem saveLayoutItem;
-    
+          
     MenuBar(ActionListener listener) {
 
         JMenu fileMenu = new JMenu("File");
@@ -40,8 +42,8 @@ public class MenuBar extends JMenuBar {
         settingsMenu.setMnemonic(KeyEvent.VK_S);
         add(settingsMenu);
         
-        JMenuItem settingsItem = new JMenuItem("Show Settings ...");
-        settingsItem.setMnemonic(KeyEvent.VK_P);
+        JMenuItem settingsItem = new JMenuItem("Open Settings Dialog ...");
+        settingsItem.setMnemonic(KeyEvent.VK_O);
         settingsItem.setActionCommand(SETTINGS_SHOW);
         settingsItem.addActionListener(listener);
         settingsItem.setToolTipText("Show settings dialog");
@@ -49,7 +51,7 @@ public class MenuBar extends JMenuBar {
         
         JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
         loadConfigItem.addActionListener(listener);
-        loadConfigItem.setMnemonic(KeyEvent.VK_C);
+        loadConfigItem.setMnemonic(KeyEvent.VK_L);
         loadConfigItem.setActionCommand(SETTINGS_LOAD);
         loadConfigItem.setToolTipText("Load settings from a properties file");
         settingsMenu.add(loadConfigItem);
@@ -67,34 +69,28 @@ public class MenuBar extends JMenuBar {
         defaultSettingsItem.setActionCommand(SETTINGS_LOAD_DEFAULT);
         defaultSettingsItem.setToolTipText("Load the default settings");
         settingsMenu.add(defaultSettingsItem);
-                      
-        /*               
-        JMenu plotsMenu = new JMenu("Plots");
-        plotsMenu.setMnemonic(KeyEvent.VK_O);
-        add(plotsMenu);
-
-        JMenuItem aidaAutoSaveItem = new JMenuItem("Set AIDA Auto Save File ...");
-        aidaAutoSaveItem.setMnemonic(KeyEvent.VK_A);
-        aidaAutoSaveItem.setActionCommand(AIDA_AUTO_SAVE);
-        //aidaAutoSaveItem.addActionListener(listener);
-        aidaAutoSaveItem.setToolTipText("Select name of file to auto save AIDA plots at end of job.");
-        plotsMenu.add(aidaAutoSaveItem);
-
-        savePlotsItem = new JMenuItem("Save Plots to AIDA File...");
-        savePlotsItem.setMnemonic(KeyEvent.VK_P);
-        savePlotsItem.setActionCommand(SAVE_PLOTS);
-        //savePlotsItem.addActionListener(listener);
-        savePlotsItem.setEnabled(false);
-        savePlotsItem.setToolTipText("Save plots from default AIDA tree to an output file.");
-        plotsMenu.add(savePlotsItem);
         
-        JMenuItem resetPlotsItem = new JMenuItem("Reset Plots");
-        resetPlotsItem.setMnemonic(KeyEvent.VK_R);
-        resetPlotsItem.setActionCommand(RESET_PLOTS);
-        //resetPlotsItem.addActionListener(listener);
-        resetPlotsItem.setEnabled(true);
-        resetPlotsItem.setToolTipText("Reset all AIDA plots in the default tree.");
-        plotsMenu.add(resetPlotsItem);
+        JMenu plotsMenu = new JMenu("Plots");
+        plotsMenu.setMnemonic(KeyEvent.VK_P);
+        add(plotsMenu);
+        
+        JMenuItem savePlotsItem = new JMenuItem("Save Plots ...");
+        savePlotsItem.setMnemonic(KeyEvent.VK_S);
+        savePlotsItem.setActionCommand(PLOTS_SAVE);
+        savePlotsItem.addActionListener(listener);
+        savePlotsItem.setEnabled(true);
+        savePlotsItem.setToolTipText("Save plots to AIDA file");
+        plotsMenu.add(savePlotsItem);
+
+        JMenuItem clearPlotsItem = new JMenuItem("Clear plots");
+        clearPlotsItem.setMnemonic(KeyEvent.VK_C);
+        clearPlotsItem.setActionCommand(PLOTS_CLEAR);
+        clearPlotsItem.addActionListener(listener);
+        clearPlotsItem.setEnabled(true);
+        clearPlotsItem.setToolTipText("Clear the AIDA plots");
+        plotsMenu.add(clearPlotsItem);
+        
+        /*                       
 
         JMenu logMenu = new JMenu("Log");
         logMenu.setMnemonic(KeyEvent.VK_L);

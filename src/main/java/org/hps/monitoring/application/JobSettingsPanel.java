@@ -1,33 +1,7 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.AIDA_AUTO_SAVE_CHANGED;
-import static org.hps.monitoring.application.Commands.DETECTOR_ALIAS_CHANGED;
-import static org.hps.monitoring.application.Commands.DETECTOR_NAME_CHANGED;
-import static org.hps.monitoring.application.Commands.DISCONNECT_ON_END_RUN_CHANGED;
-import static org.hps.monitoring.application.Commands.DISCONNECT_ON_ERROR_CHANGED;
-import static org.hps.monitoring.application.Commands.EVENT_BUILDER_CHANGED;
-import static org.hps.monitoring.application.Commands.FREEZE_CONDITIONS_CHANGED;
-import static org.hps.monitoring.application.Commands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.application.Commands.LOG_TO_FILE_CHANGED;
-import static org.hps.monitoring.application.Commands.STEERING_RESOURCE_CHANGED;
-import static org.hps.monitoring.application.Commands.STEERING_TYPE_CHANGED;
-import static org.hps.monitoring.application.Commands.USER_RUN_NUMBER_CHANGED;
-import static org.hps.monitoring.application.model.ConfigurationModel.AIDA_AUTO_SAVE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.AIDA_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_ALIAS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_END_RUN_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_ERROR_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.EVENT_BUILDER_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.FREEZE_CONDITIONS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_LEVEL_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.MAX_EVENTS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_FILE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_RESOURCE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_TYPE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.USER_RUN_NUMBER_PROPERTY;
+import static org.hps.monitoring.application.Commands.*;
+import static org.hps.monitoring.application.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -70,8 +44,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private JTextField maxEventsField;
     private JCheckBox disconnectOnErrorCheckBox;
     private JCheckBox disconnectOnEndRunCheckBox;
-    private JTextField aidaSaveFileNameField;
-    private JCheckBox aidaAutoSaveCheckbox;        
     private JTextField logFileNameField;
     private JComboBox<?> logLevelComboBox;
     private JCheckBox logToFileCheckbox;
@@ -168,13 +140,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
 
         logFileNameField = addField("Log File", "", "Full path to log file.", 30, false);
         logFileNameField.addPropertyChangeListener("value", this);
-
-        aidaAutoSaveCheckbox = addCheckBox("Save AIDA at End of Job", false, false);
-        aidaAutoSaveCheckbox.addActionListener(this);
-        aidaAutoSaveCheckbox.setActionCommand(AIDA_AUTO_SAVE_CHANGED);
-
-        aidaSaveFileNameField = addField("AIDA Auto Save File Name", "", 30, false);
-        aidaSaveFileNameField.addPropertyChangeListener("value", this);               
     }
 
     @Override
@@ -190,26 +155,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         logToFileCheckbox.addActionListener(listener);
         steeringResourcesComboBox.addActionListener(listener);
         freezeConditionsCheckBox.addActionListener(listener);
-    }
-
-    /**
-     * Choose a file name for the automatic AIDA save file.
-     */
-    void chooseAidaAutoSaveFile() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Choose AIDA Auto Save File");
-        int r = fc.showSaveDialog(this);
-        if (r == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            String fileName = file.getPath();
-            int extIndex = fileName.lastIndexOf(".");
-            if ((extIndex == -1) || !(fileName.substring(extIndex + 1, fileName.length())).toLowerCase().equals("aida")) {
-                fileName = fileName + ".aida";
-            }
-            final String finalFileName = fileName;
-            configurationModel.setAidaAutoSave(true);
-            configurationModel.setAidaFileName(finalFileName);
-        }
     }
 
     /**
@@ -310,8 +255,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 configurationModel.setLogToFile(logToFileCheckbox.isSelected());
             } else if (LOG_LEVEL_CHANGED.equals(event.getActionCommand())) {
                 configurationModel.setLogLevel(Level.parse((String) logLevelComboBox.getSelectedItem()));
-            } else if (AIDA_AUTO_SAVE_CHANGED.equals(event.getActionCommand())) {
-                configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
             } else if (EVENT_BUILDER_CHANGED.equals(event.getActionCommand())) {
                 configurationModel.setEventBuilderClassName((String) eventBuilderComboBox.getSelectedItem());
             } else if (DETECTOR_NAME_CHANGED.equals(event.getActionCommand())) {
@@ -347,10 +290,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 configurationModel.setSteeringFile(steeringFileField.getText());
             } else if (source == logFileNameField) {
                 configurationModel.setLogFileName(logFileNameField.getText());
-            } else if (source == aidaSaveFileNameField) {
-                configurationModel.setAidaFileName(aidaSaveFileNameField.getText());
-            } else if (source == aidaAutoSaveCheckbox) {
-                configurationModel.setAidaAutoSave(aidaAutoSaveCheckbox.isSelected());
             } else if (source == userRunNumberField) {
                 // Is run number being reset to null or empty?
                 if (userRunNumberField.getText() == null || userRunNumberField.getText().isEmpty()) {
@@ -388,12 +327,12 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private class JobSettingsChangeListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            System.out.println("JobSettingsChangeListener.propertyChange");
-            System.out.println("  src: " + evt.getSource());
-            System.out.println("  propName: " + evt.getPropertyName());
-            System.out.println("  oldValue: " + evt.getOldValue());
-            System.out.println("  newValue: " + evt.getNewValue());
-            System.out.println("  propId: " + evt.getPropagationId());
+            //System.out.println("JobSettingsChangeListener.propertyChange");
+            //System.out.println("  src: " + evt.getSource());
+            //System.out.println("  propName: " + evt.getPropertyName());
+            //System.out.println("  oldValue: " + evt.getOldValue());
+            //System.out.println("  newValue: " + evt.getNewValue());
+            //System.out.println("  propId: " + evt.getPropagationId());
             if (evt.getSource() instanceof ConfigurationModel) {
                 Object value = evt.getNewValue();
                 configurationModel.removePropertyChangeListener(this);
@@ -402,10 +341,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                         detectorNameComboBox.setSelectedItem((String) value);
                     } else if (evt.getPropertyName().equals(DETECTOR_ALIAS_PROPERTY)) {
                         detectorAliasField.setText((String) value);
-                    } else if (evt.getPropertyName().equals(AIDA_AUTO_SAVE_PROPERTY)) {
-                        aidaAutoSaveCheckbox.setSelected((Boolean) value);
-                    } else if (evt.getPropertyName().equals(AIDA_FILE_NAME_PROPERTY)) {
-                        aidaSaveFileNameField.setText((String) value);
                     } else if (evt.getPropertyName().equals(DISCONNECT_ON_ERROR_PROPERTY)) {
                         disconnectOnErrorCheckBox.setSelected((Boolean) value);
                     } else if (evt.getPropertyName().equals(DISCONNECT_ON_END_RUN_PROPERTY)) {

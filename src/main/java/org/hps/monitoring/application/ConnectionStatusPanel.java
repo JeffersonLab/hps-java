@@ -46,7 +46,6 @@ class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
 
         setLayout(new GridBagLayout());
         // setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-        Font font = new Font("Arial", Font.PLAIN, 14);
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = c.weighty = 1.0;
@@ -71,8 +70,10 @@ class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
         statusField.setHorizontalAlignment(JTextField.LEFT);
         statusField.setEditable(false);
         statusField.setBackground(Color.WHITE);
-        statusField.setFont(font);
+        statusField.setFont(new Font("Arial", Font.BOLD, 16));
         statusField.setMinimumSize(new Dimension(300, 50));
+        statusField.setForeground(model.getConnectionStatus().getColor());
+        statusField.setText(model.getConnectionStatus().name());
         add(statusField, c);
 
         // The "@" label.
@@ -93,30 +94,18 @@ class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
         dateField.setEditable(false);
         dateField.setBackground(Color.WHITE);
         dateField.setHorizontalAlignment(JTextField.LEFT);
-        dateField.setFont(font);
+        dateField.setFont(new Font("Arial", Font.PLAIN, 14));
         dateField.setMinimumSize(new Dimension(200, 50));
-        add(dateField, c);
-    }
-
-    void setConnectionStatus(final ConnectionStatus status) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                statusField.setText(status.name());
-                dateField.setText(dateFormat.format(new Date()));
-            }
-        });
+        add(dateField, c);                
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
             final ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    statusField.setText(status.name());
-                    dateField.setText(dateFormat.format(new Date()));
-                }
-            }); 
+            statusField.setForeground(status.getColor());
+            statusField.setText(status.name());
+            dateField.setText(dateFormat.format(new Date()));
         }        
     }
 }

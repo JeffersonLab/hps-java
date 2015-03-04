@@ -17,8 +17,6 @@ public final class ConfigurationModel extends AbstractModel {
     Configuration configuration;
 
     // Job setting properties.
-    public static final String AIDA_AUTO_SAVE_PROPERTY = "AidaAutoSave";
-    public static final String AIDA_FILE_NAME_PROPERTY = "AidaFileName";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DETECTOR_ALIAS_PROPERTY = "DetectorAlias";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
@@ -52,9 +50,9 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String WAIT_MODE_PROPERTY = "WaitMode";
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
     public static final String PRESCALE_PROPERTY = "Prescale";
-   
+
     static final String[] CONFIG_PROPERTIES = AbstractModel.getPropertyNames(ConfigurationModel.class);
-        
+
     public ConfigurationModel() {
         this.configuration = new Configuration();
     }
@@ -79,10 +77,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setLogLevel(Level level) {
         Level oldValue = getLogLevel();
-        if (!oldValue.equals(level)) {
-            configuration.set(LOG_LEVEL_PROPERTY, level.getName());
-            firePropertyChange(LOG_LEVEL_PROPERTY, oldValue, getLogLevel());
-        }
+        configuration.set(LOG_LEVEL_PROPERTY, level.getName());
+        firePropertyChange(LOG_LEVEL_PROPERTY, oldValue, getLogLevel());
     }
 
     public SteeringType getSteeringType() {
@@ -91,10 +87,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setSteeringType(SteeringType steeringType) {
         SteeringType oldValue = getSteeringType();
-        if (!steeringType.equals(oldValue)) {
-            configuration.set(STEERING_TYPE_PROPERTY, steeringType.name());
-            firePropertyChange(STEERING_TYPE_PROPERTY, oldValue, getSteeringType());
-        }
+        configuration.set(STEERING_TYPE_PROPERTY, steeringType.name());
+        firePropertyChange(STEERING_TYPE_PROPERTY, oldValue, getSteeringType());
     }
 
     public File getSteeringFile() {
@@ -107,10 +101,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setSteeringFile(String steeringFile) {
         File oldValue = getSteeringFile();
-        if (!steeringFile.equals(oldValue)) {
-            configuration.set(STEERING_FILE_PROPERTY, steeringFile);
-            firePropertyChange(STEERING_FILE_PROPERTY, oldValue, getSteeringFile().getPath());
-        }
+        configuration.set(STEERING_FILE_PROPERTY, steeringFile);
+        firePropertyChange(STEERING_FILE_PROPERTY, oldValue, getSteeringFile().getPath());
     }
 
     public String getSteeringResource() {
@@ -119,10 +111,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setSteeringResource(String steeringResource) {
         String oldValue = getSteeringResource();
-        if (!steeringResource.equals(oldValue)) {
-            configuration.set(STEERING_RESOURCE_PROPERTY, steeringResource);
-            firePropertyChange(STEERING_RESOURCE_PROPERTY, oldValue, steeringResource);
-        }
+        configuration.set(STEERING_RESOURCE_PROPERTY, steeringResource);
+        firePropertyChange(STEERING_RESOURCE_PROPERTY, oldValue, steeringResource);
     }
 
     public String getDetectorName() {
@@ -131,27 +121,22 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setDetectorName(String detectorName) {
         String oldValue = getDetectorName();
-        if (!detectorName.equals(oldValue)) {
-            configuration.set(DETECTOR_NAME_PROPERTY, detectorName);
-            firePropertyChange(DETECTOR_NAME_PROPERTY, oldValue, getDetectorName());
-        }
+        configuration.set(DETECTOR_NAME_PROPERTY, detectorName);
+        firePropertyChange(DETECTOR_NAME_PROPERTY, oldValue, getDetectorName());
     }
-    
+
     public String getDetectorAlias() {
         return configuration.get(DETECTOR_ALIAS_PROPERTY);
     }
-    
+
     public void setDetectorAlias(String detectorAlias) {
         String oldValue = null;
         if (hasPropertyKey(DETECTOR_ALIAS_PROPERTY)) {
             oldValue = getDetectorAlias();
         }
-        if (!detectorAlias.equals(oldValue)) {
-            configuration.set(DETECTOR_ALIAS_PROPERTY, detectorAlias);
-            firePropertyChange(DETECTOR_ALIAS_PROPERTY, oldValue, getDetectorAlias());
-        }
+        configuration.set(DETECTOR_ALIAS_PROPERTY, detectorAlias);
+        firePropertyChange(DETECTOR_ALIAS_PROPERTY, oldValue, getDetectorAlias());
     }
-    
 
     public String getEventBuilderClassName() {
         return configuration.get(EVENT_BUILDER_PROPERTY);
@@ -159,10 +144,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setEventBuilderClassName(String eventBuilderClassName) {
         String oldValue = getEventBuilderClassName();
-        if (!eventBuilderClassName.equals(oldValue)) {
-            configuration.set(EVENT_BUILDER_PROPERTY, eventBuilderClassName);
-            firePropertyChange(EVENT_BUILDER_PROPERTY, oldValue, getEventBuilderClassName());
-        }
+        configuration.set(EVENT_BUILDER_PROPERTY, eventBuilderClassName);
+        firePropertyChange(EVENT_BUILDER_PROPERTY, oldValue, getEventBuilderClassName());
     }
 
     public Boolean getLogToFile() {
@@ -171,10 +154,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setLogToFile(Boolean logToFile) {
         Boolean oldValue = getLogToFile();
-        if (!oldValue.equals(logToFile)) {
-            configuration.set(LOG_TO_FILE_PROPERTY, logToFile);
-            firePropertyChange(LOG_TO_FILE_PROPERTY, oldValue, getLogToFile());
-        }
+        configuration.set(LOG_TO_FILE_PROPERTY, logToFile);
+        firePropertyChange(LOG_TO_FILE_PROPERTY, oldValue, getLogToFile());
     }
 
     public String getLogFileName() {
@@ -183,34 +164,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setLogFileName(String logFileName) {
         String oldValue = getLogFileName();
-        if (!logFileName.equals(oldValue)) {
-            configuration.set(LOG_FILE_NAME_PROPERTY, logFileName);
-            firePropertyChange(LOG_FILE_NAME_PROPERTY, oldValue, getLogFileName());
-        }
-    }
-
-    public Boolean getAidaAutoSave() {
-        return configuration.equals(AIDA_AUTO_SAVE_PROPERTY);
-    }
-
-    public void setAidaAutoSave(Boolean aidaAutoSave) {
-        Boolean oldValue = getAidaAutoSave();
-        if (!aidaAutoSave.equals(oldValue)) {
-            configuration.set(AIDA_AUTO_SAVE_PROPERTY, aidaAutoSave);
-            firePropertyChange(AIDA_AUTO_SAVE_PROPERTY, oldValue, aidaAutoSave);
-        }
-    }
-
-    public String getAidaFileName() {
-        return configuration.get(AIDA_FILE_NAME_PROPERTY);
-    }
-
-    public void setAidaFileName(String aidaFileName) {
-        String oldValue = getAidaFileName();
-        if (!aidaFileName.equals(oldValue)) {
-            configuration.set(AIDA_FILE_NAME_PROPERTY, aidaFileName);
-            firePropertyChange(AIDA_FILE_NAME_PROPERTY, oldValue, aidaFileName);
-        }
+        configuration.set(LOG_FILE_NAME_PROPERTY, logFileName);
+        firePropertyChange(LOG_FILE_NAME_PROPERTY, oldValue, getLogFileName());
     }
 
     public Boolean getDisconnectOnError() {
@@ -219,10 +174,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setDisconnectOnError(Boolean disconnectOnError) {
         Boolean oldValue = getDisconnectOnError();
-        if (!disconnectOnError.equals(oldValue)) {
-            configuration.set(DISCONNECT_ON_ERROR_PROPERTY, disconnectOnError);
-            firePropertyChange(DISCONNECT_ON_ERROR_PROPERTY, oldValue, getDisconnectOnError());
-        }
+        configuration.set(DISCONNECT_ON_ERROR_PROPERTY, disconnectOnError);
+        firePropertyChange(DISCONNECT_ON_ERROR_PROPERTY, oldValue, getDisconnectOnError());
     }
 
     public Boolean getDisconnectOnEndRun() {
@@ -231,10 +184,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setDisconnectOnEndRun(Boolean disconnectOnEndRun) {
         Boolean oldValue = getDisconnectOnEndRun();
-        if (!disconnectOnEndRun.equals(oldValue)) {
-            configuration.set(DISCONNECT_ON_END_RUN_PROPERTY, disconnectOnEndRun);
-            firePropertyChange(DISCONNECT_ON_END_RUN_PROPERTY, oldValue, getDisconnectOnEndRun());
-        }
+        configuration.set(DISCONNECT_ON_END_RUN_PROPERTY, disconnectOnEndRun);
+        firePropertyChange(DISCONNECT_ON_END_RUN_PROPERTY, oldValue, getDisconnectOnEndRun());
     }
 
     public DataSourceType getDataSourceType() {
@@ -243,10 +194,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setDataSourceType(DataSourceType dataSourceType) {
         DataSourceType oldValue = getDataSourceType();
-        if (!dataSourceType.equals(oldValue)) {
-            configuration.set(DATA_SOURCE_TYPE_PROPERTY, dataSourceType);
-            firePropertyChange(DATA_SOURCE_TYPE_PROPERTY, oldValue, getDataSourceType());
-        }
+        configuration.set(DATA_SOURCE_TYPE_PROPERTY, dataSourceType);
+        firePropertyChange(DATA_SOURCE_TYPE_PROPERTY, oldValue, getDataSourceType());
     }
 
     public String getDataSourcePath() {
@@ -255,10 +204,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setDataSourcePath(String dataSourcePath) {
         String oldValue = getDataSourcePath();
-        if (!dataSourcePath.equals(oldValue)) {
-            configuration.set(DATA_SOURCE_PATH_PROPERTY, dataSourcePath);
-            firePropertyChange(DATA_SOURCE_PATH_PROPERTY, oldValue, getDataSourcePath());
-        }
+        configuration.set(DATA_SOURCE_PATH_PROPERTY, dataSourcePath);
+        firePropertyChange(DATA_SOURCE_PATH_PROPERTY, oldValue, getDataSourcePath());
     }
 
     public ProcessingStage getProcessingStage() {
@@ -269,10 +216,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setProcessingStage(ProcessingStage processingStage) {
         ProcessingStage oldValue = getProcessingStage();
-        if (!processingStage.equals(oldValue)) {
-            configuration.set(PROCESSING_STAGE_PROPERTY, processingStage);
-            firePropertyChange(PROCESSING_STAGE_PROPERTY, oldValue, getProcessingStage());
-        }
+        configuration.set(PROCESSING_STAGE_PROPERTY, processingStage);
+        firePropertyChange(PROCESSING_STAGE_PROPERTY, oldValue, getProcessingStage());
     }
 
     public String getEtName() {
@@ -281,10 +226,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setEtName(String etName) {
         String oldValue = getEtName();
-        if (!etName.equals(oldValue)) {
-            configuration.set(ET_NAME_PROPERTY, etName);
-            firePropertyChange(ET_NAME_PROPERTY, oldValue, getEtName());
-        }
+        configuration.set(ET_NAME_PROPERTY, etName);
+        firePropertyChange(ET_NAME_PROPERTY, oldValue, getEtName());
     }
 
     public String getHost() {
@@ -293,10 +236,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setHost(String host) {
         String oldValue = getHost();
-        if (!host.equals(oldValue)) {
-            configuration.set(HOST_PROPERTY, host);
-            firePropertyChange(HOST_PROPERTY, oldValue, getHost());
-        }
+        configuration.set(HOST_PROPERTY, host);
+        firePropertyChange(HOST_PROPERTY, oldValue, getHost());
     }
 
     public Integer getPort() {
@@ -305,10 +246,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setPort(Integer port) {
         Integer oldValue = getPort();
-        if (!port.equals(oldValue)) {
-            configuration.set(PORT_PROPERTY, port);
-            firePropertyChange(PORT_PROPERTY, oldValue, getPort());
-        }
+        configuration.set(PORT_PROPERTY, port);
+        firePropertyChange(PORT_PROPERTY, oldValue, getPort());
     }
 
     public Boolean getBlocking() {
@@ -317,10 +256,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setBlocking(Boolean blocking) {
         Boolean oldValue = getBlocking();
-        if (!blocking.equals(oldValue)) {
-            configuration.set(BLOCKING_PROPERTY, blocking);
-            firePropertyChange(BLOCKING_PROPERTY, oldValue, getBlocking());
-        }
+        configuration.set(BLOCKING_PROPERTY, blocking);
+        firePropertyChange(BLOCKING_PROPERTY, oldValue, getBlocking());
     }
 
     public Boolean getVerbose() {
@@ -329,10 +266,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setVerbose(Boolean verbose) {
         Boolean oldValue = getVerbose();
-        if (!verbose.equals(oldValue)) {
-            configuration.set(VERBOSE_PROPERTY, verbose);
-            firePropertyChange(VERBOSE_PROPERTY, oldValue, getVerbose());
-        }
+        configuration.set(VERBOSE_PROPERTY, verbose);
+        firePropertyChange(VERBOSE_PROPERTY, oldValue, getVerbose());
     }
 
     public String getStationName() {
@@ -341,10 +276,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setStationName(String stationName) {
         String oldValue = getStationName();
-        if (!stationName.equals(oldValue)) {
-            configuration.set(STATION_NAME_PROPERTY, stationName);
-            firePropertyChange(STATION_NAME_PROPERTY, oldValue, getStationName());
-        }
+        configuration.set(STATION_NAME_PROPERTY, stationName);
+        firePropertyChange(STATION_NAME_PROPERTY, oldValue, getStationName());
     }
 
     public Integer getChunkSize() {
@@ -353,10 +286,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setChunkSize(Integer chunkSize) {
         Integer oldValue = getChunkSize();
-        if (!chunkSize.equals(oldValue)) {
-            configuration.set(CHUNK_SIZE_PROPERTY, chunkSize);
-            firePropertyChange(CHUNK_SIZE_PROPERTY, oldValue, getChunkSize());
-        }
+        configuration.set(CHUNK_SIZE_PROPERTY, chunkSize);
+        firePropertyChange(CHUNK_SIZE_PROPERTY, oldValue, getChunkSize());
     }
 
     public Integer getQueueSize() {
@@ -365,10 +296,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setQueueSize(Integer queueSize) {
         Integer oldValue = getQueueSize();
-        if (!queueSize.equals(oldValue)) {
-            configuration.set(QUEUE_SIZE_PROPERTY, queueSize);
-            firePropertyChange(QUEUE_SIZE_PROPERTY, oldValue, getQueueSize());
-        }
+        configuration.set(QUEUE_SIZE_PROPERTY, queueSize);
+        firePropertyChange(QUEUE_SIZE_PROPERTY, oldValue, getQueueSize());
     }
 
     public Integer getStationPosition() {
@@ -377,10 +306,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setStationPosition(Integer stationPosition) {
         Integer oldValue = getStationPosition();
-        if (!stationPosition.equals(oldValue)) {
-            configuration.set(STATION_POSITION_PROPERTY, stationPosition);
-            firePropertyChange(STATION_POSITION_PROPERTY, oldValue, getStationPosition());
-        }
+        configuration.set(STATION_POSITION_PROPERTY, stationPosition);
+        firePropertyChange(STATION_POSITION_PROPERTY, oldValue, getStationPosition());
     }
 
     public Mode getWaitMode() {
@@ -389,10 +316,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setWaitMode(Mode waitMode) {
         Mode oldValue = getWaitMode();
-        if (!waitMode.equals(oldValue)) {
-            configuration.set(WAIT_MODE_PROPERTY, waitMode.name());
-            firePropertyChange(WAIT_MODE_PROPERTY, oldValue, getWaitMode());
-        }
+        configuration.set(WAIT_MODE_PROPERTY, waitMode.name());
+        firePropertyChange(WAIT_MODE_PROPERTY, oldValue, getWaitMode());
     }
 
     public Integer getWaitTime() {
@@ -401,10 +326,8 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setWaitTime(Integer waitTime) {
         Integer oldValue = getWaitTime();
-        if (!waitTime.equals(oldValue)) {
-            configuration.set(WAIT_TIME_PROPERTY, waitTime);
-            firePropertyChange(WAIT_TIME_PROPERTY, oldValue, getWaitTime());
-        }
+        configuration.set(WAIT_TIME_PROPERTY, waitTime);
+        firePropertyChange(WAIT_TIME_PROPERTY, oldValue, getWaitTime());
     }
 
     public Integer getPrescale() {
@@ -413,50 +336,42 @@ public final class ConfigurationModel extends AbstractModel {
 
     public void setPrescale(Integer prescale) {
         Integer oldValue = getPrescale();
-        if (!prescale.equals(oldValue)) {
-            configuration.set(PRESCALE_PROPERTY, prescale);
-            firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
-        }
+        configuration.set(PRESCALE_PROPERTY, prescale);
+        firePropertyChange(PRESCALE_PROPERTY, oldValue, getPrescale());
     }
-    
+
     public void setUserRunNumber(Integer userRunNumber) {
         Integer oldValue = null;
         if (hasPropertyKey(USER_RUN_NUMBER_PROPERTY)) {
             oldValue = getUserRunNumber();
         }
-        if (!userRunNumber.equals(oldValue)) {                   
-            configuration.set(USER_RUN_NUMBER_PROPERTY, userRunNumber);
-            firePropertyChange(USER_RUN_NUMBER_PROPERTY, oldValue, getUserRunNumber());
-        }
+        configuration.set(USER_RUN_NUMBER_PROPERTY, userRunNumber);
+        firePropertyChange(USER_RUN_NUMBER_PROPERTY, oldValue, getUserRunNumber());
     }
-    
+
     public Integer getUserRunNumber() {
         return configuration.getInteger(USER_RUN_NUMBER_PROPERTY);
     }
-    
+
     public void setFreezeConditions(Boolean freezeConditions) {
         Boolean oldValue = null;
         if (hasPropertyKey(FREEZE_CONDITIONS_PROPERTY)) {
             oldValue = getFreezeConditions();
         }
-        if (!freezeConditions.equals(oldValue)) {
-            configuration.set(FREEZE_CONDITIONS_PROPERTY, freezeConditions);
-            firePropertyChange(FREEZE_CONDITIONS_PROPERTY, oldValue, freezeConditions);
-        }
+        configuration.set(FREEZE_CONDITIONS_PROPERTY, freezeConditions);
+        firePropertyChange(FREEZE_CONDITIONS_PROPERTY, oldValue, freezeConditions);
     }
-    
+
     public Boolean getFreezeConditions() {
         return configuration.getBoolean(FREEZE_CONDITIONS_PROPERTY);
     }
-    
+
     public void setMaxEvents(Long maxEvents) {
         Long oldValue = getMaxEvents();
-        if (!maxEvents.equals(oldValue)) {
-            configuration.set(MAX_EVENTS_PROPERTY, maxEvents);
-            firePropertyChange(MAX_EVENTS_PROPERTY, oldValue, getMaxEvents());
-        }
+        configuration.set(MAX_EVENTS_PROPERTY, maxEvents);
+        firePropertyChange(MAX_EVENTS_PROPERTY, oldValue, getMaxEvents());
     }
-    
+
     public Long getMaxEvents() {
         return configuration.getLong(MAX_EVENTS_PROPERTY);
     }
@@ -470,18 +385,17 @@ public final class ConfigurationModel extends AbstractModel {
             }
         }
     }
-    
+
     public boolean hasPropertyKey(String key) {
         return configuration.hasKey(key);
     }
-    
+
     public boolean hasValidProperty(String key) {
         return configuration.hasKey(key) && configuration.get(key) != null;
     }
-        
+
     @Override
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
     }
 }
-    
