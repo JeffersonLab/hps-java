@@ -26,7 +26,7 @@ public class DataQualityMonitor extends Driver {
     protected boolean connectToDB = false;
     protected boolean printDQMStrings = false;
     protected Map<String, Double> monitoredQuantityMap = new HashMap<>();
-
+    protected boolean debug=false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
     
@@ -34,6 +34,10 @@ public class DataQualityMonitor extends Driver {
         this.recoVersion = recoVersion;
     }
 
+    public void setDebug(boolean debug){
+        this.debug=debug;
+    }
+    
     public void setRunNumber(int run) {
         this.runNumber = run;
     }

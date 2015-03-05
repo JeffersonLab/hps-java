@@ -51,8 +51,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     //some summers
     double sumdelX = 0.0;
     double sumdelY = 0.0;
-    double sumEoverP = 0.0;
-    boolean debug = false;
+    double sumEoverP = 0.0;   
     private String plotDir = "FinalStateParticles/";
 
     @Override
@@ -90,8 +89,11 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)){
+            if(debug)
+                    System.out.println(finalStateParticlesColName+" collection not found???");
             return;
+        }
         nRecoEvents++;
         int nPhotons = 0;  //number of photons 
         int nUnAssTracks = 0; //number of tracks w/o clusters

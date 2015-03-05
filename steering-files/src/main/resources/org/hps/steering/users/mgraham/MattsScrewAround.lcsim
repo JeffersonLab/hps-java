@@ -5,32 +5,31 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver" />
-        <driver name="ConditionsDriver" />
         <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup" />
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver" />
         <driver name="HelicalTrackHitDriver" />
-<!--         <driver name="TrackerReconDriver"/> 
-          <driver name="TrackDataDriver"/>    -->
-        <driver name="AxialTrackReconDriver" />
+         <driver name="TrackerReconDriver"/> 
+          <driver name="TrackDataDriver"/>   
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />
-        <driver name="TrackingMonitoring" />
-        <driver name="TrackMCEfficiency" />
-<!--        <driver name="StraightTrackAnalysis"/>    -->
-        <driver name="AidaSaveDriver" />
-        <driver name="LCIOWriter" />
+<!--        <driver name="TrackingMonitoring" />
+        <driver name="TrackingResiduals"/>  
+        <driver name="V0Monitoring"/>  -->
+        <driver name="TrackingDQM" />
+        <driver name="TrackingResidualsDQM"/>  
+        <driver name="FinalStateDQM"/>  
+        <driver name="V0DQM"/>  
+        <driver name="AidaSaveDriver"/> 
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
+     <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />   
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
-        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
-        <!-- Broken due to missing prop file.  JM -->
-        <!-- <driver name="DQMDatabaseDriver" type="org.hps.analysis.dataquality.DQMDatabaseDriver" />  -->
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10</eventInterval>
         </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
         <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />
@@ -49,7 +48,7 @@
             <clusterTimeCut>16.0</clusterTimeCut>
             <maxSeperation>20.0</maxSeperation>
             <tolerance>1.0</tolerance>
-            <saveAxialHits>true</saveAxialHits>
+            <saveAxialHits>false</saveAxialHits>
         </driver>
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
@@ -62,10 +61,6 @@
         </driver>
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ClusterDriver">
             <clustererName>LegacyClusterer</clustererName>
-        </driver>
-        <driver name="AddBeamSpotToTrack" type="org.hps.users.mgraham.AddBeamSpotToTrack">
-        </driver>
-        <driver name="BeamSpotTrackAnalysis" type="org.hps.users.mgraham.BeamSpotTrackAnalysis">
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
@@ -81,50 +76,33 @@
             <beamConV0VerticesColName>BSBeamspotConstrainedV0Vertices</beamConV0VerticesColName>
             <targetConV0VerticesColName>BSTargetConstrainedV0Vertices</targetConV0VerticesColName>
         </driver>
-        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>./conditions_test_plots.root</outputFileName>
+     
+        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">         
+        <outputPlots>tracking</outputPlots>
         </driver>
-        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">
-            <runNumber>${runNumber}</runNumber>
+        <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">
+             <outputPlots>track-residuals</outputPlots>      
+        </driver>
+         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">         
+        <outputPlots>v0recon</outputPlots>
+        </driver>      
+
+
+        <driver name="TrackingDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <overwriteDB>false</overwriteDB>
         </driver>
-        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
-            <runNumber>${runNumber}</runNumber>
-            <overwriteDB>false</overwriteDB>
-            <trackCollectionName>StraightTracks</trackCollectionName>
-        </driver>
-        <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
-            <runNumber>${runNumber}</runNumber>
+      <driver name="TrackingResidualsDQM" type="org.hps.analysis.dataquality.TrackingResiduals">         
             <overwriteDB>false</overwriteDB>
         </driver>
-        <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
-            <runNumber>${runNumber}</runNumber>
+ <driver name="FinalStateDQM" type="org.hps.analysis.dataquality.FinalStateMonitoring">         
             <overwriteDB>false</overwriteDB>
         </driver>
-        <driver name="SVTHitMCEfficiency" type="org.hps.analysis.dataquality.SVTHitMCEfficiency">
-            <overwriteDB>false</overwriteDB>
-            <printDQMStrings>false</printDQMStrings>
-        </driver>
-        <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
-            <runNumber>${runNumber}</runNumber>
+        <driver name="V0DQM" type="org.hps.analysis.dataquality.V0Monitoring">         
             <overwriteDB>false</overwriteDB>
         </driver>
-        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
-        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>blah.slcio</outputFilePath>
-        </driver>
-        <driver name="AxialTrackReconDriver" type="org.hps.recon.tracking.axial.AxialTrackReconDriver">
-            <debug>false</debug>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Axial.xml</strategyResource>
-            <trackCollectionName>StraightTracks</trackCollectionName>
-        </driver>
-        <driver name="TrackMCEfficiency" type="org.hps.analysis.dataquality.TrackMCEfficiency">
-            <overwriteDB>false</overwriteDB>
-            <trackCollectionName>StraightTracks</trackCollectionName>
-            <trackHitCollectionName>RotatedAxialTrackHits</trackHitCollectionName>
-            <trackHitMCRelationsCollectionName>RotatedAxialTrackHitsMCRelations</trackHitMCRelationsCollectionName>
-        </driver>
-        <driver name="StraightTrackAnalysis" type="org.hps.users.mgraham.StraightTrackAnalysis">
-        </driver>
+     <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+                 <outputFileName>./Test-DQM-Tracking-Recon.root</outputFileName>
+        </driver>  
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
     </drivers>
 </lcsim>

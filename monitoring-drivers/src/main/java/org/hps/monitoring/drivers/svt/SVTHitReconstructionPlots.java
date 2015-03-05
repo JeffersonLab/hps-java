@@ -1,5 +1,6 @@
 package org.hps.monitoring.drivers.svt;
 
+import org.hps.monitoring.drivers.trackrecon.TrackingReconPlots;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -285,7 +286,7 @@ public class SVTHitReconstructionPlots extends Driver {
             try {
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
-                Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TrackingReconPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         //plotterFrame.dispose();
