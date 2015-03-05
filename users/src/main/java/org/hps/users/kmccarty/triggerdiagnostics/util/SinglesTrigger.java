@@ -17,9 +17,9 @@ public class SinglesTrigger<E> extends Trigger<E> {
 	 * @param source - The object from which the trigger cut states
 	 * are derived.
 	 */
-	public SinglesTrigger(E source) {
+	public SinglesTrigger(E source, int triggerNum) {
 		// Instantiate the superclass.
-		super(source);
+		super(source, triggerNum);
 		
 		// Add the supported cuts types.
 		addValidCut(CLUSTER_HIT_COUNT_LOW);

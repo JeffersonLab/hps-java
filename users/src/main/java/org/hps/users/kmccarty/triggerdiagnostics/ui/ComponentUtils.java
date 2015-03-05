@@ -10,19 +10,39 @@ import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-class ComponentUtils {
+public class ComponentUtils {
 	/** The default spacing used between a horizontal edge of one
 	 * component and the horizontal edge of another. */
-	public static final int hinternal = 10;
+	static final int hinternal = 10;
 	/** The default spacing used between a vertical edge of one
 	 * component and the vertical edge of another. */
-	public static final int vinternal = 10;
+	static final int vinternal = 10;
 	/** The default spacing used between a horizontal edge of one
 	 * component and the edge of its parent component. */
-	public static final int hexternal = 0;
+	static final int hexternal = 0;
 	/** The default spacing used between a vertical edge of one
 	 * component and the edge of its parent component. */
-	public static final int vexternal = 0;
+	static final int vexternal = 0;
+	
+	/**
+	 * Gets a <code>String</code> composed of a number of instances of
+	 * character <code>c</code> equal to <code>number</code>.
+	 * @param c - The character to repeat.
+	 * @param number - The number of repetitions.
+	 * @return Returns the repeated character as a <code>String</code>.
+	 */
+	public static final String getChars(char c, int number) {
+		// Create a buffer to store the characters in.
+		StringBuffer s = new StringBuffer();
+		
+		// Add the indicated number of instances.
+		for(int i = 0; i < number; i++) {
+			s.append(c);
+		}
+		
+		// Return the string.
+		return s.toString();
+	}
 	
 	/**
 	 * Gets the number of digits in the base-10 String representation
@@ -34,6 +54,31 @@ class ComponentUtils {
 	 */
 	public static final int getDigits(int value) {
 		return TriggerDiagnosticUtil.getDigits(value);
+	}
+	
+	/**
+	 * Gets the maximum value from a list of values.
+	 * @param values - The values to compare.
+	 * @return Returns the largest of the argument values.
+	 * @throws IllegalArgumentException Occurs if no values are given.
+	 */
+	public static final int max(int... values) throws IllegalArgumentException {
+		// Throw an error if no arguments are provided.
+		if(values == null || values.length == 0) {
+			throw new IllegalArgumentException("Can not determine maximum value from a list of 0 values.");
+		}
+		
+		// If there is only one value, return it.
+		if(values.length == 1) { return values[0]; }
+		
+		// Otherwise, get the largest value.
+		int largest = Integer.MIN_VALUE;
+		for(int value : values) {
+			if(value > largest) { largest = value; }
+		}
+		
+		// Return the result.
+		return largest;
 	}
 	
 	/**
@@ -77,30 +122,5 @@ class ComponentUtils {
 	 */
 	static final int getNextY(Component c, int spacing) {
 		return c.getY() + c.getHeight() + spacing;
-	}
-	
-	/**
-	 * Gets the maximum value from a list of values.
-	 * @param values - The values to compare.
-	 * @return Returns the largest of the argument values.
-	 * @throws IllegalArgumentException Occurs if no values are given.
-	 */
-	public static final int max(int... values) throws IllegalArgumentException {
-		// Throw an error if no arguments are provided.
-		if(values == null || values.length == 0) {
-			throw new IllegalArgumentException("Can not determine maximum value from a list of 0 values.");
-		}
-		
-		// If there is only one value, return it.
-		if(values.length == 1) { return values[0]; }
-		
-		// Otherwise, get the largest value.
-		int largest = Integer.MIN_VALUE;
-		for(int value : values) {
-			if(value > largest) { largest = value; }
-		}
-		
-		// Return the result.
-		return largest;
 	}
 }

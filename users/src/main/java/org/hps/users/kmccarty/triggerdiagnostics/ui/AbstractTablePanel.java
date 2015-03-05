@@ -27,45 +27,26 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 	// Static variables.
 	private static final long serialVersionUID = 0L;
 	
-	// Table models.
-	private final TableTextModel localModel;
-	private final TableTextModel globalModel;
-	
 	// Components.
-	private JTable localTable;
+	protected final JTable localTable;
 	private JLabel localHeader;
-	private JTable globalTable;
+	protected final JTable globalTable;
 	private JLabel globalHeader;
 	private Dimension defaultPrefSize = new Dimension(0, 0);
 	private Dimension userPrefSize = null;
 	
-	// Table model mappings.
-	private static final int COL_TITLE = 0;
-	private static final int COL_VALUE = 1;
-	
-	/**
-	 * Instantiates an <code>AbstractTablePanel</code> with a number
-	 * of rows equal to the length of the argument array. Note that
-	 * the panel requires that there be at least one row.
-	 * @param rowNames - An array of <code>String</code> objects that
-	 * are to be displayed for the names of the table rows.
-	 */
-	public AbstractTablePanel(String[] rowNames) {
-		// Initialize the table models. They should have two columns
-		// (one for values and one for headers) and a number of rows
-		// equal to the number of row names.
-		localModel = new TableTextModel(rowNames.length, 2);
-		globalModel = new TableTextModel(rowNames.length, 2);
+	public AbstractTablePanel(Object... args) {
+		// Initialize the tables.
+		JTable[] tables = initializeTables(args);
+		localTable = tables[0];
+		globalTable = tables[1];
+		add(globalTable);
+		add(localTable);
 		
-		// Initialize the titles.
-		for(int i = 0; i < rowNames.length; i++) {
-			localModel.setValueAt(rowNames[i], i, COL_TITLE);
-			globalModel.setValueAt(rowNames[i], i, COL_TITLE);
-		}
+		// Set the panels to their null starting values.
 		updatePanel(null);
 		
 		// Define the panel layout.
-		//SpringLayout layout = new SpringLayout();
 		setLayout(null);
 		
 		// Create header labels for the tables.
@@ -76,21 +57,6 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		globalHeader = new JLabel("Run Statistics");
 		globalHeader.setHorizontalAlignment(JLabel.CENTER);
 		add(globalHeader);
-		
-		// Create JTable objects to display the data.
-		localTable = new JTable(localModel);
-		localTable.setRowSelectionAllowed(false);
-		localTable.setColumnSelectionAllowed(false);
-		localTable.setCellSelectionEnabled(false);
-		localTable.setShowVerticalLines(false);
-		add(localTable);
-		
-		globalTable = new JTable(globalModel);
-		globalTable.setRowSelectionAllowed(false);
-		globalTable.setColumnSelectionAllowed(false);
-		globalTable.setCellSelectionEnabled(false);
-		globalTable.setShowVerticalLines(false);
-		add(globalTable);
 		
 		// Track when the component changes size and reposition the
 		// components accordingly.
@@ -170,24 +136,14 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 	}
 	
 	/**
-	 * Sets the value of the indicated row for the global statistical
-	 * table.
-	 * @param rowIndex - The row.
-	 * @param value - The new value.
+	 * Generates the two tables that are used by the component. This
+	 * must return an array of size two.
+	 * @param args - Any arguments that should be passed to the method
+	 * for generating tables.
+	 * @return Returns an array of size two, where the first index must
+	 * contain the local table and the second index the global table.
 	 */
-	protected void setGlobalRowValue(int rowIndex, String value) {
-		globalModel.setValueAt(value, rowIndex, COL_VALUE);
-	}
-	
-	/**
-	 * Sets the value of the indicated row for the local statistical
-	 * table.
-	 * @param rowIndex - The row.
-	 * @param value - The new value.
-	 */
-	protected void setLocalRowValue(int rowIndex, String value) {
-		localModel.setValueAt(value, rowIndex, COL_VALUE);
-	}
+	protected abstract JTable[] initializeTables(Object... args);
 	
 	/**
 	 * Repositions the components to the correct places on the parent

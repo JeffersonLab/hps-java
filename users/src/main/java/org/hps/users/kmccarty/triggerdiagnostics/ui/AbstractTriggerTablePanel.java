@@ -12,7 +12,7 @@ import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerStatModule;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public abstract class AbstractTriggerTablePanel extends AbstractTablePanel {
+public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePanel {
 	// Static variables.
 	private static final long serialVersionUID = 0L;
 	

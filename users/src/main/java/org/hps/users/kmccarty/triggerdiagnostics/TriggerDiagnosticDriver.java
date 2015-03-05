@@ -22,6 +22,7 @@ import org.hps.readout.ecal.triggerbank.TIData;
 import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterMatchEvent;
 import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterMatchStatus;
 import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterMatchedPair;
+import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerEfficiencyModule;
 import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerMatchEvent;
 import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerMatchStatus;
 import org.hps.users.kmccarty.triggerdiagnostics.util.OutputLogger;
@@ -54,6 +55,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	private List<List<SinglesTrigger<SSPCluster>>> sspSinglesTriggers = new ArrayList<List<SinglesTrigger<SSPCluster>>>(2);
 	
 	// Trigger modules for performing trigger analysis.
+	private int activeTrigger = -1;
 	private TriggerModule[] singlesTrigger = new TriggerModule[2];
 	private TriggerModule[] pairsTrigger = new TriggerModule[2];
 	
@@ -73,6 +75,8 @@ public class TriggerDiagnosticDriver extends Driver {
 	// Efficiency tracking variables.
 	private ClusterMatchStatus clusterRunStats = new ClusterMatchStatus();
 	private ClusterMatchStatus clusterLocalStats = new ClusterMatchStatus();
+	private TriggerEfficiencyModule efficiencyRunStats = new TriggerEfficiencyModule();
+	private TriggerEfficiencyModule efficiencyLocalStats = new TriggerEfficiencyModule();
 	private TriggerMatchStatus[] triggerRunStats = { new TriggerMatchStatus(), new TriggerMatchStatus() };
 	private TriggerMatchStatus[] triggerLocalStats = { new TriggerMatchStatus(), new TriggerMatchStatus() };
 	
@@ -326,6 +330,8 @@ public class TriggerDiagnosticDriver extends Driver {
 				}
 			}
 		}
+		
+		this.efficiencyRunStats.printModule();
 	}
 	
 	/**
@@ -375,10 +381,25 @@ public class TriggerDiagnosticDriver extends Driver {
 				else if(AbstractIntData.getTag(obj) == TIData.BANK_TAG) {
 					tiBank = new TIData(obj);
 					
-					if(tiBank.isPulserTrigger()) { OutputLogger.println("Trigger type :: Pulser"); }
-					else if(tiBank.isSingle0Trigger() || tiBank.isSingle1Trigger()) { OutputLogger.println("Trigger type :: Singles"); }
-					else if(tiBank.isPair0Trigger() || tiBank.isPair1Trigger()) { OutputLogger.println("Trigger type :: Pair"); }
-					else if(tiBank.isCalibTrigger()) { OutputLogger.println("Trigger type :: Cosmic"); }
+					if(tiBank.isPulserTrigger()) {
+						OutputLogger.println("Trigger type :: Pulser");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_PULSER;
+					} else if(tiBank.isSingle0Trigger()) {
+						OutputLogger.println("Trigger type :: Singles 1");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_SINGLES_1;
+					} else if(tiBank.isSingle1Trigger()) {
+						OutputLogger.println("Trigger type :: Singles 2");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_SINGLES_2;
+					} else if(tiBank.isPair0Trigger()) {
+						OutputLogger.println("Trigger type :: Pair 1");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_PAIR_1;
+					} else if(tiBank.isPair1Trigger()) {
+						OutputLogger.println("Trigger type :: Pair 2");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_PAIR_2;
+					} else if(tiBank.isCalibTrigger()) {
+						OutputLogger.println("Trigger type :: Cosmic");
+						activeTrigger = TriggerDiagnosticUtil.TRIGGER_COSMIC;
+					}
 				}
 			}
 			
@@ -523,35 +544,19 @@ public class TriggerDiagnosticDriver extends Driver {
 		if(Calendar.getInstance().getTimeInMillis() - localWindowStart > localWindowThreshold) {
 			// Write a snapshot of the driver to the event stream.
 			DiagSnapshot snapshot = new DiagSnapshot(clusterLocalStats, clusterRunStats,
-					triggerLocalStats[0], triggerRunStats[0], triggerLocalStats[1], triggerRunStats[1]);
+					triggerLocalStats[0], triggerRunStats[0], triggerLocalStats[1],
+					triggerRunStats[1], efficiencyRunStats, efficiencyLocalStats);
 			
 			// Push the snapshot to the data stream.
 			List<DiagSnapshot> snapshotCollection = new ArrayList<DiagSnapshot>(1);
 			snapshotCollection.add(snapshot);
 			event.put(diagnosticCollectionName, snapshotCollection);
 			
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println("WROTE SNAPSHOT");
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			
 			// Clear the local statistical data.
 			clusterLocalStats.clear();
 			triggerLocalStats[0].clear();
 			triggerLocalStats[1].clear();
+			efficiencyLocalStats.clear();
 			
 			// Update the last write time.
 			localWindowStart = Calendar.getInstance().getTimeInMillis();
@@ -1046,9 +1051,9 @@ public class TriggerDiagnosticDriver extends Driver {
 				// so that the closest match may be found.
 				int numMatched = -1;
 				boolean[] matchedCut = null;
+				SSPNumberedTrigger bestMatch = null;
 				
 				// Iterate over the reported triggers to find a match.
-				SSPNumberedTrigger bestMatch = null;
 				reportedLoop:
 				for(SSPNumberedTrigger sspTrigger : sspTriggers) {
 					// If the two triggers have different times, this
@@ -1081,10 +1086,12 @@ public class TriggerDiagnosticDriver extends Driver {
 				// If there was no match found, it means that there were
 				// no triggers that were both unmatched and at the same
 				// time as this simulated trigger.
-				event.matchedSSPPair(simTrigger, bestMatch, matchedCut);
-				if(matchedCut == null) {
+				
+				if(bestMatch == null) {
 					if(isSingles) { singlesInternalFail = true; }
 					else { pairInternalFail = true; }
+				} else {
+					event.matchedSSPPair(simTrigger, bestMatch, matchedCut);
 				}
 			}
 		}
@@ -1209,6 +1216,10 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Update the global trigger tracking variables.
 			triggerRunStats[0].addEvent(event, reconTriggerList, sspTriggerList, sspTriggers);
 			triggerLocalStats[0].addEvent(event, reconTriggerList, sspTriggerList, sspTriggers);
+			efficiencyRunStats.addSinglesTriggers(activeTrigger, reconTriggerList);
+			efficiencyLocalStats.addSinglesTriggers(activeTrigger, reconTriggerList);
+			efficiencyRunStats.addEvent(activeTrigger, event);
+			efficiencyLocalStats.addEvent(activeTrigger, event);
 		} else {
 			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
 				OutputLogger.println();
@@ -1234,6 +1245,10 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Update the global trigger tracking variables.
 			triggerRunStats[1].addEvent(event, reconTriggerList, sspTriggerList, sspTriggers);
 			triggerLocalStats[1].addEvent(event, reconTriggerList, sspTriggerList, sspTriggers);
+			efficiencyRunStats.addPairTriggers(activeTrigger, reconTriggerList);
+			efficiencyLocalStats.addSinglesTriggers(activeTrigger, reconTriggerList);
+			efficiencyRunStats.addEvent(activeTrigger, event);
+			efficiencyLocalStats.addEvent(activeTrigger, event);
 		}
 		
 		// Note whether the was a trigger match failure.
@@ -1264,7 +1279,7 @@ public class TriggerDiagnosticDriver extends Driver {
 				boolean passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(cluster);
 				
 				// Make a trigger to store the results.
-				SinglesTrigger<SSPCluster> trigger = new SinglesTrigger<SSPCluster>(cluster);
+				SinglesTrigger<SSPCluster> trigger = new SinglesTrigger<SSPCluster>(cluster, triggerNum);
 				trigger.setStateSeedEnergyLow(passSeedLow);
 				trigger.setStateSeedEnergyHigh(passSeedHigh);
 				trigger.setStateClusterEnergyLow(passClusterLow);
@@ -1293,7 +1308,7 @@ public class TriggerDiagnosticDriver extends Driver {
 				boolean passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(cluster);
 				
 				// Make a trigger to store the results.
-				SinglesTrigger<Cluster> trigger = new SinglesTrigger<Cluster>(cluster);
+				SinglesTrigger<Cluster> trigger = new SinglesTrigger<Cluster>(cluster, triggerNum);
 				trigger.setStateSeedEnergyLow(passSeedLow);
 				trigger.setStateSeedEnergyHigh(passSeedHigh);
 				trigger.setStateClusterEnergyLow(passClusterLow);
@@ -1386,7 +1401,7 @@ public class TriggerDiagnosticDriver extends Driver {
 				boolean passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(reconPair);
 				
 				// Create a trigger from the results.
-				PairTrigger<Cluster[]> trigger = new PairTrigger<Cluster[]>(reconPair);
+				PairTrigger<Cluster[]> trigger = new PairTrigger<Cluster[]>(reconPair, triggerIndex);
 				trigger.setStateSeedEnergyLow(passSeedLow);
 				trigger.setStateSeedEnergyHigh(passSeedHigh);
 				trigger.setStateClusterEnergyLow(passClusterLow);
@@ -1435,7 +1450,7 @@ public class TriggerDiagnosticDriver extends Driver {
 				boolean passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(sspPair);
 				
 				// Create a trigger from the results.
-				PairTrigger<SSPCluster[]> trigger = new PairTrigger<SSPCluster[]>(sspPair);
+				PairTrigger<SSPCluster[]> trigger = new PairTrigger<SSPCluster[]>(sspPair, triggerIndex);
 				trigger.setStateSeedEnergyLow(passSeedLow);
 				trigger.setStateSeedEnergyHigh(passSeedHigh);
 				trigger.setStateClusterEnergyLow(passClusterLow);

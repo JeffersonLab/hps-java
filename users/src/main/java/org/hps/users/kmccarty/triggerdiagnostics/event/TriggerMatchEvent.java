@@ -95,6 +95,16 @@ public class TriggerMatchEvent {
 	}
 	
 	/**
+	 * Gets a list containing all reconstructed cluster triggers and
+	 * their matched SSP bank triggers.
+	 * @return Returns the trigger pairs as a <code>List</code>
+	 * collection of <code>Pair</code> objects.
+	 */
+	public List<Pair<Trigger<?>, SSPNumberedTrigger>> getMatchedReconPairs() {
+		return reconPairList;
+	}
+	
+	/**
 	 * Adds a reconstructed trigger and SSP bank trigger pair that is
 	 * marked as matched for all trigger cuts.
 	 * @param reconTrigger - The reconstructed cluster trigger.

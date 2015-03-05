@@ -20,6 +20,8 @@ public abstract class Trigger<E> {
 	private Map<String, Boolean> passMap = new HashMap<String, Boolean>();
 	// Store the cluster associated with the trigger.
 	private final E source;
+	// Store the trigger number.
+	private final int triggerNum;
 	
 	/**
 	 * Creates a new <code>Trigger</code> object with the argument
@@ -27,7 +29,18 @@ public abstract class Trigger<E> {
 	 * @param source - The trigger source object.
 	 */
 	protected Trigger(E source) {
+		this(source, -1);
+	}
+	
+	/**
+	 * Creates a new <code>Trigger</code> object with the argument
+	 * specifying the object from whence the trigger state is derived.
+	 * @param source - The trigger source object.
+	 * @param triggerNum - The number of the trigger.
+	 */
+	protected Trigger(E source, int triggerNum) {
 		this.source = source;
+		this.triggerNum = triggerNum;
 	}
 	
 	/**
@@ -52,6 +65,15 @@ public abstract class Trigger<E> {
 		} else {
 			throw new IllegalArgumentException(String.format("Trigger cut \"%s\" is not a supported trigger cut.", cut));
 		}
+	}
+	
+	/**
+	 * Gets the number of the trigger. If the trigger has no number,
+	 * it will return <code>-1</code>.
+	 * @return Returns the trigger number as an <code>int</code>.
+	 */
+	public int getTriggerNumber() {
+		return triggerNum;
 	}
 	
 	/**

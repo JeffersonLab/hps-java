@@ -16,6 +16,7 @@ public class TriggerStatModule {
 	protected int[] reconTriggersMatched = new int[2];
 	protected int[][] triggerComp = new int[4][2];
 	
+	
 	/**
 	 * Instantiates a <code>TriggerStatModule</code> with no statistics
 	 * stored.

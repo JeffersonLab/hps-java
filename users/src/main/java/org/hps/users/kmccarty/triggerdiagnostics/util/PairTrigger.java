@@ -18,9 +18,9 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * @param source - The object from which the trigger cut states
 	 * are derived.
 	 */
-	public PairTrigger(E source) {
+	public PairTrigger(E source, int triggerNum) {
 		// Instantiate the superclass.
-		super(source);
+		super(source, triggerNum);
 		
 		// Add the supported cuts types.
 		addValidCut(PAIR_ENERGY_SUM_LOW);

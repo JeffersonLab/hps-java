@@ -12,7 +12,7 @@ import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterStatModule;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see AbstractTablePanel
  */
-public class ClusterTablePanel extends AbstractTablePanel {
+public class ClusterTablePanel extends AbstractTwoColumnTablePanel {
 	// Static variables.
 	private static final long serialVersionUID = 0L;
 	private static final String[] TABLE_TITLES = { "Recon Clusters", "SSP Clusters", "Matched Clusters",

@@ -30,6 +30,15 @@ public class TriggerDiagnosticUtil {
 	public static final int PAIR_ENERGY_SLOPE = 2;
 	public static final int PAIR_COPLANARITY = 3;
 	
+	// Trigger type variables.
+	public static final int TRIGGER_PULSER    = 0;
+	public static final int TRIGGER_COSMIC    = 1;
+	public static final int TRIGGER_SINGLES_1 = 2;
+	public static final int TRIGGER_SINGLES_2 = 3;
+	public static final int TRIGGER_PAIR_1    = 4;
+	public static final int TRIGGER_PAIR_2    = 5;
+	public static final String[] TRIGGER_NAME = { "Pulser", "Cosmic", "Singles 1", "Singles 2", "Pair 1", "Pair 2" };
+	
 	/**
 	 * Convenience method that writes the position of a cluster in the
 	 * form (ix, iy).

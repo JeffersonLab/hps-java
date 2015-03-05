@@ -2,6 +2,7 @@ package org.hps.users.kmccarty.triggerdiagnostics;
 
 import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterMatchStatus;
 import org.hps.users.kmccarty.triggerdiagnostics.event.ClusterStatModule;
+import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerEfficiencyModule;
 import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerMatchStatus;
 import org.hps.users.kmccarty.triggerdiagnostics.event.TriggerStatModule;
 import org.hps.users.kmccarty.triggerdiagnostics.util.TriggerDiagnosticUtil;
@@ -21,6 +22,8 @@ public class DiagSnapshot {
 	public final SinglesTriggerStatModule singlesLocalStatistics;
 	public final PairTriggerStatModule pairRunStatistics;
 	public final PairTriggerStatModule pairLocalStatistics;
+	public final TriggerEfficiencyModule efficiencyRunStatistics;
+	public final TriggerEfficiencyModule efficiencyLocalStatistics;
 	
 	/**
 	 * Instantiates a new snapshot. The snapshot creates a copy of the
@@ -35,13 +38,16 @@ public class DiagSnapshot {
 	 */
 	DiagSnapshot(ClusterMatchStatus localCluster, ClusterMatchStatus globalCluster,
 			TriggerMatchStatus localSingles, TriggerMatchStatus globalSingles,
-			TriggerMatchStatus localPair, TriggerMatchStatus globalPair) {
+			TriggerMatchStatus localPair, TriggerMatchStatus globalPair,
+			TriggerEfficiencyModule localEfficiency, TriggerEfficiencyModule globalEfficiency) {
 		clusterRunStatistics = globalCluster.cloneStatModule();
 		clusterLocalStatistics = localCluster.cloneStatModule();
 		singlesRunStatistics = new SinglesTriggerStatModule(globalSingles);
 		singlesLocalStatistics = new SinglesTriggerStatModule(localSingles);
 		pairRunStatistics = new PairTriggerStatModule(globalPair);
 		pairLocalStatistics = new PairTriggerStatModule(localPair);
+		efficiencyRunStatistics = globalEfficiency.clone();
+		efficiencyLocalStatistics = localEfficiency.clone();
 	}
 	
 	/**
