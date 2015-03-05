@@ -406,11 +406,10 @@
             <millepede_constant name="23300" value="0.0"/>
             
         </millepede_constants>
-    </detector>     
-        
-<!--        <constant name="dipoleMagnetHeight" value="17.78*cm"/>
-        <constant name="dipoleMagnetWidth" value="41.6052*cm"/>-->
-<!--    <detector id="30" name="TrackerFieldDef" type="HPSTracker2" readout="TrackerHitsFieldDef" >
+    </detector>   
+      
+<!-- 
+ <detector id="30" name="TrackerFieldDef" type="HPSTracker2" readout="TrackerHitsFieldDef" >
             <comment>Boundary planes for magnetic field, also used as scoring planes</comment>
             <module name="TestRunModuleFieldDef">
                 <box x="416.052" y="177.8" />
@@ -426,30 +425,10 @@
             <layer id="2">
                 <module_placement name="TestRunModuleFieldDefFlare2" id="0" x="dipoleMagnetPositionX" y="0" z="dipoleMagnetPositionZ+dipoleMagnetLength/2" rx="0" ry="0" rz="-PI/2"/>
             </layer>
-        </detector>     
-        
-        <detector id="31" name="TrackerRecoil" type="HPSTracker2" readout="TrackerHitsRecoil" >
-            <comment>Thin planes for recoil electrons</comment>
-            <module name="TestRunModuleRecoil">
-                <box x="moduleLength" y="moduleWidth" />
-                <module_component thickness="scoringThickness" material = "Vacuum" sensitive="true">
-                    <dimensions x="sensorLength" y="sensorWidth" /> 
-                </module_component>
-            </module>            
-            <layer id="1">
-                <module_placement name="TestRunModuleRecoil" id="0" x="z01t*sin(y_rot)+(x_off)*cos(y_rot)" y="y01t" z="z01t*cos(y_rot)-(x_off)*sin(y_rot)" rx="x_rot_top+x_rot_top_add" ry="-y_rot" rz="-PI/2"/>
-                <module_placement name="TestRunModuleRecoil" id="1" x="z01b*sin(y_rot)+(x_off)*cos(y_rot)" y="y01b" z="z01b*cos(y_rot)-(x_off)*sin(y_rot)" rx="x_rot_bot" ry="-y_rot" rz="-PI/2-SA1"/>
-            </layer>
-            <layer id="2">
-                <module_placement name="TestRunModuleRecoil" id="0" x="z02t*sin(y_rot)+(x_off)*cos(y_rot)" y="y02t" z="z02t*cos(y_rot)-(x_off)*sin(y_rot)" rx="x_rot_top" ry="PI-y_rot" rz="-3*PI/2-SA1"/>
-                <module_placement name="TestRunModuleRecoil" id="1" x="z02b*sin(y_rot)+(x_off)*cos(y_rot)" y="y02b" z="z02b*cos(y_rot)-(x_off)*sin(y_rot)" rx="x_rot_bot" ry="PI-y_rot" rz="-3*PI/2"/>
-            </layer>
         </detector> 
-        
-         -->        
-     
-<!-- 
-        <detector id="29" name="ECalScoring" type="HPSTracker2" readout="TrackerHitsECal" insideTrackingVolume="false" >
+-->        
+       
+ <detector id="29" name="ECalScoring" type="HPSTracker2" readout="TrackerHitsECal" insideTrackingVolume="false" >
             <comment>Scoring plane after ECal flange for calibration studies</comment>
             <module name="BeamLeft">
                 <box x="electronGapLeftEdge" y="457.2/2-17" />
@@ -463,20 +442,18 @@
                 <box x="768.35-electronGapRightEdge" y="457.2/2-14" />
                 <module_component thickness="scoringThickness" material = "Vacuum" sensitive="true"/>
             </module>            
-            <layer id="1">
+            <layer id="1"><!--top-->
                 <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="(457.2/2+17)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-PI/2"/>
                 <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="(457.2/2+64.66/2)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-PI/2"/>
                 <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="(457.2/2+14)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-PI/2"/>
             </layer>
-            <layer id="2">
+            <layer id="2"><!--bottom-->
                 <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+17)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-3*PI/2"/>
                 <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+64.66/2)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-3*PI/2"/>
                 <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="-1*(457.2/2+14)/2" z="1318+20+scoringThickness" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector> 
--->
 
-<!-- 
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
             <comment>The crystal ECal</comment>
             <material name="LeadTungstate" />
@@ -487,34 +464,25 @@
                 <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
             </layout>
         </detector>
- -->       
     </detectors>
     
     <readouts>   
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-<!--    <readout name="TrackerHitsFieldDef">
+    <readout name="TrackerHitsFieldDef">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
-        <readout name="TrackerHitsRecoil">
-            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
-        </readout>
--->
         <readout name="TrackerHitsECal">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
-        <!--         <readout name="TargetHits">
-            <id>system:6,barrel:3,layer:4,wedge:4,module:12,sensor:1,side:32:-2,strip:12</id>
-        </readout>-->
-<!-- 
         <readout name="EcalHits">
             <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
             <id>system:6,layer:2,ix:-8,iy:-6</id>
         </readout>
- -->              
+
     </readouts>
 
     <fields>
@@ -522,9 +490,7 @@
     </fields>
 
     <includes>
- <!-- 
-       <gdmlFile file="gdml/ecal_vacuum_flange_complete_v1.gdml" />
--->
+        <gdmlFile file="gdml/ecal_vacuum_flange_complete_v1.gdml" />
         <gdmlFile file="gdml/svt_chamber_v2.gdml" />
     </includes>
 </lccdd>
