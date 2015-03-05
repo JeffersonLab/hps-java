@@ -107,6 +107,10 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
+            <artifactId>hps-evio</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
         </dependency>       
         <dependency>
