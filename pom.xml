@@ -31,7 +31,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.hps.monitoring.Main</mainClass>
+                                    <mainClass>org.hps.monitoring.application.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <artifactSet>
@@ -105,6 +105,10 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>org.hps</groupId>
+            <artifactId>hps-evio</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.hps</groupId>
             <artifactId>hps-monitoring-drivers</artifactId>
