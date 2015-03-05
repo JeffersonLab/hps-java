@@ -138,9 +138,9 @@ public class GBLOutput {
         	mcp = getMatchedTruthParticle(trk);
         
         	if(mcp==null) {
-        		System.out.printf("%s: no truth particle found in event!\n",this.getClass().getSimpleName());
+        		System.out.printf("%s: WARNING!! no truth particle found in event!\n",this.getClass().getSimpleName());
         		this.printMCParticles(mcParticles);
-        		System.exit(1);
+        		//System.exit(1);
         	} else {
         		if(_debug>0) System.out.printf("%s: truth particle (pdgif %d ) found in event!\n",this.getClass().getSimpleName(),mcp.getPDGID());
         	}
@@ -151,7 +151,7 @@ public class GBLOutput {
         }
         
         // Get track parameters from MC particle 
-        HelicalTrackFit htfTruth = isMC ? TrackUtils.getHTF(mcp,-1.0*this._B.z()) : null;
+        HelicalTrackFit htfTruth = (isMC&&mcp!=null) ? TrackUtils.getHTF(mcp,-1.0*this._B.z()) : null;
         
         // Use the truth helix as the initial track for GBL?
         //htf = htfTruth;
@@ -294,13 +294,13 @@ public class GBLOutput {
                 
                 //Find intercept point with sensor in tracking frame
                 Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B.z()));
-                Hep3Vector trkposTruth = isMC ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip, Math.abs(_B.z())) : new BasicHep3Vector(-999999.9,-999999.9,-999999.9);
+                Hep3Vector trkposTruth = htfTruth!=null ? TrackUtils.getHelixPlaneIntercept(htfTruth, strip, Math.abs(_B.z())) : new BasicHep3Vector(-999999.9,-999999.9,-999999.9);
                 if(textFile != null) {
                 	textFile.printStripTrackPos(trkpos);
                 }
                 if(_debug>0) {
                 	System.out.printf("trkpos at intercept [%.10f %.10f %.10f]\n",trkpos.x(),trkpos.y(),trkpos.z());
-                    System.out.printf("trkposTruth at intercept %s\n",trkposTruth.toString());
+                    System.out.printf("trkposTruth at intercept %s\n",trkposTruth!=null?trkposTruth.toString():"no truth track");
                 }
                 
                 // cross-check intercept point
@@ -330,10 +330,12 @@ public class GBLOutput {
                 	}
 
                 	if(_debug>0) {
-                		double s_truthSimHit = HelixUtils.PathToXPlane(htfTruth, simHit.getPositionVec().z(), 0, 0).get(0);
-                		Hep3Vector trkposTruthSimHit = HelixUtils.PointOnHelix(htfTruth, s_truthSimHit);
-                		Hep3Vector resTruthSimHit = VecOp.sub(CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec()),trkposTruthSimHit);
-                		System.out.printf("TruthSimHit residual %s for layer %d\n",resTruthSimHit.toString(),strip.layer());
+                	    if(htfTruth!=null && simHit!=null) {
+                	        double s_truthSimHit = HelixUtils.PathToXPlane(htfTruth, simHit.getPositionVec().z(), 0, 0).get(0);
+                	        Hep3Vector trkposTruthSimHit = HelixUtils.PointOnHelix(htfTruth, s_truthSimHit);
+                	        Hep3Vector resTruthSimHit = VecOp.sub(CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec()),trkposTruthSimHit);
+                	        System.out.printf("TruthSimHit residual %s for layer %d\n",resTruthSimHit.toString(),strip.layer());
+                	    }
                 	}
                 }
                 
@@ -385,14 +387,14 @@ public class GBLOutput {
                 
                 // start by find the distance vector between the center and the track position
                 Hep3Vector vdiffTrk = VecOp.sub(trkpos, origin);
-                Hep3Vector vdiffTrkTruth = VecOp.sub(trkposTruth, origin);
+                Hep3Vector vdiffTrkTruth = htfTruth!=null ? VecOp.sub(trkposTruth, origin): null;
                 
                 // then find the rotation from tracking to measurement frame
                 Hep3Matrix trkToStripRot = _trackerHitUtils.getTrackToStripRotation(strip.getStrip());
                 
                 // then rotate that vector into the measurement frame to get the predicted measurement position
                 Hep3Vector trkpos_meas = VecOp.mult(trkToStripRot, vdiffTrk);
-                Hep3Vector trkposTruth_meas = VecOp.mult(trkToStripRot, vdiffTrkTruth);
+                Hep3Vector trkposTruth_meas = vdiffTrkTruth!=null ? VecOp.mult(trkToStripRot, vdiffTrkTruth) : null;
                 
                 
                 // hit measurement and uncertainty in measurement frame
@@ -418,10 +420,10 @@ public class GBLOutput {
                 
                 // residual in measurement frame
                 Hep3Vector res_meas = VecOp.sub(m_meas, trkpos_meas);
-                Hep3Vector resTruth_meas = VecOp.sub(m_meas, trkposTruth_meas);
+                Hep3Vector resTruth_meas = trkposTruth_meas != null ? VecOp.sub(m_meas, trkposTruth_meas) : null;
                 if(textFile != null) {
                 	textFile.printStripMeasRes(res_meas.x(),res_err_meas.x());
-                	textFile.printStripMeasResTruth(resTruth_meas.x(),res_err_meas.x());
+                	textFile.printStripMeasResTruth(resTruth_meas!=null ? resTruth_meas.x() : -9999999.9,res_err_meas.x());
                 }
                 
                 //GBLDATA
