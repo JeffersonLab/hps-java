@@ -1,6 +1,8 @@
 package org.hps.users.kmccarty.triggerdiagnostics;
 
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -11,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.hps.readout.ecal.TriggerModule;
+import org.hps.readout.ecal.daqconfig.ConfigurationManager;
+import org.hps.readout.ecal.daqconfig.DAQConfig;
 import org.hps.readout.ecal.triggerbank.AbstractIntData;
 import org.hps.readout.ecal.triggerbank.SSPCluster;
 import org.hps.readout.ecal.triggerbank.SSPData;
@@ -66,6 +70,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	private int hitAcceptance = 1;
 	private int noiseThreshold = 50;
 	private long localWindowStart = 0;
+	private boolean readDAQConfig = false;
 	private double energyAcceptance = 0.03;
 	private int localWindowThreshold = 30000;
 	private boolean performClusterVerification = true;
@@ -114,6 +119,35 @@ public class TriggerDiagnosticDriver extends Driver {
 	 */
 	@Override
 	public void startOfData() {
+		// If the DAQ configuration should be read, attach a listener
+		// to track when it updates.
+		if(readDAQConfig) {
+			ConfigurationManager.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// Get the DAQ configuration.
+					DAQConfig daq = ConfigurationManager.getInstance();
+					
+					// Load the DAQ settings from the configuration manager.
+					singlesTrigger[0].loadDAQConfiguration(daq.getSSPConfig().getSingles1Config());
+					singlesTrigger[1].loadDAQConfiguration(daq.getSSPConfig().getSingles2Config());
+					pairsTrigger[0].loadDAQConfiguration(daq.getSSPConfig().getPair1Config());
+					pairsTrigger[1].loadDAQConfiguration(daq.getSSPConfig().getPair2Config());
+					nsa = daq.getFADCConfig().getNSA();
+					nsb = daq.getFADCConfig().getNSB();
+					windowWidth = daq.getFADCConfig().getWindowWidth();
+					
+					// Print a DAQ configuration settings header.
+					System.out.println();
+					System.out.println();
+					System.out.println("======================================================================");
+					System.out.println("=== DAQ Configuration Settings =======================================");
+					System.out.println("======================================================================");
+					logSettings();
+				}
+			});
+		}
+		
 		// Print the cluster verification header.
 		System.out.println();
 		System.out.println();
@@ -343,6 +377,14 @@ public class TriggerDiagnosticDriver extends Driver {
 		// ==== Initialize the Event ================================
 		// ==========================================================
         
+		// If DAQ settings are to be used, check if they are initialized
+		// yet. If not, skip the event.
+		if(readDAQConfig) {
+			if(!ConfigurationManager.isInitialized()) {
+				return;
+			}
+		}
+		
         // Print the verification header.
 		OutputLogger.printNewLine(2);
 		OutputLogger.println("======================================================================");
@@ -609,6 +651,10 @@ public class TriggerDiagnosticDriver extends Driver {
 	
 	public void setEnergyAcceptanceWindow(double window) {
 		energyAcceptance = window;
+	}
+	
+	public void setReadDAQConfig(boolean state) {
+		readDAQConfig = state;
 	}
 	
 	/**

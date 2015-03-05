@@ -41,8 +41,8 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 		super(firstElement, secondElement);
 		
 		// Set the matched cuts.
-		if(cutsMatched.length != 5) {
-			throw new IllegalArgumentException("The matched cuts array must be of size 4.");
+		if(cutsMatched.length != 4) {
+			throw new IllegalArgumentException(String.format("The matched cuts array must be of size 4. Seen size = %d.", cutsMatched.length));
 		} else {
 			matchedCut[0] = cutsMatched[0];
 			matchedCut[1] = cutsMatched[1];
