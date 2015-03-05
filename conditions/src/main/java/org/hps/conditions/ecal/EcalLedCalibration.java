@@ -17,6 +17,11 @@ public class EcalLedCalibration extends AbstractConditionsObject {
     public static class EcalLedCalibrationCollection extends AbstractConditionsObjectCollection<EcalLedCalibration> {
     }
     
+    public EcalLedCalibration(int channelId, double mean, double rms) {
+        this.setFieldValue("ecal_channel_id", channelId);
+        this.setFieldValue("led_response", mean);
+        this.setFieldValue("rms", rms);
+    }
     /**
      * Get the ECAL channel ID.
      * @return The ECAL channel ID.
@@ -27,8 +32,8 @@ public class EcalLedCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the crate number assigned to this crystal.
-     * @return The crate number.
+     * Get the average led response
+     * @return The average led response
      */
     @Field(names = {"led_response"})
     public double getLedResponse() {
@@ -36,8 +41,8 @@ public class EcalLedCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the LED number assigned to this crystal.
-     * @return The LED number.
+     * Get the RMS of the LED response
+     * @return The RMS of the LED response.
      */
     @Field(names = {"rms"})
     public int getRms() {
