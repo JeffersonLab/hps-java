@@ -21,7 +21,7 @@ public class PairTriggerConfig extends AbstractConfig<AbstractConfig<Double>> {
 	 */
 	PairTriggerConfig() {
 		// Instantiate the superclass.
-		super(6);
+		super(8);
 		
 		// Define the pair cuts.
 		setValue(CUT_ENERGY_MIN,   new LBOCutConfig());

@@ -4,11 +4,13 @@ import java.awt.Point;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hps.readout.ecal.daqconfig.PairTriggerConfig;
+import org.hps.readout.ecal.daqconfig.SinglesTriggerConfig;
 import org.hps.readout.ecal.triggerbank.SSPCluster;
 import org.lcsim.event.Cluster;
 
 /**
- * Class <code>SSPTriggerModule</code> handles trigger cuts. By default,
+ * Class <code>TriggerModule</code> handles trigger cuts. By default,
  * it sets all cuts such that any cluster or cluster pair will pass.
  * Cuts can be set after initialization via the <code>setCutValue</code>
  * method using a cut identifier. All valid cut identifiers are static
@@ -25,7 +27,8 @@ import org.lcsim.event.Cluster;
  * @see SSPCluster
  */
 public final class TriggerModule {
-	// ECal mid-plane, defined by photon beam position (30.52 mrad) at ECal face (z=1393 mm)
+	// The calorimeter mid-plane, defined by the photon beam position
+	// (30.52 mrad) at the calorimeter face (z = 1393 mm).
     private static final double ORIGIN_X = 1393.0 * Math.tan(0.03052);
     
     // Trigger module property names.
@@ -152,6 +155,56 @@ public final class TriggerModule {
     	
     	// Otherwise, produce an exception.
     	else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
+    }
+    
+    /**
+     * Loads triggers settings from the DAQ configuration for a singles
+     * trigger. Pair trigger settings will be set to accept all possible
+     * values, while singles trigger settings will
+     * @param config - The DAQ configuration settings.
+     */
+    public void loadDAQConfiguration(SinglesTriggerConfig config) {
+    	// Set the trigger values.
+    	setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+    	setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+    	setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+    	
+    	// The remaining triggers should be set to their default values.
+    	// These settings effectively accept all possible clusters.
+    	cuts.put(PAIR_COPLANARITY_HIGH, 180.0);
+    	cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
+    	cuts.put(PAIR_ENERGY_SLOPE_LOW, 0.0);
+    	cuts.put(PAIR_ENERGY_SUM_LOW, 0.0);
+    	cuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
+    	cuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
+    	
+    	// Set the default value of the energy slope parameter F.
+    	cuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
+    }
+    
+    /**
+     * Loads triggers settings from the DAQ configuration for a pair
+     * trigger. All trigger settings will be loaded directly from the
+     * DAQ configuration and set appropriately.
+     * @param config - The DAQ configuration settings.
+     */
+    public void loadDAQConfiguration(PairTriggerConfig config) {
+    	// Set the trigger values.
+    	setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+    	setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+    	setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+    	
+    	// The remaining triggers should be set to their default values.
+    	// These settings effectively accept all possible clusters.
+    	cuts.put(PAIR_COPLANARITY_HIGH, config.getCoplanarityCutConfig().getUpperBound());
+    	cuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, config.getEnergyDifferenceCutConfig().getUpperBound());
+    	cuts.put(PAIR_ENERGY_SLOPE_LOW, config.getEnergySlopeCutConfig().getLowerBound());
+    	cuts.put(PAIR_ENERGY_SUM_LOW, config.getEnergySumCutConfig().getLowerBound());
+    	cuts.put(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
+    	cuts.put(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound() * 4.0);
+    	
+    	// Set the default value of the energy slope parameter F.
+    	cuts.put(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
     }
     
     /**

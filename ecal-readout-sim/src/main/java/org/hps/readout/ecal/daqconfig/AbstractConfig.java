@@ -28,6 +28,7 @@ abstract class AbstractConfig<E> {
 		
 		// Instantiate the value array.
 		values = new ArrayList<E>(count);
+		for(int i = 0; i < count; i++) { values.add(null); }
 	}
 	
 	/**

@@ -14,7 +14,7 @@ abstract class IDAQConfig {
 	 * Updates the stored settings based on the argument parser.
 	 * @param parser - The EVIO DAQ bank parser.
 	 */
-	abstract void loadConfig(TriggerConfig parser);
+	abstract void loadConfig(EvioDAQParser parser);
 	
 	/**
 	 * Prints a textual representation of the configuration bank to the

@@ -14,7 +14,7 @@ import java.util.List;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see DAQConfigDriver
- * @see TriggerConfig
+ * @see EvioDAQParser
  */
 public class ConfigurationManager {
 	// Store the configuration object.
@@ -82,7 +82,7 @@ public class ConfigurationManager {
 	 * associated listeners that an update has occurred.
 	 * @param parser - The updated DAQ information.
 	 */
-	static final void updateConfiguration(TriggerConfig parser) {
+	static final void updateConfiguration(EvioDAQParser parser) {
 		DAQ_CONFIG.loadConfig(parser);
 		INITIALIZED = true;
 		updateListeners();

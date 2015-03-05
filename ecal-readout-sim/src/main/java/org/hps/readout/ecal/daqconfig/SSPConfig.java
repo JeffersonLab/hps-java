@@ -20,7 +20,7 @@ public class SSPConfig extends IDAQConfig {
 	private SinglesTriggerConfig[] singlesTrigger = { new SinglesTriggerConfig(), new SinglesTriggerConfig() };
 	
 	@Override
-	void loadConfig(TriggerConfig parser) {
+	void loadConfig(EvioDAQParser parser) {
 		// Set the trigger parameters.
 		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
 			// Set whether the triggers are enabled or not.
@@ -132,8 +132,7 @@ public class SSPConfig extends IDAQConfig {
 			
 			System.out.println("\t\tCluster Hit Count Cut");
 			System.out.printf("\t\t\tEnabled :: %b%n", pairTrigger[triggerNum].getHitCountCutConfig().isEnabled());
-			//System.out.printf("\t\t\tValue   :: %1.0f hits%n", pairTrigger[triggerNum].getHitCountCutConfig().getLowerBound());
-			System.out.printf("\t\t\tValue   :: ??? hits%n");
+			System.out.printf("\t\t\tValue   :: %1.0f hits%n", pairTrigger[triggerNum].getHitCountCutConfig().getLowerBound());
 			
 			System.out.println("\t\tPair Energy Sum Cut");
 			System.out.printf("\t\t\tEnabled :: %b%n", pairTrigger[triggerNum].getEnergySumCutConfig().isEnabled());

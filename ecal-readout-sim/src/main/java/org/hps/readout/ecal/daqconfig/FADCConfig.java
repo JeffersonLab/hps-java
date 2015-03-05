@@ -18,6 +18,7 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
  * <li>NSB</li>
  * <li>FADC Window Width</li>
  * <li>FADC Window Time Offset</li>
+ * <li>Max Pulses per Channel Window</li>
  * <li>Crystal Gains</li>
  * <li>Crystal Thresholds</li>
  * <li>Crystal Pedestals</li>
@@ -32,7 +33,7 @@ public class FADCConfig extends IDAQConfig {
 	private int nsb         = -1;
 	private int windowWidth = -1;
 	private int offset      = -1;
-	private int npeak       = -1;
+	private int maxPulses       = -1;
 	
 	// Store a map of calorimeter channel number to crystal indices.
 	private Map<Point, Integer> indexChannelMap = new HashMap<Point, Integer>();
@@ -43,14 +44,14 @@ public class FADCConfig extends IDAQConfig {
 	private int[] thresholds = new int[443];
 	
 	@Override
-	void loadConfig(TriggerConfig parser) {
+	void loadConfig(EvioDAQParser parser) {
 		// Store the basic FADC information.
 		mode = parser.fadcMODE;
 		nsa = parser.fadcNSA;
 		nsb = parser.fadcNSB;
 		windowWidth = parser.fadcWIDTH;
 		offset = parser.fadcOFFSET;
-		npeak = parser.fadcNPEAK;       // TODO: Make this obtainable.
+		maxPulses = parser.fadcNPEAK;
 		
 		// Get the channel collection from the database.
 		DatabaseConditionsManager database = DatabaseConditionsManager.getInstance();
@@ -77,7 +78,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the gain for a crystal.
 	 * @param channel - The channel object corresponding to the crystal.
-	 * @return Returns the gain as a <code>float</code>.
+	 * @return Returns the gain as a <code>float</code> in units of MeV
+	 * per ADC.
 	 */
 	public float getGain(EcalChannel channel) {
 		return getGain(channel.getChannelId());
@@ -86,7 +88,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the gain for a crystal.
 	 * @param channelID - The channel ID corresponding to the crystal.
-	 * @return Returns the gain as a <code>float</code>.
+	 * @return Returns the gain as a <code>float</code> in units of MeV
+	 * per ADC.
 	 */
 	public float getGain(int channelID) {
 		validateChannelID(channelID);
@@ -97,7 +100,8 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the gain for a crystal.
 	 * @param ix - The x-index of the crystal.
 	 * @param iy - The y-index of the crystal.
-	 * @return Returns the gain as a <code>float</code>.
+	 * @return Returns the gain as a <code>float</code> in units of MeV
+	 * per ADC.
 	 */
 	public float getGain(int ix, int iy) {
 		return getGain(new Point(ix, iy));
@@ -107,10 +111,20 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the gain for a crystal.
 	 * @param ixy - The a point representing the x/y-indices of the
 	 * crystal.
-	 * @return Returns the gain as a <code>float</code>.
+	 * @return Returns the gain as a <code>float</code> in units of MeV
+	 * per ADC.
 	 */
 	public float getGain(Point ixy) {
 		return getGain(indexChannelMap.get(ixy));
+	}
+	
+	/**
+	 * Gets the maximum number of pulses that the FADC will look for
+	 * in a channel's window.
+	 * @return Returns the maximum number of pulses.
+	 */
+	public int getMaxPulses() {
+		return maxPulses;
 	}
 	
 	/**
@@ -143,7 +157,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the pedestal for a crystal.
 	 * @param channel - The channel object corresponding to the crystal.
-	 * @return Returns the pedestal as a <code>float</code>.
+	 * @return Returns the pedestal as a <code>float</code> in units
+	 * of ADC.
 	 */
 	public float getPedestal(EcalChannel channel) {
 		return getPedestal(channel.getChannelId());
@@ -152,7 +167,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the pedestal for a crystal.
 	 * @param channelID - The channel ID corresponding to the crystal.
-	 * @return Returns the pedestal as a <code>float</code>.
+	 * @return Returns the pedestal as a <code>float</code> in units
+	 * of ADC.
 	 */
 	public float getPedestal(int channelID) {
 		validateChannelID(channelID);
@@ -163,7 +179,8 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the pedestal for a crystal.
 	 * @param ix - The x-index of the crystal.
 	 * @param iy - The y-index of the crystal.
-	 * @return Returns the pedestal as a <code>float</code>.
+	 * @return Returns the pedestal as a <code>float</code> in units
+	 * of ADC.
 	 */
 	public float getPedestal(int ix, int iy) {
 		return getPedestal(new Point(ix, iy));
@@ -173,7 +190,8 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the pedestal for a crystal.
 	 * @param ixy - The a point representing the x/y-indices of the
 	 * crystal.
-	 * @return Returns the pedestal as a <code>float</code>.
+	 * @return Returns the pedestal as a <code>float</code> in units
+	 * of ADC.
 	 */
 	public float getPedestal(Point ixy) {
 		return getPedestal(indexChannelMap.get(ixy));
@@ -182,7 +200,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the threshold for a crystal.
 	 * @param channel - The channel object corresponding to the crystal.
-	 * @return Returns the threshold as a <code>int</code>.
+	 * @return Returns the threshold as a <code>int</code> in units
+	 * of ADC.
 	 */
 	public int getThreshold(EcalChannel channel) {
 		return getThreshold(channel.getChannelId());
@@ -191,7 +210,8 @@ public class FADCConfig extends IDAQConfig {
 	/**
 	 * Gets the threshold for a crystal.
 	 * @param channelID - The channel ID corresponding to the crystal.
-	 * @return Returns the threshold as a <code>int</code>.
+	 * @return Returns the threshold as a <code>int</code> in units
+	 * of ADC.
 	 */
 	public int getThreshold(int channelID) {
 		validateChannelID(channelID);
@@ -202,7 +222,8 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the threshold for a crystal.
 	 * @param ix - The x-index of the crystal.
 	 * @param iy - The y-index of the crystal.
-	 * @return Returns the threshold as a <code>int</code>.
+	 * @return Returns the threshold as a <code>int</code> in units
+	 * of ADC.
 	 */
 	public int getThreshold(int ix, int iy) {
 		return getThreshold(new Point(ix, iy));
@@ -212,7 +233,8 @@ public class FADCConfig extends IDAQConfig {
 	 * Gets the threshold for a crystal.
 	 * @param ixy - The a point representing the x/y-indices of the
 	 * crystal.
-	 * @return Returns the threshold as a <code>int</code>.
+	 * @return Returns the threshold as a <code>int</code> in units
+	 * of ADC.
 	 */
 	public int getThreshold(Point ixy) {
 		return getThreshold(indexChannelMap.get(ixy));
