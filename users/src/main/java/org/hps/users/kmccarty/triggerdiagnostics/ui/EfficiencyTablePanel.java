@@ -17,7 +17,13 @@ public class EfficiencyTablePanel extends AbstractTablePanel implements Diagnost
 	/**
 	 * Instantiates a new <code>EfficiencyTablePanel</code>.
 	 */
-	public EfficiencyTablePanel() { super(); }
+	public EfficiencyTablePanel() {
+		// Instantiate the superclass.
+		super();
+		
+		// Set the orientation to vertical.
+		setOrientation(ORIENTATION_VERTICAL);
+	}
 	
 	@Override
 	public void updatePanel(DiagSnapshot snapshot) {

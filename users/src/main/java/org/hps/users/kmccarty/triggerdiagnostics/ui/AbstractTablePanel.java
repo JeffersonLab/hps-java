@@ -26,15 +26,24 @@ import javax.swing.JTable;
 public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpdatable {
 	// Static variables.
 	private static final long serialVersionUID = 0L;
+	public static final int ORIENTATION_HORIZONTAL = 0;
+	public static final int ORIENTATION_VERTICAL   = 1;
 	
 	// Components.
-	protected final JTable localTable;
 	private JLabel localHeader;
-	protected final JTable globalTable;
 	private JLabel globalHeader;
-	private Dimension defaultPrefSize = new Dimension(0, 0);
-	private Dimension userPrefSize = null;
+	protected final JTable localTable;
+	protected final JTable globalTable;
 	
+	// Component parameters.
+	private boolean horizontal = true;
+	private Dimension userPrefSize = null;
+	private Dimension defaultPrefSize = new Dimension(0, 0);
+	
+	/**
+	 * Instantiates an <code>AbstractTablePanel</code>.
+	 * @param args Arguments to be usd when generating the panel tables.
+	 */
 	public AbstractTablePanel(Object... args) {
 		// Initialize the tables.
 		JTable[] tables = initializeTables(args);
@@ -130,6 +139,28 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		}
 	}
 	
+	/**
+	 * Sets the orientation of components on the panel.
+	 * @param orientation - The orientation identifier. Identifiers can
+	 * be obtained as static variables from the within the root object
+	 * <code>AbstractTable</code>.
+	 */
+	public void setOrientation(int orientation) {
+		if(orientation == ORIENTATION_HORIZONTAL) {
+			if(!horizontal) {
+				horizontal = true;
+				positionComponents();
+			}
+		} else if(orientation == ORIENTATION_VERTICAL) {
+			if(horizontal) {
+				horizontal = false;
+				positionComponents();
+			}
+		} else {
+			throw new IllegalArgumentException("Invalid orienation identifier.");
+		}
+	}
+	
 	@Override
 	public void setPreferredSize(Dimension preferredSize) {
 		userPrefSize = preferredSize;
@@ -154,35 +185,63 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		// Do not update if the components have not been initialized.
 		if(localHeader == null) { return; }
 		
-		// The local components get the left half of the panel and the
-		// global components the right. Find half of the panel width,
-		// accounting for the internal spacing. This is an internal
-		// component, so it does not employ additional spacing between
-		// itself and the parent component's edges.
-		int compWidth = (getWidth() - 10) / 2;
-		
-		// If there is any width remaining, it goes to the spacing.
-		int horizontal = ComponentUtils.hinternal + (getWidth() - 10) % 2;
-		
-		// Place the header labels. These are given their preferred
-		// height. Note that this means a very small panel may cut off
-		// some of the components. First, get the preferred height of
-		// the label with the larger preferred height. These should be
-		// the same thing, but just in case...
-		int labelHeight = localHeader.getPreferredSize().height;
-		if(labelHeight < globalHeader.getPreferredSize().height) {
-			labelHeight = globalHeader.getPreferredSize().height;
+		// If the components should be position horizontally...
+		if(horizontal) {
+			// The local components get the left half of the panel and the
+			// global components the right. Find half of the panel width,
+			// accounting for the internal spacing. This is an internal
+			// component, so it does not employ additional spacing between
+			// itself and the parent component's edges.
+			int compWidth = (getWidth() - 10) / 2;
+			
+			// If there is any width remaining, it goes to the spacing.
+			int horizontal = ComponentUtils.hinternal + (getWidth() - 10) % 2;
+			
+			// Place the header labels. These are given their preferred
+			// height. Note that this means a very small panel may cut off
+			// some of the components. First, get the preferred height of
+			// the label with the larger preferred height. These should be
+			// the same thing, but just in case...
+			int labelHeight = localHeader.getPreferredSize().height;
+			if(labelHeight < globalHeader.getPreferredSize().height) {
+				labelHeight = globalHeader.getPreferredSize().height;
+			}
+			
+			// Set the label sizes and positions.
+			localHeader.setBounds(0, 0, compWidth, labelHeight);
+			globalHeader.setLocation(ComponentUtils.getNextX(localHeader, horizontal), 0);
+			globalHeader.setSize(compWidth, labelHeight);
+			
+			// The tables go under their respective labels and should fill
+			// the remainder of the label height.
+			int tableY = ComponentUtils.getNextY(localHeader, ComponentUtils.vinternal);
+			localTable.setBounds(0, tableY, compWidth, localTable.getPreferredSize().height);
+			globalTable.setBounds(globalHeader.getX(), tableY, compWidth, globalTable.getPreferredSize().height);
 		}
 		
-		// Set the label sizes and positions.
-		localHeader.setBounds(0, 0, compWidth, labelHeight);
-		globalHeader.setLocation(ComponentUtils.getNextX(localHeader, horizontal), 0);
-		globalHeader.setSize(compWidth, labelHeight);
-		
-		// The tables go under their respective labels and should fill
-		// the remainder of the label height.
-		int tableY = ComponentUtils.getNextY(localHeader, ComponentUtils.vinternal);
-		localTable.setBounds(0, tableY, compWidth, localTable.getPreferredSize().height);
-		globalTable.setBounds(globalHeader.getX(), tableY, compWidth, globalTable.getPreferredSize().height);
+		// Otherwise, position them vertically.
+		else {
+			// Place the header labels. These are given their preferred
+			// height. Note that this means a very small panel may cut off
+			// some of the components. First, get the preferred height of
+			// the label with the larger preferred height. These should be
+			// the same thing, but just in case...
+			int labelHeight = localHeader.getPreferredSize().height;
+			if(labelHeight < globalHeader.getPreferredSize().height) {
+				labelHeight = globalHeader.getPreferredSize().height;
+			}
+			
+			// The local components go first, taking up the entire upper
+			// width of the panel.
+			localHeader.setBounds(0, 0, getWidth(), labelHeight);
+			localTable.setBounds(0, ComponentUtils.getNextY(localHeader, ComponentUtils.vinternal),
+					getWidth(), localTable.getPreferredSize().height);
+			
+			// The global components go immediately below.
+			globalHeader.setBounds(0, ComponentUtils.getNextY(localTable, ComponentUtils.vinternal),
+					getWidth(), labelHeight);
+			globalTable.setBounds(0, ComponentUtils.getNextY(globalHeader, ComponentUtils.vinternal),
+					getWidth(), globalTable.getPreferredSize().height);
+		}
 	}
 }
