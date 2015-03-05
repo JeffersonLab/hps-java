@@ -81,7 +81,11 @@ class MonitoringApplicationFrame extends JFrame {
         topPanel.add(sep);
         
         // Add the data source combo box.
-        JComboBox<DataSourceItem> dataSourceComboBox = new DataSourceComboBox(application.connectionModel, application.actionListener);
+        JComboBox<DataSourceItem> dataSourceComboBox = 
+                new DataSourceComboBox(
+                        application.configurationModel, 
+                        application.connectionModel, 
+                        application.actionListener);
         topPanel.add(dataSourceComboBox);
         
         // Create the bottom panel.

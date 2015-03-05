@@ -22,7 +22,6 @@ public class SettingsPanel extends JPanel implements ActionListener {
     JTabbedPane tabs;
     JobSettingsPanel jobPanel;
     ConnectionSettingsPanel connectionPanel;
-    DataSourcePanel dataSourcePanel;
     static final String OKAY_COMMAND = "settingsOkay";
 
     JDialog parent;
@@ -33,33 +32,25 @@ public class SettingsPanel extends JPanel implements ActionListener {
         
         connectionPanel = new ConnectionSettingsPanel();        
         jobPanel = new JobSettingsPanel();
-        dataSourcePanel = new DataSourcePanel();
         
         // Push configuration to sub-components.
         connectionPanel.setConfigurationModel(configurationModel);
         jobPanel.setConfigurationModel(configurationModel);
-        dataSourcePanel.setConfigurationModel(configurationModel);
         
         // Add ActionListener to sub-components.
         connectionPanel.addActionListener(listener);
         jobPanel.addActionListener(listener);
-        dataSourcePanel.addActionListener(listener);
                
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
         tabs = new JTabbedPane();
         tabs.addTab("Connection Settings", connectionPanel);
         tabs.addTab("Job Settings", jobPanel);
-        tabs.addTab("Data Source", dataSourcePanel);
         add(tabs);
 
         JButton okayButton = new JButton("Okay");
         okayButton.setActionCommand(OKAY_COMMAND);
         okayButton.addActionListener(this);
-
-        //defaultsButton = new JButton("Defaults");
-        //defaultsButton.setActionCommand(Commands.LOAD_DEFAULT_SETTINGS);
-        //defaultsButton.addActionListener(this);
 
         add(Box.createRigidArea(new Dimension(1, 5)));
         JPanel buttonsPanel = new JPanel();
@@ -68,18 +59,6 @@ public class SettingsPanel extends JPanel implements ActionListener {
         buttonsPanel.setLayout(new FlowLayout());
         add(buttonsPanel);
         add(Box.createRigidArea(new Dimension(1, 5)));
-    }
-
-    ConnectionSettingsPanel getConnectionPanel() {
-        return connectionPanel;
-    }
-
-    JobSettingsPanel getJobSettingsPanel() {
-        return jobPanel;
-    }
-
-    DataSourcePanel getDataSourcePanel() {
-        return dataSourcePanel;
     }
 
     @Override

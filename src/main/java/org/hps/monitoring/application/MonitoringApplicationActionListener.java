@@ -59,6 +59,7 @@ public class MonitoringApplicationActionListener implements ActionListener {
 
         String cmd = e.getActionCommand();
         if (CONNECT.equals(cmd)) {
+            // FIXME: Can the application run this in a separate thread instead?
             // Run the start session method on a separate thread.
             new Thread() {
                 public void run() {

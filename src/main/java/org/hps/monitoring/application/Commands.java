@@ -12,11 +12,10 @@ public final class Commands {
     static final String SETTINGS_SHOW = "settingsShow";
     static final String OPEN_FILE = "openFile";
     
+    static final String DATA_SOURCE_CHANGED = "dataSourceChanged";
 
     ////////////////////////////////////////////
     
-    static final String AIDA_AUTO_SAVE = "aidaAutoSave";
-    static final String AIDA_AUTO_SAVE_CHANGED = "aidaAutoSaveChanged";
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
