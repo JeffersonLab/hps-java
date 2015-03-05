@@ -69,7 +69,9 @@ public final class EvioEventUtilities {
      * @return True if this event is a physics event.
      */
     public static boolean isPhysicsEvent(EvioEvent event) {
-        return event.getHeader().getTag() == PHYSICS_EVENT_TAG;
+        return (event.getHeader().getTag() >= SYNC_EVENT_TAG+16 ||
+                event.getHeader().getTag() < SYNC_EVENT_TAG);
+        // return event.getHeader().getTag() == PHYSICS_EVENT_TAG;
     }
 
     /**
