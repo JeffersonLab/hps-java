@@ -9,22 +9,31 @@ import hep.aida.IFunction;
 import hep.aida.IPlotter;
 import hep.aida.IFitter;
 import hep.aida.IFitResult;
-
-
 import hep.aida.IFunctionFactory;
 
  
+
+
+
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.conditions.api.ConditionsObjectException;
+import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalLed;
 import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
+import org.hps.conditions.ecal.EcalLedCalibration;
+import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
+import org.hps.conditions.ecal.EcalCalibration;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.recon.ecal.ECalUtils;
@@ -57,10 +66,15 @@ public class LedAnalysis extends Driver{
     
     private boolean useRawEnergy=false;
     
+    private static final String dbTag = "led";
+    private static final String dbTableName = "ecal_led_calibrations";
+    private static final int runNumberMax = 9999;
+	private static final int nDrivers = 8;
+	private static final int nSteps = 56;
+	
+	private int runNumber = 0;	
+	private int eventN    = 0;
     private int id,row,column,chid,ledid,driverid;
-    private int eventN = 0;
-	private int nDrivers = 8;
-	private int nSteps = 56;
 	private  int[][] LEDStep = new int[][]{
 			//first 4 are the flasher1 sequence, TOP controller 
 			{2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,434,44,45,46,47,48,49,50,51,52,53,54,55,56,-1},
@@ -79,13 +93,12 @@ public class LedAnalysis extends Driver{
 	
 	private double energy,rawEnergy;
 	private long cellID;
-	//Histograms
+	//Histograms-functions-ntuples
 	private ArrayList<ITuple> iTuple;
 	private ArrayList<IProfile1D> cProfile;
 	private ArrayList<IFunction> fFunction;
-	
-	private ArrayList<IHistogram1D> hRaw;
-	private ArrayList<IHistogram1D> hStrip;
+	private ArrayList<IFunction> fFunction1;
+	private ArrayList<IHistogram1D> hCharge;
 
     public void setUseRawEnergy(boolean useRawEnergy) {
         this.useRawEnergy=useRawEnergy;
@@ -137,10 +150,10 @@ public class LedAnalysis extends Driver{
 	  //  IPlotterFactory factory= aida.analysisFactory().createPlotterFactory("ECAL DAQ Plots");
 		iTuple = new ArrayList<ITuple>(NUM_CHANNELS);
 		cProfile= new ArrayList<IProfile1D>(NUM_CHANNELS);
-		fFunction= new ArrayList<IFunction>(NUM_CHANNELS);
-		
-		hRaw = new ArrayList<IHistogram1D>(NUM_CHANNELS);
-		hStrip = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+		fFunction= new ArrayList<IFunction>(NUM_CHANNELS);	
+		fFunction1= new ArrayList<IFunction>(NUM_CHANNELS);		
+		hCharge = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+
 		
 		
 		
@@ -155,6 +168,7 @@ public class LedAnalysis extends Driver{
 	     
 	@Override
 	public void process(EventHeader event) {
+		runNumber = event.getRunNumber();
 		eventN++;
 		if (event.hasCollection(CalorimeterHit.class, inputCollection)) {
 			//List<BaseRawCalorimeterHit> hits = event.get(BaseRawCalorimeterHit.class, inputCollectionRaw);
@@ -243,9 +257,11 @@ public class LedAnalysis extends Driver{
 		
 		
 		double e,eMin,eMax;
-		int n,nBins;
+		int n,nBins,nFits,nSkip;
 		
-		
+		double[] fPars;	
+		double[] fParErrs;
+		String[] fParNames;	
 		IFunctionFactory fFactory=aida.analysisFactory().createFunctionFactory(aida.tree());
 		IPlotter pPlotter= aida.analysisFactory().createPlotterFactory().create();
 	    IFitResult fResult;
@@ -263,63 +279,135 @@ public class LedAnalysis extends Driver{
               if (nBins<=0) nBins=1;
               cProfile.add(aida.profile1D("strip_"+id,nBins,-0.5,nEvents[id]*(1-skipInitial)+0.5));
 
-			  /*Create the function for the profile fit*/
+			  /*Create the function for the profile fit and the gaus fit*/
 			  /* Create it for all the channels, to keep sync.*/
 			  fFunction.add(fFactory.createFunctionFromScript("fun0_"+id,1,"A*exp(-x[0]/tau)+B","A,tau,B","",null));
-
+			  fFunction1.add(fFactory.createFunctionByName("fun1_"+id,"G"));
               
-			  if (EcalMonitoringUtilities.isInHole(row,column)==true) continue;
+			  if (EcalMonitoringUtilities.isInHole(row,column)==true){
+				  hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
+				  continue;
+			  }
 			  if (nEvents[id]==0) {
+				  hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
 				  //System.out.println("LedAnalysis: channel x= "+column+" y= "+row+" not found");
 				  continue;
 			  }			  
 			
 			  /*Fill the profile*/
+			  nSkip=(int)(nEvents[id]*skipInitial);
 			  iTuple.get(id).start();
-			  iTuple.get(id).skip((int)(nEvents[id]*skipInitial)); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+			  iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
 			  n=0;
+			  iTuple.get(id).next(); e=iTuple.get(id).getDouble(1); eMax=e; n++; /*eMax is the first sample*/
 			  while ( iTuple.get(id).next() ){
 				  e=iTuple.get(id).getDouble(1);
-				  if (e>eMax) eMax=e;
-				  if (e<eMin) eMin=e;
+				  eMin=e;           			  /*eMin is the last sample*/
 				  cProfile.get(id).fill(1.*n,e);
 				  n++;
 			  }			
 			  
 
 			  /*Init function parameters*/
-			  double[] initialPars={eMax-eMin,1.*(nEvents[id]/5.),eMin};
+			  double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
 			  fFunction.get(id).setParameters(initialPars);
 			  
 			  /*Do the fit*/
-			  fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","V");
-			  System.out.println("LedAnalysis:: do fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
-			  System.out.println("LedAnalysis:: parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
+			  fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
+			  System.out.println("LedAnalysis:: do profile fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
+			  System.out.println("LedAnalysis:: initial parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
 			  fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
-			  double[] fPars     = fResult.fittedParameters();
-			  double[] fParErrs  = fResult.errors();
-			  String[] fParNames = fResult.fittedParameterNames();			
-			  System.out.println("Chi2 = "+fResult.quality());
+			  fPars     = fResult.fittedParameters();
+			  fParErrs  = fResult.errors();
+			  fParNames = fResult.fittedParameterNames();			
+			  System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
 			  for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
 				  System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
 			  }  
 			  fFunction.get(id).setParameters(fPars);
-			  System.out.println("LedAnalysis:: fit "+id+" done \n");  
+			
+			  
+			  /*Do again the fit: it is a terrible work-around*/
+			  nFits=0;
+			  while (Double.isNaN(fParErrs[1])){
+				  System.out.println("LedAnalysis:: redo fit");
+				  fFunction.get(id).setParameters(fPars);
+				  fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
+				  fPars     = fResult.fittedParameters();
+				  fParErrs  = fResult.errors();
+				  System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
+				  for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
+					  System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
+				  }  
+				  fFunction.get(id).setParameters(fPars);
+				  nFits++;
+				  if (nFits>=10){
+					  System.out.println("LedAnalysis:: Error, too many fits without convergence");
+					  break;
+				  }
+			  }
+			  
+			  System.out.println("LedAnalysis:: fit "+id+" done");  
 			  /*plot*/
 			  pPlotter.region(0).clear();
 			  pPlotter.region(0).plot(cProfile.get(id));
 			  pPlotter.region(0).plot(fFunction.get(id));
 			//  plotter.show();
 			  
-			 
-			  /*Now we have the "tau" parameter, that I use to skip the first 5*tau events.
-			   * As a cross-check, I ask that the number of skipped events is AT LEAST nEvents/2,
-			   * otherwise there may be something strange..
+			  /*Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
+				As a cross-check, also verify that tau > Nevents/10, otherwise skip the first Nevents/2
+				and emit warning
 			   */
+			  hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
+			  nSkip=(int)( fPars[1]*5);
+			  if (nSkip < (nEvents[id]/2)){
+				  System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
+				  nSkip=nEvents[id]/2;
+			  }
+			  if (nSkip > nEvents[id]){
+				  System.out.println("LedAnalysis:: Skip number too high, reduce it");
+				  nSkip=nEvents[id]/2;
+			  }
+			  iTuple.get(id).start();
+			  iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+			  n=0;
+			  while ( iTuple.get(id).next() ){
+				  e=iTuple.get(id).getDouble(1);
+				  hCharge.get(id).fill(e);
+				  n++;
+			  }			
 			  
+			  /*Finally do the fit with the gaussian*/
+			  double[] initialPars1={hCharge.get(id).maxBinHeight(),hCharge.get(id).mean(),hCharge.get(id).rms()};
 			  
-	 	}
-	}
+			  System.out.println("LedAnalysis:: Gaus fit");
+			  System.out.println("LedAnalysis:: initial parameters "+initialPars1[0]+" "+initialPars1[1]+" "+initialPars1[2]);
+			  
+			  fFunction1.get(id).setParameters(initialPars1);
+			  fResult=fFitter.fit(hCharge.get(id),fFunction1.get(id));
+			  fPars     = fResult.fittedParameters();
+			  fParErrs  = fResult.errors();
+			  fParNames = fResult.fittedParameterNames();			
+			  System.out.println("Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
+			  for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
+				  System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
+			  }  
+			  fFunction1.get(id).setParameters(fPars);
+	 	
+			  
+			  System.out.println("\n");
+		}/*End loop on channels*/
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}/*End endOfData*/
 		  
 	
 	/**
@@ -353,4 +441,52 @@ public class LedAnalysis extends Driver{
 		  return ret;
 	
 	}
-}	
+	
+	private void uploadToDB() {
+		int x,y,id;
+		double mean,rms;
+		System.out.println(String.format("Uploading new led data to the database, runMin=%d, runMax=%d, tag=%s ....",
+				runNumber,runNumberMax,dbTag));
+		
+		EcalLedCalibrationCollection led_calibrations =  new EcalLedCalibrationCollection();
+		
+		TableMetaData tableMetaData = conditionsManager.findTableMetaData(dbTableName);
+		led_calibrations.setTableMetaData(tableMetaData);
+    
+		for (int cid = 1; cid <= 442; cid++) {/*This is a loop over the channel ID, as in the conditions system*/
+			EcalChannel cc = findChannel(cid);
+			x = cc.getX(); //This is the column
+			y = cc.getY(); //This is the row
+			id=EcalMonitoringUtilities.getHistoIDFromRowColumn(y,x);
+			mean=fFunction1.get(id).parameters()[1];
+			rms=fFunction1.get(id).parameters()[2];
+			led_calibrations.add(new EcalLedCalibration(cid,mean,rms));
+		}
+
+		int collectionId = conditionsManager.getNextCollectionID(dbTableName);
+		try {
+			led_calibrations.setCollectionId(collectionId);
+			System.err.println("CollectionID:  "+collectionId);
+			led_calibrations.insert();
+			ConditionsRecord conditionsRecord = new ConditionsRecord(
+                led_calibrations.getCollectionId(), runNumber, runNumberMax, dbTableName, dbTableName, 
+                "Generated by LedAnalysis from Run #"+runNumber, dbTag);
+			conditionsRecord.insert();
+        
+		} catch (ConditionsObjectException | SQLException e) {
+			throw new RuntimeException(e);
+		}
+    
+
+	}
+	
+	
+	
+	 public EcalChannel findChannel(int channel_id) {
+	        return ecalConditions.getChannelCollection().findChannel(channel_id);
+	    }
+	
+	
+	
+	
+}
