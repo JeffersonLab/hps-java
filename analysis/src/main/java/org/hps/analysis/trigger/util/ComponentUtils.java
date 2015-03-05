@@ -13,16 +13,16 @@ import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
 public class ComponentUtils {
 	/** The default spacing used between a horizontal edge of one
 	 * component and the horizontal edge of another. */
-	static final int hinternal = 10;
+	public static final int hinternal = 10;
 	/** The default spacing used between a vertical edge of one
 	 * component and the vertical edge of another. */
-	static final int vinternal = 10;
+	public static final int vinternal = 10;
 	/** The default spacing used between a horizontal edge of one
 	 * component and the edge of its parent component. */
-	static final int hexternal = 0;
+	public static final int hexternal = 0;
 	/** The default spacing used between a vertical edge of one
 	 * component and the edge of its parent component. */
-	static final int vexternal = 0;
+	public static final int vexternal = 0;
 	
 	/**
 	 * Gets a <code>String</code> composed of a number of instances of
@@ -87,7 +87,7 @@ public class ComponentUtils {
 	 * @param c - The component of which to find the edge.
 	 * @return Returns the x-coordinate as an <code>int</code> value.
 	 */
-	static final int getNextX(Component c) {
+	public static final int getNextX(Component c) {
 		return getNextX(c, 0);
 	}
 	
@@ -99,7 +99,7 @@ public class ComponentUtils {
 	 * component to add.
 	 * @return Returns the x-coordinate as an <code>int</code> value.
 	 */
-	static final int getNextX(Component c, int spacing) {
+	public static final int getNextX(Component c, int spacing) {
 		return c.getX() + c.getWidth() + spacing;
 	}
 	
@@ -108,7 +108,7 @@ public class ComponentUtils {
 	 * @param c - The component of which to find the edge.
 	 * @return Returns the y-coordinate as an <code>int</code> value.
 	 */
-	static final int getNextY(Component c) {
+	public static final int getNextY(Component c) {
 		return getNextY(c, 0);
 	}
 	
@@ -120,7 +120,7 @@ public class ComponentUtils {
 	 * component to add.
 	 * @return Returns the y-coordinate as an <code>int</code> value.
 	 */
-	static final int getNextY(Component c, int spacing) {
+	public static final int getNextY(Component c, int spacing) {
 		return c.getY() + c.getHeight() + spacing;
 	}
 }
