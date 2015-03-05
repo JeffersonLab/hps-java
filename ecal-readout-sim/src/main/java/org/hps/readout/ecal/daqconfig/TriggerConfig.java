@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
@@ -74,12 +76,10 @@ public class TriggerConfig {
 	public boolean[] singlesEnergyMaxEn={false,false};
 	
 	// Pairs Cuts Enabled:
-	public boolean[] pairsEnergySumMinEn={false,false};
-	public boolean[] pairsEnergySumMaxEn={false,false};
+	public boolean[] pairsEnergySumMaxMinEn={false,false};
 	public boolean[] pairsEnergyDiffEn={false,false};
 	public boolean[] pairsCoplanarityEn={false,false};
 	public boolean[] pairsEnergyDistEn={false,false};
-	public boolean[] pairsTimeDiffEn={false,false};
 	
 	// Singles Cut Values:
 	public int[] singlesNhits={0,0};
@@ -87,6 +87,7 @@ public class TriggerConfig {
 	public int[] singlesEnergyMax={0,0};
 	
 	// Pairs Cut Values:
+	public int[] pairsNhitsMin={0,0};
 	public int[] pairsEnergyMin={0,0};
 	public int[] pairsEnergyMax={0,0};
 	public int[] pairsEnergySumMin={0,0};
@@ -122,12 +123,71 @@ public class TriggerConfig {
         fixConfigMap2014Run(runNumber);
         parseConfigMap();
         
-        if (nBanks==3) printVars();
+        if (nBanks>2 && debug) printVars();
     }
 
+    /*
+     * The first parsing routine.  Just dumps the config strings
+     * into a map whose keys are the first column in the config file.
+     * Also treats some special cases.
+     */
+    private void loadConfigMap(int crate,String[] dump) {
+  
+        for (String dump1 : dump) {
+            for (String line : dump1.trim().split("\n")) {
+
+                String[] cols=line.trim().split(" +",2);
+                if (cols.length < 2) continue;
+
+                String key=cols[0];
+                List<String> vals=new ArrayList<String>
+                    (Arrays.asList(cols[1].trim().split(" +")));
+
+                if (vals.size() < 1) {
+                	continue;
+                }
+               
+                // SPECIAL CASE:
+                // parse the 16+1 column slot configurations. 
+                if (key.startsWith("FADC250")) {
+                    parseFADC(crate,key.trim(),vals);
+                }
+                
+                // SPECIAL CASE:
+                // figure out which triggers are enabled:
+                else if (key.startsWith("SSP_HPS_SET_IO_SRC")) {
+                    int trig = Integer.valueOf(vals.get(1));
+                    for (int ii=0; ii<pairsIOsrc.length; ii++)
+                    {
+                        if (trig == singlesIOsrc[ii]) {
+                            singlesEn[ii]=true;
+                        }
+                        else if (trig == pairsIOsrc[ii]) {
+                            pairsEn[ii]=true;
+                        }
+                    }
+                }
+               
+                // GENERAL CASE:
+                // Append trigger# onto key:
+                if (vals.size() > 1 && key.startsWith("SSP"))
+                {
+                    key += "_"+vals.remove(0);
+                }
+                // dump it into the map:
+                configMap.put(key,vals);
+            }
+        }
+    }
+    /*
+     * This function parses the config map for the cases where the
+     * config string has a simple format:
+     * TAG VALUE
+     * TAG TRIGGER VALUES
+     */
     public void parseConfigMap()
     {
-//        System.err.println("PARSECONFIGMAP ..................");
+//        System.out.println("PARSECONFIGMAP ..................");
        
         fadcNSA=Integer.valueOf(getConfig("FADC250_NSA",0));
         fadcNSB=Integer.valueOf(getConfig("FADC250_NSB",0));
@@ -141,26 +201,21 @@ public class TriggerConfig {
         clusterMaxHitTimeDiff=Integer.valueOf(getConfig("GTP_TIMEDIFF",1));
        
         for (int ii=0; ii<2; ii++) {
-            //singlesEn[ii]=getBoolConfigSSP(ii,"SINGLES_EN",0);
-            //pairsEn[ii]=getBoolConfigSSP(ii,"PAIRS_EN",0);
             
             singlesNhitsEn[ii]=getBoolConfigSSP(ii,"SINGLES_NMIN",1);
             singlesEnergyMinEn[ii]=getBoolConfigSSP(ii,"SINGLES_EMIN",1);
             singlesEnergyMaxEn[ii]=getBoolConfigSSP(ii,"SINGLES_EMAX",1);
 
-            pairsEnergySumMinEn[ii]=getBoolConfigSSP(ii,"PAIRS_SUMMAX_MIN",2);
-            pairsEnergySumMaxEn[ii]=getBoolConfigSSP(ii,"PAIRS_SUMMAX_MIN",2);
+            pairsEnergySumMaxMinEn[ii]=getBoolConfigSSP(ii,"PAIRS_SUMMAX_MIN",2);
             pairsEnergyDiffEn[ii]=getBoolConfigSSP(ii,"PAIRS_DIFFMAX",1);
             pairsCoplanarityEn[ii]=getBoolConfigSSP(ii,"PAIRS_COPLANARITY",1);
             pairsEnergyDistEn[ii]=getBoolConfigSSP(ii,"PAIRS_ENERGYDIST",1);
-            //pairsTimeDiffEn[ii]=getBoolConfigSSP(ii,"PAIRS_TIMECOINCIDENCE",0);
-            //pairsEnergyMin[ii]=getIntConfigSSP(ii,"PAIRS_EMIN",0);
-            //pairsEnergyMax[ii]=getIntConfigSSP(ii,"PAIRS_EMAX",0);
 
             singlesNhits[ii]=getIntConfigSSP(ii,"SINGLES_NMIN",0);
             singlesEnergyMin[ii]=getIntConfigSSP(ii,"SINGLES_EMIN",0);
             singlesEnergyMax[ii]=getIntConfigSSP(ii,"SINGLES_EMAX",0);
 
+            pairsNhitsMin[ii]=getIntConfigSSP(ii,"PAIRS_NMIN",0);
             pairsEnergyMin[ii]=getIntConfigSSP(ii,"PAIRS_EMIN",0);
             pairsEnergyMax[ii]=getIntConfigSSP(ii,"PAIRS_EMAX",0);
             pairsEnergySumMin[ii]=getIntConfigSSP(ii,"PAIRS_SUMMAX_MIN",1);
@@ -171,11 +226,16 @@ public class TriggerConfig {
             pairsEnergyDistSlope[ii]=getFloatConfigSSP(ii,"PAIRS_ENERGYDIST",0);
             pairsEnergyDistMin[ii]=getIntConfigSSP(ii,"PAIRS_ENERGYDIST",1);
         }
-//        System.err.println("DONE PARSECONFIGMAP.");
+//        System.out.println("DONE PARSECONFIGMAP.");
     }
     
    
-      
+     
+    /*
+     * UNFINISHED.
+     * This is a fixer-upper for before we had the full config in EVIO
+     * or when there was a bug in it.
+     */
     private void fixConfigMap2014Run(int runNumber) {
         if (runNumber>3470 || runNumber < 3100) return;
      	// TODO: port datacat/python/engrun/engrun_metadata.py
@@ -192,9 +252,16 @@ public class TriggerConfig {
     	configMap.put("GTP_TIMEDIFF",tmp);
     }
     
+    
+    
+    /*
+     * These treat the FADC config lines with 16+1 columns.
+     * Must keep track of most recent FADC250_SLOT tag, since it's
+     * not on the line with the data. 
+     */
     private void parseFADC(int crate,String key,List<String> vals)
     {
-//        System.err.println(crate);
+//        System.out.println(crate);
         if (key.equals("FADC250_SLOT")) {
             thisFadcSlot=Integer.valueOf(vals.get(0));
         }
@@ -208,7 +275,6 @@ public class TriggerConfig {
             setChannelParsFloat(crate,thisFadcSlot,GAIN,vals);
         }
     }
-   
     private void setChannelParsFloat(int crate,int slot,Map<EcalChannel,Float>map, List<String> vals)
     {
         for (int ii=0; ii<16; ii++) {
@@ -221,157 +287,120 @@ public class TriggerConfig {
             map.put(findChannel(crate,slot,ii),Integer.valueOf(vals.get(ii)));
         }
     }
+   
     
-    private void loadConfigMap(int crate,String[] dump) {
-  
-        for (String dump1 : dump) {
-            for (String line : dump1.trim().split("\n")) {
-
-                String[] cols=line.trim().split(" +",2);
-                if (cols.length < 2) continue;
-
-                String key=cols[0];
-                List<String> vals=new ArrayList<String>
-                    (Arrays.asList(cols[1].trim().split(" +")));
-
-                if (vals.size() < 1) {
-                	continue;
-                }
-                
-                if (key.startsWith("FADC250")) {
-                    parseFADC(crate,key.trim(),vals);
-                }
-                else if (key.startsWith("SSP_HPS_SET_IO_SRC")) {
-                    for (int ii=0; ii<pairsIOsrc.length; ii++)
-                    {
-                        int trig = Integer.valueOf(vals.get(1));
-                        if (trig == singlesIOsrc[ii]) {
-                            singlesEn[ii]=true;
-                        }
-                        else if (trig == pairsIOsrc[ii]) {
-                            pairsEn[ii]=true;
-                        }
-                    }
-                }
-                
-                // Append trigger# onto key:
-                if (vals.size() > 1 && key.startsWith("SSP"))
-                {
-                    key += "_"+vals.remove(0);
-                }
-               
-                // dump it into the map:
-                configMap.put(key,vals);
-            }
-        }
-    }
+    
     
     public void printMap() {
-        System.err.print("\nTriggerConfigMap::::::::::::::::::::::::::::\n");
+        System.out.print("\nTriggerConfigMap::::::::::::::::::::::::::::\n");
         for (String key : configMap.keySet()) {
-            System.err.printf("%s: ",key);
+            System.out.printf("%s: ",key);
             for (String val : configMap.get(key)) {
-                System.err.printf("%s ",val);
+                System.out.printf("%s ",val);
             }
-            System.err.printf("\n");
+            System.out.printf("\n");
         }
-        System.err.println("::::::::::::::::::::::::::::::::::::::::::::");
+        System.out.println("::::::::::::::::::::::::::::::::::::::::::::");
     }
 
     public void printVars()
 	{
-        System.err.println("\nTriggerConfigVars%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        System.err.println();
-	    System.err.println(String.format("GTPMINSEED: %d",clusterMinSeedEnergy));
-	    System.err.println(String.format("GTPMINHITDT: %d",clusterMinHitTimeDiff));
-	    System.err.println(String.format("GTPMAXHITDT: %d",clusterMaxHitTimeDiff));
-	    System.err.println();
-	    System.err.println(String.format("FADC250_NSA: %d",fadcNSA));
-	    System.err.println(String.format("FADC250_NSB: %d",fadcNSB));
-	    System.err.println(String.format("FADC250_NPEAK: %d",fadcNPEAK));
-	    System.err.println(String.format("FADC250_MODE: %d",fadcMODE));
-	    System.err.println(String.format("FADC250_WIDTH: %d",fadcWIDTH));
-	    System.err.println(String.format("FADC250_OFFSET: %d",fadcOFFSET));
+        System.out.println("\nTriggerConfigVars%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        System.out.println();
+	    System.out.println(String.format("GTPMINSEED: %d",clusterMinSeedEnergy));
+	    System.out.println(String.format("GTPMINHITDT: %d",clusterMinHitTimeDiff));
+	    System.out.println(String.format("GTPMAXHITDT: %d",clusterMaxHitTimeDiff));
+	    System.out.println();
+	    System.out.println(String.format("FADC250_NSA: %d",fadcNSA));
+	    System.out.println(String.format("FADC250_NSB: %d",fadcNSB));
+	    System.out.println(String.format("FADC250_NPEAK: %d",fadcNPEAK));
+	    System.out.println(String.format("FADC250_MODE: %d",fadcMODE));
+	    System.out.println(String.format("FADC250_WIDTH: %d",fadcWIDTH));
+	    System.out.println(String.format("FADC250_OFFSET: %d",fadcOFFSET));
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
-            //System.err.print(String.format("SLOT%d CHAN%d --",cc.getSlot(),cc.getChannel()));
+            //System.out.print(String.format("SLOT%d CHAN%d --",cc.getSlot(),cc.getChannel()));
             if (!PEDESTAL.containsKey(cc)) {
-                System.err.println("\nP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println("\nP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             }
             if (!THRESHOLD.containsKey(cc)) {
-                System.err.println("\nT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println("\nT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             }
             if (!GAIN.containsKey(cc)) {
-                System.err.println("\nG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                System.out.println("\nG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             }
-            //System.err.println(String.format(" %f %d %f",
+            //System.out.println(String.format(" %f %d %f",
             //        PEDESTAL.get(cc),THRESHOLD.get(cc),GAIN.get(cc)));
         }
-	    System.err.println();
+	    System.out.println();
 	    for (int ii=0; ii<2; ii++)
 	    {
-	        System.err.println(String.format("SINGLESEN-%d: %b ",ii,singlesEn[ii]));
-	        System.err.println(String.format("PAIRSEN-%d: %b: ",ii,pairsEn[ii]));
+	        System.out.println(String.format("SINGLES_EN %d %b ",ii,singlesEn[ii]));
+	        System.out.println(String.format("PAIRS_EN %d %b ",ii,pairsEn[ii]));
 	        
-	        System.err.println(String.format("SINGLESNHITSEN %d %b:  ",ii,singlesNhitsEn[ii]));
-	        System.err.println(String.format("SINGLESEMINEN %d %b",ii,singlesEnergyMinEn[ii]));
-	        System.err.println(String.format("SINGLESEMAXEN %d %b",ii,singlesEnergyMaxEn[ii]));
+	        System.out.println(String.format("SINGLES_NHITS_EN %d %b:  ",ii,singlesNhitsEn[ii]));
+	        System.out.println(String.format("SINGLES_EMIN_EN %d %b",ii,singlesEnergyMinEn[ii]));
+	        System.out.println(String.format("SINGLES_EMAX_EN %d %b",ii,singlesEnergyMaxEn[ii]));
 	        
-	        System.err.println(String.format("PAIRSSUMMINEN %d %b",ii,pairsEnergySumMinEn[ii]));
-	        System.err.println(String.format("PAIRSSUMMAXEN %d %b",ii,pairsEnergySumMaxEn[ii]));
-	        System.err.println(String.format("PAIRSENERGYDIFFEN %d %b",ii,pairsEnergyDiffEn[ii]));
-	        System.err.println(String.format("PAIRSCOPEN %d %b",ii,pairsCoplanarityEn[ii]));
-	        System.err.println(String.format("PAIRSEDISTEN %d %b",ii,pairsEnergyDistEn[ii]));
-	        System.err.println(String.format("PAIRSTIMEDIFFEN %d %b",ii,pairsTimeDiffEn[ii]));
+	        System.out.println(String.format("PAIRS_SUMMAXMIN_EN %d %b",ii,pairsEnergySumMaxMinEn[ii]));
+	        System.out.println(String.format("PAIRS_ENERGYDIFF_EN %d %b",ii,pairsEnergyDiffEn[ii]));
+	        System.out.println(String.format("PAIRS_COP_EN %d %b",ii,pairsCoplanarityEn[ii]));
+	        System.out.println(String.format("PAIRS_EDIST_EN %d %b",ii,pairsEnergyDistEn[ii]));
 	        
-	        System.err.println(String.format("SINGLESNHTIS %d %d",ii,singlesNhits[ii]));
-	        System.err.println(String.format("SINGLESEMIN %d %d",ii,singlesEnergyMin[ii]));
-	        System.err.println(String.format("SINGLESEMAX %d %d",ii,singlesEnergyMax[ii]));
+	        System.out.println(String.format("SINGLES_NHTIS %d %d",ii,singlesNhits[ii]));
+	        System.out.println(String.format("SINGLES_EMIN %d %d",ii,singlesEnergyMin[ii]));
+	        System.out.println(String.format("SINGLES_EMAX %d %d",ii,singlesEnergyMax[ii]));
 	        
-	        System.err.println(String.format("PAIRSSUMMIN %d %d",ii,pairsEnergySumMin[ii]));
-	        System.err.println(String.format("PRISSUMMAX %d %d",ii,pairsEnergySumMax[ii]));
-	        System.err.println(String.format("PAIRSENERGYDIFF %d %d",ii,pairsEnergyDiffMax[ii]));
-	        System.err.println(String.format("PAIRSCOPMAX %d %d",ii,pairsCoplanarityMax[ii]));
-	        System.err.println(String.format("PAIRSTDIFFMAAX %d %d",ii,pairsTimeDiffMax[ii]));
-	        System.err.println(String.format("PAIRSEDISTMIN %d %d",ii,pairsEnergyDistMin[ii]));
-	        System.err.println(String.format("PAIRSEDISTSLOP %d %f",ii,pairsEnergyDistSlope[ii]));
+	        System.out.println(String.format("PAIRS_NHITS %d %d",ii,pairsNhitsMin[ii]));
+	        System.out.println(String.format("PAIRS_SUMMIN %d %d",ii,pairsEnergySumMin[ii]));
+	        System.out.println(String.format("PAIRS_SUMMAX %d %d",ii,pairsEnergySumMax[ii]));
+	        System.out.println(String.format("PAIRS_ENERGYDIFF %d %d",ii,pairsEnergyDiffMax[ii]));
+	        System.out.println(String.format("PAIRS_COPMAX %d %d",ii,pairsCoplanarityMax[ii]));
+	        System.out.println(String.format("PAIRS_TDIFFMAAX %d %d",ii,pairsTimeDiffMax[ii]));
+	        System.out.println(String.format("PAIRS_EDISTMIN %d %d",ii,pairsEnergyDistMin[ii]));
+	        System.out.println(String.format("PAIRS_EDISTSLOP %d %f",ii,pairsEnergyDistSlope[ii]));
 	    }
-	    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+	    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 	}
   
+    
+    
+    /*
+     * Parsing wrappers to make rest of code easier.
+     */
     public float getFloatConfigSSP(int itrig,String stub,int ival) {
         return Float.valueOf(getConfigSSP(itrig,stub,ival));
     }
-
     public int getIntConfigSSP(int itrig,String stub,int ival) {
         return Integer.valueOf(getConfigSSP(itrig,stub,ival));
     }
-
     public boolean getBoolConfigSSP(int itrig,String stub,int ival) {
         return "1".equals(getConfigSSP(itrig,stub,ival));
     }
-
     public String getConfigSSP(int itrig,String stub,int ival) {
     	String key="SSP_HPS_"+stub+"_"+itrig;
     	return getConfig(key,ival);
     }
-    
     public String getConfig(String key, int ival) {
         if (configMap.containsKey(key)) {
         	List<String> vals=configMap.get(key);
         	if (ival<vals.size()) {
             	return configMap.get(key).get(ival);
         	} else {
-        		System.err.println("configMap too short:  "+ival+configMap.get(key));
+        	    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+        	            "ConfigMap TOO SHORT:   "+ival+" "+configMap.get(key));
         		return "0";
         	}
         } else {
-            // this is not an error, we have to wait on 3 banks.
-            // leave here for now.
-        	System.err.println("configMap missing key:  "+key);
+            // this is only necessarily an error if we've read 3 banks:
+            if (nBanks>2) {
+            	Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+        	         "ConfigMap MISSING KEY:   "+key);
+            }
         	return "0";
         }
     }
 
+    
     public EcalChannel findChannel(int crate,int fadcSlot,int fadcChan)
     {
         for (EcalChannel cc : channels) {
