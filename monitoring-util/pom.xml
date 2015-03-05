@@ -17,11 +17,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hps</groupId>
-            <artifactId>hps-record-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hps</groupId>
-            <artifactId>hps-evio</artifactId>
+            <artifactId>hps-analysis</artifactId>
         </dependency>
         <dependency>
             <groupId>jfreechart-aida-experimental</groupId>
