@@ -10,7 +10,7 @@ import org.jlab.coda.jevio.EvioEvent;
 
 import org.lcsim.event.EventHeader;
 
-import org.hps.readout.ecal.daqconfig.TriggerConfig;
+import org.hps.readout.ecal.daqconfig.EvioDAQParser;
 import org.hps.readout.ecal.triggerbank.AbstractIntData;
 import org.hps.readout.ecal.triggerbank.SSPData;
 import org.hps.readout.ecal.triggerbank.TIData;

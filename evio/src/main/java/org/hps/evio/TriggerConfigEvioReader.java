@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.readout.ecal.daqconfig.TriggerConfig;
+import org.hps.readout.ecal.daqconfig.EvioDAQParser;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
 /*
  * Search for a configuration bank in EvioEvent, and, if found, create an instance of
- * TriggerConfig, pass it the string data for parsing, and put it in EventHeader.
+ * EvioDAQParser, pass it the string data for parsing, and put it in EventHeader.
  * 
  * 
  * As of Feb 27, 2015 (run 4043):
@@ -39,13 +39,13 @@ public class TriggerConfigEvioReader {
             }
             return;
         }
-        List<TriggerConfig> trigconf = new ArrayList<TriggerConfig>();
+        List<EvioDAQParser> trigconf = new ArrayList<EvioDAQParser>();
         for (BaseStructure bank : evioEvent.getChildrenList()) {
             if (bank.getChildCount() <= 0)
                 continue;
             int crate = bank.getHeader().getTag();
             for (BaseStructure subBank : bank.getChildrenList()) {
-                if (subBank.getHeader().getTag() == TriggerConfig.BANK_TAG) {
+                if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
                     if (subBank.getStringData() == null) {
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
                                 "JEVIO can't parse DAQ Config bank.  Event Number "
@@ -53,13 +53,13 @@ public class TriggerConfigEvioReader {
                         return;
                     }
                     if (trigconf.size() == 0)
-                        trigconf.add(new TriggerConfig());
+                        trigconf.add(new EvioDAQParser());
                     trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
                 }
             }
         }
         if (trigconf.size() > 0) {
-            lcsimEvent.put("TriggerConfig",trigconf,TriggerConfig.class,0);
+            lcsimEvent.put("TriggerConfig",trigconf,EvioDAQParser.class,0);
         };
     }
 
