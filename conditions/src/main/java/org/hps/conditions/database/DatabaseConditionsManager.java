@@ -542,7 +542,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The ResultSet from the query or null.
      */
     ResultSet selectQuery(String query) {
-        logger.fine(query);
+        logger.fine("executing SQL select query ..." + '\n' + query);
         ResultSet result = null;
         Statement statement = null;
         try {
@@ -561,7 +561,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public List<Integer> updateQuery(String query) {
         boolean openedConnection = openConnection();
-        logger.fine(query);
+        logger.fine("executing SQL update query ..." + '\n' + query);
         List<Integer> keys = new ArrayList<Integer>();
         Statement statement = null;
         ResultSet resultSet = null;
