@@ -94,21 +94,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     		System.out.println("======================================================================");
     		System.out.println("=== GTP Readout Clusterer ============================================");
     		System.out.println("======================================================================");
-    	}
-    	
-        // Track the valid clusters.
-        List<Cluster> clusterList = new ArrayList<Cluster>();
-        
-        // Sort the hits by time in reverse order.
-        Collections.sort(hitList, new Comparator<CalorimeterHit>() {
-            @Override
-            public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
-                return Double.compare(secondHit.getTime(), firstHit.getTime());
-            }
-        }); 
-        
-        // VERBOSE :: Print the hit information.
-        if(verbose) {
+    		
         	Collections.sort(hitList, new Comparator<CalorimeterHit>() {
 				@Override
 				public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
@@ -131,6 +117,17 @@ public class GTPOnlineClusterer extends AbstractClusterer {
             }
             System.out.println();
         }
+    	
+        // Track the valid clusters.
+        List<Cluster> clusterList = new ArrayList<Cluster>();
+        
+        // Sort the hits by time in reverse order.
+        Collections.sort(hitList, new Comparator<CalorimeterHit>() {
+            @Override
+            public int compare(CalorimeterHit firstHit, CalorimeterHit secondHit) {
+                return Double.compare(secondHit.getTime(), firstHit.getTime());
+            }
+        });
         
         // A seed hit is a hit that is the largest both within its
         // spatial range (+/- 1 in the ix and iy direction) and
