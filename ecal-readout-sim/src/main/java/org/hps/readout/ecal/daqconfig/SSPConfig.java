@@ -37,12 +37,14 @@ public class SSPConfig extends IDAQConfig {
 			pairTrigger[triggerNum].getEnergyMaxCutConfig().setIsEnabled(true);
 			pairTrigger[triggerNum].getHitCountCutConfig().setIsEnabled(true);
 			
+			// The pair trigger time difference cut is always enabled.
+			pairTrigger[triggerNum].getTimeDifferenceCutConfig().setIsEnabled(true);
+
 			// Set the pair cut enabled statuses for the pair trigger.
-			pairTrigger[triggerNum].getEnergySumCutConfig().setIsEnabled(parser.pairsEnergySumMinEn[triggerNum]);
+			pairTrigger[triggerNum].getEnergySumCutConfig().setIsEnabled(parser.pairsEnergySumMaxMinEn[triggerNum]);
 			pairTrigger[triggerNum].getEnergyDifferenceCutConfig().setIsEnabled(parser.pairsEnergyDiffEn[triggerNum]);
 			pairTrigger[triggerNum].getEnergySlopeCutConfig().setIsEnabled(parser.pairsEnergyDistEn[triggerNum]);
 			pairTrigger[triggerNum].getCoplanarityCutConfig().setIsEnabled(parser.pairsCoplanarityEn[triggerNum]);
-			pairTrigger[triggerNum].getTimeDifferenceCutConfig().setIsEnabled(parser.pairsTimeDiffEn[triggerNum]);
 			
 			// Set the individual cut values.
 			singlesTrigger[triggerNum].getEnergyMinCutConfig().setLowerBound(parser.singlesEnergyMin[triggerNum] / 1000.0);
@@ -52,7 +54,7 @@ public class SSPConfig extends IDAQConfig {
 			// Set the individual cut values.
 			pairTrigger[triggerNum].getEnergyMinCutConfig().setLowerBound(parser.pairsEnergyMin[triggerNum] / 1000.0);
 			pairTrigger[triggerNum].getEnergyMaxCutConfig().setUpperBound(parser.pairsEnergyMax[triggerNum] / 1000.0);
-			//pairTrigger[triggerNum].getHitCountCutConfig().setLowerBound(parser.pairsNhits[triggerNum]);
+			pairTrigger[triggerNum].getHitCountCutConfig().setLowerBound(parser.pairsNhitsMin[triggerNum]);
 			pairTrigger[triggerNum].getEnergySumCutConfig().setLowerBound(parser.pairsEnergySumMin[triggerNum] / 1000.0);
 			pairTrigger[triggerNum].getEnergySumCutConfig().setUpperBound(parser.pairsEnergySumMax[triggerNum] / 1000.0);
 			pairTrigger[triggerNum].getEnergyDifferenceCutConfig().setUpperBound(parser.pairsEnergyDiffMax[triggerNum] / 1000.0);
