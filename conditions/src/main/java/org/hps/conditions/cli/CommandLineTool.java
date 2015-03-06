@@ -110,6 +110,8 @@ public class CommandLineTool {
         int runNumber = 0;
         if (commandLine.hasOption("r")) {
             runNumber = Integer.parseInt(commandLine.getOptionValue("r"));
+        } else {
+            throw new RuntimeException("Missing -r argument with run number.");
         }
         try {
             DatabaseConditionsManager.getInstance().setDetector(detectorName, runNumber);
