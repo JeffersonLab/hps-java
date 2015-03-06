@@ -1,5 +1,6 @@
 package org.hps.conditions.cli;
 
+import java.io.PrintStream;
 import java.util.Date;
 
 import org.hps.conditions.api.ConditionsObjectException;
@@ -14,6 +15,8 @@ import org.hps.conditions.api.FieldValueMap;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class AddCommand extends AbstractCommand {
+    
+    PrintStream ps = System.out;
     
     AddCommand() {
         super("add", "Add a conditions record");
@@ -83,6 +86,8 @@ public class AddCommand extends AbstractCommand {
         } catch (ConditionsObjectException e) {
             throw new RuntimeException("An error occurred while adding a conditions record.", e);
         }
+        ps.println("successfully added conditions record ...");
+        ps.println(conditionsRecord);
     }
 
 }
