@@ -11,41 +11,41 @@ public final class EcalMonitoringUtilities {
 
     final static int XOFFSET = 23;
     final static int YOFFSET = 5;
+    final static int XHOLEWIDTH = 9;
+    final static int XHOLESTART = -9;
     
     private EcalMonitoringUtilities() {        
     }
     
     public static int getRowFromHistoID(int id) {
-        return (5 - (id % 11));
+        return (YOFFSET - (id % (YOFFSET*2+1)));
     }
 
     public static int getColumnFromHistoID(int id) {
-        return ((id / 11) - 23);
+        return ((id / (YOFFSET*2+1)) - XOFFSET);
     }
 
     public static int getHistoIDFromRowColumn(int row, int column) {
-        return (-row + 5) + 11 * (column + 23);
+        return (-row + YOFFSET) + (YOFFSET*2+1) * (column + XOFFSET);
     }
 
     public static Boolean isInHole(int row, int column) {
-        Boolean ret;
-        ret = false;
-        if ((row == 1) || (row == -1)) {
-            if ((column <= -2) && (column >= -10))
-                ret = true;
+        if (row == 1 || row == -1) {
+            if (column < XHOLESTART+XHOLEWIDTH-1 && column >= XHOLESTART-1) {
+                return true;
+            }
         }
-        return ret;
+        return false;
     }
     
     public static int getChannelIdFromRowColumn(int row, int col)
     {
         int ix = col + XOFFSET + (col>0 ? -1 : 0);
         int iy = row + YOFFSET + (row>0 ? -1 : 0);
-        iy = YOFFSET*2 - iy - 1;
-        int cid = ix + 2*XOFFSET*iy + 1;
-        if      (row== 1 && col>-10) cid -= 9;
-        else if (row==-1 && col<-10) cid -= 9;
-        else if (row < 0)            cid -= 18;
+        int cid = ix + 2*XOFFSET*(YOFFSET*2-iy-1) + 1;
+        if      (row== 1 && col>=XHOLESTART) cid -= XHOLEWIDTH;
+        else if (row==-1 && col<=XHOLESTART) cid -= XHOLEWIDTH;
+        else if (row < 0)                    cid -= 2*XHOLEWIDTH;
         return cid; 
     }
 }
