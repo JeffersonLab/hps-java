@@ -104,6 +104,8 @@ public class CommandLineTool {
         String detectorName = null;
         if (commandLine.hasOption("d")) {
             detectorName = commandLine.getOptionValue("d");
+        } else {
+            throw new RuntimeException("Missing -d argument with name of detector.");
         }
         int runNumber = 0;
         if (commandLine.hasOption("r")) {
