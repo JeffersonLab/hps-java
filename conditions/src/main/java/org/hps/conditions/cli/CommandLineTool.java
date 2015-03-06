@@ -24,7 +24,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-// TODO: Add detector name and run number as arguments on the basic tool rather than sub-commands.
 public class CommandLineTool {
 
     Options options = new Options();
@@ -100,15 +99,13 @@ public class CommandLineTool {
         if (commandLine.hasOption("x")) {
             File xmlConfigFile = new File(commandLine.getOptionValue("x"));
             conditionsManager.setXmlConfig(xmlConfigFile);
-            if (verbose)
-                System.out.println("using XML config file " + xmlConfigFile.getPath());
         }         
         
-        String detectorName = DatabaseConditionsManager.getDefaultEngRunDetectorName();
+        String detectorName = null;
         if (commandLine.hasOption("d")) {
             detectorName = commandLine.getOptionValue("d");
         }
-        int runNumber = 2000;
+        int runNumber = 0;
         if (commandLine.hasOption("r")) {
             runNumber = Integer.parseInt(commandLine.getOptionValue("r"));
         }
@@ -142,15 +139,16 @@ public class CommandLineTool {
     static CommandLineTool create() {
         CommandLineTool cli = new CommandLineTool();
         cli.options.addOption(new Option("h", false, "Print help and exit"));
-        cli.options.addOption(new Option("v", false, "Enable verbose terminal output"));
-        cli.options.addOption(new Option("p", true, "Set the connection properties file"));
-        cli.options.addOption(new Option("x", true, "Set the conditions database XML configuration file"));
-        cli.options.addOption(new Option("d", true, "Set the detector name"));
-        cli.options.addOption(new Option("r", true, "Set the run number"));
+        cli.options.addOption(new Option("d", true, "Set the detector name (required)"));
+        cli.options.getOption("d").setRequired(true);
+        cli.options.addOption(new Option("r", true, "Set the run number (required)"));
+        cli.options.getOption("r").setRequired(true);
+        cli.options.addOption(new Option("v", false, "Enable verbose print output"));
+        cli.options.addOption(new Option("p", true, "Set the database connection properties file"));
+        cli.options.addOption(new Option("x", true, "Set the conditions XML configuration file"));
         cli.registerCommand(new LoadCommand());
         cli.registerCommand(new PrintCommand());
         cli.registerCommand(new AddCommand());
         return cli;
     }
-
 }
