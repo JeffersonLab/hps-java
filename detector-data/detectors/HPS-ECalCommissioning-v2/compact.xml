@@ -3,7 +3,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
     <info name="HPS-ECalCommissioning-v3">
-        <comment>HPS ECal commissioning for pass3 with no SVT, By=-0.3309  </comment>
+        <comment>HPS ECal commissioning for pass2 with no SVT, By=-0.3309  </comment>
     </info>
 
     <define>
@@ -255,8 +255,7 @@
                     <module_placement name="TungstenTarget" id="0" x="xtar" y="ytar" z="ztar" rx="0" ry="y_rot" rz="0"/>               
                 </layer>
             </detector>        
-        --> 
-<!--   
+        -->    
         <detector id="1" name="Tracker" type="HPSTracker2" readout="TrackerHits" combineHits="true">
             <comment>The Silicon Vertex Tracker</comment>
             <module name="TestRunModule">
@@ -326,8 +325,7 @@
                 <module_placement name="TestRunModule" id="2" x="z12t*sin(y_rot)+(x12t+x_off+moduleLength/2*cos(SA2))*cos(y_rot)" y="y12t-moduleLength/2*sin(SA2)" z="(z12t-zst)*cos(y_rot)-(x12t+x_off)*sin(y_rot)" rx="x_rot_top" ry="PI-y_rot" rz="-3*PI/2-SA2-a12t"/>
                 <module_placement name="TestRunModule" id="3" x="z12b*sin(y_rot)+(x12b+x_off+moduleLength/2)*cos(y_rot)" y="y12b" z="(z12b-zst)*cos(y_rot)-(x12b+x_off)*sin(y_rot)" rx="x_rot_bot" ry="PI-y_rot" rz="-3*PI/2-a12b"/>
             </layer>
-        </detector>    
--->        
+        </detector>            
            <detector id="30" name="TrackerFieldDef" type="HPSTracker2" readout="TrackerHitsFieldDef" >
             <comment>Boundary planes for magnetic field, also used as scoring planes</comment>
 <!--        <constant name="dipoleMagnetHeight" value="17.78*cm"/>
