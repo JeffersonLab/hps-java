@@ -1,17 +1,5 @@
 package org.hps.svt.alignment;
 
-/**
- * Class building a new compact.xml detector based on MillepedeII input
- * corrections.
- * 
- * @author 	Per Ola Hansson Adrian <phansson@slac.stanford.edu>
- * @date 	January 15, 2014 
- */
-
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -32,13 +24,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.SvtSensorSetup;
+
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
+
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.detector.IDetectorElement;
@@ -51,7 +43,15 @@ import org.lcsim.geometry.GeometryReader;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.util.xml.ElementFactory.ElementCreationException;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 
+/**
+ * Class building a new compact.xml detector based on MillepedeII input
+ * corrections.
+ * 
+ * @author 	Per Ola Hansson Adrian <phansson@slac.stanford.edu>
+ * @date 	January 15, 2014 
+ */
 public class BuildCompact {
 
 	private static int runNumber = -1; //1351;
@@ -221,11 +221,6 @@ public class BuildCompact {
 		// set conditions in order to be able to determine which sensors are where in the geometry
 		setConditions(detectorName,runNumber);
 		
-		
-		// setup sensors
-		SvtSensorSetup sensorSetup = new SvtSensorSetup();
-		sensorSetup.detectorChanged(det);
-		
 		// Loop over all millepede input files and match parameters with detectors
 		
 		List<MilleParameterSet> list_det = new ArrayList<MilleParameterSet>();
@@ -364,15 +359,10 @@ public class BuildCompact {
         //System.out.printf("%d sensors\n",sensors.size());
         for (SiSensor module: sensors) {
             // Create DAQ Maps
-            /* ===> if (!SvtUtils.getInstance().isSetup()) {
-                SvtUtils.getInstance().setup(det);
-            } ===> */
-        	//===> boolean isTop = SvtUtils.getInstance().isTopLayer(module);
         	boolean isTop = ((HpsSiSensor) module).isTopLayer();
         	int h = par.getHalf();
         	if ((isTop && h == 1) || (!isTop && h == 2)) {
         		int layer = ((HpsSiSensor) module).getLayerNumber();
-        		//===> int layer = SvtUtils.getInstance().getLayerNumber(module);
         		if (layer == par.getSensor()) {
         			//found match
         			return module;

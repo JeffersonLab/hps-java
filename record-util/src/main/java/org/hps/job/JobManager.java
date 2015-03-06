@@ -5,6 +5,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
+// TODO: Who wrote this class?
 public class JobManager extends JobControlManager {
 
     // Override the basic LCSim conditions system with the HPS conditions manager.
@@ -25,9 +26,6 @@ public class JobManager extends JobControlManager {
      */
     @Override
     public boolean run() {
-        
-        // Inject the SvtSensorSetup Driver required for most recon jobs.
-        addSvtSetupDriver();
         
         // Setup the conditions if there is a ConditionsDriver present.
         setupConditions();
@@ -56,35 +54,6 @@ public class JobManager extends JobControlManager {
         }
         if (conditionsDriver != null) {
             conditionsDriver.initialize();
-        }
-    }
-    
-    static String driverClassName = "org.hps.recon.tracking.SvtSensorSetup";
-    private void addSvtSetupDriver() {        
-        Class<?> driverClass = null;        
-        try {
-            driverClass = Class.forName(driverClassName);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("SvtSensorSetup class is not accessible.", e);
-        }
-        
-        boolean hasSetupDriver = false;
-        for (Driver driver : this.getDriverAdapter().getDriver().drivers()) {
-            if (driver.getClass().getCanonicalName().equals(driverClassName)) {
-                hasSetupDriver = true;
-                break;
-            }
-        }
-
-        if (!hasSetupDriver) {
-            Driver setupDriver;
-            try {
-                setupDriver = (Driver) driverClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException("Error creating new SvtSensorSetup Driver.", e);
-            }
-            this.getDriverAdapter().getDriver().drivers().add(0, setupDriver);
-            logStream.println("added SvtSensorSetup to beginning of Driver list");
         }
     }
 }
