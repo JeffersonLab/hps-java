@@ -8,7 +8,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.apache.commons.cli.Option;
 import org.hps.conditions.api.ConditionsObject;
@@ -37,6 +36,8 @@ class PrintCommand extends AbstractCommand {
     // Field delimited for print out.
     char fieldDelimiter = ' ';
     
+    DatabaseConditionsManager conditionsManager;
+    
     PrintCommand() {
         super("print", "Print the table data for a conditions set");
         this.options.addOption(new Option("t", true, "Set the table name"));
@@ -50,11 +51,10 @@ class PrintCommand extends AbstractCommand {
     /**
      * Print out the conditions sets selected by the user's command line arguments.
      */
-    @SuppressWarnings("rawtypes")
     void execute(String[] arguments) {
         super.execute(arguments);
         
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        conditionsManager = DatabaseConditionsManager.getInstance();
         
         // User specified tag of conditions records.
         if (this.commandLine.hasOption("T")) {
@@ -97,27 +97,42 @@ class PrintCommand extends AbstractCommand {
             fieldDelimiter = '\t';
         }
                          
-        // Get a list of conditions records from the key.
+        // List of conditions records to print. 
         ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
-        // Did user specify a key to use?
+        
+        // Did the user specify a table to use?
         if (userConditionsKey == null) {
-            // Use all key names if there was not one specified.
+            // Use all table names if there was not one specified.
             conditionsRecords.addAll(conditionsManager.getConditionsRecords());
         } else {            
-            // Get records for the user specified key.
+            // Get records only for the user specified table name.
             conditionsRecords.addAll(conditionsManager.findConditionsRecords(userConditionsKey));
         }
         
+        // Sort the records by key (table name).
         conditionsRecords.sortByKey();
         
         // Get a unique list of keys from the returned conditions records.
         Set<String> conditionsKeys = conditionsRecords.getConditionsKeys();
             
+        // Print the records and the data.
+        printConditionsRecords(conditionsKeys);   
+        ps.flush();           
+        ps.close();
+    }
+
+    private void printConditionsRecords(Set<String> conditionsKeys) {
+        ps.print("printing conditions sets: ");
+        for (String conditionsKey : conditionsKeys) {
+            ps.print(conditionsKey + " ");
+        }
+        ps.println();
+        ps.println();
         // Loop over the conditions keys from the conditions records.
         for (String conditionsKey : conditionsKeys) {
-                       
+                                   
             // The list of collections to print.
-            List<ConditionsObjectCollection> collectionList = new ArrayList<ConditionsObjectCollection>();
+            List<ConditionsObjectCollection<?>> collectionList = new ArrayList<ConditionsObjectCollection<?>>();
         
             // Get the table meta data for the conditions key.
             TableMetaData tableMetaData = conditionsManager.findTableMetaData(conditionsKey);
@@ -126,21 +141,19 @@ class PrintCommand extends AbstractCommand {
             if (tableMetaData == null) {            
                 throw new RuntimeException("The table meta data for " + conditionsKey + " does not exist.  The key might be invalid.");
             }
-        
+                               
             // Use only the single collection which would be seen by a user job for this run number and key.
-            ConditionsObjectCollection collection = conditionsManager.getCollection(tableMetaData.getCollectionClass());
+            ConditionsObjectCollection<?> collection = conditionsManager.getCollection(tableMetaData.getCollectionClass());  
             collectionList.add(collection);
         
             // Print out all the collection data to console or file.
             printCollections(collectionList);
-        }   
-        ps.flush();           
-        ps.close();
+        }
     }
 
-    private void printCollections(List<ConditionsObjectCollection> collectionList) {
+    private void printCollections(List<ConditionsObjectCollection<?>> collectionList) {
         // Loop over all the collections and print them.
-        for (ConditionsObjectCollection collection : collectionList) {
+        for (ConditionsObjectCollection<?> collection : collectionList) {
             if (printHeaders) {
                 printCollectionHeader(collection);
             }
@@ -148,9 +161,10 @@ class PrintCommand extends AbstractCommand {
             printCollection(collection);
             ps.println();
         }
+        ps.flush();
     }
 
-    private void printCollection(ConditionsObjectCollection collection) {
+    private void printCollection(ConditionsObjectCollection<?> collection) {
         StringBuffer buffer = new StringBuffer();
         for (Object object : collection) {
             for (String columnName : collection.getTableMetaData().getFieldNames()) {
@@ -161,12 +175,15 @@ class PrintCommand extends AbstractCommand {
             buffer.append('\n');
         }
         ps.print(buffer.toString());
+        ps.flush();
     }
 
-    private void printCollectionHeader(ConditionsObjectCollection collection) {
+    private void printCollectionHeader(ConditionsObjectCollection<?> collection) {        
+        ps.println("--------------------------------------");
+        ps.print(collection.getConditionsRecord());
         ps.println("--------------------------------------");
         ps.println();
-        ps.println(collection.getConditionsRecord());
+        ps.flush();
     }
 
     private void printColumnNames(TableMetaData tableMetaData) {
