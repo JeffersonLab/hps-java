@@ -62,55 +62,54 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     // Initialize logger.
-    protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.INFO);
+    private static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.INFO);
 
     // Global registry of conditions converters.
-    protected ConverterRegistry converters = ConverterRegistry.create();
+    private ConverterRegistry converters = ConverterRegistry.create();
     
     // Global registry of table meta data.
-    protected TableRegistry tableRegistry = TableRegistry.create();
+    private TableRegistry tableRegistry = TableRegistry.create();
     
     // Connection configuration.
-    protected static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
-    protected File connectionPropertiesFile;
-    protected ConnectionParameters connectionParameters;
-    protected Connection connection;
-    protected boolean isConnected = false;
-    protected boolean loggedConnectionParameters = false;
+    private static final String CONNECTION_PROPERTY = "org.hps.conditions.connection.file";
+    private File connectionPropertiesFile;
+    private ConnectionParameters connectionParameters;
+    private Connection connection;
+    private boolean isConnected = false;
+    private boolean loggedConnectionParameters = false;
     
     // Default configuration resources.
-    protected static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
-    protected static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
-    protected static final String ENGRUN_CONFIG = "/org/hps/conditions/config/conditions_database_engrun.xml";
+    private static final String DEFAULT_CONFIG = "/org/hps/conditions/config/conditions_database_prod.xml";
+    private static final String TEST_RUN_CONFIG = "/org/hps/conditions/config/conditions_database_testrun_2012.xml";
+    private static final String ENGRUN_CONFIG = "/org/hps/conditions/config/conditions_database_engrun.xml";
     
     // Default connection properties resource.
-    protected static final String DEFAULT_CONNECTION_PROPERTIES_RESOURCE = "/org/hps/conditions/config/jlab_connection.prop";
+    private static final String DEFAULT_CONNECTION_PROPERTIES_RESOURCE = "/org/hps/conditions/config/jlab_connection.prop";
     
     // Max run number for the Test Run.
-    protected static final int TEST_RUN_MAX_RUN = 1365;
+    private static final int TEST_RUN_MAX_RUN = 1365;
         
     // Detector setup.
-    protected String detectorName;
-    protected String ecalName = "Ecal";
-    protected String svtName = "Tracker";
-    protected ConditionsConverter svtConverter;
-    protected ConditionsConverter ecalConverter;
-    protected SvtDetectorSetup svtSetup = new SvtDetectorSetup(svtName);
+    private String ecalName = "Ecal";
+    private String svtName = "Tracker";
+    private ConditionsConverter svtConverter;
+    private ConditionsConverter ecalConverter;
+    private SvtDetectorSetup svtSetup = new SvtDetectorSetup(svtName);
     
     // Active conditions tag.
-    protected String tag = null;
+    private String tag = null;
 
     // State of manager.
-    protected boolean isInitialized = false;
-    protected boolean isFrozen = false;
-    protected boolean isConfigured = false;
+    private boolean isInitialized = false;
+    private boolean isFrozen = false;
+    private boolean isConfigured = false;
     
     // Configuration from XML settings.  These are the defaults.
-    protected boolean setupSvtDetector = true;
-    protected boolean freezeAfterInitialize = false;
-    protected boolean closeConnectionAfterInitialize = true;
-    protected boolean cacheAllConditions = false;
-    protected boolean isTestRun = false;
+    private boolean setupSvtDetector = true;
+    private boolean freezeAfterInitialize = false;
+    private boolean closeConnectionAfterInitialize = true;
+    private boolean cacheAllConditions = false;
+    private boolean isTestRun = false;
     
     static {
         // Default login timeout of 5 seconds.
