@@ -99,10 +99,14 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
 
     /**
      * Get the collection ID.
-     * @return
+     * @return 
      */
     public int getCollectionId() {
-        return collectionId;
+        if (conditionsRecord != null) {
+            return conditionsRecord.getCollectionId(); 
+        } else {
+            return collectionId;
+        }
     }
     
     /**
@@ -126,11 +130,9 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
         this.collectionId = collectionId;
     }
         
-    public void insert() throws ConditionsObjectException, SQLException {
-        
+    public void insert() throws ConditionsObjectException, SQLException {        
         // TODO: First check here if conditions record and/or collection ID is assigned already, 
-        //       in which case an error should be thrown as this is not a new collection.
-        
+        //       in which case an error should be thrown as this is not a new collection.        
         DatabaseConditionsManager.getInstance().insertCollection(this);
     }
     
