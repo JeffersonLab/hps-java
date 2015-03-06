@@ -13,7 +13,6 @@ import org.hps.job.JobManager;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.SteeringType;
-import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EtSystemUtil;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
@@ -30,9 +29,10 @@ import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.util.Driver;
 
 /**
+ * This class encapsulates all of the logic involved with processing events 
+ * and managing the related state and objects within the monitoring application.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
 class EventProcessing {
     
@@ -42,7 +42,7 @@ class EventProcessing {
     List<CompositeRecordProcessor> processors;
     
     /**
-     *         
+     * This class is used to organize the objects for an event processing session.
      */
     class SessionState {
         JobManager jobManager;
@@ -54,9 +54,11 @@ class EventProcessing {
     }
     
     /**
-     * 
-     * @param application
-     * @param processors
+     * Initialize with reference to the current monitoring application
+     * and a list of extra processors to add to the loop after 
+     * configuration.
+     * @param application The current monitoring application.
+     * @param processors A list of processors to add after configuration is performed.
      */
     EventProcessing(
             MonitoringApplication application, 
@@ -68,16 +70,8 @@ class EventProcessing {
     }
     
     /**
-     * 
-     * @return
-     */
-    SessionState getSessionState() {
-        return sessionState;
-    }
-
-    /**
-     * 
-     * @param configurationModel
+     * Setup this class from the global configuration.
+     * @param configurationModel The global configuration.
      */
     void setup(ConfigurationModel configurationModel) {
         MonitoringApplication.logger.info("setting up LCSim");
@@ -136,14 +130,14 @@ class EventProcessing {
                 }
             }
 
-            logger.info("LCSim setup was successful.");
+            logger.info("lcsim setup was successful");
 
         } catch (Throwable t) {
             // Catch all errors and rethrow them as RuntimeExceptions.
             application.errorHandler.setError(t).setMessage("Error setting up LCSim.").printStackTrace().raiseException();
         }
         
-        // Setup the CompositeLoop.
+        // Now setup the CompositeLoop.
         setupLoop(configurationModel);
     }
     
@@ -155,8 +149,6 @@ class EventProcessing {
         // Get the class for the event builder.
         String eventBuilderClassName = configurationModel.getEventBuilderClassName();
 
-        //logger.config("initializing event builder: " + eventBuilderClassName);
-
         try {
             // Create a new instance of the builder class.
             sessionState.eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName).newInstance();
@@ -166,13 +158,11 @@ class EventProcessing {
 
         // Add the builder as a listener so it is notified when conditions change.
         ConditionsManager.defaultInstance().addConditionsListener(sessionState.eventBuilder);
-
-        //logger.config("successfully initialized event builder: " + eventBuilderClassName);
     }
     
     /**
-     * 
-     * @param configurationModel
+     * Setup the loop from the global configuration.
+     * @param configurationModel The global configuration.
      */
     void setupLoop(ConfigurationModel configurationModel) {
 
@@ -222,17 +212,17 @@ class EventProcessing {
     }    
     
     /**
-     * 
-     * @param steering
+     * Setup a steering file on disk.
+     * @param steering The steering file.
      */
     void setupSteeringFile(String steering) {
         sessionState.jobManager.setup(new File(steering));
     }
 
     /**
-     * 
-     * @param steering
-     * @throws IOException
+     * Setup a steering resource.
+     * @param steering The steering resource.
+     * @throws IOException if there is a problem setting up or accessing the resource.
      */
     void setupSteeringResource(String steering) throws IOException {
         InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
@@ -282,7 +272,8 @@ class EventProcessing {
     }    
            
     /**
-     * 
+     * Start event processing on the event processing thread
+     * and start the watchdog thread.
      */
     synchronized void start() {
         
@@ -296,7 +287,7 @@ class EventProcessing {
     }
     
     /**
-     * Notify the event processor to pause.
+     * Notify the event processor to pause processing.
      */
     synchronized void pause() {
         if (!application.connectionModel.getPaused()) {
@@ -306,7 +297,7 @@ class EventProcessing {
     }
     
     /**
-     * 
+     * Get next event if in pause mode.
      */
     synchronized void next() {
         if (application.connectionModel.getPaused()) {
@@ -317,7 +308,7 @@ class EventProcessing {
     }
     
     /**
-     * Notify the event processor to resume processing events, if paused.
+     * Resume processing events from pause mode.
      */
     synchronized void resume() {
         if (application.connectionModel.getPaused()) {
@@ -328,7 +319,7 @@ class EventProcessing {
     }
     
     /**
-     * 
+     * Interrupt and join to the processing watchdog thread.
      */
     synchronized void killWatchdogThread() {
         // Is the session watchdog thread not null?
@@ -363,21 +354,17 @@ class EventProcessing {
     }
     
     /**
-     * 
-     * @return
+     * True if the processing thread is active.
+     * @return True if processing thread is active.
      */
     boolean isActive() {
-        return sessionState.processingThread.isAlive();
+        return sessionState.processingThread != null && sessionState.processingThread.isAlive();
     }
     
     /**
      * Connect to the ET system using the current connection settings.
      */
     void connect() throws IOException {
-
-        // Make sure applicable menu items are enabled or disabled.
-        // This applies whether or not using an ET server or file source.
-        //setConnectedGuiState();
 
         // Setup the network connection if using an ET server.
         if (usingEtServer()) {
@@ -394,8 +381,8 @@ class EventProcessing {
     }
     
     /**
-     * 
-     * @return
+     * True if using an ET server.
+     * @return True if using an ET server.
      */
     boolean usingEtServer() {
         return application.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);

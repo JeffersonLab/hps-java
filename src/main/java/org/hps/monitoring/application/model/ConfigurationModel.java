@@ -1,6 +1,9 @@
 package org.hps.monitoring.application.model;
 
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.hps.record.enums.DataSourceType;
@@ -13,7 +16,7 @@ import org.jlab.coda.et.enums.Mode;
  */
 public final class ConfigurationModel extends AbstractModel {
 
-    Configuration configuration;
+    Configuration configuration;    
     
     // Job setting properties.
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
@@ -65,7 +68,7 @@ public final class ConfigurationModel extends AbstractModel {
         this.configuration = configuration;
         fireModelChanged();
     }
-
+    
     public Configuration getConfiguration() {
         return this.configuration;
     }

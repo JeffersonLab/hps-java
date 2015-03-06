@@ -155,7 +155,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         // Setup the data source combo box.
         frame.dataSourceComboBox.initialize();
         
-        logger.info("initialized successfully");
+        logger.info("application initialized successfully");
     }
     
     /**

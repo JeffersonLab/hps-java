@@ -37,7 +37,7 @@ public final class ResourceUtil {
         URL url = ResourceUtil.class.getResource("ResourceUtil.class");
         String scheme = url.getProtocol();
         if (!"jar".equals(scheme)) {
-            throw new IllegalArgumentException("Unsupported scheme.  Only jar is allowed.");
+            throw new RuntimeException("Unsupported URL protocol: " + url.getProtocol());
         }
         try {
             JarURLConnection con = (JarURLConnection) url.openConnection();
