@@ -13,23 +13,21 @@ import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
- * This class represents SVT channel setup information, including FEB ID, FEB
- * Hybrid ID, and channel numbers.
+ * This class represents SVT channel setup information, including FEB ID, FEB Hybrid ID, and channel numbers.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-@Table(names = {"svt_channels"})
+@Table(names = { "svt_channels" })
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public final class SvtChannel extends AbstractSvtChannel {
 
     public static class SvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
-
         /**
          * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
          * 
          * @param pair : The DAQ pair consiting of a FEB ID and FEB Hybrid ID.
-         * @return The channels matching the DAQ pair or null if ￼not found.
+         * @return The channels matching the DAQ pair or null if ?not found.
          */
         @Override
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
@@ -43,26 +41,23 @@ public final class SvtChannel extends AbstractSvtChannel {
             }
             return channels;
         }
-   
+
         /**
-         *  Get the SVT channel ID associated with a given 
-         *  FEB ID/Hybrid ID/physical channel.
+         * Get the SVT channel ID associated with a given FEB ID/Hybrid ID/physical channel.
          *
-         *  @param febID : The FEB ID
-         *  @param febHybridID : The FEB hybrid ID
-         *  @param channel : The physical channel number
-         *  @return The SVT channel ID 
-         *  @throws {@link RuntimeException} if the channel ID can't be found  
+         * @param febID : The FEB ID
+         * @param febHybridID : The FEB hybrid ID
+         * @param channel : The physical channel number
+         * @return The SVT channel ID
+         * @throws {@link RuntimeException} if the channel ID can't be found
          */
-        public int findChannelID(int febID, int febHybridID, int channel) { 
-            for (SvtChannel svtChannel : this) { 
-                if (svtChannel.getFebID() == febID 
-                        && svtChannel.getFebHybridID() == febHybridID
-                        && svtChannel.getChannel() == channel) { 
-                    return svtChannel.getChannelID(); 
+        public int findChannelID(int febID, int febHybridID, int channel) {
+            for (SvtChannel svtChannel : this) {
+                if (svtChannel.getFebID() == febID && svtChannel.getFebHybridID() == febHybridID && svtChannel.getChannel() == channel) {
+                    return svtChannel.getChannelID();
                 }
-            } 
-            //throw new RuntimeException("Channel ID couldn't be found"); 
+            }
+            // throw new RuntimeException("Channel ID couldn't be found");
             return -1;
         }
     }
@@ -72,7 +67,7 @@ public final class SvtChannel extends AbstractSvtChannel {
      * 
      * @return The FEB ID.
      */
-    @Field(names = {"feb_id"})
+    @Field(names = { "feb_id" })
     public int getFebID() {
         return getFieldValue("feb_id");
     }
@@ -82,7 +77,7 @@ public final class SvtChannel extends AbstractSvtChannel {
      * 
      * @return The FEB hybrid ID.
      */
-    @Field(names = {"feb_hybrid_id"})
+    @Field(names = { "feb_hybrid_id" })
     public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
