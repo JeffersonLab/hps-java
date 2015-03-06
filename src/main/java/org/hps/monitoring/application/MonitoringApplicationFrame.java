@@ -7,9 +7,9 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
 
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -17,9 +17,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
-import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
-
 /**
+ * This class instantiates the primary GUI components of the monitoring application.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
@@ -31,6 +30,12 @@ class MonitoringApplicationFrame extends JFrame {
     LogTable logTable;
     SystemStatusTable systemStatusTable;
     JPanel buttonsPanel;
+    
+    JSplitPane mainSplitPane;
+    JSplitPane rightSplitPane;
+    JSplitPane leftSplitPane;
+    
+    DataSourceComboBox dataSourceComboBox;
     
     SettingsDialog settingsDialog;
     
@@ -72,7 +77,7 @@ class MonitoringApplicationFrame extends JFrame {
         topPanel.add(sep);
         
         // Create the buttons panel.
-        buttonsPanel = new EventButtonsPanel(application.connectionModel, application.actionListener);
+        buttonsPanel = new EventButtonsPanel(application.connectionModel, application);
         topPanel.add(buttonsPanel);
         
         // Add vertical separator.
@@ -81,11 +86,7 @@ class MonitoringApplicationFrame extends JFrame {
         topPanel.add(sep);
         
         // Add the data source combo box.
-        JComboBox<DataSourceItem> dataSourceComboBox = 
-                new DataSourceComboBox(
-                        application.configurationModel, 
-                        application.connectionModel, 
-                        application.actionListener);
+        dataSourceComboBox = new DataSourceComboBox(application.configurationModel, application.connectionModel);
         topPanel.add(dataSourceComboBox);
         
         // Create the bottom panel.
@@ -107,14 +108,14 @@ class MonitoringApplicationFrame extends JFrame {
         
         // Create the log table and add it to the tabs.
         logTable = new LogTable();                       
-        tableTabbedPane.addTab("Log", new JScrollPane(logTable));
+        tableTabbedPane.addTab("Log Messages", new JScrollPane(logTable));
         
         // Create the system monitor.
         systemStatusTable = new SystemStatusTable();
         tableTabbedPane.addTab("System Status Monitor", new JScrollPane(systemStatusTable));
         
         // Vertical split pane in left panel.
-        JSplitPane leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, runPanel, tableTabbedPane);
+        leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, runPanel, tableTabbedPane);
         leftPanel.add(leftSplitPane, BorderLayout.CENTER);
                                 
         // Create the right panel.
@@ -130,17 +131,19 @@ class MonitoringApplicationFrame extends JFrame {
         setProportionalSize(plotPanel, RIGHT_PANEL_WIDTH, PLOT_PANEL_HEIGHT);
         
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
-        JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, plotPanel, plotInfoPanel);
+        rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, plotPanel, plotInfoPanel);
         setProportionalSize(rightSplitPane, RIGHT_PANEL_WIDTH, FULL_SIZE);
         rightSplitPane.setResizeWeight(0.9);
         rightPanel.add(rightSplitPane, BorderLayout.CENTER);
                        
         // Create the main horizontal split pane for dividing the left and right panels.
-        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+        mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
-        setJMenuBar(new MenuBar(application.actionListener));                
+        MenuBar menu = new MenuBar(application.configurationModel, application.connectionModel, application);
+        setJMenuBar(menu);
+        dataSourceComboBox.addActionListener(menu);
                         
         // Setup the frame now that all components have been added.        
         pack();
@@ -148,7 +151,7 @@ class MonitoringApplicationFrame extends JFrame {
         setVisible(true);
         
         // Setup the settings dialog box.
-        settingsDialog = new SettingsDialog(application.configurationModel, application.actionListener);
+        settingsDialog = new SettingsDialog(application.configurationModel, application);
     }
     
     /**
@@ -171,4 +174,10 @@ class MonitoringApplicationFrame extends JFrame {
         Dimension scaledDimension = new Dimension((int)(bounds.getWidth() * scaleX), (int)(bounds.getHeight() * scaleY));
         component.setPreferredSize(scaledDimension);
     }           
+    
+    void restoreDefaults() {
+        mainSplitPane.resetToPreferredSizes();
+        leftSplitPane.resetToPreferredSizes();
+        rightSplitPane.resetToPreferredSizes();
+    }    
 }

@@ -1,11 +1,6 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.model.SystemStatusTableModel.ACTIVE_COL;
-import static org.hps.monitoring.application.model.SystemStatusTableModel.CLEARABLE_COL;
-import static org.hps.monitoring.application.model.SystemStatusTableModel.LAST_CHANGED_COL;
-import static org.hps.monitoring.application.model.SystemStatusTableModel.RESET_COL;
-import static org.hps.monitoring.application.model.SystemStatusTableModel.STATUS_COL;
-import static org.hps.monitoring.application.model.SystemStatusTableModel.SYSTEM_COL;
+import static org.hps.monitoring.application.model.SystemStatusTableModel.*;
 
 import java.awt.Color;
 import java.awt.Component;

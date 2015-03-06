@@ -4,16 +4,29 @@ package org.hps.monitoring.application;
  * These strings are used to identify ActionEvents in the MonitoringApplication. A few commands
  * handled only by sub-components are not listed here.
  */
-public final class Commands {
+final class Commands {
 
     static final String SETTINGS_LOAD = "settingsLoad";
     static final String SETTINGS_LOAD_DEFAULT = "settingsLoadDefault";
     static final String SETTINGS_SAVE = "settingsSave";
     static final String SETTINGS_SHOW = "settingsShow";
-    static final String OPEN_FILE = "openFile";
+    
+    static final String FILE_OPEN = "openFile";
+    static final String FILE_CLOSE = "closeFile"; 
+    
+    static final String WINDOW_MAXIMIZE = "maximizeWindow";
+    static final String WINDOW_MINIMIZE = "minimizeWindow";
+    static final String WINDOW_DEFAULTS = "restoreDefaultWindow";
     
     static final String DATA_SOURCE_CHANGED = "dataSourceChanged";
 
+    static final String CONNECT = "connect";
+    static final String NEXT = "next";
+    static final String PAUSE = "pause";
+    static final String RESUME = "resume";
+    
+    static final String EXIT = "exit";
+    
     ////////////////////////////////////////////
     
     static final String BLOCKING_CHANGED = "blockingChanged";
@@ -21,7 +34,6 @@ public final class Commands {
     static final String CHOOSE_LOG_FILE = "chooseLogFile";
     
     static final String CHOOSE_STEERING_FILE = "chooseSteeringFile";
-    static final String CONNECT = "connect";
     static final String CLEAR_LOG_TABLE = "clearLogTable";
     static final String DATA_SOURCE_TYPE_CHANGED = "dataSourceTypeChanged";
     static final String DETECTOR_NAME_CHANGED = "detectorNameChanged";
@@ -30,21 +42,17 @@ public final class Commands {
     static final String DISCONNECT_ON_ERROR_CHANGED = "disconnectOnErrorChanged";
     static final String DISCONNECT_ON_END_RUN_CHANGED = "disconnectOnEndRunChanged";
     static final String EVENT_BUILDER_CHANGED = "eventBuilderChanged";
-    static final String EXIT = "exit";
     static final String FREEZE_CONDITIONS_CHANGED = "freezeConditionsChanged";
     
     static final String LOG_LEVEL_CHANGED = "logLevelChanged";
     static final String LOG_TO_FILE = "logToFile";
     static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
     static final String LOG_TO_TERMINAL = "logToTerminal";
-    static final String NEXT = "next";
-    static final String PAUSE = "pause";
+
     static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";
     static final String PLOTS_CLEAR = "resetPlots";
     static final String RESTORE_DEFAULT_GUI_LAYOUT = "restoreDefaultGuiLayout";
-    static final String RESUME = "resume";
     
-    static final String SAVE_LAYOUT = "saveLayout";
     static final String SAVE_LOG_TABLE = "saveLogTable";
     static final String PLOTS_SAVE = "savePlots";
     static final String SCREENSHOT = "screenshot";

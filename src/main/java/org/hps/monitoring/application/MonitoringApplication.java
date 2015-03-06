@@ -1,5 +1,23 @@
 package org.hps.monitoring.application;
 
+import static org.hps.monitoring.application.Commands.CONNECT;
+import static org.hps.monitoring.application.Commands.DATA_SOURCE_CHANGED;
+import static org.hps.monitoring.application.Commands.DISCONNECT;
+import static org.hps.monitoring.application.Commands.EXIT;
+import static org.hps.monitoring.application.Commands.FILE_CLOSE;
+import static org.hps.monitoring.application.Commands.FILE_OPEN;
+import static org.hps.monitoring.application.Commands.NEXT;
+import static org.hps.monitoring.application.Commands.PAUSE;
+import static org.hps.monitoring.application.Commands.PLOTS_CLEAR;
+import static org.hps.monitoring.application.Commands.PLOTS_SAVE;
+import static org.hps.monitoring.application.Commands.RESUME;
+import static org.hps.monitoring.application.Commands.SETTINGS_LOAD;
+import static org.hps.monitoring.application.Commands.SETTINGS_LOAD_DEFAULT;
+import static org.hps.monitoring.application.Commands.SETTINGS_SAVE;
+import static org.hps.monitoring.application.Commands.SETTINGS_SHOW;
+import static org.hps.monitoring.application.Commands.WINDOW_DEFAULTS;
+import static org.hps.monitoring.application.Commands.WINDOW_MAXIMIZE;
+import static org.hps.monitoring.application.Commands.WINDOW_MINIMIZE;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
@@ -8,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,13 +35,20 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import org.hps.monitoring.application.RunPanel.RunPanelUpdater;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
 import org.hps.monitoring.application.model.Configuration;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 import org.hps.monitoring.application.model.RunModel;
+import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
-import org.hps.monitoring.application.util.EtSystemUtil;
+import org.hps.monitoring.application.util.EvioFileFilter;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.subsys.StatusCode;
@@ -34,36 +60,49 @@ import org.hps.record.enums.DataSourceType;
 import org.lcsim.util.aida.AIDA;
 
 /**
+ * This is the primary class that implements the monitoring GUI application.
+ * It should not be used directly.  Instead the {@link Main} class should be
+ * used from the command line or via the supplied script built automatically 
+ * by Maven.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
-public class MonitoringApplication implements PropertyChangeListener, SystemStatusListener {
+final class MonitoringApplication implements ActionListener, PropertyChangeListener, SystemStatusListener {
 
-    static Logger logger;
+    // Setup application logging.
+    static final Logger logger;
     static {
         logger = Logger.getLogger(MonitoringApplication.class.getSimpleName());
     }
     Handler logHandler;
     
-    ErrorHandler errorHandler;
+    // Application error handling.
+    final ErrorHandler errorHandler;
    
-    MonitoringApplicationFrame frame;    
-    ActionListener actionListener = new MonitoringApplicationActionListener(this);
+    // The main GUI components inside a JFrame.
+    final MonitoringApplicationFrame frame;    
     
-    RunModel runModel = new RunModel();
-    ConfigurationModel configurationModel = new ConfigurationModel();
-    ConnectionStatusModel connectionModel = new ConnectionStatusModel();
+    // The primary data models.
+    final RunModel runModel = new RunModel();
+    final ConfigurationModel configurationModel = new ConfigurationModel();
+    final ConnectionStatusModel connectionModel = new ConnectionStatusModel();
     
-    SessionState sessionState;
-    EventProcessing processing;
+    // The global configuration settings.
+    Configuration configuration;
     
-    // The default configuration resource.
+    // The default configuration resource embedded in the jar.
     static final String DEFAULT_CONFIGURATION = "/org/hps/monitoring/config/default_config.prop";
 
-    // The application's global Configuration settings.
-    Configuration configuration;
+    // Encapsulation of ET connection and event processing.
+    EventProcessing processing;
         
+    // Filters for opening files.
+    static final FileFilter lcioFilter = new FileNameExtensionFilter("LCIO files", "slcio");
+    static final EvioFileFilter evioFilter = new EvioFileFilter();
+        
+    /**
+     * Default log handler.
+     */
     class LogHandler extends Handler {
 
         /**
@@ -80,176 +119,198 @@ public class MonitoringApplication implements PropertyChangeListener, SystemStat
         }
     }    
              
+    /**
+     * Instantiate and show the monitoring application with the given configuration.
+     * @param configuration The Configuration object containing application settings.
+     */
     MonitoringApplication(Configuration configuration) {
+                
+        // Setup the main GUI component.
+        frame = new MonitoringApplicationFrame(this);
         
         // Setup the error handler.
         errorHandler = new ErrorHandler(frame, logger);
-        
-        // Setup the main GUI component.
-        frame = new MonitoringApplicationFrame(this);
-                        
+                       
         // Add this class as a listener on the configuration model.
         configurationModel.addPropertyChangeListener(this);
         
         // Setup the logger.
         setupLogger();
-        
+               
         // Setup AIDA plotting and connect it to the GUI.
         setupAida();
         
         // Set the configuration.
         if (configuration != null) {
-            // User specified configuration.
+            // There was a user specified configuration.
             this.configuration = configuration;
         } else {
-            // Use the default configuration resource.
+            // Use the default configuration.
             this.configuration = new Configuration(DEFAULT_CONFIGURATION);
         }
                                       
         // Load the configuration.
         loadConfiguration(this.configuration);
+        
+        // Setup the data source combo box.
+        frame.dataSourceComboBox.initialize();
+        
+        logger.info("initialized successfully");
     }
     
+    /**
+     * Static utility method for creating new instance.
+     * @param configuration The application settings.
+     * @return The new monitoring application instance.
+     */
+    static MonitoringApplication create(Configuration configuration) {
+        return new MonitoringApplication(configuration);
+    }    
+        
+    /**
+     * Handle property changes.
+     * @param evt The property change event.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // TODO: Handle log level configuration change here.
+    }
+    
+    /**
+     * The primary action handler for the application.
+     * @param e The ActionEvent to handle.
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        String cmd = e.getActionCommand();
+        if (CONNECT.equals(cmd)) {
+            // Run the start session method on a separate thread.
+            new Thread() {
+                public void run() {
+                    startSession();
+                }
+            }.start();
+        } else if (DISCONNECT.equals(cmd)) {
+            // Run the stop session method on a separate thread.
+            new Thread() {
+                public void run() {
+                    stopSession();
+                }
+            }.start();
+        } else if (PLOTS_SAVE.equals(cmd)) {
+            savePlots();
+        } else if (EXIT.equals(cmd)) {
+            exit();
+        } else if (PAUSE.equals(cmd)) { 
+            processing.pause();
+        } else if (NEXT.equals(cmd)) {
+            processing.next();
+        } else if (RESUME.equals(cmd)) {
+            processing.resume();
+        } else if (SETTINGS_SHOW.equals(cmd)) {
+            showSettingsDialog();
+        } else if (SETTINGS_LOAD.equals(cmd)) {
+            loadSettings();
+        } else if (SETTINGS_SAVE.equals(cmd)) {
+            saveSettings();
+        }  else if (PLOTS_CLEAR.equals(cmd)) {
+            clearPlots();
+        } else if (SETTINGS_LOAD_DEFAULT.equals(cmd)) {
+            loadDefaultSettings();
+        } else if (FILE_OPEN.equals(cmd)) {
+            openFile();
+        } else if (WINDOW_DEFAULTS.equals(cmd)) {
+            restoreDefaultWindow();
+        } else if (WINDOW_MAXIMIZE.equals(cmd)) {
+            maximizeWindow();
+        } else if (WINDOW_MINIMIZE.equals(cmd)) {
+            minimizeWindow();
+        } else if (FILE_CLOSE.equals(cmd)) {
+            closeFile();
+        } 
+        
+        /*else if (CHOOSE_LOG_FILE.equals(cmd)) {
+            //chooseLogFile();
+        } else if (LOG_TO_TERMINAL.equals(cmd)) {
+            //logToTerminal();
+        } else if (SCREENSHOT.equals(cmd)) {
+            //chooseScreenshot();
+        } else if (SAVE_LOG_TABLE.equals(cmd)) {
+            //saveLogTableToFile();
+        } else if (CLEAR_LOG_TABLE.equals(cmd)) {
+            //clearLogTable();
+        } else if (LOG_LEVEL_CHANGED.equals(cmd)) {
+            //setLogLevel();
+        } else if (VALIDATE_DATA_FILE.equals(cmd)) {
+            //if (fileValidationThread == null) {
+            //    new FileValidationThread().start();
+            //}
+        }
+        */
+    }    
+    
+    /**
+     * Setup AIDA plotting into the GUI components.
+     */
     void setupAida() {
+        // Register the factory for display plots in tabs.
         MonitoringAnalysisFactory.register();
+        
+        // Set the root tab pane for displaying plots.
         MonitoringPlotFactory.setRootPane(frame.plotPanel.getPlotPane());
+        
+        // Setup the region listener to connect the plot info window.
         MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
             @Override
             public void regionSelected(PlotterRegion region) {
-                if (region == null)
-                    throw new RuntimeException("The region arg is null!!!");
-                frame.plotInfoPanel.setCurrentRegion(region);
+                if (region != null) {
+                    frame.plotInfoPanel.setCurrentRegion(region);
+                }
             }
         });
+        
+        // Perform global configuration of the JFreeChart back end.
         AnalysisFactory.configure();
     }
     
+    /**
+     * Setup the logger.
+     */
     void setupLogger() {
         logHandler = new LogHandler();
         logger.setUseParentHandlers(false);
         logger.addHandler(logHandler);
-        logger.setLevel(Level.ALL);        
+        logger.setLevel(Level.ALL);       
+        logger.info("logging initialized");
     }
-        
-    public static MonitoringApplication create(Configuration configuration) {
-        return new MonitoringApplication(configuration);
-    }    
-    
-    public static MonitoringApplication create() {
-        return create(new Configuration(DEFAULT_CONFIGURATION));
-    }
-    
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        // TODO Auto-generated method stub
-    }
-    
+            
+    /**
+     * This method sets the configuration on the model, which fires a change for every property.
+     * @param configuration The new configuration.
+     */
     void loadConfiguration(Configuration configuration) {
-
         // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
-
-        // Log that a new configuration was loaded.
-        //if (configuration.getFile() != null)
-            //logger.config("Loaded configuration from file: " + configuration.getFile().getPath());
-        //else
-            //logger.config("Loaded configuration from resource: " + configuration.getResourcePath());
+        if (configuration.getFile() != null)
+            logger.config("loaded configuration from file: " + configuration.getFile().getPath());
+        else
+            logger.config("loaded configuration from resource: " + configuration.getResourcePath());
     }
-   
-    
+              
     /**
-     * Connect to the ET system using the current connection settings.
+     * Reset the plots and clear the tabs in the plot window.
      */
-    void connect() throws IOException {
-
-        // Make sure applicable menu items are enabled or disabled.
-        // This applies whether or not using an ET server or file source.
-        //setConnectedGuiState();
-
-        // Setup the network connection if using an ET server.
-        if (usingEtServer()) {
-            // Create a connection to the ET server.
-            try {
-                createEtConnection();
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
-        } else {
-            // This is when a direct file source is used and ET is not needed.
-            connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
-        }
-    }
-    
-    /**
-     * 
-     * @return
-     */
-    boolean usingEtServer() {
-        return configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
-    }    
-    
-    /**
-     * Create a connection to an ET system using current parameters from the GUI. If successful, the
-     * application's ConnectionStatus is changed to CONNECTED.
-     */
-    void createEtConnection() {
-
-        // Setup connection to ET system.
-        sessionState.connection = EtSystemUtil.createEtConnection(configurationModel);
-
-        if (sessionState.connection != null) {
-
-            // Set status to connected as there is now a live ET connection.
-            connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
-
-            //logger.info("successfully connected to ET system");
-
-        } else {
-            errorHandler.setError(new RuntimeException("Failed to create ET connection.")).log().printStackTrace().raiseException();
-        }
-    }    
-        
     void resetPlots() {
 
         // Clear the static AIDA tree in case plots are hanging around from previous sessions.
         AIDA.defaultInstance().clearAll();
 
-        // Reset plots.
+        // Reset plot panel which removes all tabs.
         frame.plotPanel.reset();
-    }           
-                         
         
-    /**
-     * Disconnect from the current ET session with a particular status.
-     * @param status The connection status.
-     */
-    void disconnect() {
-
-        //logger.fine("Disconnecting the current session.");
-
-        // Cleanup the ET connection.
-        cleanupEtConnection();
-
-        // Change application state to disconnected.
-        connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
-
-        //logger.info("Disconnected from the session.");
-    }    
-    
-    /**
-     * Cleanup the ET connection.
-     */
-    void cleanupEtConnection() {
-        if (sessionState != null) {
-            if (sessionState.connection != null) {
-                if (sessionState.connection.getEtSystem().alive()) {
-                    sessionState.connection.cleanup();
-                }
-                sessionState.connection = null;
-            }
-        }
-    }
-    
+        logger.info("plots were cleared");
+    }                                    
+                   
     /**
      * Configure the system status monitor panel for a new job.
      */
@@ -268,6 +329,8 @@ public class MonitoringApplication implements PropertyChangeListener, SystemStat
             // Add this class as a listener so all status changes can be logged.
             systemStatus.addListener(this);
         }
+        
+        logger.info("system status monitor initialized successfully");
     }
     
     /**
@@ -285,23 +348,22 @@ public class MonitoringApplication implements PropertyChangeListener, SystemStat
         }
 
         // Log all status changes.
-        //logger.log(level, "STATUS, " + "subsys: " + status.getSubsystem() + ", " 
-        //        + "code: " + status.getStatusCode().name() 
-        //        + ", " + "descr: " + status.getDescription() 
-        //       + ", " + "mesg: " + status.getMessage());
+        logger.log(level, "STATUS, " + "subsys: " + status.getSubsystem() + ", " 
+                + "code: " + status.getStatusCode().name() 
+                + ", " + "descr: " + status.getDescription() 
+                + ", " + "mesg: " + status.getMessage());
     }
     
     /**
-     * Start a new monitoring session. This method is executed in a separate thread from the EDT
-     * within {@link #actionPerformed(ActionEvent)} so GUI updates are not blocked while the session
-     * is being setup.
+     * <p>
+     * Start a new monitoring session.
+     * <p> 
+     * This method is executed in a separate thread from the EDT within {@link #actionPerformed(ActionEvent)} 
+     * so that GUI updates are not blocked while the session is being setup.
      */
     void startSession() {
-
-        //logger.fine("Starting a new monitoring session.");
-
-        // Show a modal window that will block the GUI until connected or an error occurs.
-        //JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Starting new session ...");
+        
+        logger.info("starting new session");
 
         try {
             
@@ -313,78 +375,229 @@ public class MonitoringApplication implements PropertyChangeListener, SystemStat
             // e.g. an LCSim Driver, etc.
             SystemStatusRegistry.getSystemStatusRegistery().clear();
 
-            // Setup event processing.
-            sessionState = new SessionState();
+            // List of extra composite record processors including the updater for the RunPanel.
             List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
             processors.add(frame.runPanel.new RunPanelUpdater());
+            
+            // Initialize event processing with the list of processors and reference to the application.
             processing = new EventProcessing(this, processors);
+            
+            // Configure event processing from the global application settings.
+            logger.info("setting up event processing on source " + configurationModel.getDataSourcePath() 
+                    + " with type " + configurationModel.getDataSourceType());
             processing.setup(configurationModel);
                                   
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
             
-            // Connect to the ET system.
-            connect();
-          
-            // Start event processing.
-            processing.start();
+            // Connect to the ET system, if applicable.
+            processing.connect();
+                     
+            // Start the event processing thread.
+            processing.start();            
             
-            //logger.info("successfully started the monitoring session");
+            logger.info("new session successfully initialized");
 
         } catch (Exception e) {
 
-            //logger.severe("error occurred while setting up the session");
-
-            // Log the error that occurred.
-            errorHandler.setError(e).log().printStackTrace();
-
-            // Disconnect from the session.
-            // FIXME: This should never be needed as connected should only be set at end w/o errors.
-            disconnect();
-
-        } finally {
-            // Close modal window.
-            //dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+            // Disconnect from the ET system.
+            processing.disconnect();
+            
+            // Log the error that occurred and show a pop up dialog.
+            errorHandler.setError(e).log().printStackTrace().showErrorDialog("There was an error while starting the session." 
+                    + '\n' + "See the log for details.", "Session Error");
+            
+            logger.severe("failed to start new session");
         }
     }
     
     /**
-     * Stop the session by killing the event processing thread, ending the job, and disconnecting
-     * from the ET system.
+     * Stop the session by disconnecting from the ET system and stopping the event processing.
      */
     void stopSession() {
-        // Show a modal message window while this method executes.
-        //JDialog dialog = DialogUtil.showStatusDialog(this, "Info", "Disconnecting from session ...");
+        
+        logger.info("stopping the session");
+        
+        // Disconnect from ET system, if using the ET server, and set the proper disconnected GUI state.
+        processing.disconnect();
 
-        try {
-            // Log message.
-            //logger.log(Level.FINER, "stopping the session");
-
-            // Kill the watchdog thread which looks for disconnects, if it is active.
-            processing.killWatchdogThread();
-            
-            // Disconnect from ET system, if using the ET server, and set the proper disconnected
-            // GUI state.
-            disconnect();
-
-            // Stop the event processing, which is called after the ET system goes down to avoid
-            // hanging in calls to ET system.
-            processing.stop();
-
-            //logger.log(Level.INFO, "session was stopped");
-
-        } finally {
-            // Close modal message window.
-            //dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-        }
+        // Stop the event processing, which is called after the ET system goes down to avoid hanging in calls to ET system.
+        processing.stop(); 
+        
+        logger.info("session was stopped");
     }
     
     /**
      * Exit from the application.
      */
-    void exit() {
-        cleanupEtConnection();
+    void exit() {        
+        // Cleanup ET system if necessary.
+        if (processing != null && processing.isActive()) {
+            logger.info("killing active ET connection");
+            processing.closeEtConnection();
+        }
         frame.setVisible(false);
+        logger.info("exiting the application");
+        logger.getHandlers()[0].flush();
         System.exit(0);
     }              
+            
+    /**
+     * Save AIDA plots to a file using a file chooser.
+     */
+    void savePlots() {
+        JFileChooser fc = new JFileChooser();
+        int r = fc.showSaveDialog(frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            File fileName = fc.getSelectedFile();
+            try {
+                AIDA.defaultInstance().saveAs(fileName);
+                logger.info("saved plots to file: " + fileName);
+                DialogUtil.showInfoDialog(frame,
+                        "Plots Saved", 
+                        "Plots were successfully saved to AIDA file.");
+            } catch (IOException e) {
+                errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
+            }
+        }
+    }
+    
+    /**
+     * Clear the current set of AIDA plots in the default data tree.
+     */
+    void clearPlots() {
+        int confirmation = DialogUtil.showConfirmationDialog(frame, 
+                "Are you sure you want to clear the plots", "Clear Plots Confirmation");
+        if (confirmation == JOptionPane.YES_OPTION) {
+            AIDA.defaultInstance().clearAll();
+            DialogUtil.showInfoDialog(frame,
+                    "Plots Clear", 
+                    "The AIDA plots were cleared.");
+        }
+        logger.info("plots were cleared");
+    }
+    
+    /**
+     * Load default application settings.
+     */
+    void loadDefaultSettings() {
+        configuration = new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION);
+        configurationModel.setConfiguration(configuration);
+        DialogUtil.showInfoDialog(frame,
+                "Default Configuration Loaded", 
+                "The default configuration was loaded.");
+        logger.config("default settings loaded");
+    }
+    
+    /**
+     * Show the settings dialog window.
+     */
+    void showSettingsDialog() {
+        frame.settingsDialog.setVisible(true);
+    }
+        
+    /**
+     * Open a file data source using a <code>JFileChooser</code>.
+     */
+    void openFile() {
+        JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.addChoosableFileFilter(lcioFilter);
+        fc.addChoosableFileFilter(evioFilter);
+        fc.setDialogTitle("Select Data File");
+        int r = fc.showDialog(frame, "Select ...");        
+        if (r == JFileChooser.APPROVE_OPTION) {
+                                  
+            // Set data source path.            
+            final String filePath = fc.getSelectedFile().getPath();
+            
+            // Set data source type.
+            FileFilter filter = fc.getFileFilter();
+            DataSourceType type = null;
+            if (filter == lcioFilter) {
+                type = DataSourceType.LCIO_FILE;
+            } else if (filter == evioFilter) {
+                type = DataSourceType.EVIO_FILE;
+            } else {
+                // This should never happen.
+                throw new RuntimeException();
+            }
+                        
+            configurationModel.setDataSourcePath(filePath);
+            configurationModel.setDataSourceType(type);
+            
+            logger.config("set new data source " + filePath + " with type " + type);
+        }
+    }    
+    
+    /**
+     * Save current settings to a file using a file chooser.
+     */
+    void saveSettings() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Save Configuration");
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showSaveDialog(frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            File f = fc.getSelectedFile();
+            configuration.writeToFile(f);
+            logger.info("saved configuration to file: " + f.getPath());
+            DialogUtil.showInfoDialog(frame,
+                    "Settings Saved", 
+                    "Settings were saved successfully.");
+        }
+    }
+    
+    /**
+     * Load settings from a properties file using a file chooser.
+     */
+    void loadSettings() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Load Settings");
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showDialog(frame, "Load ...");
+        if (r == JFileChooser.APPROVE_OPTION) {
+            File f = fc.getSelectedFile();
+            configuration = new Configuration(f);
+            loadConfiguration(configuration);
+            logger.info("loaded configuration from file: " + f.getPath());
+            DialogUtil.showInfoDialog(frame,
+                    "Settings Loaded", 
+                    "Settings were loaded successfully.");
+        }
+    }
+    
+    /**
+     * Maximize the application window.
+     */
+    void maximizeWindow() {
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    }   
+    
+    /**
+     * Minimize the application window.
+     */
+    void minimizeWindow() {
+        frame.setExtendedState(JFrame.ICONIFIED);
+    }    
+    
+    /**
+     * Restore the default GUI layout.
+     */
+    void restoreDefaultWindow() {
+        maximizeWindow();
+        frame.restoreDefaults();
+    }    
+    
+    /**
+     * Remove the currently selected file from the data source list.
+     */
+    void closeFile() {
+        if (!configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
+            DataSourceItem item = (DataSourceItem) frame.dataSourceComboBox.getSelectedItem();
+            if (item.name.equals(configurationModel.getDataSourcePath())) {
+                frame.dataSourceComboBox.removeItem(frame.dataSourceComboBox.getSelectedItem());    
+            }            
+        }
+    }
 }

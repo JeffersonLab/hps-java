@@ -2,8 +2,6 @@
 # Monitoring Application configuration
 
 # job settings
-AutoSaveAida=true
-AidaFileName=monitoringPlots.aida
 DetectorName=HPS-Proposal2014-v8-6pt6
 DisconnectOnError=false
 DisconnectOnEndRun=true
@@ -18,7 +16,7 @@ SteeringType=RESOURCE
 
 # event source
 DataSourceType=ET_SERVER
-DataSourcePath=
+#DataSourcePath=
 ProcessingStage=LCIO
 
 # ET connection settings

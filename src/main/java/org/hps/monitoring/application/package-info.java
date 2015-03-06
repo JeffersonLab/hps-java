@@ -22,4 +22,4 @@
  * </p>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-package org.hps.monitoring;
+package org.hps.monitoring.application;

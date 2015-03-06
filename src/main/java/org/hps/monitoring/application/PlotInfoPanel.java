@@ -42,7 +42,7 @@ import javax.swing.table.DefaultTableModel;
  * <p>
  * The information is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
  */
-public class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener {
+class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener {
 
     JComboBox<Object> plotComboBox;
     JTable infoTable = new JTable();

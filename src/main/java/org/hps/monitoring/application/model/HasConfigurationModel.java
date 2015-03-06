@@ -1,7 +1,7 @@
 package org.hps.monitoring.application.model;
 
 /**
- * Mixin interface for classes that have an associated {@link ConfigurationModel}.
+ * Mix-in interface for classes that have an associated {@link ConfigurationModel}.
  */
 public interface HasConfigurationModel {
 

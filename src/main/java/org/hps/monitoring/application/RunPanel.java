@@ -40,7 +40,7 @@ import org.lcsim.event.EventHeader;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class RunPanel extends JPanel implements PropertyChangeListener {
+class RunPanel extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
     DatePanel startDateField = new DatePanel("Run Start", "", 16, false);

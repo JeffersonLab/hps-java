@@ -102,6 +102,20 @@ public final class ErrorHandler {
         SwingUtilities.invokeLater(runnable);
         return this;
     }
+    
+    /**
+     * Show an error dialog with a custom message and title.
+     * @return This object.
+     */
+    public ErrorHandler showErrorDialog(final String message, final String title) {
+        final Runnable runnable = new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);
+            }
+        };
+        SwingUtilities.invokeLater(runnable);
+        return this;
+    }
 
     /**
      * Rethrow the error as a <code>RuntimeException</code>. Additional methods cannot be chained to

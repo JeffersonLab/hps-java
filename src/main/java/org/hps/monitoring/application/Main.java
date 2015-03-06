@@ -1,4 +1,4 @@
-package org.hps.monitoring;
+package org.hps.monitoring.application;
 
 import java.io.File;
 
@@ -9,15 +9,17 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.hps.monitoring.application.MonitoringApplication;
 import org.hps.monitoring.application.model.Configuration;
 
 
 /**
  * This is the front-end for running the monitoring app via a {@link #main(String[])} method.
  */
-public class Main {
+public final class Main {
 
+    private Main() {
+    }
+    
     public static void main(String[] args) {
         
         // Set up command line parsing.

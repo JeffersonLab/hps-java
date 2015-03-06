@@ -21,6 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 import org.hps.monitoring.application.model.ConfigurationModel;
+import org.hps.monitoring.application.model.SteeringType;
 import org.hps.monitoring.application.util.ResourceUtil;
 import org.jdom.Document;
 import org.jdom.Element;

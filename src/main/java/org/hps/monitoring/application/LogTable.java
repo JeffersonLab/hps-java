@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableModel;
  * This is a simple Swing component for the table of log messages.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class LogTable extends JTable {
+class LogTable extends JTable {
     
     private DefaultTableModel model;
     static final String[] logTableColumns = { "Date", "Level", "Message" };

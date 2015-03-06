@@ -15,8 +15,7 @@ import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusListener;
 
 /**
- * A <code>JTableModel</code> that has a list of {@link org.hps.monitoring.subsys.SystemStatus}
- * objects.
+ * A <code>JTableModel</code> that has a list of {@link org.hps.monitoring.subsys.SystemStatus} objects.
  */
 public final class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
 
@@ -123,7 +122,7 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
     @Override
     public void statusChanged(SystemStatus status) {
         int rowNumber = statuses.indexOf(status);
-        this.fireTableRowsUpdated(rowNumber, rowNumber);
+        fireTableRowsUpdated(rowNumber, rowNumber);
     }
 
     public void clear() {

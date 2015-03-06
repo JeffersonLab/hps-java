@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**

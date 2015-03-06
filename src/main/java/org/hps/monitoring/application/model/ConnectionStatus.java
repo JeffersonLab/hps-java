@@ -1,9 +1,11 @@
-package org.hps.monitoring.application;
+package org.hps.monitoring.application.model;
 
 import java.awt.Color;
 
 /**
- * Status of the connection to the ET server from the monitoring client.
+ * This is the status of the connection to the ET server from the monitoring client,
+ * and it includes a color that should be displayed in the GUI for the associated
+ * text.
  */
 public enum ConnectionStatus {
 
@@ -16,7 +18,7 @@ public enum ConnectionStatus {
         this.color = color;
     }
     
-    Color getColor() {
+    public Color getColor() {
         return color;
     }
 }

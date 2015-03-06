@@ -1,35 +1,70 @@
 package org.hps.monitoring.application;
 
 import static org.hps.monitoring.application.Commands.EXIT;
-import static org.hps.monitoring.application.Commands.OPEN_FILE;
-import static org.hps.monitoring.application.Commands.PLOTS_SAVE;
+import static org.hps.monitoring.application.Commands.FILE_CLOSE;
+import static org.hps.monitoring.application.Commands.FILE_OPEN;
 import static org.hps.monitoring.application.Commands.PLOTS_CLEAR;
+import static org.hps.monitoring.application.Commands.PLOTS_SAVE;
 import static org.hps.monitoring.application.Commands.SETTINGS_LOAD;
 import static org.hps.monitoring.application.Commands.SETTINGS_LOAD_DEFAULT;
 import static org.hps.monitoring.application.Commands.SETTINGS_SAVE;
 import static org.hps.monitoring.application.Commands.SETTINGS_SHOW;
+import static org.hps.monitoring.application.Commands.WINDOW_DEFAULTS;
+import static org.hps.monitoring.application.Commands.WINDOW_MAXIMIZE;
+import static org.hps.monitoring.application.Commands.WINDOW_MINIMIZE;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-public class MenuBar extends JMenuBar {
-          
-    MenuBar(ActionListener listener) {
+import org.hps.monitoring.application.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConnectionStatus;
+import org.hps.monitoring.application.model.ConnectionStatusModel;
+import org.hps.record.enums.DataSourceType;
+
+/**
+ * This is the primary menu bar for the monitoring application.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
+class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {
+    
+    JMenuItem closeFileItem;
+    JMenuItem openFileItem;    
+    JMenu settingsMenu;
+    ConfigurationModel configurationModel;
+    
+    MenuBar(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
+        
+        // Do not need to listen for changes on this model.
+        this.configurationModel = configurationModel;
+        
+        // Need to listen for connection status changes.
+        connectionModel.addPropertyChangeListener(this);                
 
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
         
-        JMenuItem openFileItem = new JMenuItem("Open File ...");
+        openFileItem = new JMenuItem("Open File ...");
         openFileItem.setMnemonic(KeyEvent.VK_P);
-        openFileItem.setActionCommand(OPEN_FILE);
+        openFileItem.setActionCommand(FILE_OPEN);
         openFileItem.addActionListener(listener);
         openFileItem.setToolTipText("Open an EVIO or LCIO data file");
         fileMenu.add(openFileItem);
+        
+        closeFileItem = new JMenuItem("Close File");
+        closeFileItem.setMnemonic(KeyEvent.VK_C);
+        closeFileItem.setActionCommand(FILE_CLOSE);
+        closeFileItem.addActionListener(listener);
+        closeFileItem.setToolTipText("Close the current file data source");
+        fileMenu.add(closeFileItem);
               
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
@@ -38,11 +73,11 @@ public class MenuBar extends JMenuBar {
         exitItem.setToolTipText("Exit from the application");
         fileMenu.add(exitItem);
                 
-        JMenu settingsMenu = new JMenu("Settings");
+        settingsMenu = new JMenu("Settings");
         settingsMenu.setMnemonic(KeyEvent.VK_S);
         add(settingsMenu);
         
-        JMenuItem settingsItem = new JMenuItem("Open Settings Dialog ...");
+        JMenuItem settingsItem = new JMenuItem("Open Settings Window ...");
         settingsItem.setMnemonic(KeyEvent.VK_O);
         settingsItem.setActionCommand(SETTINGS_SHOW);
         settingsItem.addActionListener(listener);
@@ -89,6 +124,34 @@ public class MenuBar extends JMenuBar {
         clearPlotsItem.setEnabled(true);
         clearPlotsItem.setToolTipText("Clear the AIDA plots");
         plotsMenu.add(clearPlotsItem);
+        
+        JMenu windowMenu = new JMenu("Window");
+        windowMenu.setMnemonic(KeyEvent.VK_W);
+        add(windowMenu);
+        
+        JMenuItem maximizeItem = new JMenuItem("Maximize");
+        maximizeItem.setMnemonic(KeyEvent.VK_M);
+        maximizeItem.setActionCommand(WINDOW_MAXIMIZE);
+        maximizeItem.addActionListener(listener);
+        maximizeItem.setEnabled(true);
+        maximizeItem.setToolTipText("Maximize the application window");
+        windowMenu.add(maximizeItem);
+        
+        JMenuItem minimizeItem = new JMenuItem("Minimize");
+        minimizeItem.setMnemonic(KeyEvent.VK_I);
+        minimizeItem.setActionCommand(WINDOW_MINIMIZE);
+        minimizeItem.addActionListener(listener);
+        minimizeItem.setEnabled(true);
+        minimizeItem.setToolTipText("Minimize the application window");
+        windowMenu.add(minimizeItem);
+        
+        JMenuItem defaultsItem = new JMenuItem("Restore Defaults");
+        defaultsItem.setMnemonic(KeyEvent.VK_D);
+        defaultsItem.setActionCommand(WINDOW_DEFAULTS);
+        defaultsItem.addActionListener(listener);
+        defaultsItem.setEnabled(true);
+        defaultsItem.setToolTipText("Restore the window defaults");
+        windowMenu.add(defaultsItem);        
         
         /*                       
 
@@ -137,6 +200,27 @@ public class MenuBar extends JMenuBar {
         screenshotItem.setToolTipText("Save a screenshot to file");
         utilMenu.add(screenshotItem);
         */
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
+            ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
+            boolean connected = status.equals(ConnectionStatus.CONNECTED);            
+            closeFileItem.setEnabled(!connected);
+            openFileItem.setEnabled(!connected);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getActionCommand().equals(Commands.DATA_SOURCE_CHANGED)) {
+            if (!configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
+                closeFileItem.setEnabled(true);
+            } else {
+                closeFileItem.setEnabled(false);
+            }
+        }        
     }
     
 }

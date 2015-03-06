@@ -12,7 +12,7 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  * The modal dialog for entering settings. It contains a <code>JPanel</code> with the different
  * settings sub-tabs.
  */
-public class SettingsDialog extends JDialog {
+class SettingsDialog extends JDialog {
 
     final SettingsPanel settingsPanel;
 

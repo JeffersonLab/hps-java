@@ -17,7 +17,7 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 /**
  * The container component with the tabs that have job and connection settings.
  */
-public class SettingsPanel extends JPanel implements ActionListener {
+class SettingsPanel extends JPanel implements ActionListener {
 
     JTabbedPane tabs;
     JobSettingsPanel jobPanel;

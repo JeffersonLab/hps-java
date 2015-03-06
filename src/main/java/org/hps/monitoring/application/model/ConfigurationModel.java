@@ -3,7 +3,6 @@ package org.hps.monitoring.application.model;
 import java.io.File;
 import java.util.logging.Level;
 
-import org.hps.monitoring.application.SteeringType;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.jlab.coda.et.enums.Mode;
@@ -15,7 +14,7 @@ import org.jlab.coda.et.enums.Mode;
 public final class ConfigurationModel extends AbstractModel {
 
     Configuration configuration;
-
+    
     // Job setting properties.
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DETECTOR_ALIAS_PROPERTY = "DetectorAlias";
@@ -375,6 +374,10 @@ public final class ConfigurationModel extends AbstractModel {
     public Long getMaxEvents() {
         return configuration.getLong(MAX_EVENTS_PROPERTY);
     }
+       
+    public String getEtPath() {
+        return getEtName() + "@" + getHost() + ":" + getPort();
+    }
 
     public void remove(String property) {
         if (hasPropertyKey(property)) {
@@ -397,5 +400,5 @@ public final class ConfigurationModel extends AbstractModel {
     @Override
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
-    }
+    }    
 }

@@ -11,7 +11,10 @@ import org.freehep.record.loop.RecordLoop.Command;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.monitoring.application.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConnectionStatus;
+import org.hps.monitoring.application.model.SteeringType;
 import org.hps.monitoring.application.util.ErrorHandler;
+import org.hps.monitoring.application.util.EtSystemUtil;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.LCSimEventBuilder;
@@ -20,6 +23,7 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
+import org.hps.record.et.EtConnection;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsReader;
@@ -30,26 +34,53 @@ import org.lcsim.util.Driver;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  *
  */
-public class EventProcessing {
+class EventProcessing {
     
     MonitoringApplication application;
-    SessionState state;
-    ErrorHandler errorHandler;
     Logger logger;
+    SessionState sessionState;
     List<CompositeRecordProcessor> processors;
     
+    /**
+     *         
+     */
+    class SessionState {
+        JobManager jobManager;
+        LCSimEventBuilder eventBuilder;
+        CompositeLoop loop;
+        EventProcessingThread processingThread;
+        Thread sessionWatchdogThread;
+        EtConnection connection;
+    }
+    
+    /**
+     * 
+     * @param application
+     * @param processors
+     */
     EventProcessing(
             MonitoringApplication application, 
             List<CompositeRecordProcessor> processors) {
         this.application = application;
-        this.state = application.sessionState;
-        this.logger = MonitoringApplication.logger;        
-        this.errorHandler = application.errorHandler;        
+        this.sessionState = new SessionState();
         this.processors = processors;
+        this.logger = MonitoringApplication.logger;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    SessionState getSessionState() {
+        return sessionState;
     }
 
+    /**
+     * 
+     * @param configurationModel
+     */
     void setup(ConfigurationModel configurationModel) {
-        logger.info("setting up LCSim");
+        MonitoringApplication.logger.info("setting up LCSim");
 
         // Get steering resource or file as a String parameter.
         String steering = null;
@@ -63,11 +94,11 @@ public class EventProcessing {
         else
             steering = configurationModel.getSteeringResource();
 
-        logger.config("Set steering to " + steering + " with type " + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE"));
+        MonitoringApplication.logger.config("Set steering to " + steering + " with type " + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE"));
 
         try {
             // Create and the job manager.  The conditions manager is instantiated from this call but not configured.
-            state.jobManager = new JobManager();
+            sessionState.jobManager = new JobManager();
             
             if (configurationModel.hasValidProperty(ConfigurationModel.DETECTOR_ALIAS_PROPERTY)) {
                 // Set a detector alias.                
@@ -80,7 +111,7 @@ public class EventProcessing {
             createEventBuilder(configurationModel);
             
             // Configure the job manager for the XML steering.
-            state.jobManager.setPerformDryRun(true);
+            sessionState.jobManager.setPerformDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
                 setupSteeringResource(steering);
             } else if (steeringType.equals(SteeringType.FILE)) {
@@ -109,7 +140,7 @@ public class EventProcessing {
 
         } catch (Throwable t) {
             // Catch all errors and rethrow them as RuntimeExceptions.
-            errorHandler.setError(t).setMessage("Error setting up LCSim.").printStackTrace().raiseException();
+            application.errorHandler.setError(t).setMessage("Error setting up LCSim.").printStackTrace().raiseException();
         }
         
         // Setup the CompositeLoop.
@@ -128,17 +159,21 @@ public class EventProcessing {
 
         try {
             // Create a new instance of the builder class.
-            state.eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName).newInstance();
+            sessionState.eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName).newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Failed to create LCSimEventBuilder.", e);
         }
 
         // Add the builder as a listener so it is notified when conditions change.
-        ConditionsManager.defaultInstance().addConditionsListener(state.eventBuilder);
+        ConditionsManager.defaultInstance().addConditionsListener(sessionState.eventBuilder);
 
         //logger.config("successfully initialized event builder: " + eventBuilderClassName);
     }
     
+    /**
+     * 
+     * @param configurationModel
+     */
     void setupLoop(ConfigurationModel configurationModel) {
 
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
@@ -146,9 +181,9 @@ public class EventProcessing {
             .setStopOnErrors(configurationModel.getDisconnectOnError())
             .setDataSourceType(configurationModel.getDataSourceType())
             .setProcessingStage(configurationModel.getProcessingStage())
-            .setEtConnection(state.connection)
+            .setEtConnection(sessionState.connection)
             .setFilePath(configurationModel.getDataSourcePath())
-            .setLCSimEventBuilder(state.eventBuilder)
+            .setLCSimEventBuilder(sessionState.eventBuilder)
             .setDetectorName(configurationModel.getDetectorName());
 
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {
@@ -160,7 +195,7 @@ public class EventProcessing {
         }
         
         // Add all Drivers from the JobManager.
-        for (Driver driver : state.jobManager.getDriverExecList()) {
+        for (Driver driver : sessionState.jobManager.getDriverExecList()) {
             loopConfig.add(driver);
         }
 
@@ -183,8 +218,29 @@ public class EventProcessing {
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
 
         // Create the CompositeLoop with the configuration.
-        state.loop = new CompositeLoop(loopConfig);        
+        sessionState.loop = new CompositeLoop(loopConfig);        
     }    
+    
+    /**
+     * 
+     * @param steering
+     */
+    void setupSteeringFile(String steering) {
+        sessionState.jobManager.setup(new File(steering));
+    }
+
+    /**
+     * 
+     * @param steering
+     * @throws IOException
+     */
+    void setupSteeringResource(String steering) throws IOException {
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
+        if (is == null)
+            throw new IOException("Steering resource is not accessible or does not exist.");
+        sessionState.jobManager.setup(is);
+        is.close();
+    }
     
     /**
      * Stop the event processing by executing a <code>STOP</code> command on the record loop and
@@ -192,20 +248,20 @@ public class EventProcessing {
      * that the event processing does not potentially hang in a call to
      * <code>EtSystem.getEvents()</code> forever.
      */
-    void stop() {
+    synchronized void stop() {
 
         // Is the event processing thread not null?
-        if (state.processingThread != null) {
+        if (sessionState.processingThread != null) {
 
             // Is the event processing thread actually still alive?
-            if (state.processingThread.isAlive()) {
+            if (sessionState.processingThread.isAlive()) {
 
                 // Request the event processing loop to execute stop.
-                state.loop.execute(Command.STOP);
+                sessionState.loop.execute(Command.STOP);
 
                 try {
                     // This should always work, because the ET system is disconnected before this.
-                    state.processingThread.join();
+                    sessionState.processingThread.join();
                 } catch (InterruptedException e) {
                     // Don't know when this would ever happen.
                     e.printStackTrace();
@@ -213,49 +269,38 @@ public class EventProcessing {
             }
 
             // Notify of last error that occurred in event processing.
-            if (state.loop.getLastError() != null) {
-                errorHandler.setError(state.loop.getLastError()).log().printStackTrace();
+            if (sessionState.loop.getLastError() != null) {
+                application.errorHandler.setError(sessionState.loop.getLastError()).log().printStackTrace();
             }
 
             // Set the event processing thread to null as it is unusable now.
-            state.processingThread = null;
+            sessionState.processingThread = null;
         }
 
         // Set the loop to null as a new one will be created for next session.
-        state.loop = null;
+        sessionState.loop = null;
     }    
-    
-    void setupSteeringFile(String steering) {
-        //logger.config("setting up steering file: " + steering);
-        state.jobManager.setup(new File(steering));
-    }
-
-    void setupSteeringResource(String steering) throws IOException {
-        //logger.config("setting up steering resource: " + steering);
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
-        if (is == null)
-            throw new IOException("Steering resource is not accessible or does not exist.");
-        state.jobManager.setup(is);
-        is.close();
-    }
-    
-    void start() {
+           
+    /**
+     * 
+     */
+    synchronized void start() {
         
         // Start the event processing thread.
-        state.processingThread = new EventProcessingThread(state.loop);
-        state.processingThread.start();
+        sessionState.processingThread = new EventProcessingThread(sessionState.loop);
+        sessionState.processingThread.start();
         
         // Start the watchdog thread which will auto-disconnect when event processing is done.
-        state.sessionWatchdogThread = new SessionWatchdogThread(state.processingThread);
-        state.sessionWatchdogThread.start();        
+        sessionState.sessionWatchdogThread = new SessionWatchdogThread(sessionState.processingThread);
+        sessionState.sessionWatchdogThread.start();        
     }
     
     /**
      * Notify the event processor to pause.
      */
-    void pause() {
+    synchronized void pause() {
         if (!application.connectionModel.getPaused()) {
-            state.loop.pause();
+            sessionState.loop.pause();
             application.connectionModel.setPaused(true);
         }
     }
@@ -263,10 +308,10 @@ public class EventProcessing {
     /**
      * 
      */
-    void next() {
+    synchronized void next() {
         if (application.connectionModel.getPaused()) {
             application.connectionModel.setPaused(false);
-            state.loop.execute(Command.GO_N, 1L, true);
+            sessionState.loop.execute(Command.GO_N, 1L, true);
             application.connectionModel.setPaused(true);
         }
     }
@@ -274,34 +319,124 @@ public class EventProcessing {
     /**
      * Notify the event processor to resume processing events, if paused.
      */
-    void resume() {
+    synchronized void resume() {
         if (application.connectionModel.getPaused()) {
             // Notify event processor to continue.
-            state.loop.resume();        
+            sessionState.loop.resume();        
             application.connectionModel.setPaused(false);
         }
     }
     
-    void killWatchdogThread() {
+    /**
+     * 
+     */
+    synchronized void killWatchdogThread() {
         // Is the session watchdog thread not null?
-        if (state.sessionWatchdogThread != null) {
+        if (sessionState.sessionWatchdogThread != null) {
             // Is the thread still alive?
-            if (state.sessionWatchdogThread.isAlive()) {
+            if (sessionState.sessionWatchdogThread.isAlive()) {
                 // Interrupt the thread which should cause it to stop.
-                state.sessionWatchdogThread.interrupt();
+                sessionState.sessionWatchdogThread.interrupt();
                 try {
                     // This should always work once the thread is interrupted.
-                    state.sessionWatchdogThread.join();
+                    sessionState.sessionWatchdogThread.join();
                 } catch (InterruptedException e) {
                     // This should never happen.
                     e.printStackTrace();
                 }
             }
             // Set the thread object to null.
-            state.sessionWatchdogThread = null;
+            sessionState.sessionWatchdogThread = null;
         }
     }
     
+    /**
+     * Cleanup the ET connection.
+     */
+    synchronized void closeEtConnection() {
+        if (sessionState.connection != null) {
+            if (sessionState.connection.getEtSystem().alive()) {
+                sessionState.connection.cleanup();
+            }
+            sessionState.connection = null;
+        }        
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    boolean isActive() {
+        return sessionState.processingThread.isAlive();
+    }
+    
+    /**
+     * Connect to the ET system using the current connection settings.
+     */
+    void connect() throws IOException {
+
+        // Make sure applicable menu items are enabled or disabled.
+        // This applies whether or not using an ET server or file source.
+        //setConnectedGuiState();
+
+        // Setup the network connection if using an ET server.
+        if (usingEtServer()) {
+            // Create a connection to the ET server.
+            try {
+                createEtConnection();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        } else {
+            // This is when a direct file source is used and ET is not needed.
+            application.connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
+        }
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    boolean usingEtServer() {
+        return application.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
+    }    
+    
+    /**
+     * Create a connection to an ET system using current parameters from the GUI. If successful, the
+     * application's ConnectionStatus is changed to CONNECTED.
+     */
+    void createEtConnection() {
+        // Setup connection to ET system.
+        sessionState.connection = EtSystemUtil.createEtConnection(application.configurationModel);
+
+        if (sessionState.connection != null) {
+            // Set status to connected as there is now a live ET connection.
+            application.connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
+            //logger.info("successfully connected to ET system");
+        } else {
+            application.errorHandler.setError(new RuntimeException("Failed to create ET connection.")).log().printStackTrace().raiseException();
+        }
+    }
+    
+    /**
+     * Disconnect from the current ET session with a particular status.
+     * @param status The connection status.
+     */
+    void disconnect() {
+        
+        // Kill the session watch dog thread.
+        killWatchdogThread();
+
+        // Cleanup the ET connection.
+        closeEtConnection();
+
+        // Change application state to disconnected.
+        application.connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+    }    
+               
+    /**
+     * This class notifies the application to disconnect if the event processing thread completes.     
+     */
     class SessionWatchdogThread extends Thread {
 
         Thread processingThread;
@@ -317,13 +452,11 @@ public class EventProcessing {
                 processingThread.join();
                                 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
-                application.actionListener.actionPerformed(new ActionEvent(Thread.currentThread(), 0, Commands.DISCONNECT));
-
+                application.actionPerformed(new ActionEvent(Thread.currentThread(), 0, Commands.DISCONNECT));
+                               
             } catch (InterruptedException e) {
-                // This probably just means that the disconnect button was pushed, and this thread
-                // should no longer monitor the event processing.
-                e.printStackTrace();
-            }
+                // This happens when the thread is interrupted by the user pressing the disconnect button.
+            }            
         }
     }
 }

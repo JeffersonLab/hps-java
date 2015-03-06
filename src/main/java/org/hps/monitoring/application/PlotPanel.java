@@ -9,7 +9,7 @@ import javax.swing.JTabbedPane;
  * This is the panel containing the monitoring plots.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class PlotPanel extends JPanel {
+class PlotPanel extends JPanel {
     
     private JTabbedPane plotPane;    
     

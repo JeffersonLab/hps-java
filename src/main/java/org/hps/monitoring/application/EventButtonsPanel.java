@@ -12,6 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
@@ -65,11 +66,9 @@ class EventButtonsPanel extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {
-        System.out.println("EventButtonsPanel.propertyChange - " + evt.getPropertyName());
         if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
             setConnectionStatus((ConnectionStatus) evt.getNewValue());
         } else if (evt.getPropertyName().equals(ConnectionStatusModel.PAUSED_PROPERTY)) {
-            System.out.println("  setPaused: " + (boolean) evt.getNewValue());
             setPaused((boolean) evt.getNewValue());
         }
     }
