@@ -390,6 +390,9 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         isInitialized = true;
         
         logger.info("conditions system initialized successfully");
+        
+        // Flush logger after initialization.
+        logger.getHandlers()[0].flush();
     }
 
     /**
