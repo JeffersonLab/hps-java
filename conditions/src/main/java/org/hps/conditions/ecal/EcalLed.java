@@ -13,7 +13,7 @@ import org.hps.conditions.database.Table;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @Table(names = "ecal_leds")
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public class EcalLed extends AbstractConditionsObject {
 
     /**

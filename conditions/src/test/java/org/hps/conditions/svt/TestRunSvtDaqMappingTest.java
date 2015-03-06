@@ -37,7 +37,7 @@ public class TestRunSvtDaqMappingTest extends TestCase {
         conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
         conditionsManager.setDetector("HPS-TestRun-v5", 1351);
 
-        TestRunSvtDaqMappingCollection daqMappingCollection = conditionsManager.getCollection(TestRunSvtDaqMappingCollection.class);
+        TestRunSvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(TestRunSvtDaqMappingCollection.class, "test_run_svt_daq_map").getCachedData();
 
         int totalSensors = 0;
         this.printDebug("");

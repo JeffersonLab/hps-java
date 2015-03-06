@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
+import org.lcsim.detector.converter.compact.EcalCrystal;
+import org.lcsim.detector.converter.compact.HPSEcalAPI;
 import org.lcsim.geometry.Subdetector;
 
 /**
@@ -19,12 +21,16 @@ import org.lcsim.geometry.Subdetector;
  */
 public final class EcalConditions {
 
-    /** Channel map. */
+    // Channel collection.
     EcalChannelCollection channelCollection = new EcalChannelCollection();
 
-    /** Map between channels and conditions data. */
+    // Map between channels and their conditions data.
     Map<EcalChannel, EcalChannelConstants> channelConstants = new HashMap<EcalChannel, EcalChannelConstants>();
 
+    // Map between geometry stations and channel.
+    EcalCrystalChannelMap crystalMap;
+    
+    // Reference to the current ECAL subdetector in the geometry.
     Subdetector subdetector;
     
     /**
@@ -34,7 +40,7 @@ public final class EcalConditions {
         if (subdetector == null) {
             throw new IllegalArgumentException("The subdetector argument is null.");
         }
-        this.subdetector = subdetector;
+        this.subdetector = subdetector;        
     }
 
     /**
@@ -42,7 +48,10 @@ public final class EcalConditions {
      * @param channels The channel map.
      */
     void setChannelCollection(EcalChannelCollection channelCollection) {
-        this.channelCollection = channelCollection;        
+        this.channelCollection = channelCollection;
+        
+        // Build the map between crystals and channels.
+        crystalMap = new EcalCrystalChannelMap((HPSEcalAPI)subdetector.getDetectorElement(), channelCollection);
     }
 
     /**
@@ -52,11 +61,20 @@ public final class EcalConditions {
     public EcalChannelCollection getChannelCollection() {
         return channelCollection;
     }
+    
+    /**
+     * Get the channel information for a geometric crystal.
+     * @param crystal The geometric crystal.
+     * @return The channel information or null if does not exist.
+     */
+    public EcalChannel getChannel(EcalCrystal crystal) {
+        return crystalMap.getEcalChannel(crystal);
+    }
         
     /**
      * Get the conditions constants for a specific channel. These will be
      * created if they do not exist for the given channel, BUT only channels in
-     * the current channel map are allowed as an argument.
+     * the channel map are accepted as an argument.
      * @param channel The ECAL channel.
      * @return The conditions constants for the channel.
      * @throws IllegalArgumentException if channel does not exist in the channel

@@ -29,13 +29,13 @@ public class EcalLedTest extends TestCase {
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         
         // LED channel information.
-        EcalLedCollection leds = manager.getCollection(EcalLedCollection.class);
+        EcalLedCollection leds = manager.getCachedConditions(EcalLedCollection.class, "ecal_leds").getCachedData();
         for (EcalLed led : leds) {    	
         	System.out.println(led);
         }
         
         // LED calibration data.
-        EcalLedCalibrationCollection calibrations = manager.getCollection(EcalLedCalibrationCollection.class);
+        EcalLedCalibrationCollection calibrations = manager.getCachedConditions(EcalLedCalibrationCollection.class, "ecal_led_calibrations").getCachedData();
         for (EcalLedCalibration calibration : calibrations) {        
             System.out.println(calibration);
         }

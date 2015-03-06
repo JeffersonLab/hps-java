@@ -11,7 +11,7 @@ import org.hps.conditions.database.Table;
  * This class represents an ECAL channel that is considered "bad" which means it
  * should not be used in reconstruction.
  */
-@Table(names = {"ecal_bad_channels"})
+@Table(names = {"ecal_bad_channels", "test_run_ecal_bad_channels"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public final class EcalBadChannel extends AbstractConditionsObject {
 

@@ -46,7 +46,7 @@ public class DatabaseCheck {
 		
 		// Get the list of EcalChannel objects.
 		EcalChannelCollection channels = ecalConditions.getChannelCollection();
-		EcalLedCollection leds = conditionsManager.getCollection(EcalLedCollection.class);
+		EcalLedCollection leds = conditionsManager.getCachedConditions(EcalLedCollection.class, "ecal_leds").getCachedData();
 		
 		// Map the LED objects to their channels.
 		Map<Integer, EcalLed> ledMap = new HashMap<Integer, EcalLed>();

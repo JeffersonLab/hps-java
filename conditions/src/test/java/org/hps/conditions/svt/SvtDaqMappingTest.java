@@ -30,7 +30,7 @@ public class SvtDaqMappingTest extends TestCase {
         DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
         conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
 
-        SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCollection(SvtDaqMappingCollection.class);
+        SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();
 
         int totalSensors = 0;
         int febHybridID;

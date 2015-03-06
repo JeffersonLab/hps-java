@@ -57,7 +57,7 @@ class PrintCommand extends AbstractCommand {
         conditionsManager = DatabaseConditionsManager.getInstance();
         
         // User specified tag of conditions records.
-        if (this.commandLine.hasOption("T")) {
+        if (this.commandLine.hasOption("T")) {            
             conditionsManager.setTag(commandLine.getOptionValue("T"));
         }
                
@@ -102,12 +102,15 @@ class PrintCommand extends AbstractCommand {
         
         // Did the user specify a table to use?
         if (userConditionsKey == null) {
+            ps.println("printing all conditions");
             // Use all table names if there was not one specified.
             conditionsRecords.addAll(conditionsManager.getConditionsRecords());
         } else {            
+            ps.println("printing conditions with name: " + userConditionsKey);
             // Get records only for the user specified table name.
             conditionsRecords.addAll(conditionsManager.findConditionsRecords(userConditionsKey));
         }
+        System.out.println(conditionsRecords.size() + " conditions records found");
         
         // Sort the records by key (table name).
         conditionsRecords.sortByKey();
@@ -143,7 +146,10 @@ class PrintCommand extends AbstractCommand {
             }
                                
             // Use only the single collection which would be seen by a user job for this run number and key.
-            ConditionsObjectCollection<?> collection = conditionsManager.getCollection(tableMetaData.getCollectionClass());  
+            ConditionsObjectCollection<?> collection = conditionsManager.getCachedConditions(
+                    tableMetaData.getCollectionClass(), 
+                    tableMetaData.getTableName()).getCachedData();
+             
             collectionList.add(collection);
         
             // Print out all the collection data to console or file.

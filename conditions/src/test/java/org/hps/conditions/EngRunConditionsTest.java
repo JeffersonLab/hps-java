@@ -82,17 +82,17 @@ public class EngRunConditionsTest extends TestCase {
             
             DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();                       
             
-            EcalChannelCollection channels = conditionsManager.getCollection(EcalChannelCollection.class);
+            EcalChannelCollection channels = conditionsManager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
             assertEquals("Wrong number of channels.", nChannels, channels.size());
             assertEquals("Wrong channel collection ID.", 2, channels.getConditionsRecord().getCollectionId());
             checkRunNumbers(channels);
             
-            EcalGainCollection gains = conditionsManager.getCollection(EcalGainCollection.class);
+            EcalGainCollection gains = conditionsManager.getCachedConditions(EcalGainCollection.class, "ecal_gains").getCachedData();
             assertEquals("Wrong number of gains.", nChannels, gains.size());
             assertEquals("Wrong gains collection ID.", 4, gains.getConditionsRecord().getCollectionId());
             checkRunNumbers(gains);
             
-            EcalCalibrationCollection calibrations = conditionsManager.getCollection(EcalCalibrationCollection.class);
+            EcalCalibrationCollection calibrations = conditionsManager.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
             assertEquals("Wrong number of calibrations.", nChannels, calibrations.size());
             assertEquals("Wrong calibrations collection ID.", 4, calibrations.getConditionsRecord().getCollectionId());
             checkRunNumbers(calibrations);

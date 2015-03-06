@@ -59,7 +59,7 @@ class ConditionsSeriesConverter<ObjectType extends ConditionsObject, CollectionT
         }
         
         // Get the table meta data for the collection type.
-        TableMetaData tableMetaData = conditionsManager.findTableMetaData(collectionType);
+        TableMetaData tableMetaData = conditionsManager.findTableMetaData(tableName);
         if (tableMetaData == null) {
             throw new RuntimeException("Table meta data for " + collectionType + " was not found.");
         }

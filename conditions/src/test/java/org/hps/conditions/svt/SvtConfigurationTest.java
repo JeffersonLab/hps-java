@@ -15,7 +15,7 @@ public class SvtConfigurationTest extends TestCase {
 
     public void testSvtConfiguration() {
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        SvtConfigurationCollection collection = manager.getCollection(SvtConfigurationCollection.class);
+        SvtConfigurationCollection collection = manager.getCachedConditions(SvtConfigurationCollection.class, "svt_configurations").getCachedData();
 
         for (SvtConfiguration config : collection) {
             Document doc = null;

@@ -28,7 +28,7 @@ import org.lcsim.geometry.Subdetector;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-@Table(names = {"ecal_channels"})
+@Table(names = {"ecal_channels", "test_run_ecal_channels"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED, converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends AbstractConditionsObject {
     

@@ -74,8 +74,8 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             reopenedConnection = true;
         }
         
-        // Get the TableMetaData for the type.
-        TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(getType());    
+        // Get the TableMetaData from the table name.
+        TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);    
         
         // Get the ConditionsRecordCollection with the run number assignments.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
@@ -115,7 +115,7 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
             throw new RuntimeException(e);
         }
 
-        databaseConditionsManager.getLogger().info("loading conditions set..." + '\n' + conditionsRecord);
+        DatabaseConditionsManager.getLogger().info("loading conditions set..." + '\n' + conditionsRecord);
                                
         // Get the table name.
         String tableName = conditionsRecord.getTableName();

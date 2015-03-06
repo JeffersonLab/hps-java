@@ -45,18 +45,18 @@ public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsCo
         DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
 
         // Get the channel map from the conditions database
-        TestRunSvtChannelCollection channels = dbConditionsManager.getCollection(TestRunSvtChannelCollection.class);
+        TestRunSvtChannelCollection channels = dbConditionsManager.getCachedConditions(TestRunSvtChannelCollection.class, "test_run_svt_channels").getCachedData();
 
         // Create the SVT conditions object to use to encapsulate SVT condition
         // collections
         conditions.setChannelMap(channels);
 
         // Get the DAQ map from the conditions database
-        TestRunSvtDaqMappingCollection daqMap = dbConditionsManager.getCollection(TestRunSvtDaqMappingCollection.class);
+        TestRunSvtDaqMappingCollection daqMap = dbConditionsManager.getCachedConditions(TestRunSvtDaqMappingCollection.class, "test_run_svt_daq_map").getCachedData();
         conditions.setDaqMap(daqMap);
 
         // Get the collection of T0 shifts from the conditions database
-        TestRunSvtT0ShiftCollection t0Shifts = dbConditionsManager.getCollection(TestRunSvtT0ShiftCollection.class);
+        TestRunSvtT0ShiftCollection t0Shifts = dbConditionsManager.getCachedConditions(TestRunSvtT0ShiftCollection.class, "test_run_svt_t0_shifts").getCachedData();
         conditions.setT0Shifts(t0Shifts);
 
         conditions = super.getData(manager, name);

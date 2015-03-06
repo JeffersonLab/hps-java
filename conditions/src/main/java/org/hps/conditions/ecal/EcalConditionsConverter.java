@@ -30,23 +30,23 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
     
     protected EcalChannelCollection getEcalChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(EcalChannelCollection.class);
+        return manager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
     }
     
     protected EcalGainCollection getEcalGainCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(EcalGainCollection.class);
+        return manager.getCachedConditions(EcalGainCollection.class, "ecal_gains").getCachedData();
     }
         
     protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(DatabaseConditionsManager manager) {
-        return manager.getConditionsSeries(EcalBadChannelCollection.class);
+        return manager.getConditionsSeries(EcalBadChannelCollection.class, "ecal_bad_channels");
     }
     
     protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(EcalCalibrationCollection.class);
+        return manager.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
     }
     
     protected EcalTimeShiftCollection getEcalTimeShiftCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(EcalTimeShiftCollection.class);
+        return manager.getCachedConditions(EcalTimeShiftCollection.class, "ecal_time_shifts").getCachedData();
     }
         
     /**

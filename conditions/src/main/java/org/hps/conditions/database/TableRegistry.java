@@ -1,7 +1,8 @@
 package org.hps.conditions.database;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
@@ -14,35 +15,53 @@ import org.hps.conditions.api.ConditionsObjectUtilities;
  */
 public final class TableRegistry extends HashMap<String, TableMetaData> {
     
-    protected Map<Class<? extends ConditionsObject>, TableMetaData> objectTypeMap =
-            new HashMap<Class<? extends ConditionsObject>, TableMetaData>();
+    static class ObjectTypeMap extends HashMap<Class<? extends ConditionsObject>, List<TableMetaData>> {
+        void add(Class<? extends ConditionsObject> type, TableMetaData metaData) {
+            if (this.get(type) == null) {
+                this.put(type, new ArrayList<TableMetaData>());
+            }
+            this.get(type).add(metaData);
+        }
+    }
     
-    protected Map<Class<? extends AbstractConditionsObjectCollection<?>>, TableMetaData> collectionTypeMap =
-            new HashMap<Class<? extends AbstractConditionsObjectCollection<?>>, TableMetaData>();
+    static class CollectionTypeMap extends HashMap<Class<? extends AbstractConditionsObjectCollection<?>>, List<TableMetaData>> {
+        void add(Class<? extends AbstractConditionsObjectCollection<?>> type, TableMetaData metaData) {
+            if (this.get(type) == null) {
+                this.put(type, new ArrayList<TableMetaData>());                                    
+            }
+            this.get(type).add(metaData);
+        }        
+    }
     
+    ObjectTypeMap objectTypeMap = new ObjectTypeMap();
+    CollectionTypeMap collectionTypeMap = new CollectionTypeMap();
+        
     private TableRegistry() {
     }
     
     static TableRegistry create() {
         TableRegistry registry = new TableRegistry();
         for (Class<? extends ConditionsObject> objectType : ConditionsObjectUtilities.findConditionsObjectTypes()) {
-            String name = ConditionsObjectUtilities.getTableNames(objectType)[0];
             Class<? extends AbstractConditionsObjectCollection<?>> collectionType = 
                     ConditionsObjectUtilities.getCollectionType(objectType);
-            Set<String> fieldNames = ConditionsObjectUtilities.getFieldNames(objectType);
-            TableMetaData data = new TableMetaData(name, name, objectType, collectionType, fieldNames); 
-            registry.put(name, data);
-            registry.objectTypeMap.put(objectType, data);
-            registry.collectionTypeMap.put(collectionType, data);
+            Set<String> fieldNames = ConditionsObjectUtilities.getFieldNames(objectType);            
+            for (String name : ConditionsObjectUtilities.getTableNames(objectType)) {    
+                
+                // Create a meta data mapping for each table name in the class description.
+                TableMetaData data = new TableMetaData(name, name, objectType, collectionType, fieldNames);
+                registry.put(name, data);                               
+                registry.objectTypeMap.add(objectType, data);
+                registry.collectionTypeMap.add(collectionType, data);                  
+            }            
         }
         return registry;
     }
-    
-    TableMetaData findByObjectType(Class<? extends ConditionsObject> objectType) {
+          
+    List<TableMetaData> findByObjectType(Class<? extends ConditionsObject> objectType) {
         return objectTypeMap.get(objectType);
     }
     
-    TableMetaData findByCollectionType(Class<?> collectionType) {
+    List<TableMetaData> findByCollectionType(Class<?> collectionType) {
         return collectionTypeMap.get(collectionType);
     }
     

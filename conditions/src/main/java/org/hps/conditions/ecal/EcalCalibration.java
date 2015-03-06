@@ -16,7 +16,7 @@ import org.hps.conditions.database.Table;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-@Table(names = {"ecal_calibrations"})
+@Table(names = {"ecal_calibrations", "test_run_ecal_calibrations", "ecal_hardware_calibrations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class EcalCalibration extends AbstractConditionsObject {
 

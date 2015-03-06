@@ -55,7 +55,7 @@ public class FADCConfig extends IDAQConfig {
 		
 		// Get the channel collection from the database.
 		DatabaseConditionsManager database = DatabaseConditionsManager.getInstance();
-		EcalChannelCollection channels = database.getCollection(EcalChannelCollection.class);
+		EcalChannelCollection channels = database.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
 		
 		// Create a mapping of calorimeter crystal positions to their
 		// corresponding channels. Also place the mapped values into

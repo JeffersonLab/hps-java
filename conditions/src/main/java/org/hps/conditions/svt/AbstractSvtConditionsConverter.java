@@ -27,23 +27,23 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
     static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
 
     protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(SvtShapeFitParametersCollection.class);
+        return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "svt_shape_fit_parameters").getCachedData();
     }
     
     protected SvtBadChannelCollection getSvtBadChannelCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(SvtBadChannelCollection.class);
+        return manager.getCachedConditions(SvtBadChannelCollection.class, "svt_bad_channels").getCachedData();
     }
     
     protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(DatabaseConditionsManager manager) {
-        return manager.getConditionsSeries(SvtBadChannelCollection.class);
+        return manager.getConditionsSeries(SvtBadChannelCollection.class, "svt_bad_channels");
     }
     
     protected SvtCalibrationCollection getSvtCalibrationCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(SvtCalibrationCollection.class);
+        return manager.getCachedConditions(SvtCalibrationCollection.class, "svt_calibrations").getCachedData();
     }
     
     protected SvtGainCollection getSvtGainCollection(DatabaseConditionsManager manager) {
-        return manager.getCollection(SvtGainCollection.class);
+        return manager.getCachedConditions(SvtGainCollection.class, "svt_gains").getCachedData();
     }
     
     /**

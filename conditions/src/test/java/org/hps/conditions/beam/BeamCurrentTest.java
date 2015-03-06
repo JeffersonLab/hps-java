@@ -75,7 +75,8 @@ public class BeamCurrentTest extends TestCase {
         public void process(EventHeader event) {
             if (currentRun != event.getRunNumber()) {
                 currentRun = event.getRunNumber();
-                BeamCurrentCollection collection = DatabaseConditionsManager.getInstance().getCollection(BeamCurrentCollection.class);
+                BeamCurrentCollection collection = 
+                        DatabaseConditionsManager.getInstance().getCachedConditions(BeamCurrentCollection.class, "beam_current").getCachedData();
                 BeamCurrent beamCurrent = collection.iterator().next();
                 System.out.println("Run " + event.getRunNumber() + " has integrated beam current " + beamCurrent.getIntegratedBeamCurrent() + " nC.");
                 assertEquals("Wrong beam current for run.", beamCurrentAnswerKey.get(currentRun), beamCurrent.getIntegratedBeamCurrent());

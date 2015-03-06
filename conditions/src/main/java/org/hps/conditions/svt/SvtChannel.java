@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -19,7 +17,7 @@ import org.hps.util.Pair;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 @Table(names = { "svt_channels" })
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtChannel extends AbstractSvtChannel {
 
     public static class SvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {

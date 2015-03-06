@@ -12,7 +12,7 @@ import org.hps.conditions.database.Table;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-@Table(names = {"ecal_gains", "test_run_ecal_gains"})
+@Table(names = {"ecal_gains", "test_run_ecal_gains", "ecal_hardware_gains"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class EcalGain extends AbstractConditionsObject {
 

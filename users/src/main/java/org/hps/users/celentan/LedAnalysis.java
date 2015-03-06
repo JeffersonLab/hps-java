@@ -122,11 +122,9 @@ public class LedAnalysis extends Driver{
 	    LedTopMap = new HashMap< Integer , Integer >(); //key: ecal channel ID. Value: 
 	    LedBotMap = new HashMap< Integer , Integer >();	
 		
-        ChannelCollection = conditionsManager.getCollection(EcalChannelCollection.class);	
-		LedCollection = conditionsManager.getCollection(EcalLedCollection.class);
-	//	ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, TableConstants.ECAL_CONDITIONS).getCachedData();
-		ecalConditions = conditionsManager.getEcalConditions();
-		
+        ChannelCollection = conditionsManager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();	
+		LedCollection = conditionsManager.getCachedConditions(EcalLedCollection.class, "ecal_leds").getCachedData();
+		ecalConditions = conditionsManager.getEcalConditions();		
 		
 		for (EcalChannel channel : ChannelCollection){
 			chid = channel.getChannelId();
