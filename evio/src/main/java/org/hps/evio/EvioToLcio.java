@@ -101,13 +101,14 @@ public class EvioToLcio {
     protected EvioToLcio() {
         logger.config("initializing EVIO to LCIO converter");
         options = new Options();
+        options.addOption(new Option("d", true, "name of the detector to use for LCSim conditions (required)"));
+        options.getOption("d").setRequired(true);
         options.addOption(new Option("f", true, "path to a text file containing a list of EVIO files to process"));
         options.addOption(new Option("L", true, "log level (INFO, FINE, FINEST, etc.)"));
         options.addOption(new Option("x", true, "XML steeering file for processing LCIO events"));
         options.addOption(new Option("r", false, "interpret steering from -x argument as a resource instead of a file"));
         options.addOption(new Option("D", true, "pass a variable to the steering file with format -Dname=value"));
         options.addOption(new Option("l", true, "path of output LCIO file"));
-        options.addOption(new Option("d", true, "name of the detector to use for LCSim conditions"));
         options.addOption(new Option("R", true, "fixed run number which will override run numbers of input files"));
         options.addOption(new Option("n", true, "maximum number of events to process in the job"));
         options.addOption(new Option("b", false, "enable headless mode which will not show plots OR allow writing them to graphics files"));
@@ -285,6 +286,8 @@ public class EvioToLcio {
         if (cl.hasOption("d")) {
             detectorName = cl.getOptionValue("d");
             logger.config("User set detector to " + detectorName + " with command option.");
+        } else {
+            throw new RuntimeException("Missing -d argument with name of detector.");
         }
 
         // Get the user specified run number.
@@ -603,20 +606,12 @@ public class EvioToLcio {
         // Is this run number from the Test Run?
         if (DatabaseConditionsManager.isTestRun(runNumber)) {
             // Configure conditions system for Test Run.
-            logger.info("using LCSimTestRunEventBuilder");
+            logger.info("using Test Run event builder");
             eventBuilder = new LCSimTestRunEventBuilder();
-            if (detectorName == null) {
-                this.detectorName = DatabaseConditionsManager.getDefaultTestRunDetectorName();
-                logger.info("using default Test Run detector name " + detectorName);
-            }
         } else {
             // Configure conditions system for Eng Run or default.
-            logger.info("using LCSimEngRunEventBuilder");
+            logger.info("using Eng Run event builder");
             eventBuilder = new LCSimEngRunEventBuilder();
-            if (detectorName == null) {
-                this.detectorName = DatabaseConditionsManager.getDefaultEngRunDetectorName();
-                logger.info("using default Eng Run detector name " + detectorName);
-            }
         }
         ConditionsManager conditions = ConditionsManager.defaultInstance();
         conditions.addConditionsListener(eventBuilder);        
