@@ -107,7 +107,7 @@ public class EngRunConditionsTest extends TestCase {
             //assertEquals("Wrong LEDs collection ID.", 2, timeShifts.getConditionsRecord().getCollectionId());
             //checkRunNumbers(timeShifts);
             
-            ecalConditions = conditionsManager.getConditionsData(EcalConditions.class, "ecal_conditions");
+            ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
             Set<EcalChannelConstants> channelConstants = new LinkedHashSet<EcalChannelConstants>();
             for (EcalChannel channel : ecalConditions.getChannelCollection().sortedByChannelId()) {
                 channelConstants.add(ecalConditions.getChannelConstants(channel));

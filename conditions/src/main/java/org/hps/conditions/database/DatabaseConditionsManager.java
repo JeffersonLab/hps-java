@@ -59,7 +59,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 @SuppressWarnings("rawtypes")
-public class DatabaseConditionsManager extends ConditionsManagerImplementation {
+public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     // Initialize logger.
     protected static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.INFO);
@@ -243,7 +243,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public 
     <ObjectType extends ConditionsObject, CollectionType extends ConditionsObjectCollection<ObjectType>> 
-    ConditionsSeries<ObjectType, CollectionType> getConditionsSeries(Class<CollectionType> collectionType, String tableName) {
+    ConditionsSeries<ObjectType, CollectionType> 
+    getConditionsSeries(Class<CollectionType> collectionType, String tableName) {
         
         TableMetaData metaData = tableRegistry.get(tableName);
         if (metaData == null) {
@@ -257,18 +258,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         ConditionsSeriesConverter<ObjectType, CollectionType> converter = new ConditionsSeriesConverter(objectType, collectionType);
         return converter.createSeries(tableName);
     }
-            
-    /**
-     * Get conditions data by class and name.
-     * @param type The class of the conditions.
-     * @param name The name of the conditions set.
-     * @return The conditions or null if does not exist.
-     */
-    public <T> T getConditionsData(Class<T> type, String name) {
-        logger.fine("getting conditions " + name + " of type " + type.getSimpleName());
-        return getCachedConditions(type, name).getCachedData();
-    }
-
+                
     /**
      * This method handles changes to the detector name and run number.
      * It is called every time an LCSim event is created, and so it has 
@@ -309,101 +299,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      */
     public boolean isTestRun() {
         return isTestRun;
-    }
-    
-    /**
-     * Perform all necessary initialization, including setup of the XML
-     * configuration and loading of conditions onto the Detector.
-     */
-    protected void initialize(String detectorName, int runNumber) throws ConditionsNotFoundException {
-        
-        logger.config("initializing with detector " + detectorName + " and run " + runNumber);
-        
-        // Is not configured yet?
-        if (!isConfigured) {
-            if (isTestRun(runNumber)) {
-                // This looks like the Test Run so use the custom configuration for it.
-                setXmlConfig(DatabaseConditionsManager.TEST_RUN_CONFIG);
-            } else if (runNumber > TEST_RUN_MAX_RUN) {
-                // Run numbers greater than max of Test Run assumed to be Eng Run (for now!).
-                setXmlConfig(DatabaseConditionsManager.ENGRUN_CONFIG);
-            } else if (runNumber == 0) {
-                // Use the default configuration because the run number is basically meaningless.
-                setXmlConfig(DatabaseConditionsManager.DEFAULT_CONFIG);
-            }
-        }
-
-        // Register the converters for this initialization.
-        logger.fine("registering converters");
-        registerConverters();
-    
-        // Enable or disable the setup of the SVT detector.
-        logger.fine("enabling SVT setup: " + setupSvtDetector);
-        svtSetup.setEnabled(setupSvtDetector);
-
-        // Open the database connection.
-        openConnection();
-        
-        // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
-        logger.fine("activating default conditions manager");
-        super.setDetector(detectorName, runNumber);
-                        
-        // Should all conditions sets be cached?
-        if (cacheAllConditions) {
-            // Cache the conditions sets of all registered converters.
-            logger.fine("caching all conditions sets ...");
-            cacheConditionsSets();
-        }
-                
-        if (closeConnectionAfterInitialize) {
-            logger.fine("closing connection after initialization");
-            // Close the connection. 
-            closeConnection();
-        }
-        
-        // Should the conditions system be frozen now?
-        if (freezeAfterInitialize) {
-            // Freeze the conditions system so subsequent updates will be ignored.
-            freeze();
-            logger.config("system was frozen after initialization");
-        }
-        
-        isInitialized = true;
-        
-        logger.info("conditions system initialized successfully");
-        
-        // Flush logger after initialization.
-        logger.getHandlers()[0].flush();
-    }
-
-    /**
-     * Register the conditions converters with the manager.
-     */
-    private void registerConverters() {
-        if (svtConverter != null) {
-            // Remove old SVT converter.
-            removeConditionsConverter(svtConverter);
-        }
-        
-        if (ecalConverter != null) {
-            // Remove old ECAL converter.
-            registerConditionsConverter(ecalConverter);
-        }
-        
-        // Is configured for TestRun?
-        if (isTestRun()) {
-            // Load Test Run specific converters.
-            svtConverter = new TestRunSvtConditionsConverter();
-            ecalConverter = new TestRunEcalConditionsConverter();
-            logger.config("registering Test Run conditions converters");
-        } else {
-            // Load the default converters.
-            svtConverter = new SvtConditionsConverter();
-            ecalConverter = new EcalConditionsConverter();
-            logger.config("registering default conditions converters");
-        }
-        registerConditionsConverter(svtConverter);
-        registerConditionsConverter(ecalConverter);
     }
     
     /**
@@ -589,31 +484,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
         logger.fine("found " + foundConditionsRecords.size() + " conditions records matching tag " + tag);
         return foundConditionsRecords;
     }
-    
-    /**
-     * True if the conditions record matches the current tag.
-     * @param record The conditions record.
-     * @return True if conditions record matches the currently used tag.
-     */
-    boolean matchesTag(ConditionsRecord record) {
-        if (this.tag == null) {
-            // If there is no tag set then all records pass.
-            return true;
-        }
-        String recordTag = record.getTag();
-        if (recordTag == null) {
-            // If there is a tag set but the record has no tag, it is rejected.
-            return false;
-        }
-        if (tag.equals(recordTag)) {
-            // If the tags match, the record is accepted.
-            return true;
-        } else {
-            // Tags do not match so record is rejected.
-            return false;
-        }
-    }
-    
+           
     /**
      * True if there is a conditions record with the given name.
      * @param name The conditions name.
@@ -627,7 +498,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Get a list of all the ConditionsRecord objects.
      * @return The list of all the ConditionsRecord objects.
      */
-    // FIXME: This should use a cache created in initialize rather than do a find every time.
+    // FIXME: This should use a cache that is created during initialization, rather than look these up every time.
     public ConditionsRecordCollection getConditionsRecords() {
         logger.finer("getting conditions records ...");
         ConditionsRecordCollection conditionsRecords = new ConditionsRecordCollection();
@@ -690,31 +561,7 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
     public boolean isFrozen() {
         return isFrozen;
     }
-    
-    /**
-     * Set the name of the ECAL sub-detector.
-     * @param ecalName The name of the ECAL.
-     */
-    protected void setEcalName(String ecalName) {
-        if (ecalName == null) {
-            throw new IllegalArgumentException("The ecalName is null");
-        }
-        this.ecalName = ecalName;
-        logger.info("ECAL name set to " + ecalName);
-    }
-    
-    /**
-     * Set the name of the SVT sub-detector.
-     * @param svtName The name of the SVT.
-     */
-    protected void setSvtName(String svtName) {
-        if (svtName == null) {
-            throw new IllegalArgumentException("The svtName is null");
-        }
-        this.svtName = svtName;
-        logger.info("SVT name set to " + ecalName);
-    }
-    
+            
     /**
      * Set a tag used to filter ConditionsRecords.
      * @param tag The tag value used to filter ConditionsRecords.
@@ -730,7 +577,8 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @throws SQLException If there is a database error.
      * @throws ConditionsObjectException If there is a problem with the ConditionsObjects.
      */
-    public <ObjectType extends ConditionsObject> void insertCollection(ConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
+    public <ObjectType extends ConditionsObject> 
+    void insertCollection(ConditionsObjectCollection<ObjectType> collection) throws SQLException, ConditionsObjectException {
                 
         if (collection == null) {
             throw new IllegalArgumentException("The collection is null.");
@@ -814,8 +662,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * @return The Logger for this class.
      */
     public static Logger getLogger() {
-        //System.out.println("DatabaseConditionsManager.getLogger called from");
-        //new RuntimeException().printStackTrace();
         return logger;
     }
     
@@ -858,7 +704,150 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Private methods below here. *
      *******************************
      */
-                          
+    
+    /**
+     * Perform all necessary initialization, including setup of the XML
+     * configuration and loading of conditions onto the Detector.
+     */
+    private void initialize(String detectorName, int runNumber) throws ConditionsNotFoundException {
+        
+        logger.config("initializing with detector " + detectorName + " and run " + runNumber);
+        
+        // Is not configured yet?
+        if (!isConfigured) {
+            if (isTestRun(runNumber)) {
+                // This looks like the Test Run so use the custom configuration for it.
+                setXmlConfig(DatabaseConditionsManager.TEST_RUN_CONFIG);
+            } else if (runNumber > TEST_RUN_MAX_RUN) {
+                // Run numbers greater than max of Test Run assumed to be Eng Run (for now!).
+                setXmlConfig(DatabaseConditionsManager.ENGRUN_CONFIG);
+            } else if (runNumber == 0) {
+                // Use the default configuration because the run number is basically meaningless.
+                setXmlConfig(DatabaseConditionsManager.DEFAULT_CONFIG);
+            }
+        }
+
+        // Register the converters for this initialization.
+        logger.fine("registering converters");
+        registerConverters();
+    
+        // Enable or disable the setup of the SVT detector.
+        logger.fine("enabling SVT setup: " + setupSvtDetector);
+        svtSetup.setEnabled(setupSvtDetector);
+
+        // Open the database connection.
+        openConnection();
+        
+        // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
+        logger.fine("activating default conditions manager");
+        super.setDetector(detectorName, runNumber);
+                        
+        // Should all conditions sets be cached?
+        if (cacheAllConditions) {
+            // Cache the conditions sets of all registered converters.
+            logger.fine("caching all conditions sets ...");
+            cacheConditionsSets();
+        }
+                
+        if (closeConnectionAfterInitialize) {
+            logger.fine("closing connection after initialization");
+            // Close the connection. 
+            closeConnection();
+        }
+        
+        // Should the conditions system be frozen now?
+        if (freezeAfterInitialize) {
+            // Freeze the conditions system so subsequent updates will be ignored.
+            freeze();
+            logger.config("system was frozen after initialization");
+        }
+        
+        isInitialized = true;
+        
+        logger.info("conditions system initialized successfully");
+        
+        // Flush logger after initialization.
+        logger.getHandlers()[0].flush();
+    }
+
+    /**
+     * Register the conditions converters with the manager.
+     */
+    private void registerConverters() {
+        if (svtConverter != null) {
+            // Remove old SVT converter.
+            removeConditionsConverter(svtConverter);
+        }
+        
+        if (ecalConverter != null) {
+            // Remove old ECAL converter.
+            registerConditionsConverter(ecalConverter);
+        }
+        
+        // Is configured for TestRun?
+        if (isTestRun()) {
+            // Load Test Run specific converters.
+            svtConverter = new TestRunSvtConditionsConverter();
+            ecalConverter = new TestRunEcalConditionsConverter();
+            logger.config("registering Test Run conditions converters");
+        } else {
+            // Load the default converters.
+            svtConverter = new SvtConditionsConverter();
+            ecalConverter = new EcalConditionsConverter();
+            logger.config("registering default conditions converters");
+        }
+        registerConditionsConverter(svtConverter);
+        registerConditionsConverter(ecalConverter);
+    }
+    
+    /**
+     * Set the name of the ECAL sub-detector.
+     * @param ecalName The name of the ECAL.
+     */
+    private void setEcalName(String ecalName) {
+        if (ecalName == null) {
+            throw new IllegalArgumentException("The ecalName is null");
+        }
+        this.ecalName = ecalName;
+        logger.info("ECAL name set to " + ecalName);
+    }
+    
+    /**
+     * Set the name of the SVT sub-detector.
+     * @param svtName The name of the SVT.
+     */
+    private void setSvtName(String svtName) {
+        if (svtName == null) {
+            throw new IllegalArgumentException("The svtName is null");
+        }
+        this.svtName = svtName;
+        logger.info("SVT name set to " + ecalName);
+    }
+    
+    /**
+     * True if the conditions record matches the current tag.
+     * @param record The conditions record.
+     * @return True if conditions record matches the currently used tag.
+     */
+    private boolean matchesTag(ConditionsRecord record) {
+        if (this.tag == null) {
+            // If there is no tag set then all records pass.
+            return true;
+        }
+        String recordTag = record.getTag();
+        if (recordTag == null) {
+            // If there is a tag set but the record has no tag, it is rejected.
+            return false;
+        }
+        if (tag.equals(recordTag)) {
+            // If the tags match, the record is accepted.
+            return true;
+        } else {
+            // Tags do not match so record is rejected.
+            return false;
+        }
+    }
+                              
     /**
      * Cache conditions sets for all known tables.
      */
@@ -919,7 +908,6 @@ public class DatabaseConditionsManager extends ConditionsManagerImplementation {
      * Load configuration information from an XML document.
      * @param document The XML document.
      */
-    // TODO: Add detectorName and runNumber settings.
     private void loadConfiguration(Document document) {
         
         Element node = document.getRootElement().getChild("configuration");

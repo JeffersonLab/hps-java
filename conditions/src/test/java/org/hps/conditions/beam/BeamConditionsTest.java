@@ -56,7 +56,7 @@ public class BeamConditionsTest extends TestCase {
                 throw new RuntimeException(e);
             }
             BeamConditionsCollection beamCollection = 
-                    manager.getConditionsData(BeamConditionsCollection.class, "beam");
+                    manager.getCachedConditions(BeamConditionsCollection.class, "beam").getCachedData();
             BeamConditions beam = beamCollection.get(0);
             System.out.print(run + " ");
             System.out.print(beam.getRowId() + " ");

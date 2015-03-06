@@ -31,14 +31,14 @@ public class EcalHardwareConditionsTest extends TestCase {
         manager.setLogLevel(Level.ALL);
         
         // Read hardware calibrations.
-        EcalCalibrationCollection calibrations = manager.getConditionsData(EcalCalibrationCollection.class, CALIBRATIONS_TABLE);
+        EcalCalibrationCollection calibrations = manager.getCachedConditions(EcalCalibrationCollection.class, CALIBRATIONS_TABLE).getCachedData();
         assertEquals("Wrong name in conditions record.", CALIBRATIONS_TABLE, calibrations.getConditionsRecord().getTableName());
         assertEquals("Wrong table name in conditions record.", CALIBRATIONS_TABLE, calibrations.getConditionsRecord().getTableName());
         assertEquals("Wrong number of records.", RECORD_COUNT, calibrations.size());
         System.out.println("successfully read " + calibrations.size() + " gain records from " + CALIBRATIONS_TABLE);
         
         // Read hardware gains.
-        EcalGainCollection gains = manager.getConditionsData(EcalGainCollection.class, GAINS_TABLE);
+        EcalGainCollection gains = manager.getCachedConditions(EcalGainCollection.class, GAINS_TABLE).getCachedData();
         assertEquals("Wrong name in conditions record.", GAINS_TABLE, gains.getConditionsRecord().getTableName());
         assertEquals("Wrong table name in conditions record.", GAINS_TABLE, gains.getConditionsRecord().getTableName());
         assertEquals("Wrong number of records.", RECORD_COUNT, gains.size());

@@ -81,7 +81,6 @@ public final class ImportBeamConditionsEngRun {
         
         DatabaseConditionsManager manager = new DatabaseConditionsManager();
         manager.setLogLevel(Level.ALL);
-        manager.openConnection();
         
         for (Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {
             int run = entry.getKey();
