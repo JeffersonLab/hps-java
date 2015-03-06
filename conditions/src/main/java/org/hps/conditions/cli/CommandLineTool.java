@@ -86,10 +86,11 @@ public class CommandLineTool {
 
     private void setupConditionsManager(CommandLine commandLine) {
         conditionsManager = new DatabaseConditionsManager();
-        if (verbose)
+        if (verbose) {
             conditionsManager.setLogLevel(Level.ALL);
-        else
-            conditionsManager.setLogLevel(Level.INFO);
+        } else {
+            conditionsManager.setLogLevel(Level.WARNING);
+        }
         if (commandLine.hasOption("p")) {
             File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
             if (verbose)
