@@ -44,7 +44,7 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 	
 	/**
 	 * Instantiates an <code>AbstractTablePanel</code>.
-	 * @param args Arguments to be usd when generating the panel tables.
+	 * @param args Arguments to be used when generating the panel tables.
 	 */
 	public AbstractTablePanel(Object... args) {
 		// Initialize the tables.

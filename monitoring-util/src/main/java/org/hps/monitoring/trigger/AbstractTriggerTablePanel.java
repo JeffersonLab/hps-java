@@ -81,9 +81,10 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 			int mostDigits = ComponentUtils.max(lstat.getReconTriggerCount(), lstat.getSSPBankTriggerCount(),
 					lstat.getSSPSimTriggerCount(), rstat.getReconTriggerCount(), rstat.getSSPBankTriggerCount(),
 					rstat.getSSPSimTriggerCount());
+			int spaces = ComponentUtils.getDigits(mostDigits);
 			
 			// Update the single-value counters.
-			String countFormat = "%" + mostDigits + "d";
+			String countFormat = "%" + spaces + "d";
 			setLocalRowValue(ROW_RECON_COUNT,     String.format(countFormat, lstat.getReconTriggerCount()));
 			setLocalRowValue(ROW_SSP_SIM_COUNT,   String.format(countFormat, lstat.getSSPSimTriggerCount()));
 			setLocalRowValue(ROW_SSP_BANK_COUNT,  String.format(countFormat, lstat.getSSPBankTriggerCount()));
@@ -92,7 +93,7 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 			setGlobalRowValue(ROW_SSP_BANK_COUNT, String.format(countFormat, rstat.getSSPBankTriggerCount()));
 			
 			// Update the percentage counters.
-			String percentFormat = "%" + mostDigits + "d / %" + mostDigits + "d (%7.3f)";
+			String percentFormat = "%" + spaces + "d / %" + spaces + "d (%7.3f)";
 			
 			setLocalRowValue(ROW_SSP_EFFICIENCY, String.format(percentFormat, lstat.getMatchedSSPTriggers(),
 					lstat.getSSPSimTriggerCount(), (100.0 * lstat.getMatchedSSPTriggers() / lstat.getSSPSimTriggerCount())));
