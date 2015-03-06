@@ -126,7 +126,7 @@ public class TriggerMatchEvent {
 		// treated as a failure due to time, which is not tracked.
 		if(sspTrigger != null) {
 			sspInternalMatched[sspTrigger.isFirstTrigger() ? 0 : 1]++;
-			sspPairList.add(new TriggerMatchedPair(simTrigger, sspTrigger, new boolean[] { true, true, true, true, true }));
+			sspPairList.add(new TriggerMatchedPair(simTrigger, sspTrigger, new boolean[] { true, true, true, true }));
 		}
 	}
 	

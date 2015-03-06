@@ -72,7 +72,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	private long localWindowStart = 0;
 	private boolean readDAQConfig = false;
 	private double energyAcceptance = 0.03;
-	private int localWindowThreshold = 30000;
+	private int localWindowThreshold = 10 * 1000;
 	private boolean performClusterVerification = true;
 	private boolean performSinglesTriggerVerification = true;
 	private boolean performPairTriggerVerification = true;
@@ -1049,7 +1049,7 @@ public class TriggerDiagnosticDriver extends Driver {
 		if(sspReportedExtras > 0) {
 			if(isSingles) { singlesInternalFail = true; }
 			else { pairInternalFail = true; }
-		}
+		} else { sspReportedExtras = 0; }
 		
 		// Iterate over the triggers.
 		OutputLogger.println();
