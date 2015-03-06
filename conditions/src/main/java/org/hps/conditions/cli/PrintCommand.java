@@ -40,11 +40,11 @@ class PrintCommand extends AbstractCommand {
     PrintCommand() {
         super("print", "Print the table data for a conditions set");
         this.options.addOption(new Option("t", true, "Set the table name"));
-        this.options.addOption(new Option("a", false, "Use all available conditions for the run number and key name"));
         this.options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
         this.options.addOption(new Option("f", true, "Write print output to a file"));
         this.options.addOption(new Option("H", false, "Suppress printing of conditions record and table info"));
-        this.options.addOption(new Option("T", false, "Use tabs for field delimiter instead of spaces"));
+        this.options.addOption(new Option("d", false, "Use tabs for field delimiter instead of spaces"));
+        this.options.addOption(new Option("T", true, "Specify a conditions tag to use for filtering records"));
     }
     
     /**
@@ -55,11 +55,12 @@ class PrintCommand extends AbstractCommand {
         super.execute(arguments);
         
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        if (!this.verbose) {
-            // If not running in verbose mode then only print severe errors from conditions manager.
-            conditionsManager.setLogLevel(Level.SEVERE);
-        }
         
+        // User specified tag of conditions records.
+        if (this.commandLine.hasOption("T")) {
+            conditionsManager.setTag(commandLine.getOptionValue("T"));
+        }
+               
         // Print conditions sets matching a specific conditions key.
         String userConditionsKey = null;
         if (this.commandLine.hasOption("t")) {
@@ -92,7 +93,7 @@ class PrintCommand extends AbstractCommand {
         }
 
         // Use tabs instead of spaces for field delimiter.
-        if (this.commandLine.hasOption("T")) {
+        if (this.commandLine.hasOption("d")) {
             fieldDelimiter = '\t';
         }
                          
