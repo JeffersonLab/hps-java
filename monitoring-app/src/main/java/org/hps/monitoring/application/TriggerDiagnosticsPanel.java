@@ -57,7 +57,6 @@ public class TriggerDiagnosticsPanel extends JPanel {
         
         @Override
         public void process(EventHeader event) {
-            System.out.println("TriggerDiagnosticsGUIDriver.process - #" + event.getEventNumber());
             // Updates are only performed if a diagnostic snapshot object
             // exists. Otherwise, do nothing.
             if(event.hasCollection(DiagSnapshot.class, diagnosticCollectionName)) {
