@@ -12,4 +12,9 @@ public class EvioEventConstants {
     public static final int EVENTID_BANK_TAG = 0xC000;
     
     public static final int HEAD_BANK_TAG = 0xe10F;
+  
+    public static final int EPICS_EVENT_TAG = 31;
+    public static final int EPICS_BANK_TAG_2s = -1;
+    public static final int EPICS_BANK_TAG_20s = -1;
+    
 }
