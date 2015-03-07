@@ -342,13 +342,13 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     public void statusChanged(SystemStatus status) {
 
         // Choose the appropriate log level.
-        Level level = Level.INFO;
+        Level level = Level.FINE;
         if (status.getStatusCode().equals(Level.WARNING)) {
             level = Level.WARNING;
         } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
             level = Level.SEVERE;
         }
-
+        
         // Log all status changes.
         logger.log(level, "STATUS, " + "subsys: " + status.getSubsystem() + ", " 
                 + "code: " + status.getStatusCode().name() 
@@ -384,17 +384,17 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Initialize event processing with the list of processors and reference to the application.
             processing = new EventProcessing(this, processors);
             
-            // Configure event processing from the global application settings.
+            // Connect to the ET system, if applicable.
+            processing.connect();
+            
+            // Configure event processing from the global application settings, including setup of record loop.
             logger.info("setting up event processing on source " + configurationModel.getDataSourcePath() 
                     + " with type " + configurationModel.getDataSourceType());
             processing.setup(configurationModel);
                                   
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
-            
-            // Connect to the ET system, if applicable.
-            processing.connect();
-                     
+                                            
             // Start the event processing thread.
             processing.start();            
             
@@ -454,7 +454,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             File fileName = fc.getSelectedFile();
             try {
                 AIDA.defaultInstance().saveAs(fileName);
-                logger.info("saved plots to file: " + fileName);
+                logger.info("saved plots to " + fileName);
                 DialogUtil.showInfoDialog(frame, "Plots Saved",  "Plots were successfully saved to AIDA file.");
             } catch (IOException e) {
                 errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
