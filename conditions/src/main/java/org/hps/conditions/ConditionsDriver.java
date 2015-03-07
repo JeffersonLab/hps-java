@@ -39,7 +39,6 @@ import org.lcsim.util.Driver;
  */
 public class ConditionsDriver extends Driver {
 
-    DatabaseConditionsManager conditionsManager;
     String detectorName = null;
     String tag = null;
     String xmlConfigResource = null;
@@ -50,7 +49,6 @@ public class ConditionsDriver extends Driver {
      * Default constructor.
      */
     public ConditionsDriver() {
-        conditionsManager = new DatabaseConditionsManager();
     }
     
     /**
@@ -107,6 +105,9 @@ public class ConditionsDriver extends Driver {
      * @throws RuntimeException If there is a problem setting up the conditions system.
      */
     public void initialize() {
+        
+        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        
         if (xmlConfigResource != null) {
             // Set a custom XML configuration resource.
             conditionsManager.setXmlConfig(xmlConfigResource);
