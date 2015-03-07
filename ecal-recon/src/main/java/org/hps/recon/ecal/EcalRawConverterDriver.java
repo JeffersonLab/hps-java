@@ -20,15 +20,18 @@ import org.lcsim.util.Driver;
  *
  * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
  * phansson Exp $
- *
- * baltzell: Feb 26, 2015:
- * added firmware emulation for converting from Mode-1 readout (RawTrackerHit)
- * to Mode-3 pulse (CalorimeterHit).  Turn it on with "emulateFirmware", else
- * defaults to previous behavior.  Removed integralWindow in favor of NSA and
- * NSB in EcalRawConverter, so that all conversions can use the same window.
- * March 3, 2015:  Removed integralWindow in favor of NSA/NSB in order to treat
- * all modes uniformly.
+ * baltzell
  * 
+ * 
+ * baltzell New in 2015:  (default behavior is unchanged)
+ * Added firmware emulation for converting from Mode-1 readout (RawTrackerHit)
+ * to Mode-3 pulse (CalorimeterHit).  Turn it on with "emulateFirmware", else
+ * defaults to previous behavior.  
+ *  
+ * Removed integralWindow in favor of NSA/NSB to allow treating all Modes uniformly.
+ * (New) NSA+NSB == (Old) integralWindow*4(ns) 
+ * 
+ * Implemented finding multiple peaks for Mode-1.
  */
 public class EcalRawConverterDriver extends Driver {
 
@@ -41,7 +44,6 @@ public class EcalRawConverterDriver extends Driver {
     private String ecalCollectionName = "EcalCalHits";
 
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
-//    private static final String extraDataCollectionName = "EcalReadoutExtraData";
 
     private boolean debug = false;
     private double threshold = Double.NEGATIVE_INFINITY;
@@ -80,17 +82,26 @@ public class EcalRawConverterDriver extends Driver {
         this.threshold = threshold;
     }
 
+    public void setEmulateMode7(boolean mode7) {
+        converter.setMode7(mode7);
+    }
     public void setEmulateFirmware(boolean emulateFirmware) {
         this.emulateFirmware = emulateFirmware;
     }
     public void setLeadingEdgeThreshold(double threshold) {
         converter.setLeadingEdgeThreshold(threshold);
     }
+    public void setWindowSamples(int windowSamples) {
+        converter.setWindowSamples(windowSamples);
+    }
     public void setNsa(int nsa) {
         converter.setNSA(nsa);
     }
     public void setNsb(int nsb) {
         converter.setNSB(nsb);
+    }
+    public void setNPeak(int nPeak) {
+        converter.setNPeak(nPeak);
     }
     
     public void setGain(double gain) {
@@ -196,37 +207,48 @@ public class EcalRawConverterDriver extends Driver {
         if (!runBackwards) {
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
 
-            // Get the list of ECal hits.
+            /*
+             * This is for FADC Mode-1 data:    
+             */
             if (event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
                 List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
 
                 for (RawTrackerHit hit : hits) {
-                    
-                    CalorimeterHit newHit = null;
+           
+                    ArrayList<CalorimeterHit> newHits2 = new ArrayList<CalorimeterHit>();
                     if (emulateFirmware) {
-                        newHit = converter.firmwareHitDtoA(hit);
-                        if (newHit==null) continue;
+                        newHits2.addAll(converter.HitDtoA(event,hit));
                     } else {
-                        newHit = converter.HitDtoA(hit);
+                        newHits2.add(converter.HitDtoA(hit));
                     }
-                
+               
+                    for (CalorimeterHit newHit : newHits2) {
 
-                    // Get the channel data.
-                    EcalChannelConstants channelData = findChannel(newHit.getCellID());
+                        // Get the channel data.
+                        EcalChannelConstants channelData = findChannel(newHit.getCellID());
 
-                    if (applyBadCrystalMap && channelData.isBadChannel()) {
-                        continue;
-                    }
-                    if (dropBadFADC && isBadFADC(newHit)) {
-                        continue;
-                    }
-                    if (newHit.getRawEnergy() > threshold) {
-                        newHits.add(newHit);
+                        if (applyBadCrystalMap && channelData.isBadChannel()) {
+                            continue;
+                        }
+                        if (dropBadFADC && isBadFADC(newHit)) {
+                            continue;
+                        }
+                        if (newHit.getRawEnergy() > threshold) {
+                            newHits.add(newHit);
+                        }
                     }
                 }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
+           
+            /*
+             * This is for FADC pulse mode data (Mode-3 or Mode-7):
+             */
             if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { //A.C. this is the case of the RAW pulse hits
+
+                /*
+                 * This is for FADC Mode-7 data:
+                 */
                 if (event.hasCollection(LCRelation.class, extraDataRelationsName)) { // extra information available from mode 7 readout
                     List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
                     for (LCRelation rel : extraDataRelations) {
@@ -252,13 +274,16 @@ public class EcalRawConverterDriver extends Driver {
 
                     }
                 } else {
+                    /*
+                     * This is for FADC Mode-3 data:
+                     */
                     List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
                     for (RawCalorimeterHit hit : hits) {
                         if (debug) {
                             System.out.format("old hit energy %d\n", hit.getAmplitude());
                         }
                         CalorimeterHit newHit;
-                        newHit = converter.HitDtoA(hit, timeOffset);
+                        newHit = converter.HitDtoA(event, hit, timeOffset);
                         if (newHit.getRawEnergy() > threshold) {
                             if (applyBadCrystalMap && isBadCrystal(newHit)) {
                                 continue;
@@ -295,6 +320,7 @@ public class EcalRawConverterDriver extends Driver {
                 event.put(rawCollectionName, newHits, RawCalorimeterHit.class, flags, ecalReadoutName);
             }
         }
+        
     }
 
     /**
