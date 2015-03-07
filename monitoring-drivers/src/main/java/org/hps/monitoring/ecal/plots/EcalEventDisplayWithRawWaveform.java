@@ -19,8 +19,11 @@ import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
+
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -62,7 +65,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 	private ArrayList<IHistogram1D> channelEnergyPlot;
 	private ArrayList<IHistogram1D> clusterEnergyPlot;
 	private ArrayList<IHistogram1D> channelTimePlot;
-	//private ArrayList<IHistogram1D> channelRawWaveform;
+	private ArrayList<IHistogram1D> channelRawWaveform;
 	private ArrayList<IHistogram2D> channelTimeVsEnergyPlot;
 	
 	// Internal variables.
@@ -370,9 +373,9 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 				int iy = hit.getIdentifierFieldValue("iy");
 				
 				if(iy != 0 && ix != 0) {
-					if(!ECalUtils.isInHole(iy, ix)) {
+					if(!EcalMonitoringUtilities.isInHole(iy, ix)) {
 						// Get the crystal ID for the current hit.
-						int id = ECalUtils.getHistoIDFromRowColumn(iy, ix);
+						int id = EcalMonitoringUtilities.getHistoIDFromRowColumn(iy, ix);
 						
 						// The window is length is not known by default.
 						// If this is the first hit, read the window
@@ -385,7 +388,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 							windowRaw[id] = hit.getADCValues().length;
 							
 							// Initialize the waveform plot.
-							channelRawWaveform.set(id, aida.histogram1D(detector.getDetectorName()
+							channelRawWaveform.set(id,aida.histogram1D(event.getDetectorName()
 									+ " : " + inputCollectionRaw + " : Raw Waveform : " + ix + " "
 									+ iy + ": " + id, windowRaw[id], -0.5 * ECalUtils.ecalReadoutPeriod,
 									(-0.5 + windowRaw[id]) * ECalUtils.ecalReadoutPeriod));
