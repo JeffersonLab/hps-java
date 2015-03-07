@@ -57,12 +57,17 @@ public final class SvtDetectorSetup implements ConditionsListener {
         if (enabled) {
             DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
             Subdetector subdetector = manager.getDetectorObject().getSubdetector(svtName);
-            if (manager.isTestRun()) {
-                TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class, "test_run_svt_conditions").getCachedData();
-                loadTestRun(subdetector, svtConditions);
+            if (subdetector != null) {
+                if (manager.isTestRun()) {
+                    TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class, "test_run_svt_conditions").getCachedData();
+                    loadTestRun(subdetector, svtConditions);
+                } else {
+                    SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
+                    loadDefault(subdetector, svtConditions);
+                }
             } else {
-                SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
-                loadDefault(subdetector, svtConditions);
+                logger.warning("no SVT detector was found so SvtDetectorSetup was NOT activated");
+                enabled = false;
             }
         } else {
             logger.config("disabled");
