@@ -697,6 +697,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public Subdetector getEcalSubdetector() {
         return this.getDetectorObject().getSubdetector(ecalName);
     }
+    
+    /**
+     * True if conditions manager is properly initialized.
+     */
+    public boolean isInitialized() {
+        return isInitialized;
+    }
 
     /*
      *******************************
