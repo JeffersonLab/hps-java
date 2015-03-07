@@ -45,7 +45,7 @@ class PrintCommand extends AbstractCommand {
         super("print", "Print the table data for a conditions set");
         this.options.addOption(new Option("t", true, "Set the table name"));
         this.options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
-        this.options.addOption(new Option("f", true, "Write print output to a file"));
+        this.options.addOption(new Option("f", true, "Write print output to a file (must be used with -t option)"));
         this.options.addOption(new Option("H", false, "Suppress printing of conditions record and table info"));
         this.options.addOption(new Option("d", false, "Use tabs for field delimiter instead of spaces"));
         this.options.addOption(new Option("T", true, "Specify a conditions tag to use for filtering records"));
@@ -76,6 +76,9 @@ class PrintCommand extends AbstractCommand {
         
         // Setup an output file for the print out if requested.
         if (this.commandLine.hasOption("f")) {
+            if (!this.commandLine.hasOption("t")) {
+                throw new IllegalArgumentException("An output file may only be specified when using the -t option.");
+            }
             String path = commandLine.getOptionValue("f");
             if (new File(path).exists()) {
                 throw new IllegalArgumentException("File already exists: " + path);
