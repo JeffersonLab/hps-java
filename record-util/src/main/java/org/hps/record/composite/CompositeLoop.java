@@ -18,10 +18,8 @@ import org.hps.record.et.EtEventSource;
 import org.hps.record.et.EtEventSource.EtSourceException;
 import org.hps.record.evio.EvioEventProcessor;
 import org.hps.record.evio.EvioFileSource;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCIOEventSource;
-import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
 
 /**
  * Implementation of a composite record loop for processing
@@ -265,7 +263,6 @@ public final class CompositeLoop extends DefaultRecordLoop {
         
         // Configure ET system.
         if (config.sourceType == DataSourceType.ET_SERVER) {
-            //System.out.println("compositeLoop.addAdapter(etAdapter)");
             addAdapter(etAdapter);
         }
         
@@ -274,28 +271,17 @@ public final class CompositeLoop extends DefaultRecordLoop {
             if (config.sourceType.ordinal() <= DataSourceType.EVIO_FILE.ordinal()) {
                 if (evioAdapter == null)
                     evioAdapter = new EvioEventAdapter();
-                //System.out.println("compositeLoop.addAdapter(evioAdapter)");
                 addAdapter(evioAdapter);
             }
         }
         
         // Configure LCIO processing.
         if (config.processingStage.ordinal() >= ProcessingStage.LCIO.ordinal()) {
-            if (lcioAdapter == null)
+            if (lcioAdapter == null) {
                 lcioAdapter = new LcioEventAdapter();
-            //System.out.println("compositeLoop.addAdapter(lcioAdapter)");
+            }
             addAdapter(lcioAdapter);
             if (config.eventBuilder != null) {
-                if (config.detectorName != null) {
-                    // Is LCSim ConditionsManager installed yet?
-                    if (!ConditionsManager.isSetup()) {
-                        // Setup default LCSim conditions system if not already.
-                        LCSimConditionsManagerImplementation.register();
-                    }
-                    //config.eventBuilder.setDetectorName(config.detectorName);
-                } else {
-                    throw new IllegalArgumentException("Missing detectorName in configuration.");
-                }
                 lcioAdapter.setLCSimEventBuilder(config.eventBuilder);
             } else {
                 throw new IllegalArgumentException("Missing an LCSimEventBuilder in configuration.");
