@@ -187,31 +187,37 @@ class EventProcessing {
         }
         
         // Add all Drivers from the JobManager.
-        for (Driver driver : sessionState.jobManager.getDriverExecList()) {
+        for (Driver driver : sessionState.jobManager.getDriverExecList()) {            
             loopConfig.add(driver);
+            logger.config("added Driver " + driver.getName() + " to job");
         }
 
         // Using ET server?
         if (configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
 
             // ET system monitor.
+            logger.config("added EtSystemMonitor to job");
             loopConfig.add(new EtSystemMonitor());
 
             // ET system strip charts.
+            logger.config("added EtSystemStripCharts to job");
             loopConfig.add(new EtSystemStripCharts());
         }
 
         // Add extra CompositeRecordProcessors to the loop config.
-        for (CompositeRecordProcessor processor : processors) {
+        for (CompositeRecordProcessor processor : processors) {            
             loopConfig.add(processor);   
+            logger.config("added extra processor " + processor.getClass().getSimpleName() + " to job");
         }
         
         // Add extra Drivers to the loop config.
-        for (Driver driver : drivers) {
+        for (Driver driver : drivers) {            
             loopConfig.add(driver);
+            logger.config("added extra Driver " + driver.getName() + " to job");
         }
                 
         // Enable conditions system activation from EVIO event information.
+        logger.config("added EvioDetectorConditionsProcessor to job with detector " + configurationModel.getDetectorName());
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
 
         // Create the CompositeLoop with the configuration.
@@ -293,51 +299,62 @@ class EventProcessing {
      */
     synchronized void start() {
         
+        logger.fine("event processing threads are starting");
+        
         // Start the event processing thread.
         sessionState.processingThread = new EventProcessingThread(sessionState.loop);
         sessionState.processingThread.start();
         
         // Start the watchdog thread which will auto-disconnect when event processing is done.
         sessionState.sessionWatchdogThread = new SessionWatchdogThread(sessionState.processingThread);
-        sessionState.sessionWatchdogThread.start();        
+        sessionState.sessionWatchdogThread.start();
+        
+        logger.fine("started event processing threads");
     }
     
     /**
      * Notify the event processor to pause processing.
      */
     synchronized void pause() {
+        logger.finest("pausing");
         if (!application.connectionModel.getPaused()) {
             sessionState.loop.pause();
             application.connectionModel.setPaused(true);
         }
+        logger.finest("paused");
     }
     
     /**
      * Get next event if in pause mode.
      */
     synchronized void next() {
+        logger.finest("getting next event");
         if (application.connectionModel.getPaused()) {
             application.connectionModel.setPaused(false);
             sessionState.loop.execute(Command.GO_N, 1L, true);
             application.connectionModel.setPaused(true);
         }
+        logger.finest("got next event");
     }
     
     /**
      * Resume processing events from pause mode.
      */
     synchronized void resume() {
+        logger.finest("resuming");
         if (application.connectionModel.getPaused()) {
             // Notify event processor to continue.
             sessionState.loop.resume();        
             application.connectionModel.setPaused(false);
         }
+        logger.finest("resumed");
     }
     
     /**
      * Interrupt and join to the processing watchdog thread.
      */
     synchronized void killWatchdogThread() {
+        logger.fine("killing watchdog thread");
         // Is the session watchdog thread not null?
         if (sessionState.sessionWatchdogThread != null) {
             // Is the thread still alive?
@@ -355,18 +372,21 @@ class EventProcessing {
             // Set the thread object to null.
             sessionState.sessionWatchdogThread = null;
         }
+        logger.fine("watchdog thread killed");
     }
     
     /**
      * Cleanup the ET connection.
      */
     synchronized void closeEtConnection() {
+        logger.fine("closing ET connection");
         if (sessionState.connection != null) {
             if (sessionState.connection.getEtSystem().alive()) {
                 sessionState.connection.cleanup();
             }
             sessionState.connection = null;
-        }        
+        }
+        logger.fine("ET connection closed");
     }
     
     /**
@@ -381,7 +401,7 @@ class EventProcessing {
      * Connect to the ET system using the current connection settings.
      */
     synchronized void connect() throws IOException {
-
+        logger.fine("connecting to ET system");
         // Setup the network connection if using an ET server.
         if (usingEtServer()) {
             // Create a connection to the ET server.
@@ -394,6 +414,7 @@ class EventProcessing {
             // This is when a direct file source is used and ET is not needed.
             application.connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
         }
+        logger.fine("ET system is connected");
     }
     
     /**
@@ -427,6 +448,8 @@ class EventProcessing {
      */
     synchronized void disconnect() {
         
+        logger.fine("disconnecting");
+        
         // Kill the session watch dog thread.
         killWatchdogThread();
 
@@ -435,6 +458,8 @@ class EventProcessing {
                               
         // Change application state to disconnected.
         application.connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+        
+        logger.fine("disconnected");
     }    
                
     /**
