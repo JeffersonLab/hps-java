@@ -34,6 +34,10 @@ class SettingsDialog extends JDialog {
             public void windowClosing(WindowEvent e) {
                 setVisible(false);
             }
+            
+            public void windowOpened(WindowEvent event) {
+                SettingsDialog.this.setLocationRelativeTo(null);                    
+            }
         });        
     }
 }

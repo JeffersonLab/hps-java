@@ -1,47 +1,39 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.CONNECT;
-import static org.hps.monitoring.application.Commands.DATA_SOURCE_CHANGED;
-import static org.hps.monitoring.application.Commands.DISCONNECT;
-import static org.hps.monitoring.application.Commands.EXIT;
-import static org.hps.monitoring.application.Commands.FILE_CLOSE;
-import static org.hps.monitoring.application.Commands.FILE_OPEN;
-import static org.hps.monitoring.application.Commands.NEXT;
-import static org.hps.monitoring.application.Commands.PAUSE;
-import static org.hps.monitoring.application.Commands.PLOTS_CLEAR;
-import static org.hps.monitoring.application.Commands.PLOTS_SAVE;
-import static org.hps.monitoring.application.Commands.RESUME;
-import static org.hps.monitoring.application.Commands.SETTINGS_LOAD;
-import static org.hps.monitoring.application.Commands.SETTINGS_LOAD_DEFAULT;
-import static org.hps.monitoring.application.Commands.SETTINGS_SAVE;
-import static org.hps.monitoring.application.Commands.SETTINGS_SHOW;
-import static org.hps.monitoring.application.Commands.WINDOW_DEFAULTS;
-import static org.hps.monitoring.application.Commands.WINDOW_MAXIMIZE;
-import static org.hps.monitoring.application.Commands.WINDOW_MINIMIZE;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
+import org.hps.monitoring.application.LogTable.LogRecordModel;
 import org.hps.monitoring.application.model.Configuration;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
@@ -49,6 +41,7 @@ import org.hps.monitoring.application.model.RunModel;
 import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EvioFileFilter;
+import org.hps.monitoring.application.util.TableExporter;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
 import org.hps.monitoring.subsys.StatusCode;
@@ -58,6 +51,7 @@ import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.enums.DataSourceType;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.log.DefaultLogFormatter;
 
 /**
  * This is the primary class that implements the monitoring GUI application.
@@ -69,12 +63,15 @@ import org.lcsim.util.aida.AIDA;
  */
 final class MonitoringApplication implements ActionListener, PropertyChangeListener, SystemStatusListener {
 
-    // Setup application logging.
+    // Statically initialize logging, which will be fully setup later.
     static final Logger logger;
     static {
         logger = Logger.getLogger(MonitoringApplication.class.getSimpleName());
     }
-    Handler logHandler;
+    static final Level DEFAULT_LEVEL = Level.ALL;
+
+    // Default log stream.
+    PrintStream logStream = System.out;
     
     // Application error handling.
     final ErrorHandler errorHandler;
@@ -99,7 +96,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     // Filters for opening files.
     static final FileFilter lcioFilter = new FileNameExtensionFilter("LCIO files", "slcio");
     static final EvioFileFilter evioFilter = new EvioFileFilter();
-        
+            
     /**
      * Default log handler.
      */
@@ -109,7 +106,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
          * This method inserts a record into the log table.
          */
         public void publish(LogRecord record) {
-            frame.logTable.insert(record);
+            getLogRecordModel().add(record);
         }
 
         public void close() throws SecurityException {
@@ -118,6 +115,14 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         public void flush() {
         }
     }    
+    
+    LogRecordModel getLogRecordModel() {
+        return frame.logPanel.logTable.model;
+    }
+    
+    LogTable getLogTable() {
+        return frame.logPanel.logTable;
+    }
              
     /**
      * Instantiate and show the monitoring application with the given configuration.
@@ -183,70 +188,59 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     public void actionPerformed(ActionEvent e) {
 
         String cmd = e.getActionCommand();
-        if (CONNECT.equals(cmd)) {
+        if (Commands.CONNECT.equals(cmd)) {
             // Run the start session method on a separate thread.
             new Thread() {
                 public void run() {
                     startSession();
                 }
             }.start();
-        } else if (DISCONNECT.equals(cmd)) {
+        } else if (Commands.DISCONNECT.equals(cmd)) {
             // Run the stop session method on a separate thread.
             new Thread() {
                 public void run() {
                     stopSession();
                 }
             }.start();
-        } else if (PLOTS_SAVE.equals(cmd)) {
+        } else if (Commands.SAVE_PLOTS.equals(cmd)) {
             savePlots();
-        } else if (EXIT.equals(cmd)) {
+        } else if (Commands.EXIT.equals(cmd)) {
             exit();
-        } else if (PAUSE.equals(cmd)) { 
+        } else if (Commands.PAUSE.equals(cmd)) { 
             processing.pause();
-        } else if (NEXT.equals(cmd)) {
+        } else if (Commands.NEXT.equals(cmd)) {
             processing.next();
-        } else if (RESUME.equals(cmd)) {
+        } else if (Commands.RESUME.equals(cmd)) {
             processing.resume();
-        } else if (SETTINGS_SHOW.equals(cmd)) {
+        } else if (Commands.SHOW_SETTINGS.equals(cmd)) {
             showSettingsDialog();
-        } else if (SETTINGS_LOAD.equals(cmd)) {
+        } else if (Commands.LOAD_SETTINGS.equals(cmd)) {
             loadSettings();
-        } else if (SETTINGS_SAVE.equals(cmd)) {
+        } else if (Commands.SAVE_SETTINGS.equals(cmd)) {
             saveSettings();
-        }  else if (PLOTS_CLEAR.equals(cmd)) {
+        }  else if (Commands.CLEAR_PLOTS.equals(cmd)) {
             clearPlots();
-        } else if (SETTINGS_LOAD_DEFAULT.equals(cmd)) {
+        } else if (Commands.LOAD_DEFAULT_SETTINGS.equals(cmd)) {
             loadDefaultSettings();
-        } else if (FILE_OPEN.equals(cmd)) {
+        } else if (Commands.OPEN_FILE.equals(cmd)) {
             openFile();
-        } else if (WINDOW_DEFAULTS.equals(cmd)) {
+        } else if (Commands.DEFAULT_WINDOW.equals(cmd)) {
             restoreDefaultWindow();
-        } else if (WINDOW_MAXIMIZE.equals(cmd)) {
+        } else if (Commands.MAXIMIZE_WINDOW.equals(cmd)) {
             maximizeWindow();
-        } else if (WINDOW_MINIMIZE.equals(cmd)) {
+        } else if (Commands.MINIMIZE_WINDOW.equals(cmd)) {
             minimizeWindow();
-        } else if (FILE_CLOSE.equals(cmd)) {
+        } else if (Commands.CLOSE_FILE.equals(cmd)) {
             closeFile();
-        } 
-        
-        /*else if (CHOOSE_LOG_FILE.equals(cmd)) {
-            //chooseLogFile();
-        } else if (LOG_TO_TERMINAL.equals(cmd)) {
-            //logToTerminal();
-        } else if (SCREENSHOT.equals(cmd)) {
-            //chooseScreenshot();
-        } else if (SAVE_LOG_TABLE.equals(cmd)) {
-            //saveLogTableToFile();
-        } else if (CLEAR_LOG_TABLE.equals(cmd)) {
-            //clearLogTable();
-        } else if (LOG_LEVEL_CHANGED.equals(cmd)) {
-            //setLogLevel();
-        } else if (VALIDATE_DATA_FILE.equals(cmd)) {
-            //if (fileValidationThread == null) {
-            //    new FileValidationThread().start();
-            //}
-        }
-        */
+        } else if (Commands.SAVE_SCREENSHOT.equals(cmd)) {
+            saveScreenshot();
+        } else if (Commands.LOG_LEVEL_CHANGED.equals(cmd)) {
+            setLogLevel();
+        } else if (Commands.SAVE_LOG_TABLE.equals(cmd)) {
+            saveLogTable();
+        } else if (Commands.CLEAR_LOG_TABLE.equals(cmd)) {
+            getLogRecordModel().clear();
+        }        
     }    
     
     /**
@@ -277,10 +271,18 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Setup the logger.
      */
     void setupLogger() {
-        logHandler = new LogHandler();
         logger.setUseParentHandlers(false);
-        logger.addHandler(logHandler);
-        logger.setLevel(Level.ALL);       
+        logger.addHandler(new LogHandler());
+        logger.addHandler(new StreamHandler(logStream, new DefaultLogFormatter()) {
+            public void publish(LogRecord record) {
+                super.publish(record);
+                flush();
+            }
+        });
+        for (Handler handler : logger.getHandlers()) {
+            handler.setLevel(DEFAULT_LEVEL);
+        }
+        logger.setLevel(DEFAULT_LEVEL);
         logger.info("logging initialized");
     }
             
@@ -292,9 +294,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
         if (configuration.getFile() != null)
-            logger.config("loaded configuration from file: " + configuration.getFile().getPath());
+            logger.config("loaded config from file " + configuration.getFile().getPath());
         else
-            logger.config("loaded configuration from resource: " + configuration.getResourcePath());
+            logger.config("loaded config from resource " + configuration.getResourcePath());
     }
               
     /**
@@ -453,9 +455,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             try {
                 AIDA.defaultInstance().saveAs(fileName);
                 logger.info("saved plots to file: " + fileName);
-                DialogUtil.showInfoDialog(frame,
-                        "Plots Saved", 
-                        "Plots were successfully saved to AIDA file.");
+                DialogUtil.showInfoDialog(frame, "Plots Saved",  "Plots were successfully saved to AIDA file.");
             } catch (IOException e) {
                 errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
             }
@@ -470,9 +470,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 "Are you sure you want to clear the plots", "Clear Plots Confirmation");
         if (confirmation == JOptionPane.YES_OPTION) {
             AIDA.defaultInstance().clearAll();
-            DialogUtil.showInfoDialog(frame,
-                    "Plots Clear", 
-                    "The AIDA plots were cleared.");
+            DialogUtil.showInfoDialog(frame, "Plots Clear", "The AIDA plots were cleared.");
         }
         logger.info("plots were cleared");
     }
@@ -483,9 +481,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     void loadDefaultSettings() {
         configuration = new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION);
         configurationModel.setConfiguration(configuration);
-        DialogUtil.showInfoDialog(frame,
-                "Default Configuration Loaded", 
-                "The default configuration was loaded.");
+        DialogUtil.showInfoDialog(frame, "Default Configuration Loaded", "The default configuration was loaded.");
         logger.config("default settings loaded");
     }
     
@@ -493,7 +489,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Show the settings dialog window.
      */
     void showSettingsDialog() {
-        frame.settingsDialog.setVisible(true);
+        frame.settingsDialog.setVisible(true);        
     }
         
     /**
@@ -542,9 +538,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             File f = fc.getSelectedFile();
             configuration.writeToFile(f);
             logger.info("saved configuration to file: " + f.getPath());
-            DialogUtil.showInfoDialog(frame,
-                    "Settings Saved", 
-                    "Settings were saved successfully.");
+            DialogUtil.showInfoDialog(frame, "Settings Saved", "Settings were saved successfully.");
         }
     }
     
@@ -561,9 +555,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             configuration = new Configuration(f);
             loadConfiguration(configuration);
             logger.info("loaded configuration from file: " + f.getPath());
-            DialogUtil.showInfoDialog(frame,
-                    "Settings Loaded", 
-                    "Settings were loaded successfully.");
+            DialogUtil.showInfoDialog(frame, "Settings Loaded", "Settings were loaded successfully.");
         }
     }
     
@@ -599,5 +591,83 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 frame.dataSourceComboBox.removeItem(frame.dataSourceComboBox.getSelectedItem());    
             }            
         }
+    }
+    
+    /**
+     * Save a screenshot to a file using a file chooser.
+     */
+    void saveScreenshot() {
+        JFileChooser fc = new JFileChooser();
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setDialogTitle("Save Screenshot");
+        FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("png file (*.png)", "png");
+        String format = pngFilter.getExtensions()[0];
+        fc.addChoosableFileFilter(pngFilter);
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showSaveDialog(frame);
+        if (r == JFileChooser.APPROVE_OPTION) {            
+            String fileName = fc.getSelectedFile().getPath();
+            if (!fileName.endsWith("." + format)) {
+                fileName += "." + format;
+            }
+            writeScreenshot(fileName, format);
+            DialogUtil.showInfoDialog(frame, "Screenshot Saved", "Screenshot was saved to file.");
+            logger.info("saved screenshot to " + fileName);
+        }
+    }
+
+    /**
+     * Save a screenshot to an output file.
+     * @param fileName The name of the output file.
+     */
+    void writeScreenshot(String fileName, String format) {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Rectangle screenRectangle = new Rectangle(screenSize);
+        try {
+            Robot robot = new Robot();
+            BufferedImage image = robot.createScreenCapture(screenRectangle);
+            ImageIO.write(image, format, new File(fileName));
+        } catch (Exception e) {
+            errorHandler.setError(e).setMessage("Failed to take screenshot.").printStackTrace().log().showErrorDialog();
+        }
+    }            
+    
+    /**
+     * Set the log level from the configuration model.
+     */
+    void setLogLevel() {
+        Level newLevel = configurationModel.getLogLevel();
+        if (logger.getLevel() != newLevel) {
+            logger.setLevel(newLevel);
+            logger.log(Level.INFO, "Log Level was changed to <" + configurationModel.getLogLevel().toString() + ">");
+        }
+    }      
+    
+    /**
+     * Export a JTable's data to a comma-delimited text file using a file chooser.
+     */
+    void saveTable(JTable table) {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Save Table to Text File");
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showSaveDialog(frame);
+        if (r == JFileChooser.APPROVE_OPTION) {            
+            String fileName = fc.getSelectedFile().getPath();
+            try {
+                TableExporter.export(table, fileName, ',');
+                logger.info("saved table data to " + fileName);
+                DialogUtil.showInfoDialog(frame, "Table Data Saved", "The table was exported successfully.");
+            } catch (IOException e) {
+                DialogUtil.showErrorDialog(frame, "Table Export Error", "The table export failed.");
+                logger.warning("failed to save table data to " + fileName);
+            }                        
+        }
+    }
+    
+    /**
+     * Save the log table to a file using a file chooser.
+     */
+    void saveLogTable() {
+        saveTable(frame.logPanel.logTable);
     }
 }

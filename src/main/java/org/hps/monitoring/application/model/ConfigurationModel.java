@@ -27,6 +27,7 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String FREEZE_CONDITIONS_PROPERTY = "FreezeConditions";
     public static final String LOG_FILE_NAME_PROPERTY = "LogFileName";
     public static final String LOG_LEVEL_PROPERTY = "LogLevel";
+    public static final String LOG_LEVEL_FILTER_PROPERTY = "LogLevelFilter";
     public static final String LOG_TO_FILE_PROPERTY = "LogToFile";
     public static final String MAX_EVENTS_PROPERTY = "MaxEvents";
     public static final String STEERING_TYPE_PROPERTY = "SteeringType";
@@ -81,6 +82,16 @@ public final class ConfigurationModel extends AbstractModel {
         Level oldValue = getLogLevel();
         configuration.set(LOG_LEVEL_PROPERTY, level.getName());
         firePropertyChange(LOG_LEVEL_PROPERTY, oldValue, getLogLevel());
+    }
+    
+    public Level getLogLevelFilter() {
+        return Level.parse(configuration.get(LOG_LEVEL_FILTER_PROPERTY));
+    }
+
+    public void setLogLevelFilter(Level level) {
+        Level oldValue = getLogLevelFilter();
+        configuration.set(LOG_LEVEL_FILTER_PROPERTY, level.getName());
+        firePropertyChange(LOG_LEVEL_FILTER_PROPERTY, oldValue, getLogLevelFilter());
     }
 
     public SteeringType getSteeringType() {

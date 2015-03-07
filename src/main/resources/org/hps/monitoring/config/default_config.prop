@@ -8,6 +8,7 @@ DisconnectOnEndRun=true
 EventBuilderClassName=org.hps.evio.LCSimEngRunEventBuilder
 #LogFileName=
 LogLevel=ALL
+LogLevelFilter=ALL
 LogToFile=false
 MaxEvents=-1
 #SteeringFile=

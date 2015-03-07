@@ -9,7 +9,6 @@ import java.awt.Rectangle;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -27,7 +26,7 @@ class MonitoringApplicationFrame extends JFrame {
     RunPanel runPanel;    
     PlotPanel plotPanel;
     PlotInfoPanel plotInfoPanel;
-    LogTable logTable;
+    LogPanel logPanel;
     SystemStatusTable systemStatusTable;
     JPanel buttonsPanel;
     
@@ -107,8 +106,8 @@ class MonitoringApplicationFrame extends JFrame {
         JTabbedPane tableTabbedPane = new JTabbedPane();
         
         // Create the log table and add it to the tabs.
-        logTable = new LogTable();                       
-        tableTabbedPane.addTab("Log Messages", new JScrollPane(logTable));
+        logPanel = new LogPanel(application.configurationModel, application);
+        tableTabbedPane.addTab("Log Messages", logPanel);
         
         // Create the system monitor.
         systemStatusTable = new SystemStatusTable();

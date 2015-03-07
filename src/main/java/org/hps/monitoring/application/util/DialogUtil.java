@@ -53,6 +53,21 @@ public final class DialogUtil {
         };
         SwingUtilities.invokeLater(runnable);
     }
+    
+    /**
+     * 
+     * @param component
+     * @param error
+     * @param title
+     */
+    public static void showErrorDialog(final Component component,  final String title, final String message) {
+        final Runnable runnable = new Runnable() {
+            public void run() {
+                JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);
+            }
+        };
+        SwingUtilities.invokeLater(runnable);
+    }
 
     /**
      * 
@@ -76,11 +91,12 @@ public final class DialogUtil {
      * @param title
      * @return
      */
-    public static int showConfirmationDialog(final Component parent, String message, String title) {
+    public static int showConfirmationDialog(final Component parent, final String title, final String message) {
         Object[] options = { "Yes", "No", "Cancel" };
         int result = JOptionPane.showOptionDialog(
                 parent, 
-                message, title, 
+                message, 
+                title, 
                 JOptionPane.YES_NO_CANCEL_OPTION, 
                 JOptionPane.QUESTION_MESSAGE, 
                 null, 
