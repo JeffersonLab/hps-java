@@ -6,7 +6,7 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver" />
-        <driver name="ConditionsDriver" />
+        <driver name="ConditionsDriver" /> 
         <driver name="DAQConfig" />
         <driver name="EcalRawConverter" />
         <driver name="GTPTestDriver" />
@@ -52,7 +52,7 @@
             <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
             <printOnPairSSPFailure>false</printOnPairSSPFailure>
             <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
-            <readDAQConfig>true</readDAQConfig>
+            <!-- <readDAQConfig>true</readDAQConfig> -->
             <verbose>true</verbose>
         </driver>
 <!--         
