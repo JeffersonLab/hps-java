@@ -6,7 +6,6 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="SvtSensorSetup"/>
         <driver name="TrackerDigiDriver"/>
       <driver name="EcalEdepToTriggerConverterDriver"/>
         <driver name="EcalReadoutConverterDriver"/>
@@ -55,7 +54,6 @@
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
 
-       <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <!-- <dropBadChannels>true</dropBadChannels> -->
             <rawTrackerHitOutputCollectionName>SVTRawTrackerHits</rawTrackerHitOutputCollectionName>

@@ -5,7 +5,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver" />
-        <driver name="SvtSensorSetup" />
       <driver name="TrackerDigiDriver"/>
 <!--  the 3 drivers below are for reading out 6-sample ADC data -->
 <!--        <driver name="RawTrackerHitSensorSetup" /> 
@@ -31,7 +30,6 @@
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
-     <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />   
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
          <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>

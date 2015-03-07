@@ -6,7 +6,6 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver" />
-        <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup" />
         <driver name="BadChannelFilter" />
         <driver name="RawTrackerHitFitterDriver" />
@@ -28,7 +27,6 @@
             <gblFileName>gblinput.txt</gblFileName>
         </driver>
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
-        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         
         <!-- Reconstruction drivers below -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />

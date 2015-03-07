@@ -15,8 +15,6 @@
     <execute>
         <!-- Print out event numbers. -->
         <driver name="EventMarkerDriver"/>
-        <!-- Setup the SVT sensors. -->   
-        <driver name="SvtSensorSetup" />        
         <!-- Simple tracker hit digi. -->
         <driver name="TrackerDigiDriver"/>
         <!-- Create tracker hits. -->
@@ -36,7 +34,6 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver>
-        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />
         <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
             <debug>false</debug>
         </driver>
