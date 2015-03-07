@@ -47,16 +47,18 @@
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <clusterWindow>1</clusterWindow>
         </driver>
-        <driver name="PairTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+        <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>10</deadTime>
             <pairCoincidence>4</pairCoincidence>
-            <minHitCount>2</minHitCount>
+            <minHitCount>3</minHitCount>
             <energySumHigh>2.0</energySumHigh>
-            <energySumLow>0.0</energySumLow>
+            <energySumLow>1.0</energySumLow>
             <energyDifferenceHigh>1.2</energyDifferenceHigh>
-            <coplanarityHigh>90</coplanarityHigh>
+            <coplanarityHigh>40</coplanarityHigh>
             <seedEnergyLow>0.1</seedEnergyLow>
+            <energySlopeParamF>0.005500</energySlopeParamF>
+            <energySlopeLow>0.4</energySlopeLow>
             <outputFileName>${outputFile}.triggers</outputFileName>
         </driver>	      
         <driver name="AidaSaveDriver"
