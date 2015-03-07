@@ -127,9 +127,10 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             eventID = new int[3];
         } else {
             logger.finest("Read EVIO event number " + eventID[0]);
-            if (eventID[1] != 1) {
-                logger.warning("Trigger code is usually 1; got " + eventID[1]);
-            }
+            // Stop hardcoding event tags.
+            //if (eventID[1] != 1) {
+            //    logger.warning("Trigger code is usually 1; got " + eventID[1]);
+            //}
             if (eventID[2] != 0) {
                 logger.warning("Readout status is usually 0; got " + eventID[2]);
             }
