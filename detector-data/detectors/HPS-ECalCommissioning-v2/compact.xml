@@ -2,7 +2,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-ECalCommissioning-v3">
+    <info name="HPS-ECalCommissioning-v2">
         <comment>HPS ECal commissioning for pass2 with no SVT, By=-0.3309  </comment>
     </info>
 
