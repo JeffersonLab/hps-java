@@ -114,7 +114,6 @@ class PrintCommand extends AbstractCommand {
             // Get records only for the user specified table name.
             conditionsRecords.addAll(conditionsManager.findConditionsRecords(userConditionsKey));
         }
-        System.out.println(conditionsRecords.size() + " conditions records found");
         
         // Sort the records by key (table name).
         conditionsRecords.sortByKey();
