@@ -29,6 +29,7 @@ class MonitoringApplicationFrame extends JFrame {
     LogPanel logPanel;
     SystemStatusTable systemStatusTable;
     JPanel buttonsPanel;
+    TriggerDiagnosticsPanel triggerPanel;
     
     JSplitPane mainSplitPane;
     JSplitPane rightSplitPane;
@@ -113,6 +114,10 @@ class MonitoringApplicationFrame extends JFrame {
         systemStatusTable = new SystemStatusTable();
         tableTabbedPane.addTab("System Status Monitor", new JScrollPane(systemStatusTable));
         
+        // Add the trigger diagnostics tables.
+        triggerPanel = new TriggerDiagnosticsPanel();
+        tableTabbedPane.addTab("Trigger Diagnostics", triggerPanel);
+        
         // Vertical split pane in left panel.
         leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, runPanel, tableTabbedPane);
         leftPanel.add(leftSplitPane, BorderLayout.CENTER);
@@ -132,11 +137,12 @@ class MonitoringApplicationFrame extends JFrame {
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
         rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, plotPanel, plotInfoPanel);
         setProportionalSize(rightSplitPane, RIGHT_PANEL_WIDTH, FULL_SIZE);
-        rightSplitPane.setResizeWeight(0.9);
+        rightSplitPane.setResizeWeight(0.8);
         rightPanel.add(rightSplitPane, BorderLayout.CENTER);
                        
         // Create the main horizontal split pane for dividing the left and right panels.
         mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+        mainSplitPane.setResizeWeight(0.15);
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
@@ -174,9 +180,13 @@ class MonitoringApplicationFrame extends JFrame {
         component.setPreferredSize(scaledDimension);
     }           
     
+    /**
+     * Restore default window settings.
+     */
     void restoreDefaults() {
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         mainSplitPane.resetToPreferredSizes();
         leftSplitPane.resetToPreferredSizes();
-        rightSplitPane.resetToPreferredSizes();
+        rightSplitPane.resetToPreferredSizes();        
     }    
 }

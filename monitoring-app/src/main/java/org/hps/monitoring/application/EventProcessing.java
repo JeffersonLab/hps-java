@@ -40,6 +40,7 @@ class EventProcessing {
     Logger logger;
     SessionState sessionState;
     List<CompositeRecordProcessor> processors;
+    List<Driver> drivers;
     
     /**
      * This class is used to organize the objects for an event processing session.
@@ -62,11 +63,13 @@ class EventProcessing {
      */
     EventProcessing(
             MonitoringApplication application, 
-            List<CompositeRecordProcessor> processors) {
+            List<CompositeRecordProcessor> processors,
+            List<Driver> drivers) {
         this.application = application;
-        this.sessionState = new SessionState();
-        this.processors = processors;
+        this.sessionState = new SessionState();        
         this.logger = MonitoringApplication.logger;
+        this.processors = processors;
+        this.drivers = drivers;
     }
     
     /**
@@ -173,8 +176,7 @@ class EventProcessing {
             .setProcessingStage(configurationModel.getProcessingStage())
             .setEtConnection(sessionState.connection)
             .setFilePath(configurationModel.getDataSourcePath())
-            .setLCSimEventBuilder(sessionState.eventBuilder)
-            .setDetectorName(configurationModel.getDetectorName());
+            .setLCSimEventBuilder(sessionState.eventBuilder);
 
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {
             long maxEvents = configurationModel.getMaxEvents();
@@ -202,6 +204,11 @@ class EventProcessing {
         // Add extra CompositeRecordProcessors to the loop config.
         for (CompositeRecordProcessor processor : processors) {
             loopConfig.add(processor);   
+        }
+        
+        // Add extra Drivers to the loop config.
+        for (Driver driver : drivers) {
+            loopConfig.add(driver);
         }
                 
         // Enable conditions system activation from EVIO event information.
@@ -240,6 +247,11 @@ class EventProcessing {
      */
     synchronized void stop() {
 
+        logger.info("event processing is stopping");
+        
+        // Disconnect from ET system.
+        disconnect();
+        
         // Is the event processing thread not null?
         if (sessionState.processingThread != null) {
 
@@ -250,8 +262,10 @@ class EventProcessing {
                 sessionState.loop.execute(Command.STOP);
 
                 try {
+                    logger.info("waiting for event processing thread to finish");
                     // This should always work, because the ET system is disconnected before this.
                     sessionState.processingThread.join();
+                    logger.info("event processing thread finished");
                 } catch (InterruptedException e) {
                     // Don't know when this would ever happen.
                     e.printStackTrace();
@@ -269,6 +283,8 @@ class EventProcessing {
 
         // Set the loop to null as a new one will be created for next session.
         sessionState.loop = null;
+        
+        logger.info("event processing stopped");
     }    
            
     /**
@@ -364,7 +380,7 @@ class EventProcessing {
     /**
      * Connect to the ET system using the current connection settings.
      */
-    void connect() throws IOException {
+    synchronized void connect() throws IOException {
 
         // Setup the network connection if using an ET server.
         if (usingEtServer()) {
@@ -409,14 +425,14 @@ class EventProcessing {
      * Disconnect from the current ET session with a particular status.
      * @param status The connection status.
      */
-    void disconnect() {
+    synchronized void disconnect() {
         
         // Kill the session watch dog thread.
         killWatchdogThread();
 
         // Cleanup the ET connection.
         closeEtConnection();
-
+                              
         // Change application state to disconnected.
         application.connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
     }    

@@ -32,6 +32,7 @@ import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
 import org.hps.monitoring.application.LogTable.LogRecordModel;
 import org.hps.monitoring.application.model.Configuration;
@@ -50,6 +51,7 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.enums.DataSourceType;
+import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.DefaultLogFormatter;
 
@@ -156,10 +158,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                                       
         // Load the configuration.
         loadConfiguration(this.configuration);
-        
-        // Setup the data source combo box.
-        frame.dataSourceComboBox.initialize();
-        
+                
         logger.info("application initialized successfully");
     }
     
@@ -189,19 +188,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
         String cmd = e.getActionCommand();
         if (Commands.CONNECT.equals(cmd)) {
-            // Run the start session method on a separate thread.
-            new Thread() {
-                public void run() {
-                    startSession();
-                }
-            }.start();
+            startSession();
         } else if (Commands.DISCONNECT.equals(cmd)) {
-            // Run the stop session method on a separate thread.
-            new Thread() {
-                public void run() {
-                    stopSession();
-                }
-            }.start();
+            processing.stop();
         } else if (Commands.SAVE_PLOTS.equals(cmd)) {
             savePlots();
         } else if (Commands.EXIT.equals(cmd)) {
@@ -357,18 +346,14 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
     
     /**
-     * <p>
      * Start a new monitoring session.
-     * <p> 
-     * This method is executed in a separate thread from the EDT within {@link #actionPerformed(ActionEvent)} 
-     * so that GUI updates are not blocked while the session is being setup.
      */
-    void startSession() {
+    synchronized void startSession() {
         
         logger.info("starting new session");
 
         try {
-            
+                        
             // Reset the plot panel and global AIDA state.
             resetPlots();
 
@@ -381,8 +366,11 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
             processors.add(frame.runPanel.new RunPanelUpdater());
             
+            List<Driver> drivers = new ArrayList<Driver>();
+            drivers.add(frame.triggerPanel.new TriggerDiagnosticGUIDriver());
+            
             // Initialize event processing with the list of processors and reference to the application.
-            processing = new EventProcessing(this, processors);
+            processing = new EventProcessing(this, processors, drivers);
             
             // Connect to the ET system, if applicable.
             processing.connect();
@@ -412,31 +400,13 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             logger.severe("failed to start new session");
         }
     }
-    
-    /**
-     * Stop the session by disconnecting from the ET system and stopping the event processing.
-     */
-    void stopSession() {
-        
-        logger.info("stopping the session");
-        
-        // Disconnect from ET system, if using the ET server, and set the proper disconnected GUI state.
-        processing.disconnect();
-
-        // Stop the event processing, which is called after the ET system goes down to avoid hanging in calls to ET system.
-        processing.stop(); 
-        
-        logger.info("session was stopped");
-    }
-    
+           
     /**
      * Exit from the application.
      */
     void exit() {        
-        // Cleanup ET system if necessary.
         if (processing != null && processing.isActive()) {
-            logger.info("killing active ET connection");
-            processing.closeEtConnection();
+            processing.stop();
         }
         frame.setVisible(false);
         logger.info("exiting the application");
