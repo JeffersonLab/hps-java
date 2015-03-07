@@ -32,8 +32,8 @@
             <useTimeWalkCorrection>false</useTimeWalkCorrection>
             <emulateFirmware>true</emulateFirmware>
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
-            <nsa>20</nsa>
-            <nsb>100</nsb>
+            <nsa>100</nsa>
+            <nsb>20</nsb>
         </driver>
         <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
