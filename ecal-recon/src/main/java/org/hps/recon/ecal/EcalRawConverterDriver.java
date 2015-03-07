@@ -244,7 +244,7 @@ public class EcalRawConverterDriver extends Driver {
             /*
              * This is for FADC pulse mode data (Mode-3 or Mode-7):
              */
-            if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { //A.C. this is the case of the RAW pulse hits
+            if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { 
 
                 /*
                  * This is for FADC Mode-7 data:

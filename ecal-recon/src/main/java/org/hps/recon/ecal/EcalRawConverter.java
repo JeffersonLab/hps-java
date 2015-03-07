@@ -154,10 +154,10 @@ public class EcalRawConverter {
     /*
      * This should probably be deprecated.  It just integrates the entire window.
      */
-    public short sumADC(RawTrackerHit hit) {
+    public int sumADC(RawTrackerHit hit) {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
         double pedestal = channelData.getCalibration().getPedestal();
-        short sum = 0;
+        int sum = 0;
         short samples[] = hit.getADCValues();
         for (int isample = 0; isample < samples.length; ++isample) {
             sum += (samples[isample] - pedestal);
