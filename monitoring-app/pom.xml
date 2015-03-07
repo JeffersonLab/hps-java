@@ -31,7 +31,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.hps.monitoring.gui.Main</mainClass>
+                                    <mainClass>org.hps.monitoring.application.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <artifactSet>
@@ -120,6 +120,11 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.jlfgr</groupId>
+            <artifactId>jlfgr</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
 </project>
