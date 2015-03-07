@@ -56,6 +56,10 @@ class PrintCommand extends AbstractCommand {
         
         conditionsManager = DatabaseConditionsManager.getInstance();
         
+        if (!conditionsManager.isInitialized()) {
+            throw new RuntimeException("conditions system is not initialized");
+        }
+        
         // User specified tag of conditions records.
         if (this.commandLine.hasOption("T")) {            
             conditionsManager.setTag(commandLine.getOptionValue("T"));
