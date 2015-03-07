@@ -1,6 +1,5 @@
 package org.hps.monitoring.application.model;
 
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +16,8 @@ import org.jlab.coda.et.enums.Mode;
 public final class ConfigurationModel extends AbstractModel {
 
     Configuration configuration;    
+    
+    List<ConfigurationListener> listeners = new ArrayList<ConfigurationListener>();
     
     // Job setting properties.
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
@@ -53,6 +54,9 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String WAIT_MODE_PROPERTY = "WaitMode";
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
     public static final String PRESCALE_PROPERTY = "Prescale";
+    
+    // Action command to get notified after configuration change is performed.
+    public static final String CONFIGURATION_CHANGED = "configurationChanged";
 
     static final String[] CONFIG_PROPERTIES = AbstractModel.getPropertyNames(ConfigurationModel.class);
 
@@ -64,10 +68,21 @@ public final class ConfigurationModel extends AbstractModel {
         this.configuration = configuration;
         fireModelChanged();
     }
+    
+    public void addConfigurationListener(ConfigurationListener listener) {
+        listeners.add(listener);
+    }
 
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
         fireModelChanged();
+        fireConfigurationChanged();
+    }
+    
+    void fireConfigurationChanged() {        
+        for (ConfigurationListener listener : listeners) {
+            listener.configurationChanged(this);
+        }
     }
     
     public Configuration getConfiguration() {
