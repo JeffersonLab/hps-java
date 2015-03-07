@@ -36,6 +36,9 @@ class PrintCommand extends AbstractCommand {
     // Field delimited for print out.
     char fieldDelimiter = ' ';
     
+    // Output file.
+    File outputFile;
+    
     DatabaseConditionsManager conditionsManager;
     
     PrintCommand() {
@@ -72,17 +75,16 @@ class PrintCommand extends AbstractCommand {
         }                
         
         // Setup an output file for the print out if requested.
-        File outputFile = null;
         if (this.commandLine.hasOption("f")) {
-            outputFile = new File(commandLine.getOptionValue("f"));
+            String path = commandLine.getOptionValue("f");
+            if (new File(path).exists()) {
+                throw new IllegalArgumentException("File already exists: " + path);
+            }
+            outputFile = new File(path);
             try {
                 ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputFile, false)));
             } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            if (outputFile.exists()) {
-                System.err.println("Specified output file already exists.");
-                System.exit(1);
+                throw new IllegalArgumentException(e);
             }
         }              
         
@@ -106,11 +108,11 @@ class PrintCommand extends AbstractCommand {
         
         // Did the user specify a table to use?
         if (userConditionsKey == null) {
-            ps.println("printing all conditions");
+            System.out.println("printing all conditions");
             // Use all table names if there was not one specified.
             conditionsRecords.addAll(conditionsManager.getConditionsRecords());
         } else {            
-            ps.println("printing conditions with name: " + userConditionsKey);
+            System.out.println("printing conditions with name: " + userConditionsKey);
             // Get records only for the user specified table name.
             conditionsRecords.addAll(conditionsManager.findConditionsRecords(userConditionsKey));
         }
@@ -125,15 +127,18 @@ class PrintCommand extends AbstractCommand {
         printConditionsRecords(conditionsKeys);   
         ps.flush();           
         ps.close();
+        
+        if (outputFile != null) {
+            System.out.println("wrote collection data to file " + outputFile.getPath());
+        }
     }
 
     private void printConditionsRecords(Set<String> conditionsKeys) {
-        ps.print("printing conditions sets: ");
+        System.out.print("printing conditions sets: ");
         for (String conditionsKey : conditionsKeys) {
-            ps.print(conditionsKey + " ");
+            System.out.print(conditionsKey + " ");
         }
-        ps.println();
-        ps.println();
+        System.out.println();
         // Loop over the conditions keys from the conditions records.
         for (String conditionsKey : conditionsKeys) {
                                    
@@ -168,8 +173,8 @@ class PrintCommand extends AbstractCommand {
             }
             printColumnNames(collection.getTableMetaData());
             printCollection(collection);
-            ps.println();
-        }
+            System.out.println();
+        }        
         ps.flush();
     }
 
@@ -183,16 +188,17 @@ class PrintCommand extends AbstractCommand {
             buffer.setLength(buffer.length() - 1);
             buffer.append('\n');
         }
+        buffer.setLength(buffer.length() - 1);
         ps.print(buffer.toString());
         ps.flush();
     }
 
     private void printCollectionHeader(ConditionsObjectCollection<?> collection) {        
-        ps.println("--------------------------------------");
-        ps.print(collection.getConditionsRecord());
-        ps.println("--------------------------------------");
-        ps.println();
-        ps.flush();
+        System.out.println("--------------------------------------");
+        System.out.print(collection.getConditionsRecord());
+        System.out.println("--------------------------------------");
+        System.out.println();
+        System.out.flush();
     }
 
     private void printColumnNames(TableMetaData tableMetaData) {
