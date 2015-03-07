@@ -115,6 +115,10 @@
         </dependency>       
         <dependency>
             <groupId>org.hps</groupId>
+            <artifactId>hps-monitoring-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hps</groupId>
             <artifactId>hps-steering-files</artifactId>
         </dependency>
         <dependency>
