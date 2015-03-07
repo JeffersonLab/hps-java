@@ -460,6 +460,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 				
 		
 				// Process and plot the region 3 plot.
+				plotter.region(3).clear();
 				if(!isFirstRaw[id]) {
 					pstyle.yAxisStyle().setLabel(SIGNAL_AMPLITUDE_TITLE);
 					pstyle.xAxisStyle().setLabel(SIGNAL_TIME_TITLE);
