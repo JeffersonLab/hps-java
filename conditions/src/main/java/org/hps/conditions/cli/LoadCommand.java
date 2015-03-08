@@ -42,7 +42,7 @@ class LoadCommand extends AbstractCommand {
     @Override
     public void execute(String[] arguments) {
         super.execute(arguments);
-        
+               
         String fileName = commandLine.getOptionValue("f");
         if (fileName == null) {
             throw new IllegalArgumentException("Missing file argument.");
@@ -58,6 +58,11 @@ class LoadCommand extends AbstractCommand {
 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
+        boolean openedConnection = false;
+        if (!conditionsManager.isConnected()) {
+            openedConnection = conditionsManager.openConnection();
+        }
+        
         int collectionID;
         if (commandLine.getOptionValue("c") != null) {
             collectionID = Integer.parseInt(commandLine.getOptionValue("c"));
@@ -78,6 +83,7 @@ class LoadCommand extends AbstractCommand {
         // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the manager directly.
         List<Integer> IDs = conditionsManager.updateQuery(insertSql);
         System.out.println("Inserted " + IDs.size() + " new rows into table " + tableName + " with collection_id " + collectionID);
+        conditionsManager.closeConnection(openedConnection);
     }
 
     void parseFile(String fileName, List<String> columnNames, List<List<String>> rows) {
