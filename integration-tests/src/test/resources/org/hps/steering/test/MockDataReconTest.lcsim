@@ -10,8 +10,6 @@
     </control>
     <execute>
         <driver name="EventMarkerDriver"/>
-        <driver name="ConditionsDriver" />
-        <driver name="SvtSensorSetup" />
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
@@ -26,10 +24,8 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
-        <driver name="SvtSensorSetup" type="org.hps.recon.tracking.SvtSensorSetup" />   
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>        
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
@@ -55,7 +51,6 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
-
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>true</use2014Gain>
