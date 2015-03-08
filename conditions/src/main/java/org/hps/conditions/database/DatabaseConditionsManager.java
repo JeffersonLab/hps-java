@@ -369,9 +369,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public int getNextCollectionID(String tableName) {
         boolean openedConnection = openConnection();
-        TableMetaData tableData = tableRegistry.findByTableName(tableName);
-        if (tableData == null)
-            throw new IllegalArgumentException("There is no meta data for table " + tableName);
         ResultSet resultSet = selectQuery("SELECT MAX(collection_id)+1 FROM " + tableName);
         int collectionId = 1;
         try {
