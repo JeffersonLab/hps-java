@@ -70,9 +70,7 @@ public class TriggerDiagnosticsPanel extends JPanel {
                 for (DiagnosticUpdatable update : updateList) {
                     update.updatePanel(snapshot);
                 }
-            } else {
-                System.out.println("no diag snapshot in event");
-            }
+            } 
         }
         
         void setDiagnosticCollectionName(String name) {
