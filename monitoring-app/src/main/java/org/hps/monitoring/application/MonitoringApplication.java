@@ -280,6 +280,10 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * @param configuration The new configuration.
      */
     void loadConfiguration(Configuration configuration) {
+        
+        // HACK: Clear data source combo box for new config.
+        frame.dataSourceComboBox.removeAllItems();
+        
         // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
         configurationModel.setConfiguration(configuration);
         if (configuration.getFile() != null)

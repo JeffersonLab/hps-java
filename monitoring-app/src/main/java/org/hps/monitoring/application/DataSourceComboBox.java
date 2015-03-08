@@ -11,7 +11,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
 import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
-import org.hps.monitoring.application.model.ConfigurationListener;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
@@ -28,7 +27,7 @@ import org.hps.record.enums.DataSourceType;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyChangeListener, ActionListener, ConfigurationListener {
+class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyChangeListener, ActionListener{
 
     ConnectionStatusModel connectionModel;
     ConfigurationModel configurationModel;
@@ -65,16 +64,9 @@ class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyCh
         setEditable(false);
         this.configurationModel = configurationModel;
         connectionModel.addPropertyChangeListener(this);                
-        configurationModel.addConfigurationListener(this);
+        configurationModel.addPropertyChangeListener(this);
     }
             
-    void setSelectedItem() {
-        DataSourceItem item = findItem(configurationModel.getDataSourcePath(), getDataSourceType(configurationModel.getDataSourcePath()));
-        if (item != null) {
-            setSelectedItem(item);
-        }
-    }
-
     boolean contains(DataSourceItem item) {
         return ((DefaultComboBoxModel<DataSourceItem>) getModel()).getIndexOf(item) != -1;
     }
@@ -91,12 +83,35 @@ class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyCh
                     setEnabled(false);
                 }
             } else if (evt.getPropertyName().equals(ConfigurationModel.DATA_SOURCE_PATH_PROPERTY)) {
-                String path = configurationModel.getDataSourcePath();
-                DataSourceType type = getDataSourceType(path);
-                addDataSourceItem(path, type);
-                setSelectedItem();
+                if (configurationModel.hasValidProperty(ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY)) {
+                    String path = configurationModel.getDataSourcePath();
+                    DataSourceType type = getDataSourceType(path);
+                    if (type.isFile()) {
+                        DataSourceItem item = findItem(path, type);
+                        if (item == null) {
+                            item = addDataSourceItem(path, type);
+                        }
+                        if (configurationModel.getDataSourceType().isFile()) {
+                            setSelectedItem(item);
+                        }
+                    }
+                }
             } else if (evt.getPropertyName().equals(ConfigurationModel.DATA_SOURCE_TYPE_PROPERTY)) {
-                setSelectedItem();
+                if (configurationModel.getDataSourceType() == DataSourceType.ET_SERVER) {
+                    DataSourceItem item = findEtItem();
+                    if (item == null) {
+                        item = new DataSourceItem(configurationModel.getEtPath(), DataSourceType.ET_SERVER);
+                    }
+                    setSelectedItem(item);
+                } else {
+                    if (configurationModel.hasValidProperty(ConfigurationModel.DATA_SOURCE_PATH_PROPERTY)) {
+                        DataSourceItem item = findItem(configurationModel.getDataSourcePath(), configurationModel.getDataSourceType());
+                        if (item == null) {
+                            item = addDataSourceItem(configurationModel.getDataSourcePath(), configurationModel.getDataSourceType());
+                        }
+                        setSelectedItem(item);
+                    }
+                }
             } else if (evt.getPropertyName().equals(ConfigurationModel.HOST_PROPERTY)) {
                 updateEtItem();
             } else if (evt.getPropertyName().equals(ConfigurationModel.ET_NAME_PROPERTY)) {
@@ -125,46 +140,18 @@ class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyCh
                 // Update the model with data source settings.
                 configurationModel.removePropertyChangeListener(this);
                 DataSourceItem item = (DataSourceItem) getSelectedItem();
-                configurationModel.setDataSourceType(item.type);
-                if (item.type != DataSourceType.ET_SERVER) {
-                    configurationModel.setDataSourcePath(item.name);
+                if (item != null) {
+                    configurationModel.setDataSourceType(item.type);
+                    if (item.type != DataSourceType.ET_SERVER) {
+                        configurationModel.setDataSourcePath(item.name);
+                    }
                 }
             } finally {
                 configurationModel.addPropertyChangeListener(this);
             }
         } 
     }
-    
-    public void configurationChanged(ConfigurationModel configurationModel) {
-               
-        // Clear the data source list.
-        removeAllItems();
-        
-        // Add the default ET item.
-        this.removeActionListener(this);
-        try {
-            addItem(new DataSourceItem(configurationModel.getEtPath(), DataSourceType.ET_SERVER));
-                
-            // Add a file source if one has been provided.
-            if (configurationModel.getDataSourcePath() != null) {
-                // Add an item for this data source.
-                DataSourceItem newItem = new DataSourceItem(configurationModel.getDataSourcePath(), configurationModel.getDataSourceType());
-                //System.out.println("adding new item " + newItem.name + " " + newItem.type);
-                addItem(newItem);            
-                if (configurationModel.getDataSourceType().isFile()) {
-                    //System.out.println("setting selected");
-                    setSelectedItem(newItem);
-                }
-            }
-        } finally {
-            this.addActionListener(this);    
-        }
-        
-        // Don't add as property change listener until after configuration has been initialized.
-        configurationModel.removePropertyChangeListener(this);
-        configurationModel.addPropertyChangeListener(this);
-    }
-
+       
     public void addItem(DataSourceItem item) {
         // Do not add invalid looking items.
         if (item.name == null || item.name.length() == 0) { 
@@ -196,15 +183,19 @@ class DataSourceComboBox extends JComboBox<DataSourceItem> implements PropertyCh
         return null;
     }
 
-    void addDataSourceItem(String path, DataSourceType type) {
+    DataSourceItem addDataSourceItem(String path, DataSourceType type) {
         DataSourceItem newItem = new DataSourceItem(path, type);
-        if (!contains(newItem)) {
-            addItem(newItem);
-        }
+        addItem(newItem);
+        return newItem;
     }
     
     void updateEtItem() {
         DataSourceItem item = findEtItem();
-        item.name = configurationModel.getEtPath();
+        if (item == null) {
+            item = new DataSourceItem(configurationModel.getEtPath(), DataSourceType.ET_SERVER);
+            addItem(item);
+        } else {
+            item.name = configurationModel.getEtPath();
+        }
     }
 }

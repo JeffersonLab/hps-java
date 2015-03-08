@@ -75,7 +75,11 @@ public final class Configuration {
      * @return True if configuration has value for the key.
      */
     boolean hasKey(String key) {
-        return properties.getProperty(key) != null;
+        try {
+            return properties.containsKey(key);
+        } catch (java.lang.NullPointerException e) {
+            return false;
+        }
     }
 
     /**
@@ -164,7 +168,7 @@ public final class Configuration {
      * @param key The properties key.
      * @return True if properties key is valid.
      */
-    private boolean checkKey(String key) {
+    boolean checkKey(String key) {
         return hasKey(key) && properties.getProperty(key) != null;
     }
 

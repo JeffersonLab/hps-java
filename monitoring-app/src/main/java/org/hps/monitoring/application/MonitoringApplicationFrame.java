@@ -120,6 +120,7 @@ class MonitoringApplicationFrame extends JFrame {
         
         // Vertical split pane in left panel.
         leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, runPanel, tableTabbedPane);
+        leftSplitPane.setResizeWeight(0.5);
         leftPanel.add(leftSplitPane, BorderLayout.CENTER);
                                 
         // Create the right panel.

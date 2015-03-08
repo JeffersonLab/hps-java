@@ -1,8 +1,6 @@
 package org.hps.monitoring.application.model;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 import org.hps.record.enums.DataSourceType;
@@ -16,8 +14,6 @@ import org.jlab.coda.et.enums.Mode;
 public final class ConfigurationModel extends AbstractModel {
 
     Configuration configuration;    
-    
-    List<ConfigurationListener> listeners = new ArrayList<ConfigurationListener>();
     
     // Job setting properties.
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
@@ -69,22 +65,11 @@ public final class ConfigurationModel extends AbstractModel {
         fireModelChanged();
     }
     
-    public void addConfigurationListener(ConfigurationListener listener) {
-        listeners.add(listener);
-    }
-
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
         fireModelChanged();
-        fireConfigurationChanged();
     }
-    
-    void fireConfigurationChanged() {        
-        for (ConfigurationListener listener : listeners) {
-            listener.configurationChanged(this);
-        }
-    }
-    
+     
     public Configuration getConfiguration() {
         return this.configuration;
     }
@@ -423,7 +408,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public boolean hasValidProperty(String key) {
-        return configuration.hasKey(key) && configuration.get(key) != null;
+        return configuration.checkKey(key);
     }
 
     @Override
