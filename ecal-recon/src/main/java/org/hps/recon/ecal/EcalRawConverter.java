@@ -228,7 +228,7 @@ public class EcalRawConverter {
    
     
     /*
-     * Emulate the FADC250 firmware emulation Mode-1 waveform to a Mode-3/7 pulse,
+     * Emulate the FADC250 firmware in conversion of Mode-1 waveform to a Mode-3/7 pulse,
      * given a time for threshold crossing.
      */
     public double[] convertWaveformToPulse(RawTrackerHit hit,int thresholdCrossing,boolean mode7) {
@@ -245,12 +245,17 @@ public class EcalRawConverter {
             lastSample  = thresholdCrossing + NSA/nsPerSample - 1;
         }
         
-        // mode-7 min and max:
+        // mode-7's minimum/pedestal (average of first 4 samples):
         double minADC=0;
+        for (int jj=0; jj<4; jj++) minADC += samples[jj];
+        // does the firmware's conversion of min to int occur before or after time calculation?  undocumented.
+        minADC=(int)(minADC/4); 
+        
+        // mode-7's max pulse height:
         double maxADC=0;
         int sampleMaxADC=0;
         
-        // pulse integral:
+        // mode-3/7's pulse integral:
         short sumADC = 0;
         
         for (int jj=firstSample; jj<=lastSample; jj++) {
@@ -261,11 +266,8 @@ public class EcalRawConverter {
             // integrate pulse:
             sumADC += samples[jj];
            
-            // compute "minimum" at beginning of window:
-            if (jj<4) minADC+=samples[jj];
-          
             // find pulse maximum:
-            if (jj>firstSample && jj<samples.length-5) {
+            if (jj>firstSample && jj<samples.length-5) { // The "5" here is a firmware constant.
                 if (samples[jj+1]<samples[jj]) {
                     sampleMaxADC=jj;
                     maxADC=samples[jj];
@@ -273,15 +275,13 @@ public class EcalRawConverter {
             }
         }
        
-        // minADC is the average of first four samples:
-        minADC/=4;
-      
         // pulse time with 4ns resolution:
         double pulseTime=thresholdCrossing*nsPerSample;
         
         // calculate Mode-7 high-resolution time:
         if (mode7) {
             if (thresholdCrossing < 4) {
+                // special case where firmware sets max to zero and time to 4ns time.
                 maxADC=0;
             }
             else if (maxADC>0) {
@@ -293,10 +293,12 @@ public class EcalRawConverter {
                 double a1 = maxADC;
                 double slope = (a1-a0)/(t1-t0);
                 double halfMax = (maxADC+minADC)/2;
+                // this is not rigorously firmware-correct, need to find halMax-crossing.
                 double tmpTime = t1 - (a1 - halfMax) / slope;
                 if (slope>0 && tmpTime>0) {
                     pulseTime = tmpTime;
                 }
+                // else another special firmware case
             }
         }
         
