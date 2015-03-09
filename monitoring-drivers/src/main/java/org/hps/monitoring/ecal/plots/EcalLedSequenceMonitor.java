@@ -51,7 +51,7 @@ import org.lcsim.util.aida.AIDA;
 /* This is the driver used to determine the response of each calorimeter channel after a LED run
  * @author Andrea Celentano  <andrea.celentano@ge.infn.it>
  */
-public class LedSequenceMonitor extends Driver{
+public class EcalLedSequenceMonitor extends Driver{
 
     private static final int NUM_CHANNELS = 11 * 47;
 
