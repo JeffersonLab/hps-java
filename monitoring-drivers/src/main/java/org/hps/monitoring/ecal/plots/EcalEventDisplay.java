@@ -39,8 +39,7 @@ import org.lcsim.util.aida.AIDA;
  * <li>If the user clicks on a crystal, the corresponding energy and time
  * distributions (both of type <code>IHistogram1D</code>) are shown in
  * the last panel of the monitoring application, as well as a 2D histogram
- * (hit time vs. hit energy). Finally, if available, the raw waveshape (in
- * mV) is displayed.</li>
+ * (hit time vs. hit energy).The fourth panel reports energy for the crystal.</li>
  * 
  * @author Andrea Celentano
  */

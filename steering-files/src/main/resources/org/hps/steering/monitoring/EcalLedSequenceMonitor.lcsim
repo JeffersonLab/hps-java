@@ -10,6 +10,7 @@
         <driver name="EcalRunningPedestal"/>
   	    <driver name="EcalRawConverter" />    
         <driver name="LedAnalysisDriver"/>
+        <driver name="EcalEventDisplay" />         <!-- Ecal event display -->
         <driver name="AidaSaveDriver"/>
     </execute>           
     <drivers>    
@@ -31,8 +32,17 @@
         <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
            <useRawEnergy>true</useRawEnergy>
         </driver>
+          <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
+            <inputCollection>EcalCalHits</inputCollection>
+            <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
+            <inputClusterCollection>EcalClusters</inputClusterCollection>
+            <pedSamples>20</pedSamples>
+            <maxEch>5.0</maxEch>
+            <minEch>0.005</minEch>
+            <eventRefreshRate>5</eventRefreshRate>
+        </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.aida</outputFileName>
+            <outputFileName>LedSequenceMonitorOut.aida</outputFileName>
         </driver>
 	</drivers>
 </lcsim>

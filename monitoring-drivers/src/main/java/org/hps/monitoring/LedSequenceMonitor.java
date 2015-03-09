@@ -1,4 +1,4 @@
-package org.hps.users.celentan;
+package org.hps.monitoring.ecal.plots;
 
 
 import hep.aida.ICloud1D;
@@ -51,7 +51,7 @@ import org.lcsim.util.aida.AIDA;
 /* This is the driver used to determine the response of each calorimeter channel after a LED run
  * @author Andrea Celentano  <andrea.celentano@ge.infn.it>
  */
-public class LedAnalysis extends Driver{
+public class LedSequenceMonitor extends Driver{
 
     private static final int NUM_CHANNELS = 11 * 47;
 
@@ -159,7 +159,7 @@ public class LedAnalysis extends Driver{
         fFunction= new ArrayList<IFunction>(NUM_CHANNELS);	
         fFunction1= new ArrayList<IFunction>(NUM_CHANNELS);		
         hCharge = new ArrayList<IHistogram1D>(NUM_CHANNELS);
-       // hChargeVsTime = new ArrayList<IHistogram2D>(NUM_CHANNELS);
+        // hChargeVsTime = new ArrayList<IHistogram2D>(NUM_CHANNELS);
         hChargeALL = new ArrayList<IHistogram1D>(NUM_CHANNELS);
         hChargeVsTimeALL = new ArrayList<IHistogram2D>(NUM_CHANNELS);
         hMeanCharge2D = aida.histogram2D("Average LED response", 47, -23.5, 23.5, 11, -5.5, 5.5);
@@ -168,7 +168,7 @@ public class LedAnalysis extends Driver{
             int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
             int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);	    
             iTuple.add(aida.analysisFactory().createTupleFactory(aida.tree()).create("nTuple"+ii,"nTuple"+ii,"int fEvn=0 , double fCharge=0.,double fTime=0.",""));
-      
+
             hChargeALL.add(aida.histogram1D("ChargeAllEvents_"+ii,400,0.,100.));
             hChargeVsTimeALL.add(aida.histogram2D("ChargeVsTimeAllEvents_"+ii,100,0.,400.,100,0.,100.));
         }
@@ -201,7 +201,7 @@ public class LedAnalysis extends Driver{
                 //fill "all" histograms
                 hChargeALL.get(id).fill(fillEnergy);
                 hChargeVsTimeALL.get(id).fill(fillTime,fillEnergy);
-                
+
                 //find the LED
                 chid = ChannelCollection.findGeometric(cellID).getChannelId();
                 if (row>0){
@@ -225,9 +225,8 @@ public class LedAnalysis extends Driver{
                 if (iStep[driverid]==-1) continue;
 
                 /*Case 1: this led is the one in the corresponding step*/;
-                if (ledid==LEDStep[driverid][iStep[driverid]]){
-                    //hRaw.get(id).fill(rawEnergy);
-                    //cStrip.get(id).fill(nEvents[id],rawEnergy);
+                //if (ledid==LEDStep[driverid][iStep[driverid]]){
+                if (true){
 
                     iTuple.get(id).fill(0,nEvents[id]);
                     iTuple.get(id).fill(1,fillEnergy);
@@ -243,7 +242,7 @@ public class LedAnalysis extends Driver{
 
                 /*Add a debug print */
                 if (eventN % 10000==0){
-                    System.out.println("Debug. LED ID: "+ledid+" DRIVER ID: "+driverid+" ECAL ID: "+id+" ROW: "+row+" COLUMN: "+column);
+                    System.out.println("Debug. LED ID: "+ledid+" DRIVER ID: "+driverid+" ECAL ID: "+id+" ROW: "+row+" COLUMN: "+column+ "HISTO ID: "+id);
                 }
             }
             if (eventN % 10000==0){
@@ -270,9 +269,11 @@ public class LedAnalysis extends Driver{
      */
     @Override
     public void endOfData() {
+    }
+    public void MYendOfData() {
         System.out.println("LedAnalysis::end of data");
 
-
+     
         double e,eMin,eMax;
         double t;
         int n,nBins,nFits,nSkip;
@@ -291,7 +292,7 @@ public class LedAnalysis extends Driver{
             eMax=-9999;
             row = EcalMonitoringUtilities.getRowFromHistoID(id);
             column = EcalMonitoringUtilities.getColumnFromHistoID(id);
-
+            System.out.println("Doing channel: X= "+column+" Y= "+row);
             /*Create the profile. Create it for all the channels, to keep sync.*/
             nBins=nEvents[id]/100;
             if (nBins<=0) nBins=1;
@@ -304,18 +305,22 @@ public class LedAnalysis extends Driver{
 
             if (EcalMonitoringUtilities.isInHole(row,column)==true){
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-             //   hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));
+                //   hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));
                 continue;
             }
             if (nEvents[id]==0) {
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-              //  hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));            
+                //  hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));            
                 //System.out.println("LedAnalysis: channel x= "+column+" y= "+row+" not found");
                 continue;
             }			  
 
             /*Fill the profile*/
             nSkip=(int)(nEvents[id]*skipInitial);
+            if (nSkip>iTuple.get(id).rows()){
+                System.out.println("Can't skip initial events?");
+                nSkip=0;
+            }
             iTuple.get(id).start();
             iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
             n=0;
@@ -374,7 +379,7 @@ public class LedAnalysis extends Driver{
 				and emit warning
              */
             hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
-           // hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,eMin*0.9,eMax*1.1));     
+            // hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,eMin*0.9,eMax*1.1));     
             nSkip=(int)( fPars[1]*5);
             if (nSkip < (nEvents[id]/2)){
                 System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
@@ -391,7 +396,7 @@ public class LedAnalysis extends Driver{
                 e=iTuple.get(id).getDouble(1);
                 t=iTuple.get(id).getDouble(2);
                 hCharge.get(id).fill(e);
-             //   hChargeVsTime.get(id).fill(t,e);
+                //   hChargeVsTime.get(id).fill(t,e);
                 n++;
             }			
 
@@ -416,13 +421,13 @@ public class LedAnalysis extends Driver{
             System.out.println("\n");
         }/*End loop on channels*/
 
-        
+
         pPlotter.createRegions(1,1);
         IPlotterStyle style = pPlotter.region(0).style();
         style.setParameter("hist2DStyle", "colorMap");
         style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         style.dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
-        
+
         pPlotter.region(0).plot(hMeanCharge2D);
         pPlotter.show();
 
@@ -438,7 +443,7 @@ public class LedAnalysis extends Driver{
                 //               uploadToDB();
             }   
         }
-       /* System.err.println("\n\n\n***************************************************************\n");
+        /* System.err.println("\n\n\n***************************************************************\n");
         String userInput="";
         String outputFilePrefix="";
         userInput=cc.readLine("Enter filename prefix, or just press RETURN ...");
@@ -449,10 +454,10 @@ public class LedAnalysis extends Driver{
             outputFilePrefix = userInput;
         }*/
 
-        
 
-        
-       
+
+
+
 
     }/*End endOfData*/
 
