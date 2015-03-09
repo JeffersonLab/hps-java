@@ -358,7 +358,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                         steeringTypeComboBox.setSelectedIndex(((SteeringType) value).ordinal());
                     } else if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
                         if (value != null) {
-                            steeringFileField.setText((String) value);
+                            steeringFileField.setText(((File) value).getAbsolutePath());
                         } else {
                             // A null value here is actually okay and means this field should be reset to have no value.
                             steeringFileField.setText(null);
