@@ -16,13 +16,30 @@ import org.hps.util.Pair;
 @Table(names = {"svt_daq_map"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
-   
+    
     /**
      *  Constants describing the side of a sensor
      */
     public static final String ELECTRON = "ELECTRON";
     public static final String POSITRON = "POSITRON";
 
+    /**
+     *  Default Constructor 
+     */
+    public SvtDaqMapping() { 
+    }
+   
+    /**
+     *  Constructor 
+     *
+     *  @param febID : The Front End Board (FEB) ID (0-9)
+     *  @param febHybridID : The FEB hybrid ID (0-3)
+     */
+    public SvtDaqMapping(int febID, int febHybridID) { 
+        this.setFebID(febID);
+        this.setFebHybridID(febHybridID);
+    }
+    
     public static class SvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
 
         /**
@@ -160,7 +177,7 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
      *  @param side : sensor side (ELECTRON or POSITRON)
      */
     public void setSide(String side) {
-        if (side != SvtDaqMapping.ELECTRON || side != SvtDaqMapping.POSITRON) 
+        if (!side.equals(SvtDaqMapping.ELECTRON) && !side.equals(SvtDaqMapping.POSITRON)) 
             throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid value for sensor side.");
         this.setFieldValue("side", side);
     }

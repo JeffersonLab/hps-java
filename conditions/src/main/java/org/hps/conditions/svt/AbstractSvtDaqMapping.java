@@ -87,7 +87,7 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
      *   @param svtHalf : SVT half (TOP or BOTTOM)
      */
     public void setSvtHalf(String svtHalf) { 
-        if (svtHalf != AbstractSvtDaqMapping.TOP_HALF || svtHalf != AbstractSvtDaqMapping.BOTTOM_HALF) 
+        if (!svtHalf.equals(AbstractSvtDaqMapping.TOP_HALF) && !svtHalf.equals(AbstractSvtDaqMapping.BOTTOM_HALF)) 
             throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid value of SVT half.");
         this.setFieldValue("svt_half", svtHalf);
         
@@ -109,7 +109,7 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
      *  @param orientation : Orientation of an SVT sensor (AXIAL or STEREO) 
      */
     public void setOrientation(String orientation) { 
-        if (orientation != AbstractSvtDaqMapping.AXIAL || orientation != AbstractSvtDaqMapping.STEREO)
+        if (!orientation.equals(AbstractSvtDaqMapping.AXIAL) && !orientation.equals(AbstractSvtDaqMapping.STEREO))
             throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid orientation of sensor.");
         this.setFieldValue("orientation", orientation);
     }
