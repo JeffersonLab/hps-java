@@ -35,9 +35,7 @@ import org.lcsim.util.aida.AIDA;
  * <li>The third sub-tab shows the time distribution of the cluster
  * (Histogram1D), taken from the mean of the times forming the cluster,
  * as well as the RMS (Histogram1D).</li>
- * <li>The fourth sub-tab is a larger version of the the cluster centers
- * distribution.</li>
- * <li>The fifth tab displays the cluster pair distribution for the
+ * <li>The fourth tab displays the cluster pair distribution for the
  * energy sum, energy difference, energy slope, and coplanarity cuts
  * for all top/bottom pairs received. It also displays the average x-
  * and y-coordinates for the pairs.</li>
@@ -56,7 +54,7 @@ public class EcalClusterPlots extends Driver {
     private boolean logScale = false;
 	private AIDA aida = AIDA.defaultInstance();
     private double maxE = 5000 * ECalUtils.MeV;
-	private IPlotter[] plotter = new IPlotter[5];
+	private IPlotter[] plotter = new IPlotter[4];
 	private String clusterCollectionName = "EcalClusters";
 	
 	// Monitoring plot variables.
@@ -79,10 +77,9 @@ public class EcalClusterPlots extends Driver {
     private static final int TAB_CLUSTER_COUNT = 0;
     private static final int TAB_CLUSTER_ENERGY = 1;
     private static final int TAB_CLUSTER_TIME = 2;
-    private static final int TAB_CLUSTER_CENTER = 3;
-    private static final int TAB_CLUSTER_PAIR = 4;
+    private static final int TAB_CLUSTER_PAIR = 3;
     private static final String[] TAB_NAMES = { "Cluster Count Plots", "Cluster Energy Plots",
-    	"Cluster Time Plots", "Cluster Center Plot", "Cluster Pair Plots" };
+    	"Cluster Time Plots", "Cluster Pair Plots" };
     
     /**
      * Resets all of the plots for the new detector.
@@ -136,13 +133,7 @@ public class EcalClusterPlots extends Driver {
         plotter[TAB_CLUSTER_TIME].createRegions(1, 2);
         plotter[TAB_CLUSTER_TIME].region(0).plot(clusterTimes);
         plotter[TAB_CLUSTER_TIME].region(1).plot(clusterTimeSigma);
-        
-        // Define the Cluster Center tab.
-        plotter[TAB_CLUSTER_CENTER].createRegion();
-        plotter[TAB_CLUSTER_CENTER].region(0).plot(edgePlot);
-        plotter[TAB_CLUSTER_CENTER].style().setParameter("hist2DStyle", "colorMap");
-        plotter[TAB_CLUSTER_CENTER].style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        
+               
          // Create the Cluster Pair tab.
         plotter[TAB_CLUSTER_PAIR].createRegions(2, 3);
         plotter[TAB_CLUSTER_PAIR].region(0).plot(pairEnergySum);
