@@ -16,6 +16,12 @@ import org.hps.util.Pair;
 @Table(names = {"svt_daq_map"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
+   
+    /**
+     *  Constants describing the side of a sensor
+     */
+    public static final String ELECTRON = "ELECTRON";
+    public static final String POSITRON = "POSITRON";
 
     public static class SvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<SvtDaqMapping> {
 
@@ -100,18 +106,62 @@ public class SvtDaqMapping extends AbstractSvtDaqMapping {
         }
     }
 
+    /**
+     *  Get the Front End Board (FEB) ID.
+     *
+     *  @return The FEB ID
+     */
     @Field(names = {"feb_id"})
     public int getFebID() {
         return getFieldValue("feb_id");
     }
 
+    /**
+     *  Get the Front End Board (FEB) hybrid ID.
+     *  
+     *  @param The FEB hybrid ID
+     */
     @Field(names = {"feb_hybrid_id"})
     public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }
 
+    /**
+     *  Get the side of the sensor (ELECTRON or POSITRON).
+     *  
+     *  @param sensor side (ELECTRON or POSITRON)
+     */
     @Field(names = {"side"})
     public String getSide() {
         return getFieldValue("side");
+    }
+    
+    /**
+     *  Set the Front End Board (FEB) ID.
+     *  
+     *  @param febID : FEB ID
+     */
+    public void setFebID(int febID) { 
+        this.setFieldValue("feb_id", febID);
+    }
+    
+    /**
+     *  Set the Front End Board (FEB) hybrid ID.
+     *  
+     *  @param febHybridID : FEB hybrid ID
+     */
+    public void setFebHybridID(int febHybridID) { 
+        this.setFieldValue("feb_hybrid_id", febHybridID);
+    }
+    
+    /**
+     *  Set the side of the sensor (ELECTRON or POSITRON).
+     *  
+     *  @param side : sensor side (ELECTRON or POSITRON)
+     */
+    public void setSide(String side) {
+        if (side != SvtDaqMapping.ELECTRON || side != SvtDaqMapping.POSITRON) 
+            throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid value for sensor side.");
+        this.setFieldValue("side", side);
     }
 }

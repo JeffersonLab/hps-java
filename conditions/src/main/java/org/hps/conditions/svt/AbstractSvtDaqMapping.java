@@ -14,8 +14,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
  */
 public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
 
-    public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends AbstractConditionsObjectCollection<T> {
-
         /**
          * Flag values for top or bottom half.
          */
@@ -27,6 +25,9 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
          */
         public static final String AXIAL = "A";
         public static final String STEREO = "S";
+
+        public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends AbstractConditionsObjectCollection<T> {
+
 
         /**
          * Get a DAQ pair for the given {@link HpsSiSensor}
@@ -48,18 +49,68 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
 
     }
 
+    /**
+     *  Get the SVT half (TOP or BOTTOM) that the sensor belongs to.
+     *  
+     *  @return SVT half (TOP or BOTTOM)
+     */
     @Field(names = {"svt_half"})
     public String getSvtHalf() {
         return getFieldValue("svt_half");
     }
 
+    /**
+     *  Get the SVT sensor layer number (1-10 for test run and 1-12 for
+     *  engineering run).
+     *  
+     *  @return SVT sensor layer number
+     */
     @Field(names = {"layer"})
     public int getLayerNumber() {
         return getFieldValue("layer");
     }
 
+    
+    /**
+     *  Get the orientation of an SVT sensor (AXIAL or STEREO).
+     * 
+     *  @param orientation : Orientation of an SVT sensor (AXIAL or STEREO) 
+     */
     @Field(names = {"orientation"})
     public String getOrientation() {
         return getFieldValue("orientation");
+    }
+    
+    /**
+     *  Set the SVT half (TOP or BOTTOM) that the sensor belongs to.
+     *  
+     *   @param svtHalf : SVT half (TOP or BOTTOM)
+     */
+    public void setSvtHalf(String svtHalf) { 
+        if (svtHalf != AbstractSvtDaqMapping.TOP_HALF || svtHalf != AbstractSvtDaqMapping.BOTTOM_HALF) 
+            throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid value of SVT half.");
+        this.setFieldValue("svt_half", svtHalf);
+        
+    }
+    
+    /**
+     *  Set the SVT sensor layer number (1-10 for test run and 1-12 for
+     *  engineering run).
+     *  
+     *  @param layer : SVT sensor layer number
+     */
+    public void setLayerNumber(int layer) { 
+        this.setFieldValue("layer", layer);
+    }
+    
+    /**
+     *  Set the orientation of an SVT sensor (AXIAL or STEREO).
+     * 
+     *  @param orientation : Orientation of an SVT sensor (AXIAL or STEREO) 
+     */
+    public void setOrientation(String orientation) { 
+        if (orientation != AbstractSvtDaqMapping.AXIAL || orientation != AbstractSvtDaqMapping.STEREO)
+            throw new RuntimeException("[ " + this.getClass().getSimpleName() + " ]: Invalid orientation of sensor.");
+        this.setFieldValue("orientation", orientation);
     }
 }

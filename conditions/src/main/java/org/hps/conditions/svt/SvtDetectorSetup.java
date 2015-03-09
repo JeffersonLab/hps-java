@@ -112,9 +112,9 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
             // Set the orientation of the sensor
             String orientation = daqMap.getOrientation(daqPair);
-            if (orientation != null && orientation.contentEquals(SvtDaqMappingCollection.AXIAL)) {
+            if (orientation != null && orientation.contentEquals(SvtDaqMapping.AXIAL)) {
                 sensor.setAxial(true);
-            } else if (orientation != null && orientation.contains(SvtDaqMappingCollection.STEREO)) {
+            } else if (orientation != null && orientation.contains(SvtDaqMapping.STEREO)) {
                 sensor.setStereo(true);
             }
 
@@ -194,9 +194,9 @@ public final class SvtDetectorSetup implements ConditionsListener {
 
             // Set the orientation of the sensor
             String orientation = daqMap.getOrientation(daqPair);
-            if (orientation != null && orientation.contentEquals(TestRunSvtDaqMappingCollection.AXIAL)) {
+            if (orientation != null && orientation.contentEquals(TestRunSvtDaqMapping.AXIAL)) {
                 sensor.setAxial(true);
-            } else if (orientation != null && orientation.contains(TestRunSvtDaqMappingCollection.STEREO)) {
+            } else if (orientation != null && orientation.contains(TestRunSvtDaqMapping.STEREO)) {
                 sensor.setStereo(true);
             }
 
