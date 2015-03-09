@@ -270,6 +270,8 @@ class EventProcessing {
                 try {
                     logger.info("waiting for event processing thread to finish");
                     // This should always work, because the ET system is disconnected before this.
+                    sessionState.processingThread.interrupt();
+                    sessionState.processingThread.stop();
                     sessionState.processingThread.join();
                     logger.info("event processing thread finished");
                 } catch (InterruptedException e) {
