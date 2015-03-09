@@ -1,7 +1,29 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.*;
-import static org.hps.monitoring.application.model.ConfigurationModel.*;
+import static org.hps.monitoring.application.Commands.DETECTOR_ALIAS_CHANGED;
+import static org.hps.monitoring.application.Commands.DETECTOR_NAME_CHANGED;
+import static org.hps.monitoring.application.Commands.DISCONNECT_ON_END_RUN_CHANGED;
+import static org.hps.monitoring.application.Commands.DISCONNECT_ON_ERROR_CHANGED;
+import static org.hps.monitoring.application.Commands.EVENT_BUILDER_CHANGED;
+import static org.hps.monitoring.application.Commands.FREEZE_CONDITIONS_CHANGED;
+import static org.hps.monitoring.application.Commands.LOG_LEVEL_CHANGED;
+import static org.hps.monitoring.application.Commands.STEERING_RESOURCE_CHANGED;
+import static org.hps.monitoring.application.Commands.STEERING_TYPE_CHANGED;
+import static org.hps.monitoring.application.Commands.USER_RUN_NUMBER_CHANGED;
+import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_ALIAS_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_NAME_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_END_RUN_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_ERROR_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.EVENT_BUILDER_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.FREEZE_CONDITIONS_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.LOG_FILE_NAME_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.LOG_LEVEL_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.MAX_EVENTS_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_FILE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_RESOURCE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_TYPE_PROPERTY;
+import static org.hps.monitoring.application.model.ConfigurationModel.USER_RUN_NUMBER_PROPERTY;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -18,6 +40,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
 import org.hps.monitoring.application.model.ConfigurationModel;
@@ -44,10 +67,10 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private JCheckBox freezeConditionsCheckBox;    
     private JTextField maxEventsField;
     private JCheckBox disconnectOnErrorCheckBox;
-    private JCheckBox disconnectOnEndRunCheckBox;
-    private JTextField logFileNameField;
+    private JCheckBox disconnectOnEndRunCheckBox;    
     private JComboBox<?> logLevelComboBox;
     private JCheckBox logToFileCheckbox;
+    private JTextField logFileNameField;
            
     // The package where steering resources must be located.
     static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
@@ -68,9 +91,13 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     /**
      * Class constructor.
      */
-    JobSettingsPanel() {
+    JobSettingsPanel(ConfigurationModel model) {
 
-        super(new Insets(4, 2, 2, 4), true);
+        super(new Insets(5, 3, 3, 5), true);
+        
+        setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        model.addPropertyChangeListener(this);
         
         setLayout(new GridBagLayout());
 
@@ -136,11 +163,9 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                                             
         logToFileCheckbox = addCheckBox("Log to File", false, false);
         logToFileCheckbox.setEnabled(false);
-        logToFileCheckbox.setActionCommand(LOG_TO_FILE_CHANGED);
-        logToFileCheckbox.addActionListener(this);
 
-        logFileNameField = addField("Log File", "", "Full path to log file.", 30, false);
-        logFileNameField.addPropertyChangeListener("value", this);
+        logFileNameField = addField("Log File Name", "", "Full path to log file.", 50, false);
+        logFileNameField.setEditable(false);
     }
 
     @Override
@@ -152,8 +177,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
      * Attaches the ActionListener from the main app to specific GUI components in this class.
      */
     public void addActionListener(ActionListener listener) {
-        logFileNameField.addActionListener(listener);
-        logToFileCheckbox.addActionListener(listener);
         steeringResourcesComboBox.addActionListener(listener);
         freezeConditionsCheckBox.addActionListener(listener);
     }
@@ -252,8 +275,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 configurationModel.setSteeringType(SteeringType.valueOf((String) steeringTypeComboBox.getSelectedItem()));
             } else if (STEERING_RESOURCE_CHANGED.equals(event.getActionCommand())) {
                 configurationModel.setSteeringResource((String) steeringResourcesComboBox.getSelectedItem());
-            } else if (LOG_TO_FILE_CHANGED.equals(event.getActionCommand())) {
-                configurationModel.setLogToFile(logToFileCheckbox.isSelected());
             } else if (LOG_LEVEL_CHANGED.equals(event.getActionCommand())) {
                 configurationModel.setLogLevel(Level.parse((String) logLevelComboBox.getSelectedItem()));
             } else if (EVENT_BUILDER_CHANGED.equals(event.getActionCommand())) {
@@ -279,8 +300,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
 
     /**
-     * Updates the configuration with changes from the GUI component values. The changes from the
-     * GUI are distinguishable by their component object.
+     * Updates the configuration with changes from the GUI component values. 
+     * The changes from the GUI are distinguishable by their component object.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {                            
@@ -289,8 +310,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             Object source = evt.getSource();            
             if (source == steeringFileField) {
                 configurationModel.setSteeringFile(steeringFileField.getText());
-            } else if (source == logFileNameField) {
-                configurationModel.setLogFileName(logFileNameField.getText());
             } else if (source == userRunNumberField) {
                 // Is run number being reset to null or empty?
                 if (userRunNumberField.getText() == null || userRunNumberField.getText().isEmpty()) {
@@ -314,7 +333,21 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 }
             } else if (source == maxEventsField) {
                 configurationModel.setMaxEvents(Long.parseLong(maxEventsField.getText()));
-                System.out.println("setMaxEvents - " + configurationModel.getMaxEvents());
+                //System.out.println("setMaxEvents - " + configurationModel.getMaxEvents());
+            } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
+                // This is getting the log to file prop change from the ConfigurationModel to update a read only component.
+                Boolean logToFile = (Boolean) evt.getNewValue();
+                if (logToFile != null) {
+                    logToFileCheckbox.setSelected(logToFile);
+                }
+            } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_FILE_NAME_PROPERTY)) {
+                // This is getting the log file name prop change from the ConfigurationModel to update a read only component.
+                String logFileName = (String) evt.getNewValue();
+                if (logFileName != null && logFileName.length() > 0) {
+                    logFileNameField.setText(logFileName);
+                } else {
+                    logFileNameField.setText("");
+                }
             }
         } finally {
             configurationModel.addPropertyChangeListener(this);

@@ -14,7 +14,10 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,6 @@ import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
 import org.hps.monitoring.application.LogTable.LogRecordModel;
 import org.hps.monitoring.application.model.Configuration;
@@ -73,7 +75,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     static final Level DEFAULT_LEVEL = Level.ALL;
 
     // Default log stream.
-    PrintStream logStream = System.out;
+    MonitoringApplicationStreamHandler streamHandler;
+    PrintStream sysOut = System.out;
+    PrintStream sysErr = System.err;
     
     // Application error handling.
     final ErrorHandler errorHandler;
@@ -125,6 +129,22 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     LogTable getLogTable() {
         return frame.logPanel.logTable;
     }
+    
+    class MonitoringApplicationStreamHandler extends StreamHandler {
+        
+        MonitoringApplicationStreamHandler(PrintStream ps) {
+            super(ps, new DefaultLogFormatter());
+        }
+        
+        public void publish(LogRecord record) {
+            super.publish(record);
+            flush();
+        }
+        
+        public void setOutputStream(OutputStream out) {
+            super.setOutputStream(out);
+        }        
+    }
              
     /**
      * Instantiate and show the monitoring application with the given configuration.
@@ -160,6 +180,21 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         loadConfiguration(this.configuration);
                 
         logger.info("application initialized successfully");
+    }
+    
+    /**
+     * Setup the logger.
+     */
+    void setupLogger() {
+        logger.setUseParentHandlers(false);        
+        logger.addHandler(new LogHandler());
+        streamHandler = new MonitoringApplicationStreamHandler(System.out);
+        logger.addHandler(streamHandler);
+        for (Handler handler : logger.getHandlers()) {
+            handler.setLevel(DEFAULT_LEVEL);
+        }
+        logger.setLevel(DEFAULT_LEVEL);
+        logger.info("logging initialized");
     }
     
     /**
@@ -229,7 +264,11 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             saveLogTable();
         } else if (Commands.CLEAR_LOG_TABLE.equals(cmd)) {
             getLogRecordModel().clear();
-        }        
+        } else if (Commands.LOG_TO_FILE.equals(cmd)) {
+            chooseLogFile();
+        } else if (Commands.LOG_TO_TERMINAL.equals(cmd)) {
+            logToTerminal();
+        }
     }    
     
     /**
@@ -255,26 +294,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         // Perform global configuration of the JFreeChart back end.
         AnalysisFactory.configure();
     }
-    
-    /**
-     * Setup the logger.
-     */
-    void setupLogger() {
-        logger.setUseParentHandlers(false);
-        logger.addHandler(new LogHandler());
-        logger.addHandler(new StreamHandler(logStream, new DefaultLogFormatter()) {
-            public void publish(LogRecord record) {
-                super.publish(record);
-                flush();
-            }
-        });
-        for (Handler handler : logger.getHandlers()) {
-            handler.setLevel(DEFAULT_LEVEL);
-        }
-        logger.setLevel(DEFAULT_LEVEL);
-        logger.info("logging initialized");
-    }
-            
+                
     /**
      * This method sets the configuration on the model, which fires a change for every property.
      * @param configuration The new configuration.
@@ -644,4 +664,87 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     void saveLogTable() {
         saveTable(frame.logPanel.logTable);
     }
+        
+    /**
+     * Redirect <code>System.out</code> and <code>System.err</code> to file chosen
+     * by a file chooser.
+     */
+    void chooseLogFile() {
+        JFileChooser fc = new JFileChooser();
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setDialogTitle("Save Log Messages to File");       
+        fc.setCurrentDirectory(new File("."));
+        int r = fc.showSaveDialog(frame);
+        if (r == JFileChooser.APPROVE_OPTION) {            
+            String fileName = fc.getSelectedFile().getPath();
+            if (new File(fileName).exists()) {
+                DialogUtil.showErrorDialog(frame, "File Exists", "File already exists.");
+            } else {
+                logToFile(new File(fileName));
+            }
+        }        
+    }
+    
+    /**
+     * Redirect <code>System.out</code> and <code>System.err</code> to a file.
+     * @param file The output log file.
+     * @throws FileNotFoundException if the file does not exist.
+     */
+    void logToFile(File file) {
+        try {
+            
+            // Create the output file stream.
+            PrintStream fileStream = new PrintStream(new FileOutputStream(file.getPath()));
+            System.setOut(fileStream);
+            System.setErr(fileStream);
+            
+            // Flush the current handler, but do NOT close here or System.out gets clobbered!
+            streamHandler.flush();
+            
+            // Replace the current handler with one using the file stream.
+            logger.removeHandler(streamHandler);
+            streamHandler = new MonitoringApplicationStreamHandler(fileStream);
+            streamHandler.setLevel(logger.getLevel());
+            logger.addHandler(streamHandler);
+            
+            // Set the properties on the model.
+            configurationModel.setLogFileName(file.getPath());
+            configurationModel.setLogToFile(true);
+            
+            logger.info("Saving log messages to " + configurationModel.getLogFileName());
+            DialogUtil.showInfoDialog(frame, "Logging to File", 
+                    "Log messages redirected to file" + '\n' + configurationModel.getLogFileName());
+            
+        } catch (FileNotFoundException e) {
+            errorHandler.setError(e).log().showErrorDialog();
+        }
+    }      
+    
+    /**
+     * Send <code>System.out</code> and <code>System.err</code> back to the terminal, 
+     * e.g. if they were previously sent to a file.
+     */
+    void logToTerminal() {
+        
+        // Reset System.out and err back to original streams.
+        System.setOut(sysOut);
+        System.setErr(sysErr);
+        
+        // Flush and close the current handler, which is using a file stream.
+        streamHandler.flush();
+        streamHandler.close();
+        
+        // Replace the handler with the one printing to the terminal.
+        logger.removeHandler(streamHandler);               
+        streamHandler = new MonitoringApplicationStreamHandler(System.out);
+        streamHandler.setLevel(logger.getLevel());
+        logger.addHandler(streamHandler);
+        
+        logger.log(Level.INFO, "log messages redirected to terminal");
+        
+        // Update the model to indicate logging to file has been disabled.
+        configurationModel.setLogToFile(false);
+        
+        DialogUtil.showInfoDialog(frame, "Log to Terminal", "Log messages will be sent to the terminal.");
+    }    
 }

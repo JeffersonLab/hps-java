@@ -21,7 +21,7 @@ import org.lcsim.util.Driver;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class TriggerDiagnosticsPanel extends JPanel {
+class TriggerDiagnosticsPanel extends JPanel {
 
     JTabbedPane tabs = new JTabbedPane();
     ClusterTablePanel clusterPanel = new ClusterTablePanel();

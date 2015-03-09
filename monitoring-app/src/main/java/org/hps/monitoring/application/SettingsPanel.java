@@ -31,7 +31,7 @@ class SettingsPanel extends JPanel implements ActionListener {
         this.parent = parent;
         
         connectionPanel = new ConnectionSettingsPanel();        
-        jobPanel = new JobSettingsPanel();
+        jobPanel = new JobSettingsPanel(configurationModel);
         
         // Push configuration to sub-components.
         connectionPanel.setConfigurationModel(configurationModel);
@@ -55,7 +55,6 @@ class SettingsPanel extends JPanel implements ActionListener {
         add(Box.createRigidArea(new Dimension(1, 5)));
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
-        //buttonsPanel.add(defaultsButton);
         buttonsPanel.setLayout(new FlowLayout());
         add(buttonsPanel);
         add(Box.createRigidArea(new Dimension(1, 5)));

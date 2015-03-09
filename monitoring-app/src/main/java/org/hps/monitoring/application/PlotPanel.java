@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 /**
- * This is the panel containing the monitoring plots.
+ * This is the panel containing the tabs with the monitoring plots.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class PlotPanel extends JPanel {

@@ -39,16 +39,17 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
     JMenuItem closeFileItem;
     JMenuItem openFileItem;    
     JMenu settingsMenu;
-    ConfigurationModel configurationModel;
+    JMenuItem logItem;
+    ConfigurationModel configurationModel;    
     
     MenuBar(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
-        
-        // Do not need to listen for changes on this model.
-        this.configurationModel = configurationModel;
+         
+        this.configurationModel = configurationModel;        
+        this.configurationModel.addPropertyChangeListener(this);
         
         // Need to listen for connection status changes.
-        connectionModel.addPropertyChangeListener(this);                
-
+        connectionModel.addPropertyChangeListener(this);  
+        
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
@@ -138,6 +139,14 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         screenshotItem.setToolTipText("Save a screenshot to a graphics file");
         toolsMenu.add(screenshotItem);
         
+        logItem = new JMenuItem("Log to File ...");
+        logItem.setMnemonic(KeyEvent.VK_R);
+        logItem.setActionCommand(Commands.LOG_TO_FILE);
+        logItem.addActionListener(listener);
+        logItem.setEnabled(true);
+        logItem.setToolTipText("Redirect System.out to a file instead of terminal");
+        toolsMenu.add(logItem);
+        
         JMenu windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         add(windowMenu);
@@ -164,64 +173,34 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         defaultsItem.addActionListener(listener);
         defaultsItem.setEnabled(true);
         defaultsItem.setToolTipText("Restore the window defaults");
-        windowMenu.add(defaultsItem);        
-        
-        /*                       
-
-        JMenu logMenu = new JMenu("Log");
-        logMenu.setMnemonic(KeyEvent.VK_L);
-        add(logMenu);
-
-        logItem = new JMenuItem("Redirect to File ...");
-        logItem.setMnemonic(KeyEvent.VK_F);
-        logItem.setActionCommand(CHOOSE_LOG_FILE);
-        //logItem.addActionListener(this);
-        logItem.setEnabled(true);
-        logItem.setToolTipText("Redirect std out and err to a file.");
-        logMenu.add(logItem);
-
-        terminalItem = new JMenuItem("Redirect to Terminal");
-        terminalItem.setMnemonic(KeyEvent.VK_T);
-        terminalItem.setActionCommand(LOG_TO_TERMINAL);
-        //terminalItem.addActionListener(this);
-        terminalItem.setEnabled(false);
-        terminalItem.setToolTipText("Redirect std out and err back to the terminal.");
-        logMenu.add(terminalItem);
-
-        JMenuItem saveLogItem = new JMenuItem("Save Log Table to File ...");
-        saveLogItem.setMnemonic(KeyEvent.VK_S);
-        saveLogItem.setActionCommand(SAVE_LOG_TABLE);
-        //saveLogItem.addActionListener(this);
-        saveLogItem.setToolTipText("Save the log records to a tab delimited text file.");
-        logMenu.add(saveLogItem);
-
-        JMenuItem clearLogItem = new JMenuItem("Clear Log Table");
-        //clearLogItem.addActionListener(this);
-        clearLogItem.setMnemonic(KeyEvent.VK_C);
-        clearLogItem.setActionCommand(CLEAR_LOG_TABLE);
-        clearLogItem.setToolTipText("Clear the log table of all messages.");
-        logMenu.add(clearLogItem);
-
-        JMenu utilMenu = new JMenu("Util");
-        plotsMenu.setMnemonic(KeyEvent.VK_U);
-        add(utilMenu);
-
-        JMenuItem screenshotItem = new JMenuItem("Take a Screenshot ...");
-        screenshotItem.setMnemonic(KeyEvent.VK_N);
-        screenshotItem.setActionCommand(SCREENSHOT);
-        //screenshotItem.addActionListener(this);
-        screenshotItem.setToolTipText("Save a screenshot to file");
-        utilMenu.add(screenshotItem);
-        */
+        windowMenu.add(defaultsItem);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
-            ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
-            boolean connected = status.equals(ConnectionStatus.CONNECTED);            
-            closeFileItem.setEnabled(!connected);
-            openFileItem.setEnabled(!connected);
+        configurationModel.removePropertyChangeListener(this);        
+        try {            
+            if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
+                ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
+                boolean connected = status.equals(ConnectionStatus.CONNECTED);
+                closeFileItem.setEnabled(!connected);
+                openFileItem.setEnabled(!connected);
+            } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
+                Boolean logToFile = (Boolean) evt.getNewValue();
+                if (logToFile == true) {
+                    // Toggle log item state to send to terminal.
+                    logItem.setText("Log to Terminal ...");
+                    logItem.setActionCommand(Commands.LOG_TO_TERMINAL);
+                    logItem.setToolTipText("Log messages to the terminal");
+                } else {
+                    // Toggle log item state to send to file.
+                    logItem.setText("Log to File ...");
+                    logItem.setActionCommand(Commands.LOG_TO_FILE);
+                    logItem.setToolTipText("Log messages to a file");
+                }
+            }
+        } finally {
+            configurationModel.addPropertyChangeListener(this);
         }
     }
 
@@ -234,6 +213,5 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
                 closeFileItem.setEnabled(false);
             }
         }        
-    }
-    
+    }    
 }

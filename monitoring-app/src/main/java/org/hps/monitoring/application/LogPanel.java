@@ -17,11 +17,16 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  * This is a simple GUI component for the log table and its controls.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class LogPanel extends JPanel {
+class LogPanel extends JPanel{ 
 
     LogTable logTable;
+    LogLevelFilterComboBox logFilterComboBox;
+    
+    ConfigurationModel configurationModel;
         
     LogPanel(ConfigurationModel configurationModel, ActionListener listener) {
+        
+        this.configurationModel = configurationModel;
         
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         
@@ -31,8 +36,8 @@ public class LogPanel extends JPanel {
         controlsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         
         JLabel label = new JLabel("Log Level Filter");
-        LogLevelFilterComboBox logFilterComboBox = new LogLevelFilterComboBox(configurationModel);
-        logFilterComboBox.setToolTipText("Messages below this level will be filtered out.");              
+        logFilterComboBox = new LogLevelFilterComboBox(configurationModel);
+        logFilterComboBox.setToolTipText("Messages below this level will be filtered out.");
         controlsPanel.add(label);        
         controlsPanel.add(logFilterComboBox);
         
@@ -51,5 +56,5 @@ public class LogPanel extends JPanel {
                 
         add(controlsPanel, BorderLayout.PAGE_START);
         add(tablePane, BorderLayout.PAGE_END);
-    }    
+    }          
 }

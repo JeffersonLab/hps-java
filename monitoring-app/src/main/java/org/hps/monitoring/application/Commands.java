@@ -38,10 +38,15 @@ final class Commands {
     static final String SAVE_PLOTS = "savePlots";
     static final String CLEAR_PLOTS = "resetPlots";
     
+    // Exit the application.
     static final String EXIT = "exit";
+           
+    // Log to file or standard print stream.
+    static final String LOG_TO_FILE = "logToFile";
+    static final String LOG_TO_TERMINAL = "logToTerminal";
     
-    static final String LOG_LEVEL_FILTER_CHANGED = "logLevelFilterChanged";
-        
+    static final String LOG_LEVEL_FILTER_CHANGED = "logLevelFilterChanged";    
+    
     ////////////////////////////////////////////    
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";
@@ -59,10 +64,7 @@ final class Commands {
     static final String FREEZE_CONDITIONS_CHANGED = "freezeConditionsChanged";
     
     static final String LOG_LEVEL_CHANGED = "logLevelChanged";
-    static final String LOG_TO_FILE = "logToFile";
-    static final String LOG_TO_FILE_CHANGED = "logToFileChanged";
-    static final String LOG_TO_TERMINAL = "logToTerminal";
-
+    
     static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";    
     static final String SAVE_LOG_TABLE = "saveLogTable";            
     static final String SELECT_LOG_FILE = "logToFile";

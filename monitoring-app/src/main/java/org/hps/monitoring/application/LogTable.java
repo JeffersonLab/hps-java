@@ -132,5 +132,5 @@ class LogTable extends JTable implements PropertyChangeListener {
             filterLevel = (Level) event.getNewValue();
             model.fireTableDataChanged();
         }
-    }
+    }    
 }

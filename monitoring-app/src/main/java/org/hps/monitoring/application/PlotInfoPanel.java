@@ -38,9 +38,9 @@ import javax.swing.table.DefaultTableModel;
 /**
  * <p>
  * This is a GUI component for showing the statistics and other information about an AIDA plot
- * when it is clicked on in the monitoring app.
+ * when it is clicked on in the monitoring application.
  * <p>
- * The information is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
+ * The information in the table is updated dynamically via the <code>AIDAObserver</code> API on the AIDA object.
  */
 class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener {
 

@@ -11,7 +11,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.monitoring.application.model.Configuration;
 
-
 /**
  * This is the front-end for running the monitoring app via a {@link #main(String[])} method.
  */

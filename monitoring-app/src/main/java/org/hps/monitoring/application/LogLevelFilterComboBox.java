@@ -16,7 +16,7 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {
+class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {
    
     ConfigurationModel configurationModel;
     
