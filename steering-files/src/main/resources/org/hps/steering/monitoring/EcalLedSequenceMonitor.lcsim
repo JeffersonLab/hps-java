@@ -6,21 +6,30 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>      
     <execute>
-        <driver name="EventMarkerDriver"/>
+    	<driver name="EventMarkerDriver"/>
+        <driver name="EcalRunningPedestal"/>
+  	    <driver name="EcalRawConverter" />    
         <driver name="LedAnalysisDriver"/>
-        <driver name="LCIODriver"/>        
         <driver name="AidaSaveDriver"/>
     </execute>           
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10000</eventInterval>            
         </driver>
+         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.ECalRunningPedestalDriver">
+            <minLookbackEvents>10</minLookbackEvents>
+            <maxLookbackEvents>50</maxLookbackEvents>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+            <useRunningPedestal>true</useRunningPedestal>
+            <useTimeWalkCorrection>true</useTimeWalkCorrection>
+        </driver>       
         <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
            <useRawEnergy>true</useRawEnergy>
-        </driver>
-             
-        <driver name="LCIODriver" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFile}</outputFilePath>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.aida</outputFileName>
