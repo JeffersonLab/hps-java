@@ -85,7 +85,7 @@ public final class ErrorHandler {
      * @return This object.
      */
     public ErrorHandler log() {
-        logger.log(Level.SEVERE, message);
+        logger.log(Level.SEVERE, message, error);
         return this;
     }
 
