@@ -106,16 +106,16 @@ public final class TableMetaData {
     }
     
     static public List<TableMetaData> findByObjectType(List<TableMetaData> tableMetaDataList, Class<? extends ConditionsObject> objectType) {
-        System.out.println("findByObjectType - " + objectType.getCanonicalName());
+        //System.out.println("findByObjectType - " + objectType.getCanonicalName());
         List<TableMetaData> list = new ArrayList<TableMetaData>();
         for (TableMetaData tableMetaData : tableMetaDataList) {
-            System.out.println("comparing to " + tableMetaData.getObjectClass().getCanonicalName());
+            //System.out.println("comparing to " + tableMetaData.getObjectClass().getCanonicalName());
             if (tableMetaData.getObjectClass().equals(objectType)) {
-                System.out.println("found match");
+                //System.out.println("found match");
                 list.add(tableMetaData);
-            } else {
+            } /*else {
                 System.out.println("does not match");
-            }
+            }*/
         }
         return list;
     }
