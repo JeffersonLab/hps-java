@@ -12,8 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -700,6 +702,39 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public boolean isInitialized() {
         return isInitialized;
+    }
+    
+    /**
+     * Get the set of unique conditions tags from the conditions table.
+     * @return The list of unique conditions tags.
+     */
+    public Set<String> getTags() {
+        logger.fine("getting list of available conditions tags");
+        boolean openedConnection = openConnection();
+        Set<String> tags = new LinkedHashSet<String>();
+        ResultSet rs = selectQuery("select distinct(tag) from conditions where tag is not null order by tag");
+        try {
+            while (rs.next()) {
+                tags.add(rs.getString(1));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            rs.close();
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "error closing ResultSet", e);
+        }
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("found unique conditions tags ...");
+        for (String tag : tags) {
+            buffer.append(tag + " ");
+        }
+        buffer.setLength(buffer.length() - 1);
+        buffer.append('\n');
+        logger.fine(buffer.toString());        
+        closeConnection(openedConnection);
+        return tags;
     }
 
     /*
