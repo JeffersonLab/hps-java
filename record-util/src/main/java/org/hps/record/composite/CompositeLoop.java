@@ -15,9 +15,15 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.et.EtEventProcessor;
 import org.hps.record.et.EtEventSource;
-import org.hps.record.et.EtEventSource.EtSourceException;
 import org.hps.record.evio.EvioEventProcessor;
 import org.hps.record.evio.EvioFileSource;
+import org.jlab.coda.et.exception.EtBusyException;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtDeadException;
+import org.jlab.coda.et.exception.EtEmptyException;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtTimeoutException;
+import org.jlab.coda.et.exception.EtWakeUpException;
 import org.lcsim.util.Driver;
 import org.lcsim.util.loop.LCIOEventSource;
 
@@ -149,8 +155,8 @@ public final class CompositeLoop extends DefaultRecordLoop {
                 Throwable cause = x.getCause();
                 if (cause instanceof MaxRecordsException || 
                         cause instanceof EndRunException || 
-                        cause instanceof EtSourceException || 
-                        cause instanceof NoSuchRecordException) {
+                        cause instanceof NoSuchRecordException ||
+                        isEtReadException(cause)) {
                     // These types of exceptions are never ignored.
                     return false;
                 } else {
@@ -160,6 +166,21 @@ public final class CompositeLoop extends DefaultRecordLoop {
             } 
         }
         return false;               
+    }
+    
+    /**
+     * True if the Throwable is a type that can be thrown by the ET
+     * system when it is attempting to read events from the server.
+     * The <code>IOException</code> type is ignored but can actually 
+     * be thrown.
+     * @param e The Exception.
+     * @return True if the object can be thrown by ET event reading.
+     */
+    private static boolean isEtReadException(Throwable e) {
+        return e instanceof EtException || e instanceof EtDeadException 
+                || e instanceof EtClosedException || e instanceof EtEmptyException
+                || e instanceof EtBusyException || e instanceof EtTimeoutException
+                || e instanceof EtWakeUpException;
     }
             
     /**
