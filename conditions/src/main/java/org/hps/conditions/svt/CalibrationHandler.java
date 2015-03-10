@@ -63,11 +63,9 @@ class CalibrationHandler extends DefaultHandler {
         switch (qName) {
             case "Feb":
                 febID = Integer.parseInt(attributes.getValue("id"));
-                System.out.println("FEB ID: " + febID);
                 break;
             case "Hybrid":
                 hybridID = Integer.parseInt(attributes.getValue("id"));
-                System.out.println("Hybrid ID: " + hybridID);
                 break;
             case "channel":
                 channel = Integer.parseInt(attributes.getValue("id"));
