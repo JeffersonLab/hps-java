@@ -24,6 +24,8 @@ import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtException;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.util.Driver;
@@ -251,57 +253,57 @@ class EventProcessing {
         sessionState.jobManager.setup(is);
         is.close();
     }
-    
-    /**
-     * Stop the event processing by executing a <code>STOP</code> command on the record loop and
-     * killing the event processing thread. This is executed after the ET system is disconnected so
-     * that the event processing does not potentially hang in a call to
-     * <code>EtSystem.getEvents()</code> forever.
-     */
+        
     synchronized void stop() {
-
-        logger.info("event processing is stopping");
         
-        // Disconnect from ET system.
-        disconnect();
+        // Kill session watchdog thread.
+        logger.fine("killing watchdog thread ...");
+        killWatchdogThread();
+        logger.fine("watchdog thread killed");
         
-        // Is the event processing thread not null?
-        if (sessionState.processingThread != null) {
-
-            // Is the event processing thread actually still alive?
-            if (sessionState.processingThread.isAlive()) {
-
-                // Request the event processing loop to execute stop.
-                sessionState.loop.execute(Command.STOP);
-
-                try {
-                    logger.info("waiting for event processing thread to finish");
-                    // This should always work, because the ET system is disconnected before this.
-                    sessionState.processingThread.interrupt();
-                    sessionState.processingThread.stop();
-                    sessionState.processingThread.join();
-                    logger.info("event processing thread finished");
-                } catch (InterruptedException e) {
-                    // Don't know when this would ever happen.
-                    e.printStackTrace();
-                }
+        // Wake up ET system in case it is blocked in a getEvents() call.
+        if (sessionState.connection != null) {
+            try {
+                logger.fine("waking up ET stations ...");
+                sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
+                logger.fine("ET stations woken up");
+            } catch (IOException | EtException | EtClosedException e) {
+                e.printStackTrace();
             }
-
-            // Notify of last error that occurred in event processing.
-            if (sessionState.loop.getLastError() != null) {
-                application.errorHandler.setError(sessionState.loop.getLastError()).log().printStackTrace();
-            }
-
-            // Set the event processing thread to null as it is unusable now.
-            sessionState.processingThread = null;
         }
-
-        // Set the loop to null as a new one will be created for next session.
-        sessionState.loop = null;
         
-        logger.info("event processing stopped");
-    }    
-           
+        // Stop event processing.
+        logger.fine("commanding event processing to stop ...");
+        sessionState.loop.execute(Command.STOP);
+        logger.fine("event processing commanded to stop");
+        
+        // Cleanup the event processing thread.
+        try {
+            logger.fine("joining on event processing thread ...");
+            sessionState.processingThread.join();
+            logger.fine("event processing thread joined");
+            
+            // Invalidate event processing thread.
+            sessionState.processingThread = null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        // Notify of last error that occurred in event processing.
+        if (sessionState.loop.getLastError() != null) {
+            // Log the error.
+            application.errorHandler.setError(sessionState.loop.getLastError()).log();
+        }
+        
+        // Invalidate loop.
+        sessionState.loop = null;
+               
+        // Disconnect from the ET system.
+        logger.fine("disconnecting from ET system ...");
+        disconnect();
+        logger.fine("ET system disconnected");
+    }
+    
     /**
      * Start event processing on the event processing thread
      * and start the watchdog thread.
@@ -388,14 +390,25 @@ class EventProcessing {
      * Cleanup the ET connection.
      */
     synchronized void closeEtConnection() {
-        logger.fine("closing ET connection");
         if (sessionState.connection != null) {
+            logger.fine("closing ET connection");
             if (sessionState.connection.getEtSystem().alive()) {
+                try {
+                    logger.fine("waking up the ET station");
+                    sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());                    
+                    sessionState.connection.getEtStation().getStatus();
+                } catch (Exception e) {
+                    logger.warning(e.getMessage());
+                    e.printStackTrace();
+                }
+                logger.fine("cleaning up the connection");
                 sessionState.connection.cleanup();
+                logger.fine("connection cleanup successful");
             }
             sessionState.connection = null;
+            logger.fine("connection invalid now");
+            logger.fine("ET connection closed");
         }
-        logger.fine("ET connection closed");
     }
     
     /**
@@ -458,10 +471,7 @@ class EventProcessing {
     synchronized void disconnect() {
         
         logger.fine("disconnecting");
-        
-        // Kill the session watch dog thread.
-        killWatchdogThread();
-
+                
         // Cleanup the ET connection.
         closeEtConnection();
                               
@@ -489,9 +499,11 @@ class EventProcessing {
                 processingThread.join();
                                 
                 // Activate a disconnect using the ActionEvent which is used by the disconnect button.
+                logger.fine("processing thread ended so automatic disconnect is happening");
                 application.actionPerformed(new ActionEvent(Thread.currentThread(), 0, Commands.DISCONNECT));
                                
             } catch (InterruptedException e) {
+                logger.fine("SessionWatchdogThread got interrupted");
                 // This happens when the thread is interrupted by the user pressing the disconnect button.
             }            
         }
