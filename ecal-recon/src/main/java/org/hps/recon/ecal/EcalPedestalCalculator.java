@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
@@ -90,22 +92,31 @@ public class EcalPedestalCalculator extends Driver {
         userInput=cc.readLine("Enter filename prefix, or just press RETURN ...");
         if (userInput==null || userInput.length()==0 || userInput=="") {
             String home=System.getenv().get("HOME");
-            outputFilePrefix = home+"/EcalPedestalCalculator_"+runNumber+"_";
+            outputFilePrefix = home+"/EcalPedestals/EcalPedestalCalculator_"+runNumber+"_";
         } else {
             outputFilePrefix = userInput;
         }
+        
+        String date = new SimpleDateFormat("yyyy-MM-dd-hh-mm").format(new Date());
+        outputFilePrefix += date+"_";
 
         if (writeFileForDAQ) writeFileForDAQ(outputFilePrefix);
         if (writeFileForDB)  writeFileForDB(outputFilePrefix);
         
-        System.err.println("\n\n***************************************************************\n");
+        System.out.println("\n\n***************************************************************\n");
         userInput=cc.readLine(String.format("Enter 'YES' to write conditions database for run range [%s,%s] ...",runNumber,runNumberMax));
         System.out.println("***********"+userInput+"********");
+        boolean uploadToDB=false;
         if (userInput!=null && userInput.equals("YES")) {
             userInput=cc.readLine("Really?");
             if (userInput!=null && userInput.equals("YES")) {
-                uploadToDB();
+                uploadToDB=true;
             }
+        }
+        if (uploadToDB) {
+            uploadToDB();
+        } else {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!! Not Writing Database !!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
     }
 
