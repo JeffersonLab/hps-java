@@ -77,6 +77,11 @@ public abstract class ConditionsObjectConverter<T> implements ConditionsConverte
         // Get the TableMetaData from the table name.
         TableMetaData tableMetaData = databaseConditionsManager.findTableMetaData(name);    
         
+        // Throw an exception if the table name does not map to a known type.
+        if (tableMetaData == null) {
+            throw new RuntimeException(new ConditionsObjectException("No table information found for name: " + name));
+        }
+        
         // Get the ConditionsRecordCollection with the run number assignments.
         ConditionsRecordCollection conditionsRecords = databaseConditionsManager.findConditionsRecords(name);
                         
