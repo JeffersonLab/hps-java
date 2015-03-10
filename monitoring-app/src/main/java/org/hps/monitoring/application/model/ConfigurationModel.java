@@ -16,6 +16,7 @@ public final class ConfigurationModel extends AbstractModel {
     Configuration configuration;    
     
     // Job setting properties.
+    public static final String CONDITIONS_TAG_PROPERTY = "ConditionsTag";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DETECTOR_ALIAS_PROPERTY = "DetectorAlias";
     public static final String DISCONNECT_ON_ERROR_PROPERTY = "DisconnectOnError";
@@ -391,6 +392,16 @@ public final class ConfigurationModel extends AbstractModel {
        
     public String getEtPath() {
         return getEtName() + "@" + getHost() + ":" + getPort();
+    }
+    
+    public void setConditionsTag(String conditionsTag) {
+        String oldValue = getConditionsTag();
+        configuration.set(CONDITIONS_TAG_PROPERTY, conditionsTag);
+        firePropertyChange(CONDITIONS_TAG_PROPERTY, oldValue, getConditionsTag());
+    }     
+    
+    public String getConditionsTag() {
+        return configuration.get(CONDITIONS_TAG_PROPERTY);
     }
 
     public void remove(String property) {

@@ -747,4 +747,5 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         
         DialogUtil.showInfoDialog(frame, "Log to Terminal", "Log messages will be sent to the terminal.");
     }    
+       
 }

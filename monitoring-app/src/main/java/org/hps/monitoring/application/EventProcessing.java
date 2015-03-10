@@ -114,6 +114,13 @@ class EventProcessing {
             } else if (steeringType.equals(SteeringType.FILE)) {
                 setupSteeringFile(steering);
             }
+            
+            // Set conditions tag.
+            if (configurationModel.hasValidProperty(ConfigurationModel.CONDITIONS_TAG_PROPERTY) && !configurationModel.getConditionsTag().equals("")) {
+                logger.config("conditions tag is set to " + configurationModel.getConditionsTag());                
+            } else {
+                logger.config("conditions NOT using a tag");
+            }
            
             // Is there a user specified run number from the JobPanel?
             if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
@@ -128,7 +135,7 @@ class EventProcessing {
                     conditionsManager.freeze();
                 } else {
                     // Allow run numbers to be picked up from the events.
-                    logger.config("user run number specified but conditions system is NOT frozen");
+                    logger.config("user run number provided but conditions system is NOT frozen");
                     conditionsManager.unfreeze();
                 }
             }

@@ -1,29 +1,7 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.DETECTOR_ALIAS_CHANGED;
-import static org.hps.monitoring.application.Commands.DETECTOR_NAME_CHANGED;
-import static org.hps.monitoring.application.Commands.DISCONNECT_ON_END_RUN_CHANGED;
-import static org.hps.monitoring.application.Commands.DISCONNECT_ON_ERROR_CHANGED;
-import static org.hps.monitoring.application.Commands.EVENT_BUILDER_CHANGED;
-import static org.hps.monitoring.application.Commands.FREEZE_CONDITIONS_CHANGED;
-import static org.hps.monitoring.application.Commands.LOG_LEVEL_CHANGED;
-import static org.hps.monitoring.application.Commands.STEERING_RESOURCE_CHANGED;
-import static org.hps.monitoring.application.Commands.STEERING_TYPE_CHANGED;
-import static org.hps.monitoring.application.Commands.USER_RUN_NUMBER_CHANGED;
-import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_ALIAS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DETECTOR_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_END_RUN_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.DISCONNECT_ON_ERROR_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.EVENT_BUILDER_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.FREEZE_CONDITIONS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_FILE_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_LEVEL_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.LOG_TO_FILE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.MAX_EVENTS_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_FILE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_RESOURCE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STEERING_TYPE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.USER_RUN_NUMBER_PROPERTY;
+import static org.hps.monitoring.application.Commands.*;
+import static org.hps.monitoring.application.model.ConfigurationModel.*;
 
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -43,6 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.SteeringType;
 import org.hps.monitoring.application.util.ResourceUtil;
@@ -62,6 +41,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private JComboBox<?> steeringTypeComboBox;
     private JComboBox<String> detectorNameComboBox;
     private JTextField detectorAliasField;
+    private JComboBox<String> conditionsTagComboBox;
     private JComboBox<String> eventBuilderComboBox;
     private JTextField userRunNumberField;
     private JCheckBox freezeConditionsCheckBox;    
@@ -129,12 +109,21 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         compactXmlButton.setActionCommand(Commands.CHOOSE_COMPACT_FILE);
         compactXmlButton.addActionListener(this);
 
-        userRunNumberField = addField("User Run Number", "", 10, false);
+        userRunNumberField = addField("User Run Number", "", 10, true);
         userRunNumberField.addPropertyChangeListener("value", this);
         userRunNumberField.setActionCommand(USER_RUN_NUMBER_CHANGED);
         userRunNumberField.setEnabled(true);
         userRunNumberField.setEditable(true);
         
+        
+        conditionsTagComboBox = addComboBox("Conditions Tag", ResourceUtil.getConditionsTags());
+        conditionsTagComboBox.addItem("");
+        conditionsTagComboBox.setSelectedItem("");
+        conditionsTagComboBox.setActionCommand(CONDITIONS_TAG_CHANGED);
+        conditionsTagComboBox.addActionListener(this);
+        conditionsTagComboBox.setEditable(false);
+        conditionsTagComboBox.setEnabled(true);
+                
         freezeConditionsCheckBox = addCheckBox("Freeze detector conditions", false, true);
         freezeConditionsCheckBox.addActionListener(this);
         freezeConditionsCheckBox.setActionCommand(FREEZE_CONDITIONS_CHANGED);
@@ -293,6 +282,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 }
             } else if (DETECTOR_ALIAS_CHANGED.equals(event.getActionCommand())) {
                 configurationModel.setDetectorName(detectorAliasField.getText());
+            } else if (CONDITIONS_TAG_CHANGED.equals(event.getActionCommand())) {
+                configurationModel.setConditionsTag((String) conditionsTagComboBox.getSelectedItem());
             }
         } finally {
             configurationModel.addPropertyChangeListener(this);
@@ -319,12 +310,10 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                     configurationModel.setFreezeConditions(false);
                 } else {
                     try {
-                        // System.out.println("setting new user run number " + evt.getNewValue());
                         // Parse the run number. Need to catch errors because it might be an invalid string.
                         int userRunNumber = Integer.parseInt(userRunNumberField.getText());
                         configurationModel.setUserRunNumber(userRunNumber);
                         configurationModel.setFreezeConditions(true);
-                        System.out.println("successfully set run number to userRunNumber");
                     } catch (NumberFormatException e) {
                         System.out.println("bad number format so ignoring user run number " + evt.getNewValue());
                         userRunNumberField.setText((String) evt.getOldValue());
@@ -348,6 +337,8 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                 } else {
                     logFileNameField.setText("");
                 }
+            } else if (evt.getPropertyName().equals(ConfigurationModel.CONDITIONS_TAG_PROPERTY)) {
+                conditionsTagComboBox.setSelectedItem(evt.getNewValue()); 
             }
         } finally {
             configurationModel.addPropertyChangeListener(this);

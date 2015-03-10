@@ -47,6 +47,8 @@ final class Commands {
     
     static final String LOG_LEVEL_FILTER_CHANGED = "logLevelFilterChanged";    
     
+    static final String CONDITIONS_TAG_CHANGED = "conditionsTagChanged";
+    
     ////////////////////////////////////////////    
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";

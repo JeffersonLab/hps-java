@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.LCSimEventBuilder;
 import org.reflections.Reflections;
 
@@ -116,4 +117,8 @@ public final class ResourceUtil {
         Collections.sort(detectorNames);
         return detectorNames.toArray(new String[detectorNames.size()]);
     }        
+    
+    public static String[] getConditionsTags() {
+        return DatabaseConditionsManager.getInstance().getTags().toArray(new String[] {});
+    }
 }
