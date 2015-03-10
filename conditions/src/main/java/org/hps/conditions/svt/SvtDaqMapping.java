@@ -14,7 +14,7 @@ import org.hps.util.Pair;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 @Table(names = {"svt_daq_map"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public class SvtDaqMapping extends AbstractSvtDaqMapping {
     
     /**

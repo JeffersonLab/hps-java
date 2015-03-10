@@ -11,7 +11,7 @@ import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 @Table(names = {"test_run_svt_channels"})
-@Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
+@Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtChannel extends AbstractSvtChannel {
 
     public static class TestRunSvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<TestRunSvtChannel> {
