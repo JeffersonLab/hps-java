@@ -1,7 +1,5 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.model.SystemStatusTableModel.*;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -66,7 +64,7 @@ class SystemStatusTable extends JTable {
         });
 
         // Date formatting for last changed.
-        getColumnModel().getColumn(LAST_CHANGED_COL).setCellRenderer(new DefaultTableCellRenderer() {
+        getColumnModel().getColumn(SystemStatusTableModel.LAST_CHANGED_COL).setCellRenderer(new DefaultTableCellRenderer() {
 
             final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
 
@@ -80,16 +78,16 @@ class SystemStatusTable extends JTable {
         });
 
         // Button for clearing system statuses.
-        getColumnModel().getColumn(RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
+        getColumnModel().getColumn(SystemStatusTableModel.RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
         addMouseListener(new JTableButtonMouseListener(this));
         getColumn("Clearable").setWidth(0);
         getColumn("Clearable").setMinWidth(0);
         getColumn("Clearable").setMaxWidth(0);
 
         // Column widths.
-        getColumnModel().getColumn(ACTIVE_COL).setPreferredWidth(8);
-        getColumnModel().getColumn(STATUS_COL).setPreferredWidth(10);
-        getColumnModel().getColumn(SYSTEM_COL).setPreferredWidth(10);
+        getColumnModel().getColumn(SystemStatusTableModel.ACTIVE_COL).setPreferredWidth(8);
+        getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setPreferredWidth(10);
+        getColumnModel().getColumn(SystemStatusTableModel.SYSTEM_COL).setPreferredWidth(10);
         // TODO: Add default width setting for every column.
 
         setAutoCreateRowSorter(true);
@@ -109,7 +107,7 @@ class SystemStatusTable extends JTable {
         }
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            boolean clearable = (Boolean) table.getModel().getValueAt(row, CLEARABLE_COL);
+            boolean clearable = (Boolean) table.getModel().getValueAt(row, SystemStatusTableModel.CLEARABLE_COL);
             if (clearable)
                 return this;
             else

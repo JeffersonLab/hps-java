@@ -1,17 +1,5 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.model.RunModel.DATA_RATE_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.DATA_RECEIVED_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.ELAPSED_TIME_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.END_DATE_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.EVENTS_RECEIVED_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.EVENT_NUMBER_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.EVENT_RATE_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.RUN_LENGTH_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.RUN_NUMBER_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.START_DATE_PROPERTY;
-import static org.hps.monitoring.application.model.RunModel.TOTAL_EVENTS_PROPERTY;
-
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -262,33 +250,33 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         //System.out.println("RunPanel.propertyChange - " + evt.getPropertyName());
         Object value = evt.getNewValue();
-        if (RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
+        if (RunModel.RUN_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
             runNumberField.setValue((Integer) value);
-        } else if (START_DATE_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.START_DATE_PROPERTY.equals(evt.getPropertyName())) {
             if (value != null)
                 startDateField.setValue((Date) value);
             else
                 startDateField.setValue("");
-        } else if (END_DATE_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.END_DATE_PROPERTY.equals(evt.getPropertyName())) {
             if (value != null)
                 endDateField.setValue((Date) value);
             else
                 endDateField.setValue("");
-        } else if (RUN_LENGTH_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.RUN_LENGTH_PROPERTY.equals(evt.getPropertyName())) {
             lengthField.setValue((Integer) value);
-        } else if (TOTAL_EVENTS_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.TOTAL_EVENTS_PROPERTY.equals(evt.getPropertyName())) {
             totalEventsField.setValue((Integer) value);
-        } else if (EVENTS_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.EVENTS_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
             eventsReceivedField.setValue((Integer) value);
-        } else if (ELAPSED_TIME_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.ELAPSED_TIME_PROPERTY.equals(evt.getPropertyName())) {
             elapsedTimeField.setValue((Integer) value);
-        } else if (DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.DATA_RECEIVED_PROPERTY.equals(evt.getPropertyName())) {
             dataReceivedField.setValue(formatter.format((Double) value));
-        } else if (EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.EVENT_NUMBER_PROPERTY.equals(evt.getPropertyName())) {
             eventNumberField.setValue((Integer) value);
-        } else if (DATA_RATE_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.DATA_RATE_PROPERTY.equals(evt.getPropertyName())) {
             dataRateField.setValue(formatter.format((Double) value));
-        } else if (EVENT_RATE_PROPERTY.equals(evt.getPropertyName())) {
+        } else if (RunModel.EVENT_RATE_PROPERTY.equals(evt.getPropertyName())) {
             eventRateField.setValue(formatter.format((Double) value));
         }
     }

@@ -1,21 +1,5 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.BLOCKING_CHANGED;
-import static org.hps.monitoring.application.Commands.VERBOSE_CHANGED;
-import static org.hps.monitoring.application.Commands.WAIT_MODE_CHANGED;
-import static org.hps.monitoring.application.model.ConfigurationModel.BLOCKING_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.CHUNK_SIZE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.ET_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.HOST_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.PORT_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.PRESCALE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.QUEUE_SIZE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STATION_NAME_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.STATION_POSITION_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.VERBOSE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.WAIT_MODE_PROPERTY;
-import static org.hps.monitoring.application.model.ConfigurationModel.WAIT_TIME_PROPERTY;
-
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -72,11 +56,11 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         portField.addPropertyChangeListener("value", this);
 
         blockingCheckBox = addCheckBox("Blocking", false, true);
-        blockingCheckBox.setActionCommand(BLOCKING_CHANGED);
+        blockingCheckBox.setActionCommand(Commands.BLOCKING_CHANGED);
         blockingCheckBox.addActionListener(this);
 
         verboseCheckBox = addCheckBox("Verbose", false, true);
-        verboseCheckBox.setActionCommand(VERBOSE_CHANGED);
+        verboseCheckBox.setActionCommand(Commands.VERBOSE_CHANGED);
         verboseCheckBox.addActionListener(this);
 
         stationNameField = addField("Station Name", 10);
@@ -92,7 +76,7 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         stationPositionField.addPropertyChangeListener("value", this);
 
         waitModeComboBox = addComboBox("Wait Mode", waitModes);
-        waitModeComboBox.setActionCommand(WAIT_MODE_CHANGED);
+        waitModeComboBox.setActionCommand(Commands.WAIT_MODE_CHANGED);
         waitModeComboBox.addActionListener(this);
 
         waitTimeField = addField("Wait Time [microseconds]", 8);
@@ -130,29 +114,29 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
             configurationModel.removePropertyChangeListener(this);
             try {
                 Object value = evt.getNewValue();
-                if (evt.getPropertyName().equals(ET_NAME_PROPERTY)) {
+                if (evt.getPropertyName().equals(ConfigurationModel.ET_NAME_PROPERTY)) {
                     etNameField.setText((String) value);
-                } else if (evt.getPropertyName().equals(HOST_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.HOST_PROPERTY)) {
                     hostField.setText((String) value);
-                } else if (evt.getPropertyName().equals(PORT_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.PORT_PROPERTY)) {
                     portField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(BLOCKING_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.BLOCKING_PROPERTY)) {
                     blockingCheckBox.setSelected((Boolean) value);
-                } else if (evt.getPropertyName().equals(VERBOSE_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.VERBOSE_PROPERTY)) {
                     verboseCheckBox.setSelected((Boolean) value);
-                } else if (evt.getPropertyName().equals(STATION_NAME_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_NAME_PROPERTY)) {
                     stationNameField.setText((String) value);
-                } else if (evt.getPropertyName().equals(CHUNK_SIZE_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.CHUNK_SIZE_PROPERTY)) {
                     chunkSizeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(QUEUE_SIZE_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.QUEUE_SIZE_PROPERTY)) {
                     queueSizeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(STATION_POSITION_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_POSITION_PROPERTY)) {
                     stationPositionField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(WAIT_MODE_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_MODE_PROPERTY)) {
                     waitModeComboBox.setSelectedItem(((Mode) value).name());
-                } else if (evt.getPropertyName().equals(WAIT_TIME_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_TIME_PROPERTY)) {
                     waitTimeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(PRESCALE_PROPERTY)) {
+                } else if (evt.getPropertyName().equals(ConfigurationModel.PRESCALE_PROPERTY)) {
                     prescaleField.setText(value.toString());
                 }
             } finally {
@@ -166,18 +150,9 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        
         if (!accept(evt)) {
             return;
-        }
-        
-        //System.out.println("ConnectionSettingsPanel.propertyChange");
-        //System.out.println("  src: " + evt.getSource());
-        //System.out.println("  propName: " + evt.getPropertyName());
-        //System.out.println("  oldValue: " + evt.getOldValue());
-        //System.out.println("  newValue: " + evt.getNewValue());
-        //System.out.println("  propValue: " + evt.getPropagationId());
-        
+        }               
         Object source = evt.getSource();
         configurationModel.removePropertyChangeListener(this);
         try {
@@ -210,11 +185,11 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (WAIT_MODE_CHANGED.equals(e.getActionCommand())) {
+        if (Commands.WAIT_MODE_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setWaitMode(Mode.valueOf((String) waitModeComboBox.getSelectedItem()));
-        } else if (BLOCKING_CHANGED.equals(e.getActionCommand())) {
+        } else if (Commands.BLOCKING_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setBlocking(blockingCheckBox.isSelected());
-        } else if (VERBOSE_CHANGED.equals(e.getActionCommand())) {
+        } else if (Commands.VERBOSE_CHANGED.equals(e.getActionCommand())) {
             configurationModel.setVerbose(verboseCheckBox.isSelected());
         }
     }

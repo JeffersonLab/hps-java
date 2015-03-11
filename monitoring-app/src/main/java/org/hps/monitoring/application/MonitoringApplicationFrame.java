@@ -30,6 +30,7 @@ class MonitoringApplicationFrame extends JFrame {
     SystemStatusTable systemStatusTable;
     JPanel buttonsPanel;
     TriggerDiagnosticsPanel triggerPanel;
+    MenuBar menu; 
     
     JSplitPane mainSplitPane;
     JSplitPane rightSplitPane;
@@ -147,7 +148,7 @@ class MonitoringApplicationFrame extends JFrame {
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
-        MenuBar menu = new MenuBar(application.configurationModel, application.connectionModel, application);
+        menu = new MenuBar(application.configurationModel, application.connectionModel, application);
         setJMenuBar(menu);
         dataSourceComboBox.addActionListener(menu);
                         

@@ -3,6 +3,7 @@ package org.hps.monitoring.application;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
+import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -41,6 +42,7 @@ import org.hps.monitoring.application.model.Configuration;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 import org.hps.monitoring.application.model.RunModel;
+import org.hps.monitoring.application.util.AIDAServer;
 import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EvioFileFilter;
@@ -102,6 +104,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     // Filters for opening files.
     static final FileFilter lcioFilter = new FileNameExtensionFilter("LCIO files", "slcio");
     static final EvioFileFilter evioFilter = new EvioFileFilter();
+    
+    AIDAServer server = new AIDAServer("hps-monitoring-app");
+    static final RmiStoreFactory rsf = new RmiStoreFactory();
             
     /**
      * Default log handler.
@@ -221,53 +226,59 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     public void actionPerformed(ActionEvent e) {
 
-        String cmd = e.getActionCommand();
-        if (Commands.CONNECT.equals(cmd)) {
+        logger.finest("actionPerformed - " + e.getActionCommand());
+        
+        String command = e.getActionCommand();
+        if (Commands.CONNECT.equals(command)) {
             startSession();
-        } else if (Commands.DISCONNECT.equals(cmd)) {
+        } else if (Commands.DISCONNECT.equals(command)) {
             processing.stop();
-        } else if (Commands.SAVE_PLOTS.equals(cmd)) {
+        } else if (Commands.SAVE_PLOTS.equals(command)) {
             savePlots();
-        } else if (Commands.EXIT.equals(cmd)) {
+        } else if (Commands.EXIT.equals(command)) {
             exit();
-        } else if (Commands.PAUSE.equals(cmd)) { 
+        } else if (Commands.PAUSE.equals(command)) { 
             processing.pause();
-        } else if (Commands.NEXT.equals(cmd)) {
+        } else if (Commands.NEXT.equals(command)) {
             processing.next();
-        } else if (Commands.RESUME.equals(cmd)) {
+        } else if (Commands.RESUME.equals(command)) {
             processing.resume();
-        } else if (Commands.SHOW_SETTINGS.equals(cmd)) {
+        } else if (Commands.SHOW_SETTINGS.equals(command)) {
             showSettingsDialog();
-        } else if (Commands.LOAD_SETTINGS.equals(cmd)) {
+        } else if (Commands.LOAD_SETTINGS.equals(command)) {
             loadSettings();
-        } else if (Commands.SAVE_SETTINGS.equals(cmd)) {
+        } else if (Commands.SAVE_SETTINGS.equals(command)) {
             saveSettings();
-        }  else if (Commands.CLEAR_PLOTS.equals(cmd)) {
+        }  else if (Commands.CLEAR_PLOTS.equals(command)) {
             clearPlots();
-        } else if (Commands.LOAD_DEFAULT_SETTINGS.equals(cmd)) {
+        } else if (Commands.LOAD_DEFAULT_SETTINGS.equals(command)) {
             loadDefaultSettings();
-        } else if (Commands.OPEN_FILE.equals(cmd)) {
+        } else if (Commands.OPEN_FILE.equals(command)) {
             openFile();
-        } else if (Commands.DEFAULT_WINDOW.equals(cmd)) {
+        } else if (Commands.DEFAULT_WINDOW.equals(command)) {
             restoreDefaultWindow();
-        } else if (Commands.MAXIMIZE_WINDOW.equals(cmd)) {
+        } else if (Commands.MAXIMIZE_WINDOW.equals(command)) {
             maximizeWindow();
-        } else if (Commands.MINIMIZE_WINDOW.equals(cmd)) {
+        } else if (Commands.MINIMIZE_WINDOW.equals(command)) {
             minimizeWindow();
-        } else if (Commands.CLOSE_FILE.equals(cmd)) {
+        } else if (Commands.CLOSE_FILE.equals(command)) {
             closeFile();
-        } else if (Commands.SAVE_SCREENSHOT.equals(cmd)) {
+        } else if (Commands.SAVE_SCREENSHOT.equals(command)) {
             saveScreenshot();
-        } else if (Commands.LOG_LEVEL_CHANGED.equals(cmd)) {
+        } else if (Commands.LOG_LEVEL_CHANGED.equals(command)) {
             setLogLevel();
-        } else if (Commands.SAVE_LOG_TABLE.equals(cmd)) {
+        } else if (Commands.SAVE_LOG_TABLE.equals(command)) {
             saveLogTable();
-        } else if (Commands.CLEAR_LOG_TABLE.equals(cmd)) {
+        } else if (Commands.CLEAR_LOG_TABLE.equals(command)) {
             getLogRecordModel().clear();
-        } else if (Commands.LOG_TO_FILE.equals(cmd)) {
+        } else if (Commands.LOG_TO_FILE.equals(command)) {
             chooseLogFile();
-        } else if (Commands.LOG_TO_TERMINAL.equals(cmd)) {
+        } else if (Commands.LOG_TO_TERMINAL.equals(command)) {
             logToTerminal();
+        } else if (Commands.START_AIDA_SERVER.equals(command)) {
+            startAIDAServer();
+        } else if (Commands.STOP_AIDA_SERVER.equals(command)) {
+            stopAIDAServer();
         }
     }    
     
@@ -747,5 +758,32 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         
         DialogUtil.showInfoDialog(frame, "Log to Terminal", "Log messages will be sent to the terminal.");
     }    
-       
+    
+    /**
+     * Start the AIDA server instance.
+     */
+    void startAIDAServer() {
+        if (configurationModel.hasValidProperty(ConfigurationModel.AIDA_SERVER_NAME_PROPERTY)) {
+            server.setName(configurationModel.getAIDAServerName());
+        }
+        boolean started = server.start();
+        if (started) {
+            frame.menu.startAIDAServer();
+            logger.info("AIDA server started at " + server.getName());
+            DialogUtil.showInfoDialog(frame, "AIDA Server Started", "The remote AIDA server started successfully.");
+        } else {
+            logger.warning("AIDA server failed to start");
+            DialogUtil.showErrorDialog(frame, "Failed to Start AIDA Server", "The remote AIDA server failed to start.");
+        }
+    }
+    
+    /**
+     * Stop the AIDA server instance.
+     */
+    void stopAIDAServer() {
+        server.disconnect();
+        frame.menu.stopAIDAServer();
+        logger.info("AIDA server was stopped");
+        DialogUtil.showInfoDialog(frame, "AIDA Server Stopped", "The AIDA server was stopped.");
+    }       
 }
