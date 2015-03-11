@@ -319,9 +319,6 @@ public class EcalRawConverter {
      * TODO: Generate GenericObject (and corresponding LCRelation) to store min and max
      * to fully emulate mode-7.  This is less important for now.
      *
-     * NOTE: March 7, 2015. Threshold crossing requirement currently emulates the current
-     * SSP firmware (>=) instead of FADC firmware (>) to aid trigger studies.  Firmware will
-     * be changed to make them identical.  But for now this code prefers SSP over FADC.
      */
     public ArrayList <CalorimeterHit> HitDtoA(EventHeader event,RawTrackerHit hit) {
      
@@ -335,14 +332,14 @@ public class EcalRawConverter {
         ArrayList <Integer> thresholdCrossings = new ArrayList<Integer>();
         
         // special case, first sample is above threshold:
-        if (samples[0] >= absoluteThreshold) { // SSP/FADC firmware discrepancy.
+        if (samples[0] > absoluteThreshold) {
             thresholdCrossings.add(0);
         } 
 
         // search for threshold crossings:
         for (int ii = 1; ii < samples.length; ++ii) {
-            if ( samples[ii]   >=  absoluteThreshold &&
-                 samples[ii-1] <   absoluteThreshold) // SSP/FADC firmware discrepancy.
+            if ( samples[ii]   >  absoluteThreshold &&
+                 samples[ii-1] <= absoluteThreshold)
             {
                 // found one:
                 thresholdCrossings.add(ii);
