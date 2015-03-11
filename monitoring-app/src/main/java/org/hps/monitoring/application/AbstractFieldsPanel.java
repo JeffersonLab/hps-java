@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -136,7 +137,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
         c.gridy = currY;
         c.insets = insets;
         c.anchor = GridBagConstraints.WEST;
-        JLabel waitModeLabel = new JLabel(name + ":");
+        JLabel waitModeLabel = new JLabel(name);
         waitModeLabel.setHorizontalAlignment(JLabel.LEFT);
         add(waitModeLabel, c);
 
@@ -276,6 +277,33 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     @Override
     public ConfigurationModel getConfigurationModel() {
         return configurationModel;
+    }
+    
+    /**
+     * Add a labeled JComponent to the panel.
+     * @param name The label text.
+     * @param component The component to add.
+     */
+    void addComponent(String name, JComponent component) {
+                
+        // Add the label.
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = currY;
+        c.insets = insets;
+        c.anchor = GridBagConstraints.WEST;
+        JLabel label = new JLabel(name + ":");
+        add(label, c);
+
+        // Add the component.
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = currY;
+        c.insets = insets;
+        c.anchor = GridBagConstraints.EAST;
+        add(component, c);
+
+        ++currY;
     }
     
     boolean accept(PropertyChangeEvent evt) {
