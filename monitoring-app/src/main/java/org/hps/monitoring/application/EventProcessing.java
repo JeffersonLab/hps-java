@@ -84,14 +84,11 @@ class EventProcessing {
         // Get steering resource or file as a String parameter.
         String steering = null;
         SteeringType steeringType = configurationModel.getSteeringType();
-        if (steeringType.equals(SteeringType.FILE))
-            try {
-                steering = configurationModel.getSteeringFile().getCanonicalPath();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        else
+        if (steeringType.equals(SteeringType.FILE)) {
+            steering = configurationModel.getSteeringFile();
+        } else {
             steering = configurationModel.getSteeringResource();
+        }
 
         MonitoringApplication.logger.config("Set steering to " + steering + " with type " + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE"));
 
@@ -393,20 +390,11 @@ class EventProcessing {
         if (sessionState.connection != null) {
             logger.fine("closing ET connection");
             if (sessionState.connection.getEtSystem().alive()) {
-                try {
-                    logger.fine("waking up the ET station");
-                    sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());                    
-                    sessionState.connection.getEtStation().getStatus();
-                } catch (Exception e) {
-                    logger.warning(e.getMessage());
-                    e.printStackTrace();
-                }
-                logger.fine("cleaning up the connection");
+                logger.fine("cleaning up the connection ...");
                 sessionState.connection.cleanup();
                 logger.fine("connection cleanup successful");
             }
             sessionState.connection = null;
-            logger.fine("connection invalid now");
             logger.fine("ET connection closed");
         }
     }

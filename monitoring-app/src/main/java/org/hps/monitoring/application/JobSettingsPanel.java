@@ -85,7 +85,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         steeringResourcesComboBox.setActionCommand(STEERING_RESOURCE_CHANGED);
         steeringResourcesComboBox.addActionListener(this);
         
-        steeringFileField = addField("Steering File", 35);
+        steeringFileField = addField("Steering File", 50);
         steeringFileField.addPropertyChangeListener("value", this);
         
         JButton steeringFileButton = addButton("Select Steering File");
@@ -114,8 +114,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         userRunNumberField.setActionCommand(USER_RUN_NUMBER_CHANGED);
         userRunNumberField.setEnabled(true);
         userRunNumberField.setEditable(true);
-        
-        
+                
         conditionsTagComboBox = addComboBox("Conditions Tag", ResourceUtil.getConditionsTags());
         conditionsTagComboBox.addItem("");
         conditionsTagComboBox.setSelectedItem("");
@@ -183,6 +182,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             try {
                 checkSteeringFile(file);
                 configurationModel.setSteeringFile(file.getCanonicalPath());
+                configurationModel.setSteeringType(SteeringType.FILE);
             } catch (IOException | JDOMException e) {
                 throw new RuntimeException("Error parsing the selected steering file.", e);
             }
@@ -246,10 +246,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
 
     @Override
     public void actionPerformed(ActionEvent event) {
-
-        //System.out.println("JobSettingsPanel.actionPerformed - " + event.getActionCommand());
-        //System.out.println("  source: " + event.getSource());
-
         try {
             configurationModel.removePropertyChangeListener(this);
             if (event.getActionCommand().equals(Commands.CHOOSE_STEERING_FILE)) {
@@ -304,7 +300,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (source == userRunNumberField) {
                 // Is run number being reset to null or empty?
                 if (userRunNumberField.getText() == null || userRunNumberField.getText().isEmpty()) {
-                    // System.out.println("resetting user run number back to null");
                     // Update the model to null user run number and do not freeze the conditions system.
                     configurationModel.setUserRunNumber(null);
                     configurationModel.setFreezeConditions(false);
@@ -352,12 +347,6 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     private class JobSettingsChangeListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            //System.out.println("JobSettingsChangeListener.propertyChange");
-            //System.out.println("  src: " + evt.getSource());
-            //System.out.println("  propName: " + evt.getPropertyName());
-            //System.out.println("  oldValue: " + evt.getOldValue());
-            //System.out.println("  newValue: " + evt.getNewValue());
-            //System.out.println("  propId: " + evt.getPropagationId());
             if (evt.getSource() instanceof ConfigurationModel) {
                 Object value = evt.getNewValue();
                 configurationModel.removePropertyChangeListener(this);
@@ -382,7 +371,7 @@ class JobSettingsPanel extends AbstractFieldsPanel {
                         steeringTypeComboBox.setSelectedIndex(((SteeringType) value).ordinal());
                     } else if (evt.getPropertyName().equals(STEERING_FILE_PROPERTY)) {
                         if (value != null) {
-                            steeringFileField.setText(((File) value).getAbsolutePath());
+                            steeringFileField.setText((String) evt.getNewValue());
                         } else {
                             // A null value here is actually okay and means this field should be reset to have no value.
                             steeringFileField.setText(null);

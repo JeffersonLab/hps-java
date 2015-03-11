@@ -105,18 +105,14 @@ public final class ConfigurationModel extends AbstractModel {
         firePropertyChange(STEERING_TYPE_PROPERTY, oldValue, getSteeringType());
     }
 
-    public File getSteeringFile() {
-        if (configuration.hasKey(STEERING_FILE_PROPERTY)) {
-            return new File(configuration.get(STEERING_FILE_PROPERTY));
-        } else {
-            return null;
-        }
+    public String getSteeringFile() {        
+        return configuration.get(STEERING_FILE_PROPERTY);
     }
 
     public void setSteeringFile(String steeringFile) {
-        File oldValue = getSteeringFile();
+        String oldValue = getSteeringFile();
         configuration.set(STEERING_FILE_PROPERTY, steeringFile);
-        firePropertyChange(STEERING_FILE_PROPERTY, oldValue, getSteeringFile().getPath());
+        firePropertyChange(STEERING_FILE_PROPERTY, oldValue, getSteeringFile());
     }
 
     public String getSteeringResource() {
