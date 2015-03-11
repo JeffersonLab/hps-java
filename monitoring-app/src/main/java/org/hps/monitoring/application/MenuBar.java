@@ -1,19 +1,5 @@
 package org.hps.monitoring.application;
 
-import static org.hps.monitoring.application.Commands.EXIT;
-import static org.hps.monitoring.application.Commands.CLOSE_FILE;
-import static org.hps.monitoring.application.Commands.OPEN_FILE;
-import static org.hps.monitoring.application.Commands.CLEAR_PLOTS;
-import static org.hps.monitoring.application.Commands.SAVE_PLOTS;
-import static org.hps.monitoring.application.Commands.LOAD_SETTINGS;
-import static org.hps.monitoring.application.Commands.LOAD_DEFAULT_SETTINGS;
-import static org.hps.monitoring.application.Commands.SAVE_SCREENSHOT;
-import static org.hps.monitoring.application.Commands.SAVE_SETTINGS;
-import static org.hps.monitoring.application.Commands.SHOW_SETTINGS;
-import static org.hps.monitoring.application.Commands.DEFAULT_WINDOW;
-import static org.hps.monitoring.application.Commands.MAXIMIZE_WINDOW;
-import static org.hps.monitoring.application.Commands.MINIMIZE_WINDOW;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -40,6 +26,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
     JMenuItem openFileItem;    
     JMenu settingsMenu;
     JMenuItem logItem;
+    JMenuItem serverItem;
     ConfigurationModel configurationModel;    
     
     MenuBar(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
@@ -56,21 +43,21 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         openFileItem = new JMenuItem("Open File ...");
         openFileItem.setMnemonic(KeyEvent.VK_P);
-        openFileItem.setActionCommand(OPEN_FILE);
+        openFileItem.setActionCommand(Commands.OPEN_FILE);
         openFileItem.addActionListener(listener);
         openFileItem.setToolTipText("Open an EVIO or LCIO data file");
         fileMenu.add(openFileItem);
         
         closeFileItem = new JMenuItem("Close File");
         closeFileItem.setMnemonic(KeyEvent.VK_C);
-        closeFileItem.setActionCommand(CLOSE_FILE);
+        closeFileItem.setActionCommand(Commands.CLOSE_FILE);
         closeFileItem.addActionListener(listener);
         closeFileItem.setToolTipText("Close the current file data source");
         fileMenu.add(closeFileItem);
               
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
-        exitItem.setActionCommand(EXIT);
+        exitItem.setActionCommand(Commands.EXIT);
         exitItem.addActionListener(listener);
         exitItem.setToolTipText("Exit from the application");
         fileMenu.add(exitItem);
@@ -81,7 +68,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         JMenuItem settingsItem = new JMenuItem("Open Settings Window ...");
         settingsItem.setMnemonic(KeyEvent.VK_O);
-        settingsItem.setActionCommand(SHOW_SETTINGS);
+        settingsItem.setActionCommand(Commands.SHOW_SETTINGS);
         settingsItem.addActionListener(listener);
         settingsItem.setToolTipText("Show settings dialog");
         settingsMenu.add(settingsItem);
@@ -89,21 +76,21 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
         loadConfigItem.addActionListener(listener);
         loadConfigItem.setMnemonic(KeyEvent.VK_L);
-        loadConfigItem.setActionCommand(LOAD_SETTINGS);
+        loadConfigItem.setActionCommand(Commands.LOAD_SETTINGS);
         loadConfigItem.setToolTipText("Load settings from a properties file");
         settingsMenu.add(loadConfigItem);
 
         JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
         saveConfigItem.addActionListener(listener);
         saveConfigItem.setMnemonic(KeyEvent.VK_S);
-        saveConfigItem.setActionCommand(SAVE_SETTINGS);
+        saveConfigItem.setActionCommand(Commands.SAVE_SETTINGS);
         saveConfigItem.setToolTipText("Save configuration to a properties file");
         settingsMenu.add(saveConfigItem);
         
         JMenuItem defaultSettingsItem = new JMenuItem("Load Default Settings");
         defaultSettingsItem.addActionListener(listener);
         defaultSettingsItem.setMnemonic(KeyEvent.VK_D);
-        defaultSettingsItem.setActionCommand(LOAD_DEFAULT_SETTINGS);
+        defaultSettingsItem.setActionCommand(Commands.LOAD_DEFAULT_SETTINGS);
         defaultSettingsItem.setToolTipText("Load the default settings");
         settingsMenu.add(defaultSettingsItem);
         
@@ -113,7 +100,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         JMenuItem savePlotsItem = new JMenuItem("Save Plots ...");
         savePlotsItem.setMnemonic(KeyEvent.VK_S);
-        savePlotsItem.setActionCommand(SAVE_PLOTS);
+        savePlotsItem.setActionCommand(Commands.SAVE_PLOTS);
         savePlotsItem.addActionListener(listener);
         savePlotsItem.setEnabled(true);
         savePlotsItem.setToolTipText("Save plots to AIDA file");
@@ -121,7 +108,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
 
         JMenuItem clearPlotsItem = new JMenuItem("Clear plots");
         clearPlotsItem.setMnemonic(KeyEvent.VK_C);
-        clearPlotsItem.setActionCommand(CLEAR_PLOTS);
+        clearPlotsItem.setActionCommand(Commands.CLEAR_PLOTS);
         clearPlotsItem.addActionListener(listener);
         clearPlotsItem.setEnabled(true);
         clearPlotsItem.setToolTipText("Clear the AIDA plots");
@@ -133,7 +120,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         JMenuItem screenshotItem = new JMenuItem("Save Screenshot ...");
         screenshotItem.setMnemonic(KeyEvent.VK_S);
-        screenshotItem.setActionCommand(SAVE_SCREENSHOT);
+        screenshotItem.setActionCommand(Commands.SAVE_SCREENSHOT);
         screenshotItem.addActionListener(listener);
         screenshotItem.setEnabled(true);
         screenshotItem.setToolTipText("Save a screenshot to a graphics file");
@@ -147,13 +134,21 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         logItem.setToolTipText("Redirect System.out to a file instead of terminal");
         toolsMenu.add(logItem);
         
+        serverItem = new JMenuItem("Start AIDA Server ...");
+        serverItem.setMnemonic(KeyEvent.VK_A);
+        serverItem.setActionCommand(Commands.START_AIDA_SERVER);
+        serverItem.setEnabled(true);
+        serverItem.setToolTipText("Start AIDA RMI Server");
+        serverItem.addActionListener(listener);
+        toolsMenu.add(serverItem);
+        
         JMenu windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         add(windowMenu);
         
         JMenuItem maximizeItem = new JMenuItem("Maximize");
         maximizeItem.setMnemonic(KeyEvent.VK_M);
-        maximizeItem.setActionCommand(MAXIMIZE_WINDOW);
+        maximizeItem.setActionCommand(Commands.MAXIMIZE_WINDOW);
         maximizeItem.addActionListener(listener);
         maximizeItem.setEnabled(true);
         maximizeItem.setToolTipText("Maximize the application window");
@@ -161,7 +156,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         JMenuItem minimizeItem = new JMenuItem("Minimize");
         minimizeItem.setMnemonic(KeyEvent.VK_I);
-        minimizeItem.setActionCommand(MINIMIZE_WINDOW);
+        minimizeItem.setActionCommand(Commands.MINIMIZE_WINDOW);
         minimizeItem.addActionListener(listener);
         minimizeItem.setEnabled(true);
         minimizeItem.setToolTipText("Minimize the application window");
@@ -169,7 +164,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         
         JMenuItem defaultsItem = new JMenuItem("Restore Defaults");
         defaultsItem.setMnemonic(KeyEvent.VK_D);
-        defaultsItem.setActionCommand(DEFAULT_WINDOW);
+        defaultsItem.setActionCommand(Commands.DEFAULT_WINDOW);
         defaultsItem.addActionListener(listener);
         defaultsItem.setEnabled(true);
         defaultsItem.setToolTipText("Restore the window defaults");
@@ -214,4 +209,16 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
             }
         }        
     }    
+    
+    void startAIDAServer() {
+        serverItem.setActionCommand(Commands.STOP_AIDA_SERVER);
+        serverItem.setText("Stop AIDA Server");
+        serverItem.setToolTipText("Stop the remote AIDA server");
+    }
+    
+    void stopAIDAServer() {
+        serverItem.setActionCommand(Commands.START_AIDA_SERVER);
+        serverItem.setText("Start AIDA Server");
+        serverItem.setToolTipText("Start the remote AIDA server");
+    }
 }

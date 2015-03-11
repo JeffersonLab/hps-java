@@ -49,6 +49,9 @@ final class Commands {
     
     static final String CONDITIONS_TAG_CHANGED = "conditionsTagChanged";
     
+    static final String START_AIDA_SERVER = "startAIDAServer";
+    static final String STOP_AIDA_SERVER = "stopAIDAServer";
+    
     ////////////////////////////////////////////    
     static final String BLOCKING_CHANGED = "blockingChanged";
     static final String CHOOSE_COMPACT_FILE = "chooseCompactFile";

@@ -1,6 +1,5 @@
 package org.hps.monitoring.application.model;
 
-import java.io.File;
 import java.util.logging.Level;
 
 import org.hps.record.enums.DataSourceType;
@@ -16,6 +15,7 @@ public final class ConfigurationModel extends AbstractModel {
     Configuration configuration;    
     
     // Job setting properties.
+    public static final String AIDA_SERVER_NAME_PROPERTY = "AIDAServerName";
     public static final String CONDITIONS_TAG_PROPERTY = "ConditionsTag";
     public static final String DETECTOR_NAME_PROPERTY = "DetectorName";
     public static final String DETECTOR_ALIAS_PROPERTY = "DetectorAlias";
@@ -398,6 +398,16 @@ public final class ConfigurationModel extends AbstractModel {
     
     public String getConditionsTag() {
         return configuration.get(CONDITIONS_TAG_PROPERTY);
+    }
+    
+    public void setAIDAServerName(String AIDAServerName) {
+        String oldValue = getAIDAServerName();
+        configuration.set(AIDA_SERVER_NAME_PROPERTY, AIDAServerName);
+        firePropertyChange(AIDA_SERVER_NAME_PROPERTY, oldValue, getAIDAServerName());
+    } 
+    
+    public String getAIDAServerName() {
+        return configuration.get(AIDA_SERVER_NAME_PROPERTY);
     }
 
     public void remove(String property) {
