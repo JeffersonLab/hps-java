@@ -2,8 +2,9 @@
 # Monitoring Application configuration
 
 # job settings
+AIDAServerName=hps-monitoring-app
 DetectorName=HPS-Proposal2014-v8-6pt6
-DisconnectOnError=false
+DisconnectOnError=true
 DisconnectOnEndRun=true
 EventBuilderClassName=org.hps.evio.LCSimEngRunEventBuilder
 #LogFileName=
@@ -19,8 +20,9 @@ SteeringType=RESOURCE
 DataSourceType=ET_SERVER
 #DataSourcePath=
 ProcessingStage=LCIO
-
+ 
 # ET connection settings
+# FIXME: These should really all be prepended by 'Et' so their purpose is clear.
 Blocking=false
 EtName=ETBuffer
 ChunkSize=1
@@ -34,5 +36,3 @@ StationName=MY_STATION
 Verbose=false
 WaitMode=TIMED
 WaitTime=1000000000
-
-SaveLayout=false;
