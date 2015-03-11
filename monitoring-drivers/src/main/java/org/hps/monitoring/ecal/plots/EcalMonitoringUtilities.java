@@ -35,6 +35,8 @@ public final class EcalMonitoringUtilities {
                 return true;
             }
         }
+        else if (row == 0) return true;
+        else if (column ==0) return true;
         return false;
     }
     

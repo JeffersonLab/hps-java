@@ -30,6 +30,7 @@
         </driver>       
         <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
            <useRawEnergy>true</useRawEnergy>
+           <energyCut>5</energyCut>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.aida</outputFileName>

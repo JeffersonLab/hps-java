@@ -15,7 +15,7 @@
     </execute>           
     <drivers>    
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10000</eventInterval>            
+            <eventInterval>100000</eventInterval>            
         </driver>
          <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.ECalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
@@ -29,17 +29,22 @@
             <useRunningPedestal>true</useRunningPedestal>
             <useTimeWalkCorrection>true</useTimeWalkCorrection>
         </driver>       
-        <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
-           <useRawEnergy>true</useRawEnergy>
-        </driver>
+        
           <driver name="EcalEventDisplay" type="org.hps.monitoring.ecal.plots.EcalEventDisplay">
             <inputCollection>EcalCalHits</inputCollection>
             <inputCollectionRaw>EcalReadoutHits</inputCollectionRaw>
             <inputClusterCollection>EcalClusters</inputClusterCollection>
             <pedSamples>20</pedSamples>
-            <maxEch>5.0</maxEch>
+            <maxEch>15.0</maxEch>
             <minEch>0.005</minEch>
-            <eventRefreshRate>5</eventRefreshRate>
+            <eventRefreshRate>2</eventRefreshRate>
+        </driver>
+        <driver name="LedAnalysisDriver" type="org.hps.monitoring.ecal.plots.EcalLedSequenceMonitor">    
+           <useRawEnergy>true</useRawEnergy>
+           <energyCut>2</energyCut>
+           <nEventsMin>300</nEventsMin>
+           <evnMinDraw>0.</evnMinDraw>
+           <evnMaxDraw>20000.</evnMaxDraw>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>LedSequenceMonitorOut.aida</outputFileName>

@@ -12,12 +12,32 @@ import hep.aida.IFitter;
 import hep.aida.IFitResult;
 import hep.aida.IFunctionFactory;
 import hep.aida.IPlotterStyle;
+import hep.aida.IPlotterFactory;
+import hep.aida.ICloud1D;
+import hep.aida.ICloud2D;
+import hep.aida.IEvaluator;
+import hep.aida.ITreeFactory;
+import hep.aida.ITupleFactory;
 
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.Icon;
+import javax.swing.WindowConstants;
 
-
-
-import javax.swing.JOptionPane; 
-
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.EventQueue;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import java.lang.InterruptedException;
+import java.util.Arrays;
 import java.io.Console;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -54,6 +74,11 @@ import org.lcsim.util.aida.AIDA;
 public class EcalLedSequenceMonitor extends Driver{
 
     private static final int NUM_CHANNELS = 11 * 47;
+    private static final String dbTag = "led";
+    private static final String dbTableName = "ecal_led_calibrations";
+    private static final int runNumberMax = 9999;
+    private static final int nDrivers = 8;
+    private static final int nSteps = 56;
 
     String inputCollectionRaw = "EcalReadoutHits";
     String inputCollection = "EcalCalHits";	
@@ -65,16 +90,15 @@ public class EcalLedSequenceMonitor extends Driver{
     private EcalLedCollection LedCollection;
     private EcalConditions ecalConditions;
 
-    Map < Integer,Integer > LedTopMap;
-    Map < Integer,Integer > LedBotMap;
+    Map < Integer,Integer > LedTopMap; //chid (conditions) --> LED id
+    Map < Integer,Integer > LedBotMap; //chid (conditions) --> LED id 
+
+    Map < Integer,Integer > LedTopMapInverted; //LED id --> chid (conditions)
+    Map < Integer,Integer > LedBotMapInverted; //LED id  --> chid (conditions)
 
     private boolean useRawEnergy=false;
 
-    private static final String dbTag = "led";
-    private static final String dbTableName = "ecal_led_calibrations";
-    private static final int runNumberMax = 9999;
-    private static final int nDrivers = 8;
-    private static final int nSteps = 56;
+
 
     private int runNumber = 0;	
     private int eventN    = 0;
@@ -94,31 +118,87 @@ public class EcalLedSequenceMonitor extends Driver{
 
     private int[] iStep = new int[nDrivers];
     private int[] nEvents = new int[NUM_CHANNELS];
+    private double[] mMean = new double[NUM_CHANNELS];
+    private double[] mRMS = new double[NUM_CHANNELS];
 
+    private int nEventsMin=200;
     private double energy,fillEnergy,fillTime;
+    private double energyCut=2; //we expect very high energy from the LEDs..
+    private double skipInitial=0.1;
+
     private long cellID;
+    
+    
+    
+    
     //Histograms-functions-ntuples
     private ArrayList<ITuple> iTuple;
-    private ArrayList<IProfile1D> cProfile;
-    private ArrayList<IFunction> fFunction;
-    private ArrayList<IFunction> fFunction1;
-    private ArrayList<IHistogram1D> hCharge;
-    private ArrayList<IHistogram2D> hChargeVsTime;
-    private ArrayList<IHistogram1D> hChargeALL;
-    private ArrayList<IHistogram2D> hChargeVsTimeALL;
-    IHistogram2D					hMeanCharge2D;
 
+    private IFunction  fFunction,fFunction1;
+    private IProfile1D   cProfile;
+    private IHistogram2D			hMeanCharge2D;
+    private ArrayList<IHistogram1D> hCharge;
+    private ArrayList<IHistogram2D> hChargeVsEvn;
+    private IPlotterFactory factory;
+    private IPlotter pPlotter=null;
+    private IPlotter pPlotter2=null;
+    private IPlotterStyle style ;
+    
+    private boolean doEmbedded=false;
+    
+    private double[] fPars;    
+    private double[] fPrevPars;
+    private double[] fParErrs;
+    private String[] fParNames; 
+    
+    
+    private double fEvnMinDraw=0.;
+    private double fEvnMaxDraw=80000.;
+    private double fChargeMinDraw=0.;
+    private double fChargeMaxDraw=100.;
+
+    /*Components for user interaction*/
+    private JDialog dialog;
+    private JLabel  label;
+    String  labelString;
+    private JButton okButton,cancelButton;
+    private JFrame frame;
+    private int m_iteration=0;
+    private int m_ret=0;
+    static Object modalMonitor = new Object();
+    
     public void setUseRawEnergy(boolean useRawEnergy) {
         this.useRawEnergy=useRawEnergy;
     }
 
+    public void setEnergyCut(double energyCut) {
+        this.energyCut=energyCut;
+    }
+    public void setSkipInitial(double skipInitial) {
+        this.skipInitial=skipInitial;
+    }
 
-    private double skipInitial=0.1;
+    public void setEvnMinDraw(double evnMinDraw){
+        this.fEvnMinDraw=evnMinDraw;
+    }
+    public void setEvnMaxDraw(double evnMaxDraw){
+        this.fEvnMaxDraw=evnMaxDraw;
+    }
+    public void setChargeMinDraw(double chargeMinDraw){
+        this.fChargeMinDraw=chargeMinDraw;
+    }
+    public void setChargeMaxDraw(double chargeMaxDraw){
+        this.fChargeMaxDraw=chargeMaxDraw;
+    }
+    
+    public void setNEventsMin(int nEeventsMin){
+        this.nEventsMin=nEventsMin;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("LedAnalysis::Detector changed was called");
-
+        System.out.println(fEvnMinDraw+" "+fEvnMaxDraw);
         for (int ii=0;ii<nDrivers;ii++){
             iStep[ii]=-1;
         }
@@ -127,8 +207,12 @@ public class EcalLedSequenceMonitor extends Driver{
 
         conditionsManager = DatabaseConditionsManager.getInstance();
 
-        LedTopMap = new HashMap< Integer , Integer >(); //key: ecal channel ID. Value: 
+        LedTopMap = new HashMap< Integer , Integer >(); //key: ecal channel ID. Value:  led id
         LedBotMap = new HashMap< Integer , Integer >();	
+
+        LedTopMapInverted = new HashMap< Integer , Integer >(); //key: led id. Value: ecal channel id
+        LedBotMapInverted = new HashMap< Integer , Integer >(); 
+
 
         ChannelCollection = conditionsManager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();	
         LedCollection = conditionsManager.getCachedConditions(EcalLedCollection.class, "ecal_leds").getCachedData();
@@ -140,38 +224,54 @@ public class EcalLedSequenceMonitor extends Driver{
                 if (Led.getEcalChannelId()==chid){
                     if (channel.getY()>0){
                         LedTopMap.put( chid , Led.getLedNumber() );
+                        LedTopMapInverted.put(  Led.getLedNumber(), chid  );
                     }
                     else if (channel.getY()<0){
                         LedBotMap.put( chid , Led.getLedNumber() );
+                        LedBotMapInverted.put( Led.getLedNumber(), chid );                    
                     }
                 }
             }
         }
 
-
+    
+        
         // Setup plots
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
-
-        //  IPlotterFactory factory= aida.analysisFactory().createPlotterFactory("ECAL DAQ Plots");
-        iTuple = new ArrayList<ITuple>(NUM_CHANNELS);
-        cProfile= new ArrayList<IProfile1D>(NUM_CHANNELS);
-        fFunction= new ArrayList<IFunction>(NUM_CHANNELS);	
-        fFunction1= new ArrayList<IFunction>(NUM_CHANNELS);		
-        hCharge = new ArrayList<IHistogram1D>(NUM_CHANNELS);
-        // hChargeVsTime = new ArrayList<IHistogram2D>(NUM_CHANNELS);
-        hChargeALL = new ArrayList<IHistogram1D>(NUM_CHANNELS);
-        hChargeVsTimeALL = new ArrayList<IHistogram2D>(NUM_CHANNELS);
         hMeanCharge2D = aida.histogram2D("Average LED response", 47, -23.5, 23.5, 11, -5.5, 5.5);
+        
+        factory= aida.analysisFactory().createPlotterFactory("Ecal Led Sequence");
+        pPlotter= factory.create("Drivers");
+        pPlotter.createRegions(4,2);
+        if (doEmbedded){
+            pPlotter2=factory.create("Sequence Map");
+            pPlotter2.createRegions(1,1);
+            pPlotter2.region(0).plot(hMeanCharge2D);
+        }   
+        iTuple = new ArrayList<ITuple>(NUM_CHANNELS);   
+        hCharge = new ArrayList<IHistogram1D>(NUM_CHANNELS);
+        hChargeVsEvn = new ArrayList<IHistogram2D>(nDrivers);
 
+
+
+        //pPlotter2.region(0).plot(hMeanCharge2D);
+        
         for (int ii=0;ii<NUM_CHANNELS;ii++){
             int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
             int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);	    
             iTuple.add(aida.analysisFactory().createTupleFactory(aida.tree()).create("nTuple"+ii,"nTuple"+ii,"int fEvn=0 , double fCharge=0.,double fTime=0.",""));
 
-            hChargeALL.add(aida.histogram1D("ChargeAllEvents_"+ii,400,0.,100.));
-            hChargeVsTimeALL.add(aida.histogram2D("ChargeVsTimeAllEvents_"+ii,100,0.,400.,100,0.,100.));
+
         }
+
+        for (int ii=0;ii<nDrivers;ii++){
+            hChargeVsEvn.add(aida.histogram2D("Driver"+ii,100,fEvnMinDraw,fEvnMaxDraw,100,fChargeMinDraw,fChargeMaxDraw));
+            pPlotter.region(ii).plot( hChargeVsEvn.get(ii));
+        }
+
+        pPlotter.show();
+        if (doEmbedded) pPlotter2.show();
 
     }		
 
@@ -187,9 +287,10 @@ public class EcalLedSequenceMonitor extends Driver{
                 column = hit.getIdentifierFieldValue("ix");
                 row = hit.getIdentifierFieldValue("iy");
                 id = EcalMonitoringUtilities.getHistoIDFromRowColumn(row, column);
-                cellID=hit.getCellID();
-                energy = hit.getCorrectedEnergy();
+                cellID=hit.getCellID();        
+                chid = ChannelCollection.findGeometric(cellID).getChannelId();
 
+                energy = hit.getCorrectedEnergy();
                 if (useRawEnergy){
                     fillEnergy = getRawADCSum(energy,cellID);
                 }
@@ -198,12 +299,9 @@ public class EcalLedSequenceMonitor extends Driver{
                 }
                 fillTime = hit.getTime();
 
-                //fill "all" histograms
-                hChargeALL.get(id).fill(fillEnergy);
-                hChargeVsTimeALL.get(id).fill(fillTime,fillEnergy);
+
 
                 //find the LED
-                chid = ChannelCollection.findGeometric(cellID).getChannelId();
                 if (row>0){
                     ledid=LedTopMap.get(chid);
                 }
@@ -213,28 +311,31 @@ public class EcalLedSequenceMonitor extends Driver{
                 driverid=getDriver(ledid);
                 if (row<0) driverid+=4;
 
+                /*Skip the events under thr*/
+                if (energy<energyCut) continue;
+
                 /*First, check if this led is the one in the NEXT step. Therefore, increment by 1 the step*/
                 if (iStep[driverid]<(nSteps-1)){
-                    if (ledid==LEDStep[driverid][iStep[driverid]+1]){
+                    if (ledid==LEDStep[driverid][iStep[driverid]+1]){   
                         iStep[driverid]++;
                         System.out.println("LedAnalysis:: increment step ("+iStep[driverid]+") for driver "+driverid+" . Led ID: "+ledid+" Column: "+column+" Row: "+row);
+                        if (iStep[driverid]>0) drawProfiles(LEDStep[driverid][iStep[driverid]-1],driverid);      
                     }	
                 }
 
 
                 if (iStep[driverid]==-1) continue;
-
+                
+                /*Put this code here, since we want to always fill the ntuple*/
+                iTuple.get(id).fill(0,nEvents[id]);
+                iTuple.get(id).fill(1,fillEnergy);
+                iTuple.get(id).fill(2,fillTime);
+                iTuple.get(id).addRow();
+                nEvents[id]++;
+                
                 /*Case 1: this led is the one in the corresponding step*/;
-                //if (ledid==LEDStep[driverid][iStep[driverid]]){
-                if (true){
-
-                    iTuple.get(id).fill(0,nEvents[id]);
-                    iTuple.get(id).fill(1,fillEnergy);
-                    iTuple.get(id).fill(2,fillTime);
-                    iTuple.get(id).addRow();
-
-
-                    nEvents[id]++;
+                if (ledid==LEDStep[driverid][iStep[driverid]]){
+                    
                 }
                 else{	/*Case 2: this led is not one in the corresponding step (but maybe is the neighborhood??Ctalk??)*/;
 
@@ -269,20 +370,16 @@ public class EcalLedSequenceMonitor extends Driver{
      */
     @Override
     public void endOfData() {
-    }
-    public void MYendOfData() {
         System.out.println("LedAnalysis::end of data");
+        System.out.println("LedAnalysis:: nEventsMin is: "+nEventsMin);
 
-     
         double e,eMin,eMax;
         double t;
         int n,nBins,nFits,nSkip;
 
-        double[] fPars;	
-        double[] fParErrs;
-        String[] fParNames;	
+       
         IFunctionFactory fFactory=aida.analysisFactory().createFunctionFactory(aida.tree());
-        IPlotter pPlotter= aida.analysisFactory().createPlotterFactory().create();
+
         IFitResult fResult;
         IFitter	   fFitter;
 
@@ -293,25 +390,34 @@ public class EcalLedSequenceMonitor extends Driver{
             row = EcalMonitoringUtilities.getRowFromHistoID(id);
             column = EcalMonitoringUtilities.getColumnFromHistoID(id);
             System.out.println("Doing channel: X= "+column+" Y= "+row);
+            System.out.println("Number of recognized events: "+nEvents[id]);
+            System.out.println("Number of entries in analysis ntuple: "+iTuple.get(id).rows());
             /*Create the profile. Create it for all the channels, to keep sync.*/
             nBins=nEvents[id]/100;
             if (nBins<=0) nBins=1;
-            cProfile.add(aida.profile1D("strip_"+id,nBins,-0.5,nEvents[id]*(1-skipInitial)+0.5));
 
+            /*Clear previous*/
+
+            if (id>0){
+                aida.tree().rm("strip");
+                aida.tree().rm("fun0");
+                aida.tree().rm("fun1");
+            }
+            /*Create the profile.*/
+            cProfile=aida.profile1D("strip",nBins,-0.5,nEvents[id]*(1-skipInitial)+0.5);
+            cProfile.reset();
             /*Create the function for the profile fit and the gaus fit*/
-            /* Create it for all the channels, to keep sync.*/
-            fFunction.add(fFactory.createFunctionFromScript("fun0_"+id,1,"A*exp(-x[0]/tau)+B","A,tau,B","",null));
-            fFunction1.add(fFactory.createFunctionByName("fun1_"+id,"G"));
+            fFunction=fFactory.createFunctionFromScript("fun0",1,"A*exp(-x[0]/tau)+B","A,tau,B","",null);
+            fFunction1=fFactory.createFunctionByName("fun1","G");
 
             if (EcalMonitoringUtilities.isInHole(row,column)==true){
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-                //   hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));
+                System.out.println("In hole, skip");
                 continue;
             }
-            if (nEvents[id]==0) {
+            else if (nEvents[id]<nEventsMin) {
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-                //  hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,0.,1.));            
-                //System.out.println("LedAnalysis: channel x= "+column+" y= "+row+" not found");
+                System.err.println("LedAnalysis:: the channel X= "+column+" Y= "+row+" has no data");
                 continue;
             }			  
 
@@ -328,20 +434,20 @@ public class EcalLedSequenceMonitor extends Driver{
             while ( iTuple.get(id).next() ){
                 e=iTuple.get(id).getDouble(1);
                 eMin=e;           			  /*eMin is the last sample*/
-                cProfile.get(id).fill(1.*n,e);
+                cProfile.fill(1.*n,e);
                 n++;
             }			
 
 
             /*Init function parameters*/
             double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
-            fFunction.get(id).setParameters(initialPars);
+            fFunction.setParameters(initialPars);
 
             /*Do the fit*/
             fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
             System.out.println("LedAnalysis:: do profile fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
             System.out.println("LedAnalysis:: initial parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
-            fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
+            fResult=fFitter.fit(cProfile,fFunction);
             fPars     = fResult.fittedParameters();
             fParErrs  = fResult.errors();
             fParNames = fResult.fittedParameterNames();			
@@ -349,29 +455,32 @@ public class EcalLedSequenceMonitor extends Driver{
             for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
                 System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
             }  
-            fFunction.get(id).setParameters(fPars);
+            fFunction.setParameters(fPars);
 
 
             /*Do again the fit: it is a terrible work-around*/
             nFits=0;
+            if (Double.isNaN(fParErrs[1])){
+                fPars=fPrevPars;
+            }
             while (Double.isNaN(fParErrs[1])){
                 System.out.println("LedAnalysis:: redo fit");
-                fFunction.get(id).setParameters(fPars);
-                fResult=fFitter.fit(cProfile.get(id),fFunction.get(id));
+                fFunction.setParameters(fPars);
+                fResult=fFitter.fit(cProfile,fFunction);
                 fPars     = fResult.fittedParameters();
                 fParErrs  = fResult.errors();
                 System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
                 for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
                     System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
                 }  
-                fFunction.get(id).setParameters(fPars);
+                fFunction.setParameters(fPars);
                 nFits++;
                 if (nFits>=10){
                     System.out.println("LedAnalysis:: Error, too many fits without convergence");
                     break;
                 }
             }
-
+            fPrevPars=Arrays.copyOf(fPars,fPars.length);
             System.out.println("LedAnalysis:: fit "+id+" done");  
 
             /*Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
@@ -379,7 +488,6 @@ public class EcalLedSequenceMonitor extends Driver{
 				and emit warning
              */
             hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
-            // hChargeVsTime.add(aida.histogram2D("chargeVsTime_"+id,200,0.,400.,200,eMin*0.9,eMax*1.1));     
             nSkip=(int)( fPars[1]*5);
             if (nSkip < (nEvents[id]/2)){
                 System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
@@ -396,7 +504,6 @@ public class EcalLedSequenceMonitor extends Driver{
                 e=iTuple.get(id).getDouble(1);
                 t=iTuple.get(id).getDouble(2);
                 hCharge.get(id).fill(e);
-                //   hChargeVsTime.get(id).fill(t,e);
                 n++;
             }			
 
@@ -406,8 +513,8 @@ public class EcalLedSequenceMonitor extends Driver{
             System.out.println("LedAnalysis:: Gaus fit");
             System.out.println("LedAnalysis:: initial parameters "+initialPars1[0]+" "+initialPars1[1]+" "+initialPars1[2]);
 
-            fFunction1.get(id).setParameters(initialPars1);
-            fResult=fFitter.fit(hCharge.get(id),fFunction1.get(id));
+            fFunction1.setParameters(initialPars1);
+            fResult=fFitter.fit(hCharge.get(id),fFunction1);
             fPars     = fResult.fittedParameters();
             fParErrs  = fResult.errors();
             fParNames = fResult.fittedParameterNames();			
@@ -415,50 +522,73 @@ public class EcalLedSequenceMonitor extends Driver{
             for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
                 System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
             }  
-            fFunction1.get(id).setParameters(fPars);
+            fFunction1.setParameters(fPars);
+            mMean[id]=fPars[1];
+            mRMS[id]=fPars[2];
 
-            hMeanCharge2D.fill(column,row,fPars[1]);
+            hMeanCharge2D.fill(column,row,mMean[id]);
             System.out.println("\n");
         }/*End loop on channels*/
 
 
-        pPlotter.createRegions(1,1);
-        IPlotterStyle style = pPlotter.region(0).style();
-        style.setParameter("hist2DStyle", "colorMap");
-        style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        style.dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
 
-        pPlotter.region(0).plot(hMeanCharge2D);
-        pPlotter.show();
-
-        int ret=JOptionPane.showConfirmDialog(null, "Do you want to load these conditions to the database\n"+
-                "for Runs: "+runNumber+" "+runNumberMax+" ? ", "Message", 
-                JOptionPane.YES_NO_OPTION);
-        if (ret == JOptionPane.YES_OPTION){
-            ret=JOptionPane.showConfirmDialog(null, "Confirm?", "Message", 
-                    JOptionPane.YES_NO_OPTION);
-            if (ret == JOptionPane.YES_OPTION){
-                System.out.println("You confirmed \n");
-                System.out.println("Load DB condtions \n");
-                //               uploadToDB();
-            }   
+        if ((pPlotter2!=null)&&(doEmbedded)){
+            style = pPlotter2.region(0).style();
+            style.setParameter("hist2DStyle", "colorMap");
+            style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+            style.dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString()); 
+            pPlotter2.region(0).plot(hMeanCharge2D);
+            pPlotter2.region(0).refresh();
         }
-        /* System.err.println("\n\n\n***************************************************************\n");
-        String userInput="";
-        String outputFilePrefix="";
-        userInput=cc.readLine("Enter filename prefix, or just press RETURN ...");
-        if (userInput==null || userInput.length()==0 || userInput=="") {
-            String home=System.getenv().get("HOME");
-            outputFilePrefix = home+"/LedAnalysis_"+runNumber+"_";
-        } else {
-            outputFilePrefix = userInput;
+        else{
+            IPlotterStyle pstyle =  aida.analysisFactory().createPlotterFactory().createPlotterStyle();
+            pPlotter2 = null;
+            pPlotter2 =  aida.analysisFactory().createPlotterFactory().create();
+            pstyle.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+            pstyle.dataStyle().fillStyle().setParameter("showZeroHeightBins", Boolean.FALSE.toString());
+            pstyle.setParameter("hist2DStyle", "colorMap");
+            if (pPlotter2!=null){
+                pPlotter2.createRegion().plot(hMeanCharge2D,pstyle);
+                pPlotter2.show();
+            }
+        }
+
+
+
+        
+        /*
+        Console cc = System.console();
+        if (cc == null) {
+            System.err.println("No console.");
+        }
+        else{
+            String userInput="";
+            System.out.println("Enter 'YES' - case sensitive - to write conditions database for run range "+runNumber+" - "+runNumberMax);
+            System.out.println("Use the monitoring app (Led sequence - Sequence Map) to look at the current sequence");
+            userInput=cc.readLine(String.format("Your choice: YES or NO?"));
+            System.out.println("***********"+userInput+"********");
+            if (userInput!=null && userInput.equals("YES")) {
+                userInput=cc.readLine("Really?");
+                if (userInput!=null && userInput.equals("YES")) {
+                   m_ret=1;
+                }
+            }
+            
         }*/
-
-
-
-
-
-
+        askUploadToDBDialog();
+        synchronized (modalMonitor) {
+            try{
+            modalMonitor.wait(120000); //wait 2 minutes, then go on!
+            }
+            catch(InterruptedException excp){
+                System.out.println("Got exception: "+excp);
+            }
+        }
+        if (m_ret==1){
+            System.out.println("OK, upload to DB");
+            uploadToDB();
+        }
+       System.out.println("endOfData end");
     }/*End endOfData*/
 
 
@@ -510,8 +640,8 @@ public class EcalLedSequenceMonitor extends Driver{
             x = cc.getX(); //This is the column
             y = cc.getY(); //This is the row
             id=EcalMonitoringUtilities.getHistoIDFromRowColumn(y,x);
-            mean=fFunction1.get(id).parameters()[1];
-            rms=fFunction1.get(id).parameters()[2];
+            mean=mMean[id];
+            rms=mRMS[id];
             led_calibrations.add(new EcalLedCalibration(cid,mean,rms));
         }
 
@@ -531,14 +661,91 @@ public class EcalLedSequenceMonitor extends Driver{
 
 
     }
+    private void drawProfiles(int ledID,int driverID){
+
+        int m_column,m_row,m_ledID,m_chID,m_ID,m_driverID;
+
+        m_ledID = ledID;
+        m_driverID = driverID;
+        m_chID = 0;
 
 
+        if (m_driverID<=3) m_chID = LedTopMapInverted.get(ledID);
+        else m_chID = LedBotMapInverted.get(ledID);
 
-    public EcalChannel findChannel(int channel_id) {
+        m_column=findChannel(m_chID).getX();
+        m_row=findChannel(m_chID).getY();
+        m_ID=EcalMonitoringUtilities.getHistoIDFromRowColumn(m_row, m_column);
+        /* 
+        System.out.println("Going to draw LED id "+m_ledID+" X= "+m_column+" Y= "+m_row+" driver: "+m_driverID);
+        System.out.println("Ch_ID: "+m_chID);
+        System.out.println("Histo ID:"+m_ID);
+        System.out.println("Events: "+iTuple.get(m_ID).rows());
+         */      
+        hChargeVsEvn.get(m_driverID).reset();
+        hChargeVsEvn.get(m_driverID).setTitle("Driver_"+m_driverID+" Led_"+ledID);
+        IEvaluator evaluatorX = aida.analysisFactory().createTupleFactory(aida.analysisFactory().createTreeFactory().create()).createEvaluator("fEvn");
+        IEvaluator evaluatorY = aida.analysisFactory().createTupleFactory(aida.analysisFactory().createTreeFactory().create()).createEvaluator("fCharge");  
+
+        iTuple.get(m_ID).project(hChargeVsEvn.get(m_driverID),evaluatorX,evaluatorY);
+
+        pPlotter.region(m_driverID).clear();  
+        pPlotter.region(m_driverID).plot(hChargeVsEvn.get(m_driverID));
+        pPlotter.region(m_driverID).refresh();
+
+    }
+
+    private EcalChannel findChannel(int channel_id) {
         return ecalConditions.getChannelCollection().findChannel(channel_id);
     }
 
 
+    private void askUploadToDBDialog(){
+        m_ret=0;
 
+        okButton = new JButton("OK");
+        cancelButton = new JButton("Cancel");
+        labelString = "<html> Update conditions to DB <br> for run: <br> "+runNumber+" - "+runNumberMax+" <br> ????  </html>";
+        label = new JLabel( labelString);
+        
+        frame  = new JFrame("Upload to DB?");
+        frame.setPreferredSize(new Dimension(200,200));
+        dialog = new JDialog(frame, "User selection");
+        dialog.setSize(200,200);
+        dialog.setLayout(new FlowLayout());
+        dialog.add(label);
+        dialog.add(cancelButton);
+        dialog.add(okButton);
+        dialog.setVisible(true);
+        //dialog.pack();
+        frame.setVisible(true);
+        okButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event)
+            {
+                m_ret=1;
+                dialog.dispose();    
+                synchronized(modalMonitor)
+                {
+                    modalMonitor.notify();
+                }
+            }
+        }
+                );
 
+        cancelButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event)
+            {
+                m_ret=0;
+                dialog.dispose();   
+                synchronized(modalMonitor)
+                {
+                    modalMonitor.notify();
+                }
+            }
+        }
+        );
+        
+        System.out.println("askUploadDB done");
+    }
+    
 }

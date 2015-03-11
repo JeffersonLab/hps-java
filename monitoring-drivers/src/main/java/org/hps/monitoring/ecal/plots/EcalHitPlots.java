@@ -250,22 +250,6 @@ public class EcalHitPlots extends Driver {
                 botTimePlot2D.fill(botTime, botTrigTime);
             }
             hitMaxEnergyPlot.fill(maxEnergy);
-
-            /* for (int i = 0; i < hits.size(); i++) {
-                CalorimeterHit hit1 = hits.get(i);
-                int x1 = hit1.getIdentifierFieldValue("ix");
-                int y1 = hit1.getIdentifierFieldValue("iy");
-                for (int j = i + 1; j < hits.size(); j++) {
-                    CalorimeterHit hit2 = hits.get(j);
-                    int x2 = hit2.getIdentifierFieldValue("ix");
-                    int y2 = hit2.getIdentifierFieldValue("iy");
-                    if ((Math.abs(x1 - x2) <= 1 || x1 * x2 == -1) && (Math.abs(y1 - y2) <= 1)) {
-                        if (x1 != x2 || y1 != y2) {
-                          edgePlot.fill((x1 + x2) / 2.0, (y1 + y2) / 2.0);
-                        }
-                    }
-                }
-            }*/
         } else {
             hitCountPlot.fill(0);
         }         
