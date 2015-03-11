@@ -708,9 +708,9 @@ public class EcalLedSequenceMonitor extends Driver{
         labelString = "<html> Update conditions to DB <br> for run: <br> "+runNumber+" - "+runNumberMax+" <br> ????  </html>";
         label = new JLabel( labelString);
         
-        frame  = new JFrame("Upload to DB?");
-        frame.setPreferredSize(new Dimension(200,200));
-        dialog = new JDialog(frame, "User selection");
+      // frame  = new JFrame("Upload to DB?");
+      //  frame.setPreferredSize(new Dimension(200,200));
+        dialog = new JDialog((JFrame)null, "User selection");
         dialog.setSize(200,200);
         dialog.setLayout(new FlowLayout());
         dialog.add(label);
@@ -718,7 +718,7 @@ public class EcalLedSequenceMonitor extends Driver{
         dialog.add(okButton);
         dialog.setVisible(true);
         //dialog.pack();
-        frame.setVisible(true);
+      //  frame.setVisible(true);
         okButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent event)
             {
@@ -726,6 +726,7 @@ public class EcalLedSequenceMonitor extends Driver{
                 dialog.dispose();    
                 synchronized(modalMonitor)
                 {
+                    System.out.println("Ok pressed");
                     modalMonitor.notify();
                 }
             }
@@ -739,6 +740,7 @@ public class EcalLedSequenceMonitor extends Driver{
                 dialog.dispose();   
                 synchronized(modalMonitor)
                 {
+                    System.out.println("Cancel pressed");
                     modalMonitor.notify();
                 }
             }
