@@ -158,30 +158,37 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 // Iterate over the other hits and if the are within
                 // the clustering spatiotemporal window, compare their
                 // energies.
+                hitLoop:
                 for(CalorimeterHit hit : hitList) {
-                    // Do not perform the comparison if the hit is the
-                    // current potential seed.
-                    if(hit != seed) {
-                        // Check if the hit is within the spatiotemporal
-                        // clustering window.
-                        if(withinTimeVerificationWindow(seed, hit) && withinSpatialWindow(seed, hit)) {
-                            // Check if the hit invalidates the potential
-                            // seed.
-                            if(isValidSeed(seed, hit)) {
-                                // Make sure that the hit is also within
-                                // the hit add window; this may not be
-                                // the same as the verification window
-                                // if the asymmetric window is active.
-                                if(withinTimeClusteringWindow(seed, hit)) {
-                                    protoCluster.addHit(hit);
-                                }
+                	// Negative energy hits are never valid. Skip them.
+                	if(hit.getCorrectedEnergy() < 0) {
+                		continue hitLoop;
+                	}
+                	
+                	// Do not compare the potential seed hit to itself.
+                	if(hit == seed) {
+                		continue hitLoop;
+                	}
+                	
+                    // Check if the hit is within the spatiotemporal
+                    // clustering window.
+                    if(withinTimeVerificationWindow(seed, hit) && withinSpatialWindow(seed, hit)) {
+                        // Check if the hit invalidates the potential
+                        // seed.
+                        if(isValidSeed(seed, hit)) {
+                            // Make sure that the hit is also within
+                            // the hit add window; this may not be
+                            // the same as the verification window
+                            // if the asymmetric window is active.
+                            if(withinTimeClusteringWindow(seed, hit)) {
+                                protoCluster.addHit(hit);
                             }
-                            
-                            // If it is not, then skip the rest of the
-                            // loop; the potential seed is not really
-                            // a seed.
-                            else { continue seedLoop; }
                         }
+                        
+                        // If it is not, then skip the rest of the
+                        // loop; the potential seed is not really
+                        // a seed.
+                        else { continue seedLoop; }
                     }
                 }
                 
