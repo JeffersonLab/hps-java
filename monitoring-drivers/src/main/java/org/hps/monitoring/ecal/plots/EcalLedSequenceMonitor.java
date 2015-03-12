@@ -392,7 +392,7 @@ public class EcalLedSequenceMonitor extends Driver{
         double e,eMin,eMax;
         double t;
         int n,nBins,nFits,nSkip;
-
+        
        
         IFunctionFactory fFactory=aida.analysisFactory().createFunctionFactory(aida.tree());
 
@@ -519,13 +519,16 @@ public class EcalLedSequenceMonitor extends Driver{
             else{
                 nSkip=(int)(nEvents[id]*(skipMin+skipInitial));
             }
+            
+            System.out.println("LedAnalysis:: gaus fit :: Going to skip "+nSkip+" out of "+nEvents[id]);
+            System.out.println("eMin is: "+eMin+" eMax is: "+eMax);
             hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
        
          
             iTuple.get(id).start();
             iTuple.get(id).skip(nSkip); 
             n=0;
-            while ( iTuple.get(id).next() ){
+            while (iTuple.get(id).next()){
                 e=iTuple.get(id).getDouble(1);
                 t=iTuple.get(id).getDouble(2);
                 hCharge.get(id).fill(e);
@@ -693,8 +696,11 @@ public class EcalLedSequenceMonitor extends Driver{
     }
     
     private void uploadToElog(){
-        String path="/home/clasrun/LedSequenceData/";
-        String imgpath=path+"screenshots/"+runNumber+".png";
+        String path,exe,command,imgpath;
+        path="/home/hpsrun/LedSequenceData";
+        exe=path+"/doElog.csh";
+        imgpath=path+"/screenshots/"+runNumber+".png";
+        
         File f=new File(path);
         if (!f.exists()){
             System.err.println("LedMonitoringSequence:: wrong path");
@@ -702,6 +708,7 @@ public class EcalLedSequenceMonitor extends Driver{
         }
         if (pPlotter2==null){
             System.err.println("LedMonitoringSquence:: no plotter");
+            return;
         }
         try{
             pPlotter2.writeToFile(imgpath);
@@ -709,14 +716,15 @@ public class EcalLedSequenceMonitor extends Driver{
         catch(Exception e){
             System.err.println("Exception "+e);
         }
-        path="/home/clasrun/LedSequenceData/doElog.csh "+imgpath;
-        File f1=new File(path);
+        File f1=new File(exe);
         if (!f1.exists()){
             System.err.println("LedMonitoringSequence:: no script!");
             return;
-        }     
+        }   
+        command=exe+" "+imgpath;
         try{
-            Runtime.getRuntime().exec(path);
+            System.out.println("LedMonitoringSequence:: try this command: "+command);
+            Runtime.getRuntime().exec(command);
         }
         catch(Exception e){
             System.err.println("Exception "+e);
