@@ -40,6 +40,7 @@ import java.beans.PropertyChangeEvent;
 import java.lang.InterruptedException;
 import java.util.Arrays;
 import java.io.Console;
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,6 +124,7 @@ public class EcalLedSequenceMonitor extends Driver{
     private double[] mRMS = new double[NUM_CHANNELS];
 
     private int nEventsMin=200;
+    private int nMinChannelsWithEvents=350; 
     private double energy,fillEnergy,fillTime;
     private double energyCut=2; //we expect very high energy from the LEDs..
     private double skipInitial=0.05;
@@ -147,6 +149,7 @@ public class EcalLedSequenceMonitor extends Driver{
     private int[] fitStatus = new int[NUM_CHANNELS];
     
     private boolean doEmbedded=true;
+    private boolean isMonitoringApp=false; 
     
     private double[] fPars;    
     private double[] fPrevPars;
@@ -200,7 +203,10 @@ public class EcalLedSequenceMonitor extends Driver{
     public void setNEventsMin(int nEeventsMin){
         this.nEventsMin=nEventsMin;
     }
-
+    
+    public void setIsMonitoringApp(boolean app){
+        this.isMonitoringApp=app;
+    }
 
     public void setDoEmbedded(boolean embedded){
         this.doEmbedded=embedded;
@@ -428,35 +434,37 @@ public class EcalLedSequenceMonitor extends Driver{
             }
             else if (nEvents[id]<nEventsMin) {
                 hCharge.add(aida.histogram1D("charge_"+id,200,0.,1.)); //create here the histogram to keep sync
-                System.err.println("LedAnalysis:: the channel X= "+column+" Y= "+row+" has no data");
+                System.err.println("LedAnalysis:: the channel X= "+column+" Y= "+row+" has not enough");
+                
                 continue;
             }			  
 
-            /*Fill the profile*/
+            //Fill the profile*/
             nSkip=(int)(nEvents[id]*skipInitial);
             if (nSkip>iTuple.get(id).rows()){
                 System.out.println("Can't skip initial events?");
                 nSkip=0;
             }
             iTuple.get(id).start();
-            iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+            iTuple.get(id).skip(nSkip); //This is the work-around for those channels with charge starting from 0 and rapidly growing//
             n=0;
-            iTuple.get(id).next(); e=iTuple.get(id).getDouble(1); eMax=e; n++; /*eMax is the first sample*/
+            iTuple.get(id).next(); 
             while ( iTuple.get(id).next() ){
                 e=iTuple.get(id).getDouble(1);
-                eMin=e;           			  /*eMin is the last sample*/
+                if (e<eMin) eMin=e;           			  
+                if (e>eMax) eMax=e;
                 cProfile.fill(1.*n,e);
                 n++;
             }			
-
-
-            /*Init function parameters*/
+            fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
+            
+            /* 
+            //Init function parameters
             double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
             if (initialPars[0]<0) initialPars[0]=0;
             fFunction.setParameters(initialPars);
 
-            /*Do the fit*/
-            fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
+            //Do the fit      
             System.out.println("LedAnalysis:: do profile fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
             System.out.println("LedAnalysis:: initial parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
             fResult=fFitter.fit(cProfile,fFunction);
@@ -470,7 +478,7 @@ public class EcalLedSequenceMonitor extends Driver{
             fFunction.setParameters(fPars);
 
 
-            /*Do again the fit: it is a terrible work-around*/
+            //Do again the fit: it is a terrible work-around
             nFits=0;
             if (Double.isNaN(fParErrs[1])){
                 fPars=fPrevPars;
@@ -495,12 +503,13 @@ public class EcalLedSequenceMonitor extends Driver{
             fPrevPars=Arrays.copyOf(fPars,fPars.length);
             System.out.println("LedAnalysis:: fit "+id+" done");  
 
-            /*Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
-				As a cross-check, also verify that tau > Nevents/10, otherwise skip the first Nevents/2
-				and emit warning
-             */
+            //Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
+            //As a cross-check, also verify that tau > Nevents/10, otherwise skip the first Nevents/2
+            //and emit warning
+            */
+        
             hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
-            nSkip=(int)( fPars[1]*5);
+         /*   nSkip=(int)( fPars[1]*5);
             if (nSkip < (nEvents[id]*skipMin)){
                 System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
                 nSkip=(int)(nEvents[id]*skipMin);
@@ -508,9 +517,10 @@ public class EcalLedSequenceMonitor extends Driver{
             if (nSkip > nEvents[id]){
                 System.out.println("LedAnalysis:: Skip number too high, reduce it");
                 nSkip=(int)(nEvents[id]*skipMin);
-            }
+            }*/
+            nSkip=(int)(nEvents[id]*(skipMin+skipInitial));
             iTuple.get(id).start();
-            iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
+            iTuple.get(id).skip(nSkip); 
             n=0;
             while ( iTuple.get(id).next() ){
                 e=iTuple.get(id).getDouble(1);
@@ -540,7 +550,7 @@ public class EcalLedSequenceMonitor extends Driver{
 
             hMeanCharge2D.fill(column,row,mMean[id]);
             System.out.println("\n");
-        }/*End loop on channels*/
+        }//End loop on channels
 
 
 
@@ -599,6 +609,10 @@ public class EcalLedSequenceMonitor extends Driver{
         if (m_ret==1){
             System.out.println("OK, upload to DB");
             uploadToDB();
+            if (isMonitoringApp){
+                System.out.println("Save an Elog too");
+                uploadToElog();
+            }
         }
        System.out.println("endOfData end");
        System.out.println("The program is not stucked. It is writing the output AIDA file, this takes time!");
@@ -674,6 +688,39 @@ public class EcalLedSequenceMonitor extends Driver{
 
         System.out.println("Upload to DB done");
     }
+    
+    private void uploadToElog(){
+        String path="/home/clasrun/LedSequenceData/";
+        String imgpath=path+"screenshots/"+runNumber+".png";
+        File f=new File(path);
+        if (!f.exists()){
+            System.err.println("LedMonitoringSequence:: wrong path");
+            return;
+        }
+        if (pPlotter2==null){
+            System.err.println("LedMonitoringSquence:: no plotter");
+        }
+        try{
+            pPlotter2.writeToFile(imgpath);
+        }
+        catch(Exception e){
+            System.err.println("Exception "+e);
+        }
+        path="/home/clasrun/LedSequenceData/doElog.csh "+imgpath;
+        File f1=new File(path);
+        if (!f1.exists()){
+            System.err.println("LedMonitoringSequence:: no script!");
+            return;
+        }     
+        try{
+            Runtime.getRuntime().exec(path);
+        }
+        catch(Exception e){
+            System.err.println("Exception "+e);
+        }
+    }
+    
+    
     private void drawProfiles(int ledID,int driverID){
 
         int m_column,m_row,m_ledID,m_chID,m_ID,m_driverID;
