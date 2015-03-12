@@ -97,13 +97,23 @@ public class ClusterMatchedPair extends Pair<Cluster, SSPCluster> {
 	}
 	
 	/**
-	 * Indicates whether the recon/SSP pair failed to match due to a
-	 * the cluster positions not aligning.
+	 * Indicates whether the recon/SSP pair failed to match due to the
+	 * cluster positions not aligning.
 	 * @return Returns <code>true</code> if the pair match state is a
 	 * position fail state and <code>false</code> otherwise.
 	 */
 	public boolean isPositionFailState() {
 		return (state == TriggerDiagnosticUtil.CLUSTER_STATE_FAIL_POSITION);
+	}
+	
+	/**
+	 * Indicates whether the recon/SSP pair failed to match due to the
+	 * cluster time-stamps not aligning.
+	 * @return Returns <code>true</code> if the pair match state is a
+	 * time fail state and <code>false</code> otherwise.
+	 */
+	public boolean isTimeFailState() {
+		return (state == TriggerDiagnosticUtil.CLUSTER_STATE_FAIL_TIME);
 	}
 	
 	/**

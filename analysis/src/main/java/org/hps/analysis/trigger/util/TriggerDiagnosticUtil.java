@@ -19,7 +19,8 @@ public class TriggerDiagnosticUtil {
 	public static final byte CLUSTER_STATE_FAIL_POSITION  = 1;
 	public static final byte CLUSTER_STATE_FAIL_ENERGY    = 2;
 	public static final byte CLUSTER_STATE_FAIL_HIT_COUNT = 3;
-	public static final byte CLUSTER_STATE_FAIL_UNKNOWN   = 4;
+	public static final byte CLUSTER_STATE_FAIL_TIME      = 4;
+	public static final byte CLUSTER_STATE_FAIL_UNKNOWN   = 5;
 	
 	// Trigger match cut IDs.
 	public static final int SINGLES_ENERGY_MIN = 0;

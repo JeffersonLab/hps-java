@@ -50,7 +50,7 @@ public class TriggerMatchEvent {
 	 * @return Returns the value as an <code>int</code> primitive.
 	 */
 	public int getMatchedReconTriggers() {
-		return reconPairList.size();
+		return reconTriggersMatched[0] + reconTriggersMatched[1];
 	}
 	
 	/**
@@ -61,7 +61,7 @@ public class TriggerMatchEvent {
 	 */
 	public int getMatchedReconTriggers(int triggerNumber) {
 		// Validate the arguments.
-		if(triggerNumber !=0 && triggerNumber != 1) {
+		if(triggerNumber != 0 && triggerNumber != 1) {
 			throw new IndexOutOfBoundsException("Trigger number must be 0 or 1.");
 		}
 		
@@ -75,7 +75,7 @@ public class TriggerMatchEvent {
 	 * @return Returns the value as an <code>int</code> primitive.
 	 */
 	public int getMatchedSSPTriggers() {
-		return sspPairList.size();
+		return sspInternalMatched[0] + sspInternalMatched[1];
 	}
 	
 	/**
@@ -86,7 +86,7 @@ public class TriggerMatchEvent {
 	 */
 	public int getMatchedSSPTriggers(int triggerNumber) {
 		// Validate the arguments.
-		if(triggerNumber !=0 && triggerNumber != 1) {
+		if(triggerNumber != 0 && triggerNumber != 1) {
 			throw new IndexOutOfBoundsException("Trigger number must be 0 or 1.");
 		}
 		
@@ -122,12 +122,8 @@ public class TriggerMatchEvent {
 	 * @param sspTrigger - The SSP bank trigger.
 	 */
 	public void matchedSSPPair(Trigger<?> simTrigger, SSPNumberedTrigger sspTrigger) {
-		// A null SSP trigger means that no match was found. This is
-		// treated as a failure due to time, which is not tracked.
-		if(sspTrigger != null) {
-			sspInternalMatched[sspTrigger.isFirstTrigger() ? 0 : 1]++;
-			sspPairList.add(new TriggerMatchedPair(simTrigger, sspTrigger, new boolean[] { true, true, true, true }));
-		}
+		sspInternalMatched[sspTrigger.isFirstTrigger() ? 0 : 1]++;
+		sspPairList.add(new TriggerMatchedPair(simTrigger, sspTrigger, new boolean[] { true, true, true, true }));
 	}
 	
 	/**
@@ -139,17 +135,14 @@ public class TriggerMatchEvent {
 	 * which did not.
 	 */
 	public void matchedSSPPair(Trigger<?> simTrigger, SSPNumberedTrigger sspTrigger, boolean[] cutsMatched) {
-		// Store the full cut array.
-		boolean[] cutArray = cutsMatched;
-		
-		// If the array is size 3, it is the a singles trigger. Update
-		// it to an array of size 4 for compatibility.
-		if(cutsMatched.length == 3) {
-			boolean[] tempArray = { true, true, true, true };
-			for(int cutIndex = 0; cutIndex < cutsMatched.length; cutIndex++) {
-				tempArray[cutIndex] = cutsMatched[cutIndex];
-			}
-			cutArray = tempArray;
+		// The cut values must be stored in an array of size four, but
+		// singles triggers use arrays of size 3. If the array is not
+		// of the appropriate size, resize it.
+		boolean[] cutArray;
+		if(cutsMatched.length == 4) {
+			cutArray = cutsMatched;
+		} else {
+			cutArray = new boolean[] { cutsMatched[0], cutsMatched[1], cutsMatched[2], true };
 		}
 		
 		// Add the trigger pair to the list.

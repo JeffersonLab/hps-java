@@ -21,6 +21,7 @@ public class ClusterMatchEvent {
 	private int failPosition = 0;
 	private int failEnergy = 0;
 	private int failHitCount = 0;
+	private int failTime = 0;
 	
 	// Store all of the pairs.
 	private List<ClusterMatchedPair> pairList = new ArrayList<ClusterMatchedPair>();
@@ -46,6 +47,7 @@ public class ClusterMatchEvent {
 			if(cmp.isPositionFailState()) { failPosition++; }
 			if(cmp.isEnergyFailState()) { failEnergy++; }
 			if(cmp.isHitCountFailState()) { failHitCount++; }
+			if(cmp.isTimeFailState()) { failTime++; }
 		}
 	}
 	
@@ -100,6 +102,26 @@ public class ClusterMatchEvent {
 	}
 	
 	/**
+	 * Gets the number of cluster pairs stored in this event that are
+	 * marked with time fail states.
+	 * @return Returns the number of instances of this state as an
+	 * <code>int</code> primitive.
+	 */
+	public int getTimeFailures() {
+		return failTime;
+	}
+	
+	/**
+	 * Indicates whether at least one cluster pair in the event created
+	 * a fail state.
+	 * @return Returns <code>true</code> if not all clusters matched and
+	 * <code>false</code> otherwise.
+	 */
+	public boolean isFailState() {
+		return (failEnergy > 0) || (failHitCount > 0) || (failTime > 0) || (failPosition > 0);
+	}
+	
+	/**
 	 * Adds a reconstructed/SSP cluster pair and marks it as having an
 	 * energy fail state.
 	 * @param reconCluster - The reconstructed cluster.
@@ -130,6 +152,17 @@ public class ClusterMatchEvent {
 	public void pairFailPosition(Cluster reconCluster, SSPCluster sspCluster) {
 		failPosition++;
 		pairList.add(new ClusterMatchedPair(reconCluster, sspCluster, TriggerDiagnosticUtil.CLUSTER_STATE_FAIL_POSITION));
+	}
+	
+	/**
+	 * Adds a reconstructed/SSP cluster pair and marks it as having a
+	 * time fail state.
+	 * @param reconCluster - The reconstructed cluster.
+	 * @param sspCluster - The SSP cluster.
+	 */
+	public void pairFailTime(Cluster reconCluster, SSPCluster sspCluster) {
+		failTime++;
+		pairList.add(new ClusterMatchedPair(reconCluster, sspCluster, TriggerDiagnosticUtil.CLUSTER_STATE_FAIL_TIME));
 	}
 	
 	/**

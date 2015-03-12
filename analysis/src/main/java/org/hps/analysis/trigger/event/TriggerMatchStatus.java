@@ -11,6 +11,10 @@ import org.hps.readout.ecal.triggerbank.SSPNumberedTrigger;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerMatchStatus extends TriggerStatModule {
+	// Track the number of triggers seen.
+	private int[] sspTriggersSeen = new int[2];
+	private int[] reconTriggersSeen = new int[2];
+	
 	/**
 	 * Adds the statistical data stored in a trigger comparison event
 	 * into this status tracking module.
@@ -33,6 +37,12 @@ public class TriggerMatchStatus extends TriggerStatModule {
 		sspTriggers += sspSimTriggers.get(0).size() + sspSimTriggers.get(1).size();
 		this.reconTriggers += reconTriggers.get(0).size() + reconTriggers.get(1).size();
 		reportedTriggers += sspBankTriggers.size();
+		
+		// Fill the specific trigger counters.
+		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
+			sspTriggersSeen[triggerNum] += sspSimTriggers.get(triggerNum).size();
+			reconTriggersSeen[triggerNum] += reconTriggers.get(triggerNum).size();
+		}
 		
 		// Increment the count for each cut failure type.
 		for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
@@ -62,4 +72,52 @@ public class TriggerMatchStatus extends TriggerStatModule {
 	public TriggerStatModule cloneStatModule() {
     	return new TriggerStatModule(this);
     }
+	
+	/**
+	 * Gets the number of reconstructed triggers seen for a specific
+	 * trigger number.
+	 * @param triggerNum - The trigger number.
+	 * @return Returns the total number of reconstructed triggers seen
+	 * by the indicated trigger number. 
+	 */
+	public int getTotalReconTriggers(int triggerNum) {
+		return getSSPTriggerCount(false, triggerNum);
+	}
+	
+	/**
+	 * Gets the number of SSP bank triggers seen for a specific trigger
+	 * number.
+	 * @param triggerNum - The trigger number.
+	 * @return Returns the total number of SSP bank triggers seen by
+	 * the indicated trigger number. 
+	 */
+	public int getTotalSSPTriggers(int triggerNum) {
+		return getSSPTriggerCount(true, triggerNum);
+	}
+	
+	/**
+	 * Gets the total number of triggers seen for a specific trigger
+	 * source type and number.
+	 * @param isSSP - Whether the trigger source is SSP bank clusters.
+	 * @param triggerNum - The trigger number.
+	 * @return Returns the trigger count.
+	 */
+	private final int getSSPTriggerCount(boolean isSSP, int triggerNum) {
+		// Make sure the trigger number is valid.
+		validateTriggerNumber(triggerNum);
+		
+		// Return the triggers.
+		if(isSSP) { return sspTriggersSeen[triggerNum]; }
+		else { return reconTriggersSeen[triggerNum]; }
+	}
+	
+	/**
+	 * Produces an exception if the trigger number argument is invalid.
+	 * @param triggerNum - The trigger number to validate.
+	 */
+	private static final void validateTriggerNumber(int triggerNum) {
+		if(triggerNum < 0 || triggerNum > 2) {
+			throw new IndexOutOfBoundsException(String.format("Trigger number \"%d\" is invalid", triggerNum));
+		}
+	}
 }
