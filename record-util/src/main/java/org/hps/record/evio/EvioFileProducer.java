@@ -228,6 +228,8 @@ public final class EvioFileProducer {
                     if (debug) {
                         System.out.println("new events - size=" + size + "; group=" + group);
                     }
+                    
+                    int eventTag = EvioEventUtilities.getEventTag(event);
 
                     // Create a new array of ET events.  This always has one event.
                     mevs = sys.newEvents(
@@ -238,7 +240,12 @@ public final class EvioFileProducer {
                             1, // number of events
                             size, // size of event but overwritten later
                             group); // group number; default value is arbitrary
-
+                                        
+                    // Create control data array for event selection.
+                    int[] control = new int[EtConstants.stationSelectInts];
+                    control[0] = eventTag;
+                    mevs[0].setControl(control);
+                    
                     // Delay for X millis if applicable.
                     if (delay > 0) {
                         Thread.sleep(delay);

@@ -20,6 +20,10 @@ public final class EvioEventUtilities {
 
     private EvioEventUtilities() {
     }
+    
+    public static int getEventTag(EvioEvent event) {
+        return event.getHeader().getTag();
+    }
 
     /**
      * Check if the EVIO event is a PRE START event indicating the beginning of
