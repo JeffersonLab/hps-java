@@ -21,6 +21,7 @@ import hep.aida.ITupleFactory;
 
 import javax.swing.JFrame;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -124,8 +125,8 @@ public class EcalLedSequenceMonitor extends Driver{
     private int nEventsMin=200;
     private double energy,fillEnergy,fillTime;
     private double energyCut=2; //we expect very high energy from the LEDs..
-    private double skipInitial=0.1;
-
+    private double skipInitial=0.05;
+    private double skipMin=0.3;
     private long cellID;
     
     
@@ -143,14 +144,15 @@ public class EcalLedSequenceMonitor extends Driver{
     private IPlotter pPlotter=null;
     private IPlotter pPlotter2=null;
     private IPlotterStyle style ;
+    private int[] fitStatus = new int[NUM_CHANNELS];
     
-    private boolean doEmbedded=false;
+    private boolean doEmbedded=true;
     
     private double[] fPars;    
     private double[] fPrevPars;
     private double[] fParErrs;
     private String[] fParNames; 
-    
+
     
     private double fEvnMinDraw=0.;
     private double fEvnMaxDraw=80000.;
@@ -160,9 +162,10 @@ public class EcalLedSequenceMonitor extends Driver{
     /*Components for user interaction*/
     private JDialog dialog;
     private JLabel  label;
+    private JFrame frame;
+    private JPanel panel;
     String  labelString;
     private JButton okButton,cancelButton;
-    private JFrame frame;
     private int m_iteration=0;
     private int m_ret=0;
     static Object modalMonitor = new Object();
@@ -176,6 +179,9 @@ public class EcalLedSequenceMonitor extends Driver{
     }
     public void setSkipInitial(double skipInitial) {
         this.skipInitial=skipInitial;
+    }
+    public void setSkipMin(double skipMin) {
+        this.skipMin=skipMin;
     }
 
     public void setEvnMinDraw(double evnMinDraw){
@@ -195,6 +201,11 @@ public class EcalLedSequenceMonitor extends Driver{
         this.nEventsMin=nEventsMin;
     }
 
+
+    public void setDoEmbedded(boolean embedded){
+        this.doEmbedded=embedded;
+    }
+    
     @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("LedAnalysis::Detector changed was called");
@@ -441,6 +452,7 @@ public class EcalLedSequenceMonitor extends Driver{
 
             /*Init function parameters*/
             double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
+            if (initialPars[0]<0) initialPars[0]=0;
             fFunction.setParameters(initialPars);
 
             /*Do the fit*/
@@ -489,13 +501,13 @@ public class EcalLedSequenceMonitor extends Driver{
              */
             hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
             nSkip=(int)( fPars[1]*5);
-            if (nSkip < (nEvents[id]/2)){
+            if (nSkip < (nEvents[id]*skipMin)){
                 System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
-                nSkip=nEvents[id]/2;
+                nSkip=(int)(nEvents[id]*skipMin);
             }
             if (nSkip > nEvents[id]){
                 System.out.println("LedAnalysis:: Skip number too high, reduce it");
-                nSkip=nEvents[id]/2;
+                nSkip=(int)(nEvents[id]*skipMin);
             }
             iTuple.get(id).start();
             iTuple.get(id).skip(nSkip); /*This is the work-around for those channels with charge starting from 0 and rapidly growing*/
@@ -578,7 +590,7 @@ public class EcalLedSequenceMonitor extends Driver{
         askUploadToDBDialog();
         synchronized (modalMonitor) {
             try{
-            modalMonitor.wait(120000); //wait 2 minutes, then go on!
+            modalMonitor.wait(120000); //wait 2 minutes for user interaction.
             }
             catch(InterruptedException excp){
                 System.out.println("Got exception: "+excp);
@@ -589,6 +601,7 @@ public class EcalLedSequenceMonitor extends Driver{
             uploadToDB();
         }
        System.out.println("endOfData end");
+       System.out.println("The program is not stucked. It is writing the output AIDA file, this takes time!");
     }/*End endOfData*/
 
 
@@ -659,7 +672,7 @@ public class EcalLedSequenceMonitor extends Driver{
             throw new RuntimeException(e);
         }
 
-
+        System.out.println("Upload to DB done");
     }
     private void drawProfiles(int ledID,int driverID){
 
@@ -705,25 +718,36 @@ public class EcalLedSequenceMonitor extends Driver{
 
         okButton = new JButton("OK");
         cancelButton = new JButton("Cancel");
-        labelString = "<html> Update conditions to DB <br> for run: <br> "+runNumber+" - "+runNumberMax+" <br> ????  </html>";
+        labelString = "<html> Update conditions to DB <br> for run: <br> "+runNumber+" - "+runNumberMax+" <br> ???? <br> "
+                + "Use the monitoring app to look at the map<br>" 
+                + "(Tab LED sequence)<br"
+                +"Reply in 60 seconds<br>"+"</html>";   
         label = new JLabel( labelString);
+            
+        frame  = new JFrame("Upload to DB?");
+        frame.setSize(500,250);
+        panel = new JPanel();
+        frame.add(panel);
         
-      // frame  = new JFrame("Upload to DB?");
-      //  frame.setPreferredSize(new Dimension(200,200));
-        dialog = new JDialog((JFrame)null, "User selection");
-        dialog.setSize(200,200);
-        dialog.setLayout(new FlowLayout());
-        dialog.add(label);
-        dialog.add(cancelButton);
-        dialog.add(okButton);
-        dialog.setVisible(true);
+        
+       // dialog = new JDialog((JFrame)null, "User selection");
+       // dialog.setSize(200,200);
+       // dialog.setLayout(new FlowLayout());
+       // dialog.add(label);
+       // dialog.add(cancelButton);
+       // dialog.add(okButton);
+       // dialog.setVisible(true);
         //dialog.pack();
-      //  frame.setVisible(true);
+        panel.add(label);
+        panel.add(cancelButton);
+        panel.add(okButton);
+        
+          frame.setVisible(true);
         okButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent event)
             {
                 m_ret=1;
-                dialog.dispose();    
+                frame.dispose();    
                 synchronized(modalMonitor)
                 {
                     System.out.println("Ok pressed");
@@ -737,7 +761,7 @@ public class EcalLedSequenceMonitor extends Driver{
             public void actionPerformed(ActionEvent event)
             {
                 m_ret=0;
-                dialog.dispose();   
+                frame.dispose();   
                 synchronized(modalMonitor)
                 {
                     System.out.println("Cancel pressed");

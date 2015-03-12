@@ -20,7 +20,6 @@ import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
-
 import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
@@ -89,6 +88,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 	private static final String HIT_ENERGY_TITLE = "Hit Energy (GeV)";
 	private static final String CLUSTER_ENERGY_TITLE = "Cluster Energy (GeV)";
 	private static final String SIGNAL_AMPLITUDE_TITLE = "Signal Amplitude (mV)";
+	private String detectorName;
 	
 	/**
 	 * Sets the upper bound of the energy scales used by the driver.
@@ -161,6 +161,7 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 	 */
 	@Override
 	public void detectorChanged(Detector detector) {
+	    detectorName=detector.getName();
 		// Reset the AIDA tree directory.
 		aida.tree().cd("/");
 		
@@ -184,18 +185,18 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 			int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
 			
 			// Initialize the histograms for the current crystal channel.
-			channelEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : "
+			channelEnergyPlot.add(aida.histogram1D(detectorName + " : "
 						+ inputCollection + " : Hit Energy : " + column + " " + row
 						+ ": " + ii, 100, -0.2, maxEch));
-			channelTimePlot.add(aida.histogram1D(detector.getDetectorName() + " : "
+			channelTimePlot.add(aida.histogram1D(detectorName + " : "
 						+ inputCollection + " : Hit Time : " + column + " " + row + ": "
 						+ ii, 100, 0, 400));     
-			channelTimeVsEnergyPlot.add(aida.histogram2D(detector.getDetectorName()
+			channelTimeVsEnergyPlot.add(aida.histogram2D(detectorName 
 					+ " : " + inputCollection + " : Hit Time Vs Energy : " + column
 					+ " " + row + ": " + ii, 100, 0, 400, 100, -0.2, maxEch));              
-			channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : "
+			channelRawWaveform.add(aida.histogram1D(detectorName  + " : "
 					+ inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii));
-			clusterEnergyPlot.add(aida.histogram1D(detector.getDetectorName() + " : "
+			clusterEnergyPlot.add(aida.histogram1D(detectorName  + " : "
 					+ inputCollection + " : Cluster Energy : " + column + " " + row
 					+ ": " + ii, 100, -0.2, maxEch));
 			
@@ -289,6 +290,50 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 	public void endOfData() {
 		viewer.setVisible(false);
 		viewer.dispose();
+		
+		
+
+        int row,column;
+        String hName;
+        System.out.println("EcalEventDisplay endOfData clear histograms");
+        for(int ii = 0; ii < NUM_CHANNELS; ii++) {
+            // The above instruction is a terrible hack, just to fill
+            // the arrayList with all the elements. They'll be initialized
+            // properly during the event readout, Since we want to account
+            // for possibly different raw waveform dimensions!
+            
+            //Get the x and y indices for the current channel.
+            row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+            column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+            hName=detectorName + " : "
+                    + inputCollection + " : Hit Energy : " + column + " " + row
+                    + ": " + ii;
+            aida.tree().rm(hName);
+           
+            hName=detectorName + " : "
+                    + inputCollection + " : Hit Time : " + column + " " + row + ": "
+                    + ii;
+            aida.tree().rm(hName);
+            
+            hName=detectorName+ " : " + inputCollection + " : Hit Time Vs Energy : " + column
+                    + " " + row + ": " + ii;
+            aida.tree().rm(hName);
+            
+            hName=detectorName + " : "
+                    + inputCollection + " : Cluster Energy : " + column + " " + row
+                    + ": " + ii;
+            aida.tree().rm(hName);
+        
+            hName=detectorName + " : "
+                    + inputCollection + " : Cluster Energy : " + column + " " + row
+                    + ": " + ii;
+            aida.tree().rm(hName);
+        
+        
+        }
+      System.out.println("EcalEventDisplay endOfData clear histograms done");
+		
+		
 	}
 	
 	@Override
