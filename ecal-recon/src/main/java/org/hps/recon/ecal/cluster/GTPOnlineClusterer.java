@@ -308,20 +308,37 @@ public class GTPOnlineClusterer extends AbstractClusterer {
      * <code>false</code> otherwise.
      */
     private boolean withinSpatialWindow(CalorimeterHit seed, CalorimeterHit hit) {
-        // Get the x-indices of each hit.
-        int six = seed.getIdentifierFieldValue("ix");
-        int hix = hit.getIdentifierFieldValue("ix");
+        // Get the y-indices of each hit.
+        int siy = seed.getIdentifierFieldValue("iy");
+        int hiy = hit.getIdentifierFieldValue("iy");
         
-        // Check that the x indices are either the same or within a
-        // range of one of one another.
-        if((six == hix) || (six + 1 == hix) || (six - 1 == hix)) {
-            // Get the y-indices of each hit.
-            int siy = seed.getIdentifierFieldValue("iy");
-            int hiy = hit.getIdentifierFieldValue("iy");
+        // Ensure that the y-indices are either the same or are within
+        // one of one another.
+        if((siy == hiy) || (siy + 1 == hiy) || (siy - 1 == hiy)) {
+            // Get the x-indices of each hit.
+            int six = seed.getIdentifierFieldValue("ix");
+            int hix = hit.getIdentifierFieldValue("ix");
             
-            // Ensure that the y-indices are either the same or are
-            // within one of one another.
-            return (siy == hiy) || (siy + 1 == hiy) || (siy - 1 == hiy);
+            // If the x-indices are the same or within one of each other
+            // then the crystals are within the spatial window of one
+            // another.
+            if((six == hix) || (six + 1 == hix) || (six - 1 == hix)) {
+                return true;
+            }
+            
+            // Otherwise, check for the special case where ix = 1 is
+            // considered to be adjacent to ix = -1 rather than the
+            // expected ix = 0. (ix = 0 does not exist.)
+            else {
+            	// ix = -1 is adjacent to ix = 1 and vice versa.
+                if((six == -1 && hix == 1) || (six == 1 && hix == -1)) {
+                	return true;
+                }
+                
+                // Any other combination that reaches this point is not
+                // a valid combination.
+                else { return false; }
+            }
         }
         
         // If the x-index comparison fails, return false.
