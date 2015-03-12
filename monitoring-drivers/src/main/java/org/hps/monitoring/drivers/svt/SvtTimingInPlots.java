@@ -9,6 +9,7 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.IPlotterStyle;
 
 import org.lcsim.util.Driver; 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -17,8 +18,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-
 import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShapeFitParameters;
 
 /**
  *  Monitoring driver that will be used when 'timing in' the SVT.
@@ -27,14 +28,24 @@ import org.hps.recon.tracking.FittedRawTrackerHit;
  *  @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SvtTimingInPlots extends Driver {
-	
+
     // TODO: Add documentation
     // TODO: Set plot styles
-	
+
+    static {
+        hep.aida.jfree.AnalysisFactory.register();
+    } 
+    
 	static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
 	IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
 	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
 	protected Map<SiSensor, IHistogram1D> t0Plots = new HashMap<SiSensor, IHistogram1D>(); 
+	protected Map<SiSensor, IHistogram1D> amplitudePlots = new HashMap<SiSensor, IHistogram1D>(); 
+	protected Map<SiSensor, IHistogram1D> chi2Plots = new HashMap<SiSensor, IHistogram1D>(); 
+	protected Map<Integer, List<RawTrackerHit>> topRawHitsPerLayer = new HashMap<Integer, List<RawTrackerHit>>();
+	protected Map<Integer, List<RawTrackerHit>> botRawHitsPerLayer = new HashMap<Integer, List<RawTrackerHit>>();
+	IPlotterStyle style = null; 
+	
 	
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -64,33 +75,53 @@ public class SvtTimingInPlots extends Driver {
 		return -1; 
     }
 	
-	
-	
 	protected void detectorChanged(Detector detector) {
-		
+	  
 		List<HpsSiSensor> sensors 
 			= detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 	
-		//--- t0 Plots ---//
-		//----------------//
 		plotters.put("L1-L3 t0", plotterFactory.create("L1-L3 t0"));
 		plotters.get("L1-L3 t0").createRegions(6,2);
 
 		plotters.put("L4-L6 t0", plotterFactory.create("L4-L6 t0"));
 		plotters.get("L4-L6 t0").createRegions(6,4);
-		int index = 0;
+		
+		plotters.put("L1-L3 Amplitude", plotterFactory.create("L1-L3 Amplitude"));
+		plotters.get("L1-L3 Amplitude").createRegions(6,2);
+
+		plotters.put("L4-L6 Amplitude", plotterFactory.create("L4-L6 Amplitude"));
+		plotters.get("L4-L6 Amplitude").createRegions(6,4);
+		
+		plotters.put("L1-L3 Chi^2 Probability", plotterFactory.create("L1-L3 Chi^2 Probability"));
+		plotters.get("L1-L3 Chi^2 Probability").createRegions(6,2);
+
+		plotters.put("L4-L6 Chi^2 Probability", plotterFactory.create("L1-L3 Chi^2 Probability"));
+		plotters.get("L4-L6 Chi^2 Probability").createRegions(6,4);
+		
 		for (HpsSiSensor sensor : sensors) {
 
 			t0Plots.put(sensor,histogramFactory.createHistogram1D(sensor.getName() + " - t0",75, -50, 100.0));
+			amplitudePlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Amplitude", 200, 0, 2000));
+			chi2Plots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Chi^2 Probability", 20, 0, 1));
+			
 			if (sensor.getLayerNumber() < 7) {
 			    plotters.get("L1-L3 t0").region(this.computePlotterRegion(sensor))
 			                            .plot(t0Plots.get(sensor));
+			    plotters.get("L1-L3 Amplitude").region(this.computePlotterRegion(sensor))
+			                                   .plot(amplitudePlots.get(sensor));
+			    plotters.get("L1-L3 Chi^2 Probability").region(this.computePlotterRegion(sensor))
+			                                   .plot(chi2Plots.get(sensor));
+			    
 			} else {
 				plotters.get("L4-L6 t0").region(this.computePlotterRegion(sensor))
 				                        .plot(t0Plots.get(sensor));
+			    plotters.get("L4-L6 Amplitude").region(this.computePlotterRegion(sensor))
+			                                   .plot(amplitudePlots.get(sensor));
+			    plotters.get("L4-L6 Chi^2 Probability").region(this.computePlotterRegion(sensor))
+			                                   .plot(chi2Plots.get(sensor));
 			}
 		}
-	
+		
 		for (IPlotter plotter : plotters.values()) { 
 			plotter.show();
 		}
@@ -103,14 +134,23 @@ public class SvtTimingInPlots extends Driver {
 		
 		List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
 		
-		
 		for (LCRelation fittedHit : fittedHits) { 
 			
+		    RawTrackerHit rawHit = (RawTrackerHit) fittedHit.getFrom();
+		    
 			HpsSiSensor sensor 
-				= (HpsSiSensor) ((RawTrackerHit) fittedHit.getFrom()).getDetectorElement();
+				= (HpsSiSensor) rawHit.getDetectorElement();
 			
 			double t0 = FittedRawTrackerHit.getT0(fittedHit);
 			t0Plots.get(sensor).fill(t0);
+			
+			double amplitude = FittedRawTrackerHit.getAmp(fittedHit);
+			amplitudePlots.get(sensor).fill(amplitude);
+			
+			double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
+			chi2Plots.get(sensor).fill(chi2Prob);
+		
+			
 		}	
 	}
 }
