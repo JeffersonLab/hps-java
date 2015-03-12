@@ -1,7 +1,6 @@
 package org.hps.monitoring.ecal.plots;
 
 
-import hep.aida.ICloud1D;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IProfile1D;
@@ -458,67 +457,71 @@ public class EcalLedSequenceMonitor extends Driver{
             }			
             fFitter=aida.analysisFactory().createFitFactory().createFitter("chi2","","v");
             
-            /* 
-            //Init function parameters
-            double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
-            if (initialPars[0]<0) initialPars[0]=0;
-            fFunction.setParameters(initialPars);
-
-            //Do the fit      
-            System.out.println("LedAnalysis:: do profile fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
-            System.out.println("LedAnalysis:: initial parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
-            fResult=fFitter.fit(cProfile,fFunction);
-            fPars     = fResult.fittedParameters();
-            fParErrs  = fResult.errors();
-            fParNames = fResult.fittedParameterNames();			
-            System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
-            for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
-                System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
-            }  
-            fFunction.setParameters(fPars);
-
-
-            //Do again the fit: it is a terrible work-around
-            nFits=0;
-            if (Double.isNaN(fParErrs[1])){
-                fPars=fPrevPars;
-            }
-            while (Double.isNaN(fParErrs[1])){
-                System.out.println("LedAnalysis:: redo fit");
-                fFunction.setParameters(fPars);
+            if (!isMonitoringApp){ 
+                //Init function parameters
+                double[] initialPars={eMax-eMin,nEvents[id]/10.,eMin};
+                if (initialPars[0]<0) initialPars[0]=0;
+                fFunction.setParameters(initialPars);
+                
+                //Do the fit      
+                System.out.println("LedAnalysis:: do profile fit "+id+" "+fFitter.engineName()+" "+fFitter.fitMethodName());
+                System.out.println("LedAnalysis:: initial parameters "+initialPars[0]+" "+initialPars[1]+" "+initialPars[2]);
                 fResult=fFitter.fit(cProfile,fFunction);
                 fPars     = fResult.fittedParameters();
                 fParErrs  = fResult.errors();
+                fParNames = fResult.fittedParameterNames();			
                 System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
                 for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
                     System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
                 }  
                 fFunction.setParameters(fPars);
-                nFits++;
-                if (nFits>=10){
-                    System.out.println("LedAnalysis:: Error, too many fits without convergence");
-                    break;
+                
+                
+                //Do again the fit: it is a terrible work-around
+                nFits=0;
+                if (Double.isNaN(fParErrs[1])){
+                    fPars=fPrevPars;
                 }
-            }
-            fPrevPars=Arrays.copyOf(fPars,fPars.length);
-            System.out.println("LedAnalysis:: fit "+id+" done");  
-
-            //Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
-            //As a cross-check, also verify that tau > Nevents/10, otherwise skip the first Nevents/2
-            //and emit warning
-            */
+                while (Double.isNaN(fParErrs[1])){
+                    System.out.println("LedAnalysis:: redo fit");
+                    fFunction.setParameters(fPars);
+                    fResult=fFitter.fit(cProfile,fFunction);
+                    fPars     = fResult.fittedParameters();
+                    fParErrs  = fResult.errors();
+                    System.out.println("LedAnalysis:: Status= "+fResult.fitStatus()+" "+fResult.isValid()+" Chi2 = "+fResult.quality()+" NDF: "+fResult.ndf());
+                    for(int i=0; i< fResult.fittedFunction().numberOfParameters(); i++ ){
+                        System.out.println(fParNames[i]+" : "+fPars[i]+" +- "+fParErrs[i]);
+                    }  
+                    fFunction.setParameters(fPars);
+                    nFits++;
+                    if (nFits>=10){
+                        System.out.println("LedAnalysis:: Error, too many fits without convergence");
+                        break;
+                    }
+                }
+                fPrevPars=Arrays.copyOf(fPars,fPars.length);
+                System.out.println("LedAnalysis:: fit "+id+" done");  
+                
+                //Now we have the tau parameter. Take ONLY the events that are with N>5*tau/
+                //As a cross-check, also verify that tau > Nevents/10, otherwise skip the first Nevents/2
+                //and emit warning
+                nSkip=(int)( fPars[1]*5);
+                if (nSkip < (nEvents[id]*skipMin)){
+                    System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
+                    nSkip=(int)(nEvents[id]*skipMin);
+                }
+                if (nSkip > nEvents[id]){
+                    System.out.println("LedAnalysis:: Skip number too high, reduce it");
+                    nSkip=(int)(nEvents[id]*skipMin);
+                }
         
-            hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
-         /*   nSkip=(int)( fPars[1]*5);
-            if (nSkip < (nEvents[id]*skipMin)){
-                System.out.println("LedAnalysis:: Skip number too low: "+nSkip+" Increment it to "+nEvents[id]/2);
-                nSkip=(int)(nEvents[id]*skipMin);
             }
-            if (nSkip > nEvents[id]){
-                System.out.println("LedAnalysis:: Skip number too high, reduce it");
-                nSkip=(int)(nEvents[id]*skipMin);
-            }*/
-            nSkip=(int)(nEvents[id]*(skipMin+skipInitial));
+            else{
+                nSkip=(int)(nEvents[id]*(skipMin+skipInitial));
+            }
+            hCharge.add(aida.histogram1D("charge_"+id,200,eMin*0.9,eMax*1.1));
+       
+         
             iTuple.get(id).start();
             iTuple.get(id).skip(nSkip); 
             n=0;
