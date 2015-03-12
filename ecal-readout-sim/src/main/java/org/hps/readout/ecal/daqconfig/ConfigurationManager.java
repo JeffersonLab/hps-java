@@ -82,7 +82,7 @@ public class ConfigurationManager {
 	 * associated listeners that an update has occurred.
 	 * @param parser - The updated DAQ information.
 	 */
-	static final void updateConfiguration(EvioDAQParser parser) {
+	public static final void updateConfiguration(EvioDAQParser parser) {
 		DAQ_CONFIG.loadConfig(parser);
 		INITIALIZED = true;
 		updateListeners();
