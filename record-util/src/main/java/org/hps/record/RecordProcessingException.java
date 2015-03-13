@@ -11,4 +11,8 @@ public class RecordProcessingException extends RuntimeException {
         super(message, x);
     }
     
+    public RecordProcessingException(String message) {
+        super(message);
+    }
+    
 }
