@@ -36,14 +36,19 @@ public class SvtHitPlots extends Driver {
 	
 	protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>(); 
     private List<HpsSiSensor> sensors;
-    protected Map<HpsSiSensor, IHistogram1D> hitsPerSensorPlots 
-        = new HashMap<HpsSiSensor, IHistogram1D>();
-    protected Map<HpsSiSensor, int[]> hitsPerSensor 
-        = new HashMap<HpsSiSensor, int[]>();
+    protected Map<HpsSiSensor, IHistogram1D> hitsPerSensorPlots = new HashMap<HpsSiSensor, IHistogram1D>();
+    protected Map<HpsSiSensor, int[]> hitsPerSensor = new HashMap<HpsSiSensor, int[]>();
     protected Map<String, IHistogram1D> layersHitPlots = new HashMap<String, IHistogram1D>();
-	
+	protected Map<String, IHistogram1D> hitCountPlots = new HashMap<String, IHistogram1D>();
+    
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+   
+    // Counters
+    double eventCount = 0;
+    double totalHitCount = 0; 
+    double totalTopHitCount = 0; 
+    double totalBotHitCount = 0; 
 
     private int computePlotterRegion(HpsSiSensor sensor) {
 
@@ -73,6 +78,12 @@ public class SvtHitPlots extends Driver {
 		return -1; 
     }
     
+    private void clearHitMaps() { 
+        for (HpsSiSensor sensor : sensors) {
+            hitsPerSensor.get(sensor)[0] = 0; 
+        }
+    }
+
     protected void detectorChanged(Detector detector) {
 
         sensors 
@@ -103,6 +114,18 @@ public class SvtHitPlots extends Driver {
 		        histogramFactory.createHistogram1D("Bottom Layers Hit", 12, 0, 12));
 		plotters.get("Number of layers hit").region(1).plot(layersHitPlots.get("Bottom"));
 	
+		plotters.put("Raw hit counts/Event", plotterFactory.create("Raw hit counts/Event")); 
+		plotters.get("Raw hit counts/Event").createRegions(2, 2);
+
+		hitCountPlots.put("Raw hit counts/Event", 
+		        histogramFactory.createHistogram1D("Raw hit counts", 40, 0, 40));
+		plotters.get("Raw hit counts/Event").region(0).plot(hitCountPlots.get("Raw hit counts/Event"));
+		hitCountPlots.put("SVT top raw hit counts/Event", 
+		        histogramFactory.createHistogram1D("SVT top raw hit counts", 40, 0, 40));
+		plotters.get("Raw hit counts/Event").region(1).plot(hitCountPlots.get("SVT top raw hit counts/Event"));
+		hitCountPlots.put("SVT bottom raw hit counts/Event", 
+		        histogramFactory.createHistogram1D("SVT bottom raw hit counts", 40, 0, 40));
+		plotters.get("Raw hit counts/Event").region(2).plot(hitCountPlots.get("SVT bottom raw hit counts/Event"));
 		
 		for (IPlotter plotter : plotters.values()) { 
 			plotter.show();
@@ -113,6 +136,8 @@ public class SvtHitPlots extends Driver {
         
     	if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
     		return;
+    
+    	eventCount++;
     	
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
@@ -125,15 +150,35 @@ public class SvtHitPlots extends Driver {
         
         int[] topLayersHit = new int[12];
         int[] botLayersHit = new int[12]; 
+        int eventHitCount = 0;
+        int topEventHitCount = 0;
+        int botEventHitCount = 0;
         for (HpsSiSensor sensor : sensors) { 
-            hitsPerSensorPlots.get(sensor).fill(hitsPerSensor.get(sensor)[0]);
+            int hitCount = hitsPerSensor.get(sensor)[0];
+            hitsPerSensorPlots.get(sensor).fill(hitCount);
+            
+            eventHitCount += hitCount;
             
             if (hitsPerSensor.get(sensor)[0] > 0) { 
-                if (sensor.isTopLayer()) topLayersHit[sensor.getLayerNumber() - 1]++;
-                else botLayersHit[sensor.getLayerNumber() - 1]++; 
+                if (sensor.isTopLayer()) { 
+                    topLayersHit[sensor.getLayerNumber() - 1]++;
+                    topEventHitCount += hitCount;
+                }
+                else { 
+                    botLayersHit[sensor.getLayerNumber() - 1]++; 
+                    botEventHitCount += hitCount;
+                }
             }
         }
-       
+      
+        totalHitCount += eventHitCount; 
+        totalTopHitCount += topEventHitCount; 
+        totalBotHitCount += botEventHitCount;
+    
+        hitCountPlots.get("Raw hit counts/Event").fill(eventHitCount);
+        hitCountPlots.get("SVT top raw hit counts/Event").fill(topEventHitCount);
+        hitCountPlots.get("SVT bottom raw hit counts/Event").fill(botEventHitCount);
+        
         int totalTopLayersHit = 0; 
         int totalBotLayersHit = 0; 
         for(int layerN = 0; layerN < 12; layerN++) { 
@@ -145,10 +190,16 @@ public class SvtHitPlots extends Driver {
         layersHitPlots.get("Bottom").fill(totalBotLayersHit);
         
     }
-    
-    private void clearHitMaps() { 
-        for (HpsSiSensor sensor : sensors) {
-            hitsPerSensor.get(sensor)[0] = 0; 
-        }
-    }
+   
+    @Override
+    protected void endOfData() {
+        
+        System.out.println("%================================================%");
+        System.out.println("%============ SVT Raw Hit Statistics ============%");
+        System.out.println("%================================================%\n%");
+        System.out.println("% Total Hits/Event: " + totalHitCount/eventCount);
+        System.out.println("% Total Top SVT Hits/Event: " + totalTopHitCount/eventCount);
+        System.out.println("% Total Bottom SVT Hits/Event: " + totalBotHitCount/eventCount);
+        System.out.println("\n%================================================%");
+    }    
 }
