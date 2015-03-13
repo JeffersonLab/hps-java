@@ -18,8 +18,8 @@ import org.lcsim.event.RawTrackerHit;
 
 
 /**
- *  Monitoring driver that plots the raw hit signal shapes for each of the 
- *  sensors.
+ *  Monitoring driver that plots the raw hit samples for each of the hits
+ *  on a sensor.
  * 
  *  @author Omar Moreno <omoreno1@ucsc.edu>
  */
