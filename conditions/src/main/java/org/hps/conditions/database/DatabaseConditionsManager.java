@@ -133,6 +133,33 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             registerConditionsConverter(converter);
         }
         addConditionsListener(svtSetup);
+    }    
+       
+    /**
+     * Get the static instance of this class.
+     * @return The static instance of the manager.
+     */
+    public static DatabaseConditionsManager getInstance() {
+
+        logger.finer("getting conditions manager instance");
+        
+        // Is there no manager installed yet?
+        if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
+            logger.finer("creating new instance");
+            // Create a new instance if necessary, which will install it globally as the default.
+            new DatabaseConditionsManager();
+        }
+
+        // Get the instance back from the default conditions system and check that the type is correct now.
+        ConditionsManager manager = ConditionsManager.defaultInstance();
+        if (!(manager instanceof DatabaseConditionsManager)) {
+            logger.severe("default conditions manager has wrong type");
+            throw new RuntimeException("Default conditions manager has the wrong type: " + ConditionsManager.defaultInstance().getClass().getName());
+        }
+        
+        logger.finer("returning conditions manager instance");
+
+        return (DatabaseConditionsManager) manager;
     }
     
     /**
@@ -144,31 +171,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         logger.setLevel(level);
         logger.getHandlers()[0].setLevel(level);
         svtSetup.setLogLevel(level);
-    }
-    
-    /**
-     * Get the static instance of this class.
-     * @return The static instance of the manager.
-     */
-    public static DatabaseConditionsManager getInstance() {
-
-        logger.fine("setting up new conditions manager instance");
-        
-        // Is there no manager installed yet?
-        if (!ConditionsManager.isSetup()) {
-            // Create a new instance if necessary.
-            new DatabaseConditionsManager();
-        }
-
-        // Get the instance back from the default conditions system and check that the type is correct.
-        ConditionsManager manager = ConditionsManager.defaultInstance();
-        if (!(manager instanceof DatabaseConditionsManager)) {
-            throw new RuntimeException("The default ConditionsManager has the wrong type.");
-        }
-        
-        logger.fine("instance initialized succesfully");
-
-        return (DatabaseConditionsManager) manager;
     }
     
     /**
