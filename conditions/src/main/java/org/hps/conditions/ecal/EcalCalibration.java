@@ -1,5 +1,7 @@
 package org.hps.conditions.ecal;
 
+import java.util.Comparator;
+
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
@@ -21,8 +23,24 @@ import org.hps.conditions.database.Table;
 public final class EcalCalibration extends AbstractConditionsObject {
 
     public static class EcalCalibrationCollection extends AbstractConditionsObjectCollection<EcalCalibration> {
+        
+        public AbstractConditionsObjectCollection<EcalCalibration> sorted() {
+            return sorted(new ChannelIdComparator());
+        }
+                
+        class ChannelIdComparator implements Comparator<EcalCalibration> {
+            public int compare(EcalCalibration o1, EcalCalibration o2) {
+                if (o1.getChannelId() < o2.getChannelId()) {
+                    return -1;
+                } else if (o1.getChannelId() > o2.getChannelId()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
     }
-    
+               
     public EcalCalibration() {
     }
     
@@ -33,12 +51,12 @@ public final class EcalCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the channel ID.
-     * @return The channel ID.
+     * Get the ECAL channel ID.
+     * @return The ECAL channel ID.
      */
     @Field(names = {"ecal_channel_id"})
     public int getChannelId() {
-        return getFieldValue("ecal_channel_id");
+        return getFieldValue("ecal_channel_id");    
     }
 
     /**

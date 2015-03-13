@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.hps.conditions.api.ConditionsObject.DefaultConditionsObjectComparator;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
 
@@ -201,7 +202,37 @@ public abstract class AbstractConditionsObjectCollection<ObjectType extends Cond
      * @param comparator The comparator to use for the sort.
      * @return A sorted list of the objects.
      */
+    @SuppressWarnings("unchecked")
     public AbstractConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator) {
-        throw new UnsupportedOperationException("This method is not implemented.");
+        List<ObjectType> objects = new ArrayList<ObjectType>(this);
+        Collections.sort(objects, comparator);
+        AbstractConditionsObjectCollection<ObjectType> collection = null;
+        try {
+            collection = (AbstractConditionsObjectCollection<ObjectType>) getClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        collection.addAll(objects);
+        return collection;
+    }
+    
+    public void sort() {
+        AbstractConditionsObjectCollection<ObjectType> sortedCollection = sorted();
+        this.clear();
+        this.addAll(sortedCollection);
+    }
+    
+    public AbstractConditionsObjectCollection<ObjectType> sorted() {
+        List<ObjectType> objects = new ArrayList<ObjectType>(this);
+        Collections.sort(objects, new DefaultConditionsObjectComparator());
+        AbstractConditionsObjectCollection<ObjectType> collection = null;
+        try {
+            // FIXME: This is kind of ugly.
+            collection = (AbstractConditionsObjectCollection<ObjectType>) getClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        collection.addAll(objects);
+        return collection;
     }
 }

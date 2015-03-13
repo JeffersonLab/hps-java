@@ -68,4 +68,8 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @return A sorted list of the objects.
      */
     public AbstractConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator);
+    
+    public void sort();
+    
+    public AbstractConditionsObjectCollection<ObjectType> sorted();
 }

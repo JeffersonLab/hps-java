@@ -1,10 +1,7 @@
 package org.hps.conditions.ecal;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.hps.conditions.api.AbstractConditionsObject;
@@ -137,20 +134,6 @@ public final class EcalChannel extends AbstractConditionsObject {
         }
     }
     
-    private static final class ChannelIdComparator implements Comparator<EcalChannel> {
-        
-        public int compare(EcalChannel c1, EcalChannel c2) {
-            if (c1.getChannelId() < c2.getChannelId()) {
-                return -1;
-            } else if (c1.getChannelId() > c2.getChannelId()) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        
-    }
-
     DaqId createDaqId() {
         return new DaqId(new int[] { getCrate(), getSlot(), getChannel() });
     }
@@ -254,16 +237,22 @@ public final class EcalChannel extends AbstractConditionsObject {
          */
         public EcalChannel findDaq(long id) {
             return daqMap.get(id);
+        }        
+                   
+        public AbstractConditionsObjectCollection<EcalChannel> sorted() {
+            return sorted(new ChannelIdComparator());
         }
-        
-        /**
-         * Get a list of channels sorted by channel ID.
-         * @return A list of channels sorted by channel ID.
-         */
-        public List<EcalChannel> sortedByChannelId() {
-            List<EcalChannel> channelList = new ArrayList<EcalChannel>(this);
-            Collections.sort(channelList, new ChannelIdComparator());
-            return channelList;
+            
+        class ChannelIdComparator implements Comparator<EcalChannel> {        
+            public int compare(EcalChannel c1, EcalChannel c2) {
+                if (c1.getChannelId() < c2.getChannelId()) {
+                    return -1;
+                } else if (c1.getChannelId() > c2.getChannelId()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }            
         }
     }
 

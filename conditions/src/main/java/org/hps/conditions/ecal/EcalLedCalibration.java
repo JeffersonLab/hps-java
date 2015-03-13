@@ -17,6 +17,9 @@ public class EcalLedCalibration extends AbstractConditionsObject {
     public static class EcalLedCalibrationCollection extends AbstractConditionsObjectCollection<EcalLedCalibration> {
     }
     
+    public EcalLedCalibration() {        
+    }
+    
     public EcalLedCalibration(int channelId, double mean, double rms) {
         this.setFieldValue("ecal_channel_id", channelId);
         this.setFieldValue("led_response", mean);

@@ -109,7 +109,7 @@ public class EngRunConditionsTest extends TestCase {
             
             ecalConditions = conditionsManager.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
             Set<EcalChannelConstants> channelConstants = new LinkedHashSet<EcalChannelConstants>();
-            for (EcalChannel channel : ecalConditions.getChannelCollection().sortedByChannelId()) {
+            for (EcalChannel channel : ecalConditions.getChannelCollection().sorted()) {
                 channelConstants.add(ecalConditions.getChannelConstants(channel));
             }
             assertEquals("Wrong number of channel constants.", nChannels, channelConstants.size());

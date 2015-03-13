@@ -1,5 +1,7 @@
 package org.hps.conditions.api;
 
+import java.util.Comparator;
+
 /**
  * This is an ORM interface for accessing conditions database information by
  * row. It can handle new or existing records. The row ID values for new records are
@@ -63,4 +65,16 @@ public interface ConditionsObject {
      * @return True if record is new.
      */
     public boolean isNew();
+    
+    static class DefaultConditionsObjectComparator implements Comparator<ConditionsObject> {
+        public int compare(ConditionsObject o1, ConditionsObject o2) {
+            if (o1.getRowId() < o2.getRowId()) {
+                return -1;
+            } else if (o1.getRowId() > o2.getRowId()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }        
+    }
 }

@@ -1,11 +1,14 @@
 package org.hps.conditions.ecal;
 
+import java.util.Comparator;
+
 import org.hps.conditions.api.AbstractConditionsObject;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
+import org.hps.conditions.ecal.EcalGain.EcalGainCollection.ChannelIdComparator;
 
 /**
  * A conditions class for representing the setup of the LED system in the ECAL
@@ -20,6 +23,22 @@ public class EcalLed extends AbstractConditionsObject {
      * Generic collection class for these objects.
      */
     public static class EcalLedCollection extends AbstractConditionsObjectCollection<EcalLed> {
+        public AbstractConditionsObjectCollection<EcalLed> sorted() {
+            return sorted(new ChannelIdComparator());
+        }
+                
+        class ChannelIdComparator implements Comparator<EcalLed> {
+            public int compare(EcalLed o1, EcalLed o2) {
+                if (o1.getEcalChannelId() < o2.getEcalChannelId()) {
+                    return -1;
+                } else if (o1.getEcalChannelId() > o2.getEcalChannelId()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            
+        }
     }
 
     /**
