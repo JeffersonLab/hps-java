@@ -1,0 +1,58 @@
+<!-- 
+  Execute readout simulation and write the results as an LCIO file.
+  This is for the December 2014 commissioning run; ECAL only
+  @author Holly Szumila <hvanc001@odu.edu>
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+    </control>    
+    <execute>
+        <driver name="EventMarkerDriver"/>         
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="ReconClusterer"/>
+        <driver name="ClockDriver"/>
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute> 
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>       
+        <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
+            <coincidenceWindow>1</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <addNoise>true</addNoise>        
+        </driver>
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>true</use2014Gain>      
+        </driver>	
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
+            <minTime>0.0</minTime>
+            <timeWindow>25.0</timeWindow>
+            <useTimeCut>true</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver> 
+    </drivers>
+</lcsim>
+	
