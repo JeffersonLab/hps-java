@@ -1,17 +1,16 @@
 package org.hps.monitoring.drivers.svt;
 
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
