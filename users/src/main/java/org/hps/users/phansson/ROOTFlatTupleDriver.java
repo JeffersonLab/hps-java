@@ -7,6 +7,7 @@ import hep.aida.ref.plotter.PlotterRegion;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,9 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
-import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
 import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.EventQuality;
 import org.hps.recon.tracking.HPSTrack;

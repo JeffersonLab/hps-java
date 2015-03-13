@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.hps.analysis.trigger.util.Pair;
 import org.hps.analysis.trigger.util.Trigger;
-import org.hps.readout.ecal.triggerbank.SSPNumberedTrigger;
+import org.hps.recon.ecal.triggerbank.SSPNumberedTrigger;
 
 /**
  * Tracks trigger pairs that were matched within an event. This can also

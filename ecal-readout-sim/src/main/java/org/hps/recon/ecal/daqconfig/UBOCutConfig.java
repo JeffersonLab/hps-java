@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.daqconfig;
+package org.hps.recon.ecal.daqconfig;
 
 /**
  * Class <code>UBOCutConfig</code> is an implementation of the abstract

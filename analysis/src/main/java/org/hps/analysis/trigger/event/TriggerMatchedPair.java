@@ -4,9 +4,9 @@ import org.hps.analysis.trigger.util.Pair;
 import org.hps.analysis.trigger.util.PairTrigger;
 import org.hps.analysis.trigger.util.SinglesTrigger;
 import org.hps.analysis.trigger.util.Trigger;
-import org.hps.readout.ecal.triggerbank.SSPNumberedTrigger;
-import org.hps.readout.ecal.triggerbank.SSPPairTrigger;
-import org.hps.readout.ecal.triggerbank.SSPSinglesTrigger;
+import org.hps.recon.ecal.triggerbank.SSPNumberedTrigger;
+import org.hps.recon.ecal.triggerbank.SSPPairTrigger;
+import org.hps.recon.ecal.triggerbank.SSPSinglesTrigger;
 
 /**
  * Stores a pair of one simulated trigger and one SSP bank trigger that

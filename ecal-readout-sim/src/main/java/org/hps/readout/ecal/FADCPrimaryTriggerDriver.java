@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;

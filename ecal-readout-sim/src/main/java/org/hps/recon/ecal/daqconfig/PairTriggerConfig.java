@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.daqconfig;
+package org.hps.recon.ecal.daqconfig;
 
 /**
  * Class <code>PairTriggerConfig</code> holds the configuration data

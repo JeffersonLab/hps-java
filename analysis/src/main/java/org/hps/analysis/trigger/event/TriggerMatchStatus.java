@@ -3,7 +3,7 @@ package org.hps.analysis.trigger.event;
 import java.util.List;
 
 import org.hps.analysis.trigger.util.Trigger;
-import org.hps.readout.ecal.triggerbank.SSPNumberedTrigger;
+import org.hps.recon.ecal.triggerbank.SSPNumberedTrigger;
 
 /**
  * Tracks the trigger diagnostic statistics for trigger matching.

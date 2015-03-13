@@ -2,7 +2,7 @@ package org.hps.analysis.trigger.util;
 
 import java.awt.Point;
 
-import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.recon.ecal.triggerbank.SSPCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 

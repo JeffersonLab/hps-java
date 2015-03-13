@@ -6,10 +6,9 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-import org.hps.readout.ecal.triggerbank.SSPData;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.SSPData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;

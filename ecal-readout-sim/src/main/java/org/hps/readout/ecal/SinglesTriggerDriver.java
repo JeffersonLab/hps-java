@@ -5,6 +5,7 @@ import hep.aida.IHistogram2D;
 
 import java.util.List;
 
+import org.hps.recon.ecal.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.aida.AIDA;

@@ -1,12 +1,11 @@
-package org.hps.readout.ecal;
+package org.hps.recon.ecal.triggerbank;
 
 import java.awt.Point;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.readout.ecal.daqconfig.PairTriggerConfig;
-import org.hps.readout.ecal.daqconfig.SinglesTriggerConfig;
-import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.recon.ecal.daqconfig.PairTriggerConfig;
+import org.hps.recon.ecal.daqconfig.SinglesTriggerConfig;
 import org.lcsim.event.Cluster;
 
 /**

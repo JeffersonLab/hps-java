@@ -7,13 +7,11 @@ import java.util.logging.Logger;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
-
 import org.lcsim.event.EventHeader;
-
-import org.hps.readout.ecal.daqconfig.EvioDAQParser;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
-import org.hps.readout.ecal.triggerbank.SSPData;
-import org.hps.readout.ecal.triggerbank.TIData;
+import org.hps.recon.ecal.daqconfig.EvioDAQParser;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.SSPData;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.record.evio.EvioEventUtilities;
 
 

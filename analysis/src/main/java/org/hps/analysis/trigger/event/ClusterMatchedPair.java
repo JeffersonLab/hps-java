@@ -2,7 +2,7 @@ package org.hps.analysis.trigger.event;
 
 import org.hps.analysis.trigger.util.Pair;
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
-import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.recon.ecal.triggerbank.SSPCluster;
 import org.lcsim.event.Cluster;
 
 /**

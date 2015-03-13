@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.triggerbank;
+package org.hps.recon.ecal.triggerbank;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

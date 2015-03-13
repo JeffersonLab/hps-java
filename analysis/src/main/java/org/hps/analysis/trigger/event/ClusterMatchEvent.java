@@ -3,7 +3,7 @@ package org.hps.analysis.trigger.event;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.readout.ecal.triggerbank.SSPCluster;
+import org.hps.recon.ecal.triggerbank.SSPCluster;
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
 import org.lcsim.event.Cluster;
 

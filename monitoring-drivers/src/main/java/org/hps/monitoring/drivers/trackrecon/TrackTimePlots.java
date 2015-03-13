@@ -6,9 +6,11 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ref.plotter.PlotterRegion;
+
 import java.util.List;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
-import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
+
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;

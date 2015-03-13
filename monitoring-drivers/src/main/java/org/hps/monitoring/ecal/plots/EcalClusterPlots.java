@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.readout.ecal.TriggerModule;
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;

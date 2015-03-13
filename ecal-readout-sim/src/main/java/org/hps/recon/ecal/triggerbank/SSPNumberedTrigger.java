@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.triggerbank;
+package org.hps.recon.ecal.triggerbank;
 
 /**
  * Abstract class <code>SSPNumberedTrigger</code> is used as a base

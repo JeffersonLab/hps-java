@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.daqconfig;
+package org.hps.recon.ecal.daqconfig;
 
 /**
  * Class <code>DAQConfig</code> holds all of the supported parameters

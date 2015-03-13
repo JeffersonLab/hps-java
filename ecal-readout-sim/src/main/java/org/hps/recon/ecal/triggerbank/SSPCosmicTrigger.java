@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.triggerbank;
+package org.hps.recon.ecal.triggerbank;
 
 /**
  * Class <code>SSPCosmicTrigger</code> represents an SSP trigger for

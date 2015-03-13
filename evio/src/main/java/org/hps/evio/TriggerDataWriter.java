@@ -1,8 +1,9 @@
 package org.hps.evio;
 
 import java.util.List;
-import org.hps.readout.ecal.triggerbank.AbstractIntData;
-import org.hps.readout.ecal.triggerbank.TestRunTriggerData;
+
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;

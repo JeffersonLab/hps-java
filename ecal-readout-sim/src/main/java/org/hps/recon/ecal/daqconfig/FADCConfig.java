@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.daqconfig;
+package org.hps.recon.ecal.daqconfig;
 
 import java.awt.Point;
 import java.util.HashMap;

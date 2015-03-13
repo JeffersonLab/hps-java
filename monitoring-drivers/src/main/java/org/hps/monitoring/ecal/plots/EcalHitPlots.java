@@ -9,15 +9,13 @@ import hep.aida.IPlotterStyle;
 import java.util.List;
 
 import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.triggerbank.SSPData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-
-import org.hps.readout.ecal.triggerbank.SSPData;
-//import org.jfree.chart.ChartPanel;
 
 /**
  * The driver <code>EcalHitPlots</code> implements the histogram shown to the user 

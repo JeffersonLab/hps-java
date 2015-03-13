@@ -6,7 +6,7 @@ import org.hps.analysis.trigger.util.ComponentUtils;
 import org.hps.analysis.trigger.util.Pair;
 import org.hps.analysis.trigger.util.PairTrigger;
 import org.hps.analysis.trigger.util.SinglesTrigger;
-import org.hps.readout.ecal.triggerbank.SSPNumberedTrigger;
+import org.hps.recon.ecal.triggerbank.SSPNumberedTrigger;
 import org.hps.analysis.trigger.util.Trigger;
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
 
