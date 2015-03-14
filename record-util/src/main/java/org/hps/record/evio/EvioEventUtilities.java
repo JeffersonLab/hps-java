@@ -3,7 +3,6 @@ package org.hps.record.evio;
 import static org.hps.record.evio.EvioEventConstants.END_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.GO_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.PAUSE_EVENT_TAG;
-import static org.hps.record.evio.EvioEventConstants.PHYSICS_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.PRESTART_EVENT_TAG;
 import static org.hps.record.evio.EvioEventConstants.SYNC_EVENT_TAG;
 
@@ -87,6 +86,18 @@ public final class EvioEventUtilities {
     public static boolean isSyncEvent(EvioEvent event) {
         return event.getHeader().getTag() == SYNC_EVENT_TAG;
     }
+    
+    /**
+     * True if <code>event</code> is an EVIO control event.
+     * @return True if event is a control event.
+     */
+    public static boolean isControlEvent(EvioEvent event) {
+        return isPreStartEvent(event) || 
+                isGoEvent(event) || 
+                isPauseEvent(event) || 
+                isEndEvent(event) || 
+                isSyncEvent(event);
+    }
 
     /**
      * Extract the CODA run data stored in a control event.
@@ -112,7 +123,7 @@ public final class EvioEventUtilities {
         if (data != null) { //found the data in the top-level bank
             return data;
         } else { //data is not in event bank; look for the data bank whose tag matches the event type
-            for (BaseStructure bank : event.getChildren()) {
+            for (BaseStructure bank : event.getChildrenList()) {
                 if (bank.getHeader().getTag() == eventTag) {
                     return bank.getIntData(); //return whatever int data this bank has
                 }
@@ -129,9 +140,9 @@ public final class EvioEventUtilities {
      */
     public static BaseStructure getHeadBank(EvioEvent evioEvent) {
         if (evioEvent.getChildCount() > 0) {
-            for (BaseStructure topBank : evioEvent.getChildren()) {
-                if (topBank.getChildren() != null) {
-                    for (BaseStructure nestedBank : topBank.getChildren()) {
+            for (BaseStructure topBank : evioEvent.getChildrenList()) {
+                if (topBank.getChildrenList() != null) {
+                    for (BaseStructure nestedBank : topBank.getChildrenList()) {
                         if (nestedBank.getHeader().getTag() == EvioEventConstants.HEAD_BANK_TAG) {
                             return nestedBank;
                         }
@@ -140,5 +151,25 @@ public final class EvioEventUtilities {
             }
         }
         return null;        
+    }
+    
+    /**
+     * Get the run number from an EVIO event.
+     * @return The run number.
+     */
+    public static int getRunNumber(EvioEvent event) {
+        if (isControlEvent(event)) {
+            return getControlEventData(event)[1];
+        } else if (isPhysicsEvent(event)) {
+            BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
+            if (headBank != null) {                                        
+                return headBank.getIntData()[1];   
+            } else {
+                throw new IllegalArgumentException("Head bank is missing from physics event.");
+            }
+        } else {
+            // Not sure if this would ever happen.
+            throw new IllegalArgumentException("Wrong event type: " + event.getHeader().getTag());
+        }
     }
 }
