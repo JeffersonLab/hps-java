@@ -22,7 +22,9 @@ import org.jfree.chart.JFreeChart;
  * by the MonitoringApplication before any calls to AIDA are made from Drivers.
  */
 public class MonitoringPlotFactory extends PlotterFactory {
-
+    
+    static PlotterRegistry plotters = new PlotterRegistry();
+    
     // The name of the factory which will be used in naming tabs in the monitoring app.
     String name = null;
 
@@ -33,6 +35,8 @@ public class MonitoringPlotFactory extends PlotterFactory {
     private static JTabbedPane rootPane = null;
 
     private static PlotterRegionListener regionListener;
+    
+    int tabIndex;
 
     public static void setPlotterRegionListener(PlotterRegionListener regionListener) {
         MonitoringPlotFactory.regionListener = regionListener;
@@ -66,7 +70,8 @@ public class MonitoringPlotFactory extends PlotterFactory {
         // FIXME: Hack to disregard call from an AIDA related class.
         if (!(new RuntimeException()).getStackTrace()[2].getClassName().equals("hep.aida.ref.plotter.style.registry.StyleStoreXMLReader")) {
             rootPane.addTab(name, tabs);
-            rootPane.setTabComponentAt(rootPane.getTabCount() - 1, new JLabel(name));
+            tabIndex = rootPane.getTabCount() - 1;
+            rootPane.setTabComponentAt(tabIndex, new JLabel(name));
         }
     }
 
@@ -98,10 +103,16 @@ public class MonitoringPlotFactory extends PlotterFactory {
     }
 
     private void setupPlotterTab(String plotterName, IPlotter plotter) {
+        
+        // Setup the plotter's GUI pane and tab.
         JPanel plotterPanel = new JPanel(new BorderLayout());
         plotterPanel.add(PlotterUtilities.componentForPlotter(plotter), BorderLayout.CENTER);
         tabs.addTab(plotterName, plotterPanel);
-        tabs.setTabComponentAt(tabs.getTabCount() - 1, new JLabel(plotterName));
+        int plotterIndex = tabs.getTabCount() - 1;
+        tabs.setTabComponentAt(plotterIndex, new JLabel(plotterName));
+        
+        // Register plotter globally with its tab indices.
+        plotters.register(plotter, tabIndex, plotterIndex);
     }
 
     private void addChart(JFreeChart chart) {
@@ -143,5 +154,13 @@ public class MonitoringPlotFactory extends PlotterFactory {
         stripChart.getLegend().setVisible(false); /* Legend turned off for now. */
         addChart(stripChart);
         return stripChart;
+    }       
+    
+    /**
+     * 
+     * @return
+     */
+    public static PlotterRegistry getPlotterRegistry() {
+        return plotters;
     }
 }
