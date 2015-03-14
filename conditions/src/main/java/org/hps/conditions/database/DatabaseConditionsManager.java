@@ -139,7 +139,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Get the static instance of this class.
      * @return The static instance of the manager.
      */
-    public static DatabaseConditionsManager getInstance() {
+    public synchronized static DatabaseConditionsManager getInstance() {
 
         logger.finer("getting conditions manager instance");
         
@@ -177,7 +177,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Open the database connection.
      * @return True if a connection was opened; false if using an existing connection.
      */
-    public boolean openConnection() {
+    public synchronized boolean openConnection() {
         boolean openedConnection = false;
         if (!isConnected) {
             // Do the connection parameters need to be figured out automatically?
@@ -211,7 +211,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Close the database connection.
      */
-    public void closeConnection() {
+    public synchronized void closeConnection() {
         logger.fine("closing connection");
         if (connection != null) {
             try {
@@ -232,7 +232,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * based on the flag.  Otherwise, it should be left open.
      * @param connectionOpened True to close the connection; false to leave it open.
      */
-    public void closeConnection(boolean connectionOpened) {
+    public synchronized void closeConnection(boolean connectionOpened) {
         if (connectionOpened) {
             closeConnection();
         }
@@ -269,7 +269,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * needs to be updated.
      */
     @Override
-    public void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
+    public synchronized void setDetector(String detectorName, int runNumber) throws ConditionsNotFoundException {
 
         logger.finest("setDetector " + detectorName + " with run number " + runNumber);
         
@@ -371,7 +371,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @param tableName The name of the table.
      * @return The next collection ID.
      */
-    public int getNextCollectionID(String tableName) {
+    public synchronized int getNextCollectionID(String tableName) {
         boolean openedConnection = openConnection();
         ResultSet resultSet = selectQuery("SELECT MAX(collection_id)+1 FROM " + tableName);
         int collectionId = 1;
@@ -537,7 +537,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * This method can be called to "freeze" the conditions system so that
      * any subsequent updates to run number or detector name will be ignored.
      */
-    public void freeze() {
+    public synchronized void freeze() {
         if (getDetector() != null && getRun() != -1) {
             isFrozen = true;
             logger.config("conditions system is frozen");
@@ -549,7 +549,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Un-freeze the conditions system so that updates will be received again.
      */
-    public void unfreeze() {
+    public synchronized void unfreeze() {
         isFrozen = false;
         logger.info("conditions system unfrozen");
     }
@@ -750,7 +750,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * configuration and loading of conditions onto the Detector.
      */
     private void initialize(String detectorName, int runNumber) throws ConditionsNotFoundException {
-        
+                
         logger.config("initializing with detector " + detectorName + " and run " + runNumber);
         
         // Is not configured yet?
