@@ -4,6 +4,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**
@@ -15,11 +16,20 @@ public class DaqMapHandler extends DefaultHandler {
     
     // Collection of DAQ map objects
     private SvtDaqMappingCollection daqMap = new SvtDaqMappingCollection();
+    
+    // Collection of SVT channel objects
+    private SvtChannelCollection svtChannels = new SvtChannelCollection(); 
  
     // An SVT DAQ map object 
     private SvtDaqMapping daqMapping = null;
-    
+   
+    // Text node inside of an XML element
     String content;
+    
+    // Current SVT channel ID.  This gets incremented every time an SvtChannel
+    // gets added to the map.
+    int currentSvtChannelID = 0; 
+    
     
     // FEB ID (0-9)
     int febID = 0;
@@ -71,6 +81,7 @@ public class DaqMapHandler extends DefaultHandler {
         switch (qName) {
             case "Hybrid":
                 daqMap.add(daqMapping);
+                this.addSvtChannels(febID, hybridID);
                 break; 
             case "Half":
                 daqMapping.setSvtHalf(content);
@@ -101,14 +112,39 @@ public class DaqMapHandler extends DefaultHandler {
        content = String.copyValueOf(ch, start, length).trim();
    }
    
+   /**
+    *   Add a set of {@link SvtChannel}s to the {@link SvtChannelCollection} 
+    *   for each of the hybrids.  A total of 639 channels are added per hybrid.
+    *   
+    *   @param febID : The Front End Board (FEB) ID 
+    *   @param febHybridID : The FEB hybrid ID
+    *   
+    */
+   public void addSvtChannels(int febID, int febHybridID) { 
+       for (int channel = 0; channel < 640; channel++) { 
+           this.svtChannels.add(new SvtChannel(
+                   this.currentSvtChannelID, this.febID, this.hybridID, channel));
+           this.currentSvtChannelID++;
+       }
+   }
+   
     /**
-     *  Get the collection of {@link SvtDaqMappingCollection}s built from 
-     *  parsing the XML input file.
+     *  Get the {@link SvtDaqMappingCollection} built from parsing the XML 
+     *  input file.
      *  
      *   @return The collection of {@link SvtDaqMappingCollection}s
      */
     public SvtDaqMappingCollection getDaqMap() { 
         return daqMap;
+    }
+    
+    /**
+     *  Get the {@link SvtChannelCollection} build from parsing the XML input
+     *  file.
+     * 
+     */
+    public SvtChannelCollection getSvtChannels() { 
+        return svtChannels; 
     }
 
 }
