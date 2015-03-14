@@ -196,9 +196,9 @@ public class EvioDAQParser {
         fadcWIDTH=Integer.valueOf(getConfig("FADC250_W_WIDTH",0));
         fadcOFFSET=Integer.valueOf(getConfig("FADC250_W_OFFSET",0));
         
-        clusterMinSeedEnergy=Integer.valueOf(getConfig("GTP_CLUSTER_THRESH",0));
-        clusterMinHitTimeDiff=Integer.valueOf(getConfig("GTP_TIMEDIFF",0));
-        clusterMaxHitTimeDiff=Integer.valueOf(getConfig("GTP_TIMEDIFF",1));
+        clusterMinSeedEnergy=Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_THRESHOLD",0));
+        clusterMinHitTimeDiff=Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN",0));
+        clusterMaxHitTimeDiff=Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN",1));
        
         for (int ii=0; ii<2; ii++) {
             
