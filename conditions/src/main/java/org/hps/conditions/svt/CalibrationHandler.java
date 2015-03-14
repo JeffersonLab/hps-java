@@ -1,8 +1,14 @@
 package org.hps.conditions.svt;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
 
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
@@ -14,6 +20,11 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  *  @author Omar Moreno <omoreno1@ucsc.edu>
  */
 class CalibrationHandler extends DefaultHandler {
+    
+    
+    // Initialize the logger
+    private static Logger logger = LogUtil.create(SvtConditionsLoader.class.getSimpleName(), 
+            new DefaultLogFormatter(), Level.INFO);
 
     // List of SVT channels
     private SvtChannelCollection svtChannels;
@@ -39,12 +50,17 @@ class CalibrationHandler extends DefaultHandler {
     // Noise sample ID (0-5)
     int noiseSampleID = 0; 
     
+    // Flag denoting whether the calibrations of a given channel should be
+    // loaded into the conditions DB.  If a channel is found to be missing
+    // baseline or noise values, is will be marked invalid.
+    boolean isValidChannel = false;
+    
     /**
      *  Default Constructor
      */
     public CalibrationHandler() {
-        svtChannels = DatabaseConditionsManager.getInstance()
-                .getSvtConditions().getChannelMap();
+       svtChannels = (SvtChannelCollection) DatabaseConditionsManager.getInstance()
+               .getCachedConditions(SvtChannelCollection.class, "svt_channels").getCachedData();
     }
 
     /**
@@ -66,10 +82,12 @@ class CalibrationHandler extends DefaultHandler {
                 break;
             case "Hybrid":
                 hybridID = Integer.parseInt(attributes.getValue("id"));
+                logger.info("Processing calibrations for FEB " + febID + " Hybrid " + hybridID);
                 break;
             case "channel":
                 channel = Integer.parseInt(attributes.getValue("id"));
                 calibration = new SvtCalibration(svtChannels.findChannelID(febID, hybridID, channel));
+                isValidChannel = false;
                 break;
             case "baseline":
                 baselineSampleID = Integer.parseInt(attributes.getValue("id"));
@@ -94,13 +112,16 @@ class CalibrationHandler extends DefaultHandler {
         
         switch (qName) { 
             case "channel":
+                if (!isValidChannel) break;
                 calibrations.add(calibration);
                 break;
             case "baseline":
-                calibration.setPedestal(baselineSampleID, Double.parseDouble(content)); 
+                calibration.setPedestal(baselineSampleID, Double.parseDouble(content));
+                isValidChannel = true;
                 break;
             case "noise": 
                 calibration.setNoise(baselineSampleID, Double.parseDouble(content)); 
+                isValidChannel = true;
                 break;
         }
     }
