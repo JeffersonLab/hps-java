@@ -7,6 +7,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.hps.conditions.svt.CalibrationHandler;
 import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**
@@ -17,7 +18,11 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 public class SvtConditionsReader {
 
     SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-    SAXParser parser; 
+    SAXParser parser;
+
+    // SAX handlers
+    DaqMapHandler daqMapHandler;
+    CalibrationHandler calibrationHandler;
     
     /**
      * Default Constructor
@@ -35,38 +40,66 @@ public class SvtConditionsReader {
      *  of all channel conditions.
      *  
      *  @param calibrationFile : The input calibration file to parse
-     *  @return A collection of SvtCalibration objects
      * 
      */
-    SvtCalibrationCollection parseCalibrations(File calibrationFile) throws Exception {
-
+    public void parseCalibrations(File calibrationFile) throws Exception {
+       
         // Instantiate the calibration handler
-        CalibrationHandler febHandler = new CalibrationHandler();
+        calibrationHandler = new CalibrationHandler(); 
         
         // Parse the calibration file and create the collection of SvtCalibrations
-        parser.parse(calibrationFile, febHandler);
-
-        // Return the collection of SvtCalibrations
-        return febHandler.getCalibrations();
+        parser.parse(calibrationFile, calibrationHandler);
     }
     
     /**
      *  Parse a DAQ map file and create {@link SvtDaqMapping} objects
      *  
      *  @param daqMapFile : The input DAQ map file to parse
-     *  @return A collection of SvtDaqMappig objects
-     * 
+     *
      */
-    SvtDaqMappingCollection parseDaqMap(File daqMapFile) throws Exception { 
-      
-        // Instantiate the DAQ map handler
-        DaqMapHandler daqMapHandler = new DaqMapHandler();
+    public void parseDaqMap(File daqMapFile) throws Exception { 
+     
+        // Instatntiate the DAQ map handler
+        daqMapHandler = new DaqMapHandler(); 
         
         // Parse the DAQ map file and create the collection of SvtDaqMapping objects
         parser.parse(daqMapFile, daqMapHandler);
         
-        // Return the collection of SvtDaqMapping
-        return daqMapHandler.getDaqMap(); 
     }
 
+    /**
+     *  Get the collection of {@link SvtDaqMapping} objects created when parsing
+     *  the DAQ map.  If a DAQ map hasn't been parsed yet, an empty collection
+     *  will be returned.
+     *  
+     *  @return A collection of {@link SvtDaqMappig} objects
+     *
+     */
+    public SvtDaqMappingCollection getDaqMapCollection() { 
+       return daqMapHandler.getDaqMap(); 
+    }
+   
+    /**
+     *  Get the collection of {@link SvtChannel} objects built from parsing
+     *  the DAQ map.  If a DAQ maps hasn't been parsed yet, an empty collection
+     *  will be returned.
+     *  
+     *  @return A collection of {@link SvtChannel} objects
+     * 
+     */
+    public SvtChannelCollection getSvtChannelCollection() { 
+        return daqMapHandler.getSvtChannels();
+    }
+
+    /**
+     *  Get the collection of {@link SvtCalibration} objects built from parsing
+     *  a calibrations file.  If a calibrations file hasn't been parsed yet, 
+     *  an empty collection will be returned.
+     *   
+     *  @return A collection of {@link SvtCalibration} objects
+     *  
+     */
+    public SvtCalibrationCollection getSvtCalibrationCollection() { 
+        return calibrationHandler.getCalibrations();
+    }
 }
