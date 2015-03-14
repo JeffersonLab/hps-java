@@ -11,13 +11,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
+import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
+import org.hps.conditions.svt.SvtCalibration.SvtCalibrationCollection;
+import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtConditionsReader;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
@@ -29,7 +31,7 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 public class SvtConditionsLoader {
 
     // Initialize the logger
-    private static Logger logger = LogUtil.create(SvtConditionsLoader.class.getSimpleName(), 
+    private static Logger logger = LogUtil.create(SvtConditionsLoader.class.getName(), 
             new DefaultLogFormatter(), Level.INFO);
     
     //-----------------//
@@ -41,6 +43,8 @@ public class SvtConditionsLoader {
     
     // Table names
     public static final String DAQ_MAP_TABLE_NAME = "svt_daq_map";
+    public static final String CALIBRATIONS_TABLE_NAME = "svt_calibrations";
+    public static final String SVT_CHANNELS_TABLE_NAME = "svt_channels";
 
     //-----------------//
     //-----------------//
@@ -95,9 +99,40 @@ public class SvtConditionsLoader {
 	   // If a calibrations file has been specified, parse it and load them 
 	   // to the conditions database.
 	   if (commandLine.hasOption("c")) { 
-	       File inputFile = new File(commandLine.getOptionValue("c"));
+	       File calibrationFile = new File(commandLine.getOptionValue("c"));
+	       logger.info("Loading calibrations from file " + calibrationFile.getAbsolutePath());
 	       try { 
-	           reader.parseCalibrations(inputFile);
+	           
+	           // Parse the calibration file and retrieve the calibrations 
+	           // collection.
+	           reader.parseCalibrations(calibrationFile);
+	           SvtCalibrationCollection calibrations = reader.getSvtCalibrationCollection();
+	           
+	           // Set the table meta data
+	           TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(SvtConditionsLoader.CALIBRATIONS_TABLE_NAME);
+	           calibrations.setTableMetaData(tableMetaData);
+	           
+	           // Set the collection ID 
+	           int collectionID = DatabaseConditionsManager.getInstance().getNextCollectionID(SvtConditionsLoader.CALIBRATIONS_TABLE_NAME);
+	           calibrations.setCollectionId(collectionID);
+	           logger.info("Using collection ID " + collectionID);
+	          
+	           // Load the calibrations
+	           calibrations.insert();
+	           logger.info("A total of " + calibrations.size() + " SvtCalibrations were loaded successfully into the database.");
+	           
+	           // Create a conditions record associated with the set of 
+	           // conditions that were just loaded 
+	           ConditionsRecord conditionsRecord = new ConditionsRecord( 
+	                   calibrations.getCollectionId(), 
+	                   runNumber, 
+	                   99999, 
+	                   SvtConditionsLoader.CALIBRATIONS_TABLE_NAME,
+	                   SvtConditionsLoader.CALIBRATIONS_TABLE_NAME,
+	                   "Pedestals and noise. Loaded using SvtConditionsLoader.",
+	                   "eng_run");
+	           conditionsRecord.insert();
+	           
 	       } catch (Exception e) { 
 	           throw new RuntimeException("Couldn't parse calibration file.", e);
 	       }
@@ -111,7 +146,8 @@ public class SvtConditionsLoader {
 	       try { 
 	          
 	           // Parse the DAQ map file
-	           SvtDaqMappingCollection daqMapping = reader.parseDaqMap(daqMapFile);
+               reader.parseDaqMap(daqMapFile);
+	           SvtDaqMappingCollection daqMapping = reader.getDaqMapCollection();
 	           
 	           // Set the table meta data
 	           TableMetaData tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(SvtConditionsLoader.DAQ_MAP_TABLE_NAME);
@@ -136,6 +172,33 @@ public class SvtConditionsLoader {
 	                   SvtConditionsLoader.DAQ_MAP_TABLE_NAME,
 	                   SvtConditionsLoader.DAQ_MAP_TABLE_NAME,
 	                   "Engineering run DAQ map. Loaded using SvtConditionsLoader.",
+	                   "eng_run");
+	           conditionsRecord.insert();
+
+	           logger.info("Loading the collection of SvtChannel's");
+	           SvtChannelCollection svtChannels = reader.getSvtChannelCollection();
+	          
+	           // Set the table meta data
+	           tableMetaData = DatabaseConditionsManager.getInstance().findTableMetaData(SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME);
+	           svtChannels.setTableMetaData(tableMetaData);
+
+	           // Set the collection ID
+	           collectionID = DatabaseConditionsManager.getInstance().getNextCollectionID(SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME);
+	           svtChannels.setCollectionId(collectionID);
+	           logger.info("Using collection ID " + collectionID);
+	           
+	           svtChannels.insert();
+	           logger.info("A total of " + svtChannels.size() + " SvtChannels were successfully loaded into the database.");
+
+	           // Create a conditions record associated with the set of 
+	           // conditions that were just loaded 
+	           conditionsRecord = new ConditionsRecord( 
+	                   svtChannels.getCollectionId(), 
+	                   runNumber, 
+	                   99999, 
+	                   SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME,
+	                   SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME,
+	                   "Engineering run SVT channel IDs. Loaded using SvtConditionsLoader.",
 	                   "eng_run");
 	           conditionsRecord.insert();
 	           
