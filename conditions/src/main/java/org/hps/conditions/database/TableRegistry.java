@@ -1,8 +1,11 @@
 package org.hps.conditions.database;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
@@ -42,13 +45,32 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
     static TableRegistry create() {
         TableRegistry registry = new TableRegistry();
         for (Class<? extends ConditionsObject> objectType : ConditionsObjectUtilities.findConditionsObjectTypes()) {
+            
+            // Get the collection type.
             Class<? extends AbstractConditionsObjectCollection<?>> collectionType = 
                     ConditionsObjectUtilities.getCollectionType(objectType);
+            
+            // Get the list of field names.
             Set<String> fieldNames = ConditionsObjectUtilities.getFieldNames(objectType);            
-            for (String name : ConditionsObjectUtilities.getTableNames(objectType)) {    
-                
+            
+            // Create map of fields to their types.
+            Map<String, Class<?>> fieldTypes = new HashMap<String, Class<?>>();
+            for (Method method : objectType.getMethods()) {
+                if (!method.getReturnType().equals(Void.TYPE)) {
+                    for (Annotation annotation : method.getAnnotations()) {
+                        if (annotation.annotationType().equals(Field.class)) {                            
+                            Field field = (Field) annotation;
+                            for (String fieldName : field.names()) {
+                                fieldTypes.put(fieldName, method.getReturnType());
+                            }
+                        }
+                    }
+                }
+            }
+                        
+            for (String name : ConditionsObjectUtilities.getTableNames(objectType)) {                    
                 // Create a meta data mapping for each table name in the class description.
-                TableMetaData data = new TableMetaData(name, name, objectType, collectionType, fieldNames);
+                TableMetaData data = new TableMetaData(name, name, objectType, collectionType, fieldNames, fieldTypes);
                 registry.put(name, data);                               
                 registry.objectTypeMap.add(objectType, data);
                 registry.collectionTypeMap.add(collectionType, data);                  

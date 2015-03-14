@@ -1,12 +1,15 @@
 package org.hps.conditions.database;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
+import org.hps.conditions.api.ConditionsObjectCollection;
 
 /**
  * <p>
@@ -30,6 +33,7 @@ public final class TableMetaData {
     protected Class<? extends ConditionsObject> objectClass;
     protected Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
     protected Set<String> fieldNames = new LinkedHashSet<String>();
+    protected Map<String, Class<?>> fieldTypes;
 
     /**
      * The fully qualified constructor.
@@ -37,19 +41,53 @@ public final class TableMetaData {
      * @param objectClass The type of object for the data mapping.
      * @param collectionClass The type of collection for the data mapping.
      */
-    public TableMetaData(String key, String tableName, Class<? extends ConditionsObject> objectClass, Class<? extends AbstractConditionsObjectCollection<?>> collectionClass) {
+    /*
+    public TableMetaData(
+            String key, 
+            String tableName, 
+            Class<? extends ConditionsObject> objectClass, 
+            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass,
+            Map<String, Class<?>> fieldTypes) {
+       
         this.key = key;
         this.tableName = tableName;
         this.objectClass = objectClass;
         this.collectionClass = collectionClass;
+        this.fieldTypes = fieldTypes;
     }
+    */
     
-    public TableMetaData(String key, String tableName, Class<? extends ConditionsObject> objectClass, Class<? extends AbstractConditionsObjectCollection<?>> collectionClass, Set<String> fieldNames) {
+    public TableMetaData(
+            String key, 
+            String tableName, 
+            Class<? extends ConditionsObject> objectClass, 
+            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass, 
+            Set<String> fieldNames,
+            Map<String, Class<?>> fieldTypes) {
+        if (key == null) {
+            throw new IllegalArgumentException("key is null");
+        }
+        if (tableName == null) {
+            throw new IllegalArgumentException("tableName is null");
+        }
+        if (objectClass == null) {
+            throw new IllegalArgumentException("objectClass is null");
+        }
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames is null");
+        }
+        if (collectionClass == null) {
+            throw new IllegalArgumentException("collectionClass is null");
+        }
+        if (fieldTypes == null) {
+            throw new IllegalArgumentException("fieldTypes is null");
+        }
         this.key = key;
         this.tableName = tableName;
         this.objectClass = objectClass;
         this.collectionClass = collectionClass;
         this.fieldNames = fieldNames;
+        this.fieldTypes = fieldTypes;
     }
     
     /**
@@ -77,15 +115,11 @@ public final class TableMetaData {
     }
 
     /**
-     * Add a field.
-     * @param name The name of the field.
+     * Get the type of the field called <code>fieldName</code>.
+     * @return The type of the field.
      */
-    void addField(String name) {
-        fieldNames.add(name);
-    }
-    
-    void addFields(List<String> names) {
-        fieldNames.addAll(names);
+    public Class<?> getFieldType(String fieldName) {
+        return fieldTypes.get(fieldName);
     }
 
     /**
@@ -106,16 +140,12 @@ public final class TableMetaData {
     }
     
     static public List<TableMetaData> findByObjectType(List<TableMetaData> tableMetaDataList, Class<? extends ConditionsObject> objectType) {
-        //System.out.println("findByObjectType - " + objectType.getCanonicalName());
         List<TableMetaData> list = new ArrayList<TableMetaData>();
         for (TableMetaData tableMetaData : tableMetaDataList) {
-            //System.out.println("comparing to " + tableMetaData.getObjectClass().getCanonicalName());
             if (tableMetaData.getObjectClass().equals(objectType)) {
-                //System.out.println("found match");
+
                 list.add(tableMetaData);
-            } /*else {
-                System.out.println("does not match");
-            }*/
+            }
         }
         return list;
     }
