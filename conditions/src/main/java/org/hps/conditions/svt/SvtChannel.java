@@ -20,12 +20,38 @@ import org.hps.util.Pair;
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtChannel extends AbstractSvtChannel {
 
+    /**
+     * 
+     */
+    public SvtChannel() { 
+    }
+    
+    /**
+     *  Constructor 
+     *
+     *  @param channelID : The SVT channel ID
+     *  @param febID : The Front End Board (FEB) ID (0-9)
+     *  @param febHybridID : The hybrid ID (0-3)
+     *  @param channel : The channel number (0-639)
+     */
+    public SvtChannel(int channelID, int febID, int febHybridID, int channel) { 
+        if (!this.isValidFeb(febID) 
+                || !this.isValidFebHybridID(febHybridID) 
+                || !this.isValidPhysicalChannel(channel)) { 
+            throw new RuntimeException("Invalid FEB ID, FEB hybrid ID or physical channel number is being used.");
+        }
+        this.setChannelID(channelID);
+        this.setFebID(febID);
+        this.setFebHybridID(febHybridID);
+        this.setChannel(channel);
+    }
+    
     public static class SvtChannelCollection extends AbstractSvtChannel.AbstractSvtChannelCollection<SvtChannel> {
         /**
-         * Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
+         *  Find channels that match a DAQ pair (FEB ID, FEB Hybrid ID).
          * 
-         * @param pair : The DAQ pair consiting of a FEB ID and FEB Hybrid ID.
-         * @return The channels matching the DAQ pair or null if ?not found.
+         *  @param pair : The DAQ pair consiting of a FEB ID and FEB Hybrid ID.
+         *  @return The channels matching the DAQ pair or null if ?not found.
          */
         @Override
         public Collection<SvtChannel> find(Pair<Integer, Integer> pair) {
@@ -41,13 +67,13 @@ public final class SvtChannel extends AbstractSvtChannel {
         }
 
         /**
-         * Get the SVT channel ID associated with a given FEB ID/Hybrid ID/physical channel.
+         *  Get the SVT channel ID associated with a given FEB ID/Hybrid ID/physical channel.
          *
-         * @param febID : The FEB ID
-         * @param febHybridID : The FEB hybrid ID
-         * @param channel : The physical channel number
-         * @return The SVT channel ID
-         * @throws {@link RuntimeException} if the channel ID can't be found
+         *  @param febID : The FEB ID
+         *  @param febHybridID : The FEB hybrid ID
+         *  @param channel : The physical channel number
+         *  @return The SVT channel ID
+         *  @throws {@link RuntimeException} if the channel ID can't be found
          */
         public int findChannelID(int febID, int febHybridID, int channel) {
             for (SvtChannel svtChannel : this) {
@@ -61,9 +87,9 @@ public final class SvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Get the FEB ID associated with this SVT channel ID.
+     *  Get the FEB ID associated with this SVT channel ID.
      * 
-     * @return The FEB ID.
+     *  @return The FEB ID.
      */
     @Field(names = { "feb_id" })
     public int getFebID() {
@@ -71,9 +97,9 @@ public final class SvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Get the FEB hybrid ID associated with this SVT channel ID.
+     *  Get the FEB hybrid ID associated with this SVT channel ID.
      * 
-     * @return The FEB hybrid ID.
+     *  @return The FEB hybrid ID.
      */
     @Field(names = { "feb_hybrid_id" })
     public int getFebHybridID() {
@@ -81,8 +107,58 @@ public final class SvtChannel extends AbstractSvtChannel {
     }
 
     /**
-     * Implementation of equals.
-     * @return True if the object equals this one; false if not.
+     *  Set the FEB ID associated with this SVT channel ID.
+     * 
+     *  @param febID : The FEB ID
+     */
+    public void setFebID(int febID) { 
+        this.setFieldValue("feb_id", febID);
+    }
+    
+    /**
+     *  Set the FEB hybrid ID associated with this SVT channel ID.
+     * 
+     *  @param febHybridID : The FEB hybrid ID
+     */
+    public void setFebHybridID(int febHybridID) {
+        this.setFieldValue("feb_hybrid_id", febHybridID);
+    }
+    
+    /**
+     *  Checks if a FEB ID is valid
+     * 
+     *  @param febID : The Front End Board (FEB) ID
+     *  @return True if the FEB ID lies within the range 0-9, false otherwise
+     */
+    public boolean isValidFeb(int febID) { 
+        return (febID >= 0 && febID <= 9) ? true : false; 
+    }
+    
+    /**
+     *  Checks if a Front End Board hybrid ID is valid
+     *  
+     *  @param febHybridID : The hybrid ID 
+     *  @return True if the hybrid ID lies within the range 0-3, false otherwise
+     */
+    public boolean isValidFebHybridID(int febHybridID) { 
+        return (febHybridID >= 0 && febHybridID <= 3) ? true : false; 
+    }
+    
+    /**
+     *  Checks if a physical channel number is valid
+     *  
+     *  @param channel : The physical channel number
+     *  @return True if the channel number lies within the range 0-639, false 
+     *          otherwise
+     */
+    public boolean isValidPhysicalChannel(int channel) { 
+        return (channel >= 0 && channel <= 639) ? true : false; 
+    }
+    
+    /**
+     *  Implementation of equals.
+     *  
+     *  @return True if the object equals this one; false if not.
      */
     public boolean equals(Object o) {
         if (o == null)
