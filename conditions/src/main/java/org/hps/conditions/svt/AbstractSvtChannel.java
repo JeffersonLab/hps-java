@@ -24,10 +24,10 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
         Map<Integer, T> channelMap = new HashMap<Integer, T>();
 
         /**
-         * Add a channel of type extending {@link AbstractSvtChannel} to the
-         * channel map
+         *  Add a channel of type extending {@link AbstractSvtChannel} to the
+         *  channel map
          * 
-         * @param A channel of a type extending {@link AbstractSvtChannel}
+         *  @param A channel of a type extending {@link AbstractSvtChannel}
          */
         public boolean add(T channel) {
 
@@ -42,29 +42,29 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
         }
 
         /**
-         * Find a channel of type extending {@link AbstractSvtChannel} using the
-         * channel ID
+         *  Find a channel of type extending {@link AbstractSvtChannel} using the
+         *  channel ID
          * 
-         * @param channelID
-         * @return An SVT channel of type extending {@link AbstractSvtChannel}
+         *  @param channelID
+         *  @return An SVT channel of type extending {@link AbstractSvtChannel}
          */
         public T findChannel(int channelID) {
             return channelMap.get(channelID);
         }
 
         /**
-         * Find the collection of channels of type extending
-         * {@link AbstractSvtChannel} that match a DAQ pair.
+         *  Find the collection of channels of type extending
+         *  {@link AbstractSvtChannel} that match a DAQ pair.
          * 
-         * @param pair The DAQ pair.
-         * @return The channels matching the DAQ pair or null if not found.
+         *  @param pair The DAQ pair.
+         *  @return The channels matching the DAQ pair or null if not found.
          */
         public abstract Collection<T> find(Pair<Integer, Integer> pair);
 
         /**
-         * Convert this object to a human readable string.
+         *  Convert this object to a human readable string.
          * 
-         * @return This object converted to a string.
+         *  @return This object converted to a string.
          */
         public String toString() {
             StringBuffer buff = new StringBuffer();
@@ -76,9 +76,9 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
     }
 
     /**
-     * Get the channel ID.
+     *  Get the channel ID.
      * 
-     * @return The channel ID.
+     *  @return The SVT channel ID.
      */
     @Field(names = {"channel_id"})
     public int getChannelID() {
@@ -86,12 +86,30 @@ public class AbstractSvtChannel extends AbstractConditionsObject {
     }
 
     /**
-     * Get the channel number. This is different from the ID.
+     *  Get the channel number (0-639). This is different from the ID.
      * 
-     * @return The channel number.
+     *  @return The channel number.
      */
     @Field(names = {"channel"})
     public int getChannel() {
         return getFieldValue("channel");
+    }
+    
+    /**
+     *  Set the channel ID.
+     * 
+     *  @param channelID : The SVT channel ID
+     */
+    public void setChannelID(int channelID) { 
+        this.setFieldValue("channel_id", channelID);
+    }
+    
+    /**
+     *  Set the channel number (0-639). This is different from the ID.
+     * 
+     *  @param channel : The channel number
+     */
+    public void setChannel(int channel) { 
+        this.setFieldValue("channel", channel);
     }
 }
