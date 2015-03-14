@@ -8,14 +8,16 @@ import java.util.List;
  */
 public final class SystemStatusImpl implements SystemStatus {
 
+    
     StatusCode code = StatusCode.UNKNOWN;
-    long lastChangedMillis;
+    Subsystem systemName;
     String message;
-    List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
-    final Subsystem systemName;
-    final String description;
+    String description;
+    long lastChangedMillis;
     boolean active = true;
-    final boolean clearable;
+    boolean clearable;
+    
+    List<SystemStatusListener> listeners = new ArrayList<SystemStatusListener>();
 
     /**
      * Fully qualified constructor.
@@ -29,6 +31,36 @@ public final class SystemStatusImpl implements SystemStatus {
         this.clearable = clearable;
         setLastChangedTime();
         SystemStatusRegistry.getSystemStatusRegistery().register(this);
+    }
+    
+    /**
+     * Copy constructor from implementation class.
+     * The list of listeners is NOT copied.  
+     * @param status The status to copy.
+     */
+    public SystemStatusImpl(SystemStatusImpl status) {
+        this.code = status.code;
+        this.systemName = status.systemName;
+        this.message = status.message;
+        this.description = status.description;
+        this.lastChangedMillis = status.lastChangedMillis;
+        this.active = status.active;
+        this.clearable = status.clearable;
+    }
+    
+    /**
+     * Copy constructor from interface.
+     * The list of listeners is NOT copied.  
+     * @param status The status to copy.
+     */
+    public SystemStatusImpl(SystemStatus status) {
+        this.code = status.getStatusCode();
+        this.systemName = status.getSubsystem();
+        this.message = status.getMessage();
+        this.description = status.getDescription();
+        this.lastChangedMillis = status.getLastChangedMillis();
+        this.active = status.isActive();
+        this.clearable = status.isClearable();
     }
 
     @Override
@@ -97,5 +129,5 @@ public final class SystemStatusImpl implements SystemStatus {
     @Override
     public boolean isClearable() {
         return clearable;
-    }
+    }    
 }
