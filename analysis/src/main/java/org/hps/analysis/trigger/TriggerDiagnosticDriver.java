@@ -637,7 +637,6 @@ public class TriggerDiagnosticDriver extends Driver {
 					reconClusters.add(reconCluster);
 					OutputLogger.println(" [  verifiable  ]");
 				} else { OutputLogger.println(" [ unverifiable ]"); }
-				
 			}
 			
 			// Output the number of verifiable clusters found.
@@ -1986,7 +1985,7 @@ public class TriggerDiagnosticDriver extends Driver {
 					pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH), pairCutsEnabled[i][4]);
 			System.out.printf("\tPair Energy Slope      :: %.3f GeV      [%5b]%n",
 					pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW), pairCutsEnabled[i][5]);
-			System.out.printf("\tPair Energy Slope F    :: %.3f GeV / mm%n",
+			System.out.printf("\tPair Energy Slope F    :: %.4f GeV / mm%n",
 					pairsTrigger[i].getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F));
 			System.out.printf("\tPair Coplanarity       :: %3.0f Degrees    [%5b]%n",
 					pairsTrigger[i].getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH), pairCutsEnabled[i][6]);
