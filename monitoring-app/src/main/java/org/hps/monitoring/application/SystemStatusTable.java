@@ -1,6 +1,5 @@
 package org.hps.monitoring.application;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,8 +16,7 @@ import org.hps.monitoring.application.model.SystemStatusTableModel;
 import org.hps.monitoring.subsys.StatusCode;
 
 /**
- * A GUI window for showing changes to {@link org.hps.monitoring.subsys.SystemStatus} objects using
- * a <code>JTable</code>.
+ * This table shows the current state of {@link org.hps.monitoring.subsys.SystemStatus} objects.
  */
 class SystemStatusTable extends JTable {
 
@@ -37,28 +35,7 @@ class SystemStatusTable extends JTable {
 
                 // Color code the cell by its status.
                 StatusCode statusCode = StatusCode.valueOf((String) value);
-                if (statusCode.ordinal() >= StatusCode.ERROR.ordinal()) {
-                    // Any type of error is red.
-                    label.setBackground(Color.RED);
-                } else if (statusCode.equals(StatusCode.WARNING)) {
-                    // Warnings are yellow.
-                    label.setBackground(Color.YELLOW);
-                } else if (statusCode.equals(StatusCode.OKAY)) {
-                    // Okay is green.
-                    label.setBackground(Color.GREEN);
-                } else if (statusCode.equals(StatusCode.OFFLINE)) {
-                    // Offline is orange.
-                    label.setBackground(Color.ORANGE);
-                } else if (statusCode.equals(StatusCode.UNKNOWN)) {
-                    // Unknown is gray.
-                    label.setBackground(Color.GRAY);
-                } else if (statusCode.equals(StatusCode.CLEARED)) {
-                    // Cleared is light gray.
-                    label.setBackground(Color.LIGHT_GRAY);
-                } else {
-                    // Default is white, though this shouldn't happen!
-                    label.setBackground(Color.WHITE);
-                }
+                label.setBackground(statusCode.getColor());
                 return label;
             }
         });

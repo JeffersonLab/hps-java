@@ -29,8 +29,7 @@ ChunkSize=1
 Host=localhost
 Port=11111
 StationPosition=1
-# Prescale was 1
-Prescale=0
+Prescale=1
 QueueSize=0
 StationName=MY_STATION
 Verbose=false

@@ -13,7 +13,7 @@ import javax.swing.JComboBox;
 import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
- * 
+ * This is a combo box used to filter the log table messages by level.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {

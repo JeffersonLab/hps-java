@@ -3,14 +3,11 @@ package org.hps.monitoring.application;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -23,13 +20,14 @@ import javax.swing.SwingConstants;
  */
 class MonitoringApplicationFrame extends JFrame {
             
-    RunPanel runPanel;    
+    EventDashboard dashboardPanel;    
     PlotPanel plotPanel;
     PlotInfoPanel plotInfoPanel;
     LogPanel logPanel;
-    SystemStatusTable systemStatusTable;
     JPanel buttonsPanel;
     TriggerDiagnosticsPanel triggerPanel;
+    ConditionsPanel conditionsPanel;
+    SystemStatusPanel systemStatusPanel;
     MenuBar menu; 
     
     JSplitPane mainSplitPane;
@@ -39,14 +37,10 @@ class MonitoringApplicationFrame extends JFrame {
     DataSourceComboBox dataSourceComboBox;
     
     SettingsDialog settingsDialog;
-    
-    // Proportional layout parameters relative to the screen size.
-    static final double FULL_SIZE = 1.0;
-    static final double TOP_PANEL_HEIGHT = 0.05;
-    static final double BOTTOM_PANEL_HEIGHT = FULL_SIZE - TOP_PANEL_HEIGHT;
-    static final double LEFT_PANEL_WIDTH = 0.3;
-    static final double RIGHT_PANEL_WIDTH = FULL_SIZE - LEFT_PANEL_WIDTH;
-    static final double PLOT_PANEL_HEIGHT = 0.8;
+       
+    static final Rectangle BOUNDS = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+    static final int PIXEL_WIDTH_MAX = (int) BOUNDS.getWidth();
+    static final int PIXEL_HEIGHT_MAX = (int) BOUNDS.getHeight();
     
     /**
      * 
@@ -54,20 +48,22 @@ class MonitoringApplicationFrame extends JFrame {
      */
     public MonitoringApplicationFrame(
             MonitoringApplication application) {
+        
+        // Disable interaction until specifically enabled externally after initialization.
+        setEnabled(false);
                 
         // Create the content panel.
         JPanel contentPanel = new JPanel();
         setContentPane(contentPanel);
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setLayout(new BorderLayout());
         contentPanel.setOpaque(true);
-        setProportionalSize(contentPanel, FULL_SIZE, FULL_SIZE);
-        
+        contentPanel.setPreferredSize(new Dimension(PIXEL_WIDTH_MAX, PIXEL_HEIGHT_MAX));
+                
         // Create the top panel.
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 0));
-        setProportionalSize(topPanel, FULL_SIZE, TOP_PANEL_HEIGHT);
-        contentPanel.add(topPanel);
-        
+        contentPanel.add(topPanel, BorderLayout.NORTH);
+                
         // Create the connection status panel.
         JPanel connectionPanel = new ConnectionStatusPanel(application.connectionModel);
         topPanel.add(connectionPanel);
@@ -83,7 +79,6 @@ class MonitoringApplicationFrame extends JFrame {
         
         // Add vertical separator.
         sep = new JSeparator(SwingConstants.VERTICAL);
-        sep.setPreferredSize(new Dimension(5, topPanel.getPreferredSize().height));
         topPanel.add(sep);
         
         // Add the data source combo box.
@@ -93,16 +88,14 @@ class MonitoringApplicationFrame extends JFrame {
         // Create the bottom panel.
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
-        setProportionalSize(bottomPanel, FULL_SIZE, BOTTOM_PANEL_HEIGHT);
-        contentPanel.add(bottomPanel);
-                                
+        contentPanel.add(bottomPanel, BorderLayout.CENTER);
+                                        
         // Create the left panel.
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
-        setProportionalSize(leftPanel, LEFT_PANEL_WIDTH, FULL_SIZE);
-                        
+                            
         // Create the run dashboard.
-        runPanel = new RunPanel(application.runModel);
+        dashboardPanel = new EventDashboard(application.runModel);
 
         // Create the tabbed pane for content in bottom of left panel such as log table and system monitor.
         JTabbedPane tableTabbedPane = new JTabbedPane();
@@ -112,76 +105,58 @@ class MonitoringApplicationFrame extends JFrame {
         tableTabbedPane.addTab("Log Messages", logPanel);
         
         // Create the system monitor.
-        systemStatusTable = new SystemStatusTable();
-        tableTabbedPane.addTab("System Status Monitor", new JScrollPane(systemStatusTable));
+        //systemStatusTable = new SystemStatusTable();
+        systemStatusPanel = new SystemStatusPanel();
+        tableTabbedPane.addTab("System Status Monitor", systemStatusPanel);
         
         // Add the trigger diagnostics tables.
         triggerPanel = new TriggerDiagnosticsPanel();
         tableTabbedPane.addTab("Trigger Diagnostics", triggerPanel);
         
+        // Add the conditions panel.
+        conditionsPanel = new ConditionsPanel();
+        tableTabbedPane.addTab("Detector Conditions", conditionsPanel);
+        
         // Vertical split pane in left panel.
-        leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, runPanel, tableTabbedPane);
-        leftSplitPane.setResizeWeight(0.5);
+        leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, dashboardPanel, tableTabbedPane);
+        leftSplitPane.setDividerLocation(250);
         leftPanel.add(leftSplitPane, BorderLayout.CENTER);
                                 
         // Create the right panel.
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BorderLayout());
-        
+                
         // Create the plot info panel.
         plotInfoPanel = new PlotInfoPanel();
                 
         // Create the plot panel.
-        plotPanel = new PlotPanel();
-        plotPanel.setVisible(true); // DEBUG
-        setProportionalSize(plotPanel, RIGHT_PANEL_WIDTH, PLOT_PANEL_HEIGHT);
+        plotPanel = new PlotPanel();        
+        plotInfoPanel.saveButton.addActionListener(plotPanel);
         
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
         rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, plotPanel, plotInfoPanel);
-        setProportionalSize(rightSplitPane, RIGHT_PANEL_WIDTH, FULL_SIZE);
-        rightSplitPane.setResizeWeight(0.8);
+        rightSplitPane.setResizeWeight(0.7);
         rightPanel.add(rightSplitPane, BorderLayout.CENTER);
                        
         // Create the main horizontal split pane for dividing the left and right panels.
         mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        mainSplitPane.setResizeWeight(0.15);
+        mainSplitPane.setResizeWeight(0.2);
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
         menu = new MenuBar(application.configurationModel, application.connectionModel, application);
         setJMenuBar(menu);
         dataSourceComboBox.addActionListener(menu);
-                        
+        
+        // Setup the settings dialog box (invisible until activated).
+        settingsDialog = new SettingsDialog(application.configurationModel, application);        
+               
         // Setup the frame now that all components have been added.        
         pack();
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setVisible(true);
-        
-        // Setup the settings dialog box.
-        settingsDialog = new SettingsDialog(application.configurationModel, application);
+        setVisible(true); 
     }
-    
-    /**
-     * Set the size of a Swing component using proportions of the current screen bounds.
-     * @param component The component to resize.
-     * @param scaleX The X scaling (must be between 0 and 1).
-     * @param scaleY The Y scaling (must be between 0 and 1).
-     * @param setSize Call the setSize method as well as setPreferredSize (which is the default).
-     * @return
-     */
-    void setProportionalSize(JComponent component, double scaleX, double scaleY) {                    
-        GraphicsConfiguration graphics = this.getGraphicsConfiguration();        
-        Rectangle bounds = graphics.getBounds();        
-        if (scaleX < 0 || scaleX > 1) {
-            throw new IllegalArgumentException("scaleX must be > 0 and <= 1.");
-        }
-        if (scaleY < 0 || scaleY > 1) {
-            throw new IllegalArgumentException("scaleY must be > 0 and <= 1.");
-        }
-        Dimension scaledDimension = new Dimension((int)(bounds.getWidth() * scaleX), (int)(bounds.getHeight() * scaleY));
-        component.setPreferredSize(scaledDimension);
-    }           
-    
+             
     /**
      * Restore default window settings.
      */

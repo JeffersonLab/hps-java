@@ -10,6 +10,7 @@ import java.awt.Color;
 public enum ConnectionStatus {
 
     DISCONNECTED(Color.RED),
+    DISCONNECTING(Color.YELLOW),
     CONNECTED(Color.GREEN);
     
     Color color;    

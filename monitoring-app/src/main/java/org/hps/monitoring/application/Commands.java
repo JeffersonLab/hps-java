@@ -34,9 +34,10 @@ final class Commands {
     // Save a screenshot
     static final String SAVE_SCREENSHOT = "saveScreenshot";
     
-    // Save the plots
+    // Plotting actions
     static final String SAVE_PLOTS = "savePlots";
     static final String CLEAR_PLOTS = "resetPlots";
+    static final String SAVE_SELECTED_PLOTS = "saveSelectedPlots";
     
     // Exit the application.
     static final String EXIT = "exit";

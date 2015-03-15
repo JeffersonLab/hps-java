@@ -45,7 +45,6 @@ class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
         setMinimumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
 
         setLayout(new GridBagLayout());
-        // setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = c.weighty = 1.0;

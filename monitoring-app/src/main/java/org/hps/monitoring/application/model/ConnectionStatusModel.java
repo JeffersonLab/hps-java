@@ -50,4 +50,16 @@ public final class ConnectionStatusModel extends AbstractModel {
             listener.propertyChange(new PropertyChangeEvent(this, PAUSED_PROPERTY, oldValue, this.paused));
         }
     }
+    
+    public boolean isConnected() {
+        return this.connectionStatus == ConnectionStatus.CONNECTED;
+    }
+    
+    public boolean isDisconnected() {
+        return this.connectionStatus == ConnectionStatus.DISCONNECTED;
+    }
+    
+    public boolean isDisconnecting() {
+        return this.connectionStatus == ConnectionStatus.DISCONNECTING;
+    }
 }

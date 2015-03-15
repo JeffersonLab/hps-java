@@ -1,8 +1,6 @@
 package org.hps.monitoring.application;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.FlowLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
@@ -11,10 +9,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
 
 import org.hps.monitoring.application.model.RunModel;
 import org.hps.record.composite.CompositeRecord;
@@ -28,7 +23,7 @@ import org.lcsim.event.EventHeader;
  * Dashboard for displaying information about the current run.
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-class RunPanel extends JPanel implements PropertyChangeListener {
+class EventDashboard extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
     DatePanel startDateField = new DatePanel("Run Start", "", 16, false);
@@ -40,17 +35,17 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     FieldPanel dataReceivedField = new FieldPanel("Data Received [MB]", "", 14, false);
     FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
     FieldPanel dataRateField = new FieldPanel("Data Rate [MB/s]", "", 12, false);
-    FieldPanel eventRateField = new FieldPanel("Event Rate [evt/s]", "", 14, false);
+    FieldPanel eventRateField = new FieldPanel("Event Rate [Hz]", "", 14, false);
 
     RunModel runModel;
     
-    static final NumberFormat formatter = new DecimalFormat("#0.00"); 
+    static final NumberFormat formatter = new DecimalFormat("#0.0000"); 
 
-    public RunPanel() {
+    public EventDashboard() {
         build();
     }
     
-    public RunPanel(RunModel runModel) {
+    public EventDashboard(RunModel runModel) {
         this.runModel = runModel;
         this.runModel.addPropertyChangeListener(this);
         build();
@@ -58,38 +53,27 @@ class RunPanel extends JPanel implements PropertyChangeListener {
     
     private void build() {
         
-        setLayout(new GridBagLayout());
+        setLayout(new FlowLayout(FlowLayout.LEADING));
 
-        TitledBorder titledBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Run Summary");
-        setBorder(titledBorder);
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.WEST;
-        c.gridx = 0;                
-        add(runNumberField, c);
-        add(startDateField, c);
-        add(endDateField, c);
-        add(lengthField, c);
-        add(totalEventsField, c);
+        add(runNumberField);
+        add(startDateField);
+        add(endDateField);
+        add(lengthField);
+        add(totalEventsField);
         
-        c = new GridBagConstraints();
-        c.gridx = 1;
-        add(elapsedTimeField, c);
-        add(eventsReceivedField, c);
-        add(dataReceivedField, c);
-        add(eventNumberField, c);
-        add(dataRateField, c);
-        add(eventRateField, c);
-
-        setMinimumSize(new Dimension(400, 240));
+        add(elapsedTimeField);
+        add(eventsReceivedField);
+        add(dataReceivedField);
+        add(eventNumberField);
+        add(dataRateField);
+        add(eventRateField);
     }
     
     public void setModel(RunModel runModel) {
         this.runModel = runModel;
     }
 
-    class RunPanelUpdater extends CompositeRecordProcessor {
+    class EventDashboardUpdater extends CompositeRecordProcessor {
 
         Timer timer;
         

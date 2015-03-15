@@ -80,10 +80,19 @@ class EventButtonsPanel extends JPanel implements PropertyChangeListener {
             resumeButton.setEnabled(false);
             connectButton.setActionCommand(Commands.CONNECT);
             connectButton.setIcon(disconnectedIcon);
-        } else {
+            connectButton.setEnabled(true);
+        } else if (status.equals(ConnectionStatus.DISCONNECTING)) {
+            nextButton.setEnabled(false);
+            pauseButton.setEnabled(false);
+            resumeButton.setEnabled(false);
+            connectButton.setEnabled(false);
+        } else if (status.equals(ConnectionStatus.CONNECTED)) {
+            nextButton.setEnabled(false);            
             pauseButton.setEnabled(true);
+            resumeButton.setEnabled(false);
             connectButton.setActionCommand(Commands.DISCONNECT);
             connectButton.setIcon(connectedIcon);
+            connectButton.setEnabled(true);
         }
     }       
     

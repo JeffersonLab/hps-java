@@ -5,12 +5,10 @@ import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -40,6 +38,7 @@ import org.hps.monitoring.application.DataSourceComboBox.DataSourceItem;
 import org.hps.monitoring.application.LogTable.LogRecordModel;
 import org.hps.monitoring.application.model.Configuration;
 import org.hps.monitoring.application.model.ConfigurationModel;
+import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 import org.hps.monitoring.application.model.RunModel;
 import org.hps.monitoring.application.util.AIDAServer;
@@ -49,12 +48,11 @@ import org.hps.monitoring.application.util.EvioFileFilter;
 import org.hps.monitoring.application.util.TableExporter;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.SystemStatus;
-import org.hps.monitoring.subsys.SystemStatusListener;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.enums.DataSourceType;
+import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.DefaultLogFormatter;
@@ -62,12 +60,11 @@ import org.lcsim.util.log.DefaultLogFormatter;
 /**
  * This is the primary class that implements the monitoring GUI application.
  * It should not be used directly.  Instead the {@link Main} class should be
- * used from the command line or via the supplied script built automatically 
- * by Maven.
+ * used from the command line.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-final class MonitoringApplication implements ActionListener, PropertyChangeListener, SystemStatusListener {
+final class MonitoringApplication implements ActionListener, PropertyChangeListener {
 
     // Statically initialize logging, which will be fully setup later.
     static final Logger logger;
@@ -78,14 +75,15 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
     // Default log stream.
     MonitoringApplicationStreamHandler streamHandler;
+    LogHandler logHandler;
     PrintStream sysOut = System.out;
     PrintStream sysErr = System.err;
     
     // Application error handling.
-    final ErrorHandler errorHandler;
+    ErrorHandler errorHandler;
    
     // The main GUI components inside a JFrame.
-    final MonitoringApplicationFrame frame;    
+    MonitoringApplicationFrame frame;    
     
     // The primary data models.
     final RunModel runModel = new RunModel();
@@ -150,41 +148,86 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             super.setOutputStream(out);
         }        
     }
-             
+                 
     /**
      * Instantiate and show the monitoring application with the given configuration.
      * @param configuration The Configuration object containing application settings.
      */
     MonitoringApplication(Configuration configuration) {
-                
-        // Setup the main GUI component.
-        frame = new MonitoringApplicationFrame(this);
         
-        // Setup the error handler.
-        errorHandler = new ErrorHandler(frame, logger);
+        try {
+        
+            // Setup the main GUI component.
+            frame = new MonitoringApplicationFrame(this);
+            
+            // Add window listener to perform clean shutdown.
+            frame.addWindowListener(new WindowListener() {
+
+                @Override
+                public void windowOpened(WindowEvent e) {
+                }
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                }
+
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    exit();
+                }
+
+                @Override
+                public void windowIconified(WindowEvent e) {
+                }
+
+                @Override
+                public void windowDeiconified(WindowEvent e) {
+                }
+
+                @Override
+                public void windowActivated(WindowEvent e) {
+                }
+
+                @Override
+                public void windowDeactivated(WindowEvent e) {
+                }
+            });
+        
+            // Setup the error handler.
+            errorHandler = new ErrorHandler(frame, logger);
                        
-        // Add this class as a listener on the configuration model.
-        configurationModel.addPropertyChangeListener(this);
+            // Add this class as a listener on the configuration model.
+            configurationModel.addPropertyChangeListener(this);
         
-        // Setup the logger.
-        setupLogger();
+            // Setup the logger.
+            setupLogger();
                
-        // Setup AIDA plotting and connect it to the GUI.
-        setupAida();
+            // Setup AIDA plotting and connect it to the GUI.
+            setupAida();
         
-        // Set the configuration.
-        if (configuration != null) {
-            // There was a user specified configuration.
-            this.configuration = configuration;
-        } else {
-            // Use the default configuration.
-            this.configuration = new Configuration(DEFAULT_CONFIGURATION);
-        }
+            // Set the configuration.
+            if (configuration != null) {
+                // There was a user specified configuration.
+                this.configuration = configuration;
+            } else {
+                // Use the default configuration.
+                this.configuration = new Configuration(DEFAULT_CONFIGURATION);
+            }
                                       
-        // Load the configuration.
-        loadConfiguration(this.configuration);
-                
-        logger.info("application initialized successfully");
+            // Load the configuration.
+            loadConfiguration(this.configuration);
+        
+            frame.setEnabled(true);
+        
+            logger.info("application initialized successfully");
+        
+        } catch (Exception e) {
+            // Don't use the ErrorHandler here because we don't know that it initialized successfully.
+            System.err.println("MonitoringApplication failed to initialize without errors!");
+            DialogUtil.showErrorDialog(null, "Error Starting Monitoring Application", "Monitoring application failed to initialize.");
+            e.printStackTrace();
+            System.exit(1);
+        }        
     }
     
     /**
@@ -192,7 +235,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     void setupLogger() {
         logger.setUseParentHandlers(false);        
-        logger.addHandler(new LogHandler());
+        logHandler = new LogHandler();
+        logger.addHandler(logHandler);
         streamHandler = new MonitoringApplicationStreamHandler(System.out);
         logger.addHandler(streamHandler);
         for (Handler handler : logger.getHandlers()) {
@@ -201,7 +245,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         logger.setLevel(DEFAULT_LEVEL);
         logger.info("logging initialized");
     }
-    
+        
     /**
      * Static utility method for creating new instance.
      * @param configuration The application settings.
@@ -217,7 +261,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        // TODO: Handle log level configuration change here.
+        if (evt.getPropertyName().equals(ConfigurationModel.LOG_LEVEL_PROPERTY)) {
+            setLogLevel();
+        }
     }
     
     /**
@@ -232,11 +278,12 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         if (Commands.CONNECT.equals(command)) {
             startSession();
         } else if (Commands.DISCONNECT.equals(command)) {
-            processing.stop();
+            runDisconnectThread();
         } else if (Commands.SAVE_PLOTS.equals(command)) {
             savePlots();
         } else if (Commands.EXIT.equals(command)) {
-            exit();
+            // This will trigger the window closing action that cleans everything up.
+            frame.dispose();
         } else if (Commands.PAUSE.equals(command)) { 
             processing.pause();
         } else if (Commands.NEXT.equals(command)) {
@@ -265,8 +312,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             closeFile();
         } else if (Commands.SAVE_SCREENSHOT.equals(command)) {
             saveScreenshot();
-        } else if (Commands.LOG_LEVEL_CHANGED.equals(command)) {
-            setLogLevel();
         } else if (Commands.SAVE_LOG_TABLE.equals(command)) {
             saveLogTable();
         } else if (Commands.CLEAR_LOG_TABLE.equals(command)) {
@@ -327,11 +372,14 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Reset the plots and clear the tabs in the plot window.
      */
     void resetPlots() {
-
+        
+        // Clear global list of registered plotters.
+        MonitoringPlotFactory.getPlotterRegistry().clear();  
+        
         // Clear the static AIDA tree in case plots are hanging around from previous sessions.
         AIDA.defaultInstance().clearAll();
 
-        // Reset plot panel which removes all tabs.
+        // Reset plot panel which removes all its tabs.
         frame.plotPanel.reset();
         
         logger.info("plots were cleared");
@@ -341,43 +389,20 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Configure the system status monitor panel for a new job.
      */
     void setupSystemStatusMonitor() {
+        
         // Clear the system status monitor table.
-        frame.systemStatusTable.getTableModel().clear();
+        frame.systemStatusPanel.clear();
 
         // Get the global registry of SystemStatus objects.
         SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
 
         // Process the SystemStatus objects.
         for (SystemStatus systemStatus : registry.getSystemStatuses()) {
-            // Add a row to the table for every SystemStatus.
-            frame.systemStatusTable.getTableModel().addSystemStatus(systemStatus);
-
-            // Add this class as a listener so all status changes can be logged.
-            systemStatus.addListener(this);
+            // This will add the status to the two tables.
+            frame.systemStatusPanel.addSystemStatus(systemStatus);
         }
         
         logger.info("system status monitor initialized successfully");
-    }
-    
-    /**
-     * Hook for logging all status changes from the system status monitor.
-     */
-    @Override
-    public void statusChanged(SystemStatus status) {
-
-        // Choose the appropriate log level.
-        Level level = Level.FINE;
-        if (status.getStatusCode().equals(Level.WARNING)) {
-            level = Level.WARNING;
-        } else if (status.getStatusCode().ordinal() >= StatusCode.ERROR.ordinal()) {
-            level = Level.SEVERE;
-        }
-        
-        // Log all status changes.
-        logger.log(level, "STATUS, " + "subsys: " + status.getSubsystem() + ", " 
-                + "code: " + status.getStatusCode().name() 
-                + ", " + "descr: " + status.getDescription() 
-                + ", " + "mesg: " + status.getMessage());
     }
     
     /**
@@ -399,13 +424,18 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
             // List of extra composite record processors including the updater for the RunPanel.
             List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
-            processors.add(frame.runPanel.new RunPanelUpdater());
+            processors.add(frame.dashboardPanel.new EventDashboardUpdater());
             
+            // Add Driver to update the trigger diagnostics tables.
             List<Driver> drivers = new ArrayList<Driver>();
             drivers.add(frame.triggerPanel.new TriggerDiagnosticGUIDriver());
+
+            // Add listener to push conditions changes to conditions panel.
+            List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
+            conditionsListeners.add(frame.conditionsPanel.new ConditionsPanelListener());
             
-            // Initialize event processing with the list of processors and reference to the application.
-            processing = new EventProcessing(this, processors, drivers);
+            // Instantiate the event processing wrapper.
+            processing = new EventProcessing(this, processors, drivers, conditionsListeners);
             
             // Connect to the ET system, if applicable.
             processing.connect();
@@ -418,7 +448,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
                                             
-            // Start the event processing thread.
+            // Start the event processing thread.            
             processing.start();            
             
             logger.info("new session successfully initialized");
@@ -437,17 +467,17 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
            
     /**
-     * Exit from the application.
+     * Exit from the application from exit menu item or hitting close window button.
      */
     void exit() {        
-        if (processing != null && processing.isActive()) {
+        if (connectionModel.isConnected()) {
             processing.stop();
         }
-        frame.setVisible(false);
+        logHandler.setLevel(Level.OFF);
         logger.info("exiting the application");
-        logger.getHandlers()[0].flush();
+        streamHandler.flush();
         System.exit(0);
-    }              
+    }
             
     /**
      * Save AIDA plots to a file using a file chooser.
@@ -601,6 +631,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * Save a screenshot to a file using a file chooser.
      */
+    // FIXME: This might need to be on a new thread to allow the GUI to redraw w/o chooser visible.
     void saveScreenshot() {
         JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);
@@ -615,8 +646,17 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             if (!fileName.endsWith("." + format)) {
                 fileName += "." + format;
             }
+            frame.repaint();
+            Object lock = new Object();
+            synchronized (lock) {
+                try {
+                    lock.wait(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             writeScreenshot(fileName, format);
-            DialogUtil.showInfoDialog(frame, "Screenshot Saved", "Screenshot was saved to file.");
+            DialogUtil.showInfoDialog(frame, "Screenshot Saved", "Screenshot was saved to file" + '\n' + fileName);
             logger.info("saved screenshot to " + fileName);
         }
     }
@@ -626,15 +666,13 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * @param fileName The name of the output file.
      */
     void writeScreenshot(String fileName, String format) {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Rectangle screenRectangle = new Rectangle(screenSize);
+        BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
+        frame.paint(image.getGraphics()); 
         try {
-            Robot robot = new Robot();
-            BufferedImage image = robot.createScreenCapture(screenRectangle);
             ImageIO.write(image, format, new File(fileName));
-        } catch (Exception e) {
-            errorHandler.setError(e).setMessage("Failed to take screenshot.").printStackTrace().log().showErrorDialog();
-        }
+        } catch (IOException e) {
+            errorHandler.setError(e).setMessage("Failed to save screenshot.").printStackTrace().log().showErrorDialog();
+        }        
     }            
     
     /**
@@ -785,5 +823,19 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         frame.menu.stopAIDAServer();
         logger.info("AIDA server was stopped");
         DialogUtil.showInfoDialog(frame, "AIDA Server Stopped", "The AIDA server was stopped.");
-    }       
+    }    
+    
+    /**
+     * 
+     */
+    void runDisconnectThread() {
+        new Thread() {
+            public void run() {
+                logger.fine("disconnect thread is running ...");
+                connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTING);
+                MonitoringApplication.this.processing.stop();
+                logger.fine("disconnect thread finished!");
+            }
+        }.run();
+    }
 }

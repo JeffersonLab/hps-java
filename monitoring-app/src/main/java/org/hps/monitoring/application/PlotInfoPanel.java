@@ -15,10 +15,10 @@ import hep.aida.ref.function.FunctionChangedEvent;
 import hep.aida.ref.function.FunctionDispatcher;
 import hep.aida.ref.function.FunctionListener;
 
+import java.awt.Color;
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.EventObject;
@@ -27,6 +27,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -47,6 +49,8 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
     JComboBox<Object> plotComboBox;
     JTable infoTable = new JTable();
     DefaultTableModel model;
+    JButton saveButton;
+    
     PlotterRegion currentRegion;
     Object currentObject;
     static final int INSET_SIZE = 5;
@@ -63,11 +67,18 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
      */
     @SuppressWarnings("unchecked")
     PlotInfoPanel() {
+                
+        setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE));
-
-        GridBagConstraints c;
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
+           
+        JPanel buttonPanel = new JPanel();
+        saveButton = new JButton("Save Plots ...");
+        saveButton.setActionCommand(Commands.SAVE_SELECTED_PLOTS);
+        buttonPanel.add(saveButton);       
+        //c.anchor = GridBagConstraints.NORTHWEST;
+        leftPanel.add(buttonPanel);
 
         plotComboBox = new JComboBox<Object>();
         plotComboBox.setActionCommand(PLOT_SELECTED);
@@ -85,26 +96,17 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
             }
         });
         plotComboBox.addActionListener(this);
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(0, 0, INSET_SIZE, 0);
-        add(plotComboBox, c);
-
+        leftPanel.add(plotComboBox);
+        
         String data[][] = new String[0][0];
         model = new DefaultTableModel(data, COLUMN_NAMES);
         infoTable.setModel(model);
-
-        // FIXME: Are these adequate column size settings? Could prob be bigger...
         infoTable.getColumn("Field").setMinWidth(25);
         infoTable.getColumn("Value").setMinWidth(20);
-
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 1;
-        c.fill = GridBagConstraints.BOTH;
-        add(infoTable, c);
+        infoTable.setMinimumSize(new Dimension(100, 200));
+        leftPanel.add(infoTable);
+        
+        add(leftPanel);
     }
 
     /**
