@@ -55,9 +55,7 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
      */
     @Override
     public void startJob() {
-        
-        System.out.println("EtSystemStripChartsNew.startJob");
-   
+           
         // Register this class as a listener to activate update at end of statistics clock tick.
         stats.addSystemStatisticsListener(this);
 
@@ -70,18 +68,24 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
      */
     private void createStripCharts() {
         
-        System.out.println("EtSystemStripChartsNew.createStripCharts");
-
-        // Data rate in megabytes per second.
-        // TODO: Add to same chart the average MB / second.
-        charts.add(plotFactory.createTimeSeriesChart("Data Rate", "MB / second", 1, null, RANGE_SIZE));
+        // Data rate and average data reate in megabytes per second.
+        charts.add(plotFactory.createTimeSeriesChart(
+                "Data Rate", 
+                "MB / second",
+                2, 
+                new String[] { "Data Rate", "Average Data Rage" },
+                RANGE_SIZE));
                 
         // Total megabytes received.
         charts.add(plotFactory.createTimeSeriesChart("Total Data", "Megabytes", 1, null, RANGE_SIZE));
         
-        // Event rate in hertz.
-        // TODO: Add to same chart the average event rate.
-        charts.add(plotFactory.createTimeSeriesChart("Event Rate", "Hz", 1, null, RANGE_SIZE));
+        // Event rate and average event rate in hertz.
+        charts.add(plotFactory.createTimeSeriesChart(
+                "Event Rate", 
+                "Hz", 
+                2, 
+                new String[] { "Event Rate", "Average Event Rate" }, 
+                RANGE_SIZE));
         
         // Total number of events received.
         charts.add(plotFactory.createTimeSeriesChart("Total Events", "Number of Events", 1, null, RANGE_SIZE));
@@ -112,11 +116,18 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
         Date now = new Date(stats.getTickEndTimeMillis());
                 
         getTimeSeriesCollection(DATA_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
-                new Second(now), stats.getBytesPerSecond() / 1000000);
+                new Second(now), stats.getMegabytesPerSecond());
+        getTimeSeriesCollection(DATA_RATE_COLLECTION_INDEX).getSeries(1).addOrUpdate(
+                new Second(now), stats.getAverageMegabytesPerSecond());
+        
         getTimeSeriesCollection(TOTAL_DATA_COLLECTION_INDEX).getSeries(0).addOrUpdate(
                 new Second(now), stats.getTotalMegabytes());
+        
         getTimeSeriesCollection(EVENT_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
                 new Second(now), stats.getEventsPerSecond());
+        getTimeSeriesCollection(EVENT_RATE_COLLECTION_INDEX).getSeries(1).addOrUpdate(
+                new Second(now), stats.getAverageEventsPerSecond());
+        
         getTimeSeriesCollection(TOTAL_EVENTS_COLLECTION_INDEX).getSeries(0).addOrUpdate(
                 new Second(now), stats.getTotalEvents());
     }
