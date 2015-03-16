@@ -9,7 +9,7 @@ import java.util.Date;
  */
 class DatePanel extends FieldPanel {
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     DatePanel(String fieldName, String defaultValue, int size, boolean editable) {
         super(fieldName, defaultValue, size, editable);

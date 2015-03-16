@@ -30,7 +30,7 @@ class LogTable extends JTable implements PropertyChangeListener {
 
     Level filterLevel = Level.ALL;
     
-    final static SimpleDateFormat formatter = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
+    final static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             
     LogTable(ConfigurationModel configurationModel) {
         configurationModel.addPropertyChangeListener(this);
