@@ -689,10 +689,10 @@ public class TriggerDiagnosticDriver extends Driver {
 				(pairInternalFail && printPairTriggerInternalFail) ||
 				(pairEfficiencyFail && printPairTriggerEfficiencyFail)) {
 			OutputLogger.printLog();
-		}
+		}	
 		
 		
-		
+				
 		// ==========================================================
 		// ==== Process Local Tracked Variables =====================
 		// ==========================================================
@@ -772,6 +772,10 @@ public class TriggerDiagnosticDriver extends Driver {
 	
 	public void setReadDAQConfig(boolean state) {
 		readDAQConfig = state;
+	}
+	
+	public void setLocalWindowThresholdMilliseconds(int localWindowThreshold) {
+	    this.localWindowThreshold = localWindowThreshold;
 	}
 	
 	/**
