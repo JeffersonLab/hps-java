@@ -26,8 +26,8 @@ import org.lcsim.event.EventHeader;
 class EventDashboard extends JPanel implements PropertyChangeListener {
 
     FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
-    DatePanel startDateField = new DatePanel("Run Start", "", 16, false);
-    DatePanel endDateField = new DatePanel("Run End", "", 16, false);
+    DatePanel startDateField = new DatePanel("Run Start", "", 20, false);
+    DatePanel endDateField = new DatePanel("Run End", "", 20, false);
     FieldPanel lengthField = new FieldPanel("Run Length [sec]", "", 12, false);
     FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
     FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);

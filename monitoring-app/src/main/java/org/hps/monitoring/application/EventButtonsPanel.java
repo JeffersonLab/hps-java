@@ -80,6 +80,7 @@ class EventButtonsPanel extends JPanel implements PropertyChangeListener {
             resumeButton.setEnabled(false);
             connectButton.setActionCommand(Commands.CONNECT);
             connectButton.setIcon(disconnectedIcon);
+            connectButton.setToolTipText("Start new session");
             connectButton.setEnabled(true);
         } else if (status.equals(ConnectionStatus.DISCONNECTING)) {
             nextButton.setEnabled(false);
@@ -92,6 +93,7 @@ class EventButtonsPanel extends JPanel implements PropertyChangeListener {
             resumeButton.setEnabled(false);
             connectButton.setActionCommand(Commands.DISCONNECT);
             connectButton.setIcon(connectedIcon);
+            connectButton.setToolTipText("Disconnect from session");
             connectButton.setEnabled(true);
         }
     }       
