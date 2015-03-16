@@ -15,6 +15,6 @@ if [[ -e $buffer_file ]]; then
 fi
 
 # Start the ET ring, sending any script arguments to the end of the command.
-server="java -Xmx1024m -classpath $classpath org.jlab.coda.et.apps.StartEt -f $buffer_file -s 100000 -v $@" 
+server="java -Xmx1024m -classpath $classpath org.jlab.coda.et.apps.StartEt -f $buffer_file -s 200000 -v $@" 
 echo "$server"
 exec $server
