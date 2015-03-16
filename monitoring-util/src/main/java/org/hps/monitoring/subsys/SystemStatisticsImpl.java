@@ -21,7 +21,6 @@ public class SystemStatisticsImpl implements SystemStatistics {
     long eventsInTick;
     long bytesInTick;
     
-    long elapsedMillis;
     long startTimeMillis;
     long stopTimeMillis;
     
@@ -40,7 +39,6 @@ public class SystemStatisticsImpl implements SystemStatistics {
     public void update(int size) {
         addEvent();
         addData(size);
-        updateElapsedTime();
     }
 
     @Override
@@ -54,7 +52,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public long getElapsedMillis() {
+    public long getTotalElapsedMillis() {
         return System.currentTimeMillis() - startTimeMillis;
     }
 
@@ -104,7 +102,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public double getAverageEventsPerSecond() {
         try {
-            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getElapsedMillis())));
+            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getTotalElapsedMillis())));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -127,7 +125,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public double getAverageMegabytesPerSecond() {
         try {
-            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getElapsedMillis())));
+            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getTotalElapsedMillis())));
         } catch (NumberFormatException e) {
             return Double.NaN;
         }
@@ -214,7 +212,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public void printSession(PrintStream ps) {
         ps.println("session statistics ...");
-        ps.println("  timeElapsedMillis = " + this.getElapsedMillis());
+        ps.println("  timeElapsedMillis = " + this.getTotalElapsedMillis());
         ps.println("  cumulativeEvents = " + this.getTotalEvents());
         ps.println("  averageEventsPerSecond = " + this.getAverageEventsPerSecond());
         ps.println("  averageMegaBytesPerSecond = " + this.getAverageMegabytesPerSecond());
@@ -237,10 +235,6 @@ public class SystemStatisticsImpl implements SystemStatistics {
     void addData(int size) {
         bytesInTick += size;
         totalBytes += size;
-    }
-
-    void updateElapsedTime() {
-        elapsedMillis = System.currentTimeMillis() - startTimeMillis;
     }
 
     // Bytes to megabytes to 2 decimal places.

@@ -47,7 +47,7 @@ public interface SystemStatistics {
      * Get the number of millis since the session started.
      * @return The number of millis since session start.
      */
-    long getElapsedMillis();
+    long getTotalElapsedMillis();
 
     /**
      * Get the Unix start time of the session.
