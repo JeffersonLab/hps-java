@@ -5,24 +5,16 @@
         <printDriversDetailed>false</printDriversDetailed>
     </control>
     <execute>
-        <driver name="EventMarkerDriver" />
-        <driver name="ConditionsDriver" /> 
-        <driver name="DAQConfig" />
+        <!-- <driver name="EventMarkerDriver" /> -->
         <driver name="EcalRawConverter" />
         <driver name="GTPTestDriver" />
         <driver name="TriggerDiagnostics" />
-        <!-- <driver name="AidaSaveDriver" />  -->
         <driver name="ClockDriver" />
-        <!-- <driver name="CleanupDriver" />  -->
     </execute>
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
+            <eventInterval>1</eventInterval>
         </driver>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-            <tag>pass0</tag>
-        </driver>
-        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver" />
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
@@ -37,13 +29,16 @@
         </driver>
         <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <!--
             <seedEnergyThreshold>0.500</seedEnergyThreshold>
             <windowBefore>3</windowBefore>
             <windowAfter>3</windowAfter>
-            <!-- <seedEnergyThreshold>0.010</seedEnergyThreshold>
+            -->
+            <!-- cuts used for GTP -->
+            <seedEnergyThreshold>0.010</seedEnergyThreshold>
             <windowBefore>2</windowBefore>
             <windowAfter>2</windowAfter>
-            <verbose>true</verbose> -->
+            <verbose>false</verbose>
         </driver>
         <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
             <noiseThresholdCount>100</noiseThresholdCount>
@@ -51,18 +46,12 @@
             <printOnSinglesSSPFailure>false</printOnSinglesSSPFailure>
             <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
             <printOnPairSSPFailure>false</printOnPairSSPFailure>
-            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
-            <!-- <readDAQConfig>true</readDAQConfig> -->
+            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>            
+            <readDAQConfig>true</readDAQConfig>
             <verbose>true</verbose>
+            <!-- determines snapshot readout time which is set to 1 second here -->
+            <localWindowThresholdMilliseconds>1000</localWindowThresholdMilliseconds>
         </driver>
-<!--         
-        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}_triggerPlots</outputFileName>
-        </driver>
- -->        
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver" />
-        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
-            <collectionNames>TrackerHits</collectionNames>
-        </driver>
     </drivers>
 </lcsim>
