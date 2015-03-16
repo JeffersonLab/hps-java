@@ -1,13 +1,9 @@
 package org.hps.monitoring.subsys.ecal;
 
-import java.util.Date;
-import java.util.TimerTask;
-
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.plotting.StripChartUtil;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.time.Millisecond;
-import org.jfree.data.time.TimeSeries;
+import org.hps.monitoring.plotting.StripChartUpdater;
+import org.hps.monitoring.plotting.ValueProvider;
+import org.jfree.data.time.Second;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.util.Driver;
@@ -21,22 +17,27 @@ public class EcalStripChartTestDriver extends Driver {
     int eventInterval = 1000;
     static String collectionName = "EcalReadoutHits";
 
-    MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECAL System Monitoring");
-    TimeSeries series;
-    JFreeChart stripChart;
-    TimerTask updateTask;
+    MonitoringPlotFactory plotFactory = 
+            (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECAL System Monitoring");
+
     EventHeader currentEvent;
     int hits;
+    
     int events;
-
+    double averageHits;
+    
+    StripChartUpdater updater;
+       
     public void startOfData() {
-        stripChart = plotFactory.createStripChart("Average ECAL Hits per " + eventInterval + " Events", "Hits", 99999999, /*
-                                                                                                                           * max
-                                                                                                                           * age
-                                                                                                                           */
-                1000, /* max count */
-                100000 /* range size */);
-        series = StripChartUtil.getTimeSeries(stripChart);
+        plotFactory.createStripChart(
+                "Average ECAL Hits per " + eventInterval + " Events", 
+                "Hits", 
+                1, 
+                new String[] { "Date" }, 
+                1, 
+                new Second(), 
+                new AverageHitsProvider(), 
+                20000L);        
     }
 
     public void process(EventHeader event) {
@@ -44,10 +45,19 @@ public class EcalStripChartTestDriver extends Driver {
         ++events;
         hits += size;
         if (event.getEventNumber() % eventInterval == 0) {
-            double averageHits = (double) hits / (double) events;
-            series.add(new Millisecond(new Date()), averageHits);
+            averageHits = (double) hits / (double) events;
             hits = 0;
             events = 0;
+        }
+    }
+    
+    public void endOfData() {
+        updater.stop();
+    }
+    
+    class AverageHitsProvider implements ValueProvider {
+        public float[] getValues() {
+            return new float[] {(float) averageHits};
         }
     }
 }

@@ -2,22 +2,18 @@ package org.hps.monitoring.subsys;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.hps.monitoring.plotting.StripChartUpdater;
+import org.hps.monitoring.plotting.ValueProvider;
 
 /**
  * Implementation of {@link SystemStatistics}.
  */
-// FIXME: Rolling averages need to happen over a greater time period like 30 seconds
-// instead of 1 second, because otherwise the statistics don't look right.
 public class SystemStatisticsImpl implements SystemStatistics {
 
-    long tickLengthMillis = 1000; // default is one second tick
-    long sessionElapsedMillis;
+    long tickLengthMillis = 1000; // default is 1 second tick
+    long totalElapsedMillis;
     long startTimeMillis;
     long stopTimeMillis;
     long eventsSinceTick;
@@ -25,14 +21,12 @@ public class SystemStatisticsImpl implements SystemStatistics {
     long totalEvents;
     long totalBytes;
     long tickStartMillis;
-    long tickElapsedMillis;
     static final long Kb = 1 * 1024;
     static final long Mb = Kb * 1024;
     static final double milliToSecond = 0.001;
     static final DecimalFormat decimalFormat = new DecimalFormat("#.####");
     Timer timer;
-    List<TimerTask> subtasks = new ArrayList<TimerTask>();
-
+    
     @Override
     public void update(int size) {
         addEvent();
@@ -52,7 +46,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
 
     @Override
     public long getTotalElapsedMillis() {
-        return sessionElapsedMillis;
+        return totalElapsedMillis;
     }
 
     @Override
@@ -67,7 +61,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public long getTickElapsedMillis() {
-        return tickElapsedMillis;
+        return System.currentTimeMillis() - tickStartMillis;
     }
 
     /**
@@ -86,10 +80,11 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public double getEventsPerSecond() {
-        if (eventsSinceTick > 0 && tickElapsedMillis > 0)
-            return (double) eventsSinceTick / millisToSeconds(tickElapsedMillis);
-        else
+        if (eventsSinceTick > 0 && getTickElapsedMillis() > 0) {
+            return (double) eventsSinceTick / millisToSeconds(getTickElapsedMillis());
+        } else {
             return 0.;
+        }
     }
 
     @Override
@@ -126,8 +121,8 @@ public class SystemStatisticsImpl implements SystemStatistics {
    
     @Override
     public double getBytesPerSecond() {
-        if (bytesSinceTick > 0 && tickElapsedMillis > 0)
-            return (double) bytesSinceTick / millisToSeconds(tickElapsedMillis);
+        if (bytesSinceTick > 0 && getTickElapsedMillis() > 0)
+            return (double) bytesSinceTick / millisToSeconds(getTickElapsedMillis());
         else
             return 0.;
     }
@@ -135,20 +130,14 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public void start() {
 
-        // Set time variables.
+        // Set session start time variables.
         long currentTimeMillis = System.currentTimeMillis();
         startTimeMillis = currentTimeMillis;
         tickStartMillis = currentTimeMillis;
 
-        // Start Timer task which executes at tick length.
+        // Start timer task which executes at the nominal tick length to calculate statistics periodically.
         TimerTask task = new TimerTask() {
             public void run() {
-
-                // Run sub-tasks.
-                for (TimerTask subtask : subtasks) {
-                    subtask.run();
-                }
-
                 nextTick();
             }
         };
@@ -185,12 +174,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
         ps.println("  eventsSinceTick = " + this.getEventsReceived());
         ps.println("  bytesSinceTick = " + this.getBytesReceived());
     }
-
-    @Override
-    public void addSubTask(TimerTask subtask) {
-        this.subtasks.add(subtask);
-    }
-
+   
     void addEvent() {
         eventsSinceTick += 1;
         totalEvents += 1;
@@ -202,8 +186,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     void updateElapsedTime() {
-        tickElapsedMillis = System.currentTimeMillis() - tickStartMillis;
-        sessionElapsedMillis = System.currentTimeMillis() - startTimeMillis;
+        totalElapsedMillis = System.currentTimeMillis() - startTimeMillis;
     }
 
     // Bytes to megabytes to 2 decimal places.
@@ -218,82 +201,76 @@ public class SystemStatisticsImpl implements SystemStatistics {
     synchronized void nextTick() {
         eventsSinceTick = 0;
         bytesSinceTick = 0;
-        tickElapsedMillis = 0;
         tickStartMillis = System.currentTimeMillis();
     }
     
-    public abstract class SystemStatisticsUpdater extends StripChartUpdater {
-        SystemStatisticsUpdater() {
-            addSubTask(this);
+    public abstract class SystemStatisticsProvider implements ValueProvider {
+    }
+    
+    public class AverageEventsPerSecondProvider extends SystemStatisticsProvider {
+
+        @Override
+        public float[] getValues() {
+            return new float[] {(float) getAverageEventsPerSecond()};
         }
     }
     
-    public class AverageEventsPerSecondUpdater extends SystemStatisticsUpdater {
+    public class EventsPerSecondProvider extends SystemStatisticsProvider {
 
         @Override
-        public float nextValue() {
-            return (float) getAverageEventsPerSecond();
-        }
-    }
-    
-    public class EventsPerSecondUpdater extends SystemStatisticsUpdater {
-
-        @Override
-        public float nextValue() {
-            return (float) getEventsPerSecond();
+        public float[] getValues() {
+            return new float[] {(float) getEventsPerSecond()};
         }
     }
             
-    public class EventsReceivedUpdater extends SystemStatisticsUpdater {
+    public class EventsReceivedProvider extends SystemStatisticsProvider {
 
         @Override
-        public float nextValue() {
-            return getEventsReceived();
+        public float[] getValues() {
+            return new float[] {getEventsReceived()};
         }
     }
 
-    public class TotalEventsUpdater extends SystemStatisticsUpdater {
+    public class TotalEventsProvider extends SystemStatisticsProvider {
         @Override
-        public float nextValue() {
-            return getTotalEvents();
+        public float[] getValues() {
+            return new float[] {getTotalEvents()};
         }
     }
 
-    public class BytesReceivedUpdater extends SystemStatisticsUpdater {
+    public class BytesReceivedProvider extends SystemStatisticsProvider {
         @Override
-        public float nextValue() {
-            return getBytesReceived();
+        public float[] getValues() {
+            return new float[]{getBytesReceived()};
         }
     }
 
-    public class AverageMegabytesPerSecondUpdater extends SystemStatisticsUpdater {
+    public class AverageMegabytesPerSecondProvider extends SystemStatisticsProvider {
         @Override
-        public float nextValue() {
-            return (float) getAverageMegabytesPerSecond();
+        public float[] getValues() {
+            return new float[] {(float) getAverageMegabytesPerSecond()};
         }
     }
 
-    public class TotalMegabytesUpdater extends SystemStatisticsUpdater {
+    public class TotalMegabytesProvider extends SystemStatisticsProvider {
         @Override
-        public float nextValue() {
-            return (float) getTotalMegabytes();
+        public float[] getValues() {
+            return new float[] {(float) getTotalMegabytes()};
         }
     }
     
-    public class BytesPerSecondUpdater extends SystemStatisticsUpdater {
+    public class BytesPerSecondProvider extends SystemStatisticsProvider {
 
         @Override
-        public float nextValue() {
-            return (float) getBytesPerSecond();
+        public float[] getValues() {
+            return new float[] {(float) getBytesPerSecond()};
         }
     }
     
-    public class MegabytesPerSecondUpdater extends SystemStatisticsUpdater {
+    public class MegabytesPerSecondProvider extends SystemStatisticsProvider {
         @Override
-        public float nextValue() {
-            return (float) getBytesPerSecond() / 1000000;
+        public float[] getValues() {
+            return new float[] {(float) getBytesPerSecond() / 1000000};
         }
     }
-    
-    
 }

@@ -1,7 +1,6 @@
 package org.hps.monitoring.subsys;
 
 import java.io.PrintStream;
-import java.util.TimerTask;
 
 /**
  * This is an interface for a set of basic statistics about an online event processing system.
@@ -129,5 +128,5 @@ public interface SystemStatistics {
      * Add subtask which will execute right before a new tick.
      * @param subtask The subtask to execute.
      */
-    void addSubTask(TimerTask subtask);
+    //void addSubTask(TimerTask subtask);
 }
