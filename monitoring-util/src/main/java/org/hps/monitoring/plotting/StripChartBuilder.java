@@ -26,12 +26,12 @@ public final class StripChartBuilder {
      * @param valueProvider The interface for providing values.
      * @return The StripChartUpdater for the chart.
      */
-    static StripChartUpdater createStripChart(
+    static StripChartUpdater createDynamicTimeSeriesChart(
             String name, 
             int seriesCount, 
             RegularTimePeriod timeBase,
             ValueProvider valueProvider) {
-        return createStripChart(name, "Values", seriesCount, null, 9999, timeBase, valueProvider, 10000L);
+        return createDynamicTimeSeriesChart(name, "Values", seriesCount, null, 9999, timeBase, valueProvider, 10000L);
     }
     
     /**
@@ -47,7 +47,7 @@ public final class StripChartBuilder {
      * @param rangeView The view in the domain axis around the current data point (milliseconds).
      * @return The StripChartUpdater for the chart.
      */
-    static StripChartUpdater createStripChart(
+    static StripChartUpdater createDynamicTimeSeriesChart(
             String name, 
             String rangeLabel,
             int seriesCount, 
@@ -99,7 +99,7 @@ public final class StripChartBuilder {
      * @param maxCount The maximum count of items in the single data set series.
      * @return The chart that was created.
      */
-    public static JFreeChart createTimeSeriesChart(
+    static JFreeChart createTimeSeriesChart(
             String title, 
             String yAxisLabel, 
             int maxAge, 
@@ -149,7 +149,7 @@ public final class StripChartBuilder {
      * @param rangeSize The range of values to show for auto-ranging in domain axis (in milliseconds).
      * @return The chart that was created.
      */
-    public static JFreeChart createTimeSeriesChart(
+    static JFreeChart createTimeSeriesChart(
             String title, 
             String yAxisLabel, 
             int seriesCount,

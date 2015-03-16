@@ -1,27 +1,53 @@
+/**
+ * 
+ */
 package org.hps.monitoring.subsys.et;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.plotting.StripChartUpdater;
+import org.hps.monitoring.subsys.SystemStatistics;
 import org.hps.monitoring.subsys.SystemStatisticsImpl;
+import org.hps.monitoring.subsys.SystemStatisticsListener;
 import org.hps.record.et.EtEventProcessor;
+import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.Second;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.jlab.coda.et.EtEvent;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * A basic set of strip charts for monitoring the ET system.
+ * This will show a series of strip charts from ET system performance statistics
+ * such as event and data rates.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class EtSystemStripCharts extends EtEventProcessor {
+public class EtSystemStripCharts extends EtEventProcessor implements SystemStatisticsListener {
 
+    // The system statistics.
     SystemStatisticsImpl stats = new SystemStatisticsImpl();
-    MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ET System Monitoring");
-    List<StripChartUpdater> updaters = new ArrayList<StripChartUpdater>();
     
-    public EtSystemStripCharts() {
-        stats.setTickLengthMillis(1000);
+    // Plotting API.
+    MonitoringPlotFactory plotFactory = 
+            (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ET System Monitoring");
+    
+    // List of charts.
+    List<JFreeChart> charts = new ArrayList<JFreeChart>();
+    
+    // Range size in milliseconds.
+    static final double RANGE_SIZE = 200000;
+    
+    // Chart collection indices.
+    static final int DATA_RATE_COLLECTION_INDEX = 0;    
+    static final int TOTAL_DATA_COLLECTION_INDEX = 1;    
+    static final int EVENT_RATE_COLLECTION_INDEX = 2;
+    static final int TOTAL_EVENTS_COLLECTION_INDEX = 3;
+        
+    public EtSystemStripCharts() {          
+        // Set 2 seconds between statistics updates.
+        stats.setNominalTickLengthMillis(1000);
     }
     
     /**
@@ -29,57 +55,37 @@ public final class EtSystemStripCharts extends EtEventProcessor {
      */
     @Override
     public void startJob() {
-
-        // Create the ET system strip charts.
-        createStripCharts();
+        
+        System.out.println("EtSystemStripChartsNew.startJob");
+   
+        // Register this class as a listener to activate update at end of statistics clock tick.
+        stats.addSystemStatisticsListener(this);
 
         // Start systems statistics task.
         stats.start();
     }
 
     /**
-     * 
+     * Create the strip charts for plotting the basic ET system statistics.
      */
     private void createStripCharts() {
-        updaters.add(plotFactory.createStripChart(
-                "Data Rate", 
-                "MB / second", 
-                1, 
-                new String[] { "Data" }, 
-                999, 
-                new Second(), 
-                stats.new MegabytesPerSecondProvider(), 
-                200000L));
+        
+        System.out.println("EtSystemStripChartsNew.createStripCharts");
 
-        updaters.add(plotFactory.createStripChart(
-                "Total Data", 
-                "Megabytes", 
-                1, 
-                new String[] { "Data" },
-                999,
-                new Second(), 
-                stats.new TotalMegabytesProvider(), 
-                200000L));
+        // Data rate in megabytes per second.
+        // TODO: Add to same chart the average MB / second.
+        charts.add(plotFactory.createTimeSeriesChart("Data Rate", "MB / second", 1, null, RANGE_SIZE));
+                
+        // Total megabytes received.
+        charts.add(plotFactory.createTimeSeriesChart("Total Data", "Megabytes", 1, null, RANGE_SIZE));
         
-        updaters.add(plotFactory.createStripChart(
-                "Event Rate", 
-                "Events / s", 
-                1, 
-                new String[] { "Data" }, 
-                999, 
-                new Second(), 
-                stats.new EventsPerSecondProvider(), 
-                200000L));
+        // Event rate in hertz.
+        // TODO: Add to same chart the average event rate.
+        charts.add(plotFactory.createTimeSeriesChart("Event Rate", "Hz", 1, null, RANGE_SIZE));
         
-        updaters.add(plotFactory.createStripChart(
-                "Total Events", 
-                "Number of Events", 
-                1, 
-                new String[] { "Data" }, 
-                999, 
-                new Second(), 
-                stats.new TotalEventsProvider(), 
-                200000L));
+        // Total number of events received.
+        charts.add(plotFactory.createTimeSeriesChart("Total Events", "Number of Events", 1, null, RANGE_SIZE));
+              
     }
 
     @Override
@@ -88,13 +94,39 @@ public final class EtSystemStripCharts extends EtEventProcessor {
     }
 
     public void endJob() {
-
-        // Stop the strip chart updaters.
-        for (StripChartUpdater updater : updaters) {
-            updater.stop();
-        }
-        
         // Stop system statistics task.
         stats.stop();
+    }
+    
+    TimeSeriesCollection getTimeSeriesCollection(int chartIndex) {
+        return (TimeSeriesCollection) charts.get(chartIndex).getXYPlot().getDataset();
+    }
+
+    /**
+     * Hook for updating the charts at end of statistics clock tick.
+     * @param stats The statistics with the system information.
+     */
+    @Override
+    public void endTick(SystemStatistics stats) {
+        
+        Date now = new Date(stats.getTickEndTimeMillis());
+                
+        getTimeSeriesCollection(DATA_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
+                new Second(now), stats.getBytesPerSecond() / 1000000);
+        getTimeSeriesCollection(TOTAL_DATA_COLLECTION_INDEX).getSeries(0).addOrUpdate(
+                new Second(now), stats.getTotalMegabytes());
+        getTimeSeriesCollection(EVENT_RATE_COLLECTION_INDEX).getSeries(0).addOrUpdate(
+                new Second(now), stats.getEventsPerSecond());
+        getTimeSeriesCollection(TOTAL_EVENTS_COLLECTION_INDEX).getSeries(0).addOrUpdate(
+                new Second(now), stats.getTotalEvents());
+    }
+     
+    @Override
+    public void started(SystemStatistics stats) {
+        createStripCharts();
+    }
+   
+    @Override
+    public void stopped(SystemStatistics stats) {
     }
 }

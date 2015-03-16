@@ -164,7 +164,7 @@ public class MonitoringPlotFactory extends PlotterFactory {
             RegularTimePeriod timeBase,
             ValueProvider valueProvider,
             long rangeView) {
-        StripChartUpdater updater = StripChartBuilder.createStripChart(
+        StripChartUpdater updater = StripChartBuilder.createDynamicTimeSeriesChart(
                 name, 
                 rangeLabel, 
                 seriesCount, 
@@ -215,6 +215,17 @@ public class MonitoringPlotFactory extends PlotterFactory {
         addChart(stripChart);
         return stripChart;
     }       
+    
+    public JFreeChart createTimeSeriesChart(
+            String title, 
+            String yAxisLabel, 
+            int seriesCount,
+            String[] datasetNames,
+            double rangeSize) {
+        JFreeChart chart = StripChartBuilder.createTimeSeriesChart(title, yAxisLabel, seriesCount, datasetNames, rangeSize);
+        addChart(chart);
+        return chart;
+    }
     
     /**
      * Get the global registry of plotters.

@@ -11,13 +11,20 @@ public interface SystemStatistics {
      * Set the desired timer tick length in millis.
      * @param tickLengthMillis The desired tick length in millis.
      */
-    void setTickLengthMillis(long tickLengthMillis);
+    void setNominalTickLengthMillis(long tickLengthMillis);
 
     /**
-     * Get the nominal length of one tick in millis. Actual ticks lengths may vary slightly.
+     * Get the nominal length of one tick in millis.
+     *  Actual tick lengths lengths may vary slightly.
      * @return The nominal tick length in millis.
      */
-    long getTickLengthMillis();
+    long getNominalTickLengthMillis();
+    
+    /**
+     * Get the end of the tick in Unix time (milliseconds since the epoch).
+     * @return The tick end in Unix time.
+     */
+    long getTickEndTimeMillis();
 
     /**
      * Start the timer thread for accumulating statistics.
@@ -40,7 +47,7 @@ public interface SystemStatistics {
      * Get the number of millis since the session started.
      * @return The number of millis since session start.
      */
-    long getTotalElapsedMillis();
+    long getElapsedMillis();
 
     /**
      * Get the Unix start time of the session.
@@ -105,6 +112,13 @@ public interface SystemStatistics {
      * @return The data rate in [bytes/second].
      */
     public double getBytesPerSecond();
+    
+    /**
+     * Get the immediate data rate which is the amount of data in megabytes received in the current tick
+     * over the time elapsed in the tick.
+     * @return The data rate in [bytes/second].
+     */
+    public double getMegabytesPerSecond();
 
     /**
      * Get the number of milliseconds since the last tick.
@@ -123,10 +137,10 @@ public interface SystemStatistics {
      * @param ps The PrintStream for display.
      */
     void printTick(PrintStream ps);
-
+    
     /**
-     * Add subtask which will execute right before a new tick.
-     * @param subtask The subtask to execute.
+     * 
+     * @param listener
      */
-    //void addSubTask(TimerTask subtask);
+    void addSystemStatisticsListener(SystemStatisticsListener listener);   
 }

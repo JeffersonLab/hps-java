@@ -2,6 +2,8 @@ package org.hps.monitoring.subsys;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -12,20 +14,27 @@ import org.hps.monitoring.plotting.ValueProvider;
  */
 public class SystemStatisticsImpl implements SystemStatistics {
 
-    long tickLengthMillis = 1000; // default is 1 second tick
-    long totalElapsedMillis;
+    long nominalTickLengthMillis = 1000; // default is 1 second tick
+    long tickStartTimeMillis;
+    long tickEndTimeMillis;    
+
+    long eventsInTick;
+    long bytesInTick;
+    
+    long elapsedMillis;
     long startTimeMillis;
     long stopTimeMillis;
-    long eventsSinceTick;
-    long bytesSinceTick;
+    
     long totalEvents;
     long totalBytes;
-    long tickStartMillis;
+
     static final long Kb = 1 * 1024;
     static final long Mb = Kb * 1024;
     static final double milliToSecond = 0.001;
     static final DecimalFormat decimalFormat = new DecimalFormat("#.####");
     Timer timer;
+    
+    List<SystemStatisticsListener> listeners = new ArrayList<SystemStatisticsListener>();
     
     @Override
     public void update(int size) {
@@ -35,18 +44,18 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     @Override
-    public void setTickLengthMillis(long tickLengthMillis) {
-        this.tickLengthMillis = tickLengthMillis;
+    public void setNominalTickLengthMillis(long tickLengthMillis) {
+        this.nominalTickLengthMillis = tickLengthMillis;
     }
 
     @Override
-    public long getTickLengthMillis() {
-        return tickLengthMillis;
+    public long getNominalTickLengthMillis() {
+        return nominalTickLengthMillis;
     }
 
     @Override
-    public long getTotalElapsedMillis() {
-        return totalElapsedMillis;
+    public long getElapsedMillis() {
+        return System.currentTimeMillis() - startTimeMillis;
     }
 
     @Override
@@ -61,7 +70,12 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public long getTickElapsedMillis() {
-        return System.currentTimeMillis() - tickStartMillis;
+        return System.currentTimeMillis() - tickStartTimeMillis;
+    }
+    
+    @Override
+    public long getTickEndTimeMillis() {
+        return tickEndTimeMillis;
     }
 
     /**
@@ -70,7 +84,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public long getEventsReceived() {
-        return eventsSinceTick;
+        return eventsInTick;
     }
      
     @Override
@@ -80,8 +94,8 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public double getEventsPerSecond() {
-        if (eventsSinceTick > 0 && getTickElapsedMillis() > 0) {
-            return (double) eventsSinceTick / millisToSeconds(getTickElapsedMillis());
+        if (eventsInTick > 0 && getTickElapsedMillis() > 0) {
+            return (double) eventsInTick / millisToSeconds(getTickElapsedMillis());
         } else {
             return 0.;
         }
@@ -90,7 +104,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public double getAverageEventsPerSecond() {
         try {
-            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getTotalElapsedMillis())));
+            return Double.parseDouble(decimalFormat.format(totalEvents / millisToSeconds(getElapsedMillis())));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -102,7 +116,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     
     @Override
     public long getBytesReceived() {
-        return bytesSinceTick;
+        return bytesInTick;
     }
     
     @Override
@@ -113,7 +127,7 @@ public class SystemStatisticsImpl implements SystemStatistics {
     @Override
     public double getAverageMegabytesPerSecond() {
         try {
-            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getTotalElapsedMillis())));
+            return Double.parseDouble(decimalFormat.format(bytesToMb(totalBytes) / millisToSeconds(getElapsedMillis())));
         } catch (NumberFormatException e) {
             return Double.NaN;
         }
@@ -121,28 +135,59 @@ public class SystemStatisticsImpl implements SystemStatistics {
    
     @Override
     public double getBytesPerSecond() {
-        if (bytesSinceTick > 0 && getTickElapsedMillis() > 0)
-            return (double) bytesSinceTick / millisToSeconds(getTickElapsedMillis());
+        if (bytesInTick > 0 && getTickElapsedMillis() > 0)
+            return (double) bytesInTick / millisToSeconds(getTickElapsedMillis());
         else
             return 0.;
     }
-
+    
+    @Override
+    public double getMegabytesPerSecond() {
+        double bytes = getBytesPerSecond();
+        if (bytes > 0) {
+            return bytesToMb(bytes);
+        } else {
+            return 0;
+        }
+    }
+    
     @Override
     public void start() {
 
         // Set session start time variables.
         long currentTimeMillis = System.currentTimeMillis();
         startTimeMillis = currentTimeMillis;
-        tickStartMillis = currentTimeMillis;
-
+        tickStartTimeMillis = currentTimeMillis;
+        
+        // Notify listeners of start.
+        for (SystemStatisticsListener listener : listeners) {
+            listener.started(this);
+        }
+        
         // Start timer task which executes at the nominal tick length to calculate statistics periodically.
         TimerTask task = new TimerTask() {
             public void run() {
+                
+                // End the current tick.
+                endTick();
+               
+                // Start the new tick.
                 nextTick();
             }
         };
         timer = new Timer();
-        timer.schedule(task, 0, tickLengthMillis);
+        timer.schedule(task, 0, nominalTickLengthMillis);
+    }
+    
+    void endTick() {
+ 
+        // Set absolute end time of current tick.
+        this.tickEndTimeMillis = System.currentTimeMillis();
+        
+        // Activate listeners.
+        for (SystemStatisticsListener listener : listeners) {
+            listener.endTick(this);
+        }
     }
 
     @Override
@@ -155,12 +200,21 @@ public class SystemStatisticsImpl implements SystemStatistics {
 
         // Set stop time.
         stopTimeMillis = System.currentTimeMillis();
+        
+        // Notify listeners of stop.
+        for (SystemStatisticsListener listener : listeners) {
+            listener.stopped(this);
+        }
     }
-
+    
+    public void addSystemStatisticsListener(SystemStatisticsListener listener) {
+        listeners.add(listener);
+    }    
+    
     @Override
     public void printSession(PrintStream ps) {
         ps.println("session statistics ...");
-        ps.println("  timeElapsedMillis = " + this.getTotalElapsedMillis());
+        ps.println("  timeElapsedMillis = " + this.getElapsedMillis());
         ps.println("  cumulativeEvents = " + this.getTotalEvents());
         ps.println("  averageEventsPerSecond = " + this.getAverageEventsPerSecond());
         ps.println("  averageMegaBytesPerSecond = " + this.getAverageMegabytesPerSecond());
@@ -176,22 +230,27 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
    
     void addEvent() {
-        eventsSinceTick += 1;
+        eventsInTick += 1;
         totalEvents += 1;
     }
 
     void addData(int size) {
-        bytesSinceTick += size;
+        bytesInTick += size;
         totalBytes += size;
     }
 
     void updateElapsedTime() {
-        totalElapsedMillis = System.currentTimeMillis() - startTimeMillis;
+        elapsedMillis = System.currentTimeMillis() - startTimeMillis;
     }
 
     // Bytes to megabytes to 2 decimal places.
     static final double bytesToMb(long size) {
         return Double.parseDouble(decimalFormat.format((double) size / Mb));
+    }
+    
+    // Bytes to megabytes to 2 decimal places.
+    static final double bytesToMb(double size) {
+        return Double.parseDouble(decimalFormat.format(size / Mb));
     }
 
     static final double millisToSeconds(long millis) {
@@ -199,14 +258,14 @@ public class SystemStatisticsImpl implements SystemStatistics {
     }
 
     synchronized void nextTick() {
-        eventsSinceTick = 0;
-        bytesSinceTick = 0;
-        tickStartMillis = System.currentTimeMillis();
+        eventsInTick = 0;
+        bytesInTick = 0;
+        tickStartTimeMillis = System.currentTimeMillis();
     }
     
     public abstract class SystemStatisticsProvider implements ValueProvider {
     }
-    
+
     public class AverageEventsPerSecondProvider extends SystemStatisticsProvider {
 
         @Override
