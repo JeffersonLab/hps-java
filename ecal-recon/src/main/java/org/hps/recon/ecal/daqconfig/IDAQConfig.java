@@ -10,15 +10,15 @@ package org.hps.recon.ecal.daqconfig;
  * @author Kyle McCarty
  */
 abstract class IDAQConfig {
-	/**
-	 * Updates the stored settings based on the argument parser.
-	 * @param parser - The EVIO DAQ bank parser.
-	 */
-	abstract void loadConfig(EvioDAQParser parser);
-	
-	/**
-	 * Prints a textual representation of the configuration bank to the
-	 * terminal.
-	 */
-	public abstract void printConfig();
+    /**
+     * Updates the stored settings based on the argument parser.
+     * @param parser - The EVIO DAQ bank parser.
+     */
+    abstract void loadConfig(EvioDAQParser parser);
+    
+    /**
+     * Prints a textual representation of the configuration bank to the
+     * terminal.
+     */
+    public abstract void printConfig();
 }
