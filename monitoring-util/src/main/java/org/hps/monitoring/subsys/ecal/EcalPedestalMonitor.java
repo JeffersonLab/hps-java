@@ -1,108 +1,66 @@
 package org.hps.monitoring.subsys.ecal;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.plotting.StripChartUtil;
 import org.jfree.chart.JFreeChart;
-import org.jfree.data.time.Millisecond;
-import org.jfree.data.time.TimeSeries;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.data.time.Second;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
 /*
  * Reads output of org.hps.recon.ecal.RunningPedestalDriver and makes strip charts.
- * 
- * Are we going to lose/reinitialize these plots when run ends?
- * Or can we keep on going off ET-ring across runs?
  * 
  * Baltzell
  */
 public class EcalPedestalMonitor extends Driver {
 
-    long previousTime;
+    static final int REFRESH_RATE = 10*1000; // units = ms
+    static final double DOMAIN_SIZE = 4*60*60*1000; // x-axis range (ms)
+    static final int crates[]={1,2};
+    static final int slots[]={3,4,5,6,7,8,9,14,15,16,17,18,19,20};
+    static final String slotNames[]={"Sl3","Sl4","Sl5","Sl6","Sl7","Sl8","Sl9","Sl14","Sl15","Sl16","Sl17","Sl18","Sl19","Sl20"};
+    static final String collectionName = "EcalRunningPedestals";
+   
     long currentTime;
-    int refreshRate=1000; // units = ms
-   
+    long previousTime=0;
     int nDetectorChanges=0;
-   
-    int maxAge = 999999999;
-    int maxCount = 100000;
-    int rangeSize = 100000;
-   
-    // None of this "works":
-    //int maxAge = 86400000; // 1 day (units ms)
-    //int maxCount = 999999999;//(int)maxAge/refreshRate;
-    //int rangeSize = 999999999;//maxAge; // what is this?
-   
-    final int crates[]={1,2};
-    final int slots[]={3,4,5,6,7,8,9,14,15,16,17,18,19,20};
-    
-    String collectionName = "EcalRunningPedestals";
-    
-    MonitoringPlotFactory plotFactory = (MonitoringPlotFactory) AIDA.defaultInstance()
-            .analysisFactory().createPlotterFactory("ECal Pedestal Monitoring");
-
-    Map<Integer, Map<Integer, JFreeChart>> stripCharts = new HashMap<Integer, Map<Integer, JFreeChart>>();
-    Map<Integer, Map<Integer, TimeSeries>> stripCharts2 = new HashMap<Integer, Map<Integer, TimeSeries>>();
-
     private EcalConditions ecalConditions = null;
+    List<JFreeChart> charts = new ArrayList<JFreeChart>();
+    MonitoringPlotFactory plotFactory = 
+            (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECal Pedestal Monitoring");
     
-    public void startOfData() {
-        //plotFactory.createStripChart("X","Y",maxAge,maxCount,rangeSize);
-        plotFactory.create().show();
-        
-        //System.out.println("----------------------------    "+maxCount);
-    }
-
-    @Override
     public void detectorChanged(Detector detector) {
-        
-        // this would defeat the purpose.
         if (nDetectorChanges++ > 0) return;
-        
-        currentTime=0;
-        previousTime=0;
-        
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
-        
-        // put them in order:
         for (int crate : crates) {
-            stripCharts.put(crate,new HashMap<Integer, JFreeChart>());
-            stripCharts2.put(crate,new HashMap<Integer, TimeSeries>());
-            for (int slot : slots) {
-                
-                final double ped=getAveragePedestal(crate,slot);
-                
-                String name = String.format("C%dS%02d",crate,slot);
-                JFreeChart stripChart = plotFactory.createStripChart(name,"asdf",
-                        maxAge,maxCount,rangeSize);
-//                stripChart.getXYPlot().getRangeAxis().setRange(70,140);
-//                stripChart.getXYPlot().getRangeAxis().setFixedAutoRange(10);
-//                stripChart.getXYPlot().getRangeAxis().setAutoRange(true);
-                stripChart.getXYPlot().getRangeAxis().setRangeAboutValue(ped,10);
-                stripCharts.get(crate).put(slot,stripChart);
-                stripCharts2.get(crate).put(slot,StripChartUtil.getTimeSeries(stripChart));
-            }
+            charts.add(plotFactory.createTimeSeriesChart(
+                    "Crate " + crate,
+                    "Offset Pedestal (ADC)", 
+                    slots.length, slotNames,
+                    DOMAIN_SIZE));
         }
     }
-
+    
     @Override
     public void process(EventHeader event) {
 
-        if (!event.hasItem(collectionName)) {
-            return;
-        }
+        if (!event.hasItem(collectionName)) return;
 
-        currentTime=System.currentTimeMillis();
-        if (currentTime - previousTime < refreshRate) return;
-        previousTime=currentTime;
+        currentTime = System.currentTimeMillis();
+        if (currentTime - previousTime < REFRESH_RATE) return;
+        previousTime = currentTime;
 
         // get the running pedestals:
         Map<EcalChannel, Double> peds = (Map<EcalChannel, Double>) event.get(collectionName);
@@ -110,6 +68,7 @@ public class EcalPedestalMonitor extends Driver {
         // tally slot pedestals:
         Map<Integer, Map<Integer, Double>> pedsum = new HashMap<Integer, Map<Integer, Double>>();
         Map<Integer, Map<Integer, Integer>> npedsum = new HashMap<Integer, Map<Integer, Integer>>();
+
         for (EcalChannel cc : peds.keySet()) {
             final Double ped = peds.get(cc);
             final int crate = cc.getCrate();
@@ -131,17 +90,24 @@ public class EcalPedestalMonitor extends Driver {
         }
 
         // fill strip charts:
+        long now = System.currentTimeMillis();
         for (int crate : pedsum.keySet()) {
-            for (int slot : pedsum.get(crate).keySet()) {
-
-                final double ped = pedsum.get(crate).get(slot) / npedsum.get(crate).get(slot);
-                stripCharts2.get(crate).get(slot).add(new Millisecond(new Date()),ped);
+            TimeSeriesCollection cc=getTimeSeriesCollection(crate-1);
+            JFreeChart chart=charts.get(crate-1);
+            DateAxis ax=(DateAxis)chart.getXYPlot().getDomainAxis();
+            ax.setRange(now-DOMAIN_SIZE,now);
+            for (int slot=0; slot<slots.length; slot++) {
+                double ped = pedsum.get(crate).get(slots[slot]) / npedsum.get(crate).get(slots[slot]);
+                ped -= getAveragePedestal(crate,slots[slot])-slot+9;
+                cc.getSeries(slot).addOrUpdate(new Second(new Date()),ped);
             }
         }
-
     }
     
-    
+    TimeSeriesCollection getTimeSeriesCollection(int chartIndex) {
+        return (TimeSeriesCollection) charts.get(chartIndex).getXYPlot().getDataset();
+    }
+
     public EcalChannel findChannel(int crate, int slot, int chan) {
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             if (crate == cc.getCrate() && slot == cc.getSlot() && chan == cc.getChannel()) {
