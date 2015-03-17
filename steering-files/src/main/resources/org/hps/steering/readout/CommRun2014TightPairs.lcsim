@@ -11,21 +11,26 @@
         <printDriversDetailed>false</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver"/>         
+  <driver name="ConditionsDriver"/>
+        <driver name="EventMarkerDriver"/>          
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClusterer"/>
-        <driver name="PairTrigger0"/>
+        <driver name="PairTrigger1"/>
         <driver name="TestRunReconToLcio"/>
         <driver name="AidaSaveDriver"/>
         <driver name="ClockDriver"/>
-        <driver name="CleanupDriver"/>
+<!--        <driver name="CleanupDriver"/> -->
     </execute> 
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver> 
        
+    <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+     <runNumber>3422</runNumber>
+     <freeze>true</freeze>
+    </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>true</rejectBackground>
@@ -42,6 +47,7 @@
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <applyBadCrystalMap>false</applyBadCrystalMap>
             <use2014Gain>false</use2014Gain>      
+            <debug>true</debug>
         </driver>	
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
