@@ -81,6 +81,9 @@ public class TableTextModel extends AbstractTableModel {
 		
 		// Set the value.
 		values[rowIndex][columnIndex] = value;
+		
+		// Update the table.
+		this.fireTableCellUpdated(rowIndex, columnIndex);
 	}
 	
 	/**

@@ -82,11 +82,6 @@ public class ClusterTablePanel extends AbstractTwoColumnTablePanel {
 			setGlobalRowValue(ROW_RECON_COUNT, String.format(countFormat, clusterValue[2]));
 			setGlobalRowValue(ROW_SSP_COUNT,   String.format(countFormat, clusterValue[3]));
 			
-			
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_RECON_COUNT, 1, String.format(countFormat, clusterValue[0]));
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_SSP_COUNT,   1, String.format(countFormat, clusterValue[1]));
-			
-			
 			// Output the tracked statistical data.
 			int total;
 			String percentFormat = "%" + spaces + "d / %" + spaces + "d (%7.3f)";
@@ -112,12 +107,6 @@ public class ClusterTablePanel extends AbstractTwoColumnTablePanel {
 			setGlobalRowValue(ROW_FAILED_POSITION,  String.format(percentFormat, statValue[5], total, 100.0 * statValue[5] / total));
 			setGlobalRowValue(ROW_FAILED_ENERGY,    String.format(percentFormat, statValue[6], total, 100.0 * statValue[6] / total));
 			setGlobalRowValue(ROW_FAILED_HIT_COUNT, String.format(percentFormat, statValue[7], total, 100.0 * statValue[7] / total));
-			
-			
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_MATCHED,          1, String.format(percentFormat, statValue[0], total, 100.0 * statValue[0] / total));
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_FAILED_POSITION,  1, String.format(percentFormat, statValue[1], total, 100.0 * statValue[1] / total));
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_FAILED_ENERGY,    1, String.format(percentFormat, statValue[2], total, 100.0 * statValue[2] / total));
-			System.out.printf("(row = %d, col = %d) --> %s%n", ROW_FAILED_HIT_COUNT, 1, String.format(percentFormat, statValue[3], total, 100.0 * statValue[3] / total));
 		}
 	}
 }
