@@ -56,7 +56,7 @@ public class SystemStatusEventsTable extends JTable {
                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 
                 // Color code the cell by its status.
-                StatusCode statusCode = StatusCode.valueOf((String) value);
+                StatusCode statusCode = (StatusCode) value;
                 label.setBackground(statusCode.getColor());
                 return label;
             }
