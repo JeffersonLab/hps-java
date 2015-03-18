@@ -22,27 +22,36 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>       
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+     		<runNumber>3422</runNumber>
+    		<freeze>true</freeze>
+    		<detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
+   		 </driver>
+   		 <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <outputFile>${outputFile}.slcio</outputFile>
+            <rejectBackground>true</rejectBackground>
+        </driver>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
-            <addNoise>true</addNoise>        
+            <addNoise>false</addNoise>
+            <use2014Gain>false</use2014Gain>        
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
-            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <applyBadCrystalMap>false</applyBadCrystalMap>
-            <use2014Gain>true</use2014Gain>      
+            <use2014Gain>false</use2014Gain>      
         </driver>	
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
             <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
-            <minTime>0.0</minTime>
-            <timeWindow>25.0</timeWindow>
             <useTimeCut>true</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
