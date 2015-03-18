@@ -1,8 +1,5 @@
-<!-- 
-  Execute full trigger+readout simulation and write the results as an LCIO file.
-  This is for the December 2014 commissioning run; ECAL only
-  @author Matt Graham <mgraham@slac.stanford.edu>
-  @version $Id: CommRun2014LoosePairs.lcsim,v 1.2 2015/26/01 mgraham Exp $
+<!--
+  Full 2014 prescales and trigger cuts for runs 3430-3446.
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
@@ -60,6 +57,7 @@
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
+            
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
