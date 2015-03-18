@@ -94,7 +94,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private boolean addNoise = false;
     private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
     //switch between test run and 2014 definitions of gain constants
-    private boolean use2014Gain = true;
+    private boolean use2014Gain = false;
     //switch between three pulse shape functions
     private PulseShape pulseShape = PulseShape.ThreePole;
 
@@ -448,7 +448,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 //add preamp noise and photoelectron Poisson noise in quadrature
                 double noise;
                 if (use2014Gain) {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) + hit.getRawEnergy() / (ECalUtils.lightYield * ECalUtils.quantumEff * ECalUtils.surfRatio));
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) 
+                    		+ hit.getRawEnergy() / (ECalUtils.lightYield * ECalUtils.quantumEff * ECalUtils.surfRatio));
                 } else {
                     noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
                 }
@@ -515,7 +516,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (fixedGain > 0) {
                 gain = readoutPeriod / (fixedGain * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             } else {
-                gain = readoutPeriod / (channelData.getGain().getGain() * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+                gain = 1. / (channelData.getGain().getGain() * ECalUtils.MeV);
             }
 
             return gain * pulseAmplitude(time, pulseShape, tp);
