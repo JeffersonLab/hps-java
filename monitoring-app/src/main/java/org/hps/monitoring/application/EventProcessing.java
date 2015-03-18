@@ -290,7 +290,15 @@ class EventProcessing {
         killWatchdogThread();
 
         // Wake up all ET stations to unblock the system and make sure secondary stations are detached.
-        wakeUpEtStations();
+        //wakeUpEtStations()
+        // Wake up the primary ET station doing the event processing.
+        logger.finest("waking up event processing station ...");
+        try {
+            sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
+            logger.finest("event processing station woken up");
+        } catch (IOException | EtException | EtClosedException e) {
+            e.printStackTrace();
+        }
         
         // Stop the event processing now that ET system is unblocked.
         logger.fine("sending STOP command to loop ...");
@@ -492,10 +500,10 @@ class EventProcessing {
                 createEtConnection();
 
                 // Add an attachment that listens for DAQ configuration changes via physics SYNC events.
-                createPhysicsSyncStation();
+                //createPhysicsSyncStation();
                 
                 // Add an attachment that listens for PRESTART events.
-                createPreStartStation();
+                //createPreStartStation();
                 
             } catch (Exception e) {
                 throw new IOException(e);
