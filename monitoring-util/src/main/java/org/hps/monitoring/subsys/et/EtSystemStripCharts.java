@@ -73,7 +73,7 @@ public class EtSystemStripCharts extends EtEventProcessor implements SystemStati
                 "Data Rate", 
                 "MB / second",
                 2, 
-                new String[] { "Data Rate", "Average Data Rage" },
+                new String[] { "Data Rate", "Average Data Rate" },
                 RANGE_SIZE));
                 
         // Total megabytes received.
