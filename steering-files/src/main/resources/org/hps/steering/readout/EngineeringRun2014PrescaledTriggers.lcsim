@@ -1,0 +1,135 @@
+<!-- 
+  Execute full trigger+readout simulation and write the results as an LCIO file.
+  This is for the December 2014 commissioning run; ECAL only
+  @author Matt Graham <mgraham@slac.stanford.edu>
+  @version $Id: CommRun2014LoosePairs.lcsim,v 1.2 2015/26/01 mgraham Exp $
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printInputFiles>false</printInputFiles>
+        <printDriversDetailed>false</printDriversDetailed>
+    </control>    
+    <execute>
+  <driver name="ConditionsDriver"/>
+        <driver name="EventMarkerDriver"/>          
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="EcalClustererGTP"/>
+        <driver name="EcalClusterer"/>
+        <driver name="PairTrigger0"/>
+        <driver name="PairTrigger1"/>
+        <driver name="SinglesTrigger0"/>
+        <driver name="SinglesTrigger1"/>
+        <driver name="TestRunReconToLcio"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="ClockDriver"/>
+<!--        <driver name="CleanupDriver"/> -->
+    </execute> 
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver> 
+       
+    <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+     <runNumber>3422</runNumber>
+     <freeze>true</freeze>
+    </driver>
+        <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <outputFile>${outputFile}.slcio</outputFile>
+            <rejectBackground>true</rejectBackground>
+        </driver>
+        <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
+            <coincidenceWindow>1</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <addNoise>true</addNoise>        
+        </driver>
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <use2014Gain>false</use2014Gain>      
+            <debug>true</debug>
+        </driver>	
+        <driver name="EcalClustererGTP" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
+            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
+            <clusterWindow>1</clusterWindow>
+        </driver>
+        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+            <hitEnergyThreshold>0.01</hitEnergyThreshold>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
+            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
+            <minTime>0.0</minTime>
+            <useTimeCut>false</useTimeCut>
+            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver>
+        <driver name="SinglesTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>32</deadTime>
+            <minHitCount>4</minHitCount>
+            <seedEnergyLowThreshold>0.1</seedEnergyLowThreshold>
+            <clusterEnergyLowThreshold>0.5</clusterEnergyLowThreshold>
+            <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
+            <prescale>256</prescale>
+            <outputFileName>${outputFile}.triggers.singles0</outputFileName>
+        </driver>	      
+        <driver name="SinglesTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>32</deadTime>
+            <minHitCount>4</minHitCount>
+            <seedEnergyLowThreshold>0.1</seedEnergyLowThreshold>
+            <clusterEnergyLowThreshold>1.0</clusterEnergyLowThreshold>
+            <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
+            <prescale>128</prescale>
+            <outputFileName>${outputFile}.triggers.singles1</outputFileName>
+        </driver>	      
+        <driver name="PairTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>32</deadTime>
+            <minHitCount>2</minHitCount>
+            <pairCoincidence>4</pairCoincidence>
+            <clusterEnergyHigh>2.5</clusterEnergyHigh>
+            <clusterEnergyLow>0.2</clusterEnergyLow>
+            <energySumHigh>2.0</energySumHigh>
+            <energySumLow>0.0</energySumLow>
+            <energyDifferenceHigh>1.2</energyDifferenceHigh>
+            <coplanarityHigh>90</coplanarityHigh>
+            <seedEnergyLow>0.1</seedEnergyLow>
+            <energySlopeParamF>0.0055</energySlopeParamF>
+            <energySlopeLow>0.4</energySlopeLow>
+            <prescale>1</prescale>
+            <outputFileName>${outputFile}.triggers.pairs0</outputFileName>
+        </driver>	      
+        <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+            <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <deadTime>32</deadTime>
+            <minHitCount>3</minHitCount>
+            <pairCoincidence>4</pairCoincidence>
+            <clusterEnergyHigh>1.8</clusterEnergyHigh>
+            <clusterEnergyLow>0.2</clusterEnergyLow>
+            <energySumHigh>2.0</energySumHigh>
+            <energySumLow>1.0</energySumLow>
+            <energyDifferenceHigh>1.2</energyDifferenceHigh>
+            <coplanarityHigh>40</coplanarityHigh>
+            <seedEnergyLow>0.1</seedEnergyLow>
+            <energySlopeParamF>0.0055</energySlopeParamF>
+            <energySlopeLow>0.4</energySlopeLow>
+            <prescale>1</prescale>
+            <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
+        </driver>	      
+        <driver name="AidaSaveDriver"
+                type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}_triggerPlots</outputFileName>
+        </driver>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver> 
+    </drivers>
+</lcsim>
+	
