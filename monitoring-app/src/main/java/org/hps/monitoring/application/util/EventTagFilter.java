@@ -14,7 +14,7 @@ interface EventTagFilter {
     public static final class SyncTagFilter implements EventTagFilter {
         public boolean accept(int eventTag) {
             // Physics event with sync information (DAQ config) has bit 6 set.
-            return (((eventTag >> 6) & 1) == 1);
+            return (((eventTag >> 6) & 1) == 1) && ((eventTag >> 7)== 1);
         }
     }
     
