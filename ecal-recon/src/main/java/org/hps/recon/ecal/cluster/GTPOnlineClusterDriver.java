@@ -54,8 +54,6 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
     	// in use or if it has been initialized.
     	if((useDAQConfig && ConfigurationManager.isInitialized()) || !useDAQConfig) {
     		super.process(event);
-    	} else {
-    		System.out.println("GTP Clusterer :: Skipping event; DAQ configuration is not initialized.");
     	}
     }
     
@@ -119,6 +117,9 @@ public class GTPOnlineClusterDriver extends ClusterDriver {
     	useDAQConfig = state;
     }
     
+    /**
+     * Outputs the current GTP settings to the terminal.
+     */
     private void logSettings() {
 		// Print the cluster driver header.
 		System.out.println();

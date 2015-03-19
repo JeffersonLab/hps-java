@@ -1,6 +1,7 @@
 package org.hps.recon.ecal;
 
-import java.awt.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -8,6 +9,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.daqconfig.ConfigurationManager;
+import org.hps.recon.ecal.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -53,6 +56,8 @@ public class EcalRawConverter {
     private boolean constantGain = false;
     private double gain;
     private boolean use2014Gain = true;
+    private boolean useDAQConfig = false;
+    private FADCConfig config = null;
 
     /*
      * The time for one FADC sample (units = ns).
@@ -66,7 +71,7 @@ public class EcalRawConverter {
      * 
      * The default value of 12 is what we used for most of the 2014 run.
      */
-    private double leadingEdgeThreshold=12;
+    private double leadingEdgeThreshold = 12;
     
     /*
      * Integration range after (NSA) and before (NSB) threshold crossing.  Units=ns,
@@ -75,8 +80,8 @@ public class EcalRawConverter {
      * 
      * The default values of 20/100 are what we had during the entire 2014 run.
      */
-    private int NSB=20;
-    private int NSA=100;
+    private int NSB = 20;
+    private int NSA = 100;
   
     /*
      * The number of samples in the FADC readout window.  Needed in order to
@@ -87,48 +92,83 @@ public class EcalRawConverter {
      * the old behavior which assumed integration range was constant.
      * 
      */
-    private int windowSamples=-1;
+    private int windowSamples = -1;
     
     /*
      * The maximum number of peaks to be searched for.
      */
-    private int nPeak=3;
+    private int nPeak = 3;
    
     /*
      * Convert Mode-1 into Mode-7, else Mode-3.
      */
-    private boolean mode7=false;
+    private boolean mode7 = false;
 
 
     private EcalConditions ecalConditions = null;
 
     public EcalRawConverter() {
+    	// Track changes in the DAQ configuration.
+    	ConfigurationManager.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// If the DAQ configuration should be used, load the
+				// relevant settings into the driver.
+				if(useDAQConfig) {
+					// Get the FADC configuration.
+					config = ConfigurationManager.getInstance().getFADCConfig();
+					
+					// Load the settings.
+					NSB = config.getNSB();
+					NSA = config.getNSA();
+					windowSamples = config.getWindowWidth() / 4;
+					nPeak = config.getMaxPulses();
+					
+					// Print the FADC configuration.
+					System.out.println();
+					System.out.println();
+					System.out.printf("NSA            :: %d ns%n", NSA);
+					System.out.printf("NSB            :: %d ns%n", NSB);
+					System.out.printf("Window Samples :: %d clock-cycles%n", windowSamples);
+					System.out.printf("Max Peaks      :: %d peaks%n", nPeak);
+					System.out.println("======================================================================");
+					System.out.println("=== FADC Pulse-Processing Settings ===================================");
+					System.out.println("======================================================================");
+					config.printConfig();
+				}
+			}
+    	});
     }
 
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;
     }
+    
     public void setNSA(int nsa) {
         if (NSA%nsPerSample !=0 || NSA<0) {
             throw new RuntimeException("NSA must be multiples of 4ns and non-negative.");
         }
         NSA=nsa;
     }
+    
     public void setNSB(int nsb) {
         if (NSB%nsPerSample !=0 || NSB<0) {
             throw new RuntimeException("NSB must be multiples of 4ns and non-negative.");
         }
         NSB=nsb;
     }
+    
     public void setWindowSamples(int windowSamples) {
         this.windowSamples=windowSamples;
     }
+    
     public void setNPeak(int nPeak) {
         if (nPeak<1 || nPeak>3) {
             throw new RuntimeException("Npeak must be 1, 2, or 3.");
         }
         this.nPeak=nPeak;
     }
+    
     public void setMode7(boolean mode7)
     {
         this.mode7=mode7;
@@ -150,13 +190,24 @@ public class EcalRawConverter {
     public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
         this.useTimeWalkCorrection=useTimeWalkCorrection;
     }
+    
+    public void setUseDAQConfig(boolean state) {
+    	useDAQConfig = state;
+    }
 
     /*
      * This should probably be deprecated.  It just integrates the entire window.
      */
     public int sumADC(RawTrackerHit hit) {
         EcalChannelConstants channelData = findChannel(hit.getCellID());
-        double pedestal = channelData.getCalibration().getPedestal();
+        double pedestal;
+        if(useDAQConfig) {
+    		//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
+    		pedestal = config.getPedestal(hit.getCellID());
+        } else {
+        	pedestal = channelData.getCalibration().getPedestal();
+        }
+        
         int sum = 0;
         short samples[] = hit.getADCValues();
         for (int isample = 0; isample < samples.length; ++isample) {
@@ -182,11 +233,13 @@ public class EcalRawConverter {
      * Choose whether to use static pedestal from database or running pedestal from mode-7.
      */
     public double getSingleSamplePedestal(EventHeader event,long cellID) {
+    	if(useDAQConfig) {
+    		//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(cellID);
+    		return config.getPedestal(cellID);
+    	}
         if (useRunningPedestal && event!=null) {
             if (event.hasItem("EcalRunningPedestals")) {
-                Map<EcalChannel, Double> runningPedMap=
-                        (Map<EcalChannel, Double>)
-                        event.get("EcalRunningPedestals");
+                Map<EcalChannel, Double> runningPedMap = (Map<EcalChannel, Double>) event.get("EcalRunningPedestals");
                 EcalChannel chan = ecalConditions.getChannelCollection().findGeometric(cellID);
                 if (!runningPedMap.containsKey(chan)){
                     System.err.println("************** Missing Pedestal");
@@ -320,27 +373,32 @@ public class EcalRawConverter {
      * to fully emulate mode-7.  This is less important for now.
      *
      */
-    public ArrayList <CalorimeterHit> HitDtoA(EventHeader event,RawTrackerHit hit) {
-     
+    public ArrayList <CalorimeterHit> HitDtoA(EventHeader event, RawTrackerHit hit) {
         final long cellID = hit.getCellID();
         final short samples[] = hit.getADCValues();
-        if (samples.length==0) return null;
+        if(samples.length == 0) return null;
         
         // threshold is pedestal plus threshold configuration parameter:
-        final int absoluteThreshold = (int)(getSingleSamplePedestal(event,cellID)+leadingEdgeThreshold);
-       
+        final int absoluteThreshold;
+        if(useDAQConfig) {
+        	//EcalChannel channel = ecalConditions.getChannelCollection().findGeometric(hit.getCellID());
+        	//int leadingEdgeThreshold = ConfigurationManager.getInstance().getFADCConfig().getThreshold(channel.getChannelId());
+        	int leadingEdgeThreshold = config.getThreshold(cellID);
+        	absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
+        } else {
+        	absoluteThreshold = (int) (getSingleSamplePedestal(event, cellID) + leadingEdgeThreshold);
+        }
+        
         ArrayList <Integer> thresholdCrossings = new ArrayList<Integer>();
         
         // special case, first sample is above threshold:
         if (samples[0] > absoluteThreshold) {
             thresholdCrossings.add(0);
         } 
-
+        
         // search for threshold crossings:
-        for (int ii = 1; ii < samples.length; ++ii) {
-            if ( samples[ii]   >  absoluteThreshold &&
-                 samples[ii-1] <= absoluteThreshold)
-            {
+        for(int ii = 1; ii < samples.length; ++ii) {
+            if ( samples[ii]   >  absoluteThreshold && samples[ii-1] <= absoluteThreshold) {
                 // found one:
                 thresholdCrossings.add(ii);
 
@@ -351,20 +409,19 @@ public class EcalRawConverter {
                 if (thresholdCrossings.size() >= nPeak) break;
             }
         }
-
+        
         // make hits
-        ArrayList <CalorimeterHit> newHits=new ArrayList<CalorimeterHit>();
-        for (int thresholdCrossing : thresholdCrossings) {
-           
+        ArrayList <CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
+        for(int thresholdCrossing : thresholdCrossings) {
             // do pulse integral:
-            final double[] data = convertWaveformToPulse(hit,thresholdCrossing,mode7);
+            final double[] data = convertWaveformToPulse(hit, thresholdCrossing, mode7);
             double time = data[0];
             double sum = data[1];
             final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
             final double max = data[3]; // LCRelation to finish mode-7 emulation
             
             // do pedestal subtraction:
-            sum -= getPulsePedestal(event,cellID,samples.length,thresholdCrossing);
+            sum -= getPulsePedestal(event, cellID, samples.length, thresholdCrossing);
           
             // do gain scaling:
             double energy = adcToEnergy(sum, cellID);
@@ -420,7 +477,7 @@ public class EcalRawConverter {
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(id);
         int amplitude;
-        double pedestal = getPulsePedestal(null,id,windowSamples,(int)hit.getTime()/nsPerSample);
+        double pedestal = getPulsePedestal(null, id, windowSamples, (int) hit.getTime() / nsPerSample);
         if (constantGain) {
             amplitude = (int) Math.round((hit.getRawEnergy() / ECalUtils.MeV) / gain + pedestal);
         } else {
@@ -437,15 +494,18 @@ public class EcalRawConverter {
 
         // Get the channel data.
         EcalChannelConstants channelData = findChannel(cellID);
-
-        if (use2014Gain) {
+        
+        if(useDAQConfig) {
+        	//float gain = ConfigurationManager.getInstance().getFADCConfig().getGain(ecalConditions.getChannelCollection().findGeometric(cellID));
+        	return config.getGain(cellID) * adcSum * ECalUtils.MeV;
+        }  else if(use2014Gain) {
             if (constantGain) {
                 return adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod;
             } else {
                 return channelData.getGain().getGain() * adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod; // should not be used for the moment (2014/02)
             }
         } else {
-            if (constantGain) {
+            if(constantGain) {
                 return gain * adcSum * ECalUtils.MeV;
             } else {
                 return channelData.getGain().getGain() * adcSum * ECalUtils.MeV; //gain is defined as MeV/integrated ADC

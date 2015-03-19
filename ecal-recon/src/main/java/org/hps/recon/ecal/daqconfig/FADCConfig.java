@@ -40,8 +40,12 @@ public class FADCConfig extends IDAQConfig {
     
     // Store crystal calibrations and energy conversion factors.
     private float[] gains = new float[443];
-    private float[] pedestals = new float[443];
     private int[] thresholds = new int[443];
+    private float[] pedestals = new float[443];
+    
+    // Store the calorimeter conditions table for converting between
+    // geometric IDs and channel objects.
+    private EcalChannelCollection geoMap = null;
     
     @Override
     void loadConfig(EvioDAQParser parser) {
@@ -55,13 +59,13 @@ public class FADCConfig extends IDAQConfig {
         
         // Get the channel collection from the database.
         DatabaseConditionsManager database = DatabaseConditionsManager.getInstance();
-        EcalChannelCollection channels = database.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
+        geoMap = database.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
         
         // Create a mapping of calorimeter crystal positions to their
         // corresponding channels. Also place the mapped values into
         // an array by their channel ID.
         indexChannelMap.clear();
-        for(EcalChannel ecalChannel : channels) {
+        for(EcalChannel ecalChannel : geoMap) {
             // Map the channel IDs to the crystal position.
             int channel = ecalChannel.getChannelId();
             int ix = ecalChannel.getX();
@@ -109,13 +113,30 @@ public class FADCConfig extends IDAQConfig {
     
     /**
      * Gets the gain for a crystal.
+     * @param cellID - The geometric ID for the crystal.
+     * @return Returns the gain as a <code>float</code> in units of MeV
+     * per ADC.
+     */
+    public float getGain(long cellID) {
+        return getGain(geoMap.findGeometric(cellID));
+    }
+    
+    /**
+     * Gets the gain for a crystal.
      * @param ixy - The a point representing the x/y-indices of the
      * crystal.
      * @return Returns the gain as a <code>float</code> in units of MeV
      * per ADC.
      */
     public float getGain(Point ixy) {
-        return getGain(indexChannelMap.get(ixy));
+    	// Get the channel index.
+    	Integer index = indexChannelMap.get(ixy);
+    	
+    	// If the channel index was defined, return the pedestal.
+        if(index != null) { return getGain(index); }
+        else {
+        	throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
+        }
     }
     
     /**
@@ -188,13 +209,30 @@ public class FADCConfig extends IDAQConfig {
     
     /**
      * Gets the pedestal for a crystal.
+     * @param cellID - The geometric ID for the crystal.
+     * @return Returns the pedestal as a <code>float</code> in units
+     * of ADC.
+     */
+    public float getPedestal(long cellID) {
+        return getPedestal(geoMap.findGeometric(cellID));
+    }
+    
+    /**
+     * Gets the pedestal for a crystal.
      * @param ixy - The a point representing the x/y-indices of the
      * crystal.
      * @return Returns the pedestal as a <code>float</code> in units
      * of ADC.
      */
     public float getPedestal(Point ixy) {
-        return getPedestal(indexChannelMap.get(ixy));
+    	// Get the channel index.
+    	Integer index = indexChannelMap.get(ixy);
+    	
+    	// If the channel index was defined, return the pedestal.
+        if(index != null) { return getPedestal(index); }
+        else {
+        	throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
+        }
     }
     
     /**
@@ -231,6 +269,16 @@ public class FADCConfig extends IDAQConfig {
     
     /**
      * Gets the threshold for a crystal.
+     * @param cellID - The geometric ID for the crystal.
+     * @return Returns the threshold as a <code>int</code> in units
+     * of ADC.
+     */
+    public int getThreshold(long cellID) {
+        return getThreshold(geoMap.findGeometric(cellID));
+    }
+    
+    /**
+     * Gets the threshold for a crystal.
      * @param ixy - The a point representing the x/y-indices of the
      * crystal.
      * @return Returns the threshold as a <code>int</code> in units
@@ -258,12 +306,39 @@ public class FADCConfig extends IDAQConfig {
     
     @Override
     public void printConfig() {
+    	// Print the basic configuration information.
         System.out.println("FADC Configuration:");
         System.out.printf("\tMode          :: %d%n", mode);
         System.out.printf("\tNSA           :: %d%n", nsa);
         System.out.printf("\tNSB           :: %d%n", nsb);
         System.out.printf("\tWindow Width  :: %d%n", windowWidth);
         System.out.printf("\tWindow Offset :: %d%n", offset);
+        System.out.printf("\tMax Peaks     :: %d%n", maxPulses);
+        
+        // Output the pedestal/gain write-out header.
+        System.out.println("\tix\tiy\tPedestal (ADC)\tGain (MeV/ADC)\tThreshold (ADC)");
+        
+        // Iterate over each crystal y-index.
+        yLoop:
+        for(int iy = -5; iy <= 5; iy++) {
+        	// iy = 0 does not exists; skip it!
+        	if(iy == 0) { continue yLoop; }
+        	
+        	// Iterate over each crystal x-index.
+        	xLoop:
+        	for(int ix = -23; ix <= 23; ix++) {
+        		// ix = 0 and the beam hole do not exist; skip these!
+        		if(ix == 0) { continue xLoop; }
+        		if((ix >= -10 && ix <= -2) && (iy == -1 || iy == 1)) {
+        			continue xLoop;
+        		}
+        		
+        		// Output the crystal indices, pedestal, and gain.
+        		int channelID = indexChannelMap.get(new Point(ix, iy));
+        		System.out.printf("\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", ix, iy,
+        				getPedestal(channelID), getGain(channelID), getThreshold(channelID));
+        	}
+        }
     }
     
     /**

@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.daqconfig.ConfigurationManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -52,6 +53,7 @@ public class EcalRawConverterDriver extends Driver {
     private boolean runBackwards = false;
     private boolean useTimestamps = false;
     private boolean useTruthTime = false;
+    private boolean useDAQConfig = false;
 
     private boolean emulateFirmware = false;
     
@@ -131,6 +133,11 @@ public class EcalRawConverterDriver extends Driver {
     public void setUseTruthTime(boolean useTruthTime) {
         this.useTruthTime = useTruthTime;
     }
+    
+    public void setUseDAQConfig(boolean state) {
+    	useDAQConfig = state;
+    	converter.setUseDAQConfig(state);
+    }
 
     @Override
     public void startOfData() {
@@ -185,6 +192,12 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+    	// Do not process the event if the DAQ configuration should be
+    	// used for value, but is not initialized.
+    	if(useDAQConfig && !ConfigurationManager.isInitialized()) {
+    		return;
+    	}
+    	
         final int SYSTEM_TRIGGER = 0;
         final int SYSTEM_TRACKER = 1;
         final int SYSTEM_ECAL = 2;
