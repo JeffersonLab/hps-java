@@ -15,7 +15,9 @@ public class TriggerStatModule {
 	protected int[] sspInternalMatched = new int[2];
 	protected int[] reconTriggersMatched = new int[2];
 	protected int[][] triggerComp = new int[4][2];
-	
+	protected int[] unmatchedTriggers = new int[2];
+	protected int[] triggerTypesSeen = new int[2];
+	protected int[] triggerTypesFound = new int[2];
 	
 	/**
 	 * Instantiates a <code>TriggerStatModule</code> with no statistics
@@ -39,6 +41,13 @@ public class TriggerStatModule {
 		}
 		for(int i = 0; i < reconTriggersMatched.length; i++) {
 			reconTriggersMatched[i] = base.reconTriggersMatched[i];
+		}
+		for(int i = 0; i < triggerTypesSeen.length; i++) {
+			triggerTypesSeen[i] = base.triggerTypesSeen[i];
+			triggerTypesFound[i] = base.triggerTypesFound[i];
+		}
+		for(int i = 0; i < unmatchedTriggers.length; i++) {
+			unmatchedTriggers[i] = base.unmatchedTriggers[i];
 		}
 		for(int i = 0; i < triggerComp.length; i++) {
 			for(int j = 0; j < triggerComp[i].length; j++) {
@@ -79,6 +88,40 @@ public class TriggerStatModule {
 		
 		// Return the requested cut value.
 		return triggerComp[cutID][triggerNumber];
+	}
+	
+	/**
+	 * Gets the number of events that were readout due to a trigger
+	 * of the indicated type.
+	 * @param triggerType - The type of trigger.
+	 * @return Returns the number of events readout because of the
+	 * trigger type as an <code>int</code>.
+	 */
+	public int getEventsOfType(int triggerNum) {
+		// Make sure that the trigger type is defined.
+		if(triggerNum < 0 || triggerNum > 1) {
+			throw new IndexOutOfBoundsException(String.format("Trigger number \"%d\" is not valid.", triggerNum));
+		}
+		
+		// Return the number of events that were trigger by this type.
+		return triggerTypesSeen[triggerNum];
+	}
+	
+	/**
+	 * Gets the number of events that were readout due to a trigger
+	 * of the indicated type where a reconstructed cluster simulated
+	 * trigger of that type existed.
+	 * @param triggerType - The type of trigger.
+	 * @return Returns the number of events as an <code>int</code>.
+	 */
+	public int getEventsOfTypeSeen(int triggerNum) {
+		// Make sure that the trigger type is defined.
+		if(triggerNum < 0 || triggerNum > 1) {
+			throw new IndexOutOfBoundsException(String.format("Trigger number \"%d\" is not valid.", triggerNum));
+		}
+		
+		// Return the number of events that were trigger by this type.
+		return triggerTypesFound[triggerNum];
 	}
 	
 	/**
@@ -162,5 +205,22 @@ public class TriggerStatModule {
 	 */
 	public int getSSPBankTriggerCount() {
 		return reportedTriggers;
+	}
+	
+	/**
+	 * Gets the number of triggers for this trigger for which there
+	 * were no matches.
+	 * @param triggerNum - The trigger for which to get the value.
+	 * @return Returns the number of triggers that failed to match as
+	 * an <code>int</code>.
+	 */
+	public int getUnmatchedTriggers(int triggerNum) {
+		// Validate the arguments.
+		if(triggerNum != 0 && triggerNum != 1) {
+			throw new IndexOutOfBoundsException("Trigger number must be 0 or 1.");
+		}
+		
+		// Return the requested cut value.
+		return unmatchedTriggers[triggerNum];
 	}
 }

@@ -80,7 +80,11 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 	 * object.
 	 */
 	public Class<?> getSimulatedTriggerType() {
-		return getFirstElement().getTriggerSource().getClass();
+		if(getFirstElement() != null) {
+			return getFirstElement().getTriggerSource().getClass();
+		} else {
+			return null;
+		}
 	}
 	
 	/**
@@ -99,7 +103,11 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 	 * first trigger and <code>false</code> otherwise.
 	 */
 	public boolean isFirstTrigger() {
-		return getSecondElement().isFirstTrigger();
+		if(getSecondElement() != null) {
+			return getSecondElement().isFirstTrigger();
+		} else {
+			return getFirstElement().getTriggerNumber() == 0 ? true : false;
+		}
 	}
 	
 	/**
@@ -108,7 +116,7 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 	 * triggers and <code>false</code> otherwise.
 	 */
 	public boolean isPairTrigger() {
-		if(getFirstElement() instanceof PairTrigger && getSecondElement() instanceof SSPPairTrigger) {
+		if(getFirstElement() instanceof PairTrigger || getSecondElement() instanceof SSPPairTrigger) {
 			return true;
 		} else {
 			return false;
@@ -122,7 +130,7 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 	 * second trigger and <code>false</code> otherwise.
 	 */
 	public boolean isSecondTrigger() {
-		return getSecondElement().isSecondTrigger();
+		return !isFirstTrigger();
 	}
 	
 	/**
@@ -131,7 +139,7 @@ public class TriggerMatchedPair extends Pair<Trigger<?>, SSPNumberedTrigger> {
 	 * triggers and <code>false</code> otherwise.
 	 */
 	public boolean isSinglesTrigger() {
-		if(getFirstElement() instanceof SinglesTrigger && getSecondElement() instanceof SSPSinglesTrigger) {
+		if(getFirstElement() instanceof SinglesTrigger || getSecondElement() instanceof SSPSinglesTrigger) {
 			return true;
 		} else {
 			return false;
