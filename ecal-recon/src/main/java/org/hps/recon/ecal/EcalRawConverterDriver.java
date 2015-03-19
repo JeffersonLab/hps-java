@@ -134,6 +134,22 @@ public class EcalRawConverterDriver extends Driver {
         this.useTruthTime = useTruthTime;
     }
     
+    /**
+     * Sets whether the driver should use the DAQ configuration from
+     * EvIO file for its parameters. If activated, the converter will
+     * obtain gains, thresholds, pedestals, the window size, and the
+     * pulse integration window from the EvIO file. This will replace
+     * and overwrite any manually defined settings.<br/>
+     * <br/>
+     * Note that if this setting is active, the driver will not output
+     * any data until a DAQ configuration has been read from the data
+     * stream.
+     * @param state - <code>true</code> indicates that the configuration
+     * should be read from the DAQ data in an EvIO file. Setting this
+     * to <code>false</code> will cause the driver to use its regular
+     * manually-defined settings and pull gains and pedestals from the
+     * conditions database.
+     */
     public void setUseDAQConfig(boolean state) {
     	useDAQConfig = state;
     	converter.setUseDAQConfig(state);

@@ -122,7 +122,13 @@ public class EcalRawConverter {
 					NSB = config.getNSB();
 					NSA = config.getNSA();
 					windowSamples = config.getWindowWidth() / 4;
-					nPeak = config.getMaxPulses();
+					
+					// Get the number of peaks.
+					if(config.getMode() == 1) {
+						nPeak = Integer.MAX_VALUE;
+					} else {
+						nPeak = config.getMaxPulses();
+					}
 					
 					// Print the FADC configuration.
 					System.out.println();
@@ -403,7 +409,11 @@ public class EcalRawConverter {
                 thresholdCrossings.add(ii);
 
                 // search for next threshold crossing begins at end of this pulse:
-                ii += NSA/nsPerSample-1; 
+                if(useDAQConfig && ConfigurationManager.getInstance().getFADCConfig().getMode() == 1) {
+                	ii += 8;
+                } else {
+                	ii += NSA/nsPerSample - 1;
+                }
 
                 // firmware limit on # of peaks:
                 if (thresholdCrossings.size() >= nPeak) break;
