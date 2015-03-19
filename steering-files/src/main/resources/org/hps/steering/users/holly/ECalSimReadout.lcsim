@@ -10,7 +10,9 @@
         <printDriversDetailed>false</printDriversDetailed>
     </control>    
     <execute>
-        <driver name="EventMarkerDriver"/>         
+        <driver name="EventMarkerDriver"/> 
+        <driver name="ConditionsDriver"/>
+        <driver name="TestRunReconToLcio"/>        
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="ReconClusterer"/>
@@ -23,7 +25,7 @@
             <eventInterval>1000</eventInterval>
         </driver>       
         <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-     		<runNumber>3422</runNumber>
+     		<runNumber>0</runNumber>
     		<freeze>true</freeze>
     		<detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
    		 </driver>
@@ -36,18 +38,18 @@
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
-            <addNoise>false</addNoise>
-            <use2014Gain>false</use2014Gain>        
+            <addNoise>true</addNoise>
+            <use2014Gain>true</use2014Gain>        
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <applyBadCrystalMap>false</applyBadCrystalMap>
-            <use2014Gain>false</use2014Gain>      
+            <use2014Gain>true</use2014Gain>      
         </driver>	
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
-            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
             <hitEnergyThreshold>0.01</hitEnergyThreshold>
             <seedEnergyThreshold>0.100</seedEnergyThreshold> 
