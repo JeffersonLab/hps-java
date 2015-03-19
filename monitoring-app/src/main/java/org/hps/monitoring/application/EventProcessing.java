@@ -294,8 +294,12 @@ class EventProcessing {
         // Wake up the primary ET station doing the event processing.
         logger.finest("waking up event processing station ...");
         try {
-            sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
-            logger.finest("event processing station woken up");
+            if (sessionState.connection != null) {
+                if (sessionState.connection.getEtSystem() != null) {
+                    sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
+                    logger.finest("event processing station woken up");
+                }
+            }
         } catch (IOException | EtException | EtClosedException e) {
             e.printStackTrace();
         }
