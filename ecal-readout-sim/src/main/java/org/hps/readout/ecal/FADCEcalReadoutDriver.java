@@ -516,7 +516,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (fixedGain > 0) {
                 gain = readoutPeriod / (fixedGain * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             } else {
-                gain = 1. / (channelData.getGain().getGain() * ECalUtils.MeV);
+                gain = readoutPeriod / (channelData.getGain().getGain() * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             }
 
             return gain * pulseAmplitude(time, pulseShape, tp);

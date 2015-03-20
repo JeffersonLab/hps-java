@@ -161,7 +161,9 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
         if (event.hasCollection(SimCalorimeterHit.class, ecalCollectionName) && !event.get(SimCalorimeterHit.class, ecalCollectionName).isEmpty()) {
             mcParticles = event.getMCParticles();
             ecalHits = event.get(SimCalorimeterHit.class, ecalCollectionName);
-            trackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
+            if (event.hasCollection(SimTrackerHit.class, trackerCollectionName)) {
+                trackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
+            }
             if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                 ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
             }
@@ -170,7 +172,9 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
             if (event.hasCollection(MCParticle.class)) {
                 triggerMCParticles = event.getMCParticles();
                 triggerECalHits = event.get(SimCalorimeterHit.class, ecalCollectionName);
-                triggerTrackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
+                if (event.hasCollection(SimTrackerHit.class, trackerCollectionName)) {
+                    triggerTrackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
+                }
                 if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                     triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
                 }

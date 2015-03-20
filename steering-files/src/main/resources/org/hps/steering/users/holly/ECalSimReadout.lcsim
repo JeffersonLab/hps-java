@@ -12,7 +12,7 @@
     <execute>
         <driver name="EventMarkerDriver"/> 
         <driver name="ConditionsDriver"/>
-        <driver name="TestRunReconToLcio"/>        
+        <!--<driver name="TestRunReconToLcio"/>-->        
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="ReconClusterer"/>
@@ -29,23 +29,26 @@
     		<freeze>true</freeze>
     		<detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
    		 </driver>
-   		 <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+<!--   		 <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>true</rejectBackground>
-        </driver>
+        </driver>-->
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
             <ecalName>Ecal</ecalName>
             <ecalCollectionName>EcalHits</ecalCollectionName>
             <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
             <addNoise>true</addNoise>
-            <use2014Gain>true</use2014Gain>        
+            <use2014Gain>false</use2014Gain>   
+            <numSamplesAfter>25</numSamplesAfter>
+            <numSamplesBefore>5</numSamplesBefore>
+            <!--<debug>true</debug>-->
         </driver>
         <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <rawCollectionName>EcalRawHits</rawCollectionName>
             <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
             <applyBadCrystalMap>false</applyBadCrystalMap>
-            <use2014Gain>true</use2014Gain>      
+            <use2014Gain>false</use2014Gain>      
         </driver>	
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
