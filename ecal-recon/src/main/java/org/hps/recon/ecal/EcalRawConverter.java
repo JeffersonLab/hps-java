@@ -39,9 +39,6 @@ import org.lcsim.geometry.Detector;
  * 
  * Pedestal subtracting clipped pulses more correctly for all Modes.
  * 
- * Changed threshold cut for Mode-1 to >= instead of > to emulate SSP instead of
- * FADC firmware for trigger diagnostics.
- *
  * Implemented finding multiple peaks for Mode-1.
  * 
  * Implemented conversion of Mode-1 to Mode-7 with high-resolution timing.
@@ -352,7 +349,7 @@ public class EcalRawConverter {
                 double a1 = maxADC;
                 double slope = (a1-a0)/(t1-t0);
                 double halfMax = (maxADC+minADC)/2;
-                // this is not rigorously firmware-correct, need to find halMax-crossing.
+                // this is not rigorously firmware-correct, need to find halfMax-crossing.
                 double tmpTime = t1 - (a1 - halfMax) / slope;
                 if (slope>0 && tmpTime>0) {
                     pulseTime = tmpTime;
@@ -404,14 +401,18 @@ public class EcalRawConverter {
         
         // search for threshold crossings:
         for(int ii = 1; ii < samples.length; ++ii) {
-            if ( samples[ii]   >  absoluteThreshold && samples[ii-1] <= absoluteThreshold) {
+            if ( samples[ii]   >  absoluteThreshold && 
+                 samples[ii-1] <= absoluteThreshold) {
+                
                 // found one:
                 thresholdCrossings.add(ii);
 
                 // search for next threshold crossing begins at end of this pulse:
                 if(useDAQConfig && ConfigurationManager.getInstance().getFADCConfig().getMode() == 1) {
+                    // special case, emulating SSP:
                 	ii += 8;
                 } else {
+                    // "normal" case, emulating FADC250:
                 	ii += NSA/nsPerSample - 1;
                 }
 
