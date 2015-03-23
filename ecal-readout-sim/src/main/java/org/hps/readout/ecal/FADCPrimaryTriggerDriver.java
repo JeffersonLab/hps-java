@@ -704,4 +704,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         topClusterQueue.remove();
         botClusterQueue.remove();
     }
+    
+    /**
+     * Sets all cut values for the trigger using a string argument with
+     * the format "clusterMin clusterMax hitMin sumMin sumMax diffMax
+     * slopeMin slopeF coplanarMax timeDiffMax".
+     * @param cuts - The cut string.
+     */
+    public void setCuts(String cuts) {
+    	triggerModule.setCutValues(false, cuts);
+    }
 }

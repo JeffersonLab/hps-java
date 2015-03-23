@@ -22,8 +22,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SinglesTriggerDriver extends TriggerDriver {
     // Cut Values
-    private TriggerModule triggerModule = new TriggerModule(2.0, 0.125,
-    		6.600, 0.200, 6.600, 0.000, 13.200, 6.600, 0.0, 360, 0.0055);
+    private TriggerModule triggerModule = new TriggerModule();
     
     // LCIO Collection Names
     private String clusterCollectionName = "EcalClusters";
@@ -70,6 +69,9 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     @Override
     protected boolean triggerDecision(EventHeader event) {
+    	// Track whether triggering cluster was seen.
+    	boolean passTrigger = false;
+    	
         // Check that there is a cluster object collection.
         if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of hits.
@@ -93,6 +95,9 @@ public class SinglesTriggerDriver extends TriggerDriver {
                     continue triggerLoop;
                 }
                 
+                // A trigger was seen. Note it.
+                passTrigger = true;
+                
                 // Get the x and y indices.
                 int ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy");
@@ -106,9 +111,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
             }
         }
         
-        // If there were either no passing hits or not hits at all,
-        // then there is also no trigger.
-        return false;
+        // Return whether a triggering cluster was seen.
+        return passTrigger;
     }
     
     /**
@@ -162,5 +166,14 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
+    }
+    
+    /**
+     * Sets all cut values for the trigger using a string argument with
+     * the format "Emin Emax Nmin".
+     * @param cuts - The cut string.
+     */
+    public void setCuts(String cuts) {
+    	triggerModule.setCutValues(true, cuts);
     }
 }
