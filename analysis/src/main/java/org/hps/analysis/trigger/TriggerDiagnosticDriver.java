@@ -116,7 +116,8 @@ public class TriggerDiagnosticDriver extends Driver {
     private boolean printSinglesTriggerInternalFail = true;
     private boolean printPairTriggerEfficiencyFail = true;
     private boolean printPairTriggerInternalFail = true;
-    
+    private int     printResultsEveryNEvents = 100000;
+
     // Cut index arrays for trigger verification.
 	private static final int ENERGY_MIN   = TriggerDiagnosticUtil.SINGLES_ENERGY_MIN;
 	private static final int ENERGY_MAX   = TriggerDiagnosticUtil.SINGLES_ENERGY_MAX;
@@ -343,6 +344,10 @@ public class TriggerDiagnosticDriver extends Driver {
 	 */
 	@Override
 	public void endOfData() {
+		PrintResults();
+	}
+	
+	public void PrintResults() {
 		// Print the cluster/trigger verification header.
 		System.out.println();
 		System.out.println();
@@ -512,6 +517,10 @@ public class TriggerDiagnosticDriver extends Driver {
 		
 		// Increment the total event count.
 		totalEvents++;
+		
+		if(totalEvents%printResultsEveryNEvents == 0){
+			PrintResults();
+		}
 		
 		// Reset the output buffer and print flags.
 		clusterFail = false;
@@ -779,6 +788,10 @@ public class TriggerDiagnosticDriver extends Driver {
 			// Update the last write time.
 			localWindowStart = Calendar.getInstance().getTimeInMillis();
 		}
+	}
+
+	public void setPrintResultsEveryNEvents(int N) {
+		printResultsEveryNEvents = N;
 	}
 	
 	public void setPrintOnClusterFailure(boolean state) {
