@@ -198,8 +198,10 @@ public class SimpleSvtReadout extends TriggerableDriver {
                 for (int sampleN = 0; sampleN < 6; sampleN++) {
                     double time = sampleN * HPSSVTConstants.SAMPLING_INTERVAL - timeOffset;
                     double tp = sensor.getShapeFitParameters(channel)[HpsSiSensor.TP_INDEX];
-                    signal[sampleN] = amplitude * pulseAmplitude(time, tp);
+                    signal[sampleN] += amplitude * pulseAmplitude(time, tp);//add the pulse to the pedestal
                     samples[sampleN] = (short) Math.round(signal[sampleN]);
+                    if (verbosity >= 1)
+                        System.out.println("\t\tMaking samples: sample#" + sampleN + " has " + samples[sampleN] + " ADC counts");
                 }
 
                 long channel_id = sensor.makeChannelID(channel);
@@ -290,15 +292,18 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     private boolean readoutCuts(RawTrackerHit hit) {
         if (enableThresholdCut && !samplesAboveThreshold(hit)) {
-            //System.out.println("Failed threshold cut");
+            if (verbosity > 1)
+                System.out.println("Failed threshold cut");
             return false;
         }
         if (enablePileupCut && !pileupCut(hit)) {
-            //System.out.println("Failed pileup cut");
+            if (verbosity > 1)
+                System.out.println("Failed pileup cut");
             return false;
         }
         if (dropBadChannels && !badChannelCut(hit)) {
-            //System.out.println("Failed bad channel cut");
+            if (verbosity > 1)
+                System.out.println("Failed bad channel cut");
             return false;
         }
         return true;
@@ -325,19 +330,18 @@ public class SimpleSvtReadout extends TriggerableDriver {
         for (int sampleN = 0; sampleN < samples.length; sampleN++) {
             pedestal = sensor.getPedestal(channel, sampleN);
             noise = sensor.getNoise(channel, sampleN);
-            //System.out.format("%d, %d\n", samples[sampleN] - pedestal, noise * 3.0);
-            if (samples[sampleN] - pedestal > noise * noiseThreshold) {
+            if (verbosity > 1)
+                System.out.format("%f, %f\n", samples[sampleN] - pedestal, noise * noiseThreshold);
+            if (samples[sampleN] - pedestal > noise * noiseThreshold)
                 count++;
-            }
         }
         return count >= samplesAboveThreshold;
     }
 
     @Override
     protected void processTrigger(EventHeader event) {
-        if (noPileup) {
+        if (noPileup)
             return;
-        }
         //System.out.println("Got trigger");
 
         // Create a list to hold the analog data
@@ -438,20 +442,18 @@ public class SimpleSvtReadout extends TriggerableDriver {
         @Override
         public int compareTo(Object o) {
             double deltaT = time - ((StripHit) o).time;
-            if (deltaT > 0) {
+            if (deltaT > 0)
                 return 1;
-            } else if (deltaT < 0) {
+            else if (deltaT < 0)
                 return -1;
-            } else {
+            else
                 return 0;
-            }
         }
     }
 
     private double pulseAmplitude(double time, double tp) {
-        if (time <= 0.0) {
+        if (time <= 0.0)
             return 0.0;
-        }
         return (time / tp) * Math.exp(1.0 - time / tp);
     }
 
