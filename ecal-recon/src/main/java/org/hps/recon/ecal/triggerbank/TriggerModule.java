@@ -2,6 +2,7 @@ package org.hps.recon.ecal.triggerbank;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.hps.recon.ecal.daqconfig.PairTriggerConfig;
 import org.hps.recon.ecal.daqconfig.SinglesTriggerConfig;
@@ -220,6 +221,66 @@ public final class TriggerModule {
     	// Otherwise, throw an exception.
     	else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
     }
+    
+	/**
+	 * Sets the cluster singles cuts to the values parsed from an
+	 * argument string.
+	 * @param isSingles - Indicates whether the parser should expect
+	 * 10 cut values (for pairs) or 3 (for singles).
+	 * @param cutValues - A string representing the cuts values. This
+	 * must be formatted in the style of "Emin Emax Nmin ...".
+	 */
+	public void setCutValues(boolean isSingles, String cutValues) {
+		// Make sure that the string is not null.
+		if(cutValues == null) {
+			throw new NullPointerException(String.format("Cut arguments for trigger are null!"));
+		}
+		
+		// Tokenize the argument string.
+		StringTokenizer tokens = new StringTokenizer(cutValues);
+		
+		// Store the cut values. Entry format is:
+		// clusterEnergyMin clusterEnergyMax hitCountMin
+		// clusterEnergyMin clusterEnergyMax hitCountMin pairSumMin pairSumMax pairDiffMax pairSlopeMin pairSlopeF pairCoplanarityMax pairTimeCoincidence
+		double cuts[];
+		if(isSingles) { cuts = new double[] { 0.0, 8.191, 0 }; }
+		else { cuts = new double[] { 0.0, 8.191, 0, 0, 8.191, 8.191, 0, 0.0055, 180, Double.MAX_VALUE }; }
+		String[] cutNames = { "clusterEnergyMin", "clusterEnergyMax", "hitCountMin",
+				"pairSumMin", "pairSumMax", "pairDiffMax", "pairSlopeMin", "pairSlopeF",
+				"pairCoplanarityMax", "pairTimeCoincidence" };
+		
+		// Iterate over the number of cuts and extract that many values
+		// from the cut value string.
+		for(int cutNum = 0; cutNum < cuts.length; cutNum++) {
+			// If there are no more tokens left, the argument string
+			// is missing some values. Throw an exception!
+			if(tokens.hasMoreTokens()) {
+				// Get the next token from the string.
+				String arg = tokens.nextToken();
+				
+				// Try to parse the token as a double. All cut values
+				// should be rendered as doubles (or integers, which
+				// can be parsed as doubles). If it is not, the string
+				// is improperly formatted.
+				try { cuts[cutNum] = Double.parseDouble(arg); }
+				catch(NumberFormatException e) {
+					throw new NumberFormatException(String.format("Argument for \"%s\" improperly formatted: %s", cutNames[cutNum], arg));
+				}
+			}
+		}
+		
+		// Store the cuts in the trigger.
+		setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW,    cuts[0]);
+		setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH,   cuts[1]);
+		setCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW,       cuts[2]);
+		setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW,         cuts[3]);
+		setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH,        cuts[4]);
+		setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, cuts[5]);
+		setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW,       cuts[6]);
+		setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F,         cuts[7]);
+		setCutValue(TriggerModule.PAIR_COPLANARITY_HIGH,       cuts[8]);
+		setCutValue(TriggerModule.PAIR_TIME_COINCIDENCE,       cuts[9]);
+	}
     
     /**
      * Checks whether the argument cluster possesses the minimum

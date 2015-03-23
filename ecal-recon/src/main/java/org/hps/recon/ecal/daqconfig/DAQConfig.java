@@ -51,6 +51,8 @@ public class DAQConfig extends IDAQConfig {
         // Print the system-specific objects.
         fadcConfig.printConfig();
         System.out.println();
+        gtpConfig.printConfig();
+        System.out.println();
         sspConfig.printConfig();
     }
     
