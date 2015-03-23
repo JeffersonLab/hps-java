@@ -70,7 +70,11 @@ public class TriggerMatchStatus extends TriggerStatModule {
 		// Check if a trigger of the right time was found.
 		// Get the trigger number and type.
 		if(event.sawEventType()) {
-			triggerTypesFound[eventType]++;
+			if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_1 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_1) {
+				triggerTypesFound[0]++;
+			} else if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_2 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_2) {
+				triggerTypesFound[1]++;
+			}
 		}
 	}
 	

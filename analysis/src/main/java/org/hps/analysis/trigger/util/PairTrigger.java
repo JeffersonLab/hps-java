@@ -65,7 +65,7 @@ public class PairTrigger<E> extends SinglesTrigger<E> {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean getStateEnergyDifference() {
-		return getCutState(PAIR_ENERGY_SUM_HIGH);
+		return getCutState(PAIR_ENERGY_DIFFERENCE_HIGH);
 	}
 	
 	/**

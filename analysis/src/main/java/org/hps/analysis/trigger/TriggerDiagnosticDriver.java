@@ -126,6 +126,10 @@ public class TriggerDiagnosticDriver extends Driver {
 	private static final int ENERGY_SLOPE = TriggerDiagnosticUtil.PAIR_ENERGY_SLOPE;
 	private static final int COPLANARITY  = TriggerDiagnosticUtil.PAIR_COPLANARITY;
     
+	// Track the total run time.
+	private long startTime = -1;
+	private long endTime = -1;
+	
 	// Cut names for logging.
 	private static final String[][] cutNames = {
 			{ "E_min", "E_max", "hit count", "null" },
@@ -347,39 +351,44 @@ public class TriggerDiagnosticDriver extends Driver {
 		System.out.println("======================================================================");
 		
 		// Print the general event failure rate.
-		System.out.println("Event Failure Rate:");
-		System.out.printf("\tNoise Events          :: %d / %d (%7.3f%%)%n",
+		int headSpaces = getPrintSpaces(totalEvents, triggerRunStats[0].getEventsOfTypeSeen(0), triggerRunStats[0].getEventsOfTypeSeen(1),
+				triggerRunStats[1].getEventsOfTypeSeen(0), triggerRunStats[1].getEventsOfTypeSeen(1));
+		System.out.println("General Event Statistics:");
+		System.out.printf("\tEvent Start Time      :: %.3f s%n", (startTime / Math.pow(10, 9)));
+		System.out.printf("\tEvent End Time        :: %.3f%n", (endTime / Math.pow(10, 9)));
+		System.out.printf("\tEvent Run Time        :: %.3f%n", ((endTime - startTime) / Math.pow(10, 9)));
+		System.out.printf("\tNoise Events          :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
 				noiseEvents, totalEvents, (100.0 * noiseEvents / totalEvents));
-		System.out.printf("\tCluster Events Failed :: %d / %d (%7.3f%%)%n",
+		System.out.printf("\tCluster Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
 				failedClusterEvents, totalEvents, (100.0 * failedClusterEvents / totalEvents));
-		System.out.printf("\tSingles Events Failed :: %d / %d (%7.3f%%)%n",
+		System.out.printf("\tSingles Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
 				failedSinglesEvents, totalEvents, (100.0 * failedSinglesEvents / totalEvents));
-		System.out.printf("\tPair Events Failed    :: %d / %d (%7.3f%%)%n",
+		System.out.printf("\tPair Events Failed    :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
 				failedPairEvents, totalEvents, (100.0 * failedPairEvents / totalEvents));
 		
 		// Print out how many events were triggered by a type along
 		// with how many were verified.
 		System.out.println();
-		System.out.println("Event Failure Rate:");
-		System.out.printf("\tSingles Trigger 1     :: %d / %d",
+		System.out.println("Event Triggering Type Verification:");
+		System.out.printf("\tSingles Trigger 1     :: %" + headSpaces + "d / %" + headSpaces + "d",
 				triggerRunStats[0].getEventsOfTypeSeen(0), triggerRunStats[0].getEventsOfType(0));
 		if(triggerRunStats[0].getEventsOfType(0) != 0) {
-			System.out.printf(" %d / %d (%7.3f%%)%n", (100.0 * triggerRunStats[0].getEventsOfTypeSeen(0) / triggerRunStats[0].getEventsOfTypeSeen(0)));
+			System.out.printf(" (%7.3f%%)%n", (100.0 * triggerRunStats[0].getEventsOfTypeSeen(0) / triggerRunStats[0].getEventsOfType(0)));
 		} else { System.out.println(); }
-		System.out.printf("\tSingles Trigger 2     :: %d / %d",
+		System.out.printf("\tSingles Trigger 2     :: %" + headSpaces + "d / %" + headSpaces + "d",
 				triggerRunStats[0].getEventsOfTypeSeen(1), triggerRunStats[0].getEventsOfType(1));
 		if(triggerRunStats[0].getEventsOfType(0) != 0) {
-			System.out.printf(" %d / %d (%7.3f%%)%n", (100.0 * triggerRunStats[0].getEventsOfTypeSeen(1) / triggerRunStats[0].getEventsOfTypeSeen(1)));
+			System.out.printf(" (%7.3f%%)%n", (100.0 * triggerRunStats[0].getEventsOfTypeSeen(1) / triggerRunStats[0].getEventsOfType(1)));
 		} else { System.out.println(); }
-		System.out.printf("\tPair Trigger 1        :: %d / %d",
+		System.out.printf("\tPair Trigger 1        :: %" + headSpaces + "d / %" + headSpaces + "d",
 				triggerRunStats[1].getEventsOfTypeSeen(0), triggerRunStats[0].getEventsOfType(0));
 		if(triggerRunStats[1].getEventsOfType(0) != 0) {
-			System.out.printf(" %d / %d (%7.3f%%)%n", (100.0 * triggerRunStats[1].getEventsOfTypeSeen(0) / triggerRunStats[1].getEventsOfTypeSeen(0)));
+			System.out.printf(" (%7.3f%%)%n", (100.0 * triggerRunStats[1].getEventsOfTypeSeen(0) / triggerRunStats[1].getEventsOfType(0)));
 		} else { System.out.println(); }
-		System.out.printf("\tPair Trigger 2        :: %d / %d",
+		System.out.printf("\tPair Trigger 2        :: %" + headSpaces + "d / %" + headSpaces + "d",
 				triggerRunStats[1].getEventsOfTypeSeen(1), triggerRunStats[0].getEventsOfType(1));
 		if(triggerRunStats[1].getEventsOfType(0) != 0) {
-			System.out.printf(" %d / %d (%7.3f%%)%n", (100.0 * triggerRunStats[1].getEventsOfTypeSeen(1) / triggerRunStats[1].getEventsOfTypeSeen(1)));
+			System.out.printf(" (%7.3f%%)%n", (100.0 * triggerRunStats[1].getEventsOfTypeSeen(1) / triggerRunStats[1].getEventsOfType(1)));
 		} else { System.out.println(); }
 		
 		// Print the cluster verification data.
@@ -392,7 +401,7 @@ public class TriggerDiagnosticDriver extends Driver {
 		System.out.printf("\tFailed (Energy)       :: %d%n", clusterRunStats.getEnergyFailures());
 		System.out.printf("\tFailed (Hit Count)    :: %d%n", clusterRunStats.getHitCountFailures());
 		if(clusterRunStats.getReconClusterCount() == 0) { System.out.printf("\tCluster Efficiency    :: N/A%n"); }
-		else { System.out.printf("\tCluster Efficiency :: %7.3f%%%n", 100.0 * clusterRunStats.getMatches() / clusterRunStats.getReconClusterCount()); }
+		else { System.out.printf("\tCluster Efficiency    :: %7.3f%%%n", 100.0 * clusterRunStats.getMatches() / clusterRunStats.getReconClusterCount()); }
 		
 		// Print the trigger verification data.
 		for(int triggerType = 0; triggerType < 2; triggerType++) {
@@ -511,6 +520,10 @@ public class TriggerDiagnosticDriver extends Driver {
 		pairInternalFail = false;
 		pairEfficiencyFail = false;
 		OutputLogger.clearLog();
+		
+		// Track the times.
+		if(startTime == -1) { startTime = event.getTimeStamp(); }
+		else { endTime = event.getTimeStamp(); }
 		
 		
 		
