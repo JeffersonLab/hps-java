@@ -1,10 +1,6 @@
 package org.hps.record.evio;
 
-import static org.hps.record.evio.EvioEventConstants.END_EVENT_TAG;
-import static org.hps.record.evio.EvioEventConstants.GO_EVENT_TAG;
-import static org.hps.record.evio.EvioEventConstants.PAUSE_EVENT_TAG;
-import static org.hps.record.evio.EvioEventConstants.PRESTART_EVENT_TAG;
-import static org.hps.record.evio.EvioEventConstants.SYNC_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.*;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
@@ -20,6 +16,11 @@ public final class EvioEventUtilities {
     private EvioEventUtilities() {
     }
     
+    /**
+     * Get the event tag from the header bank.
+     * @param event The input EvioEvent.
+     * @return The event tag from the header bank.
+     */
     public static int getEventTag(EvioEvent event) {
         return event.getHeader().getTag();
     }
@@ -72,7 +73,7 @@ public final class EvioEventUtilities {
      * @return True if this event is a physics event.
      */
     public static boolean isPhysicsEvent(EvioEvent event) {
-        return (event.getHeader().getTag() >= SYNC_EVENT_TAG+16 ||
+        return (event.getHeader().getTag() >= PHYSICS_START_TAG ||
                 event.getHeader().getTag() < SYNC_EVENT_TAG);
         // return event.getHeader().getTag() == PHYSICS_EVENT_TAG;
     }
@@ -88,6 +89,16 @@ public final class EvioEventUtilities {
     }
     
     /**
+     * Check if this event is an EPICS event containing scalar data.
+     * 
+     * @param event The EvioEvent.
+     * @return True if this event is an EPICS event.
+     */
+    public static boolean isEpicsEvent(EvioEvent event) {
+        return event.getHeader().getTag() == EPICS_EVENT_TAG;
+    }
+    
+    /**
      * True if <code>event</code> is an EVIO control event.
      * @return True if event is a control event.
      */
@@ -96,7 +107,8 @@ public final class EvioEventUtilities {
                 isGoEvent(event) || 
                 isPauseEvent(event) || 
                 isEndEvent(event) || 
-                isSyncEvent(event);
+                isSyncEvent(event) ||
+                isEpicsEvent(event);
     }
 
     /**
