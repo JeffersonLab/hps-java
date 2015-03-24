@@ -39,7 +39,6 @@ public class CompositeLoopConfiguration {
     EtConnection connection = null;
     RecordSource recordSource = null;
     LCSimEventBuilder eventBuilder = null;
-    String detectorName = null;
     
     // Event processors.
     List<EvioEventProcessor> evioProcessors = new ArrayList<EvioEventProcessor>();
@@ -119,17 +118,7 @@ public class CompositeLoopConfiguration {
         this.eventBuilder = eventBuilder;
         return this;
     }
-    
-    /**
-     * Set the name of the detector definition to be used e.g. from detector-data/detectors dir. 
-     * @param detectorName The name of the detector.
-     * @return This object.
-     */
-    public CompositeLoopConfiguration setDetectorName(String detectorName) {
-        this.detectorName = detectorName;
-        return this;
-    }
-    
+        
     /**
      * Set whether the loop will stop when event processing errors occur.
      * Certain types of errors are considered fatal or are used to control
