@@ -64,7 +64,7 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
 
     // Initialize logger.
-    private static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.INFO);
+    private static Logger logger = LogUtil.create(DatabaseConditionsManager.class.getName(), new DefaultLogFormatter(), Level.FINER);
 
     // Global registry of conditions converters.
     private ConverterRegistry converters = ConverterRegistry.create();
@@ -282,7 +282,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 logger.info("new detector " + detectorName + " and run #" + runNumber);
                 initialize(detectorName, runNumber);
             } else {
-                logger.finest("Conditions changed but will be ignored because manager is frozen.");
+                logger.finer("Conditions changed but will be ignored because manager is frozen.");
             }
         }
     }
