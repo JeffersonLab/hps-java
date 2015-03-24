@@ -87,8 +87,13 @@ public class ScalarsTest extends TestCase {
                     // [68] - ungated clock
                     int word68 = data.getValue(68);
                     
-                    double fcupTdc = (double) word03 / (double) word35;                    
-                    double fcupTrg = (double) word19 / (double) word51;                    
+                    // [03]/[35] = FCUP TDC
+                    double fcupTdc = (double) word03 / (double) word35;
+                    
+                    // [19]/[51] = FCUP TRG
+                    double fcupTrg = (double) word19 / (double) word51;
+                    
+                    // [19]/[51] = FCUP TRG
                     double clock = (double) word67 / (double) word68;
                     
                     System.out.println("word03 = " + word03);
