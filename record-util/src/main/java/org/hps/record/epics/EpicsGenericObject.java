@@ -1,4 +1,4 @@
-package org.hps.evio.epics;
+package org.hps.record.epics;
 
 import org.lcsim.event.GenericObject;
 

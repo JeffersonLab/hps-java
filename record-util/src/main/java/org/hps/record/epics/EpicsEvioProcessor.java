@@ -1,4 +1,4 @@
-package org.hps.evio.epics;
+package org.hps.record.epics;
 
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventProcessor;
