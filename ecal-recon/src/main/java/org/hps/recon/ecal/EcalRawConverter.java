@@ -25,10 +25,8 @@ import org.lcsim.geometry.Detector;
  * objects with energy information.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author Nathan Baltzell <baltzell@jlab.org>
- *
  *
  * baltzell:  New in 2015:  (default behavior is still unchanged)
  *
@@ -142,17 +140,11 @@ public class EcalRawConverter {
 			}
     	});
     }
-
-    /*
-     * Set Leading Edge Threshold
-     */
+  
     public void setLeadingEdgeThreshold(double thresh) {
         leadingEdgeThreshold=thresh;
     }
     
-    /*
-     * Set NSA
-     */
     public void setNSA(int nsa) {
         if (NSA%nsPerSample !=0 || NSA<0) {
             throw new RuntimeException("NSA must be multiples of 4ns and non-negative.");
@@ -160,9 +152,6 @@ public class EcalRawConverter {
         NSA=nsa;
     }
     
-    /*
-     * Set NSB
-     */
     public void setNSB(int nsb) {
         if (NSB%nsPerSample !=0 || NSB<0) {
             throw new RuntimeException("NSB must be multiples of 4ns and non-negative.");
@@ -170,16 +159,10 @@ public class EcalRawConverter {
         NSB=nsb;
     }
     
-    /* 
-     * Set windowSamples
-     */
     public void setWindowSamples(int windowSamples) {
         this.windowSamples=windowSamples;
     }
     
-    /*
-     * set Npeak
-     */
     public void setNPeak(int nPeak) {
         if (nPeak<1 || nPeak>3) {
             throw new RuntimeException("Npeak must be 1, 2, or 3.");
@@ -187,46 +170,28 @@ public class EcalRawConverter {
         this.nPeak=nPeak;
     }
     
-    /*
-     * set Mode7
-     */
     public void setMode7(boolean mode7)
     {
         this.mode7=mode7;
     }
 
-    /*
-     * set gain
-     */
     public void setGain(double gain) {
         constantGain = true;
         this.gain = gain;
     }
 
-    /*
-     * set use2014Gain
-     */
     public void setUse2014Gain(boolean use2014Gain) {
         this.use2014Gain = use2014Gain;
     }
 
-    /*
-     * set useRunningPedstal
-     */
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         this.useRunningPedestal=useRunningPedestal;
     }
 
-    /*
-     * set useTimewalkcprrrection
-     */
     public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
         this.useTimeWalkCorrection=useTimeWalkCorrection;
     }
     
-    /*
-     * set usedaqconfig
-     */
     public void setUseDAQConfig(boolean state) {
     	useDAQConfig = state;
     }

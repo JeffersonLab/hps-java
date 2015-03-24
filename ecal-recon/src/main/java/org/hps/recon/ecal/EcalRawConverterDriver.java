@@ -18,10 +18,6 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @version $Id: HPSEcalRawConverterDriver.java,v 1.2 2012/05/03 00:17:54
- * phansson Exp $
- * baltzell
  * 
  * 
  * baltzell New in 2015:  (default behavior is unchanged)
@@ -61,75 +57,219 @@ public class EcalRawConverterDriver extends Driver {
         converter = new EcalRawConverter();
     }
 
+    /**
+     * Set to <code>true</code> to use "2014" gain formula:<br/>
+     * <pre>channelGain * adcSum * gainFactor * readoutPeriod</pre>
+     * <p>
+     * This formula is deprecated and should generally not be used. 
+     * 
+     * @param use2014Gain True to use 2014 gain formulation.
+     */
     public void setUse2014Gain(boolean use2014Gain) {
         converter.setUse2014Gain(use2014Gain);
     }
 
+    /**
+     * Set to <code>true</code> to apply time walk correction from {@link EcalTimeWalk#correctTimeWalk(double, double)}.
+     * <p>
+     * This is only applicable to Mode-3 data.
+     * 
+     * @param useTimeWalkCorrection True to apply time walk correction.
+     */
     public void setUseTimeWalkCorrection(boolean useTimeWalkCorrection) {
         converter.setUseTimeWalkCorrection(useTimeWalkCorrection);
     }
+    
+    /**
+     * Set to <code>true</code> to use a running pedestal calibration from mode 7 data.
+     * <p>
+     * The running pedestal values are retrieved from the event collection "EcalRunningPedestals"
+     * which is a <code>Map</code> between {@link org.hps.conditions.ecal.EcalChannel} objects
+     * are their average pedestal.
+     * 
+     * @param useRunningPedestal True to use a running pedestal value.
+     */
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         converter.setUseRunningPedestal(useRunningPedestal);
     }
 
+    /**
+     * Set to <code>true</code> to generate a {@link org.lcsim.event.CalorimeterHit} 
+     * collection which is a conversion from raw signals to energy.
+     * 
+     * @param runBackwards True to run the procedure backwards.
+     */
     public void setRunBackwards(boolean runBackwards) {
         this.runBackwards = runBackwards;
     }
 
+    /**
+     * Set to <code>true</code> to drop hits that are mapped to a hard-coded 
+     * bad FADC configuration from the Test Run.
+     * 
+     * @param dropBadFADC True to drop hits mapped to a bad FADC.
+     */
     public void setDropBadFADC(boolean dropBadFADC) {
         this.dropBadFADC = dropBadFADC;
     }
 
+    /**
+     * Set a minimum energy threshold in GeV for created {@link org.lcsim.event.CalorimeterHit}
+     * objects to be written into the output collection.
+     * @param threshold The minimum energy threshold in GeV.
+     */
     public void setThreshold(double threshold) {
         this.threshold = threshold;
     }
 
+    /**
+     * Set to <code>true</code> to use Mode-7 emulation in calculations.
+     * 
+     * @param mode7 True to use Mode-7 emulation in calculations.
+     */
     public void setEmulateMode7(boolean mode7) {
         converter.setMode7(mode7);
     }
+    
+    /**
+     * Set to <code>true</code> to emulate firmware conversion of Mode-1 to Mode-3 data.
+     * 
+     * @param emulateFirmware True to use firmware emulation.
+     */
     public void setEmulateFirmware(boolean emulateFirmware) {
         this.emulateFirmware = emulateFirmware;
     }
+    
+    /**
+     * Set the leading-edge threshold in ADC counts, relative to pedestal, for pulse-finding 
+     * and time determination.
+     * <p>
+     * Used to convert Mode-1 readout into Mode-3 or Mode-7 data that is usable by clustering.
+     * 
+     * @param threshold The leading edge threshold in ADC counts.
+     */
     public void setLeadingEdgeThreshold(double threshold) {
         converter.setLeadingEdgeThreshold(threshold);
     }
+    
+    /**
+     * Set the number of samples in the FADC readout window.
+     * <p>
+     * This is needed in order to properly pedestal-correct clipped pulses for mode-3 and mode-7.  
+     * It is ignored for mode-1 input, since this data already includes the number of samples.
+     * <p>
+     * A non-positive number disables pulse-clipped pedestals and reverts to the old behavior which 
+     * assumed that the integration range was constant.
+     * 
+     * @param windowSamples The number of samples in the FADC readout window.
+     */
     public void setWindowSamples(int windowSamples) {
         converter.setWindowSamples(windowSamples);
     }
+    
+    /**
+     * Set the integration range in nanoseconds after the threshold crossing. 
+     * <p>
+     * These numbers must be multiples of 4 nanoseconds.
+     * <p>
+     * This value is used for pulse integration in Mode-1, and pedestal subtraction in all modes.
+     * 
+     * @param nsa The number of samples after the threshold crossing.
+     * @see #setNsb(int)
+     */
     public void setNsa(int nsa) {
         converter.setNSA(nsa);
     }
+    
+    /**
+     * Set the integration range in nanoseconds before the threshold crossing.
+     * <p>
+     * These numbers must be multiples of 4 nanoseconds.
+     * <p>
+     * This value is used for pulse integration in Mode-1, and pedestal subtraction in all modes.
+     * 
+     * @param nsb The number of samples after the threshold crossing.
+     * @see #setNsa(int)
+     */
     public void setNsb(int nsb) {
         converter.setNSB(nsb);
     }
+    
+    /**
+     * Set the maximum number of peaks to search for in the signal, 
+     * which must be between 1 and 3, inclusive.
+     * @param nPeak The maximum number of peaks to search for in the signal.
+     */
     public void setNPeak(int nPeak) {
         converter.setNPeak(nPeak);
     }
     
+    /**
+     * Set a constant gain factor in the converter for all channels.
+     * @param gain The constant gain value.
+     */
     public void setGain(double gain) {
         converter.setGain(gain);
     }
 
+    /**
+     * Set the {@link org.lcsim.event.CalorimeterHit} collection name,
+     * which is used as input in "normal" mode and output when running
+     * "backwards".
+     * 
+     * @param ecalCollectionName The <code>CalorimeterHit</code> collection name.
+     * @see #runBackwards
+     */
     public void setEcalCollectionName(String ecalCollectionName) {
         this.ecalCollectionName = ecalCollectionName;
     }
 
+    /**
+     * Set the raw collection name which is used as output in "normal" mode
+     * and input when running "backwards".
+     * <p>
+     * Depending on the Driver configuration, this could be a collection
+     * of {@link org.lcsim.event.RawTrackerHit} objects for Mode-1
+     * or {@link org.lcsim.event.RawCalorimeterHit} objects for Mode-3
+     * or Mode-7.
+     * 
+     * @param rawCollectionName The raw collection name.
+     */
     public void setRawCollectionName(String rawCollectionName) {
         this.rawCollectionName = rawCollectionName;
     }
 
+    /**
+     * Set to <code>true</code> to ignore data from channels that
+     * are flagged as "bad" in the conditions system.
+     * @param apply True to ignore bad channels.
+     */
     public void setApplyBadCrystalMap(boolean apply) {
         this.applyBadCrystalMap = apply;
     }
 
+    /**
+     * Set to <code>true</code> to turn on debug output.
+     * @param debug True to turn on debug output.
+     */
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
+    /**
+     * Set to <code>true</code> to use timestamp information from the ECal or trigger.
+     * @param useTimestamps True to use timestamp information.
+     */
+    // FIXME: What does this actually do?  What calculations does it affect?  
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
     }
 
+    /**
+     * Set to <code>true</code> to use MC truth information.
+     * @param useTruthTime True to use MC truth information.
+     */
+    // FIXME: What does this actually do?  What calculations does it affect?  
     public void setUseTruthTime(boolean useTruthTime) {
         this.useTruthTime = useTruthTime;
     }
