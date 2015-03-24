@@ -6,7 +6,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.DynamicTimeSeriesCollection;
 import org.jfree.data.time.RegularTimePeriod;
-import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
@@ -156,16 +155,27 @@ public final class StripChartBuilder {
             String[] datasetNames,
             double rangeSize) {
 
+        // If dataset names are given, the length must match the number of series requested.
+        if (datasetNames != null && seriesCount != datasetNames.length) {
+            throw new IllegalArgumentException("datasetNames has wrong length: " + datasetNames.length);
+        }
+        
+        // Create the dataset and add empty series to it.
         TimeSeriesCollection dataset = new TimeSeriesCollection();
         for (int i = 0; i < seriesCount; i++) {
-            String datasetName = "Dataset " + i;
+            
+            // Uses title for dataset names if none given explicitly.            
+            String datasetName = title;
+            
             if (datasetNames != null) {
+                // Use the explicitly given dataset names.
                 datasetName = datasetNames[i];
             }
             TimeSeries timeSeries = new TimeSeries(datasetName);
             dataset.addSeries(timeSeries);
         }
                
+        // Create the chart.
         final JFreeChart result = ChartFactory.createTimeSeriesChart(
                 title, 
                 "hh:mm:ss", 
@@ -175,12 +185,13 @@ public final class StripChartBuilder {
                 false, 
                 false);
         final XYPlot plot = result.getXYPlot();
-        plot.getDomainAxis().setAutoRange(true);
 
+        // Configure range axis.
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setAutoRange(true);
         rangeAxis.setAutoRangeIncludesZero(true);
         
+        // Configure domain axis.
         plot.getDomainAxis().setAutoRange(true);
         plot.getDomainAxis().setAutoRangeMinimumSize(rangeSize);
         
