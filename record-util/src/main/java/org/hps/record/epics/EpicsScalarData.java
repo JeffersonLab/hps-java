@@ -11,69 +11,75 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * <p>
  * This is an API for reading and writing EPICS scalar data to LCIO events,
  * as well as parsing the scalar data from a CDATA section of an EVIO string
  * data bank.
- * <p>Sample data:<br/>
- * <pre>
- * 2010.350952  MBSY2C_energy
- * 0.000000  PSPECIRBCK
- * 2.190000  HPS:LS450_2:FIELD
- * -8974.000000  HPS:LS450_1:FIELD
- * 2400.000000  MTIRBCK
- * 3.882200  VCG2C21
- * 4.579233  VCG2C21A
- * 6.799115  VCG2C24A
- * 6.552529  VCG2H00A
- * 5.429465  VCG2H01A
- * 5.741360  VCG2H02A
- * -0.069630  scaler_calc1
- * 0.000000  scalerS12b
- * 0.000000  scalerS13b
- * 0.000000  scalerS14b
- * 0.000000  scalerS15b
- * 0.000000  hallb_IPM2C21A_XPOS
- * 0.000000  hallb_IPM2C21A_YPOS
- * 0.000000  hallb_IPM2C21A_CUR
- * 0.000000  hallb_IPM2C24A_XPOS
- * 0.000000  hallb_IPM2C24A_YPOS
- * 0.000000  hallb_IPM2C24A_CUR
- * 0.000000  hallb_IPM2H00_XPOS
- * 0.000000  hallb_IPM2H00_YPOS
- * 0.000000  hallb_IPM2H00_XPOS
- * 0.000000  hallb_IPM2H00_XPOS
- * 0.000000  hallb_IPM2H00_CUR
- * 0.000000  hallb_IPM2H02_YPOS
- * 0.000000  hallb_IPM2H02_XPOS
- * </pre>   
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
 */
-// TODO: This API needs to be accessible to recon and analysis modules.
-public final class EpicsScalarData extends LinkedHashMap<String, Double> {
+public final class EpicsScalarData {
     
     // Used in collection parameter map as name of the key list.
-    static final String EPICS_SCALAR_NAMES = "EPICS_SCALAR_NAMES";
+    public static final String EPICS_SCALAR_NAMES = "EPICS_SCALAR_NAMES";
     
     // Default collection name in the LCIO event.
-    static final String DEFAULT_COLLECTION_NAME = "EpicsScalarData";
+    public static final String DEFAULT_COLLECTION_NAME = "EpicsScalarData";
     
     // Dummy collection parameter maps to try and make LCIO happy.
     static final Map<String, int[]> DUMMY_INT_MAP = new HashMap<String, int[]>();    
     static final Map<String, float[]> DUMMY_FLOAT_MAP = new HashMap<String, float[]>();
-   
+    
+    // The map of scalar keys to values.
+    private Map<String, Double> dataMap = new LinkedHashMap<String, Double>();
+       
     /**
-     * Convert this object to a string.
+     * Write this object's data into a GenericObject collection in the LCIO event using 
+     * the default collection name.
+     * @param event The LCIO event.
      */
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        for (Entry<String, Double> entry : this.entrySet()) {
-            sb.append(entry.getKey() + " " + entry.getValue() + '\n');
-        }
-        return sb.toString();
+    public void write(EventHeader event) {
+        write(event, DEFAULT_COLLECTION_NAME);
     }
-
+    
+    /**
+     * <p>
+     * Read data into this object from an LCIO event using the default collection name.
+     * <p>
+     * This is the primary method for users to read the EPICS data into their Drivers
+     * in the {@link org.lcsim.util.Driver#process(EventHeader)} method.
+     * @param event The LCIO event. 
+     * @return The EPICS data from the event.
+     */
+    public static EpicsScalarData read(EventHeader event) {
+        if (event.hasCollection(GenericObject.class, EpicsScalarData.DEFAULT_COLLECTION_NAME)) {
+            return read(event, DEFAULT_COLLECTION_NAME);
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Get a double value from the key.
+     * @return The value from the key.
+     */
+    public Double getValue(String key) {
+        return dataMap.get(key);
+    }
+    
+    /**
+     * Write this object into an LCIO event under the given collection name.
+     * @param event The LCIO event.
+     * @param collectionName The name of the collection in the event.
+     */
+    void write(EventHeader event, String collectionName) {
+        List<GenericObject> collection = new ArrayList<GenericObject>();
+        EpicsGenericObject object = toGenericObject();
+        collection.add(object);
+        Map<String, String[]> stringMap = new HashMap<String, String[]>();
+        stringMap.put(EPICS_SCALAR_NAMES, object.keys);
+        event.put(collectionName, collection, GenericObject.class, 0, DUMMY_INT_MAP, DUMMY_FLOAT_MAP, stringMap);
+    }    
+      
     /**
      * Parse a raw data string from the EVIO data bank and
      * turn it into a list of keys and values within this object. 
@@ -89,8 +95,7 @@ public final class EpicsScalarData extends LinkedHashMap<String, Double> {
             String[] data = trimmed.split("  ");
             Double value = Double.parseDouble(data[0]);
             String key = data[1];
-            System.out.println("adding key, value: " + data[1] + " " + data[0]);
-            put(key, value);
+            dataMap.put(key, value);
         }
     }
 
@@ -101,12 +106,12 @@ public final class EpicsScalarData extends LinkedHashMap<String, Double> {
      */
     EpicsGenericObject toGenericObject() {
         EpicsGenericObject newObject = new EpicsGenericObject();
-        newObject.keys = new String[this.size()];
-        newObject.values = new double[this.size()];
+        newObject.keys = new String[dataMap.size()];
+        newObject.values = new double[dataMap.size()];
         int index = 0;
-        for (String key : this.keySet()) {
+        for (String key : dataMap.keySet()) {
             newObject.keys[index] = key;
-            newObject.values[index] = this.get(key);
+            newObject.values[index] = dataMap.get(key);
             index++;
         }
         return newObject;
@@ -114,45 +119,25 @@ public final class EpicsScalarData extends LinkedHashMap<String, Double> {
 
     /**
      * Given a list of keys, read the double values from the 
-     * {@link org.lcsim.event.GenericObject} into the map.
+     * {@link org.lcsim.event.GenericObject} into the data map
+     * of this object.
      * @param object
      * @param keys
      */
     void fromGenericObject(GenericObject object, String[] keys) {
-        for (int index = 0; index < keys.length; index++) {
-            this.put(keys[index], object.getDoubleVal(index));
+        for (int index = 0; index < keys.length; index++) {                      
+            dataMap.put(keys[index], object.getDoubleVal(index)); 
         }
     }
-
+        
     /**
-     * Write this object into an LCIO event under the given collection name.
-     * @param event The LCIO event.
-     * @param collectionName The name of the collection in the event.
-     */
-    void write(EventHeader event, String collectionName) {
-        List<GenericObject> collection = new ArrayList<GenericObject>();
-        EpicsGenericObject object = this.toGenericObject();
-        collection.add(object);
-        Map<String, String[]> stringMap = new HashMap<String, String[]>();
-        stringMap.put(EPICS_SCALAR_NAMES, object.keys);
-        event.put(collectionName, collection, GenericObject.class, 0, DUMMY_INT_MAP, DUMMY_FLOAT_MAP, stringMap);
-    }
-    
-    /**
-     * Write this object into an LCIO event using the default collection name.
-     * @param event The LCIO event.
-     */
-    void write(EventHeader event) {
-        write(event, DEFAULT_COLLECTION_NAME);
-    }
-
-    /**
-     * Read data into this object from an LCIO event from the given collection name.
+     * Read data into this object from a collection in the LCIO event
+     * with the given collection name.
      * @param event The LCIO event.
      * @param collectionName The collection name.
      * @return The EPICS data from the LCIO event.
      */
-    EpicsScalarData read(EventHeader event, String collectionName) {
+    static EpicsScalarData read(EventHeader event, String collectionName) {
         List<GenericObject> collection = event.get(GenericObject.class, collectionName);
         @SuppressWarnings("rawtypes")
         Map stringMap = event.getMetaData(collection).getStringParameters();
@@ -161,15 +146,15 @@ public final class EpicsScalarData extends LinkedHashMap<String, Double> {
         data.fromGenericObject(collection.get(0), keys);
         return data;
     }
-    
+        
     /**
-     * Read data into this object from an LCIO event using the default collection name.
-     * This is the primary method for users to read the EPICS data into their Drivers
-     * in the <code>process</code> method.         
-     * @param event The LCIO event. 
-     * @return The EPICS data from the event.
+     * Convert this object to a string.
      */
-    public EpicsScalarData read(EventHeader event) {
-        return read(event, DEFAULT_COLLECTION_NAME);
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        for (Entry<String, Double> entry :  dataMap.entrySet()) {
+            sb.append(entry.getKey() + " " + entry.getValue() + '\n');
+        }
+        return sb.toString();
     }
 }
