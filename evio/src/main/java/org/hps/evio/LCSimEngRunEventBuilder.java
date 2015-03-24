@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jlab.coda.jevio.BaseStructure;
-import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.event.EventHeader;
-import org.hps.recon.ecal.daqconfig.EvioDAQParser;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.SSPData;
 import org.hps.recon.ecal.triggerbank.TIData;
+import org.hps.record.epics.EpicsEvioProcessor;
+import org.hps.record.epics.EpicsScalarData;
 import org.hps.record.evio.EvioEventUtilities;
+import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.event.EventHeader;
 
 
 /**
@@ -25,17 +25,19 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     
     TriggerConfigEvioReader triggerConfigReader = null;
     
-    public LCSimEngRunEventBuilder() {
+    EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
+    EpicsScalarData epicsData;
+    
+    public LCSimEngRunEventBuilder() {        
         ecalReader.setTopBankTag(0x25);
-        ecalReader.setBotBankTag(0x27);
-        svtReader = new SvtEvioReader(); 
+        ecalReader.setBotBankTag(0x27);        
+        svtReader = new SvtEvioReader();         
         sspCrateBankTag = 0x2E; //A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
-        // ecalReader = new ECalEvioReader(0x25, 0x27);
-        
+        // ecalReader = new ECalEvioReader(0x25, 0x27);        
         triggerConfigReader = new TriggerConfigEvioReader();
     }
 
@@ -48,6 +50,19 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             }
         }
         return 0;
+    }
+    
+    @Override
+    public void readEvioEvent(EvioEvent evioEvent) {
+        super.readEvioEvent(evioEvent);
+        if (EvioEventUtilities.isEpicsEvent(evioEvent)) {
+            createEpicsScalarData(evioEvent);
+        }
+    }
+    
+    void createEpicsScalarData(EvioEvent evioEvent) {
+        epicsProcessor.process(evioEvent);
+        epicsData = epicsProcessor.getEpicsScalarData();
     }
 
     @Override
@@ -69,6 +84,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making ECal hits", e);
         }
+        
+        // Write EPICS bank into the subsequent physics event.
+        if (epicsData != null) {
+            epicsData.write(lcsimEvent);
+            epicsData = null;
+        }
 
         // Make SVT RawTrackerHits
         // try {
@@ -77,9 +98,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
         // "Error making SVT hits", e);
         // }
-        return lcsimEvent;
-    }
-
-    
         
+        return lcsimEvent;
+    }       
 }
