@@ -1,4 +1,4 @@
-package org.hps.record.et;
+package org.hps.monitoring.application.util;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.evio.TriggerConfigEvioReader;
 import org.hps.recon.ecal.daqconfig.ConfigurationManager;
 import org.hps.recon.ecal.daqconfig.EvioDAQParser;
+import org.hps.record.et.EtEventProcessor;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;
