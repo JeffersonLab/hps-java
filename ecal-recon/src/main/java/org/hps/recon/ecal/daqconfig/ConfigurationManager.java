@@ -34,7 +34,7 @@ public class ConfigurationManager {
      * @return Returns the DAQ settings as a <code>DAQConfig</code>
      * object or <code>null</code>.
      */
-    public static final DAQConfig getInstance() {
+    public synchronized static final DAQConfig getInstance() {
         if(INITIALIZED) { return DAQ_CONFIG; }
         else { return null; }
     }
@@ -43,7 +43,7 @@ public class ConfigurationManager {
      * Adds a listener to track when updates occur in the DAQ settings.
      * @param listener - The listener.
      */
-    public static final void addActionListener(ActionListener listener) {
+    public synchronized static final void addActionListener(ActionListener listener) {
         if(listener != null) { AL_LIST.add(listener); }
     }
     
@@ -72,7 +72,7 @@ public class ConfigurationManager {
      * when the DAQ configuration changes.
      * @param listener - The listener to remove.
      */
-    public static final void removeActionListener(ActionListener listener) {
+    public synchronized static final void removeActionListener(ActionListener listener) {
         if(listener != null) { AL_LIST.remove(listener); }
     }
     
@@ -82,7 +82,7 @@ public class ConfigurationManager {
      * associated listeners that an update has occurred.
      * @param parser - The updated DAQ information.
      */
-    public static final void updateConfiguration(EvioDAQParser parser) {
+    public synchronized static final void updateConfiguration(EvioDAQParser parser) {
         INITIALIZED = false;
         DAQ_CONFIG.loadConfig(parser);
         INITIALIZED = true;
