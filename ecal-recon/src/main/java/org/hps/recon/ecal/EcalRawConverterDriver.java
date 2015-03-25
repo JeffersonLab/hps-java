@@ -58,10 +58,11 @@ public class EcalRawConverterDriver extends Driver {
     }
 
     /**
-     * Set to <code>true</code> to use "2014" gain formula:<br/>
+     * Set to <code>true</code> to use the "2014" gain formula:<br/>
      * <pre>channelGain * adcSum * gainFactor * readoutPeriod</pre>
      * <p>
-     * This formula is deprecated and should generally not be used. 
+     * Set to <code>false</code> to use the gain formula for the Test Run:
+     * <pre>gain * adcSum * ECalUtils.MeV</pre> 
      * 
      * @param use2014Gain True to use 2014 gain formulation.
      */
