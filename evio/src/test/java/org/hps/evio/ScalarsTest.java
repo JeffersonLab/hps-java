@@ -13,6 +13,8 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.hps.record.scalars.ScalarData;
+import org.hps.record.scalars.ScalarUtilities;
+import org.hps.record.scalars.ScalarUtilities.LiveTimeIndex;
 import org.hps.record.scalars.ScalarsEvioProcessor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -68,48 +70,18 @@ public class ScalarsTest extends TestCase {
                 if (data != null) {
                     System.out.println("Driver got ScalarData in LCIO event ...");
                     System.out.println(data.toString());
+                    
+                    double fcupTdc = ScalarUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TDC);
+                    double fcupTrg = ScalarUtilities.getLiveTime(data, LiveTimeIndex.FCUP_TRG);
+                    double clock = ScalarUtilities.getLiveTime(data, LiveTimeIndex.CLOCK);
 
-                    // [03] - gated faraday cup with "TDC" threshold
-                    int word03 = data.getValue(3);
-                    
-                    // [19] - gated faraday cup with "TRG" threshold
-                    int word19 = data.getValue(19);
-
-                    // [35] - ungated faraday cup with "TDC" threshold
-                    int word35 = data.getValue(35);
-                    
-                    // [51] - ungated faraday cup with "TRG" threshold
-                    int word51 = data.getValue(51);
-
-                    // [67] - gated clock
-                    int word67 = data.getValue(67);
-
-                    // [68] - ungated clock
-                    int word68 = data.getValue(68);
-                    
-                    // [03]/[35] = FCUP TDC
-                    double fcupTdc = (double) word03 / (double) word35;
-                    
-                    // [19]/[51] = FCUP TRG
-                    double fcupTrg = (double) word19 / (double) word51;
-                    
-                    // [19]/[51] = FCUP TRG
-                    double clock = (double) word67 / (double) word68;
-                    
-                    System.out.println("word03 = " + word03);
-                    System.out.println("word19 = " + word19);
-                    System.out.println("word35 = " + word35);
-                    System.out.println("word51 = " + word51);
-                    System.out.println("word67 = " + word67);
-                    System.out.println("word68 = " + word68);
-                    
-                    System.out.println("fcupTdc = " + fcupTdc);
-                    System.out.println("fcupTrg = " + fcupTrg);
-                    System.out.println("clock = " + clock);
+                    System.out.println("calculated live times ...");
+                    System.out.println(LiveTimeIndex.FCUP_TDC.toString() + " = " + fcupTdc);
+                    System.out.println(LiveTimeIndex.FCUP_TRG.toString() + " = " + fcupTrg);
+                    System.out.println(LiveTimeIndex.CLOCK.toString() + " = " + clock);
                 }
             }
         });        
         readLoop.loop(-1);
     }
-
 }
