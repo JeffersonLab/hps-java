@@ -205,18 +205,16 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Setup AIDA plotting and connect it to the GUI.
             setupAida();
         
-            // Set the configuration.
+            // Always load the default configuration first.
+            loadConfiguration(new Configuration(DEFAULT_CONFIGURATION));
+            
+            // Overlay the user configuration if one was specified.
             if (configuration != null) {
-                // There was a user specified configuration.
                 this.configuration = configuration;
-            } else {
-                // Use the default configuration.
-                this.configuration = new Configuration(DEFAULT_CONFIGURATION);
+                loadConfiguration(this.configuration);
             }
-                                      
-            // Load the configuration.
-            loadConfiguration(this.configuration);
         
+            // Enable the GUI now that initialization is complete.
             frame.setEnabled(true);
         
             logger.info("application initialized successfully");
@@ -826,7 +824,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }    
     
     /**
-     * 
+     * Run the disconnection on a separate thread.
      */
     void runDisconnectThread() {
         new Thread() {

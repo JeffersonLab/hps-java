@@ -1,7 +1,10 @@
 package org.hps.monitoring.application.util;
 
+import java.util.Arrays;
+
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.record.et.EtConnection;
+import org.jlab.coda.et.EtConstants;
 
 public final class EtSystemUtil {
 
@@ -20,5 +23,11 @@ public final class EtSystemUtil {
                 config.getWaitMode(), 
                 config.getWaitTime(), 
                 config.getChunkSize());
+    }
+    
+    public static int[] createSelectArray() {
+        int select[] = new int[EtConstants.stationSelectInts];
+        Arrays.fill(select, -1);
+        return select;   
     }    
 }

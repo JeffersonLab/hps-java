@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Set the load library path.
-. ${project.build.directory}/scripts/ldpath.sh
-
 # First argument, with no command switch, is name of EVIO file.
 eviofile=$1
 

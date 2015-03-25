@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -13,11 +14,10 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.JobManager;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
+import org.hps.monitoring.application.model.ConnectionStatusModel;
 import org.hps.monitoring.application.model.SteeringType;
+import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EtSystemUtil;
-import org.hps.monitoring.application.util.PhysicsSyncEventStation;
-import org.hps.monitoring.application.util.PreStartEtStation;
-import org.hps.monitoring.application.util.RunnableEtStation;
 import org.hps.monitoring.subsys.et.EtSystemMonitor;
 import org.hps.monitoring.subsys.et.EtSystemStripCharts;
 import org.hps.record.LCSimEventBuilder;
@@ -26,9 +26,15 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.composite.CompositeRecordProcessor;
 import org.hps.record.composite.EventProcessingThread;
 import org.hps.record.enums.DataSourceType;
+import org.hps.record.epics.EpicsEtProcessor;
 import org.hps.record.et.EtConnection;
+import org.hps.record.et.EtEventProcessor;
+import org.hps.record.et.EtStationThread;
+import org.hps.record.et.PreStartProcessor;
+import org.hps.record.et.SyncEventProcessor;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
-import org.jlab.coda.et.EtSystem;
+import org.hps.record.evio.EvioEventConstants;
+import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.exception.EtClosedException;
 import org.jlab.coda.et.exception.EtException;
 import org.lcsim.conditions.ConditionsListener;
@@ -44,26 +50,33 @@ import org.lcsim.util.Driver;
  */
 class EventProcessing {
 
-    MonitoringApplication application;
-    Logger logger;
     SessionState sessionState;
-    List<CompositeRecordProcessor> processors;
-    List<Driver> drivers;
-    List<ConditionsListener> conditionsListeners;
-    int stationPosition;
-
+    MonitoringApplication application;
+    ConfigurationModel configurationModel;
+    ConnectionStatusModel connectionModel;
+    ErrorHandler errorHandler;
+    Logger logger;
+    
     /**
      * This class is used to organize the objects for an event processing session.
      */
     class SessionState {
+        
+        List<CompositeRecordProcessor> processors;
+        List<Driver> drivers;
+        List<ConditionsListener> conditionsListeners;
+        
         JobManager jobManager;
         LCSimEventBuilder eventBuilder;
         CompositeLoop loop;
+        
+        boolean usingEtServer;
+        
         EventProcessingThread processingThread;
         Thread sessionWatchdogThread;
         ThreadGroup stationThreadGroup = new ThreadGroup("Station Threads");
-        List<RunnableEtStation> stations = new ArrayList<RunnableEtStation>();
-        EtConnection connection;
+        List<EtStationThread> stations = new ArrayList<EtStationThread>();
+        EtConnection connection;                                      
     }
 
     /**
@@ -77,20 +90,20 @@ class EventProcessing {
             List<CompositeRecordProcessor> processors, 
             List<Driver> drivers, 
             List<ConditionsListener> conditionsListeners) {
+        
         this.application = application;
-        this.sessionState = new SessionState();
-        this.logger = MonitoringApplication.logger;
-        this.processors = processors;
-        this.drivers = drivers;
-        this.conditionsListeners = conditionsListeners;
-        this.stationPosition = application.configurationModel.getStationPosition();
+        logger = MonitoringApplication.logger;        
+        configurationModel = application.configurationModel;
+        connectionModel = application.connectionModel;
+        errorHandler = application.errorHandler;
+        
+        sessionState = new SessionState();                        
+        sessionState.processors = processors;
+        sessionState.drivers = drivers;
+        sessionState.conditionsListeners = conditionsListeners;
+        sessionState.usingEtServer = application.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
     }
     
-    int getNextStationPosition() {
-        this.stationPosition += 1;
-        return this.stationPosition;        
-    }
-
     /**
      * Setup this class from the global configuration.
      * @param configurationModel The global configuration.
@@ -107,7 +120,7 @@ class EventProcessing {
     /**
      * @param configurationModel
      */
-    private void setupLcsim(ConfigurationModel configurationModel) {
+    void setupLcsim(ConfigurationModel configurationModel) {
         MonitoringApplication.logger.info("setting up lcsim");
 
         // Get steering resource or file as a String parameter.
@@ -129,7 +142,7 @@ class EventProcessing {
             // Add conditions listeners after new database conditions manager is initialized from
             // job manager.
             DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-            for (ConditionsListener conditionsListener : conditionsListeners) {
+            for (ConditionsListener conditionsListener : sessionState.conditionsListeners) {
                 logger.config("adding conditions listener " + conditionsListener.getClass().getName());
                 conditionsManager.addConditionsListener(conditionsListener);
             }
@@ -179,15 +192,14 @@ class EventProcessing {
             logger.info("lcsim setup was successful");
 
         } catch (Throwable t) {
-            // Catch all errors and re-throw them as RuntimeExceptions.
-            application.errorHandler.setError(t).setMessage("Error setting up LCSim.").printStackTrace().raiseException();
+            throw new RuntimeException("Error setting up LCSim.", t);
         }
     }
 
     /**
      * Create the event builder for converting EVIO events to LCSim.
      */
-    private void createEventBuilder(ConfigurationModel configurationModel) {
+    void createEventBuilder(ConfigurationModel configurationModel) {
 
         // Get the class for the event builder.
         String eventBuilderClassName = configurationModel.getEventBuilderClassName();
@@ -207,7 +219,7 @@ class EventProcessing {
      * Setup the loop from the global configuration.
      * @param configurationModel The global configuration.
      */
-    private void setupLoop(ConfigurationModel configurationModel) {
+    void setupLoop(ConfigurationModel configurationModel) {
 
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
             .setStopOnEndRun(configurationModel.getDisconnectOnEndRun())
@@ -244,13 +256,13 @@ class EventProcessing {
         }
 
         // Add extra CompositeRecordProcessors to the loop config.
-        for (CompositeRecordProcessor processor : processors) {
+        for (CompositeRecordProcessor processor : sessionState.processors) {
             loopConfig.add(processor);
             logger.config("added extra processor " + processor.getClass().getSimpleName() + " to job");
         }
 
         // Add extra Drivers to the loop config.
-        for (Driver driver : drivers) {
+        for (Driver driver : sessionState.drivers) {
             loopConfig.add(driver);
             logger.config("added extra Driver " + driver.getName() + " to job");
         }
@@ -267,7 +279,7 @@ class EventProcessing {
      * Setup a steering file on disk.
      * @param steering The steering file.
      */
-    private void setupSteeringFile(String steering) {
+    void setupSteeringFile(String steering) {
         sessionState.jobManager.setup(new File(steering));
     }
 
@@ -276,7 +288,7 @@ class EventProcessing {
      * @param steering The steering resource.
      * @throws IOException if there is a problem setting up or accessing the resource.
      */
-    private void setupSteeringResource(String steering) throws IOException {
+    void setupSteeringResource(String steering) throws IOException {
         InputStream is = this.getClass().getClassLoader().getResourceAsStream(steering);
         if (is == null)
             throw new IOException("Steering resource is not accessible or does not exist.");
@@ -290,18 +302,8 @@ class EventProcessing {
         killWatchdogThread();
 
         // Wake up all ET stations to unblock the system and make sure secondary stations are detached.
-        //wakeUpEtStations()
-        // Wake up the primary ET station doing the event processing.
-        logger.finest("waking up event processing station ...");
-        try {
-            if (sessionState.connection != null) {
-                if (sessionState.connection.getEtSystem() != null) {
-                    sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
-                    logger.finest("event processing station woken up");
-                }
-            }
-        } catch (IOException | EtException | EtClosedException e) {
-            e.printStackTrace();
+        if (usingEtServer()) {
+            wakeUpEtStations();   
         }
         
         // Stop the event processing now that ET system is unblocked.
@@ -321,7 +323,7 @@ class EventProcessing {
         // Notify of last error that occurred in event processing.
         if (sessionState.loop.getLastError() != null) {
             // Log the error.
-            application.errorHandler.setError(sessionState.loop.getLastError()).log();
+            errorHandler.setError(sessionState.loop.getLastError()).log();
         }
 
         // Invalidate the loop.
@@ -337,22 +339,18 @@ class EventProcessing {
     /**
      * Wake up all ET stations associated with event processing.
      */
-    private void wakeUpEtStations() {
+    void wakeUpEtStations() {
         if (sessionState.connection != null) {
             logger.fine("waking up ET stations ...");
 
             // Wake up secondary ET stations.
-            for (RunnableEtStation station : sessionState.stations) {
-                if (station.getEtStation().isUsable()) {
-                    // Wake up the station which will automatically trigger a detach.
-                    try {
-                        logger.finest("waking up " + station.getEtStation().getName() + " ...");
-                        sessionState.connection.getEtSystem().wakeUpAll(station.getEtStation());
-                        logger.finest(station.getEtStation().getName() + " woken up");
-                    } catch (IOException | EtException | EtClosedException e) {
-                        e.printStackTrace();
-                    }
-                }
+            for (EtStationThread station : sessionState.stations) {
+                
+                // First unblock if in ET call.
+                station.wakeUp();
+                
+                // Next interrupt so that it will definitely stop.
+                station.interrupt();
             }
 
             // Wait for station threads to die after being woken up.
@@ -367,23 +365,23 @@ class EventProcessing {
                     }
                 }
             }
-
-            logger.finest("destroying station thread group");
+            
             sessionState.stationThreadGroup.destroy();
-            logger.finest("station thread group destroyed");
+            
+            logger.finest("station threads destroyed");
 
             // Wake up the primary ET station doing the event processing.
             logger.finest("waking up event processing station ...");
             try {
                 sessionState.connection.getEtSystem().wakeUpAll(sessionState.connection.getEtStation());
-                logger.finest("event processing station woken up");
+                logger.finest("event processing station was woken up");
             } catch (IOException | EtException | EtClosedException e) {
                 e.printStackTrace();
             }
 
-            logger.finest("ET stations woken up");
+            logger.finest("ET stations all woken up");
         }
-    }
+    }    
 
     /**
      * Start event processing on the event processing thread and start the watchdog thread.
@@ -396,7 +394,7 @@ class EventProcessing {
         sessionState.processingThread = new EventProcessingThread(sessionState.loop);
         sessionState.processingThread.start();
 
-        // Start the watchdog thread which will auto-disconnect when event processing is done.
+        // Start the watch dog thread which will auto-disconnect when event processing is done.
         sessionState.sessionWatchdogThread = new SessionWatchdogThread(sessionState.processingThread);
         sessionState.sessionWatchdogThread.start();
 
@@ -408,9 +406,9 @@ class EventProcessing {
      */
     synchronized void pause() {
         logger.finest("pausing");
-        if (!application.connectionModel.getPaused()) {
+        if (!connectionModel.getPaused()) {
             sessionState.loop.pause();
-            application.connectionModel.setPaused(true);
+            connectionModel.setPaused(true);
         }
         logger.finest("paused");
     }
@@ -420,10 +418,10 @@ class EventProcessing {
      */
     synchronized void next() {
         logger.finest("getting next event");
-        if (application.connectionModel.getPaused()) {
-            application.connectionModel.setPaused(false);
+        if (connectionModel.getPaused()) {
+            connectionModel.setPaused(false);
             sessionState.loop.execute(Command.GO_N, 1L, true);
-            application.connectionModel.setPaused(true);
+            connectionModel.setPaused(true);
         }
         logger.finest("got next event");
     }
@@ -433,10 +431,10 @@ class EventProcessing {
      */
     synchronized void resume() {
         logger.finest("resuming");
-        if (application.connectionModel.getPaused()) {
+        if (connectionModel.getPaused()) {
             // Notify event processor to continue.
             sessionState.loop.resume();
-            application.connectionModel.setPaused(false);
+            connectionModel.setPaused(false);
         }
         logger.finest("resumed");
     }
@@ -483,7 +481,7 @@ class EventProcessing {
     }
 
     /**
-     * True if the processing thread is active.
+     * True if the processing thread is valid and active.
      * @return True if processing thread is active.
      */
     boolean isActive() {
@@ -504,10 +502,13 @@ class EventProcessing {
                 createEtConnection();
 
                 // Add an attachment that listens for DAQ configuration changes via physics SYNC events.
-                //createPhysicsSyncStation();
+                createSyncStation();
+                
+                // Add an attachment which listens for EPICs events with scalar data.
+                //createEpicsStation();
                 
                 // Add an attachment that listens for PRESTART events.
-                //createPreStartStation();
+                createPreStartStation();
                 
             } catch (Exception e) {
                 throw new IOException(e);
@@ -516,7 +517,7 @@ class EventProcessing {
             logger.fine("ET system is connected");
         } else {
             // This is when a direct file source is used and ET is not needed.
-            application.connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
+            connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
         }
         
     }
@@ -526,7 +527,7 @@ class EventProcessing {
      * @return True if using an ET server.
      */
     boolean usingEtServer() {
-        return application.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER);
+        return sessionState.usingEtServer;
     }
 
     /**
@@ -534,47 +535,101 @@ class EventProcessing {
      */
     synchronized void createEtConnection() {
         // Setup connection to ET system.
-        sessionState.connection = EtSystemUtil.createEtConnection(application.configurationModel);
+        sessionState.connection = EtSystemUtil.createEtConnection(configurationModel);
 
         if (sessionState.connection != null) {
             // Set status to connected as there is now a live ET connection.
-            application.connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
+            connectionModel.setConnectionStatus(ConnectionStatus.CONNECTED);
         } else {
-            application.errorHandler.setError(new RuntimeException("Failed to create ET connection.")).log().printStackTrace().raiseException();
+            errorHandler.setError(new RuntimeException("Failed to create ET connection.")).log().printStackTrace().raiseException();
         }
-    }
-
+    }       
+    
     /**
-     * Create the ET that listens for DAQ configuration change via SYNC events.
+     * Create the select array from event selection in ET stations.
+     * @return The select array.
      */
-    private void createPhysicsSyncStation() {
-        logger.fine("creating physics SYNC station ...");       
-        PhysicsSyncEventStation configStation = new PhysicsSyncEventStation(
-                this.sessionState.connection.getEtSystem(),
-                this.sessionState.connection.getEtStation().getName() + "_PhysicsSync",
-                getNextStationPosition());
-        sessionState.stations.add(configStation);
-        new Thread(sessionState.stationThreadGroup, configStation).start();
-        logger.fine("physics SYNC station created");
+    static int[] createSelectArray() {
+        int select[] = new int[EtConstants.stationSelectInts];
+        Arrays.fill(select, -1);
+        return select;   
+    }    
+     
+    /**
+     * Create a station that listens for physics sync events
+     * containing DAQ configuration.
+     */
+    void createSyncStation() {
+        
+        // Sync events have bits 6 and 7 set.
+        int syncEventType = 0;
+        syncEventType = syncEventType ^ (1 << 6); 
+        syncEventType = syncEventType ^ (1 << 7);
+        int select[] = createSelectArray();
+        select[1] = syncEventType;
+        
+        createStationThread(
+                new SyncEventProcessor(),
+                "SYNC", 
+                1,
+                select);
+    }                                                                                                                                                                                                                                                                               
+    
+    /**
+     * Create a station that listens for PRESTART events
+     * to initialize the conditions system.
+     */
+    void createPreStartStation() {
+                
+        // Select only PRESTART events.
+        int[] select = createSelectArray();
+        select[0] = EvioEventConstants.PRESTART_EVENT_TAG;
+        
+        createStationThread(
+                new PreStartProcessor(configurationModel.getDetectorName()),
+                "PRESTART",
+                1,
+                select);
     }
     
     /**
-     * Create the ET station that listens for GO events in order to initialize the conditions system.
+     * Create a station that listens for EPICS control events (currently not activated).     
      */
-    private void createPreStartStation() {
-        logger.fine("creating PRESTART station ...");
-        String detectorName = this.application.configurationModel.getDetectorName();
-        EtSystem system = this.sessionState.connection.getEtSystem();
-        String stationName = this.sessionState.connection.getEtStation().getName() + "_PreStart";
-        int order = getNextStationPosition();
-        PreStartEtStation preStartStation = new PreStartEtStation(
-                detectorName, 
-                system, 
-                stationName, 
-                order);
-        sessionState.stations.add(preStartStation);
-        new Thread(sessionState.stationThreadGroup, preStartStation).start();
-        logger.fine("PRESTART station created");
+    void createEpicsStation() {
+        
+        // Select only EPICS events.
+        int[] select = createSelectArray();
+        select[0] = EvioEventConstants.EPICS_EVENT_TAG;
+        
+        createStationThread(
+                new EpicsEtProcessor(),
+                "EPICS",
+                1,
+                select);
+    }
+    
+    /**
+     * Create an ET station thread.
+     * @param processor The event processor to run on the thread.
+     * @param nameAppend The string to append for naming this station.
+     * @param stationPosition The position of the station.
+     * @param select The event selection data array.
+     */
+    void createStationThread(EtEventProcessor processor, String nameAppend, int stationPosition, int[] select) {
+        EtStationThread stationThread = new EtStationThread(
+                processor,
+                sessionState.connection.getEtSystem(),
+                sessionState.connection.getEtStation().getName() + "_" + nameAppend,
+                stationPosition,
+                select);
+        new Thread(sessionState.stationThreadGroup, stationThread).start();
+        sessionState.stations.add(stationThread);
+        logger.config("started ET station " + nameAppend);
+        StringBuffer sb = new StringBuffer();
+        for (int word : select) {
+            sb.append(word + " ");
+        }
+        logger.config("station has select array: " + sb.toString());
     }
 
     /**
@@ -584,10 +639,12 @@ class EventProcessing {
     synchronized void disconnect() {
                 
         // Cleanup the ET connection.
-        closeEtConnection();
+        if (usingEtServer()) {
+            closeEtConnection();
+        }
 
         // Change application state to disconnected.
-        application.connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+        connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTED);
     }
 
     /**
@@ -617,22 +674,29 @@ class EventProcessing {
         }
     }
     
+    /**
+     * Invalidate all 
+     */
     void invalidate() {
 
-        this.application = null;
-        this.conditionsListeners = null;
-        this.drivers = null;
-        this.logger = null;
-        this.processors = null;        
-
-        this.sessionState.jobManager = null;
-        this.sessionState.eventBuilder = null;
-        this.sessionState.loop = null;
-        this.sessionState.processingThread = null;
-        this.sessionState.sessionWatchdogThread = null;
-        this.sessionState.stationThreadGroup = null;
-        this.sessionState.stations = null;
-        this.sessionState.connection = null;
-        this.sessionState = null;
+        application = null;
+        logger = null;
+        configurationModel = null;
+        connectionModel = null;
+        errorHandler = null;
+        
+        sessionState.conditionsListeners = null;
+        sessionState.drivers = null;        
+        sessionState.processors = null;        
+        sessionState.jobManager = null;
+        sessionState.eventBuilder = null;
+        sessionState.loop = null;
+        sessionState.processingThread = null;
+        sessionState.sessionWatchdogThread = null;
+        sessionState.stationThreadGroup = null;
+        sessionState.stations = null;
+        sessionState.connection = null;
+        
+        sessionState = null;
     }
 }

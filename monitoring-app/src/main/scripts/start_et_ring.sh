@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Set the load library path.
-. ${project.build.directory}/scripts/ldpath.sh
-
 # Setup the classpath.
 classpath=${project.build.directory}/${project.artifactId}-${project.version}-bin.jar
 

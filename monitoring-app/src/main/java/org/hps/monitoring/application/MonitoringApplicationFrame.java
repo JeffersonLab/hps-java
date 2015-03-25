@@ -140,7 +140,7 @@ class MonitoringApplicationFrame extends JFrame {
                        
         // Create the main horizontal split pane for dividing the left and right panels.
         mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        mainSplitPane.setDividerLocation(PIXEL_WIDTH_MAX / 2);
+        mainSplitPane.setDividerLocation((int) (PIXEL_WIDTH_MAX  * 0.4));
         bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
         
         // Create the menu bar.
