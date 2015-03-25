@@ -77,14 +77,24 @@ public class ScalarData {
     }
     
     /**
-     * Write this object out to an LCIO event.
+     * Write this object out to an LCIO event using the default collection name.
      * @param event The output LCIO event.
      */
     public void write(EventHeader event) {
+        write(event, DEFAULT_SCALAR_DATA_COLLECTION_NAME);
+    }
+    
+    /**
+     * Write this object out to an LCIO event using the given collection name.
+     * @param event The output LCIO event.
+     * @param collectionName The name of the collection.
+     */
+    public void write(EventHeader event, String collectionName) {
         List<GenericObject> collection = new ArrayList<GenericObject>();
         collection.add(toGenericObject());
-        event.put(DEFAULT_SCALAR_DATA_COLLECTION_NAME, collection, GenericObject.class, 0);
+        event.put(collectionName, collection, GenericObject.class, 0);
     }
+    
     
     /**
      * Create a new object from the data in an LCIO event, using the default collection name.
@@ -92,17 +102,27 @@ public class ScalarData {
      * @return The created ScalarData object or null if does not exist in event.
      */
     public static ScalarData read(EventHeader event) {
+        return read(event, DEFAULT_SCALAR_DATA_COLLECTION_NAME);
+    }
+    
+    /**
+     * Create a new object from the data in an LCIO event, using the default collection name.
+     * @param event The LCIO event data.
+     * @return The created ScalarData object or null if does not exist in event.
+     */
+    public static ScalarData read(EventHeader event, String collectionName) {
         ScalarData data = null;
-        if (event.hasCollection(GenericObject.class, DEFAULT_SCALAR_DATA_COLLECTION_NAME)) {
-            List<GenericObject> objects = event.get(GenericObject.class, DEFAULT_SCALAR_DATA_COLLECTION_NAME);
+        if (event.hasCollection(GenericObject.class, collectionName)) {
+            List<GenericObject> objects = event.get(GenericObject.class, collectionName);
             data = new ScalarData();
             data.fromGenericObject(objects.get(0));
         }
         return data;
     }
     
+    
     /**
-     * Convert this object to a readable string, which is basically just a list of int values
+     * Convert this object to a readable string, which is a list of integer values
      * enclosed in braces and separated by commas.
      */
     public String toString() {
