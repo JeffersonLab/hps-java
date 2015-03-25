@@ -2,15 +2,12 @@ package org.hps.evio;
 
 import java.util.List;
 
+import org.hps.util.Pair;
 import org.jlab.coda.jevio.BaseStructure;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-import org.hps.util.Pair;
-
-import static org.hps.evio.EventConstants.TEST_RUN_SVT_BANK_TAG;
 
 /**
  *	Test run SVT EVIO reader used to convert SVT bank integer data to LCIO

@@ -1,29 +1,28 @@
 package org.hps.evio;
 
+import static org.hps.evio.EventConstants.SVT_BANK_NUMBER;
+import static org.hps.evio.EventConstants.SVT_BANK_TAG;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//===> import org.hps.conditions.deprecated.SvtUtils;
+import org.hps.readout.svt.FpgaData;
+import org.hps.readout.svt.HPSSVTConstants;
+import org.hps.readout.svt.SVTData;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
 import org.jlab.coda.jevio.EvioBank;
 import org.jlab.coda.jevio.EvioException;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
-//===> import org.hps.conditions.deprecated.SvtUtils;
-import org.hps.readout.svt.FpgaData;
-import org.hps.readout.svt.HPSSVTConstants;
-import org.hps.readout.svt.SVTData;
-
-import static org.hps.evio.EventConstants.SVT_BANK_NUMBER;
-import static org.hps.evio.EventConstants.SVT_BANK_TAG;
 
 /**
  *
