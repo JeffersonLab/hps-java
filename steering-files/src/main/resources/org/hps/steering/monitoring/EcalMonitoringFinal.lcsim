@@ -8,12 +8,17 @@
     <execute>
         <!-- <driver name="EventMarkerDriver"/> -->
         <driver name="EcalRawConverter" />
-        <driver name="EcalClusterer" />
+        <driver name="DAQConfig"/> 
+        <driver name="DAQConfigDriver" />
+<!--	<driver name="EcalClusterer" />		--><!-- This is done elsewhere! -->
+        <driver name="GTPTestDriver" />
+        <driver name="TriggerDiagnostics" /> 
         <driver name="EcalMonitoringPlots" />      <!-- General plots -->
         <driver name="EcalHitPlots" />             <!-- Single hit distributions -->
         <driver name="EcalClusterPlots" />         <!-- Clusters distributions -->
         <driver name="EcalDaqPlots" />             <!-- DAQ Plots -->
         <driver name="EcalEventDisplay" />         <!-- Ecal event display -->        
+        <driver name="ClockDriver" />
         <!-- <driver name="EcalWindowPlots"/>  -->
         <!-- <driver name="EcalEvsX"/>         -->           
         <!-- <driver name="TriggerPlots"/>     -->
@@ -24,11 +29,54 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
+        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>
+
+	<driver name="DAQConfigDriver" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver">
+	</driver>
+
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <applyBadCrystalMap>false</applyBadCrystalMap>
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
+            <useTruthTime>false</useTruthTime>
+            <useRunningPedestal>false</useRunningPedestal>
+            <useTimeWalkCorrection>false</useTimeWalkCorrection>
+            <emulateFirmware>true</emulateFirmware>
+            <emulateMode7>false</emulateMode7>
+            <leadingEdgeThreshold>12</leadingEdgeThreshold>
+            <nsa>100</nsa>
+            <nsb>20</nsb>
+            <nPeak>3</nPeak>
         </driver>
-             
+        <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
+            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+            <!-- <seedEnergyThreshold>0.500</seedEnergyThreshold>
+            <windowBefore>3</windowBefore>
+            <windowAfter>3</windowAfter> -->
+            <seedEnergyThreshold>0.010</seedEnergyThreshold>
+            <windowBefore>2</windowBefore>
+            <windowAfter>2</windowAfter>
+            <useDAQConfig>true</useDAQConfig>
+            <verbose>false</verbose>
+        </driver>
+
+        <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+	    <printResultsEveryNEvents>10000</printResultsEveryNEvents>
+            <hitAcceptanceWindow>0</hitAcceptanceWindow>
+            <noiseThresholdCount>100</noiseThresholdCount>
+            <energyAcceptanceWindow>0.009</energyAcceptanceWindow>
+            <printOnClusterFailure>false</printOnClusterFailure>
+            <printOnSinglesSSPFailure>false</printOnSinglesSSPFailure>
+            <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
+            <printOnPairSSPFailure>false</printOnPairSSPFailure>
+            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
+            <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance> <!-- Set to false for mode-7 -->
+            <readDAQConfig>true</readDAQConfig>
+            <verbose>false</verbose>
+        </driver>
+
+        <driver name="GUIDiagnostics" type="org.hps.monitoring.trigger.TriggerDiagnosticGUIDriver"/>
+
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
@@ -66,5 +114,6 @@
             <minEch>0.005</minEch>
             <eventRefreshRate>1</eventRefreshRate>
         </driver>        
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver" />
     </drivers>
 </lcsim>
