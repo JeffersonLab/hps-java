@@ -1,4 +1,4 @@
-package org.hps.monitoring.application.util;
+package org.hps.evio;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,9 +12,7 @@ import org.lcsim.event.EventHeader;
 /**
  * Build LCSim events from EVIO data.
  * <p>
- * This class only builds physics events and essentially 
- * ignores EPICS scalar data, scalar banks, and control 
- * events.
+ * This class only builds physics events and will ignore EPICS scalar data, scalar banks, and control events.
  *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
