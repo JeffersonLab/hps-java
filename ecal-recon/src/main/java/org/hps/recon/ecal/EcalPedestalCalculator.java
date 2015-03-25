@@ -47,7 +47,7 @@ public class EcalPedestalCalculator extends Driver {
     private static final String rawCollectionName = "EcalReadoutHits";
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
 
-    private String histoNameFormat = "Ecal/Pedestals/Mode7/ped%3d";
+    private String histoNameFormat = "Ecal/Pedestals/Mode7/ped%03d";
 
     private static final int minimumStats = 1000;
     private static final DecimalFormat dbNumberFormat=new DecimalFormat("#.####");
@@ -74,12 +74,17 @@ public class EcalPedestalCalculator extends Driver {
     public EcalPedestalCalculator() {
     }
 
+    private String getHistoName(EcalChannel cc) {
+        return String.format(histoNameFormat,cc.getChannelId());
+    }
+
     @Override
     protected void startOfData() {
     }
 
     @Override
     public void endOfData() {
+        
         Console cc = System.console();
         if (cc == null) {
             System.err.println("No console.");
@@ -135,10 +140,6 @@ public class EcalPedestalCalculator extends Driver {
             aida.histogram1D(getHistoName(cc),181,19.5,200.5);
         }
 
-    }
-
-    private String getHistoName(EcalChannel cc) {
-        return String.format(histoNameFormat,cc.getChannelId());
     }
 
     private void uploadToDB() {

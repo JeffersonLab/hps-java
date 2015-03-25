@@ -179,16 +179,16 @@ public class EvioDAQParser {
      * TAG TRIGGER VALUES
      */
     public void parseConfigMap() {
-        fadcNSA = Integer.valueOf(getConfig("FADC250_NSA", 0));
-        fadcNSB = Integer.valueOf(getConfig("FADC250_NSB", 0));
-        fadcNPEAK = Integer.valueOf(getConfig("FADC250_NPEAK", 0));
-        fadcMODE = Integer.valueOf(getConfig("FADC250_MODE", 0));
-        fadcWIDTH = Integer.valueOf(getConfig("FADC250_W_WIDTH", 0));
+        fadcNSA    = Integer.valueOf(getConfig("FADC250_NSA", 0));
+        fadcNSB    = Integer.valueOf(getConfig("FADC250_NSB", 0));
+        fadcNPEAK  = Integer.valueOf(getConfig("FADC250_NPEAK", 0));
+        fadcMODE   = Integer.valueOf(getConfig("FADC250_MODE", 0));
+        fadcWIDTH  = Integer.valueOf(getConfig("FADC250_W_WIDTH", 0));
         fadcOFFSET = Integer.valueOf(getConfig("FADC250_W_OFFSET", 0));
         
         gtpMinSeedEnergy = Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_THRESHOLD", 0));
-        gtpWindowBefore = Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN", 0));
-        gtpWindowAfter = Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN", 1));
+        gtpWindowBefore  = Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN", 0));
+        gtpWindowAfter   = Integer.valueOf(getConfig("GTP_CLUSTER_PULSE_COIN", 1));
         
         for(int ii = 0; ii < 2; ii++) {
             singlesNhitsEn[ii]         = getBoolConfigSSP(ii,  "SINGLES_NMIN",          1);
