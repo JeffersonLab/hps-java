@@ -92,9 +92,16 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double fixedGain = -1;
     private boolean constantTriggerWindow = true;
     private boolean addNoise = false;
-    private double pePerMeV = 2.0; //photoelectrons per MeV, used to calculate noise
+   
+    // 32.8 p.e./MeV = New detector in 2014
+    // 2 p.e./MeV = Test Run detector
+    private double pePerMeV = 32.8; //photoelectrons per MeV, used to calculate noise
+    
     //switch between test run and 2014 definitions of gain constants
+    // true = ONLY simulation studies in 2014
+    // false = Test Run data/simulations and 2014+ Detector's real data 
     private boolean use2014Gain = false;
+    
     //switch between three pulse shape functions
     private PulseShape pulseShape = PulseShape.ThreePole;
 
@@ -451,7 +458,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) 
                     		+ hit.getRawEnergy() / (ECalUtils.lightYield * ECalUtils.quantumEff * ECalUtils.surfRatio));
                 } else {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) 
+                    		+ hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
                 }
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
             }
