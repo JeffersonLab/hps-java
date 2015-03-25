@@ -62,14 +62,16 @@ public final class EtStationThread extends Thread {
         if (stationPosition < 1) {
             throw new IllegalArgumentException("stationPosition must be > 0");
         }
-        if (select.length != EtConstants.stationSelectInts) {
-            throw new IllegalArgumentException("control array must have length " + EtConstants.stationSelectInts);
+        if (select != null) {
+            if (select.length != EtConstants.stationSelectInts) {
+                throw new IllegalArgumentException("control array must have length " + EtConstants.stationSelectInts);
+            }
+            this.select = select;
         }
         
         this.processor = processor;
         this.name = name;
         this.stationPosition = stationPosition;                
-        this.select = select;
         
         // Copy parameters from the provided EtSystem.
         try {
@@ -101,7 +103,7 @@ public final class EtStationThread extends Thread {
             // Setup event selection.
             if (select != null) {
                 stationConfig.setSelect(select);
-                stationConfig.setSelectMode(EtConstants.stationSelectMatch); // ?????
+                stationConfig.setSelectMode(EtConstants.stationSelectMatch);
             }
             
             // Create station and attach to the ET system.
@@ -119,8 +121,10 @@ public final class EtStationThread extends Thread {
      */
     public final void run() {
         
+        // Setup the ET system.
         setup();
         
+        // Process ET events.
         try {
             for (;;) {                
                 
@@ -157,6 +161,7 @@ public final class EtStationThread extends Thread {
                 }
             }             
         } finally {
+            // Disconnect the ET system.
             disconnect();
         }        
     }
