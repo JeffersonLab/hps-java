@@ -95,7 +95,7 @@ public class EcalRawConverterDriver extends Driver {
 
     /**
      * Set to <code>true</code> to generate a {@link org.lcsim.event.CalorimeterHit} 
-     * collection which is a conversion from raw signals to energy.
+     * collection which is a conversion from energy to raw signals.
      * 
      * @param runBackwards True to run the procedure backwards.
      */
@@ -124,6 +124,7 @@ public class EcalRawConverterDriver extends Driver {
 
     /**
      * Set to <code>true</code> to use Mode-7 emulation in calculations.
+     * False is Mode-3.
      * 
      * @param mode7 True to use Mode-7 emulation in calculations.
      */
@@ -132,7 +133,7 @@ public class EcalRawConverterDriver extends Driver {
     }
     
     /**
-     * Set to <code>true</code> to emulate firmware conversion of Mode-1 to Mode-3 data.
+     * Set to <code>true</code> to emulate firmware conversion of Mode-1 to Mode-3/7 data.
      * 
      * @param emulateFirmware True to use firmware emulation.
      */
@@ -174,7 +175,7 @@ public class EcalRawConverterDriver extends Driver {
      * <p>
      * This value is used for pulse integration in Mode-1, and pedestal subtraction in all modes.
      * 
-     * @param nsa The number of samples after the threshold crossing.
+     * @param nsa The number of nanoseconds after the threshold crossing.
      * @see #setNsb(int)
      */
     public void setNsa(int nsa) {
@@ -188,7 +189,7 @@ public class EcalRawConverterDriver extends Driver {
      * <p>
      * This value is used for pulse integration in Mode-1, and pedestal subtraction in all modes.
      * 
-     * @param nsb The number of samples after the threshold crossing.
+     * @param nsb The number of nanoseconds after the threshold crossing.
      * @see #setNsa(int)
      */
     public void setNsb(int nsb) {
