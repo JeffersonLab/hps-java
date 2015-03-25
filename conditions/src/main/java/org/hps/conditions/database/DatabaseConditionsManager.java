@@ -728,7 +728,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             logger.log(Level.WARNING, "error closing ResultSet", e);
         }
         StringBuffer buffer = new StringBuffer();
-        buffer.append("found unique conditions tags ...");
+        buffer.append("found unique conditions tags: ");
         for (String tag : tags) {
             buffer.append(tag + " ");
         }
