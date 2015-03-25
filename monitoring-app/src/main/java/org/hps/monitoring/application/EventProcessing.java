@@ -508,7 +508,7 @@ class EventProcessing {
                 //createEpicsStation();
                 
                 // Add an attachment that listens for PRESTART events.
-                createPreStartStation();
+                //createPreStartStation();
                 
             } catch (Exception e) {
                 throw new IOException(e);
