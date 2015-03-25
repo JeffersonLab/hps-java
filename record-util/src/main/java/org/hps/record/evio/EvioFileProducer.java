@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jlab.coda.et.EtAttachment;
@@ -243,7 +244,7 @@ public final class EvioFileProducer {
                                         
                     // Create control data array for event selection.
                     int[] control = new int[EtConstants.stationSelectInts];
-                    control[0] = eventTag;
+                    Arrays.fill(control, eventTag);
                     mevs[0].setControl(control);
                     
                     // Delay for X millis if applicable.
