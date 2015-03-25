@@ -71,9 +71,9 @@ public class ScalarUtilities {
         
         // Compute the live times.
         double[] liveTimes = new double[3];
-        liveTimes[0] = fcupTdc;
-        liveTimes[1] = fcupTrg;
-        liveTimes[2] = clock;
+        liveTimes[LiveTimeIndex.FCUP_TDC.ordinal()] = fcupTdc;
+        liveTimes[LiveTimeIndex.FCUP_TRG.ordinal()] = fcupTrg;
+        liveTimes[LiveTimeIndex.CLOCK.ordinal()] = clock;
         
         return liveTimes;
     }
