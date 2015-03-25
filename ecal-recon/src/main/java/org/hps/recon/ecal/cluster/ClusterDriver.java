@@ -249,7 +249,7 @@ public class ClusterDriver extends Driver {
                 }
             }
         } else {
-            //getLogger().info("The input hit collection " + this.inputHitCollectionName + " is missing from the event.");
+            getLogger().info("The input hit collection " + this.inputHitCollectionName + " is missing from the event.");
             if (this.raiseErrorNoHitCollection) {
                 throw new RuntimeException("The expected input hit collection is missing from the event.");
             }
