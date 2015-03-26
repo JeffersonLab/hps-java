@@ -12,19 +12,23 @@
        <driver name="TrackerHitDriver" />  
         <driver name="HelicalTrackHitDriver" />
          <driver name="TrackerL1to3ReconDriver"/> 
-  <driver name="TrackerL4to6ReconDriver"/> 
-<!--           <driver name="TrackDataDriver"/>   
-       <driver name="EcalRawConverter" /> 
+        <driver name="TrackerL4to6ReconDriver"/> 
+         <driver name="FullTrackerReconDriver"/> 
+           <driver name="TrackDataDriver"/>   
+ <!--      <driver name="EcalRawConverter" /> 
         <driver name="EcalClusterer" />
-       <driver name="ReconParticle" />
+       <driver name="ReconParticle" /> -->
+<!-- Online Monitoring Drivers -->
         <driver name="TrackingMonitoring" />
         <driver name="TrackingResiduals"/>  
-        <driver name="V0Monitoring"/> -->
+        <driver name="TrackTime"/>  
+<!--        <driver name="V0Monitoring"/>   -->
         <driver name="SVTAlignment"/> 
+<!-- DQM Monitoring Drivers -->
 
 <!--        <driver name="TrackingDQM" />
-        <driver name="TrackingResidualsDQM"/>  
-        <driver name="FinalStateDQM"/>  
+        <driver name="TrackingResidualsDQM"/>   -->
+<!--        <driver name="FinalStateDQM"/>  
         <driver name="V0DQM"/>  -->
         <driver name="AidaSaveDriver"/> 
         <driver name="CleanupDriver" />
@@ -69,6 +73,12 @@
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
 
+        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+        </driver>
+
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
@@ -91,6 +101,8 @@
         </driver>      
       <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">         
         <outputPlots>alignment</outputPlots>
+        </driver>   
+        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
         </driver>
 
         <driver name="TrackingDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
