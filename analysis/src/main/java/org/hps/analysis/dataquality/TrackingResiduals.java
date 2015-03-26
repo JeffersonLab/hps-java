@@ -340,7 +340,7 @@ public class TrackingResiduals extends DataQualityMonitor {
         double range = 2.5;
         if (isX) {
             if (layer == 1)
-                return 0.5;
+                return 0.2;
             if (layer == 2)
                 return 0.5;
             if (layer == 3)
