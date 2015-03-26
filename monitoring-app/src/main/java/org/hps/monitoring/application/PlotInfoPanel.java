@@ -27,6 +27,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -53,11 +54,11 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
     
     PlotterRegion currentRegion;
     Object currentObject;
-    static final int INSET_SIZE = 5;
-    static final int BORDER_SIZE = 10;
-
+    
+    static final int MAX_ROWS = 13;
+    static final int MIN_WIDTH = 400;
+    static final int MIN_HEIGHT = 300;
     static final String[] COLUMN_NAMES = { "Field", "Value" };
-
     static final String PLOT_SELECTED = "PlotSelected";
 
     Timer timer = new Timer();
@@ -68,20 +69,32 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
     @SuppressWarnings("unchecked")
     PlotInfoPanel() {
                 
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+        setLayout(new FlowLayout(FlowLayout.CENTER));
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
-           
-        JPanel buttonPanel = new JPanel();
+        leftPanel.setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
+        
+        Dimension filler = new Dimension(0, 10);
+        
+        // Save button.
         saveButton = new JButton("Save Plots ...");
         saveButton.setActionCommand(Commands.SAVE_SELECTED_PLOTS);
-        buttonPanel.add(saveButton);       
-        //c.anchor = GridBagConstraints.NORTHWEST;
-        leftPanel.add(buttonPanel);
+        saveButton.setAlignmentX(CENTER_ALIGNMENT);
+        leftPanel.add(saveButton);
+        
+        leftPanel.add(new Box.Filler(filler, filler, filler));
 
-        plotComboBox = new JComboBox<Object>();
+        // Combo box for selecting plotted object.
+        plotComboBox = new JComboBox<Object>() {
+            public Dimension getMaximumSize() {
+                Dimension max = super.getMaximumSize();
+                max.height = getPreferredSize().height;
+                return max;
+            }
+        };
         plotComboBox.setActionCommand(PLOT_SELECTED);
+        plotComboBox.setAlignmentX(CENTER_ALIGNMENT);
         plotComboBox.setRenderer(new BasicComboBoxRenderer() {
             @SuppressWarnings("rawtypes")
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -98,12 +111,15 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
         plotComboBox.addActionListener(this);
         leftPanel.add(plotComboBox);
         
+        leftPanel.add(new Box.Filler(filler, filler, filler));
+        
+        // Table with plot info.
         String data[][] = new String[0][0];
         model = new DefaultTableModel(data, COLUMN_NAMES);
+        model.setColumnIdentifiers(COLUMN_NAMES);
         infoTable.setModel(model);
-        infoTable.getColumn("Field").setMinWidth(25);
-        infoTable.getColumn("Value").setMinWidth(20);
-        infoTable.setMinimumSize(new Dimension(100, 200));
+        ((DefaultTableModel)infoTable.getModel()).setRowCount(MAX_ROWS);
+        infoTable.setAlignmentX(CENTER_ALIGNMENT);
         leftPanel.add(infoTable);
         
         add(leftPanel);
@@ -185,8 +201,6 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
     synchronized void setCurrentRegion(PlotterRegion region) {
         if (region != currentRegion) {
             currentRegion = region;
-            //if (currentRegion.title() != null)
-            //    setTitle(currentRegion.title());
             updateComboBox();
             setCurrentObject(plotComboBox.getSelectedItem());
             setupContentPane();
@@ -206,8 +220,7 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
      * Update the info table from the state of the current AIDA object.
      */
     void updateTable() {
-        model.setRowCount(0);
-        model.setColumnIdentifiers(COLUMN_NAMES);
+        model.setRowCount(0);        
         if (currentObject instanceof IHistogram1D) {
             addRows((IHistogram1D) currentObject);
         } else if (currentObject instanceof IHistogram2D) {
