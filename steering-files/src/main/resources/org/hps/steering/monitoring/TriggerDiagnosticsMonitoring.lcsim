@@ -1,20 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
         <printInputFiles>false</printInputFiles>
         <printDriversDetailed>false</printDriversDetailed>
-    </control>
+    </control>        
     <execute>
-        <!-- <driver name="EventMarkerDriver" /> -->
-        <driver name="EcalRawConverter" />
-        <driver name="GTPTestDriver" />
-        <driver name="TriggerDiagnostics" />
-        <driver name="ClockDriver" />
-    </execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="ConditionsDriver"/>
+        <driver name="DAQConfig"/>
+        <driver name="EcalRawConverter"/>
+        <driver name="GTPTestDriver"/>
+        <driver name="TriggerDiagnostics"/>
+        <!--
+        <driver name="AidaSaveDriver"/>
+        -->
+        <driver name="ClockDriver"/>
+        <driver name="CleanupDriver"/>
+    </execute>     
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
-        </driver>
+            <eventInterval>1000</eventInterval>
+        </driver>        
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <tag>pass0</tag>
+        </driver>        
+        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>        
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
@@ -23,35 +32,45 @@
             <useRunningPedestal>false</useRunningPedestal>
             <useTimeWalkCorrection>false</useTimeWalkCorrection>
             <emulateFirmware>true</emulateFirmware>
+            <emulateMode7>false</emulateMode7>
             <leadingEdgeThreshold>12</leadingEdgeThreshold>
+            <useDAQConfig>true</useDAQConfig>
             <nsa>100</nsa>
             <nsb>20</nsb>
-        </driver>
+            <nPeak>3</nPeak>
+        </driver>        
         <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
             <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
-            <!--
-            <seedEnergyThreshold>0.500</seedEnergyThreshold>
+            <!-- <seedEnergyThreshold>0.500</seedEnergyThreshold>
             <windowBefore>3</windowBefore>
-            <windowAfter>3</windowAfter>
-            -->
-            <!-- cuts used for GTP -->
+            <windowAfter>3</windowAfter> -->
             <seedEnergyThreshold>0.010</seedEnergyThreshold>
             <windowBefore>2</windowBefore>
             <windowAfter>2</windowAfter>
+            <useDAQConfig>true</useDAQConfig>
             <verbose>false</verbose>
-        </driver>
+        </driver>        
         <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
+            <hitAcceptanceWindow>0</hitAcceptanceWindow>
             <noiseThresholdCount>100</noiseThresholdCount>
+            <energyAcceptanceWindow>0.009</energyAcceptanceWindow>
             <printOnClusterFailure>false</printOnClusterFailure>
             <printOnSinglesSSPFailure>false</printOnSinglesSSPFailure>
             <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
             <printOnPairSSPFailure>false</printOnPairSSPFailure>
-            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>            
+            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
+            <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance>
             <readDAQConfig>true</readDAQConfig>
-            <verbose>true</verbose>
-            <!-- determines snapshot readout time which is set to 1 second here -->
-            <localWindowThresholdMilliseconds>1000</localWindowThresholdMilliseconds>
-        </driver>
-        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver" />
+            <verbose>false</verbose>
+        </driver>       
+        <!--         
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}_triggerPlots.root</outputFileName>
+        </driver>        
+        -->
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+            <collectionNames>TrackerHits</collectionNames>
+        </driver> 
     </drivers>
 </lcsim>
