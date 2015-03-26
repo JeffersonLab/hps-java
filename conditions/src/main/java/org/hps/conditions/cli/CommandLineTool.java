@@ -100,7 +100,7 @@ public class CommandLineTool {
         logger.info("setting up conditions manager");
         
         // Create new manager.
-        conditionsManager = new DatabaseConditionsManager();
+        conditionsManager = DatabaseConditionsManager.getInstance();
 
         // Set log level.
         conditionsManager.setLogLevel(logger.getLevel());

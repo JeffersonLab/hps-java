@@ -79,7 +79,7 @@ public final class ImportBeamConditionsEngRun {
             System.out.println(entry.getValue() + " ");
         }
         
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setLogLevel(Level.ALL);
         
         for (Entry<Integer, BeamConditions> entry : beamMap.entrySet()) {

@@ -135,12 +135,10 @@ class EventProcessing {
         MonitoringApplication.logger.config("set steering " + steering + " with type " + (steeringType == SteeringType.RESOURCE ? "RESOURCE" : "FILE"));
 
         try {
-            // Create and the job manager. The conditions manager is instantiated from this call but
-            // not configured.
+            // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             sessionState.jobManager = new JobManager();
 
-            // Add conditions listeners after new database conditions manager is initialized from
-            // job manager.
+            // Add conditions listeners after new database conditions manager is initialized from the job manager.
             DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
             for (ConditionsListener conditionsListener : sessionState.conditionsListeners) {
                 logger.config("adding conditions listener " + conditionsListener.getClass().getName());

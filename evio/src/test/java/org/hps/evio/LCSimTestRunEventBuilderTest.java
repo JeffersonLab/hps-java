@@ -31,7 +31,7 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
 	public void testLCSimTestRunEventBuilder() throws Exception { 
 	
 		// Configure the conditions system to retrieve test run conditions fo run 1351.
-		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 		conditionsManager.setXmlConfig(DB_CONFIGURATION);
 		
 		// Create the test run event builder

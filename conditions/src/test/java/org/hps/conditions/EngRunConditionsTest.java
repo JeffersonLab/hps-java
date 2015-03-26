@@ -5,10 +5,10 @@ import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import java.util.logging.Level;
 import org.hps.conditions.api.AbstractConditionsObjectCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
@@ -17,8 +17,6 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalGain.EcalGainCollection;
-import org.hps.conditions.ecal.EcalLed.EcalLedCollection;
-import org.hps.conditions.ecal.EcalTimeShift.EcalTimeShiftCollection;
 import org.lcsim.detector.converter.compact.EcalCrystal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -50,7 +48,7 @@ public class EngRunConditionsTest extends TestCase {
     
     public void test() throws Exception {
         
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         DatabaseConditionsManager.getLogger().setLevel(Level.ALL);
         manager.setTag("pass0");
         manager.setXmlConfig("/org/hps/conditions/config/conditions_database_engrun.xml");

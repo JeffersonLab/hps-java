@@ -42,8 +42,8 @@ public class RunNumberTest extends TestCase {
         File testFile = cache.getCachedFile(new URL(fileLocation));
 
         // Create the record loop.
-        new DatabaseConditionsManager();
-        DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        manager.setLogLevel(Level.WARNING);
         LCSimLoop loop = new LCSimLoop();
 
         // Configure the loop.

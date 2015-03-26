@@ -20,7 +20,7 @@ public class ConditionsDriverTest extends TestCase {
            
     public void testConditionsDriverTestRun() throws Exception {
         
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance();
         
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ConditionsTest.slcio"));

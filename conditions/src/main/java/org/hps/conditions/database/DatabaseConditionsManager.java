@@ -123,7 +123,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Calling this will automatically register this
      * manager as the global default.
      */
-    public DatabaseConditionsManager() {
+    private DatabaseConditionsManager() {
         registerConditionsConverter(new DetectorConditionsConverter());
         setupConnectionFromSystemProperty();
         ConditionsManager.setDefaultConditionsManager(this);
@@ -141,11 +141,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public synchronized static DatabaseConditionsManager getInstance() {
 
-        logger.finer("getting conditions manager instance");
+        logger.finest("getting conditions manager instance");
         
         // Is there no manager installed yet?
         if (!ConditionsManager.isSetup() || !(ConditionsManager.defaultInstance() instanceof DatabaseConditionsManager)) {
-            logger.finer("creating new instance");
+            logger.finest("creating new DatabaseConditionsManager");
             // Create a new instance if necessary, which will install it globally as the default.
             new DatabaseConditionsManager();
         }
@@ -157,9 +157,17 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             throw new RuntimeException("Default conditions manager has the wrong type: " + ConditionsManager.defaultInstance().getClass().getName());
         }
         
-        logger.finer("returning conditions manager instance");
+        logger.finest("returning conditions manager instance");
 
         return (DatabaseConditionsManager) manager;
+    }
+    
+    /**
+     * Reset the global static instance of the conditions manager to a new object.
+     */
+    public synchronized static void resetInstance() {
+        logger.finest("DatabaseConditionsManager instance is being reset");
+        new DatabaseConditionsManager();
     }
     
     /**

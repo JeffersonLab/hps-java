@@ -33,7 +33,7 @@ public class SvtEvioReaderTest extends TestCase {
 		SvtEvioReader svtReader = new SvtEvioReader(); 
 
 		// Setup the database conditions 
-		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();  
+		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 		conditionsManager.setDetector("HPS-Proposal2014-v8-2pt2", 0); 
 
 		// Instantiate the event builder

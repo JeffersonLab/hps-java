@@ -27,7 +27,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
 	public void testLCSimEngRunEventBuilder() throws Exception {
 	    
 		// Setup database conditions.
-		DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+		DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 		conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_dev.xml");
 		conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
 

@@ -22,7 +22,7 @@ public class EcalHardwareConditionsTest extends TestCase {
     static int RECORD_COUNT = 442;
     
     public void testEcalHardwareConditions() throws Exception {
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         try {
             manager.setDetector("HPS-ECalCommissioning-v2", 0);
         } catch (ConditionsNotFoundException e) {

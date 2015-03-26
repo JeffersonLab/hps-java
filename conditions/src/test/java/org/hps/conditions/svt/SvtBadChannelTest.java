@@ -55,7 +55,7 @@ public class SvtBadChannelTest extends TestCase {
         File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
 
         // Create the record loop.
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance();
         LCSimLoop loop = new LCSimLoop();
 
         // Configure the loop.

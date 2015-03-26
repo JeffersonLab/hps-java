@@ -45,7 +45,7 @@ public class BeamCurrentTest extends TestCase {
      */
     public void test() throws Exception {
 
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance();
         
         // Cache file locally from URL.
         FileCache cache = new FileCache();

@@ -45,7 +45,7 @@ public class BeamConditionsTest extends TestCase {
             3463, 3216, 2926, 2935, 2934, 2937 };
 
     public void testBeamConditions() {
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setLogLevel(Level.SEVERE);
         System.out.println("run id current position_x position_y energy");
         Map<Integer, BeamConditions> beamConditions = new LinkedHashMap<Integer, BeamConditions>();

@@ -41,7 +41,7 @@ public class ScalarsTest extends TestCase {
         File inputFile = cache.getCachedFile(new URL(TEST_FILE_URL));
         
         // Setup conditions and event building.
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
         manager.addConditionsListener(builder);
         

@@ -133,7 +133,7 @@ public class ClustererTest extends TestCase {
         testOutputDir.mkdir();
 
         // Initialize the conditions system.
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.resetInstance();
         DatabaseConditionsManager.getInstance().setLogLevel(Level.WARNING);
     }
 
