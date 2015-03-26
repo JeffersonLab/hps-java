@@ -5,16 +5,21 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
-// TODO: Who wrote this class?
+/**
+ * Extension of standard LCSim job manager which does some HPS-specific management
+ * of the conditions system.
+ * 
+ * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ */
 public class JobManager extends JobControlManager {
-
-    // Override the basic LCSim conditions system with the HPS conditions manager.
-    DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager(); 
     
-    public JobManager() {       
+    public JobManager() {
+        // Always want to reset conditions system before starting the job.
+        DatabaseConditionsManager.resetInstance();
     }
     
     public static void main(String args[]) {
+        // Run the job.
         JobManager job = new JobManager();
         job.run(args);
     }
