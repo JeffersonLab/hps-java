@@ -206,7 +206,7 @@ class EventProcessing {
 
         try {
             // Create a new instance of the builder class.
-            sessionState.eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName).newInstance();
+            sessionState.eventBuilder = (LCSimEventBuilder) Class.forName(eventBuilderClassName, true, Thread.currentThread().getContextClassLoader()).newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Failed to create LCSimEventBuilder.", e);
         }
@@ -502,7 +502,7 @@ class EventProcessing {
                 createEtConnection();
 
                 // Add an attachment that listens for DAQ configuration changes via physics SYNC events.
-                createSyncStation();
+                //createSyncStation();
                 
                 // Add an attachment which listens for EPICs events with scalar data.
                 //createEpicsStation();
