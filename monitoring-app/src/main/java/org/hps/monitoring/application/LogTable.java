@@ -38,8 +38,12 @@ class LogTable extends JTable implements PropertyChangeListener {
         setModel(model);
         sorter = new TableRowSorter<LogRecordModel>(model);
         sorter.setRowFilter(new LevelFilter());
-        this.getColumnModel().getColumn(0).setCellRenderer(new DateRenderer());
+        getColumnModel().getColumn(0).setCellRenderer(new DateRenderer());        
         setRowSorter(sorter);
+        getColumnModel().getColumn(0).setPreferredWidth(142);
+        getColumnModel().getColumn(0).setMaxWidth(142);
+        getColumnModel().getColumn(1).setPreferredWidth(60);
+        getColumnModel().getColumn(1).setMaxWidth(60);
         setEnabled(false);
     }
         
@@ -105,7 +109,7 @@ class LogTable extends JTable implements PropertyChangeListener {
             case 0:
                 return Date.class;
             case 1:
-                return String.class;
+                return Level.class;
             case 2:
                 return String.class;
             default:
