@@ -151,9 +151,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                  
     /**
      * Instantiate and show the monitoring application with the given configuration.
-     * @param configuration The Configuration object containing application settings.
+     * @param userConfiguration The Configuration object containing application settings.
      */
-    MonitoringApplication(Configuration configuration) {
+    MonitoringApplication(Configuration userConfiguration) {
         
         try {
         
@@ -209,9 +209,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             loadConfiguration(new Configuration(DEFAULT_CONFIGURATION));
             
             // Overlay the user configuration if one was specified.
-            if (configuration != null) {
-                this.configuration = configuration;
-                loadConfiguration(this.configuration);
+            if (userConfiguration != null) {
+                loadConfiguration(userConfiguration);
             }
         
             // Enable the GUI now that initialization is complete.
@@ -355,15 +354,17 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     void loadConfiguration(Configuration configuration) {
         
+        this.configuration = configuration;
+        
         // HACK: Clear data source combo box for new config.
         frame.dataSourceComboBox.removeAllItems();
         
         // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
-        configurationModel.setConfiguration(configuration);
-        if (configuration.getFile() != null)
-            logger.config("loaded config from file " + configuration.getFile().getPath());
+        configurationModel.setConfiguration(this.configuration);
+        if (this.configuration.getFile() != null)
+            logger.config("loaded config from file " + this.configuration.getFile().getPath());
         else
-            logger.config("loaded config from resource " + configuration.getResourcePath());
+            logger.config("loaded config from resource " + this.configuration.getResourcePath());
     }
               
     /**
@@ -585,8 +586,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         int r = fc.showDialog(frame, "Load ...");
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            configuration = new Configuration(f);
-            loadConfiguration(configuration);
+            loadConfiguration(new Configuration(f));
             logger.info("loaded configuration from file: " + f.getPath());
             DialogUtil.showInfoDialog(frame, "Settings Loaded", "Settings were loaded successfully.");
         }
