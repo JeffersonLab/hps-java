@@ -4,15 +4,17 @@ import hep.aida.IAnalysisFactory;
 import hep.aida.IFitFactory;
 import hep.aida.IFitResult;
 import hep.aida.IFitter;
+import hep.aida.IFunction;
+import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
-import hep.aida.IPlotterStyle;
+import hep.aida.IPlotterFactory;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
@@ -30,41 +32,40 @@ public class TrackResiduals extends Driver {
     String trackResidualsCollectionName = "TrackResiduals";
     String gblStripClusterDataCollectionName = "GBLStripClusterData";
     private AIDA aida = AIDA.defaultInstance();
-
     int nEvents = 0;
-
-    private String plotDir = "TrackResiduals/";
-    String[] trackingQuantNames = {};
     int nmodules = 6;
-    private String posresDir = "PostionResiduals/";
-    private String uresDir = "UResiduals/";
-    private String timeresDir = "TimeResiduals/";
-  
+
     IPlotter plotterResX;
     IPlotter plotterResY;
 
-    String outputPlots;
+    IPlotterFactory plotterFactory;
+    IFunctionFactory functionFactory;
+    IFitFactory fitFactory;
+    IFunction fd0Top;
 
-    void setupPlotter(IPlotter plotter, String title) {
-        plotter.setTitle(title);
-        IPlotterStyle style = plotter.style();
-        style.dataStyle().fillStyle().setColor("yellow");
-        style.dataStyle().errorBarStyle().setVisible(false);
-    }
+    String outputPlots;
+    IHistogram1D[] xresidTop = new IHistogram1D[nmodules];
+    IHistogram1D[] yresidTop = new IHistogram1D[nmodules];
+    IHistogram1D[] xresidBot = new IHistogram1D[nmodules];
+    IHistogram1D[] yresidBot = new IHistogram1D[nmodules];
+
+    IFunction[] fxresidTop = new IFunction[nmodules];
+    IFunction[] fyresidTop = new IFunction[nmodules];
+    IFunction[] fxresidBot = new IFunction[nmodules];
+    IFunction[] fyresidBot = new IFunction[nmodules];
 
     private int computePlotterRegion(int i, boolean istop) {
-    
-        int region =-99;
+
+        int region = -99;
         if (i < 3)
             if (istop)
-                region= i*4;
+                region = i * 4;
             else
-                region= i*4+1;
+                region = i * 4 + 1;
+        else if (istop)
+            region = (i - 3) * 4 + 2;
         else
-            if (istop)
-                region= (i-3)*4+2 ;
-            else
-                region= (i-3)*4+3;
+            region = (i - 3) * 4 + 3;
 //     System.out.println("Setting region to "+region);
         return region;
     }
@@ -75,25 +76,39 @@ public class TrackResiduals extends Driver {
         aida.tree().cd("/");
 //        resetOccupancyMap(); // this is for calculating averages         
         IAnalysisFactory fac = aida.analysisFactory();
-
-        plotterResX = fac.createPlotterFactory().create("HPS Tracking Plots");
-        setupPlotter(plotterResX, "X-Residuals");
+        IPlotterFactory pfac = fac.createPlotterFactory("Track Residuals");
+        functionFactory = aida.analysisFactory().createFunctionFactory(null);
+        fitFactory = aida.analysisFactory().createFitFactory();
+        plotterResX = pfac.create("X Residuals");
+        plotterResY = pfac.create("Y Residuals");
         plotterResX.createRegions(3, 4);
-
-        plotterResY = fac.createPlotterFactory().create("HPS Tracking Plots");
-        setupPlotter(plotterResY, "Y-Residuals");
         plotterResY.createRegions(3, 4);
 
         for (int i = 1; i <= nmodules; i++) {
-            IHistogram1D xresid = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
-            IHistogram1D yresid = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
-            IHistogram1D xresidbot = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
-            IHistogram1D yresidbot = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
-            plotterResX.region(computePlotterRegion(i - 1, true)).plot(xresid);
-            plotterResX.region(computePlotterRegion(i - 1, false)).plot(xresidbot);
-            plotterResY.region(computePlotterRegion(i - 1, true)).plot(yresid);
-            plotterResY.region(computePlotterRegion(i - 1, false)).plot(yresidbot);
+            xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true), getRange(i, true));
+            yresidTop[i - 1] = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false), getRange(i, false));
+            xresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true), getRange(i, true));
+            yresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false), getRange(i, false));
+
+            fxresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
+            fyresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
+            fxresidBot[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
+            fyresidBot[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
+
+            plot(plotterResX, xresidTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterResX, xresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+            plot(plotterResY, yresidTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterResY, yresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+
+            plot(plotterResX, fxresidTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterResX, fxresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+            plot(plotterResY, fyresidTop[i - 1], null, computePlotterRegion(i - 1, true));
+            plot(plotterResY, fyresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+
         }
+
+        plotterResX.show();
+        plotterResY.show();
 
         /*
          for (int i = 1; i <= nmodules * 2; i++) {
@@ -116,16 +131,23 @@ public class TrackResiduals extends Driver {
         for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
             int isBot = trd.getIntVal(trd.getNInt() - 1);//last Int is the top/bottom flag
-            for (int i = 1; i <= nResid; i++)
+            for (int i = 0; i < nResid; i++)
 
                 if (isBot == 1) {
-                    aida.histogram1D("Module " + i + " Bot x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
-                    aida.histogram1D("Module " + i + " Bot y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object
+                    xresidBot[i].fill(trd.getDoubleVal(i));//x is the double value in the generic object
+                    yresidBot[i].fill(trd.getFloatVal(i));//y is the float value in the generic object
                 } else {
-                    aida.histogram1D("Module " + i + " Top x Residual").fill(trd.getDoubleVal(i - 1));//x is the double value in the generic object
-                    aida.histogram1D("Module " + i + " Top y Residual").fill(trd.getFloatVal(i - 1));//y is the float value in the generic object                    
+                    xresidTop[i].fill(trd.getDoubleVal(i));//x is the double value in the generic object
+                    yresidTop[i].fill(trd.getFloatVal(i));//y is the float value in the generic object                    
                 }
         }
+        for (int i = 0; i < nmodules; i++) {
+            fitAndPutParameters(xresidTop[i], fxresidTop[i]);
+            fitAndPutParameters(yresidTop[i], fyresidTop[i]);
+            fitAndPutParameters(xresidBot[i], fxresidBot[i]);
+            fitAndPutParameters(yresidBot[i], fyresidBot[i]);
+        }
+
         /*
          List<GenericObject> ttdList = event.get(GenericObject.class, trackTimeDataCollectionName);
          for (GenericObject ttd : ttdList) {
@@ -175,7 +197,6 @@ public class TrackResiduals extends Driver {
         return typeString + quantString + botString + layerString;
     }
 
-
     private double getRange(int layer, boolean isX) {
         double range = 2.5;
         if (isX) {
@@ -207,13 +228,6 @@ public class TrackResiduals extends Driver {
         }
         return range;
 
-    }
-
-    IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
-        double[] init = {20.0, 0.0, 0.2};
-        return fitter.fit(h1d, "g", init, range);
-//        double[] init = {20.0, 0.0, 1.0, 20, -1};
-//        return fitter.fit(h1d, "g+p1", init, range);
     }
 
     public void setOutputPlots(String output) {
