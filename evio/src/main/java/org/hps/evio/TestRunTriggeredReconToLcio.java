@@ -258,10 +258,20 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
         }
         if (triggerMCParticles == null || triggerMCParticles.isEmpty()) {
             lcsimEvent.put(MCEvent.MC_PARTICLES, mcParticles);
-            lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
-            lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
             if (verbosity >= 1) {
-                System.out.println("Adding " + mcParticles.size() + " MCParticles, " + ecalHits.size() + " SimCalorimeterHits, " + trackerHits.size() + " SimTrackerHits");
+                System.out.println("Adding " + mcParticles.size() + " MCParticles");
+            }
+            if (ecalHits != null) {
+                lcsimEvent.put(ecalCollectionName, ecalHits, SimCalorimeterHit.class, 0xe0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + ecalHits.size() + " SimCalorimeterHits");
+                }
+            }
+            if (trackerHits != null) {
+                lcsimEvent.put(trackerCollectionName, trackerHits, SimTrackerHit.class, 0xc0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + trackerHits.size() + " SimTrackerHits");
+                }
             }
             if (ecalScoringPlaneHits != null) {
                 lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0);
@@ -271,10 +281,20 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
             }
         } else {
             lcsimEvent.put(MCEvent.MC_PARTICLES, triggerMCParticles);
-            lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
-            lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
             if (verbosity >= 1) {
-                System.out.println("Adding " + triggerMCParticles.size() + " MCParticles, " + triggerECalHits.size() + " SimCalorimeterHits, " + triggerTrackerHits.size() + " SimTrackerHits");
+                System.out.println("Adding " + triggerMCParticles.size() + " MCParticles");
+            }
+            if (triggerECalHits != null) {
+                lcsimEvent.put(ecalCollectionName, triggerECalHits, SimCalorimeterHit.class, 0xe0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + triggerECalHits.size() + " SimCalorimeterHits");
+                }
+            }
+            if (triggerTrackerHits != null) {
+                lcsimEvent.put(trackerCollectionName, triggerTrackerHits, SimTrackerHit.class, 0xc0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + triggerTrackerHits.size() + " SimTrackerHits");
+                }
             }
             if (triggerECalScoringPlaneHits != null) {
                 lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0);
