@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.SSPData;
 import org.hps.recon.ecal.triggerbank.TIData;
+import org.hps.recon.ecal.triggerbank.TDCData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.epics.EpicsScalarData;
 import org.hps.record.evio.EvioEventUtilities;
@@ -44,12 +45,14 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
+        ecalReader.setDebug(true);
         svtReader = new SvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
+        intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x3a, 0xe107}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
     }
