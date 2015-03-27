@@ -5,6 +5,7 @@ import java.util.List;
 import org.lcsim.event.GenericObject;
 
 /**
+ * Data from CAEN V1190 TDC.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
@@ -34,10 +35,6 @@ public class TDCData extends AbstractIntData {
         for (int i = 0; i < bank.length; i++) {
             hits.add(new TDCHit(bank[i]));
         }
-
-        for (TDCHit hit : hits) {
-            System.out.println(hit);
-        }
     }
 
     public List<TDCHit> getHits() {
@@ -46,12 +43,12 @@ public class TDCData extends AbstractIntData {
 
     public class TDCHit {
 
-        private final int slot, edge, ch, time;
+        private final int slot, edge, channel, time;
 
         public TDCHit(int data) {
             slot = (data >> 27) & 0x1F; // bits 31:27
             edge = (data >> 26) & 1; // bits 26:26
-            ch = (data >> 19) & 0x7F; // bits 25:19
+            channel = (data >> 19) & 0x7F; // bits 25:19
             time = data & 0x7FFFF; // bits 18:00
         }
 
@@ -63,8 +60,8 @@ public class TDCData extends AbstractIntData {
             return edge;
         }
 
-        public int getCh() {
-            return ch;
+        public int getChannel() {
+            return channel;
         }
 
         public int getTime() {
@@ -73,7 +70,7 @@ public class TDCData extends AbstractIntData {
 
         @Override
         public String toString() {
-            return String.format("slot %d, edge %d, ch %d, time %d", slot, edge, ch, time);
+            return String.format("slot %d, edge %d, ch %d, time %d", slot, edge, channel, time);
         }
     }
 }
