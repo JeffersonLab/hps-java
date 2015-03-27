@@ -342,8 +342,7 @@ public class EvioToLcio {
 
             // Open the EVIO reader.
             try {
-            	System.out.println("Opening the EvioReader in sequential mode.");
-                reader = new EvioReader(evioFile,false,true);
+                reader = new EvioReader(evioFile);
             } catch (Exception e) {
                 throw new RuntimeException("Error opening the EVIO file reader.", e);
             }

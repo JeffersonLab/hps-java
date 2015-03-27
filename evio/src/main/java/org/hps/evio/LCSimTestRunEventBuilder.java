@@ -50,7 +50,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     @Override
     public void readEvioEvent(EvioEvent evioEvent) {
-    	// MISNAMED method. This reads only the HEADER information of the event.
         if (EvioEventUtilities.isSyncEvent(evioEvent)) {
             int[] data = EvioEventUtilities.getControlEventData(evioEvent);
             int seconds = data[0];
