@@ -1,22 +1,22 @@
 package org.hps.util;
 
 import java.io.File;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.util.PDFMergerUtility;
 
 /**
- * This will merge all the pdf files in the folder pdf 
- * into one file called MergedFiles.pdf
- * 
+ * This will merge all the pdf files in the folder pdf into one file called
+ * MergedFiles.pdf
+ *
  * @author Norman A Graf
- * 
- *  @version $Id:
+ *
  */
-public class CombinePdfs {
-    public static void main(String args[]) throws Exception {
+public class CombinePdfs
+{
+
+    public static void main(String[] args) throws Exception
+    {
         PDFMergerUtility pdfMerger = new PDFMergerUtility();
-        File[] filesInFolder=new File("pdf").listFiles();
+        File[] filesInFolder = new File("pdf").listFiles();
         for (File file : filesInFolder) {
             pdfMerger.addSource(file);
         }
