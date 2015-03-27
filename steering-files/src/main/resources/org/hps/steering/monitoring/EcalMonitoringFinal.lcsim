@@ -1,4 +1,3 @@
-
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <control>
         <numberOfEvents>-1</numberOfEvents>
@@ -6,19 +5,8 @@
         <printDriversDetailed>true</printDriversDetailed>
     </control>
     <execute>
-        <!-- <driver name="EventMarkerDriver"/> -->
         <driver name="EcalRawConverter" />
       	<driver name="EcalClusterer" />
-        
-        
-<!--  Trigger Monitoring Does not Belong in tHis steering file.
-      It Should Have its Own Monitorong app and steering file
-        <driver name="DAQConfig"/> 
-        <driver name="DAQConfigDriver" />
-        <driver name="GTPTestDriver" />
-        <driver name="TriggerDiagnostics" />
--->        
-
         <driver name="EcalMonitoringPlots" />      <!-- General plots -->
         <driver name="EcalHitPlots" />             <!-- Single hit distributions -->
         <driver name="EcalClusterPlots" />         <!-- Clusters distributions -->
@@ -90,39 +78,5 @@
             <eventRefreshRate>1</eventRefreshRate>
         </driver>        
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver" />
-
-
-<!--
-  Trigger diagnostics should be in its own steering file, leaving these here for now:
-        <driver name="DAQConfig" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>
-    	<driver name="DAQConfigDriver" type="org.hps.recon.ecal.daqconfig.DAQConfigDriver"/>
-        <driver name="GTPTestDriver" type="org.hps.recon.ecal.cluster.GTPOnlineClusterDriver">
-            <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
-            <!-- <seedEnergyThreshold>0.500</seedEnergyThreshold>
-            <windowBefore>3</windowBefore>
-            <windowAfter>3</windowAfter> -->
-            <seedEnergyThreshold>0.010</seedEnergyThreshold>
-            <windowBefore>2</windowBefore>
-            <windowAfter>2</windowAfter>
-            <useDAQConfig>true</useDAQConfig>
-            <verbose>false</verbose>
-        </driver>
-        <driver name="TriggerDiagnostics" type="org.hps.analysis.trigger.TriggerDiagnosticDriver">
-	        <printResultsEveryNEvents>10000</printResultsEveryNEvents>
-            <hitAcceptanceWindow>0</hitAcceptanceWindow>
-            <noiseThresholdCount>100</noiseThresholdCount>
-            <energyAcceptanceWindow>0.009</energyAcceptanceWindow>
-            <printOnClusterFailure>false</printOnClusterFailure>
-            <printOnSinglesSSPFailure>false</printOnSinglesSSPFailure>
-            <printOnSinglesEfficiencyFailure>false</printOnSinglesEfficiencyFailure>
-            <printOnPairSSPFailure>false</printOnPairSSPFailure>
-            <printOnPairEfficiencyFailure>false</printOnPairEfficiencyFailure>
-            <enforceStrictTimeCompliance>true</enforceStrictTimeCompliance> <!-- Set to false for mode-7 -->
-            <readDAQConfig>true</readDAQConfig>
-            <verbose>false</verbose>
-        </driver>
-        <driver name="GUIDiagnostics" type="org.hps.monitoring.trigger.TriggerDiagnosticGUIDriver"/>
--->
-
     </drivers>
 </lcsim>
