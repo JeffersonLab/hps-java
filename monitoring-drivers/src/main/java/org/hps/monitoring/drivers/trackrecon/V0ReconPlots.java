@@ -1,14 +1,18 @@
 package org.hps.monitoring.drivers.trackrecon;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IFitFactory;
+import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
+import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
@@ -36,50 +40,67 @@ public class V0ReconPlots extends Driver {
     IPlotter plotter2d;
     String outputPlots;
 
+    IPlotterFactory plotterFactory;
+    IFunctionFactory functionFactory;
+    IFitFactory fitFactory;
+
+    IHistogram1D nV0;
+    IHistogram1D unconMass;
+    IHistogram1D unconVx;
+    IHistogram1D unconVy;
+    IHistogram1D unconVz;
+    IHistogram1D unconChi2;
+
+    IHistogram2D pEleVspPos;
+    IHistogram2D pyEleVspyPos;
+    IHistogram2D pxEleVspxPos;
+    IHistogram2D massVsVtxZ;
+
     @Override
     protected void detectorChanged(Detector detector) {
         System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
 
-        aida.tree().cd("/");
-//        resetOccupancyMap(); // this is for calculating averages         
         IAnalysisFactory fac = aida.analysisFactory();
+        IPlotterFactory pfac = fac.createPlotterFactory("V0 Recon");
+        functionFactory = aida.analysisFactory().createFunctionFactory(null);
+        fitFactory = aida.analysisFactory().createFitFactory();
 
-        plotterUncon = fac.createPlotterFactory().create("HPS Tracking Plots");
-        setupPlotter(plotterUncon, "Unconstrained V0s");
+        aida.tree().cd("/");
+//        resetOccupancyMap(); // this is for calculatin
+        plotterUncon = pfac.create("Unconstrained V0");
+
         plotterUncon.createRegions(2, 3);
 
         /*  V0 Quantities   */
         /*  Mass, vertex, chi^2 of fit */
         /* beamspot constrained */
-        IHistogram1D nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
-        IHistogram1D unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
-        IHistogram1D unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -1, 1);
-        IHistogram1D unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -0.6, 0.6);
-        IHistogram1D unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -10, 10);
-        IHistogram1D unconChi2 = aida.histogram1D("Unconstrained Chi2", 25, 0, 25);
-        plotterUncon.region(0).plot(nV0);
-        plotterUncon.region(1).plot(unconMass);
-        plotterUncon.region(2).plot(unconChi2);
-        plotterUncon.region(3).plot(unconVx);
-        plotterUncon.region(4).plot(unconVy);
-        plotterUncon.region(5).plot(unconVz);
+        nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
+        unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
+        unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -1, 1);
+        unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -0.6, 0.6);
+        unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -10, 10);
+        unconChi2 = aida.histogram1D("Unconstrained Chi2", 25, 0, 25);
+        plot(plotterUncon, nV0, null, 0);
+        plot(plotterUncon, unconMass, null, 1);
+        plot(plotterUncon, unconChi2, null, 2);
+        plot(plotterUncon, unconVx, null, 3);
+        plot(plotterUncon, unconVy, null, 4);
+        plot(plotterUncon, unconVz, null, 5);
 
-        plotter2d = fac.createPlotterFactory().create("HPS Tracking Plots");
-        setupPlotter(plotter2d, "V0 2D Plots");
+        plotter2d = pfac.create("Unconstrained 2d plots");
         plotter2d.createRegions(2, 2);
-        IPlotterStyle style = plotter2d.style();
-        style.statisticsBoxStyle().setVisible(false);
-        style.setParameter("hist2DStyle", "colorMap");
-        style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+      
 
-        IHistogram2D pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
-        IHistogram2D pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
-        IHistogram2D pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
-        IHistogram2D massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
-        plotter2d.region(0).plot(pEleVspPos);
-        plotter2d.region(1).plot(pxEleVspxPos);
-        plotter2d.region(2).plot(massVsVtxZ);
-        plotter2d.region(3).plot(pyEleVspyPos);
+        pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
+        pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
+        pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
+        massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
+        plot(plotter2d, pEleVspPos, null, 0);
+        plot(plotter2d, pxEleVspxPos, null, 1);
+        plot(plotter2d, massVsVtxZ, null, 2);
+        plot(plotter2d, pyEleVspyPos, null, 3);
+        plotterUncon.show();
+        plotter2d.show();
     }
 
     @Override
@@ -119,13 +140,6 @@ public class V0ReconPlots extends Driver {
             aida.histogram2D("Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1], pos.getTrackStates().get(0).getMomentum()[1]);
             aida.histogram2D("Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2], pos.getTrackStates().get(0).getMomentum()[2]);
         }
-    }
-
-    void setupPlotter(IPlotter plotter, String title) {
-        plotter.setTitle(title);
-        IPlotterStyle style = plotter.style();
-        style.dataStyle().fillStyle().setColor("yellow");
-        style.dataStyle().errorBarStyle().setVisible(false);
     }
 
     public void setOutputPlots(String output) {
