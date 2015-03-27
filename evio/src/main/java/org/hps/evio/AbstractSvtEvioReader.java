@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EvioEvent;
@@ -12,12 +14,16 @@ import org.jlab.coda.jevio.IEvioStructure;
 import org.jlab.coda.jevio.StructureFinder;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.StructureType;
+
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOUtil;
+import org.lcsim.util.log.DefaultLogFormatter;
+import org.lcsim.util.log.LogUtil;
+
 import org.hps.util.Pair;
 
 /**
@@ -29,6 +35,11 @@ import org.hps.util.Pair;
  *
  */
 public abstract class AbstractSvtEvioReader extends EvioReader {
+    
+    
+    // Initialize the logger
+    protected static Logger logger = LogUtil.create(AbstractSvtEvioReader.class.getName(), 
+            new DefaultLogFormatter(), Level.INFO);
 
 	// A Map from DAQ pair (FPGA/Hybrid or FEB ID/FEB Hybrid ID) to the
 	// corresponding sensor
@@ -44,7 +55,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	List<RawTrackerHit> rawHits = new ArrayList<RawTrackerHit>();
 
 	// Constants
-	private static final int MIN_DATA_BANK_TAG = 0;
 	private static final String SUBDETECTOR_NAME = "Tracker";
 	private static final String READOUT_NAME = "TrackerHits";
 
@@ -147,14 +157,15 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		for (int rocBankTag = this.getMinRocBankTag(); 
 				rocBankTag <= this.getMaxRocBankTag(); rocBankTag++) { 
 			
-			this.printDebug("Retrieving ROC bank: " + rocBankTag);
-			if (this.getRocBankNumber() == -1) { 
-				rocBanks.addAll(this.getMatchingBanks(event, rocBankTag));
-			} else { 
-				rocBanks.addAll(StructureFinder.getMatchingBanks(event, rocBankTag, this.getRocBankNumber()));
+			logger.fine("Retrieving ROC bank: " + rocBankTag);
+			List<BaseStructure> matchingRocBanks = this.getMatchingBanks(event, rocBankTag);
+			if (matchingRocBanks == null) { 
+			    logger.fine("ROC bank " + rocBankTag + " was not found!");
+			    continue;
 			}
+			rocBanks.addAll(matchingRocBanks);
 		}
-		this.printDebug("Total ROC banks found: " + rocBanks.size());
+		logger.fine("Total ROC banks found: " + rocBanks.size());
 		
 		// Return false if ROC banks weren't found
 		if (rocBanks.isEmpty()) return false;  
@@ -162,9 +173,9 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		// Loop over the SVT ROC banks and process all samples
 		for (BaseStructure rocBank : rocBanks) { 
 			
-			this.printDebug("ROC bank: " + rocBank.toString());
+			logger.fine("ROC bank: " + rocBank.toString());
 			
-			this.printDebug("Processing ROC bank " + rocBank.getHeader().getTag());
+			logger.fine("Processing ROC bank " + rocBank.getHeader().getTag());
 			
 			// If the ROC bank doesn't contain any data, raise an exception
 			if (rocBank.getChildCount() == 0) { 
@@ -174,25 +185,25 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 			
 			// Get the data banks containing the SVT samples.  
 			List<BaseStructure> dataBanks = rocBank.getChildren(); 
-			this.printDebug("Total data banks found: " + dataBanks.size());
+			logger.fine("Total data banks found: " + dataBanks.size());
 			
 			// Loop over all of the data banks contained by the ROC banks and 
 			// processed them
 			for (BaseStructure dataBank : dataBanks) { 
 		
-				this.printDebug("Processing data bank: " + dataBank.toString());
+				logger.fine("Processing data bank: " + dataBank.toString());
 			
 				// Check that the bank is valid
 				if (!this.isValidDataBank(dataBank)) continue;
 				
 				// Get the int data encapsulated by the data bank
 				int[] data = dataBank.getIntData();
-				this.printDebug("Total number of integers contained by the data bank: " + data.length);
+				logger.fine("Total number of integers contained by the data bank: " + data.length);
 		
 				// Check that a complete set of samples exist
 				int sampleCount = data.length - this.getDataHeaderLength()
 						- this.getDataTailLength();
-				this.printDebug("Total number of  samples: " + sampleCount);
+				logger.fine("Total number of  samples: " + sampleCount);
 				if (sampleCount % 4 != 0) {
 					throw new RuntimeException("[ "
 							+ this.getClass().getSimpleName()
@@ -209,7 +220,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 			}
 		}
 		
-		this.printDebug("Total number of RawTrackerHits created: " + rawHits.size());
+		logger.fine("Total number of RawTrackerHits created: " + rawHits.size());
 
 		// Turn on 64-bit cell ID.
 		int flag = LCIOUtil.bitSet(0, 31, true);
@@ -238,7 +249,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 
 		// Get the sensor associated with this sample
 		HpsSiSensor sensor = this.getSensor(data);
-		//this.printDebug(sensor.toString());
+		//logger.fine(sensor.toString());
 		
 		// Use the channel number to create the cell ID
 		long cellID = sensor.makeChannelID(channel);
@@ -250,16 +261,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
 	}
 	
-
-	/**
-	 *	Print a debug message
-	 * 
-	 * 	@param message : Debug message to print
-	 */
-	void printDebug(String message) { 
-		if (debug) System.out.println("[ " + this.getClass().getSimpleName() + " ]: " + message);
-	}
-	
 	/**
 	 *	Retrieve all the banks in an event that match the given tag in their
 	 *	header and are not data banks. 
@@ -269,17 +270,14 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 * 	@return A collection of all bank structures that pass the filter 
 	 * 			provided by the event
 	 */
-	// TODO: Move this to an EVIO utils class
-	private List<BaseStructure> getMatchingBanks(BaseStructure structure, final int tag) { 
+	protected List<BaseStructure> getMatchingBanks(BaseStructure structure, final int tag) { 
 		IEvioFilter filter = new IEvioFilter() { 
 			public boolean accept(StructureType type, IEvioStructure struc) { 
-				return (type == StructureType.BANK) 
+			    return (type == StructureType.BANK) 
 						&& (tag == struc.getHeader().getTag())
 						&& (struc.getHeader().getDataType() == DataType.ALSOBANK);
 			}
 		};
 		return StructureFinder.getMatchingStructures(structure, filter);
 	}
-
-
 }

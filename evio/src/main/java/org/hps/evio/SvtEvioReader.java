@@ -3,6 +3,7 @@ package org.hps.evio;
 import java.util.List;
 
 import org.jlab.coda.jevio.BaseStructure;
+
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
@@ -22,8 +23,8 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	//-----------------//
 	private static final int DATA_HEADER_LENGTH = 1;
 	private static final int DATA_TAIL_LENGTH = 1; 
-	private static final int MIN_ROC_BANK_TAG = 11;
-	private static final int MAX_ROC_BANK_TAG = 17;
+	private static final int MIN_ROC_BANK_TAG = 51;
+	private static final int MAX_ROC_BANK_TAG = 66;
 	private static final int ROC_BANK_NUMBER = 0; 
 	
 	/**
@@ -92,6 +93,8 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 		for (HpsSiSensor sensor : sensors) { 
 			Pair<Integer, Integer> daqPair 
 				= new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
+		logger.fine("FEB ID: " + sensor.getFebID() 
+				  + " Hybrid ID: " + sensor.getFebHybridID());
 			daqPairToSensor.put(daqPair, sensor);
 		}
 		this.isDaqMapSetup = true; 
@@ -108,8 +111,8 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	@Override
 	protected HpsSiSensor getSensor(int[] data) {
 		
-		this.printDebug("FEB ID: " + SvtEvioUtils.getFebID(data) 
-				+ " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
+		logger.fine("FEB ID: " + SvtEvioUtils.getFebID(data) 
+				  + " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
 		
 		Pair<Integer, Integer> daqPair 
 			= new Pair<Integer, Integer>(SvtEvioUtils.getFebID(data), 
@@ -128,7 +131,7 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected boolean isValidDataBank(BaseStructure dataBank) { 
-		if (dataBank.getHeader().getTag() != 1) return false; 
+		if (dataBank.getHeader().getTag() != 3) return false; 
 		return true; 
 	}
 
@@ -140,8 +143,6 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected RawTrackerHit makeHit(int[] data) {
-		//this.printDebug("Channel: " + SvtEvioUtils.getChannelNumber(data));
 		return makeHit(data, SvtEvioUtils.getChannelNumber(data));
 	}
-
 }
