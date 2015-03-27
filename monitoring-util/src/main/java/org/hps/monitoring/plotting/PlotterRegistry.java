@@ -1,29 +1,35 @@
-/**
- * 
- */
 package org.hps.monitoring.plotting;
 
 import hep.aida.IPlotter;
 import hep.aida.IPlotterRegion;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
 /**
+ * This is a global registry of plotters used by the monitoring plot factory. 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  */
 public class PlotterRegistry {
 
-    Set<IPlotter> plotters = new HashSet<IPlotter>();    
+    Set<IPlotter> plotters = new LinkedHashSet<IPlotter>();    
     HashMap<IPlotter, int[]> tabMap = new HashMap<IPlotter, int[]>();
     
+    /**
+     * Clear the list of plotters.
+     */
     public void clear() {
         plotters.clear();
     }
     
+    /**
+     * Find a plotter that contains the region object.
+     * @param region The plotter region object.
+     * @return The plotter that contains this region or null if none.
+     */
     public IPlotter find(IPlotterRegion region) {
         for (IPlotter plotter : plotters) {
             for (int i = 0; i < plotter.numberOfRegions(); i++) {
@@ -35,10 +41,23 @@ public class PlotterRegistry {
         return null;
     }
     
+    /**
+     * Register a plotter along with its tab indices.
+     * @param plotter The plotter to register.
+     * @param index1 The top tab index.
+     * @param index2 The sub-tab index.
+     */
     public void register(IPlotter plotter, int index1, int index2) {
         tabMap.put(plotter, new int[] { index1, index2 });
     }
     
+    /**
+     * Find a plotter by its tab indices e.g. those that are currently selected
+     * in an application.
+     * @param index1 The top tab index.
+     * @param index2 The sub-tab index.
+     * @return The plotter or null if none found.
+     */
     public IPlotter find(int index1, int index2) {
         for (Entry<IPlotter, int[]> entry : tabMap.entrySet()) {
             int[] indices = entry.getValue();
@@ -47,5 +66,13 @@ public class PlotterRegistry {
             }
         }
         return null;
+    }
+    
+    /**
+     * Get the current collection of plotters.
+     * @return The current collection of plotters.
+     */
+    public Collection<IPlotter> getPlotters() {
+        return plotters;
     }
 }
