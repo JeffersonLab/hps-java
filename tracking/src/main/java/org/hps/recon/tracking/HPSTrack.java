@@ -16,6 +16,7 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
+import org.lcsim.geometry.FieldMap;
 import org.lcsim.spacegeom.CartesianVector;
 import org.lcsim.spacegeom.SpacePoint;
 import org.lcsim.spacegeom.SpaceVector;
@@ -24,9 +25,10 @@ import org.lcsim.util.swim.Line;
 import org.lcsim.util.swim.Trajectory;
 
 /**
- * Class HPSTrack: extension of HelicalTrackFit to include HPS-specific variables other useful
+ * Class HPSTrack: extension of HelicalTrackFit to include HPS-specific
+ * variables other useful
  * things.
- * 
+ *
  * @author mgraham created on 6/27/2011
  */
 // TODO: Check how much of the added behavior and information is really needed here.
@@ -100,7 +102,7 @@ public class HPSTrack extends HelicalTrackFit {
         Double zVal = zStart;
         Integer nstep = 0;
         while (zVal < zStop) {
-            Double[] xyz = { 0.0, 0.0, 0.0 };
+            Double[] xyz = {0.0, 0.0, 0.0};
             double s = HelixUtils.PathToXPlane(this, zVal, 1000.0, 1).get(0);
             xyz[0] = HelixUtils.PointOnHelix(this, s).y();
             xyz[1] = HelixUtils.PointOnHelix(this, s).z();
@@ -122,7 +124,7 @@ public class HPSTrack extends HelicalTrackFit {
 
         Integer nstep = 0;
         while (zVal < zStop) {
-            Double[] xyz = { 0.0, 0.0, 0.0 };
+            Double[] xyz = {0.0, 0.0, 0.0};
             double s = HelixUtils.PathToXPlane(this, zVal, 1000.0, 1).get(0);
             xyz[0] = HelixUtils.Direction(this, s).y();
             xyz[1] = HelixUtils.Direction(this, s).z();
@@ -162,159 +164,52 @@ public class HPSTrack extends HelicalTrackFit {
         _posDocaZ = CoordinateTransformations.transformVectorToDetector(posDocaZTrkSystem);
         _pDocaZ = VecOp.mult(pTot, CoordinateTransformations.transformVectorToDetector(dirDocaZTrkSystem));
     }
-
-    // public Hep3Vector getPositionAtZ(double xFinal, double fringeHalfWidth, double step) {
-    // double startFringeUpstream = -2 * fringeHalfWidth;
-    // double stopFringeUpstream = 0;
-    // if (_debug)
-    // System.out.println(this.toString());
-    //
-    //
-    // }
-    public Hep3Vector getPositionAtZ(double xFinal, double start, double stop, double step) {
-
-        double startFringe = start;
-        double stopFringe = stop;
-        // _debugForward = false;
-        // if (xFinal > 900)
-        // _debugForward = true;
-        // if looking upstream, we'll be propagating backwards
-        if (xFinal < 0) {
-            step = -step;
-            startFringe = stop;
-            stopFringe = start;
-        }
-        double fringeHalfWidth = Math.abs(stopFringe - startFringe) / 2;
-        double fringeMid = (stopFringe + startFringe) / 2;
-        if (_debugForward) {
-            System.out.println(this.toString());
-        }
-
-        double sStartFringe = HelixUtils.PathToXPlane(this, startFringe, 1000.0, 1).get(0);
-        if (_debugForward) {
-            System.out.println("path to end of fringe = " + sStartFringe + "; xFinal = " + xFinal);
-        }
-        double xtmp = startFringe;
-        double ytmp = HelixUtils.PointOnHelix(this, sStartFringe).y();
-        double ztmp = HelixUtils.PointOnHelix(this, sStartFringe).z();
-        double Rorig = this.R();
-        double xCtmp = this.xc();
-        double yCtmp = this.yc();
-        double q = Math.signum(this.curvature());
-        double phitmp = getPhi(xtmp, ytmp, xCtmp, yCtmp, q);
-        if (_debugForward) {
-            System.out.println("\nOriginal xtmp = " + xtmp + "; ytmp = " + ytmp + "; ztmp = " + ztmp + "; phitmp = " + phitmp);
-
-            System.out.println("nOriginal Rorig = " + Rorig + "; xCtmp = " + xCtmp + "; yCtmp = " + yCtmp);
-        }
-        if (_debugForward) {
-            System.out.println("Original Direction at Fringe: " + HelixUtils.Direction(this, startFringe).toString());
-        }
-        double Rtmp = Rorig;
-        // now start stepping through the fringe field
-        Hep3Vector r0Tmp = HelixUtils.PointOnHelix(this, sStartFringe);
-        SpacePoint r0 = new SpacePoint(r0Tmp);
-        double pTot = this.p(bField);
-        Hep3Vector dirOrig = HelixUtils.Direction(this, sStartFringe);
-        Hep3Vector p0 = VecOp.mult(pTot, dirOrig);
-        Hep3Vector dirTmp = dirOrig;
-        SpacePoint rTmp = r0;
-        Hep3Vector pTmp = p0;
-        double pXOrig = p0.x();
-        double pXTmp = pXOrig;
-        double totalS = sStartFringe;
-        if (_debugForward) {
-            double tmpdX = xFinal - startFringe;
-            Hep3Vector fooExt = extrapolateStraight(dirOrig, tmpdX);
-            Hep3Vector fooFinal = VecOp.add(fooExt, r0Tmp);
-            System.out.println("Extrpolating straight back from startFringe = (" + fooFinal.x() + "," + fooFinal.y() + "," + fooFinal.z() + ")");
-
-        }
-        // follow trajectory while: in fringe field, before end point, and we don't have a looper
-        while (Math.signum(step) * xtmp < Math.signum(step) * stopFringe && Math.signum(step) * xtmp < Math.signum(step) * xFinal && Math.signum(pXOrig * pXTmp) > 0) {
-            if (_debugForward) {
-                System.out.println("New step in Fringe Field");
-                System.out.println("rTmp = " + rTmp.toString());
-                System.out.println("pTmp = " + pTmp.toString());
-                System.out.println("OriginalHelix pos = " + HelixUtils.PointOnHelix(this, totalS));
-                System.out.println("OriginalHelix Momentum = " + VecOp.mult(pTot, HelixUtils.Direction(this, totalS)));
-            }
-
-            double fringeFactor = getFringe(Math.signum(step) * (fringeMid - rTmp.x()), fringeHalfWidth);
-            // double myBField=bField * fringeFactor;
-            double myBField = FieldMap.getFieldFromMap(rTmp.x(), rTmp.y());
-            if (_debugForward) {
-                System.out.println("rTmp.x() = " + rTmp.x() + " field = " + myBField);
-            }
-            setTrack(pTmp, rTmp, q, myBField);
-            rTmp = _trajectory.getPointAtDistance(step);
-            pTmp = VecOp.mult(pTot, _trajectory.getUnitTangentAtLength(step));
-            pXTmp = pTmp.x();
-            xtmp = rTmp.x();
-            if (_debugForward) {
-                System.out.println("##############   done...    #############");
-
-                System.out.println("\n");
-            }
-            totalS += step;
-        }
-        // ok, done with field...extrapolate straight back...
-        Hep3Vector pointInTrking;
-        if (Math.signum(step) * xtmp < Math.signum(step) * xFinal) {
-            // get direction of the track before it hits fringe field
-            double deltaX = xFinal - xtmp;
-            Hep3Vector dir = _trajectory.getUnitTangentAtLength(0);
-            // double deltaY = deltaX * dir.y();
-            // double deltaZ = deltaX * dir.z();
-            Hep3Vector delta = extrapolateStraight(dir, deltaX);
-            // double deltaZ = Math.sqrt(deltaX*deltaX+deltaY*deltaY)* dir.z();
-            pointInTrking = new BasicHep3Vector(xFinal, delta.y() + ytmp, delta.z() + ztmp);
-
-            if (_debugForward) {
-                System.out.println("Pointing straight forward from xtmp = " + xtmp + "; ytmp = " + ytmp + "; ztmp = " + ztmp + "; deltaX= " + deltaX);
-                System.out.println("Directions:  " + dir.toString());
-                System.out.println("Position at ECal:  x = " + xFinal + "; y = " + pointInTrking.y() + "; z = " + pointInTrking.z());
-
-            }
-        } else { // still in the fringe field...just return the current position
-        // pointInTrking = new BasicHep3Vector(xFinal, ytmp, ztmp);
-            pointInTrking = new BasicHep3Vector(rTmp.x(), rTmp.y(), rTmp.z());
-        }
-        return CoordinateTransformations.transformVectorToDetector(pointInTrking);
+    
+     public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step) {
+         System.out.println("Don't use this anymore!  Use the contructor with FieldMap provided");
+         Hep3Vector out= new BasicHep3Vector(666,666,666);
+         Hep3Vector[] ret={out};
+         return ret;
+    }
+     
+       
+     public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step, boolean debugOK) {
+         System.out.println("Don't use this anymore!  Use the contructor with FieldMap provided");
+         Hep3Vector out= new BasicHep3Vector(666,666,666);
+         Hep3Vector[] ret={out};
+         return ret;
     }
 
     /**
-     * Get the position and direction on the track using B-field map for extrapolation
-     * 
+     * Get the position and direction on the track using B-field map for
+     * extrapolation
+     *
      * @param start = starting z-position of extrapolation
      * @param zFinal = final z-position
      * @param step = step size
+     * @param bmap = the B-Field map
      * @return position[0] and direction[1] at Z=zfinal
      */
-    public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step) {
-        return this.getPositionAtZMap(start, xFinal, step, true);
+    public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step, FieldMap bmap) {
+        return this.getPositionAtZMap(start, xFinal, step, bmap, false);
     }
 
-    public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step, boolean debugOk) {
+    public Hep3Vector[] getPositionAtZMap(double start, double xFinal, double step, FieldMap bmap, boolean debugOk) {
 
         double startFringe = start;
 
         _debugForward = false;
-        if (xFinal > 900) {
+        if (xFinal > 900)
             _debugForward = debugOk ? true : false;
-        }
         // if looking upstream, we'll be propagating backwards
-        if (xFinal < 0) {
+        if (xFinal < 0)
             step = -step;
-        }
-        if (_debugForward) {
+        if (_debugForward)
             System.out.println(this.toString());
-        }
 
         double sStartFringe = HelixUtils.PathToXPlane(this, startFringe, 1000.0, 1).get(0);
-        if (_debugForward) {
+        if (_debugForward)
             System.out.println("path to end of fringe = " + sStartFringe + "; xFinal = " + xFinal);
-        }
         double xtmp = startFringe;
         double ytmp = HelixUtils.PointOnHelix(this, sStartFringe).y();
         double ztmp = HelixUtils.PointOnHelix(this, sStartFringe).z();
@@ -328,9 +223,8 @@ public class HPSTrack extends HelicalTrackFit {
 
             System.out.println("nOriginal Rorig = " + Rorig + "; xCtmp = " + xCtmp + "; yCtmp = " + yCtmp);
         }
-        if (_debugForward) {
+        if (_debugForward)
             System.out.println("Original Direction at Fringe: " + HelixUtils.Direction(this, startFringe).toString());
-        }
         double Rtmp = Rorig;
         // now start stepping through the fringe field
         Hep3Vector r0Tmp = HelixUtils.PointOnHelix(this, sStartFringe);
@@ -361,10 +255,9 @@ public class HPSTrack extends HelicalTrackFit {
                 System.out.println("OriginalHelix Momentum = " + VecOp.mult(pTot, HelixUtils.Direction(this, totalS)));
             }
 
-            double myBField = FieldMap.getFieldFromMap(rTmp.x(), rTmp.y());
-            if (_debugForward) {
+            double myBField = bmap.getField(new BasicHep3Vector(rTmp.z(), rTmp.z(), rTmp.x())).z();   // note weird co ordinates for track vs det   
+            if (_debugForward)
                 System.out.println("rTmp.x() = " + rTmp.x() + " field = " + myBField);
-            }
             setTrack(pTmp, rTmp, q, myBField);
             rTmp = _trajectory.getPointAtDistance(step);
             pTmp = VecOp.mult(pTot, _trajectory.getUnitTangentAtLength(step));
@@ -394,10 +287,10 @@ public class HPSTrack extends HelicalTrackFit {
                 System.out.println("OriginalHelix Momentum = " + VecOp.mult(pTot, HelixUtils.Direction(this, totalS)));
             }
 
-            double myBField = FieldMap.getFieldFromMap(rTmp.x(), rTmp.y());
-            if (_debugForward) {
+            double myBField = bmap.getField(new BasicHep3Vector(rTmp.z(), rTmp.z(), rTmp.x())).z();   // note weird co ordinates for track vs det   
+
+            if (_debugForward)
                 System.out.println("rTmp.x() = " + rTmp.x() + " field = " + myBField);
-            }
             setTrack(pTmp, rTmp, q, myBField);
             rTmp = _trajectory.getPointAtDistance(step);
             pTmp = VecOp.mult(pTot, _trajectory.getUnitTangentAtLength(step));
@@ -405,7 +298,6 @@ public class HPSTrack extends HelicalTrackFit {
             xtmp = rTmp.x();
             if (_debugForward) {
                 System.out.println("##############   done...    #############");
-
                 System.out.println("\n");
             }
             totalS += step;
@@ -413,10 +305,9 @@ public class HPSTrack extends HelicalTrackFit {
 
         // ok, done with field.
         Hep3Vector pointInTrking = new BasicHep3Vector(rTmp.x(), rTmp.y(), rTmp.z());
-        if (_debugForward) {
+        if (_debugForward)
             System.out.println("Position xfinal (tracking) :  x = " + xFinal + "; y = " + pointInTrking.y() + "; z = " + pointInTrking.z());
-        }
-        Hep3Vector[] out = { CoordinateTransformations.transformVectorToDetector(pointInTrking), CoordinateTransformations.transformVectorToDetector(pTmp) };
+        Hep3Vector[] out = {CoordinateTransformations.transformVectorToDetector(pointInTrking), CoordinateTransformations.transformVectorToDetector(pTmp)};
 
         return out;
     }
@@ -435,12 +326,10 @@ public class HPSTrack extends HelicalTrackFit {
     // field that changes linearly from Bmax->0
     private double getFringe(double x, double halfWidth) {
         // System.out.println("x = " + x + "; halfWidth = " + halfWidth);
-        if (x / halfWidth > 1) {
+        if (x / halfWidth > 1)
             return 1;
-        }
-        if (x / halfWidth < -1) {
+        if (x / halfWidth < -1)
             return 0;
-        }
 
         return (1.0 / 2.0) * (1 + x / halfWidth);
     }
@@ -478,9 +367,8 @@ public class HPSTrack extends HelicalTrackFit {
         if (q != 0 && field != 0) {
             double radius = p.rxy() / (q * field);
             _trajectory = new Helix(r0, radius, phi, lambda);
-        } else {
+        } else
             _trajectory = new Line(r0, phi, lambda);
-        }
     }
 
     public Trajectory getTrajectory() {
@@ -489,7 +377,7 @@ public class HPSTrack extends HelicalTrackFit {
 
     /**
      * Get the MC Particle associated with the HelicalTrackFit
-     * 
+     *
      * @return mcParticle :
      */
     public MCParticle getMCParticle() {
@@ -498,7 +386,7 @@ public class HPSTrack extends HelicalTrackFit {
 
     /**
      * Set the MC Particle associated with the HelicalTrackFit
-     * 
+     *
      * @param mcParticle :
      */
     public void setMCParticle(MCParticle mcParticle) {

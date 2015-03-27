@@ -719,7 +719,8 @@ public class TrackUtils {
         HPSTrack hpstrk1 = new HPSTrack(htf1);
         Hep3Vector pos1;
         if (useFringe) {
-            pos1 = hpstrk1.getPositionAtZMap(100.0, zVal, 5.0)[0];
+            // broken because you need ot provide the Field Map to get this...
+//            pos1 = hpstrk1.getPositionAtZMap(100.0, zVal, 5.0)[0];            
         } else {
             pos1 = TrackUtils.extrapolateTrack(trk1, zVal);
         }
