@@ -7,6 +7,7 @@ import java.util.Map;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogramFactory;
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
@@ -42,8 +43,10 @@ public class SvtTimingInPlots extends Driver {
 	protected Map<SiSensor, IHistogram1D> t0Plots = new HashMap<SiSensor, IHistogram1D>(); 
 	protected Map<SiSensor, IHistogram1D> amplitudePlots = new HashMap<SiSensor, IHistogram1D>(); 
 	protected Map<SiSensor, IHistogram1D> chi2Plots = new HashMap<SiSensor, IHistogram1D>(); 
-	protected Map<Integer, List<RawTrackerHit>> topRawHitsPerLayer = new HashMap<Integer, List<RawTrackerHit>>();
-	protected Map<Integer, List<RawTrackerHit>> botRawHitsPerLayer = new HashMap<Integer, List<RawTrackerHit>>();
+	protected Map<SiSensor, IHistogram2D> t0vAmpPlots = new HashMap<SiSensor, IHistogram2D>(); 
+	protected Map<SiSensor, IHistogram2D> t0vChi2Plots = new HashMap<SiSensor, IHistogram2D>(); 
+	protected Map<SiSensor, IHistogram2D> chi2vAmpPlots = new HashMap<SiSensor, IHistogram2D>(); 
+	
 	IPlotterStyle style = null; 
 	
 	
@@ -97,12 +100,33 @@ public class SvtTimingInPlots extends Driver {
 
 		plotters.put("L4-L6 Chi^2 Probability", plotterFactory.create("L1-L3 Chi^2 Probability"));
 		plotters.get("L4-L6 Chi^2 Probability").createRegions(6,4);
+	
+		plotters.put("L1-L3 t0 vs Amplitude", plotterFactory.create("L1-L3 t0 vs Amplitude"));
+		plotters.get("L1-L3 t0 vs Amplitude").createRegions(6, 2);
 		
+		plotters.put("L4-L6 t0 vs Amplitude", plotterFactory.create("L4-L6 t0 vs Amplitude"));
+		plotters.get("L4-L6 t0 vs Amplitude").createRegions(6, 4);
+
+		plotters.put("L1-L3 t0 vs Chi^2 Prob.", plotterFactory.create("L1-L3 t0 vs Chi^2 Prob."));
+		plotters.get("L1-L3 t0 vs Chi^2 Prob.").createRegions(6, 2);
+		
+		plotters.put("L4-L6 t0 vs Chi^2 Prob.", plotterFactory.create("L4-L6 t0 vs Chi^2 Prob."));
+		plotters.get("L4-L6 t0 vs Chi^2 Prob.").createRegions(6, 4);
+
+		plotters.put("L1-L3 Chi^2 Prob. vs Amplitude", plotterFactory.create("L1-L3 Chi^2 Prob. vs Amplitude"));
+		plotters.get("L1-L3 Chi^2 Prob. vs Amplitude").createRegions(6, 2);
+		
+		plotters.put("L4-L6 Chi^2 Prob. vs Amplitude", plotterFactory.create("L4-L6 Chi^2 Prob. vs Amplitude"));
+		plotters.get("L4-L6 Chi^2 Prob. vs Amplitude").createRegions(6, 4);
+
 		for (HpsSiSensor sensor : sensors) {
 
 			t0Plots.put(sensor,histogramFactory.createHistogram1D(sensor.getName() + " - t0",75, -50, 100.0));
 			amplitudePlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Amplitude", 200, 0, 2000));
 			chi2Plots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Chi^2 Probability", 20, 0, 1));
+			t0vAmpPlots.put(sensor, histogramFactory.createHistogram2D(sensor.getName() + " - t0 v Amplitude", 75, -50, 100.0, 200, 0, 2000));
+			t0vChi2Plots.put(sensor, histogramFactory.createHistogram2D(sensor.getName() + " - t0 v Chi^2 Probability", 75, -50, 100.0, 20, 0, 1));
+			chi2vAmpPlots.put(sensor, histogramFactory.createHistogram2D(sensor.getName() + " - Chi2 v Amplitude", 20, 0, 1, 200, 0, 2000));
 			
 			if (sensor.getLayerNumber() < 7) {
 			    plotters.get("L1-L3 t0").region(this.computePlotterRegion(sensor))
@@ -111,6 +135,12 @@ public class SvtTimingInPlots extends Driver {
 			                                   .plot(amplitudePlots.get(sensor));
 			    plotters.get("L1-L3 Chi^2 Probability").region(this.computePlotterRegion(sensor))
 			                                   .plot(chi2Plots.get(sensor));
+			    plotters.get("L1-L3 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
+			                                         .plot(t0vAmpPlots.get(sensor));
+			    plotters.get("L1-L3 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
+			                                         .plot(t0vChi2Plots.get(sensor));
+			    plotters.get("L1-L3 Chi^2 Prob. vs Amplitude").region(this.computePlotterRegion(sensor))
+			                                         .plot(chi2vAmpPlots.get(sensor));
 			    
 			} else {
 				plotters.get("L4-L6 t0").region(this.computePlotterRegion(sensor))
@@ -119,6 +149,12 @@ public class SvtTimingInPlots extends Driver {
 			                                   .plot(amplitudePlots.get(sensor));
 			    plotters.get("L4-L6 Chi^2 Probability").region(this.computePlotterRegion(sensor))
 			                                   .plot(chi2Plots.get(sensor));
+			    plotters.get("L4-L6 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
+			                                         .plot(t0vAmpPlots.get(sensor));
+			    plotters.get("L4-L6 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
+			                                         .plot(t0vChi2Plots.get(sensor));
+			    plotters.get("L4-L6 Chi^2 Prob. vs Amplitude").region(this.computePlotterRegion(sensor))
+			                                         .plot(chi2vAmpPlots.get(sensor));
 			}
 		}
 		
@@ -149,7 +185,10 @@ public class SvtTimingInPlots extends Driver {
 			
 			double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
 			chi2Plots.get(sensor).fill(chi2Prob);
-		
+	
+			t0vAmpPlots.get(sensor).fill(t0, amplitude);
+			t0vChi2Plots.get(sensor).fill(t0, chi2Prob);
+			chi2vAmpPlots.get(sensor).fill(chi2Prob, amplitude);
 			
 		}	
 	}
