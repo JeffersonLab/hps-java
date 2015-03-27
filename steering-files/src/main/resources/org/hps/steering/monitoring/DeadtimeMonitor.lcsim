@@ -1,0 +1,12 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>        
+        <driver name="DeadtimeMonitor"/>
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>     
+        <driver name="DeadtimeMonitor" type="org.hps.monitoring.drivers.scalars.DeadtimePlots">
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+    </drivers>
+</lcsim>
