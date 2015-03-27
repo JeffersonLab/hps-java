@@ -22,12 +22,10 @@ import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
@@ -66,6 +64,8 @@ public class ECalEvioReader extends EvioReader {
 
     private int topBankTag, botBankTag;
 
+    private int rfBankTag = -1;
+
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
     private static final Logger logger = LogUtil.create(ECalEvioReader.class);
@@ -84,6 +84,10 @@ public class ECalEvioReader extends EvioReader {
 
     public void setBotBankTag(int botBankTag) {
         this.botBankTag = botBankTag;
+    }
+
+    public void setRfBankTag(int rfBankTag) {
+        this.rfBankTag = rfBankTag;
     }
 
     @Override
@@ -158,6 +162,30 @@ public class ECalEvioReader extends EvioReader {
                         throw new RuntimeException(e);
                     }
                 }
+            } else if (rfBankTag != -1 && crateBankTag == rfBankTag) {
+                if (bank.getChildCount() > 0) {
+                    if (debug) {
+                        System.out.println("FADC RF bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
+                    }
+                    try {
+                        for (BaseStructure slotBank : bank.getChildrenList()) {
+                            if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
+                                for (CompositeData cdata : slotBank.getCompositeData()) {
+                                    switch (slotBank.getHeader().getTag()) {
+                                        case EventConstants.ECAL_WINDOW_BANK_TAG:
+                                            hits.addAll(makeWindowHits(cdata, crateBankTag));
+                                            flags = 0;
+                                            break;
+                                        default:
+                                            throw new RuntimeException("Unsupported ECal format - bank tag " + slotBank.getHeader().getTag());
+                                    }
+                                }
+                            }
+                        }
+                    } catch (EvioException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
 //        String readoutName = ;
@@ -174,18 +202,34 @@ public class ECalEvioReader extends EvioReader {
         return foundHits;
     }
 
+    private static BaseRawTrackerHit makeECalRawHit(int time, long id, CompositeData cdata, int nSamples) {
+        short[] adcValues = new short[nSamples];
+        for (int i = 0; i < nSamples; i++) {
+            adcValues[i] = cdata.getShort();
+        }
+        return new BaseRawTrackerHit(id, time, adcValues);
+    }
+
+    private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
+        int[] adcValues = new int[nSamples];
+        for (int i = 0; i < nSamples; i++) {
+            adcValues[i] = cdata.getShort();
+        }
+        return new FADCGenericHit(mode, crate, slot, channel, adcValues);
+    }
+
     private List<BaseRawTrackerHit> makeWindowHits(CompositeData cdata, int crate) {
         List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
-        if (debug) {
-            int n = cdata.getNValues().size();
-            for (int i = 0; i < n; i++) {
-                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
-            }
-            int ni = cdata.getItems().size();
-            for (int i = 0; i < ni; i++) {
-                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
-            }
-        }
+//        if (debug) {
+//            int n = cdata.getNValues().size();
+//            for (int i = 0; i < n; i++) {
+//                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
+//            }
+//            int ni = cdata.getItems().size();
+//            for (int i = 0; i < ni; i++) {
+//                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
+//            }
+//        }
         while (cdata.index() + 1 < cdata.getItems().size()) {
             short slot = cdata.getByte();
             int trigger = cdata.getInt();
@@ -208,24 +252,12 @@ public class ECalEvioReader extends EvioReader {
                     System.out.println("The long id is: " + id);
                 }
 
-                short[] adcValues = new short[nSamples];
-                for (int i = 0; i < nSamples; i++) {
-                    adcValues[i] = cdata.getShort();
-                }
                 if (id == null) {
-                    int[] data = new int[adcValues.length];
-                    for (int i = 0; i < adcValues.length; i++) {
-                        data[i] = adcValues[i];
-                    }
-                    processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, data));
+                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_WINDOW_MODE, crate, slot, channel, cdata, nSamples);
+                    processUnrecognizedChannel(hit);
                 } else {
-                    hits.add(new BaseRawTrackerHit(
-                            0,
-                            id,
-                            adcValues,
-                            new ArrayList<SimTrackerHit>(),
-                            subDetector
-                            .getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
+                    BaseRawTrackerHit hit = makeECalRawHit(0, id, cdata, nSamples);
+                    hits.add(hit);
                 }
             }
         }
@@ -275,18 +307,13 @@ public class ECalEvioReader extends EvioReader {
                 for (int k = 0; k < npulses; k++) {
                     short pulseNum = cdata.getByte();
                     int sampleCount = cdata.getNValue();
-                    short[] adcValues = new short[sampleCount];
-                    for (int i = 0; i < sampleCount; i++) {
-                        adcValues[i] = cdata.getShort();
-                    }
+
                     if (id == null) {
-                        int[] data = new int[adcValues.length];
-                        for (int i = 0; i < adcValues.length; i++) {
-                            data[i] = adcValues[i];
-                        }
-                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.ECAL_PULSE_MODE, crate, slot, channel, data));
+                        FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_PULSE_MODE, crate, slot, channel, cdata, sampleCount);
+                        processUnrecognizedChannel(hit);
                     } else {
-                        hits.add(new BaseRawTrackerHit(pulseNum, id, adcValues, new ArrayList<SimTrackerHit>(), subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0)));
+                        BaseRawTrackerHit hit = makeECalRawHit(pulseNum, id, cdata, sampleCount);
+                        hits.add(hit);
                     }
                 }
             }

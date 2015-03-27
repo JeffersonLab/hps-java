@@ -17,11 +17,15 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
 /**
- * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the Engineering Run and the Commissioning Run.
+ * This is the {@link org.hps.record.LCSimEventBuilder} implementation for the
+ * Engineering Run and the Commissioning Run.
  * <p>
- * It has several modifications from the Test Run builder including different values for certain bank tags.
+ * It has several modifications from the Test Run builder including different
+ * values for certain bank tags.
  * <p>
- * Additionally, this builder will write DAQ config information, EPICS control data, and scalar bank data into the output LCSim events if these banks are present in the EVIO data.
+ * Additionally, this builder will write DAQ config information, EPICS control
+ * data, and scalar bank data into the output LCSim events if these banks are
+ * present in the EVIO data.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
@@ -39,12 +43,13 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
+        ecalReader.setRfBankTag(0x2e);
         svtReader = new SvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
         intBanks = new ArrayList<IntBankDefinition>();
-        intBanks.add(new IntBankDefinition(SSPData.class, new int[] { sspCrateBankTag, sspBankTag }));
-        intBanks.add(new IntBankDefinition(TIData.class, new int[] { sspCrateBankTag, 0xe10a }));
+        intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
+        intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
     }
@@ -72,6 +77,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
     /**
      * Create and cache an {@link org.hps.record.epics.EpicsScalarData} object.
+     *
      * @param evioEvent The EVIO event data.
      */
     void createEpicsScalarData(EvioEvent evioEvent) {
@@ -81,6 +87,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
     /**
      * Write EVIO scalar data into the LCSim event, if it exists.
+     *
      * @param evioEvent The EVIO event data.
      * @param lcsimEvent The output LCSim event.
      */
@@ -118,7 +125,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // } catch (Exception e) {
         // Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making SVT hits", e);
         // }
-
         // Write the current EPICS data into this event.
         if (epicsData != null) {
             epicsData.write(lcsimEvent);
