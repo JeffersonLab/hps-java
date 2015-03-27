@@ -20,7 +20,7 @@
         <driver name="SinglesTrigger1"/>
         <driver name="TestRunReconToLcio"/>
         <driver name="AidaSaveDriver"/>
-        <driver name="ClockDriver"/>
+        <driver name="ClockDriver"/>        
 <!--        <driver name="CleanupDriver"/> -->
     </execute> 
     <drivers>
@@ -81,6 +81,7 @@
             <clusterEnergyHigh>2.5</clusterEnergyHigh>
             <prescale>256</prescale>
             <outputFileName>${outputFile}.triggers.singles0</outputFileName>
+            <lcioFile>${outputFile}.singles0.slcio</lcioFile>            
         </driver>	      
         <driver name="SinglesTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -91,6 +92,7 @@
             <clusterEnergyHigh>2.5</clusterEnergyHigh>
             <prescale>128</prescale>
             <outputFileName>${outputFile}.triggers.singles1</outputFileName>
+            <lcioFile>${outputFile}.singles1.slcio</lcioFile>            
         </driver>	      
         <driver name="PairTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -108,6 +110,7 @@
             <energySlopeLow>0.4</energySlopeLow>
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs0</outputFileName>
+            <lcioFile>${outputFile}.pairs0.slcio</lcioFile>            
         </driver>	      
         <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -125,12 +128,13 @@
             <energySlopeLow>0.4</energySlopeLow>
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
+            <lcioFile>${outputFile}.pairs1.slcio</lcioFile>
         </driver>	      
         <driver name="AidaSaveDriver"
                 type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_triggerPlots</outputFileName>
         </driver>
-        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>      
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <!--collectionNames>TrackerHits</collectionNames-->
         </driver> 
