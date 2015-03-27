@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.DaqId;
@@ -22,10 +21,12 @@ import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
@@ -202,12 +203,17 @@ public class ECalEvioReader extends EvioReader {
         return foundHits;
     }
 
-    private static BaseRawTrackerHit makeECalRawHit(int time, long id, CompositeData cdata, int nSamples) {
+    private BaseRawTrackerHit makeECalRawHit(int time, long id, CompositeData cdata, int nSamples) {
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
         }
-        return new BaseRawTrackerHit(id, time, adcValues);
+        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
+                time,
+                id,
+                adcValues,
+                new ArrayList<SimTrackerHit>(),
+                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
     }
 
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {

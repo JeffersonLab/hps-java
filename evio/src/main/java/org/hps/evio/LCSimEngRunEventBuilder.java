@@ -51,6 +51,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(SSPData.class, new int[]{sspCrateBankTag, sspBankTag}));
         intBanks.add(new IntBankDefinition(TIData.class, new int[]{sspCrateBankTag, 0xe10a}));
+        intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x2d, 0xe107}));
         intBanks.add(new IntBankDefinition(TDCData.class, new int[]{0x3a, 0xe107}));
         // ecalReader = new ECalEvioReader(0x25, 0x27);
         triggerConfigReader = new TriggerConfigEvioReader();
