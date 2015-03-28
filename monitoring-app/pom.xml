@@ -140,7 +140,7 @@
             <version>3.4.11</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.jdom</groupId>
+                    <groupId>jdom</groupId>
                     <artifactId>jdom</artifactId>
                 </exclusion>
                 <exclusion>
