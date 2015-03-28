@@ -116,7 +116,8 @@ public class EcalDaqPlots extends Driver {
         /*Order the slots in increasing order*/       
         Collections.sort(slotsB);
         Collections.sort(slotsT);
-        
+       
+        /* 
         System.out.println("These DAQ slots found:");     
         System.out.println("TOP: ");
        	for (int slot : slotsT){
@@ -128,6 +129,7 @@ public class EcalDaqPlots extends Driver {
             System.out.print(slot+" ");
         }
        	System.out.println("");   
+        */
         
         aida = AIDA.defaultInstance();
         aida.tree().cd("/");
