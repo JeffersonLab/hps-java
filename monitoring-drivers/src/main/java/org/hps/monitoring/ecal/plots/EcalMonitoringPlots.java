@@ -6,7 +6,6 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.recon.ecal.ECalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -44,7 +43,6 @@ public class EcalMonitoringPlots extends Driver {
     int eventn = 0;
     int thisEventN,prevEventN;
 
-    boolean hide = false;
     long thisTime,prevTime;
     double thisEventTime,prevEventTime;
 
@@ -59,11 +57,6 @@ public class EcalMonitoringPlots extends Driver {
         this.clusterCollection = clusterCollection;
     }
 
-    public void setHide(boolean hide) {
-        this.hide = hide;
-    }
-
-
     /**
      * Set the refresh rate for histograms in this driver
      * @param eventRefreshRate: the refresh rate, defined as number of events to accumulate before
@@ -74,7 +67,7 @@ public class EcalMonitoringPlots extends Driver {
     }
 
     protected void detectorChanged(Detector detector) {
-        System.out.println("EcalMonitoringPlots:: detector changed was called");
+        //System.out.println("EcalMonitoringPlots:: detector changed was called");
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots").create("HPS ECal Monitoring Plots");
         // Setup plots.
@@ -116,9 +109,8 @@ public class EcalMonitoringPlots extends Driver {
         // style.zAxisStyle().setParameter("scale", "log");
         plotter.region(2).plot(occupancyDrawPlot);
 
-        if (!hide) {
-            plotter.show();
-        }
+        plotter.show();
+
         prevTime=0; //init the time 
         thisTime=0; //init the time 
 
@@ -189,8 +181,6 @@ public class EcalMonitoringPlots extends Driver {
     }
 
     public void endOfData() {
-        plotter.hide();
-        plotter.destroyRegions();
     }
 
     void redraw() {
