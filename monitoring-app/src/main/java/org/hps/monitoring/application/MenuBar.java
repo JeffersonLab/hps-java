@@ -98,12 +98,12 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         plotsMenu.setMnemonic(KeyEvent.VK_P);
         add(plotsMenu);
         
-        JMenuItem savePlotsItem = new JMenuItem("Save Plots ...");
+        JMenuItem savePlotsItem = new JMenuItem("Save plots ...");
         savePlotsItem.setMnemonic(KeyEvent.VK_S);
         savePlotsItem.setActionCommand(Commands.SAVE_PLOTS);
         savePlotsItem.addActionListener(listener);
         savePlotsItem.setEnabled(true);
-        savePlotsItem.setToolTipText("Save plots to AIDA file");
+        savePlotsItem.setToolTipText("Save all plots to a file");
         plotsMenu.add(savePlotsItem);
 
         JMenuItem clearPlotsItem = new JMenuItem("Clear plots");

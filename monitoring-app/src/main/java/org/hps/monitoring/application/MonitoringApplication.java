@@ -48,6 +48,7 @@ import org.hps.monitoring.application.util.EvioFileFilter;
 import org.hps.monitoring.application.util.TableExporter;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
+import org.hps.monitoring.plotting.ExportPdf;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.record.composite.CompositeRecordProcessor;
@@ -55,6 +56,7 @@ import org.hps.record.enums.DataSourceType;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.aida.PDFWriter;
 import org.lcsim.util.log.DefaultLogFormatter;
 
 /**
@@ -205,6 +207,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Setup AIDA plotting and connect it to the GUI.
             setupAida();
         
+            // TODO: Make sure the configuration loading here is working properly!!!
+            
             // Always load the default configuration first.
             loadConfiguration(new Configuration(DEFAULT_CONFIGURATION));
             
@@ -269,7 +273,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     public void actionPerformed(ActionEvent e) {
 
-        logger.finest("actionPerformed - " + e.getActionCommand());
+        //logger.finest("actionPerformed - " + e.getActionCommand());
         
         String command = e.getActionCommand();
         if (Commands.CONNECT.equals(command)) {
@@ -479,19 +483,41 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
             
     /**
-     * Save AIDA plots to a file using a file chooser.
+     * Save plots to an AIDA, ROOT or PDF file using a file chooser.
      */
     void savePlots() {
         JFileChooser fc = new JFileChooser();
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("ROOT file", "root"));
+        FileFilter filter = new FileNameExtensionFilter("AIDA file", "aida");
+        fc.addChoosableFileFilter(filter);
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setFileFilter(filter);
         int r = fc.showSaveDialog(frame);
         if (r == JFileChooser.APPROVE_OPTION) {
-            File fileName = fc.getSelectedFile();
-            try {
-                AIDA.defaultInstance().saveAs(fileName);
-                logger.info("saved plots to " + fileName);
-                DialogUtil.showInfoDialog(frame, "Plots Saved",  "Plots were successfully saved to AIDA file.");
-            } catch (IOException e) {
-                errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
+            File selectedFile = fc.getSelectedFile();
+            if (!selectedFile.exists()) {
+                String fileName = fc.getSelectedFile().getAbsolutePath();
+                String extension = ((FileNameExtensionFilter) fc.getFileFilter()).getExtensions()[0];
+                if (!fileName.endsWith(".aida") && !fileName.endsWith(".root") && !fileName.endsWith(".pdf")) {
+                    fileName += "." + extension;
+                }
+                try {
+                    if (extension.equals("pdf")) {
+                        // Write to a single PDF file.
+                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName);
+                    } else {
+                        // Save plot object data to AIDA or ROOT file.
+                        AIDA.defaultInstance().saveAs(fileName);
+                    }
+                    logger.info("saved plots to " + fileName);
+                    DialogUtil.showInfoDialog(frame, "Plots Saved", "Plots were successfully saved to " + '\n' + fileName);
+                } catch (IOException e) {
+                    errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
+                }
+            } else {
+                DialogUtil.showErrorDialog(frame, "File Exists", "Selected file already exists.");
             }
         }
     }
@@ -629,7 +655,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * Save a screenshot to a file using a file chooser.
      */
-    // FIXME: This might need to be on a new thread to allow the GUI to redraw w/o chooser visible.
     void saveScreenshot() {
         JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);

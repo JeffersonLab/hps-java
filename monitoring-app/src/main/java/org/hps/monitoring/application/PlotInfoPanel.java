@@ -15,7 +15,6 @@ import hep.aida.ref.function.FunctionChangedEvent;
 import hep.aida.ref.function.FunctionDispatcher;
 import hep.aida.ref.function.FunctionListener;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
