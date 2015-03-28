@@ -214,7 +214,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 // =============================================================
                 // VERBOSE :: Print the hit count comparison check.
                 if(verbose) {
-                    System.out.printf("\tHit Count Cut      :: %.0f >= %d --> %b%n",
+                    System.out.printf("\tHit Count Cut      :: %d >= %.0f --> %b%n",
                     		hitCount, triggerModule.getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW),
                     		triggerModule.clusterHitCountCut(cluster));
                 }
@@ -396,6 +396,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     public void setEnergySlopeParamF(double f) {
         triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F, f);
+    }
+
+    /**
+     * Print debug text.
+     * @param verbose Defaults to false (no debug).
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
     
     /**
