@@ -73,27 +73,25 @@
             <useTimeCut>true</useTimeCut>
             <writeRejectedHitCollection>false</writeRejectedHitCollection>
         </driver>
-        <driver name="SinglesTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+        <driver name="SinglesTrigger0" type="org.hps.readout.ecal.SinglesTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
-            <singlesTrigger>true</singlesTrigger>        
             <deadTime>32</deadTime>
-            <minHitCount>4</minHitCount>
-            <seedEnergyLow>0.1</seedEnergyLow>
-            <clusterEnergyLow>0.5</clusterEnergyLow>
-            <clusterEnergyHigh>2.5</clusterEnergyHigh>
+            <hitCountThreshold>4</hitCountThreshold>
+            <seedEnergyLowThreshold>0.1</seedEnergyLowThreshold>
+            <clusterEnergyLowThreshold>0.5</clusterEnergyLowThreshold>
+            <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
             <prescale>256</prescale>
             <outputFileName>${outputFile}.triggers.singles0</outputFileName>
             <lcioFile>${outputFile}.singles0.slcio</lcioFile>    
             <!--<verbose>true</verbose>-->
         </driver>	      
-        <driver name="SinglesTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
+        <driver name="SinglesTrigger1" type="org.hps.readout.ecal.SinglesTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
-            <singlesTrigger>true</singlesTrigger>        
             <deadTime>32</deadTime>
-            <minHitCount>4</minHitCount>
-            <seedEnergyLow>0.1</seedEnergyLow>
-            <clusterEnergyLow>1.0</clusterEnergyLow>
-            <clusterEnergyHigh>2.5</clusterEnergyHigh>
+            <hitCountThreshold>4</hitCountThreshold>
+            <seedEnergyLowThreshold>0.1</seedEnergyLowThreshold>
+            <clusterEnergyLowThreshold>1.0</clusterEnergyLowThreshold>
+            <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
             <prescale>128</prescale>
             <outputFileName>${outputFile}.triggers.singles1</outputFileName>
             <lcioFile>${outputFile}.singles1.slcio</lcioFile>            

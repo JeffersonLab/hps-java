@@ -51,8 +51,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private int pairEnergySlopeCount = 0;                          // Track the pairs which pass the energy slope cut.
     private int pairCoplanarityCount = 0;                          // Track the pairs which pass the coplanarity cut.
     private boolean verbose = false;                               // Stores whether debug text should be output.
-    private boolean singlesTrigger = false;                        // If true, ignore all pair cuts and trigger on single clusters.
-    private List<Cluster> goodClusterList;                         // Store the clusters from the current event that passed single-cluster cuts.
     
     // ==================================================================
     // ==== Trigger Distribution Plots ==================================
@@ -111,17 +109,15 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         System.out.printf("\t\tPassed Hit Count Cut         :: %d%n", clusterHitCountCount);
         System.out.printf("\t\tPassed Total Energy Cut      :: %d%n", clusterTotalEnergyCount);
         System.out.printf("%n");
-        if (!singlesTrigger) {
-            System.out.printf("\tCluster Pair Cuts%n");
-            System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
-            System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
-            System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
-            System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
-            System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
-        }
+        System.out.printf("\tCluster Pair Cuts%n");
+        System.out.printf("\t\tTotal Pairs Processed        :: %d%n", allPairs);
+        System.out.printf("\t\tPassed Energy Sum Cut        :: %d%n", pairEnergySumCount);
+        System.out.printf("\t\tPassed Energy Difference Cut :: %d%n", pairEnergyDifferenceCount);
+        System.out.printf("\t\tPassed Energy Slope Cut      :: %d%n", pairEnergySlopeCount);
+        System.out.printf("\t\tPassed Coplanarity Cut       :: %d%n", pairCoplanarityCount);
         System.out.printf("%n");
         System.out.printf("\tTrigger Count :: %d%n", numTriggers);
-
+        
         // Print the trigger cuts.
         System.out.printf("%nTrigger Module Cut Values:%n");
         System.out.printf("\tSeed Energy Low        :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW));
@@ -129,16 +125,11 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         System.out.printf("\tCluster Energy Low     :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW));
         System.out.printf("\tCluster Energy High    :: %.3f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH));
         System.out.printf("\tCluster Hit Count      :: %.0f%n", triggerModule.getCutValue(TriggerModule.CLUSTER_HIT_COUNT_LOW));
-        
-        if (singlesTrigger) {
-            System.out.println("\tSingles trigger (no pairs required)");
-        } else {
-            System.out.printf("\tPair Energy Sum Low    :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW));
-            System.out.printf("\tPair Energy Sum High   :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH));
-            System.out.printf("\tPair Energy Difference :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH));
-            System.out.printf("\tPair Energy Slope      :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW));
-            System.out.printf("\tPair Coplanarity       :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH));
-        }
+        System.out.printf("\tPair Energy Sum Low    :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW));
+        System.out.printf("\tPair Energy Sum High   :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH));
+        System.out.printf("\tPair Energy Difference :: %.3f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH));
+        System.out.printf("\tPair Energy Slope      :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW));
+        System.out.printf("\tPair Coplanarity       :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH));
         
         // Run the superclass method.
         super.endOfData();
@@ -157,7 +148,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             
             // Create a list to hold clusters which pass the single
             // cluster cuts.
-            goodClusterList = new ArrayList<Cluster>(clusterList.size());
+            List<Cluster> goodClusterList = new ArrayList<Cluster>(clusterList.size());
             
             // Sort through the cluster list and add clusters that pass
             // the single cluster cuts to the good list.
@@ -288,17 +279,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     public void setClusterCollectionName(String clusterCollectionName) {
         this.clusterCollectionName = clusterCollectionName;
-    }
-
-    /**
-     * Run as a singles trigger. No requirement for a coincidence between a pair
-     * of clusters. The trigger fires if any clusters pass the single-cluster
-     * cuts.
-     *
-     * @param singlesTrigger False by default.
-     */
-    public void setSinglesTrigger(boolean singlesTrigger) {
-        this.singlesTrigger = singlesTrigger;
     }
     
     /**
@@ -601,12 +581,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * passes all of the cluster cuts and <code>false</code> otherwise.
      */
     private boolean testTrigger() {
-
-        // If running a singles trigger, trigger if a cluster passed the single-cluster cuts.
-        if (singlesTrigger) {
-            return !goodClusterList.isEmpty();
-        } // The rest of this method (pair trigger cuts) is not run.
-        
         // Get the list of cluster pairs.
         List<Cluster[]> clusterPairs = getClusterPairsTopBot();
         

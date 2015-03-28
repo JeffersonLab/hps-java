@@ -59,6 +59,9 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 clusterDistribution.fill(ix, iy, 1);
             }
         }
+
+        // Perform the superclass event processing.
+        super.process(event);
     }
     
     /**
