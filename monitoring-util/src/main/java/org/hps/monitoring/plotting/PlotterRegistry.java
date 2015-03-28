@@ -4,25 +4,24 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterRegion;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * This is a global registry of plotters used by the monitoring plot factory. 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class PlotterRegistry {
-
-    Set<IPlotter> plotters = new LinkedHashSet<IPlotter>();    
-    HashMap<IPlotter, int[]> tabMap = new HashMap<IPlotter, int[]>();
+    
+    HashMap<IPlotter, int[]> plotterMap = new HashMap<IPlotter, int[]>();
     
     /**
      * Clear the list of plotters.
      */
     public void clear() {
-        plotters.clear();
+        System.out.println("clearing PlotterRegistry");
+        plotterMap.clear();
     }
     
     /**
@@ -31,7 +30,7 @@ public class PlotterRegistry {
      * @return The plotter that contains this region or null if none.
      */
     public IPlotter find(IPlotterRegion region) {
-        for (IPlotter plotter : plotters) {
+        for (IPlotter plotter : plotterMap.keySet()) {
             for (int i = 0; i < plotter.numberOfRegions(); i++) {
                 if (plotter.region(i) == region) {
                     return plotter;
@@ -48,7 +47,7 @@ public class PlotterRegistry {
      * @param index2 The sub-tab index.
      */
     public void register(IPlotter plotter, int index1, int index2) {
-        tabMap.put(plotter, new int[] { index1, index2 });
+        plotterMap.put(plotter, new int[] { index1, index2 });
     }
     
     /**
@@ -59,7 +58,7 @@ public class PlotterRegistry {
      * @return The plotter or null if none found.
      */
     public IPlotter find(int index1, int index2) {
-        for (Entry<IPlotter, int[]> entry : tabMap.entrySet()) {
+        for (Entry<IPlotter, int[]> entry : plotterMap.entrySet()) {
             int[] indices = entry.getValue();
             if (indices[0] == index1 && indices[1] == index2) {
                 return entry.getKey();
@@ -69,10 +68,10 @@ public class PlotterRegistry {
     }
     
     /**
-     * Get the current collection of plotters.
+     * Get the current collection of plotters as an unmodifiable collection.
      * @return The current collection of plotters.
      */
     public Collection<IPlotter> getPlotters() {
-        return plotters;
+        return Collections.unmodifiableCollection(plotterMap.keySet());
     }
 }
