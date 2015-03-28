@@ -61,6 +61,9 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     private final String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
     private int verbosity = 1;
+    private boolean writeSvtData = true;
+    private boolean writeEcalData = true;
+    private boolean writeTriggerData = true;
 
     public TestRunTriggeredReconToLcio() {
         setTriggerDelay(0);
@@ -116,21 +119,54 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
         }
     }
 
+    /**
+     * Set whether the LCIO writer looks for SVT readout data.
+     *
+     * @param writeSvtData True by default.
+     */
+    public void setWriteSvtData(boolean writeSvtData) {
+        this.writeSvtData = writeSvtData;
+    }
+
+    /**
+     * Set whether the LCIO writer looks for ECal readout data.
+     *
+     * @param writeEcalData True by default.
+     */
+    public void setWriteEcalData(boolean writeEcalData) {
+        this.writeEcalData = writeEcalData;
+    }
+
+    /**
+     * Set whether the LCIO writer looks for trigger readout data.
+     *
+     * @param writeTriggerData True by default.
+     */
+    public void setWriteTriggerData(boolean writeTriggerData) {
+        this.writeTriggerData = writeTriggerData;
+    }
+
     @Override
     protected void startOfData() {
         super.startOfData();
         writers = new ArrayList<HitWriter>();
 
-        ecalWriter = new ECalHitWriter();
-        ecalWriter.setMode(ecalMode);
-        ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
-        writers.add(ecalWriter);
+        if (writeEcalData) {
+            ecalWriter = new ECalHitWriter();
+            ecalWriter.setMode(ecalMode);
+            ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
+            writers.add(ecalWriter);
+        }
 
-        svtWriter = new SVTHitWriter();
-        writers.add(svtWriter);
+        if (writeSvtData) {
+            svtWriter = new SVTHitWriter();
+            writers.add(svtWriter);
+        }
 
-        triggerWriter = new TriggerDataWriter();
-        writers.add(triggerWriter);
+        if (writeTriggerData) {
+            triggerWriter = new TriggerDataWriter();
+            writers.add(triggerWriter);
+        }
 
         for (HitWriter hitWriter : writers) {
             hitWriter.setVerbosity(verbosity);

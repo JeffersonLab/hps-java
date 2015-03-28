@@ -33,7 +33,8 @@
     </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
-            <rejectBackground>true</rejectBackground>
+            <rejectBackground>false</rejectBackground>
+            <writeSvtData>false</writeSvtData>
         </driver>
         <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
             <coincidenceWindow>1</coincidenceWindow>
@@ -82,6 +83,7 @@
             <prescale>256</prescale>
             <outputFileName>${outputFile}.triggers.singles0</outputFileName>
             <lcioFile>${outputFile}.singles0.slcio</lcioFile>            
+            <!--<verbose>true</verbose>-->
         </driver>	      
         <driver name="SinglesTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -93,6 +95,7 @@
             <prescale>128</prescale>
             <outputFileName>${outputFile}.triggers.singles1</outputFileName>
             <lcioFile>${outputFile}.singles1.slcio</lcioFile>            
+            <!--<verbose>true</verbose>-->
         </driver>	      
         <driver name="PairTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -111,6 +114,7 @@
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs0</outputFileName>
             <lcioFile>${outputFile}.pairs0.slcio</lcioFile>            
+            <!--<verbose>true</verbose>-->
         </driver>	      
         <driver name="PairTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
@@ -129,6 +133,7 @@
             <prescale>1</prescale>
             <outputFileName>${outputFile}.triggers.pairs1</outputFileName>
             <lcioFile>${outputFile}.pairs1.slcio</lcioFile>
+            <!--<verbose>true</verbose>-->
         </driver>	      
         <driver name="AidaSaveDriver"
                 type="org.lcsim.job.AidaSaveDriver">
