@@ -48,7 +48,6 @@ public class ECalEvioReader extends EvioReader {
     // FIXME: Hard-coded detector names.
     private static final String readoutName = "EcalHits";
     private static final String subdetectorName = "Ecal";
-//    private Detector detector;
     private Subdetector subDetector;
 
     private static final String genericHitCollectionName = "FADCGenericHits";
@@ -70,13 +69,14 @@ public class ECalEvioReader extends EvioReader {
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
     private static final Logger logger = LogUtil.create(ECalEvioReader.class);
+    static {
+        logger.setLevel(Level.INFO);
+    }
 
     public ECalEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
         this.botBankTag = botBankTag;
         hitCollectionName = "EcalReadoutHits";
-
-        logger.setLevel(Level.FINE);
     }
 
     public void setTopBankTag(int topBankTag) {
@@ -435,11 +435,12 @@ public class ECalEvioReader extends EvioReader {
         }
         count++;
         genericHitCount.put(channelAddress, count);
-
+        
+        // Lowered the log level on these.  Otherwise they print too much. --JM
         if (count < 10) {
-            logger.info(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            logger.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         } else if (count == 10) {
-            logger.warning(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+            logger.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         }
     }
 
