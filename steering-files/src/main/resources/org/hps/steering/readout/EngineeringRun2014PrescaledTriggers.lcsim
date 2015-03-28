@@ -14,10 +14,10 @@
         <driver name="EcalConverter"/>
         <driver name="EcalClustererGTP"/>
         <driver name="EcalClusterer"/>
-        <driver name="PairTrigger0"/>
         <driver name="PairTrigger1"/>
-        <driver name="SinglesTrigger0"/>
+        <driver name="PairTrigger0"/>
         <driver name="SinglesTrigger1"/>
+        <driver name="SinglesTrigger0"/>
         <driver name="TestRunReconToLcio"/>
         <driver name="AidaSaveDriver"/>
         <driver name="ClockDriver"/>        
@@ -75,6 +75,7 @@
         </driver>
         <driver name="SinglesTrigger0" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <singlesTrigger>true</singlesTrigger>        
             <deadTime>32</deadTime>
             <minHitCount>4</minHitCount>
             <seedEnergyLow>0.1</seedEnergyLow>
@@ -82,11 +83,12 @@
             <clusterEnergyHigh>2.5</clusterEnergyHigh>
             <prescale>256</prescale>
             <outputFileName>${outputFile}.triggers.singles0</outputFileName>
-            <lcioFile>${outputFile}.singles0.slcio</lcioFile>            
+            <lcioFile>${outputFile}.singles0.slcio</lcioFile>    
             <!--<verbose>true</verbose>-->
         </driver>	      
         <driver name="SinglesTrigger1" type="org.hps.readout.ecal.FADCPrimaryTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
+            <singlesTrigger>true</singlesTrigger>        
             <deadTime>32</deadTime>
             <minHitCount>4</minHitCount>
             <seedEnergyLow>0.1</seedEnergyLow>
