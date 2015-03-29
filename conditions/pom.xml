@@ -22,6 +22,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes>
+                        <exclude>org/hps/conditions/EngRunConditionsTest.java</exclude>
                         <exclude>org/hps/conditions/beam/BeamCurrentTest.java</exclude>
                         <exclude>org/hps/conditions/database/TableRegistryTest.java</exclude>
                         <exclude>org/hps/conditions/database/ConverterRegistryTest.java</exclude>
