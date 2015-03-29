@@ -1,6 +1,6 @@
 <conditions_database>
     <configuration>
-        <setupSvtDetector>false</setupSvtDetector>
+        <setupSvtDetector>true</setupSvtDetector>
         <cacheAllConditions>false</cacheAllConditions>
         <freezeAfterInitialize>false</freezeAfterInitialize>
     </configuration>
