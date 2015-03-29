@@ -121,13 +121,13 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making ECal hits", e);
         }
 
-        // FIXME: This is commented out for now while SVT is not integrated.
         // Make SVT RawTrackerHits.
-        // try {
-        // svtReader.makeHits(evioEvent, lcsimEvent);
-        // } catch (Exception e) {
-        // Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making SVT hits", e);
-        // }
+        try {
+            svtReader.makeHits(evioEvent, lcsimEvent);
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making SVT hits", e);
+        }
+        
         // Write the current EPICS data into this event.
         if (epicsData != null) {
             epicsData.write(lcsimEvent);
