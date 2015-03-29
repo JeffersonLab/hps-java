@@ -143,6 +143,7 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	 */
 	@Override
 	protected RawTrackerHit makeHit(int[] data) {
+	    System.out.println("Channel: " + SvtEvioUtils.getChannelNumber(data));
 		return makeHit(data, SvtEvioUtils.getChannelNumber(data));
 	}
 }
