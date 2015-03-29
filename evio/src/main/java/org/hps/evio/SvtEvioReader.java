@@ -136,14 +136,14 @@ public final class SvtEvioReader extends AbstractSvtEvioReader {
 	}
 
 	/**
-	 * 	Make a {@link RawTrackerHit} from a set of samples.
+	 * 	Make a {@linkplain RawTrackerHit} from a set of samples.
 	 * 
 	 *	@param data : sample block of data
-	 * 	@return A raw hit
+	 * 	@return A {@linkplain RawTrackerHit}
 	 */
 	@Override
 	protected RawTrackerHit makeHit(int[] data) {
-	    logger.fine("Channel: " + SvtEvioUtils.getChannelNumber(data));
-		return makeHit(data, SvtEvioUtils.getChannelNumber(data));
+	    logger.fine("Channel: " + SvtEvioUtils.getPhysicalChannelNumber(data));
+		return makeHit(data, SvtEvioUtils.getPhysicalChannelNumber(data));
 	}
 }
