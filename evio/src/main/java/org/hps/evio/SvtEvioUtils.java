@@ -14,6 +14,10 @@ public class SvtEvioUtils {
 	
 	private static final int TOTAL_SAMPLES = 6;
     public static final int  SAMPLE_MASK = 0xFFFF;
+   
+    // TODO: Move these to constants class
+    public static final int APV25_PER_HYBRID = 5;
+    public static final int CHANNELS_PER_APV25 = 128;
 	
 	//--- Test Run ---//
 	private static final int TEST_RUN_SAMPLE_HEADER_INDEX = 0; 
@@ -25,6 +29,7 @@ public class SvtEvioUtils {
     private static final int ENG_RUN_SAMPLE_HEADER_INDEX = 3; 
     private static final int FEB_MASK = 0xFF;
     private static final int FEB_HYBRID_MASK = 0x3;
+    private static final int ENG_RUN_APV_MASK = 0x7;
     private static final int ENG_RUN_CHANNEL_MASK = 0x7F; 
     
     /**
@@ -83,6 +88,16 @@ public class SvtEvioUtils {
     }
 
     /**
+     *  Extract and return the APV ID associated with the samples.
+     *  
+     *  @param data : sample block of data
+     *  @return An APV ID in the range of 0-4
+     */
+    public static int getApv(int[] data) { 
+        return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 23) & ENG_RUN_APV_MASK; 
+    }
+    
+    /**
      *	Extract and return the channel number associated with the samples
      * 
 	 * 	@param data : sample block of data
@@ -91,6 +106,32 @@ public class SvtEvioUtils {
     public static int getChannelNumber(int[] data) {
         return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 16) & ENG_RUN_CHANNEL_MASK;
     }
+   
+    /**
+     *  Extract the physical channel number associated with the samples
+     *  
+     *  @param data : sample block of data
+     *  @return A channel number in the range 0-639
+     * 	@throws RuntimeException if the physical channel number is out of range
+     */
+    public static int getPhysicalChannelNumber(int[] data) {
+
+        // Extract the channel number from the data
+        int channel = SvtEvioUtils.getChannelNumber(data);
+        
+        // Extract the APV ID from the data
+        int apv = SvtEvioUtils.getApv(data);
+    
+        // Get the physical channel number
+        int physicalChannel = (APV25_PER_HYBRID - apv - 1) * CHANNELS_PER_APV25 + channel;
+       
+        // Check that the physical channel number is valid.  If not, throw an exception
+        if (physicalChannel < 0 || physicalChannel >= APV25_PER_HYBRID * CHANNELS_PER_APV25) {
+            throw new RuntimeException("Physical channel " + physicalChannel + " is outside of valid range!");
+        }
+        return physicalChannel;
+    }
+    
     
     /**
      * 	Extract and return the nth SVT sample.
