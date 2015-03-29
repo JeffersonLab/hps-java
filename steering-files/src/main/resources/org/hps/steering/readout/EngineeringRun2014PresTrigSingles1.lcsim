@@ -13,7 +13,6 @@
         <driver name="EcalReadout"/>
         <driver name="EcalConverter"/>
         <driver name="EcalClustererGTP"/>
-        <driver name="EcalClusterer"/>
         <driver name="SinglesTrigger1"/>
         <driver name="TestRunReconToLcio"/>
         <driver name="AidaSaveDriver"/>
@@ -59,17 +58,6 @@
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>            
             <clusterWindow>1</clusterWindow>
         </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
-            <logLevel>WARNING</logLevel>
-            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>           
-            <outputClusterCollectionName>ReconClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.01</hitEnergyThreshold>
-            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.100</clusterEnergyThreshold>
-            <minTime>0.0</minTime>
-            <useTimeCut>true</useTimeCut>
-            <writeRejectedHitCollection>false</writeRejectedHitCollection>
-        </driver>  
         <driver name="SinglesTrigger1" type="org.hps.readout.ecal.SinglesTriggerDriver">
             <clusterCollectionName>EcalClusters</clusterCollectionName>
             <deadTime>32</deadTime>
@@ -79,7 +67,6 @@
             <clusterEnergyHighThreshold>2.5</clusterEnergyHighThreshold>
             <prescale>128</prescale>
             <outputFileName>${outputFile}.triggers.singles1</outputFileName>
-            <lcioFile>${outputFile}.singles1.slcio</lcioFile>            
             <!--<verbose>true</verbose>-->
         </driver>         
         <driver name="AidaSaveDriver"
