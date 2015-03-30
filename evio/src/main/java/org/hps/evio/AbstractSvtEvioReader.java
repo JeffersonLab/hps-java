@@ -143,14 +143,6 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 	 */
 	public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
-		// Setup the DAQ map if it's not setup
-		if (!this.isDaqMapSetup)
-			this.setupDaqMap(lcsimEvent.getDetector().getSubdetector(
-					SUBDETECTOR_NAME));
-
-		// Clear the list of raw tracker hits
-		rawHits.clear();
-
 		// Retrieve the ROC banks encapsulated by the physics bank.  The ROC
 		// bank range is set in the subclass.
 		List<BaseStructure> rocBanks = new ArrayList<BaseStructure>();
@@ -170,6 +162,14 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
 		// Return false if ROC banks weren't found
 		if (rocBanks.isEmpty()) return false;  
 	
+		// Setup the DAQ map if it's not setup
+		if (!this.isDaqMapSetup)
+			this.setupDaqMap(lcsimEvent.getDetector().getSubdetector(
+					SUBDETECTOR_NAME));
+
+		// Clear the list of raw tracker hits
+		rawHits.clear();
+
 		// Loop over the SVT ROC banks and process all samples
 		for (BaseStructure rocBank : rocBanks) { 
 			
