@@ -6,9 +6,7 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
-import hep.aida.ref.plotter.style.registry.StyleRegistry;
 
-import java.awt.Color;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,7 @@ import org.lcsim.util.Driver;
 /**
  * This Driver makes plots of sensor occupancies across a run. It is intended to be used with the
  * monitoring system.
- *
+ * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
@@ -30,10 +28,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     // TODO: Add documentation
     // TODO: Set plot styles
-
+    static {
+        hep.aida.jfree.AnalysisFactory.register();
+    } 
+    
     static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
     IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
-    static StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
 
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     protected Map<HpsSiSensor, IHistogram1D> occupancyPlots = new HashMap<HpsSiSensor, IHistogram1D>();
@@ -55,6 +55,59 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
+    }
+    
+    protected void detectorChanged(Detector detector) {
+
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+
+        if (sensors.size() == 0) {
+            throw new RuntimeException("No sensors were found in this detector.");
+        }
+
+        plotters.put("Occupancy", plotterFactory.create("Occupancy"));
+        plotters.get("Occupancy").createRegions(6, 6);
+
+        for (HpsSiSensor sensor : sensors) {
+            occupancyPlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
+            plotters.get("Occupancy").region(this.computePlotterRegion(sensor))
+                                     .plot(occupancyPlots.get(sensor), this.createOccupancyPlotStyle(sensor));
+            occupancyMap.put(sensor, new int[640]);
+        }
+
+        for (IPlotter plotter : plotters.values()) {
+            plotter.show();
+        }
+    }
+
+    public void process(EventHeader event) {
+
+        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
+            return;
+
+        eventCount++;
+
+        // Get RawTrackerHit collection from event.
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+
+        // Increment strip hit count.
+        for (RawTrackerHit rawHit : rawHits) {
+            occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement())[rawHit.getIdentifierFieldValue("strip")]++;
+        }
+
+        // Plot strip occupancies.
+        if (eventCount % eventRefreshRate == 0) {
+            for (HpsSiSensor sensor : sensors) {
+                int[] strips = occupancyMap.get(sensor);
+                occupancyPlots.get(sensor).reset();
+                for (int channel = 0; channel < strips.length; channel++) {
+                    double stripOccupancy = (double) strips[channel] / (double) eventCount;
+                    occupancyPlots.get(sensor).fill(channel, stripOccupancy);
+                    occupancyMap.get(sensor)[channel] = 0;
+                }
+            }
+            eventCount = 0;
+        }
     }
 
     private int computePlotterRegion(HpsSiSensor sensor) {
@@ -84,67 +137,48 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         return -1;
     }
-
-    protected void detectorChanged(Detector detector) {
-
-        sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
-
-        if (sensors.size() == 0) {
-            throw new RuntimeException("No sensors were found in this detector.");
-        }
-
-        plotters.put("Occupancy", plotterFactory.create("Occupancy"));
-        plotters.get("Occupancy").createRegions(6, 6);
-
-        for (HpsSiSensor sensor : sensors) {
-            occupancyPlots.put(sensor, histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
-            plotters.get("Occupancy").region(this.computePlotterRegion(sensor)).plot(occupancyPlots.get(sensor), createPlotterStyle());
-            occupancyMap.put(sensor, new int[640]);
-        }
-
-        for (IPlotter plotter : plotters.values()) {
-            plotter.show();
-        }
-    }
-
-    public void process(EventHeader event) {
-
-        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
-            return;
-
-        eventCount++;
-
-        // Get RawTrackerHit collection from event.
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-
-        // Increment strip hit count.
-        for (RawTrackerHit rawHit : rawHits) {
-            int[] strips = occupancyMap.get((HpsSiSensor) rawHit.getDetectorElement());
-            strips[rawHit.getIdentifierFieldValue("strip")] += 1;
-        }
-
-        // Plot strip occupancies.
-        if (eventCount % eventRefreshRate == 0) {
-            for (HpsSiSensor sensor : sensors) {
-                int[] strips = occupancyMap.get(sensor);
-                for (int i = 0; i < strips.length; i++) {
-                    double stripOccupancy = (double) strips[i] / (double) eventCount;
-                    if (stripOccupancy != 0) {
-                        occupancyPlots.get(sensor).fill(i, stripOccupancy);
-                    }
-                }
-            }
-        }
-    }
     
-    static IPlotterStyle createPlotterStyle() {
-        IPlotterStyle style = styleRegistry.getStore("DefaultStyleStore").getStyle("DefaultHistogram1DStyle");
+    IPlotterStyle createOccupancyPlotStyle(HpsSiSensor sensor) {
+        // Create a default style
+        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
+        
+        // Set the style of the X axis
+        style.xAxisStyle().setLabel("Channel");
+        style.xAxisStyle().labelStyle().setFontSize(14);
+        style.xAxisStyle().setVisible(true);
+        
+        // Set the style of the Y axis
+        style.yAxisStyle().setLabel("Occupancy");
+        style.yAxisStyle().labelStyle().setFontSize(14);
+        style.yAxisStyle().setVisible(true);
+        
+        // Turn off the histogram grid 
+        style.gridStyle().setVisible(false);
+        
+        // Set the style of the data
         style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setVisible(true);
+        style.dataStyle().outlineStyle().setThickness(3);
         style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setColor("blue");
-        style.legendBoxStyle().setVisible(false);
+        style.dataStyle().fillStyle().setOpacity(.10);
+        if (sensor.isTopLayer()) { 
+            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        } else { 
+            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+        }
         style.dataStyle().errorBarStyle().setVisible(false);
+        
+        // Turn off the legend
+        style.legendBoxStyle().setVisible(false);
+       
+        // Turn off the title
+        style.titleStyle().setVisible(false);
+      
+        style.regionBoxStyle().backgroundStyle().setOpacity(.10);
+        if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("229, 114, 31, 1");
+        
         return style;
     }
 }

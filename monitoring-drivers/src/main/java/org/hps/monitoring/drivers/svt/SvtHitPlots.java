@@ -5,6 +5,8 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.IPlotterStyle;
+import hep.aida.ref.plotter.PlotterStyle;
 
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +102,7 @@ public class SvtHitPlots extends Driver {
 		   hitsPerSensorPlots.put(sensor, 
 		           histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 10, 0, 10)); 
 		   plotters.get("Raw hits per sensor").region(this.computePlotterRegion(sensor))
-		                                      .plot(hitsPerSensorPlots.get(sensor));
+		                                      .plot(hitsPerSensorPlots.get(sensor), this.createPlotterStyle());
 		   hitsPerSensor.put(sensor, new int[1]);
 		}
 
@@ -190,6 +192,11 @@ public class SvtHitPlots extends Driver {
         layersHitPlots.get("Bottom").fill(totalBotLayersHit);
         
     }
+    
+    private IPlotterStyle createPlotterStyle() {
+       IPlotterStyle style = plotterFactory.createPlotterStyle();
+       return style;
+    }
    
     @Override
     protected void endOfData() {
@@ -201,5 +208,8 @@ public class SvtHitPlots extends Driver {
         System.out.println("% Total Top SVT Hits/Event: " + totalTopHitCount/eventCount);
         System.out.println("% Total Bottom SVT Hits/Event: " + totalBotHitCount/eventCount);
         System.out.println("\n%================================================%");
-    }    
+    }
+    
+    
+    
 }
