@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * This class provides a list of key, value pairs backed by a <code>Properties</code> object. The
@@ -193,6 +194,25 @@ public final class Configuration {
      * Convert this object to a string by printing out its properties list.
      */
     public String toString() {
-        return properties.toString();
+        return properties.toString();        
+    }
+    
+    /**
+     * Get the property keys.
+     * @return The collection of property keys.
+     */
+    public Set<String> getKeys() {
+        return properties.stringPropertyNames();
+    }
+    
+    /**
+     * Merge in values from another configuration into this one which will override
+     * properties that already exist with new values.
+     * @param configuration The configuration with the properties to merge.
+     */
+    void merge(Configuration configuration) {
+        for (String property : configuration.getKeys()) {
+            this.set(property, configuration.get(property));
+        }
     }
 }

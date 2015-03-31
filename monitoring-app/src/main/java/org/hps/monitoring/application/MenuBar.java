@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -20,15 +21,33 @@ import org.hps.record.enums.DataSourceType;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+@SuppressWarnings("serial")
 class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {
+    
+    ConfigurationModel configurationModel;
     
     JMenuItem closeFileItem;
     JMenuItem openFileItem;    
     JMenu settingsMenu;
     JMenuItem logItem;
     JMenuItem serverItem;
-    ConfigurationModel configurationModel;    
+    JMenu recentFilesMenu;    
     
+    class RecentFileItem extends JMenuItem {
+        
+        String path;        
+        
+        RecentFileItem(String path, int mnemonic) {
+            setText((mnemonic - KeyEvent.VK_0) + " " + path);
+            setMnemonic(mnemonic);
+            this.path = path;
+        }
+        
+        String getPath() {
+            return path;
+        }        
+    }
+                   
     MenuBar(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
          
         this.configurationModel = configurationModel;        
@@ -54,7 +73,17 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         closeFileItem.addActionListener(listener);
         closeFileItem.setToolTipText("Close the current file data source");
         fileMenu.add(closeFileItem);
-              
+                                      
+        recentFilesMenu = new JMenu("RecentFiles");
+        recentFilesMenu.setMnemonic(KeyEvent.VK_R);
+        recentFilesMenu.setToolTipText("List of recent data files");
+        JMenuItem noRecentFilesItem = new JMenuItem("No recent files");
+        noRecentFilesItem.setEnabled(false);
+        recentFilesMenu.add(noRecentFilesItem);
+        fileMenu.add(recentFilesMenu);
+        
+        fileMenu.addSeparator();
+        
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.setActionCommand(Commands.EXIT);
@@ -127,7 +156,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         toolsMenu.add(screenshotItem);
         
         logItem = new JMenuItem("Log to File ...");
-        logItem.setMnemonic(KeyEvent.VK_R);
+        logItem.setMnemonic(KeyEvent.VK_L);
         logItem.setActionCommand(Commands.LOG_TO_FILE);
         logItem.addActionListener(listener);
         logItem.setEnabled(true);
@@ -168,7 +197,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         defaultsItem.addActionListener(listener);
         defaultsItem.setEnabled(true);
         defaultsItem.setToolTipText("Restore the window defaults");
-        windowMenu.add(defaultsItem);
+        windowMenu.add(defaultsItem);               
     }
 
     @Override
@@ -193,7 +222,10 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
                     logItem.setActionCommand(Commands.LOG_TO_FILE);
                     logItem.setToolTipText("Log messages to a file");
                 }
-            }
+            } else if (evt.getPropertyName().equals(ConfigurationModel.RECENT_FILES_PROPERTY)) {
+                setRecentFiles(configurationModel.getRecentFilesList());
+            } 
+            
         } finally {
             configurationModel.addPropertyChangeListener(this);
         }
@@ -207,8 +239,26 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
             } else {
                 closeFileItem.setEnabled(false);
             }
-        }        
+        } 
     }    
+    
+    void setRecentFiles(List<String> recentFiles) {
+        recentFilesMenu.removeAll();
+        int fileMnemonic = 48; /* starts at KeyEvent.VK_0 */
+        for (String recentFile : recentFiles) {
+            RecentFileItem recentFileItem = new RecentFileItem(recentFile, fileMnemonic);
+            recentFileItem.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {            
+                    String recentFile = ((RecentFileItem) e.getSource()).getPath();
+                    DataSourceType dst = DataSourceType.getDataSourceType(recentFile);
+                    configurationModel.setDataSourcePath(recentFile); 
+                    configurationModel.setDataSourceType(dst);
+                }
+            });                
+            recentFilesMenu.add(recentFileItem);
+            ++fileMnemonic;
+        }        
+    }
     
     void startAIDAServer() {
         serverItem.setActionCommand(Commands.STOP_AIDA_SERVER);

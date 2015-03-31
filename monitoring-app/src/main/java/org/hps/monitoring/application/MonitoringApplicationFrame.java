@@ -2,40 +2,36 @@ package org.hps.monitoring.application;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingConstants;
 
 /**
  * This class instantiates the primary GUI components of the monitoring application.
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+@SuppressWarnings("serial")
 class MonitoringApplicationFrame extends JFrame {
             
     EventDashboard dashboardPanel;    
     PlotPanel plotPanel;
     PlotInfoPanel plotInfoPanel;
     LogPanel logPanel;
-    JPanel buttonsPanel;
     TriggerDiagnosticsPanel triggerPanel;
     ConditionsPanel conditionsPanel;
     SystemStatusPanel systemStatusPanel;
+    ToolbarPanel toolbarPanel;
     MenuBar menu; 
     
     JSplitPane mainSplitPane;
     JSplitPane rightSplitPane;
     JSplitPane leftSplitPane;
-    
-    DataSourceComboBox dataSourceComboBox;
-    
+        
     SettingsDialog settingsDialog;
        
     static final Rectangle BOUNDS = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
@@ -60,31 +56,9 @@ class MonitoringApplicationFrame extends JFrame {
         contentPanel.setPreferredSize(new Dimension(PIXEL_WIDTH_MAX, PIXEL_HEIGHT_MAX));
                 
         // Create the top panel.
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 0));
-        contentPanel.add(topPanel, BorderLayout.NORTH);
-                
-        // Create the connection status panel.
-        JPanel connectionPanel = new ConnectionStatusPanel(application.connectionModel);
-        topPanel.add(connectionPanel);
-        
-        // Add vertical separator.
-        JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
-        sep.setPreferredSize(new Dimension(5, topPanel.getPreferredSize().height));
-        topPanel.add(sep);
-        
-        // Create the buttons panel.
-        buttonsPanel = new EventButtonsPanel(application.connectionModel, application);
-        topPanel.add(buttonsPanel);
-        
-        // Add vertical separator.
-        sep = new JSeparator(SwingConstants.VERTICAL);
-        topPanel.add(sep);
-        
-        // Add the data source combo box.
-        dataSourceComboBox = new DataSourceComboBox(application.configurationModel, application.connectionModel);
-        topPanel.add(dataSourceComboBox);
-        
+        toolbarPanel = new ToolbarPanel(application.configurationModel, application.connectionModel, application);        
+        contentPanel.add(toolbarPanel, BorderLayout.NORTH);
+                        
         // Create the bottom panel.
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
@@ -146,7 +120,7 @@ class MonitoringApplicationFrame extends JFrame {
         // Create the menu bar.
         menu = new MenuBar(application.configurationModel, application.connectionModel, application);
         setJMenuBar(menu);
-        dataSourceComboBox.addActionListener(menu);
+        toolbarPanel.dataSourceComboBox.addActionListener(menu);
         
         // Setup the settings dialog box (invisible until activated).
         settingsDialog = new SettingsDialog(application.configurationModel, application);        

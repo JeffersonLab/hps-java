@@ -15,6 +15,7 @@ final class Commands {
     // File open and close
     static final String OPEN_FILE = "openFile";
     static final String CLOSE_FILE = "closeFile"; 
+    static final String RECENT_FILE_SELECTED = "recentFileSelected";
     
     // Window
     static final String MAXIMIZE_WINDOW = "maximizeWindow";

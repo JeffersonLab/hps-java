@@ -46,9 +46,9 @@ import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EvioFileFilter;
 import org.hps.monitoring.application.util.TableExporter;
+import org.hps.monitoring.plotting.ExportPdf;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
-import org.hps.monitoring.plotting.ExportPdf;
 import org.hps.monitoring.subsys.SystemStatus;
 import org.hps.monitoring.subsys.SystemStatusRegistry;
 import org.hps.record.composite.CompositeRecordProcessor;
@@ -56,7 +56,6 @@ import org.hps.record.enums.DataSourceType;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.aida.PDFWriter;
 import org.lcsim.util.log.DefaultLogFormatter;
 
 /**
@@ -91,10 +90,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     final RunModel runModel = new RunModel();
     final ConfigurationModel configurationModel = new ConfigurationModel();
     final ConnectionStatusModel connectionModel = new ConnectionStatusModel();
-    
-    // The global configuration settings.
-    Configuration configuration;
-    
+        
     // The default configuration resource embedded in the jar.
     static final String DEFAULT_CONFIGURATION = "/org/hps/monitoring/config/default_config.prop";
 
@@ -206,16 +202,14 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                
             // Setup AIDA plotting and connect it to the GUI.
             setupAida();
-        
-            // TODO: Make sure the configuration loading here is working properly!!!
             
-            // Always load the default configuration first.
-            loadConfiguration(new Configuration(DEFAULT_CONFIGURATION));
-            
-            // Overlay the user configuration if one was specified.
+            // Load the default configuration.
+            loadConfiguration(new Configuration(DEFAULT_CONFIGURATION), false);
+                    
             if (userConfiguration != null) {
-                loadConfiguration(userConfiguration);
-            }
+                // Load user configuration.
+                loadConfiguration(userConfiguration, true);
+            } 
         
             // Enable the GUI now that initialization is complete.
             frame.setEnabled(true);
@@ -332,7 +326,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Setup AIDA plotting into the GUI components.
      */
     void setupAida() {
-        // Register the factory for display plots in tabs.
+        // Register the factory for displaying plots in tabs.
         MonitoringAnalysisFactory.register();
         
         // Set the root tab pane for displaying plots.
@@ -355,20 +349,25 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * This method sets the configuration on the model, which fires a change for every property.
      * @param configuration The new configuration.
+     * @param merge True to merge the configuration into the current one rather than replace it.
      */
-    void loadConfiguration(Configuration configuration) {
+    void loadConfiguration(Configuration configuration, boolean merge) {
+                               
+        if (merge) {
+            // This will merge in additional properties so that default or current settings are preserved.
+            configurationModel.merge(configuration);
+        } else {
+            // HACK: Clear data source combo box for clean configuration.
+            frame.toolbarPanel.dataSourceComboBox.removeAllItems();
+            
+            // This will reset all configuration properties.
+            configurationModel.setConfiguration(configuration);
+        }
         
-        this.configuration = configuration;
-        
-        // HACK: Clear data source combo box for new config.
-        frame.dataSourceComboBox.removeAllItems();
-        
-        // Set the Configuration on the ConfigurationModel which will trigger all the PropertyChangelListeners.
-        configurationModel.setConfiguration(this.configuration);
-        if (this.configuration.getFile() != null)
-            logger.config("loaded config from file " + this.configuration.getFile().getPath());
+        if (configuration.getFile() != null)
+            logger.config("loaded config from file " + configuration.getFile().getPath());
         else
-            logger.config("loaded config from resource " + this.configuration.getResourcePath());
+            logger.config("loaded config from resource " + configuration.getResourcePath());
     }
               
     /**
@@ -539,8 +538,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Load default application settings.
      */
     void loadDefaultSettings() {
-        configuration = new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION);
-        configurationModel.setConfiguration(configuration);
+        loadConfiguration(new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION), false);
         DialogUtil.showInfoDialog(frame, "Default Configuration Loaded", "The default configuration was loaded.");
         logger.config("default settings loaded");
     }
@@ -582,6 +580,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             configurationModel.setDataSourcePath(filePath);
             configurationModel.setDataSourceType(type);
             
+            configurationModel.addRecentFile(filePath);
+            
             logger.config("set new data source " + filePath + " with type " + type);
         }
     }    
@@ -596,7 +596,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         int r = fc.showSaveDialog(frame);
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            configuration.writeToFile(f);
+            configurationModel.getConfiguration().writeToFile(f);
             logger.info("saved configuration to file: " + f.getPath());
             DialogUtil.showInfoDialog(frame, "Settings Saved", "Settings were saved successfully.");
         }
@@ -612,7 +612,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         int r = fc.showDialog(frame, "Load ...");
         if (r == JFileChooser.APPROVE_OPTION) {
             File f = fc.getSelectedFile();
-            loadConfiguration(new Configuration(f));
+            loadConfiguration(new Configuration(f), true);
             logger.info("loaded configuration from file: " + f.getPath());
             DialogUtil.showInfoDialog(frame, "Settings Loaded", "Settings were loaded successfully.");
         }
@@ -645,9 +645,9 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     void closeFile() {
         if (!configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
-            DataSourceItem item = (DataSourceItem) frame.dataSourceComboBox.getSelectedItem();
-            if (item.name.equals(configurationModel.getDataSourcePath())) {
-                frame.dataSourceComboBox.removeItem(frame.dataSourceComboBox.getSelectedItem());    
+            DataSourceItem item = (DataSourceItem) frame.toolbarPanel.dataSourceComboBox.getSelectedItem();
+            if (item.getPath().equals(configurationModel.getDataSourcePath())) {
+                frame.toolbarPanel.dataSourceComboBox.removeItem(frame.toolbarPanel.dataSourceComboBox.getSelectedItem());    
             }            
         }
     }

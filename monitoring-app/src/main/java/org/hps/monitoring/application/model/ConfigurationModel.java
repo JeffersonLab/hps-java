@@ -1,5 +1,7 @@
 package org.hps.monitoring.application.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.hps.record.enums.DataSourceType;
@@ -28,6 +30,7 @@ public final class ConfigurationModel extends AbstractModel {
     public static final String LOG_LEVEL_FILTER_PROPERTY = "LogLevelFilter";
     public static final String LOG_TO_FILE_PROPERTY = "LogToFile";
     public static final String MAX_EVENTS_PROPERTY = "MaxEvents";
+    public static final String RECENT_FILES_PROPERTY = "RecentFiles";
     public static final String STEERING_TYPE_PROPERTY = "SteeringType";
     public static final String STEERING_FILE_PROPERTY = "SteeringFile";
     public static final String STEERING_RESOURCE_PROPERTY = "SteeringResource";
@@ -79,7 +82,7 @@ public final class ConfigurationModel extends AbstractModel {
         return Level.parse(configuration.get(LOG_LEVEL_PROPERTY));
     }
 
-    public void setLogLevel(Level level) {
+    public void setLogLevel(Level level) { 
         Level oldValue = getLogLevel();
         configuration.set(LOG_LEVEL_PROPERTY, level.getName());
         firePropertyChange(LOG_LEVEL_PROPERTY, oldValue, getLogLevel());
@@ -199,7 +202,11 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     public DataSourceType getDataSourceType() {
-        return DataSourceType.valueOf(configuration.get(DATA_SOURCE_TYPE_PROPERTY));
+        if (configuration.checkKey(DATA_SOURCE_TYPE_PROPERTY)) {
+            return DataSourceType.valueOf(configuration.get(DATA_SOURCE_TYPE_PROPERTY));
+        } else {
+            return null;
+        }
     }
 
     public void setDataSourceType(DataSourceType dataSourceType) {
@@ -217,6 +224,14 @@ public final class ConfigurationModel extends AbstractModel {
         configuration.set(DATA_SOURCE_PATH_PROPERTY, dataSourcePath);
         firePropertyChange(DATA_SOURCE_PATH_PROPERTY, oldValue, getDataSourcePath());
     }
+     
+    /*
+    public void setDataSource(String dataSource) {
+        setDataSourcePath(dataSource);
+        DataSourceType dst = DataSourceType.getDataSourceType(dataSource);
+        setDataSourceType(dst);
+    }
+    */
 
     public ProcessingStage getProcessingStage() {
         if (configuration.get(PROCESSING_STAGE_PROPERTY) == null)
@@ -409,6 +424,52 @@ public final class ConfigurationModel extends AbstractModel {
     public String getAIDAServerName() {
         return configuration.get(AIDA_SERVER_NAME_PROPERTY);
     }
+    
+    public String getRecentFiles() {
+        if (configuration.hasKey(RECENT_FILES_PROPERTY)) {
+            return configuration.get(RECENT_FILES_PROPERTY);
+        } else {
+            return null;
+        }         
+    }
+    
+    public List<String> getRecentFilesList() {
+        List<String> recentFilesList = new ArrayList<String>();
+        if (configuration.hasKey(RECENT_FILES_PROPERTY)) {
+            for (String recentFile : configuration.get(RECENT_FILES_PROPERTY).split("\n")) {
+                recentFilesList.add(recentFile);
+            }
+        }
+        return recentFilesList;
+    }
+    
+    public void addRecentFile(String recentFile) {
+        if (!configuration.checkKey(RECENT_FILES_PROPERTY)) {
+            configuration.set(RECENT_FILES_PROPERTY, recentFile);
+            firePropertyChange(RECENT_FILES_PROPERTY, null, recentFile);
+        } else {
+            List<String> recentFilesList = getRecentFilesList();
+            if (!recentFilesList.contains(recentFile)) {            
+                if (getRecentFilesList().size() >= 10) {
+                    throw new IllegalArgumentException("Maximum number of recent files reached.");
+                }                                   
+                String oldValue = configuration.get(RECENT_FILES_PROPERTY);
+                String recentFiles = oldValue + "\n" + recentFile;
+                configuration.set(RECENT_FILES_PROPERTY, recentFiles);
+                firePropertyChange(RECENT_FILES_PROPERTY, oldValue, recentFile);
+            }
+        }
+        
+    }
+    
+    public void setRecentFiles(String recentFiles) {
+        String oldValue = null;
+        if (configuration.checkKey(RECENT_FILES_PROPERTY)) {
+            oldValue = configuration.get(RECENT_FILES_PROPERTY);
+        }
+        configuration.set(RECENT_FILES_PROPERTY, recentFiles);
+        firePropertyChange(RECENT_FILES_PROPERTY, oldValue, configuration.get(RECENT_FILES_PROPERTY));
+    }
 
     public void remove(String property) {
         if (hasPropertyKey(property)) {
@@ -432,4 +493,13 @@ public final class ConfigurationModel extends AbstractModel {
     public String[] getPropertyNames() {
         return CONFIG_PROPERTIES;
     }    
+    
+    public void fireModelChanged() {
+        firePropertiesChanged(configuration.getKeys());
+    }    
+    
+    public void merge(Configuration configuration) {
+        this.configuration.merge(configuration);
+        this.firePropertiesChanged(configuration.getKeys());
+    }
 }

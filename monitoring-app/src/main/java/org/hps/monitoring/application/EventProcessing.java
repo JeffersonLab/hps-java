@@ -219,6 +219,8 @@ class EventProcessing {
      */
     void setupLoop(ConfigurationModel configurationModel) {
 
+        logger.config("setting up record loop ...");
+        
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
             .setStopOnEndRun(configurationModel.getDisconnectOnEndRun())
             .setStopOnErrors(configurationModel.getDisconnectOnError())
@@ -227,6 +229,9 @@ class EventProcessing {
             .setEtConnection(sessionState.connection)
             .setFilePath(configurationModel.getDataSourcePath())
             .setLCSimEventBuilder(sessionState.eventBuilder);
+        
+        logger.config("data source path is " + configurationModel.getDataSourcePath());
+        logger.config("data source type is " + configurationModel.getDataSourceType());
 
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {
             long maxEvents = configurationModel.getMaxEvents();
@@ -238,39 +243,41 @@ class EventProcessing {
         // Add all Drivers from the JobManager.
         for (Driver driver : sessionState.jobManager.getDriverExecList()) {
             loopConfig.add(driver);
-            logger.config("added Driver " + driver.getName() + " to job");
+            logger.config("added Driver " + driver.getName());
         }
 
         // Using ET server?
         if (configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
 
             // ET system monitor.
-            logger.config("added EtSystemMonitor to job");
+            logger.config("added EtSystemMonitor");
             loopConfig.add(new EtSystemMonitor());
 
             // ET system strip charts.
-            logger.config("added EtSystemStripCharts to job");
+            logger.config("added EtSystemStripCharts");
             loopConfig.add(new EtSystemStripCharts());
         }
 
         // Add extra CompositeRecordProcessors to the loop config.
         for (CompositeRecordProcessor processor : sessionState.processors) {
             loopConfig.add(processor);
-            logger.config("added extra processor " + processor.getClass().getSimpleName() + " to job");
+            logger.config("added extra processor " + processor.getClass().getSimpleName());
         }
 
         // Add extra Drivers to the loop config.
         for (Driver driver : sessionState.drivers) {
             loopConfig.add(driver);
-            logger.config("added extra Driver " + driver.getName() + " to job");
+            logger.config("added extra Driver " + driver.getName());
         }
 
         // Enable conditions system activation from EVIO event data in case the PRESTART is missed.
-        logger.config("added EvioDetectorConditionsProcessor to job with detector " + configurationModel.getDetectorName());
         loopConfig.add(new EvioDetectorConditionsProcessor(configurationModel.getDetectorName()));
+        logger.config("added EvioDetectorConditionsProcessor to job with detector " + configurationModel.getDetectorName());
 
         // Create the CompositeLoop with the configuration.
         sessionState.loop = new CompositeLoop(loopConfig);
+        
+        logger.config("record loop is setup");
     }
 
     /**

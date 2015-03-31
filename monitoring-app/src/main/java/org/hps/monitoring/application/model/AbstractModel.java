@@ -7,6 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javassist.Modifier;
@@ -41,8 +43,8 @@ public abstract class AbstractModel {
 
     abstract public String[] getPropertyNames();
 
-    public void fireModelChanged() {
-        propertyLoop: for (String property : getPropertyNames()) {
+    void firePropertiesChanged(Collection<String> properties) {
+        propertyLoop: for (String property : properties) {
             Method getMethod = null;
             for (Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
@@ -50,6 +52,7 @@ public abstract class AbstractModel {
                     break;
                 }
             }
+            //System.out.println(getMethod.getName());
             try {
                 Object value = null;
                 try {
@@ -65,6 +68,7 @@ public abstract class AbstractModel {
                         System.err.println("The key " + property + " is not set in the configuration.");
                         continue propertyLoop;
                     } else {
+                        e.printStackTrace();
                         throw new RuntimeException(e);
                     }
                 }
@@ -76,9 +80,14 @@ public abstract class AbstractModel {
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
+    }
+    
+    public void fireModelChanged() {
+        firePropertiesChanged(Arrays.asList(getPropertyNames()));
     }
 
     /**

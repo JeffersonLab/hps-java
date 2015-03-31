@@ -175,7 +175,7 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
 
     /**
      * Get the title of an AIDA object.  Unfortunately there is no base type with this information,
-     * so it is gotten manually from each possible type.
+     * so it is read manually from each possible type.
      * @param object The AIDA object.
      * @return The title of the object from its title method or value of its toString method, if
      *         none exists.
