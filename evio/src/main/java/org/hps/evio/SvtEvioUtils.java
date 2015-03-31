@@ -30,7 +30,9 @@ public class SvtEvioUtils {
     private static final int FEB_MASK = 0xFF;
     private static final int FEB_HYBRID_MASK = 0x3;
     private static final int ENG_RUN_APV_MASK = 0x7;
-    private static final int ENG_RUN_CHANNEL_MASK = 0x7F; 
+    private static final int ENG_RUN_CHANNEL_MASK = 0x7F;
+    private static final int ENG_RUN_APV_HEADER_MASK = 0x1;
+    private static final int ENG_RUN_APV_TAIL_MASK = 0x1;
     
     /**
      * 	Extract and return the FPGA ID associated with the samples.
@@ -73,7 +75,7 @@ public class SvtEvioUtils {
 	 * 	@return A FEB ID in the range 0-10
      */
     public static int getFebID(int[] data) { 
-    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >> 8) & FEB_MASK; 
+    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 8) & FEB_MASK; 
     }
     
     /**
@@ -84,7 +86,7 @@ public class SvtEvioUtils {
 	 * 	@return A FEB hybrid ID in the range 0-3
      */
     public static int getFebHybridID(int[] data) { 
-    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >> 26) & FEB_HYBRID_MASK; 
+    	return (data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 26) & FEB_HYBRID_MASK; 
     }
 
     /**
@@ -132,6 +134,29 @@ public class SvtEvioUtils {
         return physicalChannel;
     }
     
+    /**
+     *  Check if the samples are APV headers
+     *  
+     * 
+     *  @param data : sample block of data
+     *  @return true if the samples belong to APV headers, false otherwise
+     */
+    public static boolean isApvHeader(int[] data) {
+        if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 30) & ENG_RUN_APV_HEADER_MASK) == 1) return true;
+        return false;
+    }
+    
+    /**
+     *  Check if the samples are APV tails
+     *  
+     * 
+     *  @param data : sample block of data
+     *  @return true if the samples belong to APV tails, false otherwise
+     */
+    public static boolean isApvTail(int[] data) {
+        if (((data[ENG_RUN_SAMPLE_HEADER_INDEX] >>> 29) & ENG_RUN_APV_TAIL_MASK) == 1) return true;
+        return false;
+    }
     
     /**
      * 	Extract and return the nth SVT sample.
@@ -146,17 +171,17 @@ public class SvtEvioUtils {
 
         switch (sampleN) {
             case 0:
-                return data[1] & SAMPLE_MASK;
+                return data[0] & SAMPLE_MASK;
             case 1:
-                return (data[1] >>> 16) & SAMPLE_MASK;
+                return (data[0] >>> 16) & SAMPLE_MASK;
             case 2:
-                return data[2] & SAMPLE_MASK;
+                return data[1] & SAMPLE_MASK;
             case 3:
-                return (data[2] >>> 16) & SAMPLE_MASK;
+                return (data[1] >>> 16) & SAMPLE_MASK;
             case 4:
-                return data[3] & SAMPLE_MASK;
+                return data[2] & SAMPLE_MASK;
             case 5:
-                return (data[3] >>> 16) & SAMPLE_MASK;
+                return (data[2] >>> 16) & SAMPLE_MASK;
             default:
                 throw new RuntimeException("Invalid sample number! Valid range of values for n are from 0 - 5");
         }
