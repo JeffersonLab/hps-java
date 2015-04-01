@@ -6,6 +6,7 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.hps.recon.tracking.axial.HelicalTrack2DHit;
@@ -49,6 +50,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private boolean _debug = false;
     private double _clusterTimeCut = -99; // if negative, don't cut..otherwise,
     // dt cut time in ns
+    private double maxDt = -99; // max time difference between the two hits in a cross
     private String _subdetectorName = "Tracker";
     private final Map<String, String> _stereomap = new HashMap<String, String>();
     private List<SvtStereoLayer> stereoLayers = null;
@@ -87,6 +89,10 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
      */
     public void setClusterTimeCut(double dtCut) {
         this._clusterTimeCut = dtCut;
+    }
+
+    public void setMaxDt(double maxDt) {
+        this.maxDt = maxDt;
     }
 
     /**
@@ -332,7 +338,12 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 } // Loop over stereo pairs
             }
 
-            for (HelicalTrackCross cross : helicalTrackCrosses) {
+            for (Iterator<HelicalTrackCross> iter = helicalTrackCrosses.listIterator(); iter.hasNext();) {
+                HelicalTrackCross cross = iter.next();
+                if (maxDt > 0 && Math.abs(cross.getStrips().get(0).time() - cross.getStrips().get(1).time()) > maxDt) {
+                    iter.remove();
+                    continue;
+                }
                 if (cross.getMCParticles() != null)
                     for (MCParticle mcp : cross.getMCParticles())
                         mcrelations.add(new MyLCRelation((HelicalTrackHit) cross, mcp));

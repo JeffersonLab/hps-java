@@ -16,7 +16,8 @@ import org.lcsim.recon.tracking.seedtracker.TrackCheck;
 public class HitTimeTrackCheck implements TrackCheck {
 
     private final double rmsTimeCut;
-    private final int minTrackHits = 10;
+//    private final int minTrackHits = 10;
+    private final int minTrackHits = 6;
     private int seedsChecked = 0;
     private int seedsPassed = 0;
     private int tracksChecked = 0;
@@ -29,18 +30,29 @@ public class HitTimeTrackCheck implements TrackCheck {
     @Override
     public boolean checkSeed(SeedCandidate candidate) {
 //        System.out.format("seed with %d hits\n", candidate.getHits().size());
-        seedsChecked++;
         int nStrips = 0;
-        double rmsTime = 0;
+        double meanTime = 0;
         for (HelicalTrackHit hth : candidate.getHits()) {
             for (HelicalTrackStrip hts : ((HelicalTrackCross) hth).getStrips()) {
                 nStrips++;
-                rmsTime += hts.time() * hts.time();
+                meanTime += hts.time();
             }
         }
+        meanTime /= nStrips;
+        double rmsTime = 0;
+        for (HelicalTrackHit hth : candidate.getHits()) {
+            for (HelicalTrackStrip hts : ((HelicalTrackCross) hth).getStrips()) {
+                rmsTime += Math.pow(hts.time() - meanTime, 2);
+//                rmsTime += hts.time() * hts.time();
+//                rmsTime += Math.abs(hts.time());
+            }
+        }
+//        if (nStrips<6) return true;
+        seedsChecked++;
 //        rmsTime = Math.sqrt(rmsTime / nStrips);
 //        System.out.format("seed RMS %f on %d hits\n",rmsTime,nStrips);
         boolean passCheck = (rmsTime < minTrackHits * rmsTimeCut * rmsTimeCut);
+//        boolean passCheck = (rmsTime < minTrackHits * rmsTimeCut);
         if (passCheck) {
             seedsPassed++;
         }
@@ -56,15 +68,25 @@ public class HitTimeTrackCheck implements TrackCheck {
 //        System.out.format("track with %d hits\n", track.getTrackerHits().size());
         tracksChecked++;
         int nStrips = 0;
-        double rmsTime = 0;
+        double meanTime = 0;
         for (TrackerHit hit : track.getTrackerHits()) {
             for (HelicalTrackStrip hts : ((HelicalTrackCross) hit).getStrips()) {
                 nStrips++;
-                rmsTime += hts.time() * hts.time();
+                meanTime += hts.time();
+            }
+        }
+        meanTime /= nStrips;
+        double rmsTime = 0;
+        for (TrackerHit hit : track.getTrackerHits()) {
+            for (HelicalTrackStrip hts : ((HelicalTrackCross) hit).getStrips()) {
+                rmsTime += Math.pow(hts.time() - meanTime, 2);
+//                rmsTime += hts.time() * hts.time();
+//                rmsTime += Math.abs(hts.time());
             }
         }
         rmsTime = Math.sqrt(rmsTime / nStrips);
-        System.out.format("track RMS %f on %d hits\n", rmsTime, nStrips);
+//        rmsTime = rmsTime / nStrips;
+//        System.out.format("track RMS %f on %d hits\n", rmsTime, nStrips);
         boolean passCheck = (rmsTime < rmsTimeCut);
         if (passCheck) {
             tracksPassed++;
