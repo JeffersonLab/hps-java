@@ -76,7 +76,7 @@ class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, Func
         Dimension filler = new Dimension(0, 10);
         
         // Save button.
-        saveButton = new JButton("Save Plots ...");
+        saveButton = new JButton("Save Current Plot Tab ...");
         saveButton.setActionCommand(Commands.SAVE_SELECTED_PLOTS);
         saveButton.setAlignmentX(CENTER_ALIGNMENT);
         leftPanel.add(saveButton);

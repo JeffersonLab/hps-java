@@ -42,11 +42,19 @@ public final class RunModel extends AbstractModel {
         this.runNumber = runNumber;
         this.firePropertyChange(RUN_NUMBER_PROPERTY, oldValue, this.runNumber);
     }
+    
+    public int getRunNumber() {
+        return this.runNumber;
+    }
 
     public void setStartDate(Date startDate) {
         Date oldValue = this.startDate;
         this.startDate = startDate;
         this.firePropertyChange(START_DATE_PROPERTY, oldValue, this.startDate);
+    }
+    
+    public Date getStartDate() {
+        return startDate;
     }
 
     public void setEndDate(Date endDate) {
@@ -54,11 +62,19 @@ public final class RunModel extends AbstractModel {
         this.endDate = endDate;
         this.firePropertyChange(END_DATE_PROPERTY, oldValue, this.endDate);
     }
+    
+    public Date getEndDate() {
+        return endDate;
+    }
 
     public void setRunLength(int runLength) {
         Integer oldValue = this.runLength;
         this.runLength = runLength;
         this.firePropertyChange(RUN_LENGTH_PROPERTY, oldValue, this.runLength);
+    }
+    
+    public int getRunLength() {
+        return runLength;
     }
 
     public void computeRunLength() {
@@ -74,11 +90,19 @@ public final class RunModel extends AbstractModel {
         this.totalEvents = totalEvents;
         this.firePropertyChange(TOTAL_EVENTS_PROPERTY, oldValue, this.totalEvents);
     }
+    
+    public int getTotalEvents() {
+        return totalEvents;
+    }
 
     public void setEventsReceived(int eventsReceived) {
         Integer oldValue = this.eventsReceived;
         this.eventsReceived = eventsReceived;
         this.firePropertyChange(EVENTS_RECEIVED_PROPERTY, oldValue, this.eventsReceived);
+    }
+    
+    public int getEventsReceived() {
+        return eventsReceived;
     }
 
     public void setElapsedTime(int elapsedTime) {
@@ -86,11 +110,19 @@ public final class RunModel extends AbstractModel {
         this.elapsedTime = elapsedTime;
         this.firePropertyChange(ELAPSED_TIME_PROPERTY, oldValue, this.elapsedTime);
     }
+    
+    public int getElapsedTime() {
+        return elapsedTime;
+    }
 
     public void setDataReceived(double dataReceived) {
         Double oldValue = this.dataReceived;
         this.dataReceived = dataReceived;
         this.firePropertyChange(DATA_RECEIVED_PROPERTY, oldValue, this.dataReceived);
+    }
+    
+    public double getDataReceived() {
+        return dataReceived;
     }
 
     public void addDataReceived(double addDataReceived) {
@@ -103,16 +135,28 @@ public final class RunModel extends AbstractModel {
         this.firePropertyChange(EVENT_NUMBER_PROPERTY, oldValue, this.eventNumber);
     }
     
+    public int getEventNumber() {
+        return eventNumber;
+    }
+    
     public void setDataRate(double dataRate) {
         Double oldValue = this.dataRate;
         this.dataRate = dataRate;
         this.firePropertyChange(DATA_RATE_PROPERTY, oldValue, this.dataRate);
+    }
+    
+    public double getDataRate() {
+        return dataRate;
     }
         
     public void setEventRate(double eventRate) {
         Double oldValue = this.eventRate;
         this.eventRate = eventRate;
         this.firePropertyChange(EVENT_RATE_PROPERTY, oldValue, this.eventRate);
+    }
+    
+    public double getEventRate() {
+        return eventRate;
     }
     
     public void reset() {
@@ -124,5 +168,5 @@ public final class RunModel extends AbstractModel {
         setRunNumber(0);
         setStartDate(null);
         setTotalEvents(0);
-    }
+    }    
 }
