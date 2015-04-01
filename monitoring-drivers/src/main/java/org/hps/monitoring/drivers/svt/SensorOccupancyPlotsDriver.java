@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import hep.aida.jfree.plotter.Plotter;
+import hep.aida.jfree.plotter.PlotterRegion;
+
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -27,11 +30,10 @@ import org.lcsim.util.Driver;
 public class SensorOccupancyPlotsDriver extends Driver {
 
     // TODO: Add documentation
-    // TODO: Set plot styles
     static {
         hep.aida.jfree.AnalysisFactory.register();
     } 
-    
+   
     static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
     IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
 
@@ -76,6 +78,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
 
         for (IPlotter plotter : plotters.values()) {
+            for (int regionN = 0; regionN < 36; regionN++) { 
+                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
+                region.getPanel().addMouseListener(new PopupPlotterListener(region));
+            }
             plotter.show();
         }
     }

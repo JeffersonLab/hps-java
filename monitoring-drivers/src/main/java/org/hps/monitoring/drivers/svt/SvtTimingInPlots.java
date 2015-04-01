@@ -12,6 +12,8 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 
+import hep.aida.jfree.plotter.Plotter;
+
 import org.lcsim.util.Driver; 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -170,6 +172,7 @@ public class SvtTimingInPlots extends Driver {
         }
         
         for (IPlotter plotter : plotters.values()) { 
+            //((Plotter) plotter).panel().;
             plotter.show();
         }
     }
@@ -215,5 +218,10 @@ public class SvtTimingInPlots extends Driver {
             chi2vAmpPlots.get(sensor).fill(chi2Prob, amplitude);
             
         }   
+    }
+    
+    @Override
+    public void endOfData() { 
+        
     }
 }
