@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -505,7 +506,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 try {
                     if (extension.equals("pdf")) {
                         // Write to a single PDF file.
-                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName);
+                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName, getRunData());
                     } else {
                         // Save plot object data to AIDA or ROOT file.
                         AIDA.defaultInstance().saveAs(fileName);
@@ -519,6 +520,23 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 DialogUtil.showErrorDialog(frame, "File Exists", "Selected file already exists.");
             }
         }
+    }
+    
+    /**
+     * Get a list of run data for writing to a PDF.
+     * @return The list of run data from the model.
+     */
+    List<String> getRunData() {
+         List<String> data = new ArrayList<String>();
+         data.add("Created: " + new Date());
+         data.add("Run Number: " + runModel.getRunNumber());
+         data.add("Started: " + runModel.getStartDate());
+         data.add("Ended: " + runModel.getEndDate());
+         data.add("Length: " + runModel.getRunLength() + " seconds");
+         data.add("Total Events: " + runModel.getTotalEvents());
+         data.add("Elapsed Time: " + runModel.getElapsedTime());
+         data.add("Events Processed: " + runModel.getEventsReceived());
+         return data;
     }
     
     /**

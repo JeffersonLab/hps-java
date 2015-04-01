@@ -3,9 +3,10 @@ package org.hps.monitoring.plotting;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterRegion;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 /**
@@ -71,7 +72,7 @@ public class PlotterRegistry {
      * Get the current collection of plotters as an unmodifiable collection.
      * @return The current collection of plotters.
      */
-    public Collection<IPlotter> getPlotters() {
-        return Collections.unmodifiableCollection(plotterMap.keySet());
+    public List<IPlotter> getPlotters() {
+        return Collections.unmodifiableList(new ArrayList<IPlotter>(plotterMap.keySet()));
     }
 }
