@@ -74,7 +74,7 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         closeFileItem.setToolTipText("Close the current file data source");
         fileMenu.add(closeFileItem);
                                       
-        recentFilesMenu = new JMenu("RecentFiles");
+        recentFilesMenu = new JMenu("Recent Files");
         recentFilesMenu.setMnemonic(KeyEvent.VK_R);
         recentFilesMenu.setToolTipText("List of recent data files");
         JMenuItem noRecentFilesItem = new JMenuItem("No recent files");
