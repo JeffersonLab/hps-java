@@ -146,7 +146,7 @@ public class EcalDaqPlots extends Driver {
                     else
                         plot_id = (j - 1) * 2 + 3;
                 }
-                System.out.println("Plot in region " + plot_id + " the plot " + plots.get(id).title() + "(index: " + id + ")");
+                //System.out.println("Plot in region " + plot_id + " the plot " + plots.get(id).title() + "(index: " + id + ")");
                 plotter.region(plot_id).plot(plots.get(id));
             }
         }

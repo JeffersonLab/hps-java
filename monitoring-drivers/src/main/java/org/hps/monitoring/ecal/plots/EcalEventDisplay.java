@@ -294,7 +294,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
 
         int row,column;
         String hName;
-        System.out.println("EcalEventDisplay endOfData clear histograms");
+        //System.out.println("EcalEventDisplay endOfData clear histograms");
         for(int ii = 0; ii < NUM_CHANNELS; ii++) {
             // The above instruction is a terrible hack, just to fill
             // the arrayList with all the elements. They'll be initialized
@@ -328,13 +328,7 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
             }
 
         }
-        System.out.println("EcalEventDisplay endOfData clear histograms done");
-
-
-
-
-
-
+        //System.out.println("EcalEventDisplay endOfData clear histograms done");
     }
 
     @Override
