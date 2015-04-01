@@ -61,7 +61,7 @@ import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
 import org.hps.conditions.ecal.EcalCalibration;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannelConstants;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -648,7 +648,7 @@ public class EcalLedSequenceMonitor extends Driver{
      */
     public double getRawADCSum(double energy,long cellID){
         EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
-        double RawSum=energy / ECalUtils.GeV;
+        double RawSum=energy / EcalUtils.GeV;
         double gain=channelData.getGain().getGain();
         double ret=RawSum/gain;
         //  System.out.println("A:C "+RawSum+" "+ret);

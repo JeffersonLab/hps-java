@@ -32,7 +32,7 @@ import org.lcsim.lcio.LCIOConstants;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: ECalHitWriter.java,v 1.6 2013/04/18 20:59:16 meeg Exp $
  */
-public class ECalHitWriter implements HitWriter {
+public class EcalHitWriter implements HitWriter {
 
     private String hitCollectionName = "EcalReadoutHits";
     private int mode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
@@ -45,7 +45,7 @@ public class ECalHitWriter implements HitWriter {
 
     private int verbosity = 1;
 
-    public ECalHitWriter() {
+    public EcalHitWriter() {
     }
 
     /**

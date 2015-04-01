@@ -17,7 +17,7 @@ import org.lcsim.util.Driver;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: ECalCellIDPrintDriver.java,v 1.1 2012/05/01 15:06:38 meeg Exp $
  */
-public class ECalCellIDPrintDriver extends Driver {
+public class EcalCellIDPrintDriver extends Driver {
 
 	Subdetector ecal;
 	IDDecoder dec;
@@ -26,7 +26,7 @@ public class ECalCellIDPrintDriver extends Driver {
 	String outputFileName;
 	PrintWriter outputStream = null;
 
-	public ECalCellIDPrintDriver() {
+	public EcalCellIDPrintDriver() {
 	}
 
 	public void setEcalCollectionName(String ecalCollectionName) {

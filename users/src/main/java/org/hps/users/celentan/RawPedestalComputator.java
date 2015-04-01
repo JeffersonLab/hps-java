@@ -9,7 +9,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -67,7 +67,7 @@ public class RawPedestalComputator extends Driver {
                             isFirstRaw[ii] = false;
                             windowRaw[ii] = hit.getADCValues().length;
                         }
-                        result = ECalUtils.computeAmplitude(hit.getADCValues(), windowRaw[ii], pedSamples);
+                        result = EcalUtils.computeAmplitude(hit.getADCValues(), windowRaw[ii], pedSamples);
                         pedestal[ii] += result[1];
                         noise[ii] += result[2];
                     }

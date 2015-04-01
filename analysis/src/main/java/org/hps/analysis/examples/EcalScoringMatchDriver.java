@@ -18,7 +18,7 @@ import org.lcsim.util.aida.AIDA;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: $
  */
-public class ECalScoringMatchDriver extends Driver {
+public class EcalScoringMatchDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
 //    IHistogram1D hitCorEner = aida.histogram1D("CorEnergy", 1000, 0.0, 10);

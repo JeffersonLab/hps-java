@@ -28,7 +28,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.ECalRunningPedestalDriver">
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>

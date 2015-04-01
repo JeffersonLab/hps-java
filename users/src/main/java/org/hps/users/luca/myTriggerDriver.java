@@ -21,7 +21,7 @@ import java.util.Queue;
 
 import org.hps.readout.ecal.ClockSingleton;
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -42,10 +42,10 @@ public class myTriggerDriver extends TriggerDriver {
     protected double beamEnergy = -1; //by default, get beam energy from detector name
     private int minHitCount = 1;
     private boolean useDefaultCuts = true;
-    private double clusterEnergyHigh = 2.2 * ECalUtils.GeV;
-    private double clusterEnergyLow = .1 * ECalUtils.GeV;
-    private double energySumThreshold = 2.2 * ECalUtils.GeV;
-    private double energyDifferenceThreshold = 2.2 * ECalUtils.GeV;
+    private double clusterEnergyHigh = 2.2 * EcalUtils.GeV;
+    private double clusterEnergyLow = .1 * EcalUtils.GeV;
+    private double energySumThreshold = 2.2 * EcalUtils.GeV;
+    private double energyDifferenceThreshold = 2.2 * EcalUtils.GeV;
     private double maxCoplanarityAngle = 90; // degrees
 //    private double energyDistanceDistance = 250; // mm
 //    private double energyDistanceThreshold = 0.8 / 2.2;
@@ -101,23 +101,23 @@ public class myTriggerDriver extends TriggerDriver {
         if (beamEnergy == 1.1) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 1.1 GeV beam");
             maxCoplanarityAngle = 90;
-            clusterEnergyHigh = .7 * ECalUtils.GeV;
-            clusterEnergyLow = .1 * ECalUtils.GeV;
-            energySumThreshold = 0.8 * ECalUtils.GeV;
+            clusterEnergyHigh = .7 * EcalUtils.GeV;
+            clusterEnergyLow = .1 * EcalUtils.GeV;
+            energySumThreshold = 0.8 * EcalUtils.GeV;
             energyDifferenceThreshold = beamEnergy;
         } else if (beamEnergy == 2.2) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 2.2 GeV beam");
             maxCoplanarityAngle = 35;
-            clusterEnergyHigh = 1.5 * ECalUtils.GeV;
-            clusterEnergyLow = .1 * ECalUtils.GeV;
-            energySumThreshold = 1.9 * ECalUtils.GeV;
+            clusterEnergyHigh = 1.5 * EcalUtils.GeV;
+            clusterEnergyLow = .1 * EcalUtils.GeV;
+            energySumThreshold = 1.9 * EcalUtils.GeV;
             energyDifferenceThreshold = beamEnergy;
         } else if (beamEnergy == 6.6) {
             System.out.println(this.getClass().getSimpleName() + ": Setting trigger for 6.6 GeV beam");
             maxCoplanarityAngle = 60;
-            clusterEnergyHigh = 5.0 * ECalUtils.GeV;
-            clusterEnergyLow = .1 * ECalUtils.GeV;
-            energySumThreshold = 5.5 * ECalUtils.GeV;
+            clusterEnergyHigh = 5.0 * EcalUtils.GeV;
+            clusterEnergyLow = .1 * EcalUtils.GeV;
+            energySumThreshold = 5.5 * EcalUtils.GeV;
             energyDifferenceThreshold = beamEnergy;
         }
     }
@@ -186,7 +186,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterEnergyHigh
      */
     public void setClusterEnergyHigh(double clusterEnergyHigh) {
-        this.clusterEnergyHigh = clusterEnergyHigh * ECalUtils.GeV;
+        this.clusterEnergyHigh = clusterEnergyHigh * EcalUtils.GeV;
     }
 
     /**
@@ -195,7 +195,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param clusterEnergyLow
      */
     public void setClusterEnergyLow(double clusterEnergyLow) {
-        this.clusterEnergyLow = clusterEnergyLow * ECalUtils.GeV;
+        this.clusterEnergyLow = clusterEnergyLow * EcalUtils.GeV;
     }
 
     /**
@@ -204,7 +204,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param energySumThreshold
      */
     public void setEnergySumThreshold(double energySumThreshold) {
-        this.energySumThreshold = energySumThreshold * ECalUtils.GeV;
+        this.energySumThreshold = energySumThreshold * EcalUtils.GeV;
     }
 
     /**
@@ -214,7 +214,7 @@ public class myTriggerDriver extends TriggerDriver {
      * @param energyDifferenceThreshold
      */
     public void setEnergyDifferenceThreshold(double energyDifferenceThreshold) {
-        this.energyDifferenceThreshold = energyDifferenceThreshold * ECalUtils.GeV;
+        this.energyDifferenceThreshold = energyDifferenceThreshold * EcalUtils.GeV;
     }
 
     /**
@@ -362,8 +362,8 @@ public class myTriggerDriver extends TriggerDriver {
             if (outputStream != null) {
                 outputStream.printf("Event %d: cluster pair (energy %f in quadrant %d (%s), energy %f in quadrant %d (%s))\n",
                         ClockSingleton.getClock(),
-                        clusterPair[0].getEnergy(), ECalUtils.getQuadrant(clusterPair[0]), clusterPair[0].getCalorimeterHits().get(0).getPositionVec().toString(),
-                        clusterPair[1].getEnergy(), ECalUtils.getQuadrant(clusterPair[1]), clusterPair[1].getCalorimeterHits().get(0).getPositionVec().toString());
+                        clusterPair[0].getEnergy(), EcalUtils.getQuadrant(clusterPair[0]), clusterPair[0].getCalorimeterHits().get(0).getPositionVec().toString(),
+                        clusterPair[1].getEnergy(), EcalUtils.getQuadrant(clusterPair[1]), clusterPair[1].getCalorimeterHits().get(0).getPositionVec().toString());
             }
 
             allPairs++;
@@ -578,8 +578,8 @@ public class myTriggerDriver extends TriggerDriver {
      * @return true if opposite quadrants, false otherwise
      */
     protected boolean oppositeQuadrantsCut(Cluster[] clusterPair) {
-        int quad1 = ECalUtils.getQuadrant(clusterPair[0]);
-        int quad2 = ECalUtils.getQuadrant(clusterPair[1]);
+        int quad1 = EcalUtils.getQuadrant(clusterPair[0]);
+        int quad2 = EcalUtils.getQuadrant(clusterPair[1]);
 
         //if clusters are in the same quadrant, they're not opposite quadrants
         if (quad1 == quad2) {

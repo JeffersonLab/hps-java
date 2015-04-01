@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -23,9 +23,9 @@ import org.lcsim.util.Driver;
 public class NearestNeighborClusterDriver extends Driver
 {
     // Minimum E for cluster seed.
-    double seedEMin = .00 * ECalUtils.GeV;
+    double seedEMin = .00 * EcalUtils.GeV;
     // Minimum E to add hit to cluster.
-    double addEMin = .00 * ECalUtils.GeV;
+    double addEMin = .00 * EcalUtils.GeV;
     // Map of crystals to their neighbors.
     HPSEcal3.NeighborMap _neighborMap = null;
     String ecalCollectionName;

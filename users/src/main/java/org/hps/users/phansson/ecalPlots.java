@@ -61,7 +61,7 @@ public class ecalPlots {
         
 
         IAnalysisFactory af = IAnalysisFactory.create();
-        ECalHitMapPlots ecalhtplots = new ECalHitMapPlots();
+        EcalHitMapPlots ecalhtplots = new EcalHitMapPlots();
             
         
         

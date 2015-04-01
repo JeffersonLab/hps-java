@@ -488,9 +488,9 @@ public class EcalRawConverter {
         int amplitude;
         double pedestal = getPulsePedestal(null, id, windowSamples, (int) hit.getTime() / nsPerSample);
         if (constantGain) {
-            amplitude = (int) Math.round((hit.getRawEnergy() / ECalUtils.MeV) / gain + pedestal);
+            amplitude = (int) Math.round((hit.getRawEnergy() / EcalUtils.MeV) / gain + pedestal);
         } else {
-            amplitude = (int) Math.round((hit.getRawEnergy() / ECalUtils.MeV) / channelData.getGain().getGain() + pedestal);
+            amplitude = (int) Math.round((hit.getRawEnergy() / EcalUtils.MeV) / channelData.getGain().getGain() + pedestal);
         }
         RawCalorimeterHit h = new BaseRawCalorimeterHit(id, amplitude, time);
         return h;
@@ -506,18 +506,18 @@ public class EcalRawConverter {
         
         if(useDAQConfig) {
         	//float gain = ConfigurationManager.getInstance().getFADCConfig().getGain(ecalConditions.getChannelCollection().findGeometric(cellID));
-        	return config.getGain(cellID) * adcSum * ECalUtils.MeV;
+        	return config.getGain(cellID) * adcSum * EcalUtils.MeV;
         }  else if(use2014Gain) {
             if (constantGain) {
-                return adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod;
+                return adcSum * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod;
             } else {
-                return channelData.getGain().getGain() * adcSum * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod; // should not be used for the moment (2014/02)
+                return channelData.getGain().getGain() * adcSum * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod; // should not be used for the moment (2014/02)
             }
         } else {
             if(constantGain) {
-                return gain * adcSum * ECalUtils.MeV;
+                return gain * adcSum * EcalUtils.MeV;
             } else {
-                return channelData.getGain().getGain() * adcSum * ECalUtils.MeV; //gain is defined as MeV/integrated ADC
+                return channelData.getGain().getGain() * adcSum * EcalUtils.MeV; //gain is defined as MeV/integrated ADC
             }
         }
     }

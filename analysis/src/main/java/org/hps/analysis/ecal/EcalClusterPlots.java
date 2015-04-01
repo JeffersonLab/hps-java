@@ -7,7 +7,7 @@ import hep.aida.IPlotter;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -29,7 +29,7 @@ public class EcalClusterPlots extends Driver {
     IHistogram1D clusterTimeSigma;
     IHistogram2D edgePlot;
     int eventn = 0;
-    double maxE = 5000 * ECalUtils.MeV;
+    double maxE = 5000 * EcalUtils.MeV;
     boolean logScale = false;
 
     public void setInputCollection(String inputCollection) {

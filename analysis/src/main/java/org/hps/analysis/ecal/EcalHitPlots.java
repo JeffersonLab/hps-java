@@ -7,7 +7,7 @@ import hep.aida.IPlotterFactory;
 
 import java.util.List;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.triggerbank.AbstractIntData;
 import org.hps.recon.ecal.triggerbank.SSPData;
 import org.hps.recon.ecal.triggerbank.TestRunTriggerData;
@@ -34,7 +34,7 @@ public class EcalHitPlots extends Driver {
 //    IHistogram2D topX, botX, topY, botY;
     IHistogram2D edgePlot;
     int eventn = 0;
-    double maxE = 5000 * ECalUtils.MeV;
+    double maxE = 5000 * EcalUtils.MeV;
     boolean logScale = false;
 
     public void setInputCollection(String inputCollection) {

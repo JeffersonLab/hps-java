@@ -173,7 +173,7 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
         
 //        double integral = hit.getRawEnergy()/ECalUtils.GeV * gainScale;
         double gain = _gain > 0 ? _gain : channelData.getGain().getGain();
-        double integral = amplitude * gain * pulseIntegral * gainScale * ECalUtils.MeV / ECalUtils.GeV;
+        double integral = amplitude * gain * pulseIntegral * gainScale * EcalUtils.MeV / EcalUtils.GeV;
 
 //        double thresholdCrossingTime = 0 - hit.getTime();
 //        while (true) {
@@ -207,13 +207,13 @@ public class EcalEdepToTriggerConverterDriver extends Driver {
         
         if (addNoise) {
             //add preamp noise and photoelectron Poisson noise in quadrature
-            double noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) + hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+            double noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2) + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
             energyAmplitude += RandomGaussian.getGaussian(0, noise);
         }
 
         double gain = _gain > 0 ? _gain : channelData.getGain().getGain();
 //        System.out.format("amplitude: %f %f %f %f\n", hit.getRawEnergy(), energyAmplitude, gain, (energyAmplitude / ECalUtils.MeV) / (gain * pulseIntegral));
-        return (energyAmplitude / ECalUtils.MeV) / (gain * pulseIntegral);
+        return (energyAmplitude / EcalUtils.MeV) / (gain * pulseIntegral);
     }
 
     private double pulseAmplitude(double time) {

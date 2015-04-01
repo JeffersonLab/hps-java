@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -35,9 +35,9 @@ public class EcalClustererCosmics extends Driver {
     String ecalName = "Ecal";
     String clusterCollectionName = "EcalClusters";
     // Minimum E for cluster seed.
-    double seedEMin = .05 * ECalUtils.GeV;
+    double seedEMin = .05 * EcalUtils.GeV;
     // Minimum E to add hit to cluster.
-    double addEMin = .03 * ECalUtils.GeV;
+    double addEMin = .03 * EcalUtils.GeV;
     // Odd or even number of crystals in X.
     boolean oddX;
     // Map of crystals to their neighbors.

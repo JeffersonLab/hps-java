@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.hps.readout.ecal.FADCEcalReadoutDriver;
 import org.hps.readout.ecal.RingBuffer;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.EcalRawConverterDriver;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -114,9 +114,9 @@ public class FADCSignalAnalysis extends Driver {
 //                        h1d_volt.fill(signalBuffer.getValue(i));
 //                    }
                         hSignalBuffer.fill(signalBuffer.getValue(i));
-                    int temp = Math.min((int) (Math.round(signalBuffer.getValue(i) * (Math.pow(2, ECalUtils.nBit) - 1) / ECalUtils.maxVolt)), (int) Math.pow(2, ECalUtils.nBit));
+                    int temp = Math.min((int) (Math.round(signalBuffer.getValue(i) * (Math.pow(2, EcalUtils.nBit) - 1) / EcalUtils.maxVolt)), (int) Math.pow(2, EcalUtils.nBit));
 
-                    sumBuffer_en += temp * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod;
+                    sumBuffer_en += temp * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod;
 
 //       if(23<temp) System.out.println(pipeBuffer.getValue(i)-pedestal + "   " + signalBuffer.getValue(i) + "    " + temp);
 

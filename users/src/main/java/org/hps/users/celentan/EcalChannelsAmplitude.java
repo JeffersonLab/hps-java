@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -119,9 +119,9 @@ public class EcalChannelsAmplitude extends Driver {
                     if (isFirstRaw[ii]) { // at the very first hit we read for this channel, we need to read the window length and save it
                         isFirstRaw[ii] = false;
                         windowRaw[ii] = hit.getADCValues().length;
-                        channelRawWaveform.set(ii, aida.histogram1D(detector.getDetectorName() + " : " + inputCollectionRaw + " : Raw Waveform : " + (column) + " " + (row) + ": " + ii, windowRaw[ii], -0.5 * ECalUtils.ecalReadoutPeriod, (-0.5 + windowRaw[ii]) * ECalUtils.ecalReadoutPeriod));
+                        channelRawWaveform.set(ii, aida.histogram1D(detector.getDetectorName() + " : " + inputCollectionRaw + " : Raw Waveform : " + (column) + " " + (row) + ": " + ii, windowRaw[ii], -0.5 * EcalUtils.ecalReadoutPeriod, (-0.5 + windowRaw[ii]) * EcalUtils.ecalReadoutPeriod));
                     }
-                    result = ECalUtils.computeAmplitude(hit.getADCValues(), windowRaw[ii], pedSamples);
+                    result = EcalUtils.computeAmplitude(hit.getADCValues(), windowRaw[ii], pedSamples);
                     channelAmplitudePlot.get(ii).fill(result[0]);
                 }
             }

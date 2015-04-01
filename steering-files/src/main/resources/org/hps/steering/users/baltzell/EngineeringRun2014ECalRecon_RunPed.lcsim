@@ -31,7 +31,7 @@
             <eventInterval>1</eventInterval>
         </driver>
 
-        <driver name="EcalRunningPedestal" type="org.hps.users.baltzell.ECalRunningPedestalDriver">
+        <driver name="EcalRunningPedestal" type="org.hps.users.baltzell.EcalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>
             <maxLookbackTime>-1</maxLookbackTime>

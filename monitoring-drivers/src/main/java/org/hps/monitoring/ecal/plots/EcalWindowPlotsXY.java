@@ -19,7 +19,7 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 
 public class EcalWindowPlotsXY extends Driver implements ActionListener {
 
@@ -145,7 +145,7 @@ public class EcalWindowPlotsXY extends Driver implements ActionListener {
                 }
                 windowPlot.reset();
                 for (int i = 0; i < window; i++) {
-                    windowPlot.fill(i, hit.getADCValues()[i]*ECalUtils.adcResolution);
+                    windowPlot.fill(i, hit.getADCValues()[i]*EcalUtils.adcResolution);
 
                 }
             }

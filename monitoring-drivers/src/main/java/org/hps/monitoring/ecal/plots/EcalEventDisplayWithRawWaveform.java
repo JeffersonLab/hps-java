@@ -20,7 +20,7 @@ import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
 import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Cluster;
@@ -74,8 +74,8 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 	private long lastEventTime = 0;								 // Tracks the time at which the last event occurred.
 	private int eventRefreshRate = 1;							 // The number of seconds before an update occurs.
 	private boolean resetOnUpdate = true;						 // Clears the event display on each update.
-	private double minEch = 10 * ECalUtils.MeV;					 // The energy scale minimum.
-	private double maxEch = 3500 * ECalUtils.MeV;				 // The energy scale maximum.
+	private double minEch = 10 * EcalUtils.MeV;					 // The energy scale minimum.
+	private double maxEch = 3500 * EcalUtils.MeV;				 // The energy scale maximum.
 	private int[] windowRaw = new int[NUM_CHANNELS];			 // The number of samples in a waveform for each channel.
 	private boolean[] isFirstRaw = new boolean[NUM_CHANNELS];	 // Whether a waveform plot was initiated for each channel.
 	
@@ -435,18 +435,18 @@ public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalLi
 							// Initialize the waveform plot.
 							channelRawWaveform.set(id,aida.histogram1D(event.getDetectorName()
 									+ " : " + inputCollectionRaw + " : Raw Waveform : " + ix + " "
-									+ iy + ": " + id, windowRaw[id], -0.5 * ECalUtils.ecalReadoutPeriod,
-									(-0.5 + windowRaw[id]) * ECalUtils.ecalReadoutPeriod));
+									+ iy + ": " + id, windowRaw[id], -0.5 * EcalUtils.ecalReadoutPeriod,
+									(-0.5 + windowRaw[id]) * EcalUtils.ecalReadoutPeriod));
 						}
 						
 						// If the plot should be updated, do so.
 						if(update) {
 							channelRawWaveform.get(id).reset();
 							for (int jj = 0; jj < windowRaw[id]; jj++) {
-								channelRawWaveform.get(id).fill(jj * ECalUtils.ecalReadoutPeriod,
-										hit.getADCValues()[jj] * ECalUtils.adcResolution * 1000);
+								channelRawWaveform.get(id).fill(jj * EcalUtils.ecalReadoutPeriod,
+										hit.getADCValues()[jj] * EcalUtils.adcResolution * 1000);
 							}
-							double[] result = ECalUtils.computeAmplitude(hit.getADCValues(), windowRaw[id], pedSamples);
+							double[] result = EcalUtils.computeAmplitude(hit.getADCValues(), windowRaw[id], pedSamples);
 							channelRawWaveform.get(id).setTitle("Ampl: " + String.format("%.2f", result[0])
 									+ " mV , ped : " + String.format("%.2f", result[1]) + " "
 									+ String.format("%.2f", result[2]) + " ADC counts");

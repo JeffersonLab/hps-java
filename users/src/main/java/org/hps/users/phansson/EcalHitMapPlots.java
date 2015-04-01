@@ -21,7 +21,7 @@ import org.lcsim.util.aida.AIDA;
  *
  * @author phansson
  */
-public class ECalHitMapPlots {
+public class EcalHitMapPlots {
     
     private AIDA aida = AIDA.defaultInstance();
     private IAnalysisFactory af = aida.analysisFactory();
@@ -31,11 +31,11 @@ public class ECalHitMapPlots {
     private boolean hide = false;
     
     
-    public ECalHitMapPlots() {
+    public EcalHitMapPlots() {
         
     }
     
-    public ECalHitMapPlots(boolean h) {
+    public EcalHitMapPlots(boolean h) {
         this.hide = h;
         //System.out.println("Constructor ECalHitMapPlots");
         

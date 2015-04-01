@@ -53,7 +53,7 @@ public class TrigRateAna {
     
     double _C_ep = 1;
     
-    ECalHitMapPlots util = new ECalHitMapPlots();
+    EcalHitMapPlots util = new EcalHitMapPlots();
     
     List<Count> _countList = new ArrayList<Count>();
 

@@ -33,7 +33,7 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
     private Queue<QueuedEtEvent> builderQueue = null;
     private int eventsWritten = 0;
     private int eventNum = 0;
-    private ECalHitWriter ecalWriter = null;
+    private EcalHitWriter ecalWriter = null;
     private SVTHitWriter svtWriter = null;
     private TriggerDataWriter triggerWriter = null;
     private List<HitWriter> writers = null;
@@ -106,7 +106,7 @@ public class TestRunTriggeredReconToEvio extends TriggerableDriver {
 
         writers = new ArrayList<HitWriter>();
 
-        ecalWriter = new ECalHitWriter();
+        ecalWriter = new EcalHitWriter();
 //        if(detector == null) System.out.println("Detector == null");
 //        else System.out.println("Detector != null");
         //ecalWriter.setDetector(detector);

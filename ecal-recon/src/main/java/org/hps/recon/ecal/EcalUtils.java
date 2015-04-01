@@ -8,7 +8,7 @@ import org.lcsim.event.Cluster;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: ECalUtils.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
  */
-public class ECalUtils {
+public class EcalUtils {
 
     public static final double GeV = 1.0;
     public static final double MeV = 0.001;

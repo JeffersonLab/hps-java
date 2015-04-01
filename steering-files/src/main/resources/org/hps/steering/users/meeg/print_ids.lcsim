@@ -9,7 +9,7 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>
         </driver>
-        <driver name="EcalIDPrint" type="org.hps.analysis.ecal.ECalCellIDPrintDriver" />
+        <driver name="EcalIDPrint" type="org.hps.analysis.ecal.EcalCellIDPrintDriver" />
         <driver name="SVTDataIDPrint" type="org.hps.monitoring.drivers.svt.SVTCellIDPrintDriver" />
         <driver name="SVTIDPrint" type="org.hps.monitoring.drivers.svt.SVTCellIDPrintDriver">
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>

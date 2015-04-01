@@ -1,14 +1,14 @@
 package org.hps.analysis.ecal;
 
-import static org.hps.recon.ecal.ECalUtils.maxVolt;
-import static org.hps.recon.ecal.ECalUtils.nBit;
+import static org.hps.recon.ecal.EcalUtils.maxVolt;
+import static org.hps.recon.ecal.EcalUtils.nBit;
 import hep.aida.IHistogram2D;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -102,7 +102,7 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
             // Loop through the energy plots and fill them if the hit
             // is over the current energy threshold/
             for(int e = 0; e < energyCut.length; e++) {
-            	if(energy > energyCut[e] * ECalUtils.MeV) {
+            	if(energy > energyCut[e] * EcalUtils.MeV) {
             		hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy);
             	}
             }
@@ -151,6 +151,6 @@ public class HPSEcalTriggerPlotsDriver extends Driver {
     
     private double pulseAmplitude(double time) {
         if (time <= 0.0) { return 0.0; }
-        return ECalUtils.readoutGain * ((time * time / (2 * tp * tp * tp)) * Math.exp(-time / tp)) * ((Math.pow(2, nBit) - 1) / maxVolt);
+        return EcalUtils.readoutGain * ((time * time / (2 * tp * tp * tp)) * Math.exp(-time / tp)) * ((Math.pow(2, nBit) - 1) / maxVolt);
     }
 }

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -288,7 +288,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterEnergyHigh - The parameter value.
      */
     public void setClusterEnergyHigh(double clusterEnergyHigh) {
-        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH, clusterEnergyHigh * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_HIGH, clusterEnergyHigh * EcalUtils.GeV);
     }
     
     /**
@@ -298,7 +298,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param clusterEnergyLow - The parameter value.
      */
     public void setClusterEnergyLow(double clusterEnergyLow) {
-        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW, clusterEnergyLow * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.CLUSTER_TOTAL_ENERGY_LOW, clusterEnergyLow * EcalUtils.GeV);
     }
     
     /**
@@ -318,7 +318,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energyDifferenceHigh - The parameter value.
      */
     public void setEnergyDifferenceHigh(double energyDifferenceHigh) {
-        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, energyDifferenceHigh * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_DIFFERENCE_HIGH, energyDifferenceHigh * EcalUtils.GeV);
     }
     
     /**
@@ -337,7 +337,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumHigh(double energySumHigh) {
-        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH, energySumHigh * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_HIGH, energySumHigh * EcalUtils.GeV);
     }
     
     /**
@@ -347,7 +347,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumLow(double energySumLow) {
-        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW, energySumLow * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SUM_LOW, energySumLow * EcalUtils.GeV);
     }
     
     /**
@@ -376,7 +376,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param seedEnergyHigh - The parameter value.
      */
     public void setSeedEnergyHigh(double seedEnergyHigh) {
-        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH, seedEnergyHigh * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_HIGH, seedEnergyHigh * EcalUtils.GeV);
     }
     
     /**
@@ -386,7 +386,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * @param seedEnergyLow - The parameter value.
      */
     public void setSeedEnergyLow(double seedEnergyLow) {
-        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW, seedEnergyLow * ECalUtils.GeV);
+        triggerModule.setCutValue(TriggerModule.CLUSTER_SEED_ENERGY_LOW, seedEnergyLow * EcalUtils.GeV);
     }
     
     /**

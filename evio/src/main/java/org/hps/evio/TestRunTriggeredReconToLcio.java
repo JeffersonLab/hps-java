@@ -40,7 +40,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     private int triggerSpacing = 250;
     private boolean rejectBackground = false;
 //    HPSEcalConditions ecalIDConverter = null;
-    ECalHitWriter ecalWriter = null;
+    EcalHitWriter ecalWriter = null;
     SVTHitWriter svtWriter = null;
     TriggerDataWriter triggerWriter = null;
     List<HitWriter> writers = null;
@@ -152,7 +152,7 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
         writers = new ArrayList<HitWriter>();
 
         if (writeEcalData) {
-            ecalWriter = new ECalHitWriter();
+            ecalWriter = new EcalHitWriter();
             ecalWriter.setMode(ecalMode);
             ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
             writers.add(ecalWriter);

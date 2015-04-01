@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math.stat.StatUtils;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -53,7 +53,7 @@ public class EcalClusterPlots extends Driver {
     private boolean hide = false;
     private boolean logScale = false;
 	private AIDA aida = AIDA.defaultInstance();
-    private double maxE = 5000 * ECalUtils.MeV;
+    private double maxE = 5000 * EcalUtils.MeV;
 	private IPlotter[] plotter = new IPlotter[4];
 	private String clusterCollectionName = "EcalClusters";
 	

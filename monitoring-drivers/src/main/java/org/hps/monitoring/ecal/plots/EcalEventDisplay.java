@@ -19,7 +19,7 @@ import org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
 import org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
 import org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -71,8 +71,8 @@ public class EcalEventDisplay extends Driver implements CrystalListener, ActionL
     private long lastEventTime = 0;								 // Tracks the time at which the last event occurred.
     private int eventRefreshRate = 1;							 // The number of seconds before an update occurs.
     private boolean resetOnUpdate = true;						 // Clears the event display on each update.
-    private double minEch = 10 * ECalUtils.MeV;					 // The energy scale minimum.
-    private double maxEch = 3500 * ECalUtils.MeV;				 // The energy scale maximum.
+    private double minEch = 10 * EcalUtils.MeV;					 // The energy scale minimum.
+    private double maxEch = 3500 * EcalUtils.MeV;				 // The energy scale maximum.
     private int[] windowRaw = new int[NUM_CHANNELS];			 // The number of samples in a waveform for each channel.
     private boolean[] isFirstRaw = new boolean[NUM_CHANNELS];	 // Whether a waveform plot was initiated for each channel.
 

@@ -39,7 +39,7 @@ import org.lcsim.util.log.LogUtil;
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: ECalEvioReader.java,v 1.23 2013/04/18 20:59:16 meeg Exp $
  */
-public class ECalEvioReader extends EvioReader {
+public class EcalEvioReader extends EvioReader {
     // Names of subdetectors.
 
     private int bankTag = 0;
@@ -68,12 +68,12 @@ public class ECalEvioReader extends EvioReader {
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
-    private static final Logger logger = LogUtil.create(ECalEvioReader.class);
+    private static final Logger logger = LogUtil.create(EcalEvioReader.class);
     static {
         logger.setLevel(Level.INFO);
     }
 
-    public ECalEvioReader(int topBankTag, int botBankTag) {
+    public EcalEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
         this.botBankTag = botBankTag;
         hitCollectionName = "EcalReadoutHits";

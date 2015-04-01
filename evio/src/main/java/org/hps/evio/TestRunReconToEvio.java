@@ -26,7 +26,7 @@ public class TestRunReconToEvio extends Driver {
 	String evioOutputFile = "TestRunData.evio";
 	EventBuilder builder = null;
 	private int eventsWritten = 0;
-	ECalHitWriter ecalWriter = null;
+	EcalHitWriter ecalWriter = null;
 	SVTHitWriter svtWriter = null;
 	
 	Detector detector = null;
@@ -58,7 +58,7 @@ public class TestRunReconToEvio extends Driver {
 			throw new RuntimeException(e);
 		}
 
-		ecalWriter = new ECalHitWriter();
+		ecalWriter = new EcalHitWriter();
 		ecalWriter.setDetector(detector);
 		ecalWriter.setHitCollectionName(rawCalorimeterHitCollectionName);
 

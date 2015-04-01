@@ -8,7 +8,7 @@ import hep.aida.IPlotterStyle;
 
 import java.util.List;
 
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.triggerbank.SSPData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -53,7 +53,7 @@ public class EcalHitPlots extends Driver {
 
     int eventn = 0;
 
-    double maxE = 5000 * ECalUtils.MeV;
+    double maxE = 5000 * EcalUtils.MeV;
 
     boolean logScale = false;
     boolean hide = false;

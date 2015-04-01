@@ -23,7 +23,7 @@ import org.lcsim.util.Driver;
  * @version $Id: ECalRunningPedestalDriver.java,v 1.0 2015/02/06 00:00:00
  * @author <baltzell@jlab.org>
  */
-public class ECalRunningPedestalDriver extends Driver {
+public class EcalRunningPedestalDriver extends Driver {
 
     // limit array lengths:
     private final int limitLookbackEvents = 1000;
@@ -57,7 +57,7 @@ public class ECalRunningPedestalDriver extends Driver {
     private boolean debug = false;
     private EcalConditions ecalConditions = null;
 
-    public ECalRunningPedestalDriver() {
+    public EcalRunningPedestalDriver() {
     }
 
     @Override

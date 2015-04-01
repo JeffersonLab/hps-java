@@ -10,6 +10,6 @@ package org.hps.analysis.dataquality;
  *
  * @author mgraham
  */
-public class ECalMCStudies {
+public class EcalMCStudies {
     
 }

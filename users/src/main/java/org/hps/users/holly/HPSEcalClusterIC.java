@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.recon.ecal.CalorimeterHitUtilities;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Trd;
 import org.lcsim.event.CalorimeterHit;
@@ -27,7 +27,7 @@ public class HPSEcalClusterIC extends BaseCluster {
     private ArrayList<CalorimeterHit> sharedHitList = new ArrayList<CalorimeterHit>(); 
     
     
-    static final double eCriticalW = 800.0*ECalUtils.MeV/(74+1);
+    static final double eCriticalW = 800.0*EcalUtils.MeV/(74+1);
     static final double radLenW = 8.8; //mm
     double[] electronPosAtDepth = new double[3];
     private boolean needsElectronPosCalculation = true;

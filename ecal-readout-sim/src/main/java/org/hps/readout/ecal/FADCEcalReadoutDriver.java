@@ -1,11 +1,11 @@
 package org.hps.readout.ecal;
 
-import static org.hps.recon.ecal.ECalUtils.ecalReadoutPeriod;
-import static org.hps.recon.ecal.ECalUtils.fallTime;
-import static org.hps.recon.ecal.ECalUtils.maxVolt;
-import static org.hps.recon.ecal.ECalUtils.nBit;
-import static org.hps.recon.ecal.ECalUtils.readoutGain;
-import static org.hps.recon.ecal.ECalUtils.riseTime;
+import static org.hps.recon.ecal.EcalUtils.ecalReadoutPeriod;
+import static org.hps.recon.ecal.EcalUtils.fallTime;
+import static org.hps.recon.ecal.EcalUtils.maxVolt;
+import static org.hps.recon.ecal.EcalUtils.nBit;
+import static org.hps.recon.ecal.EcalUtils.readoutGain;
+import static org.hps.recon.ecal.EcalUtils.riseTime;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,7 +19,7 @@ import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -455,11 +455,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 //add preamp noise and photoelectron Poisson noise in quadrature
                 double noise;
                 if (use2014Gain) {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.gainFactor * ECalUtils.ecalReadoutPeriod, 2) 
-                    		+ hit.getRawEnergy() / (ECalUtils.lightYield * ECalUtils.quantumEff * ECalUtils.surfRatio));
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod, 2) 
+                    		+ hit.getRawEnergy() / (EcalUtils.lightYield * EcalUtils.quantumEff * EcalUtils.surfRatio));
                 } else {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * ECalUtils.MeV, 2) 
-                    		+ hit.getRawEnergy() * ECalUtils.MeV / pePerMeV);
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2) 
+                    		+ hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
                 }
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
             }
@@ -522,9 +522,9 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
             double gain;
             if (fixedGain > 0) {
-                gain = readoutPeriod / (fixedGain * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+                gain = readoutPeriod / (fixedGain * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             } else {
-                gain = readoutPeriod / (channelData.getGain().getGain() * ECalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+                gain = readoutPeriod / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             }
 
             return gain * pulseAmplitude(time, pulseShape, tp);

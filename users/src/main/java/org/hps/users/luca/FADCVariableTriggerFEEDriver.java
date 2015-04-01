@@ -7,7 +7,7 @@ import java.util.Queue;
 
 import org.hps.readout.ecal.FADCTriggerDriver;
 import org.hps.readout.ecal.TriggerDriver;
-import org.hps.recon.ecal.ECalUtils;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 /**
@@ -28,11 +28,11 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
     private int minHitCount = 1;								// Minimum required cluster hit count threshold. (Hits)			
     private double seedEnergyHigh = Double.MAX_VALUE;			// Maximum allowed cluster seed energy. (GeV)
     private double seedEnergyLow = Double.MIN_VALUE;			// Minimum required cluster seed energy. (GeV)
-    private double clusterEnergyHigh = 1.5 * ECalUtils.GeV;		// Maximum allowed cluster total energy. (GeV)
-    private double clusterEnergyLow = .1 * ECalUtils.GeV;		// Minimum required cluster total energy. (GeV)
-    private double energySumHigh = 1.9 * ECalUtils.GeV;			// Maximum allowed pair energy sum. (GeV)
-    private double energySumLow = 0.0 * ECalUtils.GeV;			// Minimum required pair energy sum. (GeV)
-    private double energyDifferenceHigh = 2.2 * ECalUtils.GeV;	// Maximum allowed pair energy difference. (GeV)
+    private double clusterEnergyHigh = 1.5 * EcalUtils.GeV;		// Maximum allowed cluster total energy. (GeV)
+    private double clusterEnergyLow = .1 * EcalUtils.GeV;		// Minimum required cluster total energy. (GeV)
+    private double energySumHigh = 1.9 * EcalUtils.GeV;			// Maximum allowed pair energy sum. (GeV)
+    private double energySumLow = 0.0 * EcalUtils.GeV;			// Minimum required pair energy sum. (GeV)
+    private double energyDifferenceHigh = 2.2 * EcalUtils.GeV;	// Maximum allowed pair energy difference. (GeV)
     private double energySlopeLow = 1.1;						// Minimum required pair energy slope value.
     private double coplanarityHigh = 35;						// Maximum allowed pair coplanarity deviation. (Degrees)
     
@@ -172,7 +172,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param clusterEnergyHigh - The parameter value.
      */
     public void setClusterEnergyHigh(double clusterEnergyHigh) {
-        this.clusterEnergyHigh = clusterEnergyHigh * ECalUtils.GeV;
+        this.clusterEnergyHigh = clusterEnergyHigh * EcalUtils.GeV;
     }
     
     /**
@@ -183,7 +183,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param clusterEnergyLow - The parameter value.
      */
     public void setClusterEnergyLow(double clusterEnergyLow) {
-        this.clusterEnergyLow = clusterEnergyLow * ECalUtils.GeV;
+        this.clusterEnergyLow = clusterEnergyLow * EcalUtils.GeV;
     }
     
     /**
@@ -205,7 +205,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param energyDifferenceHigh - The parameter value.
      */
     public void setEnergyDifferenceHigh(double energyDifferenceHigh) {
-        this.energyDifferenceHigh = energyDifferenceHigh * ECalUtils.GeV;
+        this.energyDifferenceHigh = energyDifferenceHigh * EcalUtils.GeV;
     }
     
     /**
@@ -226,7 +226,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumHigh(double energySumHigh) {
-        this.energySumHigh = energySumHigh * ECalUtils.GeV;
+        this.energySumHigh = energySumHigh * EcalUtils.GeV;
     }
     
     /**
@@ -237,7 +237,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param energySumHigh - The parameter value.
      */
     public void setEnergySumLow(double energySumLow) {
-        this.energySumLow = energySumLow * ECalUtils.GeV;
+        this.energySumLow = energySumLow * EcalUtils.GeV;
     }
     
     /**
@@ -280,7 +280,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param seedEnergyHigh - The parameter value.
      */
     public void setSeedEnergyHigh(double seedEnergyHigh) {
-        this.seedEnergyHigh = seedEnergyHigh * ECalUtils.GeV;
+        this.seedEnergyHigh = seedEnergyHigh * EcalUtils.GeV;
     }
     
     /**
@@ -291,7 +291,7 @@ public class FADCVariableTriggerFEEDriver extends TriggerDriver {
      * @param seedEnergyLow - The parameter value.
      */
     public void setSeedEnergyLow(double seedEnergyLow) {
-        this.seedEnergyLow = seedEnergyLow * ECalUtils.GeV;
+        this.seedEnergyLow = seedEnergyLow * EcalUtils.GeV;
     }
     
     /**

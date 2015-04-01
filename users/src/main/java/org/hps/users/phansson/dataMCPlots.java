@@ -82,7 +82,7 @@ public class dataMCPlots {
         
 
         IAnalysisFactory af = IAnalysisFactory.create();
-        ECalHitMapPlots ecalhtplots = new ECalHitMapPlots();
+        EcalHitMapPlots ecalhtplots = new EcalHitMapPlots();
             
         
         
@@ -228,7 +228,7 @@ public class dataMCPlots {
                 ITree tree_mc = af.createTreeFactory().create(path+ file_mc);
                 ITree tree_bkg = af.createTreeFactory().create(path+ file_bkg);
                 
-                ECalHitMapPlots ecalhtplots = new ECalHitMapPlots();
+                EcalHitMapPlots ecalhtplots = new EcalHitMapPlots();
                 
                 //String name = "dataMC_clusterE_tophalf_norm";
 
