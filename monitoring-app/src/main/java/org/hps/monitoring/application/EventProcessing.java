@@ -458,9 +458,7 @@ class EventProcessing {
                 try {
                     // This should always work once the thread is interrupted.
                     sessionState.sessionWatchdogThread.join();
-                } catch (InterruptedException e) {
-                    // This should never happen.
-                    e.printStackTrace();
+                } catch (InterruptedException e) {                    
                 }
             }
             // Set the thread object to null.
