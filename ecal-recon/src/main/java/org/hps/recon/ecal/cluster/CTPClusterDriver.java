@@ -13,6 +13,7 @@ public class CTPClusterDriver extends ClusterDriver {
     
     public CTPClusterDriver() {
         clusterer = ClustererFactory.create("CTPClusterer");
+        setWriteClusterCollection(false);
     }
     
     public void setClusterWindow(int clusterWindow) {

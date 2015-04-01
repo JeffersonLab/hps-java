@@ -23,6 +23,7 @@ public class GTPClusterDriver extends ClusterDriver {
     public GTPClusterDriver() {
         clusterer = ClustererFactory.create("GTPClusterer");
         gtp = (GTPClusterer) clusterer;
+        setWriteClusterCollection(false);
     }
     
     /**
