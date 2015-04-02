@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import org.hps.analysis.trigger.DiagSnapshot;
+import org.hps.analysis.trigger.data.DiagnosticSnapshot;
 import org.hps.monitoring.trigger.ClusterTablePanel;
 import org.hps.monitoring.trigger.DiagnosticUpdatable;
 import org.hps.monitoring.trigger.EfficiencyTablePanel;
@@ -21,6 +21,7 @@ import org.lcsim.util.Driver;
  * 
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
+@SuppressWarnings("serial")
 class TriggerDiagnosticsPanel extends JPanel {
 
     JTabbedPane tabs = new JTabbedPane();
@@ -59,16 +60,13 @@ class TriggerDiagnosticsPanel extends JPanel {
         public void process(EventHeader event) {
             // Updates are only performed if a diagnostic snapshot object
             // exists. Otherwise, do nothing.
-            if(event.hasCollection(DiagSnapshot.class, diagnosticCollectionName)) {
+            if(event.hasCollection(DiagnosticSnapshot.class, diagnosticCollectionName)) {
                 // Get the snapshot collection.
-                List<DiagSnapshot> snapshotList = event.get(DiagSnapshot.class, diagnosticCollectionName);
-                
-                // Get the snapshot. There will only ever be one.
-                DiagSnapshot snapshot = snapshotList.get(0);
+                List<DiagnosticSnapshot> snapshotList = event.get(DiagnosticSnapshot.class, diagnosticCollectionName);
                 
                 // Update the GUI panels.
                 for (DiagnosticUpdatable update : updateList) {
-                    update.updatePanel(snapshot);
+                    update.updatePanel(snapshotList.get(1), snapshotList.get(0));
                 }
             } 
         }
