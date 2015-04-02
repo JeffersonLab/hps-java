@@ -1,7 +1,7 @@
 package org.hps.monitoring.trigger;
 
-import org.hps.analysis.trigger.DiagSnapshot;
-import org.hps.analysis.trigger.event.ClusterStatModule;
+import org.hps.analysis.trigger.data.ClusterStatModule;
+import org.hps.analysis.trigger.data.DiagnosticSnapshot;
 import org.hps.analysis.trigger.util.ComponentUtils;
 
 /**
@@ -33,9 +33,9 @@ public class ClusterTablePanel extends AbstractTwoColumnTablePanel {
 	public ClusterTablePanel() { super(TABLE_TITLES); }
 	
 	@Override
-	public void updatePanel(DiagSnapshot snapshot) {
+	public void updatePanel(DiagnosticSnapshot runSnapshot, DiagnosticSnapshot localSnapshot) {
 		// If the snapshot is null, all values should be "N/A."
-		if(snapshot == null) {
+		if(localSnapshot == null || runSnapshot == null) {
 			// Output cluster count data.
 			String scalerNullValue = "---";
 			setLocalRowValue(ROW_RECON_COUNT,  scalerNullValue);
@@ -58,8 +58,8 @@ public class ClusterTablePanel extends AbstractTwoColumnTablePanel {
 		// Otherwise, populate the table with the diagnostic data.
 		else {
 			// Get the cluster statistical banks.
-			ClusterStatModule lstat = snapshot.clusterLocalStatistics;
-			ClusterStatModule rstat = snapshot.clusterRunStatistics;
+			ClusterStatModule lstat = localSnapshot.getClusterStats();
+			ClusterStatModule rstat = runSnapshot.getClusterStats();
 			
 			// Get the largest number of digits in any of the values.
 			int mostDigits = ComponentUtils.max(lstat.getReconClusterCount(), lstat.getSSPClusterCount(), lstat.getMatches(),

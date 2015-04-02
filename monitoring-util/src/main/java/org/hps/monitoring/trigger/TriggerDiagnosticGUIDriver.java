@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import org.hps.analysis.trigger.DiagSnapshot;
+import org.hps.analysis.trigger.data.DiagnosticSnapshot;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
@@ -31,18 +31,19 @@ public class TriggerDiagnosticGUIDriver extends Driver {
 	public void process(EventHeader event) {
 		// Updates are only performed if a diagnostic snapshot object
 		// exists. Otherwise, do nothing.
-		if(event.hasCollection(DiagSnapshot.class, diagnosticCollectionName)) {
+		if(event.hasCollection(DiagnosticSnapshot.class, diagnosticCollectionName)) {
 			// Get the snapshot collection.
-			List<DiagSnapshot> snapshotList = event.get(DiagSnapshot.class, diagnosticCollectionName);
+			List<DiagnosticSnapshot> snapshotList = event.get(DiagnosticSnapshot.class, diagnosticCollectionName);
 			
 			// Get the snapshot. There will only ever be one.
-			DiagSnapshot snapshot = snapshotList.get(0);
+			DiagnosticSnapshot runSnapshot = snapshotList.get(1);
+			DiagnosticSnapshot localSnapshot = snapshotList.get(0);
 			
 			// Feed it to the table.
-			//clusterTable.updatePanel(snapshot);
-			singlesTable.updatePanel(snapshot);
-			pairTable.updatePanel(snapshot);
-			efficiencyTable.updatePanel(snapshot);
+			clusterTable.updatePanel(runSnapshot, localSnapshot);
+			singlesTable.updatePanel(runSnapshot, localSnapshot);
+			pairTable.updatePanel(runSnapshot, localSnapshot);
+			efficiencyTable.updatePanel(runSnapshot, localSnapshot);
 		}
 	}
 	

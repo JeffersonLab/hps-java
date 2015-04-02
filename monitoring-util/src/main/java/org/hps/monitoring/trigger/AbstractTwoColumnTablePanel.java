@@ -1,6 +1,10 @@
 package org.hps.monitoring.trigger;
 
+import java.awt.Font;
+
+import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  * Class <code>AbstractTwoColumnTablePanel</code> is an implementation
@@ -51,7 +55,11 @@ public abstract class AbstractTwoColumnTablePanel extends AbstractTablePanel {
 			localModel.setValueAt(rowNames[i], i, COL_TITLE);
 			globalModel.setValueAt(rowNames[i], i, COL_TITLE);
 		}
-		updatePanel(null);
+		updatePanel(null, null);
+		
+		// Make a cell renderer.
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 		
 		// Create JTable objects to display the data.
 		JTable localTable = new JTable(localModel);
@@ -59,12 +67,20 @@ public abstract class AbstractTwoColumnTablePanel extends AbstractTablePanel {
 		localTable.setColumnSelectionAllowed(false);
 		localTable.setCellSelectionEnabled(false);
 		localTable.setShowVerticalLines(false);
+		localTable.getColumnModel().getColumn(0).setMinWidth(200);
+		localTable.getColumnModel().getColumn(0).setMaxWidth(200);
+		localTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+		localTable.setFont(new Font("monospaced", localTable.getFont().getStyle(), localTable.getFont().getSize()));
 		
 		JTable globalTable = new JTable(globalModel);
 		globalTable.setRowSelectionAllowed(false);
 		globalTable.setColumnSelectionAllowed(false);
 		globalTable.setCellSelectionEnabled(false);
 		globalTable.setShowVerticalLines(false);
+		globalTable.getColumnModel().getColumn(0).setMinWidth(200);
+		globalTable.getColumnModel().getColumn(0).setMaxWidth(200);
+		globalTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+		globalTable.setFont(new Font("monospaced", globalTable.getFont().getStyle(), globalTable.getFont().getSize()));
 		
 		// Return the two tables.
 		return new JTable[] { localTable, globalTable };

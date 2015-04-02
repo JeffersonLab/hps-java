@@ -1,6 +1,7 @@
 package org.hps.monitoring.trigger;
 
 import org.hps.analysis.trigger.DiagSnapshot;
+import org.hps.analysis.trigger.data.DiagnosticSnapshot;
 
 /**
  * Interface <code>DiagnosticUpdatable</code> defines a class of objects
@@ -18,5 +19,5 @@ public interface DiagnosticUpdatable {
 	 * @param snapshot - The snapshot containing information with which
 	 * to update the object.
 	 */
-	public void updatePanel(DiagSnapshot snapshot);
+	public void updatePanel(DiagnosticSnapshot runSnapshot, DiagnosticSnapshot localSnapshot);
 }

@@ -1,7 +1,7 @@
 package org.hps.monitoring.trigger;
 
-import org.hps.analysis.trigger.DiagSnapshot;
-import org.hps.analysis.trigger.event.TriggerStatModule;
+import org.hps.analysis.trigger.data.DiagnosticSnapshot;
+import org.hps.analysis.trigger.data.TriggerStatModule;
 import org.hps.analysis.trigger.util.ComponentUtils;
 
 /**
@@ -19,6 +19,11 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 	
 	// Internal variables.
 	private final int numCuts;
+	private final boolean singles;
+	
+	// Store reference index variables for local and run values.
+	private static final int GLOBAL = 0;
+	private static final int LOCAL  = 1;
 	
 	// Reference variables to the default table rows.
 	protected static final int ROW_RECON_COUNT        = 0;
@@ -35,19 +40,22 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 	 * indicated cut names.
 	 * @param cutNames
 	 */
-	public AbstractTriggerTablePanel(String[] cutNames) {
+	public AbstractTriggerTablePanel(String[] cutNames, boolean isSingles) {
 		// Instantiate the superclass.
 		super(makeTitle(cutNames));
 		
 		// Store the number of cuts.
 		numCuts = cutNames.length;
-		updatePanel(null);
+		updatePanel(null, null);
+		
+		// Store whether this is a singles or pair trigger panel.
+		singles = isSingles;
 	}
 	
 	@Override
-	public void updatePanel(DiagSnapshot snapshot) {
+	public void updatePanel(DiagnosticSnapshot runSnapshot, DiagnosticSnapshot localSnapshot) {
 		// If the snapshot is null, all values should be "N/A."
-		if(snapshot == null) {
+		if(runSnapshot == null || localSnapshot == null) {
 			// Output cluster count data.
 			String scalerNullValue = "---";
 			setLocalRowValue(ROW_RECON_COUNT,     scalerNullValue);
@@ -73,67 +81,84 @@ public abstract class AbstractTriggerTablePanel extends AbstractTwoColumnTablePa
 			}
 		} else {
 			// Get the local and run trigger statistics from the snapshot.
-			TriggerStatModule lstat = getLocalModule(snapshot);
-			TriggerStatModule rstat = getRunModule(snapshot);
+			DiagnosticSnapshot[] stat = new DiagnosticSnapshot[2];
+			stat[GLOBAL] = runSnapshot;
+			stat[LOCAL] = localSnapshot;
+			
+			// Get the appropriate trigger statistical modules.
+			TriggerStatModule[][] triggerStats = new TriggerStatModule[2][2];
+			if(singles) {
+				triggerStats[LOCAL][0] = stat[LOCAL].getSingles0Stats();
+				triggerStats[LOCAL][1] = stat[LOCAL].getSingles1Stats();
+				triggerStats[GLOBAL][0] = stat[GLOBAL].getSingles0Stats();
+				triggerStats[GLOBAL][1] = stat[GLOBAL].getSingles1Stats();
+			} else {
+				triggerStats[LOCAL][0] = stat[LOCAL].getPair0Stats();
+				triggerStats[LOCAL][1] = stat[LOCAL].getPair1Stats();
+				triggerStats[GLOBAL][0] = stat[GLOBAL].getPair0Stats();
+				triggerStats[GLOBAL][1] = stat[GLOBAL].getPair1Stats();
+			}
+			
+			// Get the total number of triggers of each type.
+			int[] sspSimTriggers = new int[2];
+			int[] sspBankTriggers = new int[2];
+			int[] reconSimTriggers = new int[2];
+			int[] sspMatchedTriggers = new int[2];
+			int[] reconMatchedTriggers = new int[2];
+			
+			for(int i = 0; i < 2; i++) {
+				sspSimTriggers[i] = triggerStats[i][0].getSSPSimulatedTriggers() + triggerStats[i][1].getSSPSimulatedTriggers();
+				sspBankTriggers[i] = triggerStats[i][0].getReportedTriggers() + triggerStats[i][1].getReportedTriggers();
+				sspBankTriggers[i] = triggerStats[i][0].getReconSimulatedTriggers() + triggerStats[i][1].getReconSimulatedTriggers();
+				sspMatchedTriggers[i] = triggerStats[i][0].getMatchedSSPSimulatedTriggers() + triggerStats[i][1].getMatchedSSPSimulatedTriggers();
+				reconMatchedTriggers[i] = triggerStats[i][0].getMatchedReconSimulatedTriggers() + triggerStats[i][1].getMatchedReconSimulatedTriggers();
+			}
 			
 			// Determine the most spaces needed to display the values.
 			// Get the largest number of digits in any of the values.
-			int mostDigits = ComponentUtils.max(lstat.getReconTriggerCount(), lstat.getSSPBankTriggerCount(),
-					lstat.getSSPSimTriggerCount(), rstat.getReconTriggerCount(), rstat.getSSPBankTriggerCount(),
-					rstat.getSSPSimTriggerCount());
+			int mostDigits = ComponentUtils.max(reconSimTriggers[LOCAL], sspBankTriggers[LOCAL],
+					sspSimTriggers[LOCAL], reconSimTriggers[GLOBAL], sspBankTriggers[GLOBAL],
+					sspSimTriggers[GLOBAL]);
 			int spaces = ComponentUtils.getDigits(mostDigits);
 			
 			// Update the single-value counters.
 			String countFormat = "%" + spaces + "d";
-			setLocalRowValue(ROW_RECON_COUNT,     String.format(countFormat, lstat.getReconTriggerCount()));
-			setLocalRowValue(ROW_SSP_SIM_COUNT,   String.format(countFormat, lstat.getSSPSimTriggerCount()));
-			setLocalRowValue(ROW_SSP_BANK_COUNT,  String.format(countFormat, lstat.getSSPBankTriggerCount()));
-			setGlobalRowValue(ROW_RECON_COUNT,    String.format(countFormat, rstat.getReconTriggerCount()));
-			setGlobalRowValue(ROW_SSP_SIM_COUNT,  String.format(countFormat, rstat.getSSPSimTriggerCount()));
-			setGlobalRowValue(ROW_SSP_BANK_COUNT, String.format(countFormat, rstat.getSSPBankTriggerCount()));
+			setLocalRowValue(ROW_RECON_COUNT,     String.format(countFormat, reconSimTriggers[LOCAL]));
+			setLocalRowValue(ROW_SSP_SIM_COUNT,   String.format(countFormat, sspSimTriggers[LOCAL]));
+			setLocalRowValue(ROW_SSP_BANK_COUNT,  String.format(countFormat, sspBankTriggers[LOCAL]));
+			setGlobalRowValue(ROW_RECON_COUNT,    String.format(countFormat, reconSimTriggers[GLOBAL]));
+			setGlobalRowValue(ROW_SSP_SIM_COUNT,  String.format(countFormat, sspSimTriggers[GLOBAL]));
+			setGlobalRowValue(ROW_SSP_BANK_COUNT, String.format(countFormat, sspBankTriggers[GLOBAL]));
 			
 			// Update the percentage counters.
 			String percentFormat = "%" + spaces + "d / %" + spaces + "d (%7.3f)";
 			
-			setLocalRowValue(ROW_SSP_EFFICIENCY, String.format(percentFormat, lstat.getMatchedSSPTriggers(),
-					lstat.getSSPSimTriggerCount(), (100.0 * lstat.getMatchedSSPTriggers() / lstat.getSSPSimTriggerCount())));
-			setLocalRowValue(ROW_TRIGGER_EFFICIENCY, String.format(percentFormat, lstat.getMatchedReconTriggers(),
-					lstat.getReconTriggerCount(), (100.0 * lstat.getMatchedReconTriggers() / lstat.getReconTriggerCount())));
-			setGlobalRowValue(ROW_SSP_EFFICIENCY, String.format(percentFormat, rstat.getMatchedSSPTriggers(),
-					rstat.getSSPSimTriggerCount(), (100.0 * rstat.getMatchedSSPTriggers() / rstat.getSSPSimTriggerCount())));
-			setGlobalRowValue(ROW_TRIGGER_EFFICIENCY, String.format(percentFormat, lstat.getMatchedReconTriggers(),
-					rstat.getReconTriggerCount(), (100.0 * rstat.getMatchedReconTriggers() / rstat.getReconTriggerCount())));
+			setLocalRowValue(ROW_SSP_EFFICIENCY, String.format(percentFormat, sspMatchedTriggers[LOCAL],
+					sspSimTriggers[LOCAL], (100.0 * sspMatchedTriggers[LOCAL] / sspSimTriggers[LOCAL])));
+			setLocalRowValue(ROW_TRIGGER_EFFICIENCY, String.format(percentFormat, reconMatchedTriggers[LOCAL],
+					reconSimTriggers[LOCAL], (100.0 * reconMatchedTriggers[LOCAL] / reconSimTriggers[LOCAL])));
+			setGlobalRowValue(ROW_SSP_EFFICIENCY, String.format(percentFormat, sspMatchedTriggers[GLOBAL],
+					sspSimTriggers[GLOBAL], (100.0 * sspMatchedTriggers[GLOBAL] / sspSimTriggers[GLOBAL])));
+			setGlobalRowValue(ROW_TRIGGER_EFFICIENCY, String.format(percentFormat, reconMatchedTriggers[GLOBAL],
+					reconSimTriggers[GLOBAL], (100.0 * reconMatchedTriggers[GLOBAL] / reconSimTriggers[GLOBAL])));
 			
 			int ROW_SECOND_TRIGGER_CUT = ROW_FIRST_TRIGGER_CUT + numCuts + 2;
-			int[] total = { lstat.getSSPSimTriggerCount() / 2, rstat.getSSPSimTriggerCount() / 2 };
 			for(int cutRow = 0; cutRow < numCuts; cutRow++) {
-				setLocalRowValue(cutRow + ROW_FIRST_TRIGGER_CUT, String.format(percentFormat, lstat.getCutFailures(0, cutRow),
-						total[0], (100.0 * lstat.getCutFailures(0, cutRow) / total[0])));
-				setLocalRowValue(cutRow + ROW_SECOND_TRIGGER_CUT, String.format(percentFormat, lstat.getCutFailures(1, cutRow),
-						total[0], (100.0 * lstat.getCutFailures(1, cutRow) / total[0])));
-				setGlobalRowValue(cutRow + ROW_FIRST_TRIGGER_CUT, String.format(percentFormat, lstat.getCutFailures(0, cutRow),
-						total[1], (100.0 * lstat.getCutFailures(0, cutRow) / total[1])));
-				setGlobalRowValue(cutRow + ROW_SECOND_TRIGGER_CUT, String.format(percentFormat, lstat.getCutFailures(1, cutRow),
-						total[1], (100.0 * lstat.getCutFailures(1, cutRow) / total[1])));
+				setLocalRowValue(cutRow + ROW_FIRST_TRIGGER_CUT, String.format(percentFormat,
+						triggerStats[LOCAL][0].getSSPCutFailures(cutRow), triggerStats[LOCAL][0].getSSPSimulatedTriggers(),
+						(100.0 * triggerStats[LOCAL][0].getSSPCutFailures(cutRow) / triggerStats[LOCAL][0].getSSPSimulatedTriggers())));
+				setLocalRowValue(cutRow + ROW_SECOND_TRIGGER_CUT, String.format(percentFormat,
+						triggerStats[LOCAL][1].getSSPCutFailures(cutRow), triggerStats[LOCAL][1].getSSPSimulatedTriggers(),
+						(100.0 * triggerStats[LOCAL][1].getSSPCutFailures(cutRow) / triggerStats[LOCAL][1].getSSPSimulatedTriggers())));
+				setGlobalRowValue(cutRow + ROW_FIRST_TRIGGER_CUT, String.format(percentFormat,
+						triggerStats[GLOBAL][0].getSSPCutFailures(cutRow), triggerStats[GLOBAL][0].getSSPSimulatedTriggers(),
+						(100.0 * triggerStats[GLOBAL][0].getSSPCutFailures(cutRow) / triggerStats[GLOBAL][0].getSSPSimulatedTriggers())));
+				setGlobalRowValue(cutRow + ROW_SECOND_TRIGGER_CUT, String.format(percentFormat,
+						triggerStats[GLOBAL][1].getSSPCutFailures(cutRow), triggerStats[GLOBAL][1].getSSPSimulatedTriggers(),
+						(100.0 * triggerStats[GLOBAL][1].getSSPCutFailures(cutRow) / triggerStats[GLOBAL][1].getSSPSimulatedTriggers())));
 			}
 		}
 	}
-	
-	/**
-	 * Gets the statistical module from which local statistics should
-	 * be drawn.
-	 * @param snapshot - The snapshot containing the modules.
-	 * @return Returns the module containing local statistical data.
-	 */
-	protected abstract TriggerStatModule getLocalModule(DiagSnapshot snapshot);
-	
-	/**
-	 * Gets the statistical module from which run statistics should
-	 * be drawn.
-	 * @param snapshot - The snapshot containing the modules.
-	 * @return Returns the module containing run statistical data.
-	 */
-	protected abstract TriggerStatModule getRunModule(DiagSnapshot snapshot);
 	
 	/**
 	 * Creates the table appropriate table rows from the argument cut

@@ -55,7 +55,7 @@ public abstract class AbstractTablePanel extends JPanel implements DiagnosticUpd
 		add(localTable);
 		
 		// Set the panels to their null starting values.
-		updatePanel(null);
+		updatePanel(null, null);
 		
 		// Define the panel layout.
 		setLayout(null);
