@@ -105,7 +105,7 @@ public class TriggerDiagnosticDriver extends Driver {
     private boolean printSinglesTriggerInternalFail = true;
     private boolean printPairTriggerEfficiencyFail = true;
     private boolean printPairTriggerInternalFail = true;
-    private int     printResultsEveryNEvents = 100000;
+    private int     statPrintInterval = 100000;
 
     // Cut index arrays for trigger verification.
 	private static final int ENERGY_MIN   = TriggerDiagnosticUtil.SINGLES_ENERGY_MIN;
@@ -332,182 +332,7 @@ public class TriggerDiagnosticDriver extends Driver {
 	 * Prints the total run statistics.
 	 */
 	@Override
-	public void endOfData() {
-		PrintResults();
-	}
-	
-	public void PrintResults() {
-		// Print the cluster/trigger verification header.
-		System.out.println();
-		System.out.println();
-		System.out.println("======================================================================");
-		System.out.println("=== Cluster/Trigger Verification Results =============================");
-		System.out.println("======================================================================");
-		
-		// Print the general event failure rate.
-		int headSpaces = getPrintSpaces(globalStats.getEventCount());
-		System.out.println("General Event Statistics:");
-		System.out.printf("\tEvent Start Time      :: %.3f s%n", (startTime / Math.pow(10, 9)));
-		System.out.printf("\tEvent End Time        :: %.3f%n", (endTime / Math.pow(10, 9)));
-		System.out.printf("\tEvent Run Time        :: %.3f%n", ((endTime - startTime) / Math.pow(10, 9)));
-		System.out.printf("\tNoise Events          :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
-				globalStats.getNoiseEvents(), globalStats.getEventCount(), (100.0 * globalStats.getNoiseEvents() / globalStats.getEventCount()));
-		System.out.printf("\tCluster Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
-				globalStats.getFailedClusterEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedClusterEventCount() / globalStats.getEventCount()));
-		System.out.printf("\tSingles Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
-				globalStats.getFailedSinglesEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedSinglesEventCount() / globalStats.getEventCount()));
-		System.out.printf("\tPair Events Failed    :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
-				globalStats.getFailedPairEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedPairEventCount() / globalStats.getEventCount()));
-		
-		// Print out how many events reported a given TI type, both in
-		// total and hierarchically.
-		System.out.println();
-		System.out.println("Event Triggering Type Verification:");
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Trigger", "Total", "Hierarchical");
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Pulser", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PULSER, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PULSER, true));
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Cosmic", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.COSMIC, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.COSMIC, true));
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Singles 1", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES0, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES0, true));
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Singles 2", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES1, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES1, true));
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Pair 1", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR0, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR0, true));
-		System.out.printf("\t%15s\t%15s\t%15s%n", "Pair 2", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR1, false),
-				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR1, true));
-		
-		// Print the cluster verification data.
-		System.out.println();
-		System.out.println("Cluster Verification:");
-		System.out.printf("\tRecon Clusters        :: %d%n", globalStats.getClusterStats().getReconClusterCount());
-		System.out.printf("\tSSP Clusters          :: %d%n", globalStats.getClusterStats().getSSPClusterCount());
-		System.out.printf("\tClusters Matched      :: %d%n", globalStats.getClusterStats().getMatches());
-		System.out.printf("\tFailed (Position)     :: %d%n", globalStats.getClusterStats().getPositionFailures());
-		System.out.printf("\tFailed (Energy)       :: %d%n", globalStats.getClusterStats().getEnergyFailures());
-		System.out.printf("\tFailed (Hit Count)    :: %d%n", globalStats.getClusterStats().getHitCountFailures());
-		if(globalStats.getClusterStats().getReconClusterCount() == 0) {
-			System.out.printf("\tCluster Efficiency    :: N/A%n");
-		} else {
-			System.out.printf("\tCluster Efficiency    :: %7.3f%%%n",
-					100.0 * globalStats.getClusterStats().getMatches() / globalStats.getClusterStats().getReconClusterCount());
-		}
-		
-		// Print the trigger verification data.
-		for(int triggerType = 0; triggerType < 2; triggerType++) {
-			// Get the trigger data. Type 0 represents singles triggers.
-			TriggerEvent[] triggerData = new TriggerEvent[2];
-			if(triggerType == 0) {
-				triggerData[0] = globalStats.getTriggerStats().getSingles0Stats();
-				triggerData[1] = globalStats.getTriggerStats().getSingles1Stats();
-			} else {
-				triggerData[0] = globalStats.getTriggerStats().getPair0Stats();
-				triggerData[1] = globalStats.getTriggerStats().getPair1Stats();
-			}
-			
-			// Get the basic trigger data.
-			int sspSimTriggers = triggerData[0].getSSPSimulatedTriggers() + triggerData[1].getSSPSimulatedTriggers();
-			int reconSimTriggers = triggerData[0].getReconSimulatedTriggers() + triggerData[1].getReconSimulatedTriggers();
-			int sspReportedTriggers = triggerData[0].getReportedTriggers() + triggerData[1].getReportedTriggers();
-			int sspMatchedTriggers = triggerData[0].getMatchedSSPSimulatedTriggers() + triggerData[1].getMatchedSSPSimulatedTriggers();
-			int reconMatchedTriggers = triggerData[0].getMatchedReconSimulatedTriggers() + triggerData[1].getMatchedReconSimulatedTriggers();
-			
-			// Print the basic trigger statistics.
-			int spaces = getPrintSpaces(sspSimTriggers, reconSimTriggers, sspReportedTriggers);
-			System.out.println();
-			if(triggerType == 0) { System.out.println("Singles Trigger Verification:"); }
-			else { System.out.println("Pair Trigger Verification:"); }
-			System.out.printf("\tSSP Cluster Sim Triggers   :: %" + spaces + "d%n", sspSimTriggers);
-			System.out.printf("\tRecon Cluster Sim Triggers :: %" + spaces + "d%n", reconSimTriggers);
-			System.out.printf("\tSSP Reported Triggers      :: %" + spaces + "d%n", sspReportedTriggers);
-			
-			System.out.printf("\tInternal Efficiency        :: %" + spaces + "d / %" + spaces + "d ", sspMatchedTriggers, sspSimTriggers);
-			if(sspSimTriggers == 0) { System.out.printf("(N/A)%n"); }
-			else { System.out.printf("(%7.3f%%)%n", (100.0 * sspMatchedTriggers / sspSimTriggers)); }
-			
-			System.out.printf("\tTrigger Efficiency         :: %" + spaces + "d / %" + spaces + "d ", reconMatchedTriggers, reconSimTriggers);
-			if(reconSimTriggers == 0) { System.out.printf("(N/A)%n"); }
-			else { System.out.printf("(%7.3f%%)%n" , (100.0 * reconMatchedTriggers / reconSimTriggers)); }
-			
-			// Print the individual cut performances.
-			if(triggerType == 0) {
-				for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-					// Get the appropriate trigger statistics module.
-					TriggerEvent triggerStats;
-					if(triggerNum == 0) { triggerStats = globalStats.getTriggerStats().getSingles0Stats(); }
-					else { triggerStats = globalStats.getTriggerStats().getSingles1Stats(); }
-					
-					// Get the number of SSP triggers for this trigger number.
-					int sspTriggerCount = triggerStats.getSSPSimulatedTriggers();
-					//int sspTriggerCount = triggerRunStats[0].getTotalSSPTriggers(triggerNum);
-				
-					System.out.println();
-					System.out.printf("\tTrigger %d Individual Cut Failure Rate:%n", (triggerNum + 1));
-					System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerStats.getUnmatchedSSPSimulatedTriggers());
-					//System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerRunStats[0].getUnmatchedTriggers(triggerNum));
-					if(sspTriggerCount == 0) {
-						System.out.printf("\t\tCluster Energy Lower Bound :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(ENERGY_MIN), sspTriggerCount);
-						System.out.printf("\t\tCluster Energy Upper Bound :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(ENERGY_MAX), sspTriggerCount);
-						System.out.printf("\t\tCluster Hit Count          :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(HIT_COUNT), sspTriggerCount);
-					} else {
-						System.out.printf("\t\tCluster Energy Lower Bound :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(ENERGY_MIN), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(ENERGY_MIN) / sspTriggerCount));
-						System.out.printf("\t\tCluster Energy Upper Bound :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(ENERGY_MAX), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(ENERGY_MAX) / sspTriggerCount));
-						System.out.printf("\t\tCluster Hit Count          :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(HIT_COUNT), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(HIT_COUNT) / sspTriggerCount));
-					}
-				}
-			} else {
-				for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-					// Get the appropriate trigger statistics module.
-					TriggerEvent triggerStats;
-					if(triggerNum == 0) { triggerStats = globalStats.getTriggerStats().getPair0Stats(); }
-					else { triggerStats = globalStats.getTriggerStats().getPair1Stats(); }
-					
-					// Get the number of SSP triggers for this trigger number.
-					int sspTriggerCount = triggerStats.getSSPSimulatedTriggers();
-					
-					System.out.println();
-					System.out.printf("\tTrigger %d Individual Cut Failure Rate:%n", (triggerNum + 1));
-					System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerStats.getUnmatchedSSPSimulatedTriggers());
-					if(sspTriggerCount == 0) {
-						System.out.printf("\t\tPair Energy Sum            :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(ENERGY_SUM), sspTriggerCount);
-						System.out.printf("\t\tPair Energy Difference     :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(ENERGY_DIFF), sspTriggerCount);
-						System.out.printf("\t\tPair Energy Slope          :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(ENERGY_SLOPE), sspTriggerCount);
-						System.out.printf("\t\tPair Coplanarity           :: %" + spaces + "d / %" + spaces + "d%n",
-								triggerStats.getSSPCutFailures(COPLANARITY), sspTriggerCount);
-					} else {
-						System.out.printf("\t\tPair Energy Sum            :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(ENERGY_SUM), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(ENERGY_SUM) / sspTriggerCount));
-						System.out.printf("\t\tPair Energy Difference     :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(ENERGY_DIFF), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(ENERGY_DIFF) / sspTriggerCount));
-						System.out.printf("\t\tPair Energy Slope          :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(ENERGY_SLOPE), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(ENERGY_SLOPE) / sspTriggerCount));
-						System.out.printf("\t\tPair Coplanarity           :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
-								triggerStats.getSSPCutFailures(COPLANARITY), sspTriggerCount,
-								(100.0 * triggerStats.getSSPCutFailures(COPLANARITY) / sspTriggerCount));
-					}
-				}
-			}
-		}
-		
-		// Print out the trigger efficiency table.
-		System.out.println();
-		globalStats.getTriggerStats().printEfficiencyTable();
-	}
+	public void endOfData() { logStatistics(); }
 	
 	/**
 	 * Gets the banks and clusters from the event.
@@ -530,8 +355,9 @@ public class TriggerDiagnosticDriver extends Driver {
 		localStats.sawEvent(event.getTimeStamp());
 		globalStats.sawEvent(event.getTimeStamp());
 		
-		if(totalEvents%printResultsEveryNEvents == 0){
-			PrintResults();
+		// Print the statistics every so often during a run.
+		if(globalStats.getEventCount() % statPrintInterval == 0) {
+			logStatistics();
 		}
 		
 		// Reset the output buffer and print flags.
@@ -616,27 +442,21 @@ public class TriggerDiagnosticDriver extends Driver {
 					if(tiBank.isPulserTrigger()) {
 						OutputLogger.println("Trigger type :: Pulser");
 						tiFlags[TriggerDiagStats.PULSER] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_PULSER;
 					} else if(tiBank.isSingle0Trigger()) {
 						OutputLogger.println("Trigger type :: Singles 1");
 						tiFlags[TriggerDiagStats.SINGLES0] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_SINGLES_1;
 					} else if(tiBank.isSingle1Trigger()) {
 						OutputLogger.println("Trigger type :: Singles 2");
 						tiFlags[TriggerDiagStats.SINGLES1] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_SINGLES_2;
 					} else if(tiBank.isPair0Trigger()) {
 						OutputLogger.println("Trigger type :: Pair 1");
 						tiFlags[TriggerDiagStats.PAIR0] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_PAIR_1;
 					} else if(tiBank.isPair1Trigger()) {
 						OutputLogger.println("Trigger type :: Pair 2");
 						tiFlags[TriggerDiagStats.PAIR1] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_PAIR_2;
 					} else if(tiBank.isCalibTrigger()) {
 						OutputLogger.println("Trigger type :: Cosmic");
 						tiFlags[TriggerDiagStats.COSMIC] = true;
-						//activeTrigger = TriggerDiagnosticUtil.TRIGGER_COSMIC;
 					} else {
 						System.err.println("TriggerDiagnosticDriver: Skipping event; no TI trigger source found.");
 						return;
@@ -814,8 +634,8 @@ public class TriggerDiagnosticDriver extends Driver {
 		}
 	}
 
-	public void setPrintResultsEveryNEvents(int N) {
-		printResultsEveryNEvents = N;
+	public void setPrintResultsEveryNEvents(int n) {
+		statPrintInterval = n;
 	}
 	
 	public void setPrintOnClusterFailure(boolean state) {
@@ -2138,6 +1958,182 @@ public class TriggerDiagnosticDriver extends Driver {
 					pairsTrigger[i].getCutValue(TriggerModule.PAIR_TIME_COINCIDENCE), true);
 			System.out.println();
 		}
+	}
+	
+	/**
+	 * Summarizes the global run statistics in a log to the terminal.
+	 */
+	private void logStatistics() {
+		// Print the cluster/trigger verification header.
+		System.out.println();
+		System.out.println();
+		System.out.println("======================================================================");
+		System.out.println("=== Cluster/Trigger Verification Results =============================");
+		System.out.println("======================================================================");
+		
+		// Print the general event failure rate.
+		int headSpaces = getPrintSpaces(globalStats.getEventCount());
+		System.out.println("General Event Statistics:");
+		System.out.printf("\tEvent Start Time      :: %.3f s%n", (startTime / Math.pow(10, 9)));
+		System.out.printf("\tEvent End Time        :: %.3f%n", (endTime / Math.pow(10, 9)));
+		System.out.printf("\tEvent Run Time        :: %.3f%n", ((endTime - startTime) / Math.pow(10, 9)));
+		System.out.printf("\tNoise Events          :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
+				globalStats.getNoiseEvents(), globalStats.getEventCount(), (100.0 * globalStats.getNoiseEvents() / globalStats.getEventCount()));
+		System.out.printf("\tCluster Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
+				globalStats.getFailedClusterEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedClusterEventCount() / globalStats.getEventCount()));
+		System.out.printf("\tSingles Events Failed :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
+				globalStats.getFailedSinglesEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedSinglesEventCount() / globalStats.getEventCount()));
+		System.out.printf("\tPair Events Failed    :: %" + headSpaces + "d / %" + headSpaces + "d (%7.3f%%)%n",
+				globalStats.getFailedPairEventCount(), globalStats.getEventCount(), (100.0 * globalStats.getFailedPairEventCount() / globalStats.getEventCount()));
+		
+		// Print out how many events reported a given TI type, both in
+		// total and hierarchically.
+		System.out.println();
+		System.out.println("Event Triggering Type Verification:");
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Trigger", "Total", "Hierarchical");
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Pulser", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PULSER, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PULSER, true));
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Cosmic", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.COSMIC, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.COSMIC, true));
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Singles 1", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES0, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES0, true));
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Singles 2", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES1, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.SINGLES1, true));
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Pair 1", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR0, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR0, true));
+		System.out.printf("\t%15s\t%15s\t%15s%n", "Pair 2", globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR1, false),
+				globalStats.getTriggerStats().getTITriggers(TriggerDiagStats.PAIR1, true));
+		
+		// Print the cluster verification data.
+		System.out.println();
+		System.out.println("Cluster Verification:");
+		System.out.printf("\tRecon Clusters        :: %d%n", globalStats.getClusterStats().getReconClusterCount());
+		System.out.printf("\tSSP Clusters          :: %d%n", globalStats.getClusterStats().getSSPClusterCount());
+		System.out.printf("\tClusters Matched      :: %d%n", globalStats.getClusterStats().getMatches());
+		System.out.printf("\tFailed (Position)     :: %d%n", globalStats.getClusterStats().getPositionFailures());
+		System.out.printf("\tFailed (Energy)       :: %d%n", globalStats.getClusterStats().getEnergyFailures());
+		System.out.printf("\tFailed (Hit Count)    :: %d%n", globalStats.getClusterStats().getHitCountFailures());
+		if(globalStats.getClusterStats().getReconClusterCount() == 0) {
+			System.out.printf("\tCluster Efficiency    :: N/A%n");
+		} else {
+			System.out.printf("\tCluster Efficiency    :: %7.3f%%%n",
+					100.0 * globalStats.getClusterStats().getMatches() / globalStats.getClusterStats().getReconClusterCount());
+		}
+		
+		// Print the trigger verification data.
+		for(int triggerType = 0; triggerType < 2; triggerType++) {
+			// Get the trigger data. Type 0 represents singles triggers.
+			TriggerEvent[] triggerData = new TriggerEvent[2];
+			if(triggerType == 0) {
+				triggerData[0] = globalStats.getTriggerStats().getSingles0Stats();
+				triggerData[1] = globalStats.getTriggerStats().getSingles1Stats();
+			} else {
+				triggerData[0] = globalStats.getTriggerStats().getPair0Stats();
+				triggerData[1] = globalStats.getTriggerStats().getPair1Stats();
+			}
+			
+			// Get the basic trigger data.
+			int sspSimTriggers = triggerData[0].getSSPSimulatedTriggers() + triggerData[1].getSSPSimulatedTriggers();
+			int reconSimTriggers = triggerData[0].getReconSimulatedTriggers() + triggerData[1].getReconSimulatedTriggers();
+			int sspReportedTriggers = triggerData[0].getReportedTriggers() + triggerData[1].getReportedTriggers();
+			int sspMatchedTriggers = triggerData[0].getMatchedSSPSimulatedTriggers() + triggerData[1].getMatchedSSPSimulatedTriggers();
+			int reconMatchedTriggers = triggerData[0].getMatchedReconSimulatedTriggers() + triggerData[1].getMatchedReconSimulatedTriggers();
+			
+			// Print the basic trigger statistics.
+			int spaces = getPrintSpaces(sspSimTriggers, reconSimTriggers, sspReportedTriggers);
+			System.out.println();
+			if(triggerType == 0) { System.out.println("Singles Trigger Verification:"); }
+			else { System.out.println("Pair Trigger Verification:"); }
+			System.out.printf("\tSSP Cluster Sim Triggers   :: %" + spaces + "d%n", sspSimTriggers);
+			System.out.printf("\tRecon Cluster Sim Triggers :: %" + spaces + "d%n", reconSimTriggers);
+			System.out.printf("\tSSP Reported Triggers      :: %" + spaces + "d%n", sspReportedTriggers);
+			
+			System.out.printf("\tInternal Efficiency        :: %" + spaces + "d / %" + spaces + "d ", sspMatchedTriggers, sspSimTriggers);
+			if(sspSimTriggers == 0) { System.out.printf("(N/A)%n"); }
+			else { System.out.printf("(%7.3f%%)%n", (100.0 * sspMatchedTriggers / sspSimTriggers)); }
+			
+			System.out.printf("\tTrigger Efficiency         :: %" + spaces + "d / %" + spaces + "d ", reconMatchedTriggers, reconSimTriggers);
+			if(reconSimTriggers == 0) { System.out.printf("(N/A)%n"); }
+			else { System.out.printf("(%7.3f%%)%n" , (100.0 * reconMatchedTriggers / reconSimTriggers)); }
+			
+			// Print the individual cut performances.
+			if(triggerType == 0) {
+				for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
+					// Get the appropriate trigger statistics module.
+					TriggerEvent triggerStats;
+					if(triggerNum == 0) { triggerStats = globalStats.getTriggerStats().getSingles0Stats(); }
+					else { triggerStats = globalStats.getTriggerStats().getSingles1Stats(); }
+					
+					// Get the number of SSP triggers for this trigger number.
+					int sspTriggerCount = triggerStats.getSSPSimulatedTriggers();
+					//int sspTriggerCount = triggerRunStats[0].getTotalSSPTriggers(triggerNum);
+				
+					System.out.println();
+					System.out.printf("\tTrigger %d Individual Cut Failure Rate:%n", (triggerNum + 1));
+					System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerStats.getUnmatchedSSPSimulatedTriggers());
+					//System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerRunStats[0].getUnmatchedTriggers(triggerNum));
+					if(sspTriggerCount == 0) {
+						System.out.printf("\t\tCluster Energy Lower Bound :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(ENERGY_MIN), sspTriggerCount);
+						System.out.printf("\t\tCluster Energy Upper Bound :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(ENERGY_MAX), sspTriggerCount);
+						System.out.printf("\t\tCluster Hit Count          :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(HIT_COUNT), sspTriggerCount);
+					} else {
+						System.out.printf("\t\tCluster Energy Lower Bound :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(ENERGY_MIN), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(ENERGY_MIN) / sspTriggerCount));
+						System.out.printf("\t\tCluster Energy Upper Bound :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(ENERGY_MAX), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(ENERGY_MAX) / sspTriggerCount));
+						System.out.printf("\t\tCluster Hit Count          :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(HIT_COUNT), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(HIT_COUNT) / sspTriggerCount));
+					}
+				}
+			} else {
+				for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
+					// Get the appropriate trigger statistics module.
+					TriggerEvent triggerStats;
+					if(triggerNum == 0) { triggerStats = globalStats.getTriggerStats().getPair0Stats(); }
+					else { triggerStats = globalStats.getTriggerStats().getPair1Stats(); }
+					
+					// Get the number of SSP triggers for this trigger number.
+					int sspTriggerCount = triggerStats.getSSPSimulatedTriggers();
+					
+					System.out.println();
+					System.out.printf("\tTrigger %d Individual Cut Failure Rate:%n", (triggerNum + 1));
+					System.out.printf("\t\tUmatched Triggers          :: %" + spaces + "d%n", triggerStats.getUnmatchedSSPSimulatedTriggers());
+					if(sspTriggerCount == 0) {
+						System.out.printf("\t\tPair Energy Sum            :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(ENERGY_SUM), sspTriggerCount);
+						System.out.printf("\t\tPair Energy Difference     :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(ENERGY_DIFF), sspTriggerCount);
+						System.out.printf("\t\tPair Energy Slope          :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(ENERGY_SLOPE), sspTriggerCount);
+						System.out.printf("\t\tPair Coplanarity           :: %" + spaces + "d / %" + spaces + "d%n",
+								triggerStats.getSSPCutFailures(COPLANARITY), sspTriggerCount);
+					} else {
+						System.out.printf("\t\tPair Energy Sum            :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(ENERGY_SUM), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(ENERGY_SUM) / sspTriggerCount));
+						System.out.printf("\t\tPair Energy Difference     :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(ENERGY_DIFF), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(ENERGY_DIFF) / sspTriggerCount));
+						System.out.printf("\t\tPair Energy Slope          :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(ENERGY_SLOPE), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(ENERGY_SLOPE) / sspTriggerCount));
+						System.out.printf("\t\tPair Coplanarity           :: %" + spaces + "d / %" + spaces + "d (%7.3f%%)%n",
+								triggerStats.getSSPCutFailures(COPLANARITY), sspTriggerCount,
+								(100.0 * triggerStats.getSSPCutFailures(COPLANARITY) / sspTriggerCount));
+					}
+				}
+			}
+		}
+		
+		// Print out the trigger efficiency table.
+		System.out.println();
+		globalStats.getTriggerStats().printEfficiencyTable();
 	}
 	
 	/**
