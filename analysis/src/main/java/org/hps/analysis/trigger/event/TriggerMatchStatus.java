@@ -27,9 +27,9 @@ public class TriggerMatchStatus extends TriggerStatModule {
 	public void addEvent(int eventType, TriggerMatchEvent event, List<List<? extends Trigger<?>>> reconTriggers,
 			List<List<? extends Trigger<?>>> sspSimTriggers, List<? extends SSPNumberedTrigger> sspBankTriggers) {
 		// Increment the event type count.
-		if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_1 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_1) {
+		if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_0 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_0) {
 			triggerTypesSeen[0]++;
-		} else if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_2 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_2) {
+		} else if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_1 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_1) {
 			triggerTypesSeen[1]++;
 		}
 		
@@ -70,9 +70,9 @@ public class TriggerMatchStatus extends TriggerStatModule {
 		// Check if a trigger of the right time was found.
 		// Get the trigger number and type.
 		if(event.sawEventType()) {
-			if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_1 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_1) {
+			if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_0 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_0) {
 				triggerTypesFound[0]++;
-			} else if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_2 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_2) {
+			} else if(eventType == TriggerDiagnosticUtil.TRIGGER_SINGLES_1 || eventType == TriggerDiagnosticUtil.TRIGGER_PAIR_1) {
 				triggerTypesFound[1]++;
 			}
 		}

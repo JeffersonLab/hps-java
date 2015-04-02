@@ -2,6 +2,7 @@ package org.hps.analysis.trigger.util;
 
 import java.awt.Point;
 
+import org.hps.analysis.trigger.data.TriggerStatModule;
 import org.hps.recon.ecal.triggerbank.SSPCluster;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -32,13 +33,13 @@ public class TriggerDiagnosticUtil {
 	public static final int PAIR_COPLANARITY = 3;
 	
 	// Trigger type variables.
-	public static final int TRIGGER_PULSER    = 0;
-	public static final int TRIGGER_COSMIC    = 1;
-	public static final int TRIGGER_SINGLES_1 = 2;
-	public static final int TRIGGER_SINGLES_2 = 3;
-	public static final int TRIGGER_PAIR_1    = 4;
-	public static final int TRIGGER_PAIR_2    = 5;
-	public static final String[] TRIGGER_NAME = { "Pulser", "Cosmic", "Singles 1", "Singles 2", "Pair 1", "Pair 2" };
+	public static final int TRIGGER_PULSER    = TriggerStatModule.PULSER;
+	public static final int TRIGGER_COSMIC    = TriggerStatModule.COSMIC;
+	public static final int TRIGGER_SINGLES_0 = TriggerStatModule.SINGLES_0;
+	public static final int TRIGGER_SINGLES_1 = TriggerStatModule.SINGLES_1;
+	public static final int TRIGGER_PAIR_0    = TriggerStatModule.PAIR_0;
+	public static final int TRIGGER_PAIR_1    = TriggerStatModule.PAIR_1;
+	public static final String[] TRIGGER_NAME = { "Singles 0", "Singles 1", "Pair 0", "Pair 1", "Pulser", "Cosmic" };
 	
 	/**
 	 * Convenience method that writes the position of a cluster in the

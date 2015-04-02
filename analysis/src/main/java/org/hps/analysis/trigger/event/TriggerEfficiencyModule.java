@@ -42,7 +42,7 @@ public class TriggerEfficiencyModule {
 	 */
 	public void addSinglesTriggers(int eventTriggerType, List<List<? extends Trigger<?>>> singlesTriggers) {
 		// Note the trigger type.
-		int[] triggerType = { TriggerDiagnosticUtil.TRIGGER_SINGLES_1, TriggerDiagnosticUtil.TRIGGER_SINGLES_2 };
+		int[] triggerType = { TriggerDiagnosticUtil.TRIGGER_SINGLES_0, TriggerDiagnosticUtil.TRIGGER_SINGLES_1 };
 		
 		// Track the total number of singles triggers seen.
 		addTriggers(eventTriggerType, singlesTriggers, triggerType);
@@ -57,7 +57,7 @@ public class TriggerEfficiencyModule {
 	 */
 	public void addPairTriggers(int eventTriggerType, List<List<? extends Trigger<?>>> pairTriggers) {
 		// Note the trigger type.
-		int[] triggerType = { TriggerDiagnosticUtil.TRIGGER_PAIR_1, TriggerDiagnosticUtil.TRIGGER_PAIR_2 };
+		int[] triggerType = { TriggerDiagnosticUtil.TRIGGER_PAIR_0, TriggerDiagnosticUtil.TRIGGER_PAIR_1 };
 		
 		// Track the total number of singles triggers seen.
 		addTriggers(eventTriggerType, pairTriggers, triggerType);
@@ -242,18 +242,18 @@ public class TriggerEfficiencyModule {
 			// triggers this is. Note that this assumes that the trigger
 			// number is stored as either 0 or 1.
 			if(trigger.getTriggerNumber() == 0) {
-				return TriggerDiagnosticUtil.TRIGGER_PAIR_1;
+				return TriggerDiagnosticUtil.TRIGGER_PAIR_0;
 			} else {
-				return TriggerDiagnosticUtil.TRIGGER_PAIR_2;
+				return TriggerDiagnosticUtil.TRIGGER_PAIR_1;
 			}
 		} else if(trigger instanceof SinglesTrigger) {
 			// Use the trigger number to determine which of the two
 			// triggers this is. Note that this assumes that the trigger
 			// number is stored as either 0 or 1.
 			if(trigger.getTriggerNumber() == 0) {
-				return TriggerDiagnosticUtil.TRIGGER_SINGLES_1;
+				return TriggerDiagnosticUtil.TRIGGER_SINGLES_0;
 			} else {
-				return TriggerDiagnosticUtil.TRIGGER_SINGLES_2;
+				return TriggerDiagnosticUtil.TRIGGER_SINGLES_1;
 			}
 		}
 		
