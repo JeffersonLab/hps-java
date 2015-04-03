@@ -680,7 +680,7 @@ public class EcalLedSequenceMonitor extends Driver{
 
         int collectionId = conditionsManager.getNextCollectionID(dbTableName);
         try {
-            led_calibrations.setCollectionId(collectionId);
+            led_calibrations.setCollectionID(collectionId);
             System.err.println("CollectionID:  "+collectionId);
             led_calibrations.insert();
             ConditionsRecord conditionsRecord = new ConditionsRecord(
