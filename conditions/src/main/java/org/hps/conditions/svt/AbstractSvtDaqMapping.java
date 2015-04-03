@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -12,7 +12,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
+public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
 
         /**
          * Flag values for top or bottom half.
@@ -26,7 +26,7 @@ public abstract class AbstractSvtDaqMapping extends AbstractConditionsObject {
         public static final String AXIAL = "A";
         public static final String STEREO = "S";
 
-        public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends AbstractConditionsObjectCollection<T> {
+        public static abstract class AbstractSvtDaqMappingCollection<T extends AbstractSvtDaqMapping> extends BaseConditionsObjectCollection<T> {
 
 
         /**

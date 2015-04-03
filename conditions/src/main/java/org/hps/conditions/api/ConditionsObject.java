@@ -3,71 +3,89 @@ package org.hps.conditions.api;
 import java.util.Comparator;
 
 /**
- * This is an ORM interface for accessing conditions database information by
- * row. It can handle new or existing records. The row ID values for new records are
- * -1 which indicates they are not in the database yet.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is an ORM interface for accessing conditions information by row from a database table.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu>Jeremy McCormick</a>
  */
 public interface ConditionsObject {
 
     /**
-     * Get the row ID of this object.
+     * Get the row ID of this object, which will be -1 for records not in the database.
+     *
      * @return The database row ID.
      */
     int getRowId();
 
     /**
-     * Generic set method for field values. This will set the object to the
-     * 'dirty' state.
-     * @param fieldName The name of the field.
-     * @param fieldValue The field value.
+     * Set the value of a field.
+     *
+     * @param field The name of the field.
+     * @param value The field value.
      */
     void setFieldValue(String field, Object value);
 
     /**
      * Set all of the field values on this object.
-     * @param fieldValues The FieldValueMap containing pairs of names and
-     *            values.
+     *
+     * @param fieldValues The map containing pairs of field names and values.
      */
     void setFieldValues(FieldValueMap fieldValues);
-    
+
     /**
      * Get the map of field values.
+     *
      * @return The <code>FieldValueMap</code>.
      */
     FieldValueMap getFieldValues();
 
     /**
      * Get a field value, cast to the given class.
+     *
      * @param field The field value.
+     * @param type The class of the field.
+     * @param <T> The inferred type of the field.
      * @return The field value casted to type T.
      */
-    public <T> T getFieldValue(Class<T> type, String field);
+    <T> T getFieldValue(Class<T> type, String field);
 
     /**
      * Get a field value with implicit return type.
+     *
      * @param field The field's name.
+     * @param <T> The inferred type of the field.
      * @return The field value cast to type.
      */
-    public <T> T getFieldValue(String field);
+    <T> T getFieldValue(String field);
 
     /**
-     * Set the row ID of this object. This cannot be reset once set to a valid
-     * ID (e.g. not -1).
+     * Set the row ID of this object. This cannot be reset once set to a valid ID (e.g. not -1).
+     *
      * @param rowId The object's row ID.
      * @throws ConditionsObjectException if already set
      */
-    public void setRowId(int rowId) throws ConditionsObjectException;
-    
+    void setRowID(int rowId) throws ConditionsObjectException;
+
     /**
-     * Return true if this object is new, e.g. it does not have a valid row ID.
-     * This means that it does not have a database record in its table.
+     * Return true if this object is new, e.g. it does not have a valid row ID. This means that it does not have a
+     * database record in its table.
+     *
      * @return True if record is new.
      */
-    public boolean isNew();
-    
+    boolean isNew();
+
+    /**
+     * Default comparator for this interface which uses row ID.
+     */
     static class DefaultConditionsObjectComparator implements Comparator<ConditionsObject> {
-        public int compare(ConditionsObject o1, ConditionsObject o2) {
+
+        /**
+         * Compare objects according to standard Java conventions.
+         *
+         * @param o1 The first object.
+         * @param o2 The second object.
+         * @return The result of comparison operation.
+         */
+        public int compare(final ConditionsObject o1, final ConditionsObject o2) {
             if (o1.getRowId() < o2.getRowId()) {
                 return -1;
             } else if (o1.getRowId() > o2.getRowId()) {
@@ -75,6 +93,6 @@ public interface ConditionsObject {
             } else {
                 return 0;
             }
-        }        
+        }
     }
 }

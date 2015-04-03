@@ -6,13 +6,11 @@ import org.lcsim.util.Driver;
 
 /**
  * <p>
- * This {@link org.lcsim.util.Driver} can be used to customize the behavior
- * of the {@link DatabaseConditionsManager}.  It allows the setting of a 
- * detector name and run number, as well as other parameters, if the user 
- * wishes to override the default behavior of the conditions system, which
- * is generally activated from LCSim events.  It is not necessary to run this 
- * Driver in order to activate the default database conditions system.  Only 
- * one instance of this Driver should ever be included in a steering file.
+ * This {@link org.lcsim.util.Driver} can be used to customize the behavior of the {@link DatabaseConditionsManager}. It
+ * allows the setting of a detector name and run number, as well as other parameters, if the user wishes to override the
+ * default behavior of the conditions system, which is generally activated from LCSim events. It is not necessary to run
+ * this Driver in order to activate the default database conditions system. Only one instance of this Driver should ever
+ * be included in a steering file.
  * <p>
  * This is an example of using the Driver in an XML steering file:
  * <pre>
@@ -25,89 +23,97 @@ import org.lcsim.util.Driver;
  *     <freeze>true</freeze>
  * </driver>
  * }
- * </pre> 
+ * </pre>
  * <p>
- * This is a "special" Driver which must have its initialization occur at the right time.
- * It has a custom initialization method {@link #initialize()} which should be called after 
- * all Driver setup has occurred, but before the job actually begins.  This is so the conditions 
- * system functions properly, including the activation of registered listeners.  The setup is 
- * performed by in the class {@link org.hps.job.JobManager}, which is used in the 
- * default command line front end of the hps-distribution.  If that class is not being used, then
- * the method must be executed manually at the right time to achieve the proper behavior.
+ * This is a "special" Driver which must have its initialization occur at the right time. It has a custom initialization
+ * method {@link #initialize()} which should be called after all Driver setup has occurred, but before the job actually
+ * begins. This is so the conditions system functions properly, including the activation of registered listeners. The
+ * setup is performed by in the class {@link org.hps.job.JobManager}, which is used in the default command line front
+ * end of the hps-distribution. If that class is not being used, then the method must be executed manually at the right
+ * time to achieve the proper behavior.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class ConditionsDriver extends Driver {
 
-    String detectorName = null;
-    String tag = null;
-    String xmlConfigResource = null;
-    int runNumber = 0;
-    boolean freeze;    
-    
+    /** The name of the detector model. */
+    private String detectorName;
+
+    /** The conditions system tag. */
+    private String tag;
+
+    /** The XML config resource. */
+    private String xmlConfigResource;
+
+    /** The user run number. */
+    private int runNumber = 0;
+
+    /**
+     * True to freeze the conditions system after activation (requires valid detector name and run number).
+     */
+    private boolean freeze;
+
     /**
      * Default constructor.
      */
     public ConditionsDriver() {
     }
-    
+
     /**
      * Set the name of the detector to use.
      * @param detectorName The name of the detector.
      */
-    public void setDetectorName(String detectorName) {
+    public final void setDetectorName(final String detectorName) {
         this.detectorName = detectorName;
     }
-        
+
     /**
-     * Set whether or not the conditions system should be "frozen" after the 
-     * detector name and run number are set.  When frozen, the conditions system
-     * will ignore subsequent calls to {@link org.lcsim.conditions.ConditionsManager#setDetector(String, int)}
-     * and instead use the user supplied detector and run for the whole job.
+     * Set whether or not the conditions system should be "frozen" after the detector name and run number are set. When
+     * frozen, the conditions system will ignore subsequent calls to
+     * {@link org.lcsim.conditions.ConditionsManager#setDetector(String, int)} and instead use the user supplied
+     * detector and run for the whole job.
      * @param freeze True to freeze the conditions system after it is setup.
      */
-    public void setFreeze(boolean freeze) {
+    public final void setFreeze(final boolean freeze) {
         this.freeze = freeze;
     }
-        
+
     /**
-     * Set a custom run number to setup the conditions system.
-     * In the case where the actual event stream has run numbers that differ from this one,
-     * most likely the Driver should be configured to be frozen after setup using
-     * {@link #setFreeze(boolean)}.  
-     * 
-     * The method {@link #setDetectorName(String)} needs to be called before this one
-     * or an exception will be thrown.
+     * Set a custom run number to setup the conditions system. In the case where the actual event stream has run numbers
+     * that differ from this one, most likely the Driver should be configured to be frozen after setup using
+     * {@link #setFreeze(boolean)}.
+     *
+     * The method {@link #setDetectorName(String)} needs to be called before this one or an exception will be thrown.
      * @param runNumber The user supplied run number for the job.
      */
-    public void setRunNumber(int runNumber) {
+    public final void setRunNumber(final int runNumber) {
         this.runNumber = runNumber;
-    }            
-    
+    }
+
     /**
      * Set a tag used to filter ConditionsRecords.
      * @param tag The tag value e.g. "eng_run" etc.
      */
-    public void setTag(String tag) {
+    public final void setTag(final String tag) {
         this.tag = tag;
     }
-    
+
     /**
      * Set an XML configuration resource.
      * @param xmlConfigResource The XML configuration resource.
      */
-    public void setXmlConfigResource(String xmlConfigResource) {
+    public final void setXmlConfigResource(final String xmlConfigResource) {
         this.xmlConfigResource = xmlConfigResource;
     }
-    
+
     /**
      * Setup the conditions system based on the Driver parameters.
      * @throws RuntimeException If there is a problem setting up the conditions system.
      */
-    public void initialize() {
-        
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        
+    public final void initialize() {
+
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+
         if (xmlConfigResource != null) {
             // Set a custom XML configuration resource.
             conditionsManager.setXmlConfig(xmlConfigResource);

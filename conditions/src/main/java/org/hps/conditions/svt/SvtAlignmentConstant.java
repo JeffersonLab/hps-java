@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -22,9 +22,9 @@ import org.hps.conditions.database.Table;
  */
 @Table(names = "svt_alignments")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
-public final class SvtAlignmentConstant extends AbstractConditionsObject {
+public final class SvtAlignmentConstant extends BaseConditionsObject {
 
-    public static class SvtAlignmentConstantCollection extends AbstractConditionsObjectCollection<SvtAlignmentConstant> {
+    public static class SvtAlignmentConstantCollection extends BaseConditionsObjectCollection<SvtAlignmentConstant> {
     }
 
     /** Top or bottom half. */

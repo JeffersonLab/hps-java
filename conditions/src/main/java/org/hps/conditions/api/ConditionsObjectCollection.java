@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.conditions.api;
 
 import java.sql.SQLException;
@@ -10,66 +7,105 @@ import java.util.Set;
 import org.hps.conditions.database.TableMetaData;
 
 /**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * An interface representing a collection of conditions objects.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @param <ObjectType> The type of the conditions object contained in the collection.
  */
+// TODO: Rename to ConditionsObjectSet.
 public interface ConditionsObjectCollection<ObjectType extends ConditionsObject> extends Set<ObjectType> {
 
     /**
      * Get the table meta data.
-     * @return
+     *
+     * @return The table meta data.
      */
-    public TableMetaData getTableMetaData();
+    TableMetaData getTableMetaData();
 
     /**
      * Get the collection ID.
-     * @return
+     *
+     * @return The collection ID.
      */
-    public int getCollectionId();
-    
+    int getCollectionId();
+
     /**
      * Get the conditions record.
-     * @return
+     *
+     * @return The conditions record.
      */
-    public ConditionsRecord getConditionsRecord();
-        
+    ConditionsRecord getConditionsRecord();
+
     /**
-     * Set the collection ID.  
-     * Once set it cannot be assign again, which will cause an exception.
-     * @param collectionId
-     * @throws ConditionsObjectException
+     * Set the collection ID. Once set it cannot be assigned again, which will cause an exception.
+     *
+     * @param collectionId The collection ID.
+     * @throws ConditionsObjectException If reassignment is attempted.
      */
-    public void setCollectionId(int collectionId) throws ConditionsObjectException;
-        
-    public void insert() throws ConditionsObjectException, SQLException;
-    
-    public int select();
-    
-    public int delete();
-    
-    public int update();
-    
+    void setCollectionID(int collectionId) throws ConditionsObjectException;
+
     /**
-     * Get an object by index.
+     * Insert all objects from the collection into the database.
+     *
+     * @throws ConditionsObjectException If there is a conditions object error.
+     * @throws SQLException If there is a SQL syntax or execution error.
+     */
+    void insert() throws ConditionsObjectException, SQLException;
+
+    /**
+     * Select objects into this collection by collection ID.
+     *
+     * @return The number of rows selected.
+     */
+    int select();
+
+    /**
+     * Delete objects in this from the database.
+     *
+     * @return The number of rows deleted.
+     */
+    int delete();
+
+    /**
+     * Update rows in the database from these objects.
+     *
+     * @return The number of rows updated.
+     */
+    int update();
+
+    /**
+     * Get an object by its index.
+     *
      * @param index The index in the set.
      * @return The object at the index.
      * @throws IndexOutOfBoundsException If the index value is invalid.
      */
-    public ObjectType get(int index);
-    
+    ObjectType get(int index);
+
     /**
      * Sort the collection in place.
+     *
      * @param comparator The comparator to use for sorting.
      */
-    public void sort(Comparator<ObjectType> comparator);
-    
+    void sort(Comparator<ObjectType> comparator);
+
     /**
      * Get a sorted list of the objects, leaving original collection in place.
+     *
      * @param comparator The comparator to use for the sort.
      * @return A sorted list of the objects.
      */
-    public AbstractConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator);
-    
-    public void sort();
-    
-    public AbstractConditionsObjectCollection<ObjectType> sorted();
+    BaseConditionsObjectCollection<ObjectType> sorted(Comparator<ObjectType> comparator);
+
+    /**
+     * Sort the collection in place.
+     */
+    void sort();
+
+    /**
+     * Get a new sorted collection.
+     *
+     * @return The new sorted collection.
+     */
+    BaseConditionsObjectCollection<ObjectType> sorted();
 }

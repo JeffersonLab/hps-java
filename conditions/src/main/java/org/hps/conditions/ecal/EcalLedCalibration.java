@@ -1,28 +1,43 @@
 package org.hps.conditions.ecal;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
+/**
+ * ECAL LED calibration information per channel.
+ * 
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ */
 @Table(names = "ecal_led_calibrations")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
-public class EcalLedCalibration extends AbstractConditionsObject {
-    
+public final class EcalLedCalibration extends BaseConditionsObject {
+
     /**
      * Generic collection class for these objects.
      */
-    public static class EcalLedCalibrationCollection extends AbstractConditionsObjectCollection<EcalLedCalibration> {
+    @SuppressWarnings("serial")
+    public static class EcalLedCalibrationCollection extends BaseConditionsObjectCollection<EcalLedCalibration> {
     }
-    
-    public EcalLedCalibration() {        
+
+    /**
+     * Class constructor.
+     */
+    public EcalLedCalibration() {
     }
-    
-    public EcalLedCalibration(int channelId, double mean, double rms) {
+
+    /**
+     * Fully qualified constructor.
+     * @param channelId The ECAL channel ID (not the LED channel ID).
+     * @param ledResponse The mean of the LED response.
+     * @param rms The RMS of the LED response.
+     */
+    public EcalLedCalibration(int channelId, double ledResponse, double rms) {
         this.setFieldValue("ecal_channel_id", channelId);
-        this.setFieldValue("led_response", mean);
+        this.setFieldValue("led_response", ledResponse);
         this.setFieldValue("rms", rms);
     }
     /**
@@ -44,7 +59,7 @@ public class EcalLedCalibration extends AbstractConditionsObject {
     }
 
     /**
-     * Get the RMS of the LED response
+     * Get the RMS of the LED response.
      * @return The RMS of the LED response.
      */
     @Field(names = {"rms"})

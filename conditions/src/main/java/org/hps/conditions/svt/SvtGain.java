@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -13,9 +13,9 @@ import org.hps.conditions.database.Table;
  */
 @Table(names = {"svt_gains", "test_run_svt_gains"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
-public final class SvtGain extends AbstractConditionsObject {
+public final class SvtGain extends BaseConditionsObject {
 
-    public static class SvtGainCollection extends AbstractConditionsObjectCollection<SvtGain> {
+    public static class SvtGainCollection extends BaseConditionsObjectCollection<SvtGain> {
     }
 
     /**

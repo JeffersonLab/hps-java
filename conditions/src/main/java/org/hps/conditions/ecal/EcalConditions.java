@@ -11,47 +11,57 @@ import org.lcsim.geometry.Subdetector;
 /**
  * This class provides access to all ECAL conditions from the database,
  * including gain, pedestal and bad channel settings, per crystal.
- * 
+ * <p>
  * Unlike most conditions data types, it does not extend
  * {@link org.hps.conditions.api.ConditionsObject}, because it is a composite object
- * containing data assembled from many other
- * {@link org.hps.conditions.ConditionsObjects}.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * containing data assembled from many other {@link org.hps.conditions.ConditionsObjects}
+ * and has a special data converter {@link EcalConditionsConverter}.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EcalConditions {
 
-    // Channel collection.
-    EcalChannelCollection channelCollection = new EcalChannelCollection();
-
-    // Map between channels and their conditions data.
-    Map<EcalChannel, EcalChannelConstants> channelConstants = new HashMap<EcalChannel, EcalChannelConstants>();
-
-    // Map between geometry stations and channel.
-    EcalCrystalChannelMap crystalMap;
-    
-    // Reference to the current ECAL subdetector in the geometry.
-    Subdetector subdetector;
-    
     /**
-     * Class constructor, which is package protected.
+     * The collection of {@link EcalChannel} objects.
      */
-    EcalConditions(Subdetector subdetector) {
+    private EcalChannelCollection channelCollection = new EcalChannelCollection();
+
+    /**
+     * Map between channels and their conditions constants.
+     */
+    private final Map<EcalChannel, EcalChannelConstants> channelConstants = 
+            new HashMap<EcalChannel, EcalChannelConstants>();
+
+    /**
+     * Map between channels and geometric crystals.
+     */
+    private EcalCrystalChannelMap crystalMap;
+
+    /**
+     * The current ECAL subdetector in the geometry.
+     */
+    private final Subdetector subdetector;
+
+    /**
+     * Class constructor.
+     * @param subdetector The ECAL subdetector object.
+     */
+    EcalConditions(final Subdetector subdetector) {
         if (subdetector == null) {
             throw new IllegalArgumentException("The subdetector argument is null.");
         }
-        this.subdetector = subdetector;        
+        this.subdetector = subdetector;
     }
 
     /**
      * Set the channel map.
-     * @param channels The channel map.
+     * @param channelCollection The channel map.
      */
-    void setChannelCollection(EcalChannelCollection channelCollection) {
+    void setChannelCollection(final EcalChannelCollection channelCollection) {
         this.channelCollection = channelCollection;
-        
+
         // Build the map between crystals and channels.
-        crystalMap = new EcalCrystalChannelMap((HPSEcalAPI)subdetector.getDetectorElement(), channelCollection);
+        crystalMap = new EcalCrystalChannelMap((HPSEcalAPI) subdetector.getDetectorElement(), channelCollection);
     }
 
     /**
@@ -61,99 +71,106 @@ public final class EcalConditions {
     public EcalChannelCollection getChannelCollection() {
         return channelCollection;
     }
-    
+
     /**
      * Get the channel information for a geometric crystal.
      * @param crystal The geometric crystal.
      * @return The channel information or null if does not exist.
      */
-    public EcalChannel getChannel(EcalCrystal crystal) {
+    public EcalChannel getChannel(final EcalCrystal crystal) {
         return crystalMap.getEcalChannel(crystal);
     }
-        
+
     /**
      * Get the conditions constants for a specific channel. These will be
      * created if they do not exist for the given channel, BUT only channels in
      * the channel map are accepted as an argument.
      * @param channel The ECAL channel.
      * @return The conditions constants for the channel.
-     * @throws IllegalArgumentException if channel does not exist in the channel
-     *             map.
+     * @throws IllegalArgumentException if channel does not exist in the channel map.
      */
-    public EcalChannelConstants getChannelConstants(EcalChannel channel) {
+    public EcalChannelConstants getChannelConstants(final EcalChannel channel) {
         // This channel must come from the map.
         if (!channelCollection.contains(channel)) {
             System.err.println("Channel not found in map: " + channel);
             throw new IllegalArgumentException("Channel was not found in map.");
         }
         // If channel has no data yet, then add it.
-        if (!channelConstants.containsKey(channel))
+        if (!channelConstants.containsKey(channel)) {
             channelConstants.put(channel, new EcalChannelConstants());
+        }
         return channelConstants.get(channel);
     }
 
     /**
+     * This is just used for a divider length in print output.
+     */
+    private static final int DIVIDER_SIZE = 91;
+    
+    /**
      * Convert this object to a string.
      * @return A string representation of this object.
      */
+    // FIXME: The print out from this method looks like a mess.
     public String toString() {
-        StringBuffer buff = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
 
-        buff.append('\n');
-        buff.append("Printing ECAL conditions ...");
-        buff.append('\n');
-        buff.append('\n');
+        sb.append('\n');
+        sb.append("Printing ECAL conditions ...");
+        sb.append('\n');
+        sb.append('\n');
 
         // Table header:
-        buff.append("id");
-        buff.append("    ");
-        buff.append("crate");
-        buff.append("  ");
-        buff.append("slot");
-        buff.append("   ");
-        buff.append("channel");
-        buff.append("  ");
-        buff.append("x");
-        buff.append("      ");
-        buff.append("y");
-        buff.append("     ");
-        buff.append("gain");
-        buff.append("       ");
-        buff.append("pedestal");
-        buff.append("   ");
-        buff.append("noise");
-        buff.append("      ");
-        buff.append("time_shift");
-        buff.append(" ");
-        buff.append("bad");
-        buff.append('\n');
-        for (int i = 0; i < 91; i++) {
-            buff.append("-");
+        sb.append("id");
+        sb.append("    ");
+        sb.append("crate");
+        sb.append("  ");
+        sb.append("slot");
+        sb.append("   ");
+        sb.append("channel");
+        sb.append("  ");
+        sb.append("x");
+        sb.append("      ");
+        sb.append("y");
+        sb.append("     ");
+        sb.append("gain");
+        sb.append("       ");
+        sb.append("pedestal");
+        sb.append("   ");
+        sb.append("noise");
+        sb.append("      ");
+        sb.append("time_shift");
+        sb.append(" ");
+        sb.append("bad");
+        sb.append('\n');
+        for (int i = 0; i < DIVIDER_SIZE; i++) {
+            sb.append("-");
         }
-        buff.append('\n');
+        sb.append('\n');
 
         // Loop over all channels.
         for (EcalChannel channel : channelCollection) {
 
-            EcalChannelConstants constants = getChannelConstants(channel);
+            final EcalChannelConstants constants = getChannelConstants(channel);
 
-            double gain = constants.getGain().getGain();
-            double pedestal = constants.getCalibration().getPedestal();
-            double noise = constants.getCalibration().getNoise();
-            double timeShift = constants.getTimeShift().getTimeShift();
-            boolean bad = constants.isBadChannel();
+            final double gain = constants.getGain().getGain();
+            final double pedestal = constants.getCalibration().getPedestal();
+            final double noise = constants.getCalibration().getNoise();
+            final double timeShift = constants.getTimeShift().getTimeShift();
+            final boolean bad = constants.isBadChannel();
 
             // Channel data.
-            buff.append(String.format("%-5d %-6d %-6d %-8d %-6d %-6d", channel.getChannelId(), channel.getCrate(), channel.getSlot(), channel.getChannel(), channel.getX(), channel.getY()));
+            sb.append(String.format("%-5d %-6d %-6d %-8d %-6d %-6d", channel.getChannelId(), channel.getCrate(),
+                    channel.getSlot(), channel.getChannel(), channel.getX(), channel.getY()));
 
             // Constants.
-            buff.append(String.format("%-10.4f %-10.4f %-10.4f %-11.4f", gain, pedestal, noise, timeShift));
+            sb.append(String.format("%-10.4f %-10.4f %-10.4f %-11.4f", gain, pedestal, noise, timeShift));
 
             // Bad channel.
-            buff.append(bad);
+            sb.append(bad);
 
-            buff.append('\n');
+            sb.append('\n');
         }
-        return buff.toString();
+        return sb.toString();
     }
 }

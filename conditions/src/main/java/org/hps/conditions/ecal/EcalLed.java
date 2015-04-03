@@ -2,8 +2,8 @@ package org.hps.conditions.ecal;
 
 import java.util.Comparator;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -13,21 +13,33 @@ import org.hps.conditions.ecal.EcalGain.EcalGainCollection.ChannelIdComparator;
 /**
  * A conditions class for representing the setup of the LED system in the ECAL
  * for one channel.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * 
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Table(names = "ecal_leds")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
-public class EcalLed extends AbstractConditionsObject {
+public final class EcalLed extends BaseConditionsObject {
 
     /**
      * Generic collection class for these objects.
      */
-    public static class EcalLedCollection extends AbstractConditionsObjectCollection<EcalLed> {
-        public AbstractConditionsObjectCollection<EcalLed> sorted() {
+    public static class EcalLedCollection extends BaseConditionsObjectCollection<EcalLed> {
+        
+        /**
+         * Sort and return a copy of this collection.
+         * @return The sorted copy.
+         */
+        public BaseConditionsObjectCollection<EcalLed> sorted() {
             return sorted(new ChannelIdComparator());
         }
                 
+        /**
+         * Comparison implementation by channel ID.
+         */
         class ChannelIdComparator implements Comparator<EcalLed> {
+            /**
+             * Compare two objects by channel ID.
+             */
             public int compare(EcalLed o1, EcalLed o2) {
                 if (o1.getEcalChannelId() < o2.getEcalChannelId()) {
                     return -1;

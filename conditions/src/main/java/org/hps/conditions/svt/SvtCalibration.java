@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -17,9 +17,9 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
  */
 @Table(names = {"svt_calibrations", "test_run_svt_calibrations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
-public final class SvtCalibration extends AbstractConditionsObject {
+public final class SvtCalibration extends BaseConditionsObject {
 
-    public static class SvtCalibrationCollection extends AbstractConditionsObjectCollection<SvtCalibration> {
+    public static class SvtCalibrationCollection extends BaseConditionsObjectCollection<SvtCalibration> {
     }
 
     /**

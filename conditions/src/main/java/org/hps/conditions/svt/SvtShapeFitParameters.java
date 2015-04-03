@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -15,9 +15,9 @@ import org.hps.conditions.database.Table;
  */
 @Table(names = {"svt_shape_fit_parameters", "test_run_svt_shape_fit_parameters"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
-public final class SvtShapeFitParameters extends AbstractConditionsObject {
+public final class SvtShapeFitParameters extends BaseConditionsObject {
 
-    public static class SvtShapeFitParametersCollection extends AbstractConditionsObjectCollection<SvtShapeFitParameters> {
+    public static class SvtShapeFitParametersCollection extends BaseConditionsObjectCollection<SvtShapeFitParameters> {
     }
 
     /**

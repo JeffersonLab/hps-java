@@ -11,20 +11,41 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * This class encapsulates the parameters for connecting to a database,
- * including hostname, port, user and password. It can also create and return a
- * Connection object based on these parameters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This class encapsulates the parameters for connecting to a database, including host name, port, user and password.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class ConnectionParameters {
+public final class ConnectionParameters {
 
+    /**
+     * The default port number.
+     */
     public static final int DEFAULT_PORT = 3306;
-    
-    protected String user;
-    protected String password;
-    protected int port;
-    protected String hostname;
-    protected String database;
+
+    /**
+     * The user name.
+     */
+    private String user;
+
+    /**
+     * The user's password.
+     */
+    private String password;
+
+    /**
+     * The port.
+     */
+    private int port;
+
+    /**
+     * The host name.
+     */
+    private String hostname;
+
+    /**
+     * The database name.
+     */
+    private String database;
 
     /**
      * Protected constructor for sub-classes.
@@ -34,13 +55,15 @@ public class ConnectionParameters {
 
     /**
      * Fully qualified constructor.
+     *
      * @param user The user name.
      * @param password The password.
      * @param hostname The hostname.
      * @param port The port number.
      * @param conditionsTable The table containing conditions validity data.
      */
-    public ConnectionParameters(String user, String password, String database, String hostname, int port) {
+    public ConnectionParameters(final String user, final String password, final String database, final String hostname,
+            final int port) {
         this.user = user;
         this.password = password;
         this.database = database;
@@ -50,10 +73,11 @@ public class ConnectionParameters {
 
     /**
      * Get Properties object for this connection.
+     *
      * @return The Properties for this connection.
      */
     public Properties getConnectionProperties() {
-        Properties p = new Properties();
+        final Properties p = new Properties();
         p.put("user", user);
         p.put("password", password);
         return p;
@@ -61,14 +85,16 @@ public class ConnectionParameters {
 
     /**
      * Get the hostname.
+     *
      * @return The hostname.
      */
-    String getHostname() {
+    final String getHostname() {
         return hostname;
     }
 
     /**
      * Get the port number.
+     *
      * @return The port number.
      */
     int getPort() {
@@ -77,6 +103,7 @@ public class ConnectionParameters {
 
     /**
      * Get the name of the database.
+     *
      * @return The name of the database.
      */
     String getDatabase() {
@@ -85,6 +112,8 @@ public class ConnectionParameters {
 
     /**
      * Get the user name.
+     * 
+     * @return The user name.
      */
     String getUser() {
         return user;
@@ -92,6 +121,8 @@ public class ConnectionParameters {
 
     /**
      * Get the password.
+     * 
+     * @return The password.
      */
     String getPassword() {
         return password;
@@ -99,19 +130,21 @@ public class ConnectionParameters {
 
     /**
      * Get the connection string for these parameters.
+     * 
      * @return The connection string.
      */
-    public String getConnectionString() {
+    String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
     }
 
     /**
-     * Create a database connection from these parameters. The caller becomes
-     * the "owner" and is responsible for closing it when finished.
+     * Create a database connection from these parameters. The caller becomes the "owner" and is responsible for closing
+     * it when finished.
+     * 
      * @return The Connection object.
      */
     public Connection createConnection() {
-        Properties connectionProperties = getConnectionProperties();
+        final Properties connectionProperties = getConnectionProperties();
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(getConnectionString(), connectionProperties);
@@ -124,10 +157,11 @@ public class ConnectionParameters {
 
     /**
      * Configure the connection parameters from a properties file.
+     *
      * @param file The properties file.
      * @return The connection parameters.
      */
-    public static final ConnectionParameters fromProperties(File file) {
+    public static final ConnectionParameters fromProperties(final File file) {
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(file);
@@ -138,33 +172,33 @@ public class ConnectionParameters {
     }
 
     /**
-     * Configure the connection parameters from an embedded classpath resource
-     * which should be a properties file.
-     * @param String The resource path.
+     * Configure the connection parameters from an embedded classpath resource which should be a properties file.
+     *
+     * @param resource The resource path.
      * @return The connection parameters.
      */
-    public static final ConnectionParameters fromResource(String resource) {
+    public static ConnectionParameters fromResource(final String resource) {
         return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
     }
 
     /**
-     * Configure the connection parameters from an <code>InputStream</code> of
-     * properties.
+     * Configure the connection parameters from an <code>InputStream</code> of properties.
+     *
      * @param in The InputStream of the properties.
      * @return The connection parameters.
      * @throws RuntimeException if the InputStream is invalid
      */
-    private static final ConnectionParameters fromProperties(InputStream in) {
-        Properties properties = new Properties();
+    private static ConnectionParameters fromProperties(final InputStream in) {
+        final Properties properties = new Properties();
         try {
             properties.load(in);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        String user = properties.getProperty("user");
-        String password = properties.getProperty("password");
-        String database = properties.getProperty("database");
-        String hostname = properties.getProperty("hostname");
+        final String user = properties.getProperty("user");
+        final String password = properties.getProperty("password");
+        final String database = properties.getProperty("database");
+        final String hostname = properties.getProperty("hostname");
         int port = DEFAULT_PORT;
         if (properties.containsKey("port")) {
             port = Integer.parseInt(properties.getProperty("port"));

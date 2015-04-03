@@ -9,7 +9,7 @@ import java.util.logging.Level;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalCalibration.EcalCalibrationCollection;
 import org.hps.conditions.ecal.EcalChannel;
@@ -63,7 +63,7 @@ public class EngRunConditionsTest extends TestCase {
         loop.loop(100);
     }
     
-    static void checkRunNumbers(AbstractConditionsObjectCollection<?> collection) {
+    static void checkRunNumbers(BaseConditionsObjectCollection<?> collection) {
         assertTrue("Run start out of range.", collection.getConditionsRecord().getRunStart() >= runStart);
         assertTrue("Run end out of range.", collection.getConditionsRecord().getRunEnd() <= runEnd);
     }

@@ -3,39 +3,61 @@ package org.hps.conditions.cli;
 import java.io.PrintStream;
 import java.util.Date;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.FieldValueMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
- * This is a command for the conditions CLI that will add a conditions record,
- * making a conditions set with a particular collection ID available by 
- * run number via the {@link org.hps.conditions.database.DatabaseConditionsManager}.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is a command for the conditions CLI that will add a conditions record, making a conditions set with a particular
+ * collection ID available by run number via the {@link org.hps.conditions.database.DatabaseConditionsManager}.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class AddCommand extends AbstractCommand {
-    
-    PrintStream ps = System.out;
-    
-    AddCommand() {
-        super("add", "Add a conditions record to associate a collection to a run range");
-        options.addOption("r", true, "The starting run number (required)");
-        options.getOption("r").setRequired(true);
-        options.addOption("e", true, "The ending run number (default is starting run number)");
-        options.addOption("t", true, "The table name (required)");
-        options.getOption("t").setRequired(true);
-        options.addOption("c", true, "The collection ID (required)");
-        options.getOption("c").setRequired(true);
-        options.addOption("T", true, "A tag value (optional)");
-        options.addOption("u", true, "Your user name (optional)");
-        options.addOption("m", true, "The notes about this conditions set (optional)");
+
+    /**
+     * For printing out messages.
+     */
+    private final PrintStream ps = System.out;
+
+    /**
+     * Define command line options.
+     */
+    private static final Options OPTIONS = new Options();
+    static {
+        OPTIONS.addOption(new Option("h", false, "Show help for add command"));
+        OPTIONS.addOption("r", true, "The starting run number (required)");
+        OPTIONS.getOption("r").setRequired(true);
+        OPTIONS.addOption("e", true, "The ending run number (default is starting run number)");
+        OPTIONS.addOption("t", true, "The table name (required)");
+        OPTIONS.getOption("t").setRequired(true);
+        OPTIONS.addOption("c", true, "The collection ID (required)");
+        OPTIONS.getOption("c").setRequired(true);
+        OPTIONS.addOption("T", true, "A tag value (optional)");
+        OPTIONS.addOption("u", true, "Your user name (optional)");
+        OPTIONS.addOption("m", true, "The notes about this conditions set (optional)");
     }
-       
-    void execute(String[] arguments) {
-        super.execute(arguments);
-        
+
+    /**
+     * Class constructor.
+     */
+    AddCommand() {
+        super("add", "Add a conditions record to associate a collection to a run range", OPTIONS);
+    }
+
+    /**
+     * Execute the command with the given arguments.
+     *
+     * @param arguments The command line arguments.
+     */
+    final void execute(final String[] arguments) {
+
+        final CommandLine commandLine = parse(arguments);
+
         // This command has 3 required options.
         if (commandLine.getOptions().length == 0) {
             this.printUsage();
@@ -43,13 +65,13 @@ public class AddCommand extends AbstractCommand {
         }
 
         // Run start (required).
-        int runStart;        
+        final int runStart;
         if (commandLine.hasOption("r")) {
             runStart = Integer.parseInt(commandLine.getOptionValue("r"));
         } else {
             throw new RuntimeException("Missing required -r option with run number.");
         }
-        
+
         // Run end.
         int runEnd = runStart;
         if (commandLine.hasOption("e")) {
@@ -62,8 +84,8 @@ public class AddCommand extends AbstractCommand {
             tableName = commandLine.getOptionValue("t");
         } else {
             throw new RuntimeException("Missing required -t argument with table name");
-        }        
-        String name = tableName;
+        }
+        final String name = tableName;
 
         // Collection ID (required).
         int collectionId;
@@ -72,38 +94,31 @@ public class AddCommand extends AbstractCommand {
         } else {
             throw new RuntimeException("Missing required -c argument with collection ID");
         }
-        
+
         // User name.
         String createdBy = System.getProperty("user.name");
         if (commandLine.hasOption("u")) {
             createdBy = commandLine.getOptionValue("u");
         }
-        
+
         // Tag to assign (optional).
         String tag = null;
         if (commandLine.hasOption("T")) {
             tag = commandLine.getOptionValue("T");
         }
-        
+
         // Notes (optional).
         String notes = null;
         if (commandLine.hasOption("m")) {
             notes = commandLine.getOptionValue("m");
         }
-        
+
         // Create the conditions record to insert.
-        ConditionsRecord conditionsRecord = createConditionsRecord(
-                runStart, 
-                runEnd, 
-                tableName, 
-                name, 
-                collectionId, 
-                createdBy, 
-                tag, 
-                notes);       
+        final ConditionsRecord conditionsRecord = createConditionsRecord(runStart, runEnd, tableName, name,
+                collectionId, createdBy, tag, notes);
         try {
             boolean createdConnection = false;
-            DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+            final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
             if (!DatabaseConditionsManager.getInstance().isConnected()) {
                 createdConnection = manager.openConnection();
             }
@@ -117,19 +132,23 @@ public class AddCommand extends AbstractCommand {
     }
 
     /**
-     * @param runStart
-     * @param runEnd
-     * @param tableName
-     * @param name
-     * @param collectionId
-     * @param createdBy
-     * @param tag
-     * @param notes
-     * @return
+     * Create a conditions record.
+     *
+     * @param runStart The run start.
+     * @param runEnd The run end.
+     * @param tableName The table name.
+     * @param name The key name.
+     * @param collectionId The collection ID.
+     * @param createdBy The user name.
+     * @param tag The conditions tag.
+     * @param notes The text notes.
+     * @return The new conditions record.
      */
-    private ConditionsRecord createConditionsRecord(int runStart, int runEnd, String tableName, String name, int collectionId, String createdBy, String tag, String notes) {
-        ConditionsRecord conditionsRecord = new ConditionsRecord();
-        FieldValueMap fieldValues = new FieldValueMap();
+    // FIXME: Too many method parameters (max 7 is recommended).
+    private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
+            final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
+        final ConditionsRecord conditionsRecord = new ConditionsRecord();
+        final FieldValueMap fieldValues = new FieldValueMap();
         fieldValues.put("run_start", runStart);
         fieldValues.put("run_end", runEnd);
         fieldValues.put("table_name", tableName);

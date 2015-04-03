@@ -5,8 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
@@ -22,9 +22,9 @@ import org.jdom.output.XMLOutputter;
  */
 @Table(names = {"svt_configurations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
-public class SvtConfiguration extends AbstractConditionsObject {
+public class SvtConfiguration extends BaseConditionsObject {
 
-    public static class SvtConfigurationCollection extends AbstractConditionsObjectCollection<SvtConfiguration> {
+    public static class SvtConfigurationCollection extends BaseConditionsObjectCollection<SvtConfiguration> {
     }
 
     /**

@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 
@@ -14,12 +14,12 @@ import org.hps.util.Pair;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class AbstractSvtChannel extends AbstractConditionsObject {
+public class AbstractSvtChannel extends BaseConditionsObject {
 
     // TODO: Put constants into their own class
     public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
-    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends AbstractConditionsObjectCollection<T> {
+    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends BaseConditionsObjectCollection<T> {
 
         Map<Integer, T> channelMap = new HashMap<Integer, T>();
 

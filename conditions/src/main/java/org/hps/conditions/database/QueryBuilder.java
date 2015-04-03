@@ -9,16 +9,27 @@ import org.hps.conditions.api.FieldValueMap;
 
 /**
  * This is a static utility class for building SQL queries for the conditions system.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-// TODO: Most methods should be converted to use prepared statements, which is more flexible.
 public final class QueryBuilder {
 
+    /**
+     * Dot not allow instantiation.
+     */
     private QueryBuilder() {
     }
-        
-    static String buildSelect(String tableName, int collectionId, String[] fields, String order) {
+
+    /**
+     * Build a SQL select query string.
+     * @param tableName The name of the table.
+     * @param collectionId The collection ID.
+     * @param fields The list of fields.
+     * @param orderBy The field to order by.
+     * @return The SQL query string.
+     */
+    static String buildSelect(final String tableName, final int collectionId, final String[] fields,
+            final String orderBy) {
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         if (fields == null) {
@@ -32,10 +43,11 @@ public final class QueryBuilder {
             buff.delete(buff.length() - 2, buff.length() - 1);
         }
         buff.append(" FROM " + tableName);
-        if (collectionId != -1)
+        if (collectionId != -1) {
             buff.append(" WHERE collection_id = " + collectionId);
-        if (order != null) {
-            buff.append(" ORDER BY " + order);
+        }
+        if (orderBy != null) {
+            buff.append(" ORDER BY " + orderBy);
         }
         return buff.toString();
     }
@@ -70,14 +82,20 @@ public final class QueryBuilder {
         return buff.toString();
     }
     */
-    
-    static String buildPreparedInsert(String tableName, ConditionsObject object) {
+
+    /**
+     * Build a prepared insert statement for a conditions object.
+     * @param tableName The name of the table.
+     * @param object The conditions object.
+     * @return The prepared insert statement.
+     */
+    static String buildPreparedInsert(final String tableName, final ConditionsObject object) {
         if (object.getFieldValues().size() == 0) {
             throw new IllegalArgumentException("The ConditionsObject has no values set.");
         }
-        StringBuffer buffer = new StringBuffer();
+        final StringBuffer buffer = new StringBuffer();
         buffer.append("INSERT INTO " + tableName + "( collection_id, ");
-        for (String fieldName : object.getFieldValues().keySet()) {            
+        for (String fieldName : object.getFieldValues().keySet()) {
             buffer.append(" " + fieldName + ",");
         }
         buffer.setLength(buffer.length() - 1);
@@ -90,34 +108,52 @@ public final class QueryBuilder {
         return buffer.toString();
     }
 
-    static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-    
-    public static String buildInsert(String tableName, FieldValueMap fieldValues) {
+    /**
+     * Date formatting for insert statement.
+     */
+    final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+
+    /**
+     * Build an insert statement.
+     * @param tableName The table name.
+     * @param fieldValues The field values.
+     * @return The insert statement.
+     */
+    public static String buildInsert(final String tableName, final FieldValueMap fieldValues) {
         if (fieldValues.size() == 0) {
             throw new IllegalArgumentException("The FieldValueMap has no values.");
         }
-        StringBuffer buff = new StringBuffer();
-        buff.append("INSERT INTO " + tableName + " (");
+        final StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO " + tableName + " (");
         for (String fieldName : fieldValues.keySet()) {
-            buff.append(" " + fieldName + ",");
+            sb.append(" " + fieldName + ",");
         }
-        buff.setLength(buff.length() - 1);
-        buff.append(" ) VALUES (");
+        sb.setLength(sb.length() - 1);
+        sb.append(" ) VALUES (");
         for (Object value : fieldValues.values()) {
-            String insertValue = value.toString();
+            final String insertValue = value.toString();
             if (value instanceof Date) {
-                buff.append(" STR_TO_DATE( '" + dateFormat.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ),");
+                sb.append(" STR_TO_DATE( '" + DATE_FORMAT.format((Date) value) + "', '%Y-%m-%d %H:%i:%S' ),");
             } else {
-                buff.append(" '" + insertValue + "',");
+                sb.append(" '" + insertValue + "',");
             }
         }
-        buff.setLength(buff.length() - 1);
-        buff.append(")");
-        return buff.toString();
+        sb.setLength(sb.length() - 1);
+        sb.append(")");
+        return sb.toString();
     }
 
-    public static String buildInsert(String tableName, int collectionID, List<String> columnNames, List<List<String>> rows) {
-        StringBuffer buff = new StringBuffer();
+    /**
+     * Build a SQL insert statement.
+     * @param tableName The table name.
+     * @param collectionID The collection ID.
+     * @param columnNames The column names.
+     * @param rows The row data.
+     * @return The SQL insert statement.
+     */
+    public static String buildInsert(final String tableName, final int collectionID,
+            final List<String> columnNames, final List<List<String>> rows) {
+        final StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO " + tableName + " ( collection_id");
         for (String column : columnNames) {
             buff.append(", " + column);
@@ -143,8 +179,13 @@ public final class QueryBuilder {
         return query;
     }
     */
-    
-    static String formatDate(Date date) {
-        return dateFormat.format(date);
+
+    /**
+     * Format the date for insert statement.
+     * @param date The input date.
+     * @return The formatted date string.
+     */
+    static String formatDate(final Date date) {
+        return DATE_FORMAT.format(date);
     }
 }

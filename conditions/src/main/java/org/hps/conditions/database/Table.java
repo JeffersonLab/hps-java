@@ -8,16 +8,16 @@ import java.lang.annotation.Target;
 /**
  * This annotation can be used to assign a class to one
  * or more database tables.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE) 
 public @interface Table {
-    
+
     /**
      * Get the names of the tables.
      * @return The names of the tables.
      */
-    public String[] names() default "";
+    String[] names() default "";
 }

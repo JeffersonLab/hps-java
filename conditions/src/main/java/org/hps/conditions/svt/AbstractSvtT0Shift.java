@@ -1,7 +1,7 @@
 package org.hps.conditions.svt;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.util.Pair;
 
@@ -11,9 +11,9 @@ import org.hps.util.Pair;
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-public class AbstractSvtT0Shift extends AbstractConditionsObject {
+public class AbstractSvtT0Shift extends BaseConditionsObject {
 
-    public static abstract class AbstractSvtT0ShiftCollection<T extends AbstractSvtT0Shift> extends AbstractConditionsObjectCollection<T> {
+    public static abstract class AbstractSvtT0ShiftCollection<T extends AbstractSvtT0Shift> extends BaseConditionsObjectCollection<T> {
 
         /**
          * Get the t0 shift associated with a given DAQ pair

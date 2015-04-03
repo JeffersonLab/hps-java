@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsObject;
 import org.hps.conditions.api.ConditionsObjectCollection;
 
@@ -19,51 +19,59 @@ import org.hps.conditions.api.ConditionsObjectCollection;
  * <p>
  * It also has references to the implementation classes which are used for the ORM
  * onto {@link ConditionsObject} and {@link ConditionsObjectCollection}.
- * 
+ *
  * @see org.hps.conditions.api.ConditionsObject
- * @see org.hps.conditions.api.AbstractConditionsObjectCollection
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * 
+ * @see org.hps.conditions.api.BaseConditionsObjectCollection
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class TableMetaData {
 
+    /**
+     * The table name.
+     */
     protected String tableName;
+    
+    /**
+     * The conditions key named (unused???).
+     */
     protected String key;
+    
+    /**
+     * The object class.
+     */
     protected Class<? extends ConditionsObject> objectClass;
-    protected Class<? extends AbstractConditionsObjectCollection<?>> collectionClass;
+    
+    /**
+     * The collection class.
+     */
+    protected Class<? extends BaseConditionsObjectCollection<?>> collectionClass;
+    
+    /**
+     * The set of field names.
+     */
     protected Set<String> fieldNames = new LinkedHashSet<String>();
+    
+    /**
+     * The map of field names to their types.
+     */
     protected Map<String, Class<?>> fieldTypes;
 
     /**
-     * The fully qualified constructor.
-     * @param tableName The name of the table in the conditions database.
-     * @param objectClass The type of object for the data mapping.
-     * @param collectionClass The type of collection for the data mapping.
+     * Fully qualified constructor. 
+     * @param key The conditions key.
+     * @param tableName The table name.
+     * @param objectClass The object class.
+     * @param collectionClass The collection class.
+     * @param fieldNames The field names.
+     * @param fieldTypes The field types.
      */
-    /*
     public TableMetaData(
-            String key, 
-            String tableName, 
-            Class<? extends ConditionsObject> objectClass, 
-            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass,
-            Map<String, Class<?>> fieldTypes) {
-       
-        this.key = key;
-        this.tableName = tableName;
-        this.objectClass = objectClass;
-        this.collectionClass = collectionClass;
-        this.fieldTypes = fieldTypes;
-    }
-    */
-    
-    public TableMetaData(
-            String key, 
-            String tableName, 
-            Class<? extends ConditionsObject> objectClass, 
-            Class<? extends AbstractConditionsObjectCollection<?>> collectionClass, 
-            Set<String> fieldNames,
-            Map<String, Class<?>> fieldTypes) {
+            final String key, 
+            final String tableName, 
+            final Class<? extends ConditionsObject> objectClass, 
+            final Class<? extends BaseConditionsObjectCollection<?>> collectionClass, 
+            final Set<String> fieldNames,
+            final Map<String, Class<?>> fieldTypes) {
         if (key == null) {
             throw new IllegalArgumentException("key is null");
         }
@@ -89,7 +97,7 @@ public final class TableMetaData {
         this.fieldNames = fieldNames;
         this.fieldTypes = fieldTypes;
     }
-    
+
     /**
      * Get the type of object this table maps onto.
      * @return The type of object.
@@ -100,9 +108,9 @@ public final class TableMetaData {
 
     /**
      * Get the type of collection this table maps onto.
-     * @return
+     * @return The collection class.
      */
-    public Class<? extends AbstractConditionsObjectCollection<?>> getCollectionClass() {
+    public Class<? extends BaseConditionsObjectCollection<?>> getCollectionClass() {
         return collectionClass;
     }
 
@@ -118,7 +126,7 @@ public final class TableMetaData {
      * Get the type of the field called <code>fieldName</code>.
      * @return The type of the field.
      */
-    public Class<?> getFieldType(String fieldName) {
+    public Class<?> getFieldType(final String fieldName) {
         return fieldTypes.get(fieldName);
     }
 
@@ -129,7 +137,7 @@ public final class TableMetaData {
     public String getTableName() {
         return tableName;
     }
-    
+
     /**
      * Get the key of this conditions type. May be different from table name but
      * is usually the same.
@@ -138,8 +146,14 @@ public final class TableMetaData {
     public String getKey() {
         return key;
     }
-    
-    static public List<TableMetaData> findByObjectType(List<TableMetaData> tableMetaDataList, Class<? extends ConditionsObject> objectType) {
+
+    /**
+     * Find table meta data by object type.
+     * @param tableMetaDataList The list of table meta data e.g. from the registry.
+     * @param objectType The type of the object.
+     * @return The list of table meta data that have that object type.
+     */
+    public static List<TableMetaData> findByObjectType(List<TableMetaData> tableMetaDataList, Class<? extends ConditionsObject> objectType) {
         List<TableMetaData> list = new ArrayList<TableMetaData>();
         for (TableMetaData tableMetaData : tableMetaDataList) {
             if (tableMetaData.getObjectClass().equals(objectType)) {
@@ -150,6 +164,10 @@ public final class TableMetaData {
         return list;
     }
     
+    /**
+     * Convert to a string.
+     * @return This object converted to a string.
+     */
     public String toString() {
         StringBuffer buff = new StringBuffer();
         buff.append("tableMetaData: tableName = " + this.getTableName());  

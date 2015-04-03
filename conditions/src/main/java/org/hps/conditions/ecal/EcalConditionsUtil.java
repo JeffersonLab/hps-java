@@ -9,18 +9,21 @@ import org.lcsim.detector.identifier.Identifier;
 /**
  * This is a set of utility methods for the ECAL that use the database
  * conditions system.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EcalConditionsUtil {
 
+    /**
+     * The combined ECAL conditions object.
+     */
     private EcalConditions conditions;
 
     /**
      * Constructor which uses external reference to conditions object.
      * @param conditions The ECAL conditions object.
      */
-    public EcalConditionsUtil(EcalConditions conditions) {
+    public EcalConditionsUtil(final EcalConditions conditions) {
         this.conditions = conditions;
     }
 
@@ -36,21 +39,20 @@ public final class EcalConditionsUtil {
      * Find a channel object from a cell ID, e.g. from Monte Carlo data.
      * @param helper The identifier helper of the hit.
      * @param cellId The cell ID of the hit.
-     * @return The corresponding ECAL channel found from the physical ID
-     *         information.
+     * @return The corresponding ECAL channel found from the physical ID information.
      */
-    public EcalChannel findChannel(IIdentifierHelper helper, long cellId) {
+    public EcalChannel findChannel(final IIdentifierHelper helper, final long cellId) {
 
         // Make an ID object from hit ID.
-        IIdentifier id = new Identifier(cellId);
+        final IIdentifier id = new Identifier(cellId);
 
         // Get physical field values.
-        int system = helper.getValue(id, "system");
-        int x = helper.getValue(id, "ix");
-        int y = helper.getValue(id, "iy");
+        final int system = helper.getValue(id, "system");
+        final int x = helper.getValue(id, "ix");
+        final int y = helper.getValue(id, "iy");
 
         // Create an ID to search for in channel collection.
-        GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
+        final GeometryId geometryId = new GeometryId(helper, new int[] { system, x, y });
 
         // Find the ECAL channel and return the crate number.
         return conditions.getChannelCollection().findChannel(geometryId);
@@ -62,7 +64,7 @@ public final class EcalConditionsUtil {
      * @param cellId The cell ID of the hit.
      * @return The crate number of the channel.
      */
-    public int getCrate(IIdentifierHelper helper, long cellId) {
+    public int getCrate(final IIdentifierHelper helper, final long cellId) {
         return findChannel(helper, cellId).getCrate();
     }
 
@@ -72,7 +74,7 @@ public final class EcalConditionsUtil {
      * @param cellId The cell ID of the hit.
      * @return The slot number of the channel.
      */
-    public int getSlot(IIdentifierHelper helper, long cellId) {
+    public int getSlot(final IIdentifierHelper helper, final long cellId) {
         return findChannel(helper, cellId).getSlot();
     }
 

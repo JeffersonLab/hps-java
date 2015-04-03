@@ -8,36 +8,55 @@ import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
 
 /**
- * This is the API that sub-commands must implement in the conditions command
- * line interface.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is the API that sub-commands such as 'load' or 'print' must implement
+ * in the conditions command line interface.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 abstract class AbstractCommand {
 
-    String name;
-    String description;
-    Options options = new Options();
-    Parser parser = new PosixParser();
-    CommandLine commandLine;
-    boolean verbose = false;
+    /**
+     * The name of the (sub)command.
+     */
+    private String name;
+
+    /**
+     * The description of the command.
+     */
+    private String description;
+
+    /**
+     * The options this command takes on the command line (Apache CLI).
+     */
+    private final Options options;
+
+    /**
+     * The parser for the options.
+     */
+    private final Parser parser = new PosixParser();
+
+    /**
+     * Verbose setting.
+     */
+    private boolean verbose = false;
 
     /**
      * Class constructor.
      * @param name The string that invokes this command.
      * @param description The description of this command.
+     * @param options The command's options (Apache CLI).
      */
-    AbstractCommand(String name, String description) {
+    AbstractCommand(final String name, final String description, final Options options) {
         this.name = name;
         this.description = description;
-        options.addOption("h", false, "Print help for this command");
+        this.options = options;
     }
 
     /**
      * Get the name of this command.
      * @return A String of the name of this command.
      */
-    String getName() {
+    final String getName() {
         return this.name;
     }
 
@@ -45,7 +64,7 @@ abstract class AbstractCommand {
      * Get the description of this command.
      * @return A String of the description of this command.
      */
-    String getDescription() {
+    protected final String getDescription() {
         return this.description;
     }
 
@@ -53,16 +72,15 @@ abstract class AbstractCommand {
      * Options for this command.
      * @return Options object for this command.
      */
-    Options getOptions() {
+    protected final Options getOptions() {
         return options;
     }
 
     /**
      * Print the usage of this sub-command.
-     * @param doExit Whether or not to exit after printing usage.
      */
-    void printUsage() {
-        HelpFormatter help = new HelpFormatter();
+    protected final void printUsage() {
+        final HelpFormatter help = new HelpFormatter();
         help.printHelp(getName(), getOptions());
     }
 
@@ -70,16 +88,25 @@ abstract class AbstractCommand {
      * Set whether verbose output is enabled.
      * @param verbose True to enable verbose output.
      */
-    void setVerbose(boolean verbose) {
+    final void setVerbose(final boolean verbose) {
         this.verbose = verbose;
     }
 
     /**
-     * Execute the command with the arguments. This is the only method that
-     * sub-classes must implement.
-     * @param arguments The sub-command's arguments.
+     * Get verbose flag.
+     * @return The verbose flag.
      */
-    void execute(String[] arguments) {
+    protected boolean getVerbose() {
+        return verbose;
+    }
+
+    /**
+     * Parse the sub-command's options.
+     * @param arguments The sub-command's arguments.
+     * @return The parsed command line.
+     */
+    protected final CommandLine parse(final String[] arguments) {
+        CommandLine commandLine = null;
         try {
             commandLine = parser.parse(options, arguments);
         } catch (ParseException e) {
@@ -89,5 +116,12 @@ abstract class AbstractCommand {
             this.printUsage();
             System.exit(0);
         }
+        return commandLine;
     }
+
+    /**
+     * The sub-command execution method that should be implemented by sub-classes.
+     * @param arguments The command's argument list.
+     */
+    abstract void execute(final String[] arguments);
 }

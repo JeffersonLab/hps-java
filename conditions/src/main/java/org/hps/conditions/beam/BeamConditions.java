@@ -1,35 +1,38 @@
 package org.hps.conditions.beam;
 
-import org.hps.conditions.api.AbstractConditionsObject;
-import org.hps.conditions.api.AbstractConditionsObjectCollection;
+import org.hps.conditions.api.BaseConditionsObject;
+import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
- * <p>
  * Beam-related detector conditions, including current, position
  * in X and Y, and energy.
- * <p>  
- * Unless otherwise stated, these are assumed to be average values 
+ * <p>
+ * Unless otherwise stated, these are assumed to be average values
  * for an entire run.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Table(names = {"beam"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.ERROR)
-public final class BeamConditions extends AbstractConditionsObject {
-    
+public final class BeamConditions extends BaseConditionsObject {
+
     /**
      * Collection implementation for this class.
      */
-    public final static class BeamConditionsCollection extends AbstractConditionsObjectCollection<BeamConditions> {
+    @SuppressWarnings("serial")
+    public static final class BeamConditionsCollection extends BaseConditionsObjectCollection<BeamConditions> {
     }
-    
+
+    /**
+     * No arg constructor.
+     */
     public BeamConditions() {
     }
-    
+
     /**
      * Get the average beam current (nA).
      * A value of 0 indicates there was no beam.
@@ -40,7 +43,7 @@ public final class BeamConditions extends AbstractConditionsObject {
     public Double getCurrent() {
         return getFieldValue("current");
     }
-    
+
     /**
      * Get the average beam position in X (mm).
      * @return The beam position (mm).
@@ -49,7 +52,7 @@ public final class BeamConditions extends AbstractConditionsObject {
     public Double getPositionX() {
         return getFieldValue("position_x");
     }
-    
+
     /**
      * Get the average beam position in Y (mm).
      * @return The beam position (mm).
@@ -58,7 +61,7 @@ public final class BeamConditions extends AbstractConditionsObject {
     public Double getPositionY() {
         return getFieldValue("position_y");
     }
-    
+
     /**
      * Get the beam energy (GeV).
      * A value of 0 indicates there was no beam.
@@ -68,5 +71,5 @@ public final class BeamConditions extends AbstractConditionsObject {
     @Field(names = {"energy"})
     public Double getEnergy() {
         return getFieldValue("energy");
-    }        
+    }
 }
