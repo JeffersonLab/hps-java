@@ -12,7 +12,6 @@ import org.hps.conditions.database.TableMetaData;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @param <ObjectType> The type of the conditions object contained in the collection.
  */
-// TODO: Rename to ConditionsObjectSet.
 public interface ConditionsObjectCollection<ObjectType extends ConditionsObject> extends Set<ObjectType> {
 
     /**
@@ -42,7 +41,7 @@ public interface ConditionsObjectCollection<ObjectType extends ConditionsObject>
      * @param collectionId The collection ID.
      * @throws ConditionsObjectException If reassignment is attempted.
      */
-    void setCollectionID(int collectionId) throws ConditionsObjectException;
+    void setCollectionId(int collectionId) throws ConditionsObjectException;
 
     /**
      * Insert all objects from the collection into the database.

@@ -721,7 +721,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         if (collection.getCollectionId() == -1) {
             try {
-                collection.setCollectionID(getNextCollectionID(tableMetaData.getTableName()));
+                collection.setCollectionId(getNextCollectionID(tableMetaData.getTableName()));
             } catch (ConditionsObjectException e) {
                 throw new RuntimeException(e);
             }

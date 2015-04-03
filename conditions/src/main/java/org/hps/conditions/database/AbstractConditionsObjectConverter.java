@@ -217,7 +217,7 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
             if (conditionsRecord != null) {
                 collection.setConditionsRecord(conditionsRecord);
                 collection.setTableMetaData(tableMetaData);
-                collection.setCollectionID(conditionsRecord.getCollectionId());
+                collection.setCollectionId(conditionsRecord.getCollectionId());
             }
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ConditionsObjectException("Error creating conditions object collection.", e);

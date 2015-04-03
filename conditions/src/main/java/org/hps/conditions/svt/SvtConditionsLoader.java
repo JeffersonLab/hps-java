@@ -114,7 +114,7 @@ public class SvtConditionsLoader {
 	           
 	           // Set the collection ID 
 	           int collectionID = DatabaseConditionsManager.getInstance().getNextCollectionID(SvtConditionsLoader.CALIBRATIONS_TABLE_NAME);
-	           calibrations.setCollectionID(collectionID);
+	           calibrations.setCollectionId(collectionID);
 	           logger.info("Using collection ID " + collectionID);
 	          
 	           // Load the calibrations
@@ -155,7 +155,7 @@ public class SvtConditionsLoader {
 	          
 	           // Set the collection ID
 	           int collectionID = DatabaseConditionsManager.getInstance().getNextCollectionID(SvtConditionsLoader.DAQ_MAP_TABLE_NAME);
-	           daqMapping.setCollectionID(collectionID);
+	           daqMapping.setCollectionId(collectionID);
 	           logger.info("Using collection ID " + collectionID);
 	           
 	           // Load the DAQ map
@@ -184,7 +184,7 @@ public class SvtConditionsLoader {
 
 	           // Set the collection ID
 	           collectionID = DatabaseConditionsManager.getInstance().getNextCollectionID(SvtConditionsLoader.SVT_CHANNELS_TABLE_NAME);
-	           svtChannels.setCollectionID(collectionID);
+	           svtChannels.setCollectionId(collectionID);
 	           logger.info("Using collection ID " + collectionID);
 	           
 	           svtChannels.insert();

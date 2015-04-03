@@ -60,7 +60,7 @@ public final class ConnectionParameters {
      * @param password The password.
      * @param hostname The hostname.
      * @param port The port number.
-     * @param conditionsTable The table containing conditions validity data.
+     * @param database The database name.
      */
     public ConnectionParameters(final String user, final String password, final String database, final String hostname,
             final int port) {
@@ -130,17 +130,19 @@ public final class ConnectionParameters {
 
     /**
      * Get the connection string for these parameters.
-     * 
+     * <p>
+     * This is public because the DQM database manager is using it.
+     *
      * @return The connection string.
      */
-    String getConnectionString() {
+    public String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
     }
 
     /**
      * Create a database connection from these parameters. The caller becomes the "owner" and is responsible for closing
      * it when finished.
-     * 
+     *
      * @return The Connection object.
      */
     public Connection createConnection() {

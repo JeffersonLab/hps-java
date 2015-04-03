@@ -163,7 +163,7 @@ public class EcalPedestalCalculator extends Driver {
 
         int collectionId = conditionsManager.getNextCollectionID(dbTableName);
         try {
-            calibrations.setCollectionID(collectionId);
+            calibrations.setCollectionId(collectionId);
             
             System.err.println("CollectionID:  "+collectionId);
 

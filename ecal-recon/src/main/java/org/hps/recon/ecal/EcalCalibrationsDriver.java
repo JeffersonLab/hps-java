@@ -288,7 +288,7 @@ public class EcalCalibrationsDriver extends Driver {
     private void loadCalibrations(EcalCalibrationCollection calibrations) {
         int collectionId = conditionsManager.getNextCollectionID(ECAL_CALIBRATIONS);
         try {
-            calibrations.setCollectionID(collectionId);
+            calibrations.setCollectionId(collectionId);
             calibrations.insert();
             ConditionsRecord conditionsRecord = new ConditionsRecord(
                     calibrations.getCollectionId(), 

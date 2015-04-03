@@ -30,7 +30,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * The collection ID which is -1 if the collection is not in the database.
      */
-    private int collectionID = -1;
+    private int collectionId = -1;
 
     /**
      * The associated conditions record information including run validity.
@@ -54,7 +54,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     public BaseConditionsObjectCollection(final ConditionsRecord conditionsRecord, final TableMetaData tableMetaData) {
         this.conditionsRecord = conditionsRecord;
         this.tableMetaData = tableMetaData;
-        this.collectionID = conditionsRecord.getCollectionId();
+        this.collectionId = conditionsRecord.getCollectionId();
     }
 
     /**
@@ -68,7 +68,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
             final int collectionID) {
         this.conditionsRecord = conditionsRecord;
         this.tableMetaData = tableMetaData;
-        this.collectionID = collectionID;
+        this.collectionId = collectionID;
     }
 
     /**
@@ -136,7 +136,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
         if (conditionsRecord != null) {
             return conditionsRecord.getCollectionId();
         } else {
-            return collectionID;
+            return collectionId;
         }
     }
 
@@ -155,18 +155,18 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * Set the collection ID. Once set it cannot be assigned again.
      * <p>
-     * Implements {@link ConditionsObjectCollection#setCollectionID(int)}.
+     * Implements {@link ConditionsObjectCollection#setCollectionId(int)}.
      *
      * @param collectionId The new collection ID.
      * @throws ConditionsObjectException If the ID was already assigned.
      */
     @Override
-    public final void setCollectionID(final int collectionId) throws ConditionsObjectException {
-        if (this.collectionID != -1) {
+    public final void setCollectionId(final int collectionId) throws ConditionsObjectException {
+        if (this.collectionId != -1) {
             throw new ConditionsObjectException("The collectionId already has the value " + collectionId
                     + " and cannot be reset.");
         }
-        this.collectionID = collectionId;
+        this.collectionId = collectionId;
     }
 
     /**
@@ -191,7 +191,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      */
     @Override
     public final int select() {
-        throw new UnsupportedOperationException("The select operation is not implemented yet.");
+        return 0;
     }
 
     /**
@@ -203,7 +203,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      */
     @Override
     public int delete() {
-        throw new UnsupportedOperationException("The delete operation is not implemented yet.");
+        return 0;
     }
 
     /**
@@ -215,7 +215,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      */
     @Override
     public final int update() {
-        throw new UnsupportedOperationException("The update operation is not implemented yet.");
+        return 0;
     }
 
     /**
