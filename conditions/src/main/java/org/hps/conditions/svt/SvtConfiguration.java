@@ -18,50 +18,63 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 /**
- * This is a simple class for getting an SVT XML configuration file.
+ * This class is the conditions object model for an SVT configuration saved into the database.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@Table(names = {"svt_configurations"})
+@Table(names = { "svt_configurations" })
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
-public class SvtConfiguration extends BaseConditionsObject {
+public final class SvtConfiguration extends BaseConditionsObject {
 
+    /**
+     * Collection implementation for {@link SvtConfiguration} objects.
+     */
+    @SuppressWarnings("serial")
     public static class SvtConfigurationCollection extends BaseConditionsObjectCollection<SvtConfiguration> {
     }
 
     /**
      * Get the filename associated with this configuration.
+     *
      * @return The filename associated with the configuration.
      */
-    @Field(names = {"filename"})
+    @Field(names = { "filename" })
     public String getFileName() {
         return getFieldValue("filename");
     }
-    
-    @Field(names = {"content"})
+
+    /**
+     * Get the content of the XML file as a byte array.
+     *
+     * @return the content of the XML file as a byte array
+     */
+    @Field(names = { "content" })
     public byte[] getContent() {
         return getFieldValue("content");
     }
 
     /**
-     * Convert the raw database field value for the configuration into an XML
-     * document.
+     * Convert the raw database content for the configuration into an XML document.
+     *
      * @return The Document created from the raw data.
-     * @throws IOException
-     * @throws JDOMException
+     * @throws IOException if there is an IO error
+     * @throws JDOMException is there is an XML parsing error
      */
     public Document createDocument() throws IOException, JDOMException {
-        byte[] bytes = getFieldValue("content");
-        InputStream inputStream = new ByteArrayInputStream(bytes);
-        SAXBuilder builder = new SAXBuilder();
+        final byte[] bytes = getFieldValue("content");
+        final InputStream inputStream = new ByteArrayInputStream(bytes);
+        final SAXBuilder builder = new SAXBuilder();
         builder.setValidation(false);
         return builder.build(inputStream);
     }
 
     /**
      * Save this configuration to a local file on disk.
-     * @param filename The name of the local file.
+     *
+     * @param filename the name of the local file
      */
-    public void writeToFile(String filename) {
-        XMLOutputter out = new XMLOutputter();
+    public void writeToFile(final String filename) {
+        final XMLOutputter out = new XMLOutputter();
         out.setFormat(Format.getPrettyFormat());
         try {
             out.output(createDocument(), new FileWriter(filename));
@@ -71,11 +84,10 @@ public class SvtConfiguration extends BaseConditionsObject {
     }
 
     /**
-     * Save this configuration to a local file on disk using its name from the
-     * database.
+     * Save this configuration to a local file on disk using its name from the database.
      */
     public void writeToFile() {
-        XMLOutputter out = new XMLOutputter();
+        final XMLOutputter out = new XMLOutputter();
         out.setFormat(Format.getPrettyFormat());
         try {
             out.output(createDocument(), new FileWriter(getFileName()));

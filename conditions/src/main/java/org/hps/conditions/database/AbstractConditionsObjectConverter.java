@@ -39,8 +39,8 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
 
     /**
      * Set the action that the converter will use to disambiguate when multiple conditions sets are found.
-     * 
-     * @param multipleCollections The multiple collections action.
+     *
+     * @param multipleCollections the multiple collections action
      */
     final void setMultipleCollectionsAction(MultipleCollectionsAction multipleCollections) {
         this.multipleCollections = multipleCollections;
@@ -48,8 +48,8 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
 
     /**
      * Get the multiple collections action.
-     * 
-     * @return The multiple collections action.
+     *
+     * @return the multiple collections action
      */
     public final MultipleCollectionsAction getMultipleCollectionsAction() {
         return this.multipleCollections;
@@ -57,8 +57,8 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
 
     /**
      * Get the specific type converted by this class.
-     * 
-     * @return The class that this converter handles.
+     *
+     * @return the class that this converter handles
      */
     public abstract Class<T> getType();
 
@@ -66,9 +66,9 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
      * Get the conditions data based on the name, e.g. "ecal_channels". The table information is found using the type
      * handled by the Converter.
      * 
-     * @param conditionsManager The current conditions manager.
-     * @param name The name of the conditions set (maps to table name).
-     * @return The conditions data.
+     * @param conditionsManager the current conditions manager
+     * @param name the name of the conditions set (maps to table name)
+     * @return the conditions data
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public T getData(final ConditionsManager conditionsManager, final String name) {
@@ -172,10 +172,10 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
     /**
      * Create a conditions object.
      * 
-     * @param resultSet The database record.
-     * @param tableMetaData The table data for the object.
-     * @return The conditions object.
-     * @throws SQLException If there is a problem using the database.
+     * @param resultSet the database record
+     * @param tableMetaData the table data for the object
+     * @return the conditions object
+     * @throws SQLException if there is a problem using the database
      */
     static final ConditionsObject createConditionsObject(final ResultSet resultSet, final TableMetaData tableMetaData)
             throws SQLException {
@@ -203,11 +203,11 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
 
     /**
      * Create a conditions object collection.
-     * 
-     * @param conditionsRecord The conditions record.
-     * @param tableMetaData The table data.
-     * @return The conditions object collection.
-     * @throws ConditionsObjectException If there is a problem creating the collection.
+     *
+     * @param conditionsRecord the conditions record
+     * @param tableMetaData the table data
+     * @return the conditions object collection
+     * @throws ConditionsObjectException if there is a problem creating the collection
      */
     static final BaseConditionsObjectCollection<?> createCollection(final ConditionsRecord conditionsRecord,
             final TableMetaData tableMetaData) throws ConditionsObjectException {
@@ -226,8 +226,8 @@ public abstract class AbstractConditionsObjectConverter<T> implements Conditions
     }
 
     /**
-     * Convert to string.
-     * @return The string.
+     * Convert object to string.
+     * @return the object converted to string
      */
     public String toString() {
         return "ConditionsObjectConverter: type = " + this.getType() + ", multipleCollectionsAction = "

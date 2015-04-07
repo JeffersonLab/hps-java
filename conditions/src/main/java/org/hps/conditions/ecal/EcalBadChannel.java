@@ -25,7 +25,7 @@ public final class EcalBadChannel extends BaseConditionsObject {
         
         /**
          * Sort and return the collection without modifying in place.
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public BaseConditionsObjectCollection<EcalBadChannel> sorted() {
             return sorted(new ChannelIdComparator());
@@ -37,9 +37,9 @@ public final class EcalBadChannel extends BaseConditionsObject {
         class ChannelIdComparator implements Comparator<EcalBadChannel> {
             /**
              * Compare two ECAL bad channel objects.
-             * @param o1 The first object.
-             * @param o2 The second object.
-             * @return -1, 0, 1 if first channel ID is less than, equal to, or greater than the second.
+             * @param o1 the first object
+             * @param o2 the second object
+             * @return -1, 0, 1 if first channel ID is less than, equal to, or greater than the second
              */
             public int compare(EcalBadChannel o1, EcalBadChannel o2) {
                 if (o1.getChannelId() < o2.getChannelId()) {
@@ -55,7 +55,7 @@ public final class EcalBadChannel extends BaseConditionsObject {
 
     /**
      * Get the ECAL channel ID.
-     * @return The ECAL channel ID.
+     * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
     public int getChannelId() {

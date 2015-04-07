@@ -29,47 +29,47 @@ public final class TableMetaData {
     /**
      * The table name.
      */
-    protected String tableName;
-    
+    private String tableName;
+
     /**
      * The conditions key named (unused???).
      */
-    protected String key;
-    
+    private String key;
+
     /**
      * The object class.
      */
-    protected Class<? extends ConditionsObject> objectClass;
-    
+    private Class<? extends ConditionsObject> objectClass;
+
     /**
      * The collection class.
      */
-    protected Class<? extends BaseConditionsObjectCollection<?>> collectionClass;
-    
+    private Class<? extends BaseConditionsObjectCollection<?>> collectionClass;
+
     /**
      * The set of field names.
      */
-    protected Set<String> fieldNames = new LinkedHashSet<String>();
-    
+    private Set<String> fieldNames = new LinkedHashSet<String>();
+
     /**
      * The map of field names to their types.
      */
-    protected Map<String, Class<?>> fieldTypes;
+    private Map<String, Class<?>> fieldTypes;
 
     /**
-     * Fully qualified constructor. 
-     * @param key The conditions key.
-     * @param tableName The table name.
-     * @param objectClass The object class.
-     * @param collectionClass The collection class.
-     * @param fieldNames The field names.
-     * @param fieldTypes The field types.
+     * Fully qualified constructor.
+     * @param key the conditions key
+     * @param tableName the table name
+     * @param objectClass the object class
+     * @param collectionClass the collection class
+     * @param fieldNames the field names
+     * @param fieldTypes the field types
      */
     public TableMetaData(
-            final String key, 
-            final String tableName, 
-            final Class<? extends ConditionsObject> objectClass, 
-            final Class<? extends BaseConditionsObjectCollection<?>> collectionClass, 
+            final String key,
+            final String tableName,
+            final Class<? extends ConditionsObject> objectClass,
+            final Class<? extends BaseConditionsObjectCollection<?>> collectionClass,
             final Set<String> fieldNames,
             final Map<String, Class<?>> fieldTypes) {
         if (key == null) {
@@ -100,7 +100,7 @@ public final class TableMetaData {
 
     /**
      * Get the type of object this table maps onto.
-     * @return The type of object.
+     * @return the type of object
      */
     public Class<? extends ConditionsObject> getObjectClass() {
         return objectClass;
@@ -108,7 +108,7 @@ public final class TableMetaData {
 
     /**
      * Get the type of collection this table maps onto.
-     * @return The collection class.
+     * @return the collection class
      */
     public Class<? extends BaseConditionsObjectCollection<?>> getCollectionClass() {
         return collectionClass;
@@ -116,7 +116,7 @@ public final class TableMetaData {
 
     /**
      * Get the names of the fields. Types are implied from the database tables.
-     * @return The names of the fields.
+     * @return the names of the fields
      */
     public String[] getFieldNames() {
         return fieldNames.toArray(new String[] {});
@@ -124,7 +124,7 @@ public final class TableMetaData {
 
     /**
      * Get the type of the field called <code>fieldName</code>.
-     * @return The type of the field.
+     * @return the type of the field
      */
     public Class<?> getFieldType(final String fieldName) {
         return fieldTypes.get(fieldName);
@@ -132,7 +132,7 @@ public final class TableMetaData {
 
     /**
      * Get the name of the table.
-     * @return The name of the table.
+     * @return the name of the table
      */
     public String getTableName() {
         return tableName;
@@ -141,7 +141,7 @@ public final class TableMetaData {
     /**
      * Get the key of this conditions type. May be different from table name but
      * is usually the same.
-     * @return The key name of the conditions type.
+     * @return the key name of the conditions type
      */
     public String getKey() {
         return key;
@@ -149,11 +149,12 @@ public final class TableMetaData {
 
     /**
      * Find table meta data by object type.
-     * @param tableMetaDataList The list of table meta data e.g. from the registry.
-     * @param objectType The type of the object.
-     * @return The list of table meta data that have that object type.
+     * @param tableMetaDataList the list of table meta data e.g. from the registry
+     * @param objectType the type of the object
+     * @return the list of table meta data that have that object type
      */
-    public static List<TableMetaData> findByObjectType(List<TableMetaData> tableMetaDataList, Class<? extends ConditionsObject> objectType) {
+    public static List<TableMetaData> findByObjectType(final List<TableMetaData> tableMetaDataList,
+            final Class<? extends ConditionsObject> objectType) {
         List<TableMetaData> list = new ArrayList<TableMetaData>();
         for (TableMetaData tableMetaData : tableMetaDataList) {
             if (tableMetaData.getObjectClass().equals(objectType)) {
@@ -169,7 +170,7 @@ public final class TableMetaData {
      * @return This object converted to a string.
      */
     public String toString() {
-        StringBuffer buff = new StringBuffer();
+        final StringBuffer buff = new StringBuffer();
         buff.append("tableMetaData: tableName = " + this.getTableName());  
         buff.append(", objectClass = " + this.getObjectClass().getCanonicalName());
         buff.append(", collectionClass = " + this.getCollectionClass().getCanonicalName());

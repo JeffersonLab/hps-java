@@ -1,17 +1,31 @@
 package org.hps.conditions.svt;
 
 /**
- * This class represents the conditions for a single SVT channel.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This class represents the combined conditions for a single SVT channel.
  *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ChannelConstants {
 
+    /**
+     * The pedestal and noise for the channel.
+     */
     private SvtCalibration calibration = null;
+
+    /**
+     * The calculated gain for the channel.
+     */
     private SvtGain gain = null;
+
+    /**
+     * The shape fit parameters for the channel.
+     */
     private SvtShapeFitParameters shapeFitParameters = null;
+
+    /**
+     * Flag to indicate the channel is bad and should not be used for reconstruction.
+     */
     private boolean badChannel = false;
 
     /**
@@ -22,39 +36,44 @@ public final class ChannelConstants {
 
     /**
      * Set the pulse parameters.
-     * @param pulseParameters The pulse parameters
+     *
+     * @param shapeFitParameters the pulse parameters
      */
-    void setShapeFitParameters(SvtShapeFitParameters shapeFitParameters) {
+    void setShapeFitParameters(final SvtShapeFitParameters shapeFitParameters) {
         this.shapeFitParameters = shapeFitParameters;
     }
 
     /**
      * Set the gain.
-     * @param gain The gain object.
+     *
+     * @param gain the gain object
      */
-    void setGain(SvtGain gain) {
+    void setGain(final SvtGain gain) {
         this.gain = gain;
     }
 
     /**
      * Set the calibration.
-     * @param calibration The calibration object.
+     *
+     * @param calibration the calibration object
      */
-    void setCalibration(SvtCalibration calibration) {
+    void setCalibration(final SvtCalibration calibration) {
         this.calibration = calibration;
     }
 
     /**
      * Set the bad channel flag.
-     * @param badChannel The bad channel flag value.
+     *
+     * @param badChannel the bad channel flag value
      */
-    void setBadChannel(boolean badChannel) {
+    void setBadChannel(final boolean badChannel) {
         this.badChannel = badChannel;
     }
 
     /**
      * Check if this is a bad channel.
-     * @return True if channel is bad; false if not.
+     *
+     * @return <code>true</code> if channel is bad
      */
     public boolean isBadChannel() {
         return badChannel;
@@ -62,7 +81,8 @@ public final class ChannelConstants {
 
     /**
      * Get the shape fit parameters.
-     * @return The shape fit parameters.
+     *
+     * @return the shape fit parameters
      */
     public SvtShapeFitParameters getShapeFitParameters() {
         return shapeFitParameters;
@@ -70,7 +90,8 @@ public final class ChannelConstants {
 
     /**
      * Get the gain.
-     * @return The gain.
+     *
+     * @return the gain object
      */
     public SvtGain getGain() {
         return gain;
@@ -78,7 +99,8 @@ public final class ChannelConstants {
 
     /**
      * Get the calibration.
-     * @return The calibration.
+     *
+     * @return the calibration object
      */
     public SvtCalibration getCalibration() {
         return calibration;
@@ -86,10 +108,11 @@ public final class ChannelConstants {
 
     /**
      * Convert this object to a string.
+     *
      * @return This object converted to a string.
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        final StringBuffer buffer = new StringBuffer();
         buffer.append(getCalibration());
         buffer.append(", ");
         buffer.append(getGain());

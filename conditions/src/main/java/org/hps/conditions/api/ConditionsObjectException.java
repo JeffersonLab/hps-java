@@ -16,7 +16,7 @@ public final class ConditionsObjectException extends Exception {
     /**
      * Error with a message.
      *
-     * @param message The error message.
+     * @param message the error message
      */
     public ConditionsObjectException(final String message) {
         super(message);
@@ -25,8 +25,8 @@ public final class ConditionsObjectException extends Exception {
     /**
      * Error with an associated throwable.
      *
-     * @param message The error message.
-     * @param cause The error's cause.
+     * @param message the error message
+     * @param cause the error's cause
      */
     public ConditionsObjectException(final String message, final Throwable cause) {
         super(message, cause);
@@ -35,8 +35,8 @@ public final class ConditionsObjectException extends Exception {
     /**
      * Error with a message and object.
      *
-     * @param message The error message.
-     * @param object The associated conditions object.
+     * @param message the error message
+     * @param object the associated conditions object
      */
     public ConditionsObjectException(final String message, final ConditionsObject object) {
         super(message);
@@ -45,7 +45,7 @@ public final class ConditionsObjectException extends Exception {
 
     /**
      * Get the associated conditions object to the error.
-     * @return The object associated with the error.
+     * @return the object associated with the error
      */
     public ConditionsObject getConditionsObject() {
         return object;

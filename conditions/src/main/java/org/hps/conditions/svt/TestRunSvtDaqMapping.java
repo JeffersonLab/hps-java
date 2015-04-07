@@ -6,29 +6,31 @@ import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 
 /**
- * This class encapsulates the Test run SVT DAQ map.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * This class encapsulates the Test Run SVT DAQ map.
+ *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-@Table(names = {"test_run_svt_daq_map"})
+@Table(names = { "test_run_svt_daq_map" })
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
 
+    /**
+     * The collection implementation for {@link TestRunSvtDaqMapping} objects.
+     */
     public static class TestRunSvtDaqMappingCollection extends AbstractSvtDaqMappingCollection<TestRunSvtDaqMapping> {
 
         /**
-         * Get a test run DAQ pair (FPGA and Hybrid ID) for the given
-         * {@linkplain HpsTestRunSiSensor}
-         * 
-         * @param sensor A sensor of type {@link HpsTestRunSiSensor}
-         * @return The DAQ pair associated with the sensor
+         * Get a test run DAQ pair (FPGA and Hybrid ID) for the given {@linkplain HpsTestRunSiSensor}.
+         *
+         * @param sensor a sensor of type {@link HpsTestRunSiSensor}
+         * @return the DAQ pair associated with the sensor
          */
-        public Pair<Integer, Integer> getDaqPair(HpsSiSensor sensor) {
+        @Override
+        public Pair<Integer, Integer> getDaqPair(final HpsSiSensor sensor) {
 
-            String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
+            final String svtHalf = sensor.isTopLayer() ? TOP_HALF : BOTTOM_HALF;
             for (TestRunSvtDaqMapping daqMapping : this) {
 
                 if (svtHalf.equals(daqMapping.getSvtHalf()) && daqMapping.getLayerNumber() == sensor.getLayerNumber()) {
@@ -40,19 +42,17 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
         }
 
         /**
-         * Get the orientation of a sensor using the FPGA and Hybrid ID. If the
-         * FPGA and Hybrid ID combination is not found, return null.
+         * Get the orientation of a sensor using the FPGA and Hybrid ID. If the FPGA and Hybrid ID combination is not
+         * found, return null.
          * 
          * @param daqPair (Pair<FPGA ID, Hybrid ID>) for a given sensor
-         * @return If a daqPair is found, return an "A" if the sensor
-         *         orientation is Axial, an "S" if the orientation is Stereo or
-         *         null if the daqPair doesn't exist.
+         * @return "A" if sensor orientation is Axial; "S" if Stereo; null if daqPair doesn't exist
          */
-        public String getOrientation(Pair<Integer, Integer> daqPair) {
-
-            for (TestRunSvtDaqMapping daqMapping : this) {
-
-                if (daqPair.getFirstElement() == ((TestRunSvtDaqMapping) daqMapping).getFpgaID() && daqPair.getSecondElement() == ((TestRunSvtDaqMapping) daqMapping).getHybridID()) {
+        @Override
+        public String getOrientation(final Pair<Integer, Integer> daqPair) {
+            for (final TestRunSvtDaqMapping daqMapping : this) {
+                if (daqPair.getFirstElement() == ((TestRunSvtDaqMapping) daqMapping).getFpgaID()
+                        && daqPair.getSecondElement() == ((TestRunSvtDaqMapping) daqMapping).getHybridID()) {
                     return daqMapping.getOrientation();
                 }
             }
@@ -61,10 +61,11 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
 
         /**
          * Convert {@link TestRunSvtDaqMapping} to a string.
+         * 
          * @return This object converted to a string.
          */
         public String toString() {
-            StringBuffer buffer = new StringBuffer();
+            final StringBuffer buffer = new StringBuffer();
             buffer.append("FPGA ID: ");
             buffer.append(" ");
             buffer.append("Hybrid ID: ");
@@ -79,7 +80,7 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
             buffer.append("----------------------");
             buffer.append('\n');
             for (TestRunSvtDaqMapping daqMapping : this) {
-                TestRunSvtDaqMapping testRunDaqMapping = (TestRunSvtDaqMapping) daqMapping;
+                final TestRunSvtDaqMapping testRunDaqMapping = (TestRunSvtDaqMapping) daqMapping;
                 buffer.append(testRunDaqMapping.getFpgaID());
                 buffer.append("    ");
                 buffer.append(testRunDaqMapping.getHybridID());
@@ -96,12 +97,22 @@ public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {
         }
     }
 
-    @Field(names = {"fpga"})
+    /**
+     * Get the FPGA ID.
+     *
+     * @return the FPGA ID
+     */
+    @Field(names = { "fpga" })
     public int getFpgaID() {
         return getFieldValue("fpga");
     }
 
-    @Field(names = {"hybrid"})
+    /**
+     * Get the Hybrid ID.
+     *
+     * @return the Hybrid ID
+     */
+    @Field(names = { "hybrid" })
     public int getHybridID() {
         return getFieldValue("hybrid");
     }

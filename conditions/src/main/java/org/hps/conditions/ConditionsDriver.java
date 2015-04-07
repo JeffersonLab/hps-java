@@ -13,6 +13,7 @@ import org.lcsim.util.Driver;
  * be included in a steering file.
  * <p>
  * This is an example of using the Driver in an XML steering file:
+ * 
  * <pre>
  * {@code
  * <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
@@ -61,7 +62,8 @@ public class ConditionsDriver extends Driver {
 
     /**
      * Set the name of the detector to use.
-     * @param detectorName The name of the detector.
+     * 
+     * @param detectorName the name of the detector
      */
     public final void setDetectorName(final String detectorName) {
         this.detectorName = detectorName;
@@ -72,7 +74,8 @@ public class ConditionsDriver extends Driver {
      * frozen, the conditions system will ignore subsequent calls to
      * {@link org.lcsim.conditions.ConditionsManager#setDetector(String, int)} and instead use the user supplied
      * detector and run for the whole job.
-     * @param freeze True to freeze the conditions system after it is setup.
+     * 
+     * @param freeze <code>true</code> to freeze the conditions system after it is setup
      */
     public final void setFreeze(final boolean freeze) {
         this.freeze = freeze;
@@ -81,10 +84,10 @@ public class ConditionsDriver extends Driver {
     /**
      * Set a custom run number to setup the conditions system. In the case where the actual event stream has run numbers
      * that differ from this one, most likely the Driver should be configured to be frozen after setup using
-     * {@link #setFreeze(boolean)}.
-     *
-     * The method {@link #setDetectorName(String)} needs to be called before this one or an exception will be thrown.
-     * @param runNumber The user supplied run number for the job.
+     * {@link #setFreeze(boolean)}. The method {@link #setDetectorName(String)} needs to be called before this one or an
+     * exception will be thrown.
+     * 
+     * @param runNumber the user supplied run number for the job
      */
     public final void setRunNumber(final int runNumber) {
         this.runNumber = runNumber;
@@ -92,7 +95,8 @@ public class ConditionsDriver extends Driver {
 
     /**
      * Set a tag used to filter ConditionsRecords.
-     * @param tag The tag value e.g. "eng_run" etc.
+     * 
+     * @param tag the tag value e.g. "pass0"
      */
     public final void setTag(final String tag) {
         this.tag = tag;
@@ -100,7 +104,8 @@ public class ConditionsDriver extends Driver {
 
     /**
      * Set an XML configuration resource.
-     * @param xmlConfigResource The XML configuration resource.
+     * 
+     * @param xmlConfigResource the XML configuration resource
      */
     public final void setXmlConfigResource(final String xmlConfigResource) {
         this.xmlConfigResource = xmlConfigResource;
@@ -108,7 +113,8 @@ public class ConditionsDriver extends Driver {
 
     /**
      * Setup the conditions system based on the Driver parameters.
-     * @throws RuntimeException If there is a problem setting up the conditions system.
+     * 
+     * @throws RuntimeException if there is a problem setting up the conditions system
      */
     public final void initialize() {
 

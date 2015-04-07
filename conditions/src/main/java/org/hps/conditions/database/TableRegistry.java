@@ -16,16 +16,17 @@ import org.hps.conditions.api.ConditionsObjectUtilities;
  * This is a registry providing a map between tables and their meta-data.
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 public final class TableRegistry extends HashMap<String, TableMetaData> {
 
     /**
-     * Maps types to table meta data.     
+     * Maps types to table meta data.
      */
     static class ObjectTypeMap extends HashMap<Class<? extends ConditionsObject>, List<TableMetaData>> {
         /**
          * Add a connection between an object type and table meta data.
-         * @param type The object type.
-         * @param metaData The table meta data.
+         * @param type the object type
+         * @param metaData the table meta data
          */
         void add(Class<? extends ConditionsObject> type, TableMetaData metaData) {
             if (this.get(type) == null) {
@@ -37,14 +38,16 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
 
     /**
      * Maps collection types to table meta data.
-     */    
-    static class CollectionTypeMap extends HashMap<Class<? extends BaseConditionsObjectCollection<?>>, List<TableMetaData>> {
+     */
+    static class CollectionTypeMap extends 
+        HashMap<Class<? extends BaseConditionsObjectCollection<?>>, List<TableMetaData>> {
+        
         /**
-         * Add a connection between a collection type and table meta data.
-         * @param type The collection type.
-         * @param metaData The table meta data.
+         * Add a mapping between a collection type and table meta data.
+         * @param type the collection type
+         * @param metaData the table meta data
          */
-        void add(Class<? extends BaseConditionsObjectCollection<?>> type, TableMetaData metaData) {
+        void add(final Class<? extends BaseConditionsObjectCollection<?>> type, final TableMetaData metaData) {
             if (this.get(type) == null) {
                 this.put(type, new ArrayList<TableMetaData>());                                    
             }
@@ -56,7 +59,7 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
      * Map between object types and meta data.
      */
     private ObjectTypeMap objectTypeMap = new ObjectTypeMap();
-    
+
     /**
      * Map between collection types and meta data.
      */
@@ -72,7 +75,7 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
 
     /**
      * Create a new table meta data registry.
-     * @return The meta data registry.
+     * @return the meta data registry
      */
     static TableRegistry create() {
         TableRegistry registry = new TableRegistry();
@@ -106,41 +109,41 @@ public final class TableRegistry extends HashMap<String, TableMetaData> {
                 registry.put(name, data);
                 registry.objectTypeMap.add(objectType, data);
                 registry.collectionTypeMap.add(collectionType, data);
-            }            
+            }
         }
         return registry;
     }
 
     /**
      * Find meta data by object type.
-     * @param objectType The object type.
-     * @return The meta data or null if none exists.
+     * @param objectType the object type
+     * @return the meta data or <code>null</code> if none exists.
      */
-    List<TableMetaData> findByObjectType(Class<? extends ConditionsObject> objectType) {
+    List<TableMetaData> findByObjectType(final Class<? extends ConditionsObject> objectType) {
         return objectTypeMap.get(objectType);
     }
 
     /**
      * Find meta data by collection type.
-     * @param collectionType The collection type.
-     * @return The meta data or null if none exists.
+     * @param collectionType the collection type
+     * @return the meta data or <code>null</code> if none exists.
      */
-    List<TableMetaData> findByCollectionType(Class<?> collectionType) {
+    List<TableMetaData> findByCollectionType(final Class<?> collectionType) {
         return collectionTypeMap.get(collectionType);
     }
 
     /**
      * Find meta data by table name.
-     * @param name The table name.
-     * @return The meta data or null if none exists.
+     * @param name the table name
+     * @return the meta data or <code>null</code> if none exists
      */
-    TableMetaData findByTableName(String name) {
+    TableMetaData findByTableName(final String name) {
         return this.get(name);
     }
 
     /**
      * Convert this object to a string.
-     * @return This object converted to a string.
+     * @return this object converted to a string
      */
     public String toString() {  
         StringBuffer buff = new StringBuffer();

@@ -9,15 +9,21 @@ import org.hps.conditions.svt.SvtConfiguration.SvtConfigurationCollection;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 
-public class SvtConfigurationTest extends TestCase {
+/**
+ * Load an SVT XML configuration from the database.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ */
+public final class SvtConfigurationTest extends TestCase {
 
-    DatabaseConditionsManager manager;
-
+    /**
+     * Load an SVT XML configuration from the database.
+     */
     public void testSvtConfiguration() {
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        SvtConfigurationCollection collection = manager.getCachedConditions(SvtConfigurationCollection.class, "svt_configurations").getCachedData();
-
-        for (SvtConfiguration config : collection) {
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        final SvtConfigurationCollection collection = manager.getCachedConditions(SvtConfigurationCollection.class,
+                "svt_configurations").getCachedData();
+        for (final SvtConfiguration config : collection) {
             Document doc = null;
             try {
                 doc = config.createDocument();

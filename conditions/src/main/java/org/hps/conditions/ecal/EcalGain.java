@@ -11,7 +11,7 @@ import org.hps.conditions.database.Table;
 
 /**
  * A per channel ECAL gain value.
- * 
+ *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Table(names = { "ecal_gains", "test_run_ecal_gains", "ecal_hardware_gains" })
@@ -58,7 +58,7 @@ public final class EcalGain extends BaseConditionsObject {
     /**
      * Get the gain value in units of MeV/ADC count.
      *
-     * @return The gain value.
+     * @return the gain value
      */
     @Field(names = { "gain" })
     public double getGain() {
@@ -68,7 +68,7 @@ public final class EcalGain extends BaseConditionsObject {
     /**
      * Get the ECal channel ID.
      *
-     * @return The ECal channel ID.
+     * @return the ECal channel ID
      */
     @Field(names = { "ecal_channel_id" })
     public int getChannelId() {

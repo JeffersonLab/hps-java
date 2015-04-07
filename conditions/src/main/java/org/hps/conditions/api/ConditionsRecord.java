@@ -35,8 +35,8 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort using a comparator and leave the original collection unchanged.
          *
-         * @param comparator The comparison to use for sorting.
-         * @return The sorted collection.
+         * @param comparator the comparison to use for sorting
+         * @return the sorted collection
          */
         public final ConditionsRecordCollection sorted(final Comparator<ConditionsRecord> comparator) {
             final List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
@@ -49,7 +49,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort and return collection by updated date.
          *
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByUpdated() {
             return sorted(new UpdatedComparator());
@@ -58,7 +58,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort and return collection by creation date.
          *
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByCreated() {
             return sorted(new CreatedComparator());
@@ -67,7 +67,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort and return by run start number.
          *
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByRunStart() {
             return sorted(new RunStartComparator());
@@ -76,7 +76,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort and return by key (table name).
          *
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public final ConditionsRecordCollection sortedByKey() {
             return sorted(new KeyComparator());
@@ -85,7 +85,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Sort the collection in place.
          *
-         * @param comparator The comparison to use for sorting.
+         * @param comparator the comparison to use for sorting
          */
         public final void sort(final Comparator<ConditionsRecord> comparator) {
             final List<ConditionsRecord> list = new ArrayList<ConditionsRecord>(this);
@@ -125,7 +125,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
         /**
          * Get the unique conditions keys from the records in this collection.
          *
-         * @return The set of unique conditions keys.
+         * @return the set of unique conditions keys
          */
         public final Set<String> getConditionsKeys() {
             final Set<String> conditionsKeys = new HashSet<String>();
@@ -223,13 +223,13 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Create a conditions record with fully qualified constructor.
      *
-     * @param collectionId The ID of the associated conditions collection.
-     * @param runStart The starting run number.
-     * @param runEnd The ending run number.
-     * @param name The name of the conditions set (usually same as table name).
-     * @param tableName The name of the conditions data table.
-     * @param notes Text notes about this record.
-     * @param tag The conditions tag for grouping this record with others.
+     * @param collectionId the ID of the associated conditions collection
+     * @param runStart the starting run number
+     * @param runEnd the ending run number
+     * @param name the name of the conditions set (usually same as table name)
+     * @param tableName the name of the conditions data table
+     * @param notes text notes about this record
+     * @param tag the conditions tag for grouping this record with others
      */
     public ConditionsRecord(final int collectionId, final int runStart, final int runEnd, final String name,
             final String tableName, final String notes, final String tag) {
@@ -252,7 +252,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
 
     /**
      * Insert the conditions record into the database.
-     * @throws ConditionsObjectException If there are errors inserting the record.
+     * @throws ConditionsObjectException if there are errors inserting the record
      */
     public void insert() throws ConditionsObjectException {
         if (getFieldValues().size() == 0) {
@@ -275,7 +275,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the starting run number.
      *
-     * @return The starting run number.
+     * @return the starting run number
      */
     @Field(names = { "run_start" })
     public int getRunStart() {
@@ -285,7 +285,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the ending run number.
      *
-     * @return The ending run number.
+     * @return the ending run number
      */
     @Field(names = { "run_end" })
     public int getRunEnd() {
@@ -295,7 +295,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the date this record was last updated.
      *
-     * @return The date this record was updated.
+     * @return the date this record was updated
      */
     @Field(names = { "updated" })
     public Date getUpdated() {
@@ -305,7 +305,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the date this record was created.
      *
-     * @return The date this record was created.
+     * @return the date this record was created
      */
     @Field(names = { "created" })
     public Date getCreated() {
@@ -315,7 +315,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the name of the user who created this record.
      *
-     * @return The name of the person who created the record.
+     * @return the name of the person who created the record
      */
     @Field(names = { "created_by" })
     public String getCreatedBy() {
@@ -325,7 +325,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the notes.
      *
-     * @return The notes about this condition.
+     * @return the notes about this condition
      */
     @Field(names = { "notes" })
     public String getNotes() {
@@ -333,10 +333,10 @@ public final class ConditionsRecord extends BaseConditionsObject {
     }
 
     /**
-     * Get the name of these conditions, which should be unique by run number. This is called the "key" in the table
-     * meta data to distinguish it from "table name".
+     * Get the name of these conditions.  This is called the "key" in the table
+     * meta data to distinguish it from "table name" but it is usually the same value.
      *
-     * @return The name of the conditions.
+     * @return the name of the conditions
      */
     @Field(names = { "name" })
     public String getName() {
@@ -346,7 +346,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the name of the table containing the actual raw conditions data.
      *
-     * @return The name of the table with the conditions data.
+     * @return the name of the table with the conditions data
      */
     @Field(names = { "table_name" })
     public String getTableName() {
@@ -356,7 +356,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Get the collection ID, overriding this method from the parent class.
      *
-     * @return The collection ID.
+     * @return the collection ID
      */
     @Field(names = { "collection_id" })
     public int getCollectionId() {
@@ -376,7 +376,7 @@ public final class ConditionsRecord extends BaseConditionsObject {
     /**
      * Convert this record to a human readable string, one field per line.
      *
-     * @return This object represented as a string.
+     * @return this object represented as a string
      */
     public String toString() {
         final StringBuffer sb = new StringBuffer();

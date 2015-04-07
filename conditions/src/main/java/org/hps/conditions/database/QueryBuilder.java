@@ -22,15 +22,15 @@ public final class QueryBuilder {
 
     /**
      * Build a SQL select query string.
-     * @param tableName The name of the table.
-     * @param collectionId The collection ID.
-     * @param fields The list of fields.
-     * @param orderBy The field to order by.
-     * @return The SQL query string.
+     * @param tableName the name of the table
+     * @param collectionId the collection ID
+     * @param fields the list of fields
+     * @param orderBy the field to order by
+     * @return the SQL query string
      */
     static String buildSelect(final String tableName, final int collectionId, final String[] fields,
             final String orderBy) {
-        StringBuffer buff = new StringBuffer();
+        final StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         if (fields == null) {
             buff.append("* ");
@@ -85,9 +85,9 @@ public final class QueryBuilder {
 
     /**
      * Build a prepared insert statement for a conditions object.
-     * @param tableName The name of the table.
-     * @param object The conditions object.
-     * @return The prepared insert statement.
+     * @param tableName the name of the table
+     * @param object the conditions object
+     * @return the prepared insert statement
      */
     static String buildPreparedInsert(final String tableName, final ConditionsObject object) {
         if (object.getFieldValues().size() == 0) {
@@ -111,13 +111,13 @@ public final class QueryBuilder {
     /**
      * Date formatting for insert statement.
      */
-    final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
 
     /**
      * Build an insert statement.
-     * @param tableName The table name.
-     * @param fieldValues The field values.
-     * @return The insert statement.
+     * @param tableName the table name
+     * @param fieldValues the field values
+     * @return the insert statement
      */
     public static String buildInsert(final String tableName, final FieldValueMap fieldValues) {
         if (fieldValues.size() == 0) {
@@ -145,11 +145,11 @@ public final class QueryBuilder {
 
     /**
      * Build a SQL insert statement.
-     * @param tableName The table name.
-     * @param collectionID The collection ID.
-     * @param columnNames The column names.
-     * @param rows The row data.
-     * @return The SQL insert statement.
+     * @param tableName the table name
+     * @param collectionID the collection ID
+     * @param columnNames the column names
+     * @param rows the row data
+     * @return the SQL insert statement
      */
     public static String buildInsert(final String tableName, final int collectionID,
             final List<String> columnNames, final List<List<String>> rows) {
@@ -182,8 +182,8 @@ public final class QueryBuilder {
 
     /**
      * Format the date for insert statement.
-     * @param date The input date.
-     * @return The formatted date string.
+     * @param date the input date
+     * @return the formatted date string
      */
     static String formatDate(final Date date) {
         return DATE_FORMAT.format(date);

@@ -20,12 +20,12 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.geometry.Subdetector;
 
 /**
- * This class encapsulates all the information about a single ECal channel,
- * corresponding to one physical crystal in the detector.
+ * This class encapsulates all the information about a single ECal channel, corresponding to one physical crystal in the
+ * detector.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@Table(names = {"ecal_channels", "test_run_ecal_channels"})
+@Table(names = { "ecal_channels", "test_run_ecal_channels" })
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED, converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends BaseConditionsObject {
 
@@ -36,12 +36,13 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Create an {@link EcalChannel} collection.
-         * @param conditionsManager The conditions manager.
-         * @param name The name of the conditions data table.
-         * @return The collection of ECAL channel objects.
+         * 
+         * @param conditionsManager the conditions manager
+         * @param name the name of the conditions data table
+         * @return the collection of ECAL channel objects
          */
         @Override
-        public EcalChannelCollection getData(ConditionsManager conditionsManager, String name) {
+        public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
             final EcalChannelCollection collection = super.getData(conditionsManager, name);
             final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
             collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
@@ -50,17 +51,18 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Get the type this converter handles.
-         * @return The type this converter handles.
+         * 
+         * @return the type this converter handles
          */
         @Override
         public Class<EcalChannelCollection> getType() {
             return EcalChannelCollection.class;
         }
     }
-    
+
     /**
-     * The <code>DaqId</code> is the combination of crate, slot and channel that
-     * specify the channel's DAQ configuration.
+     * The <code>DaqId</code> is the combination of crate, slot and channel that specify the channel's DAQ
+     * configuration.
      */
     public static final class DaqId extends AbstractIdentifier {
 
@@ -68,12 +70,12 @@ public final class EcalChannel extends BaseConditionsObject {
          * The DAQ crate number.
          */
         private int crate = -1;
-        
+
         /**
-         * The DAQ slot number. 
+         * The DAQ slot number.
          */
         private int slot = -1;
-        
+
         /**
          * The DAQ channel number.
          */
@@ -81,6 +83,7 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Create a DAQ ID from an array of values.
+         * 
          * @param values The list of values (crate, slot, channel).
          */
         public DaqId(final int values[]) {
@@ -91,16 +94,18 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Encode this ID into a long value.
+         * 
          * @return The encoded long value.
          */
         @Override
         public long encode() {
-            // from Sho's code
+            // from ECAL readout sim code
             return (((long) crate) << 32) | ((long) slot << 16) | (long) channel;
         }
 
         /**
          * Check if the values look valid.
+         * 
          * @return True if ID's values are valid.
          */
         @Override
@@ -110,8 +115,8 @@ public final class EcalChannel extends BaseConditionsObject {
     }
 
     /**
-     * The <code>GeometryId</code> contains the x and y indices of the crystal
-     * in the LCSIM-based geometry representation.
+     * The <code>GeometryId</code> contains the x and y indices of the crystal in the LCSIM-based geometry
+     * representation.
      */
     public static final class GeometryId extends AbstractIdentifier {
 
@@ -119,12 +124,12 @@ public final class EcalChannel extends BaseConditionsObject {
          * The subdetector system ID.
          */
         private int system = -1;
-        
+
         /**
          * The crystal's X index.
          */
         private int x = Integer.MAX_VALUE;
-        
+
         /**
          * The crystal's Y index.
          */
@@ -137,8 +142,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Create a geometry ID.
-         * @param helper The ID helper.
-         * @param values The list of values (system, x, y).
+         * 
+         * @param helper the ID helper
+         * @param values the list of values (order is system, x, y)
          */
         public GeometryId(final IIdentifierHelper helper, final int[] values) {
             this.helper = helper;
@@ -149,11 +155,13 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Encode this ID as a long using the ID helper.
+         * 
          * @return The encoded long value.
          */
         @Override
         public long encode() {
-            IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary().getNumberOfFields());
+            final IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary()
+                    .getNumberOfFields());
             expId.setValue(helper.getFieldIndex("system"), system);
             expId.setValue(helper.getFieldIndex("ix"), x);
             expId.setValue(helper.getFieldIndex("iy"), y);
@@ -161,8 +169,9 @@ public final class EcalChannel extends BaseConditionsObject {
         }
 
         /**
-         * True if ID's values look valid.
-         * @return True if ID is valid.
+         * Return <code>true</code> if ID is valid
+         * 
+         * @return <code>true</code> if ID is valid
          */
         @Override
         public boolean isValid() {
@@ -171,12 +180,10 @@ public final class EcalChannel extends BaseConditionsObject {
     }
 
     /**
-     * The <code>ChannelId</code> is a unique number identifying the channel
-     * within its conditions collection. The channels in the database are given
-     * sequential channel IDs from 1 to N in semi-arbitrary order. The channel
-     * ID is generally the number used to connect other conditions objects such
-     * as {@link EcalGain} or {@link EcalCalibration} to the appropriate crystal
-     * in the calorimeter.
+     * The <code>ChannelId</code> is a unique number identifying the channel within its conditions collection. The
+     * channels in the database are given sequential channel IDs from 1 to N in semi-arbitrary order. The channel ID is
+     * generally the number used to connect other conditions objects such as {@link EcalGain} or {@link EcalCalibration}
+     * to the appropriate crystal in the calorimeter.
      */
     public static final class ChannelId extends AbstractIdentifier {
 
@@ -187,7 +194,8 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Create a channel ID.
-         * @param values The values (size 0 with single int value).
+         * 
+         * @param values the values (size 0 with single int value)
          */
         public ChannelId(int[] values) {
             id = values[0];
@@ -195,7 +203,8 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Encode as long value (just returns the int value).
-         * @return The ID's value.
+         * 
+         * @return the ID's value encoded as a <code>long</code>
          */
         @Override
         public long encode() {
@@ -203,8 +212,9 @@ public final class EcalChannel extends BaseConditionsObject {
         }
 
         /**
-         * True if ID looks valid.
-         * @return True if ID looks valid.
+         * Return <code>true</code> if ID is valid
+         * 
+         * @return <code>true</code> if ID is valid
          */
         @Override
         public boolean isValid() {
@@ -213,25 +223,28 @@ public final class EcalChannel extends BaseConditionsObject {
     }
 
     /**
-     * Create a {@link DaqId} for this ECAL channel. 
-     * @return The DAQ Id for this ECAL channel.
+     * Create a {@link #DaqId} for this ECAL channel.
+     * 
+     * @return the {@link #DaqId} for this ECAL channel
      */
     DaqId createDaqId() {
         return new DaqId(new int[] { getCrate(), getSlot(), getChannel() });
     }
 
     /**
-     * Create a {@link GeometryId} for this ECAL channel.
-     * @param helper The ID helper.
-     * @param system The subdetector system ID.
-     * @return The geometry ID.
+     * Create a {@link #GeometryId} for this ECAL channel.
+     * 
+     * @param helper the ID helper
+     * @param system the subdetector system ID
+     * @return the geometry ID
      */
-    GeometryId createGeometryId(IIdentifierHelper helper, int system) {
+    GeometryId createGeometryId(final IIdentifierHelper helper, final int system) {
         return new GeometryId(helper, new int[] { system, getX(), getY() });
     }
 
     /**
      * Create a channel ID for this ECAL channel.
+     * 
      * @return The channel ID.
      */
     ChannelId createChannelId() {
@@ -244,30 +257,29 @@ public final class EcalChannel extends BaseConditionsObject {
     public static class EcalChannelCollection extends BaseConditionsObjectCollection<EcalChannel> {
 
         /**
-         * Map of {@link DaqId} to channel object.
+         * Map of {@link #DaqId} to channel object.
          */
         private Map<Long, EcalChannel> daqMap = new HashMap<Long, EcalChannel>();
-        
-        /**
-         * Map of {@link GeometryId} to channel object.
-         */
-        private Map<Long, EcalChannel> geometryMap = new HashMap<Long, EcalChannel>();
-        
-        /**
-         * Map of {@link ChannelId} to channel object.
-         */
-        Map<Long, EcalChannel> channelMap = new HashMap<Long, EcalChannel>();
 
         /**
-         * Add an <code>EcalChannel</code> to the collection and cache its ID
-         * information. The GeometryId must be created later as it requires
-         * access to the Detector API.
+         * Map of {@link #GeometryId} to channel object.
+         */
+        private Map<Long, EcalChannel> geometryMap = new HashMap<Long, EcalChannel>();
+
+        /**
+         * Map of {@link #ChannelId} to channel object.
+         */
+        private Map<Long, EcalChannel> channelMap = new HashMap<Long, EcalChannel>();
+
+        /**
+         * Add an <code>EcalChannel</code> to the collection and cache its ID information. The GeometryId must be
+         * created later as it requires access to the Detector API.
          * 
-         * @param channel The ECAL channel object.
-         * @return True if object was added successfully.
+         * @param channel the ECAL channel object
+         * @return <code>true</code> if object was added successfully
          */
         @Override
-        public boolean add(final EcalChannel channel)  {
+        public boolean add(final EcalChannel channel) {
             super.add(channel);
             final DaqId daqId = channel.createDaqId();
             if (daqId.isValid()) {
@@ -281,9 +293,10 @@ public final class EcalChannel extends BaseConditionsObject {
         }
 
         /**
-         * Build the map of {@link GeometryId} objects.
-         * @param helper The identifier helper of the subdetector.
-         * @param system The system ID of the subdetector.
+         * Build the map of {@link #GeometryId} objects.
+         * 
+         * @param helper the ID helper of the subdetector
+         * @param system the system ID of the subdetector
          */
         void buildGeometryMap(final IIdentifierHelper helper, final int system) {
             for (EcalChannel channel : this) {
@@ -294,8 +307,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by using DAQ information.
-         * @param daqId The DAQ ID object.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param daqId the DAQ ID object
+         * @return the matching channel or <code>null</code> if does not exist.
          */
         public EcalChannel findChannel(final DaqId daqId) {
             return daqMap.get(daqId.encode());
@@ -303,8 +317,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by using its physical ID information.
-         * @param geometryId The geometric ID object.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param geometryId the geometric ID object
+         * @return the matching channel or <code>null</code> if does not exist
          */
         public EcalChannel findChannel(final GeometryId geometryId) {
             return geometryMap.get(geometryId.encode());
@@ -312,8 +327,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by its channel ID.
-         * @param channelId The channel ID object.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param channelId the channel ID object
+         * @return the matching channel or <code>null</code> if does not exist
          */
         public EcalChannel findChannel(final ChannelId channelId) {
             return channelMap.get(channelId.encode());
@@ -321,8 +337,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by its encoded geometric ID.
-         * @param id The encoded geometric ID.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param id the encoded geometric ID
+         * @return the matching channel or <code>null</code> if does not exist
          */
         public EcalChannel findGeometric(final long id) {
             return geometryMap.get(id);
@@ -330,8 +347,9 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by its encoded channel ID.
-         * @param id The encoded channel ID.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param id the encoded channel ID
+         * @return the matching channel or <code>null</code> if does not exist
          */
         public EcalChannel findChannel(final long id) {
             return channelMap.get(id);
@@ -339,16 +357,18 @@ public final class EcalChannel extends BaseConditionsObject {
 
         /**
          * Find a channel by its encoded DAQ ID.
-         * @param id The encoded DAQ ID.
-         * @return The matching channel or null if does not exist.
+         * 
+         * @param id the encoded DAQ ID
+         * @return the matching channel or <code>null</code> if does not exist
          */
         public EcalChannel findDaq(final long id) {
             return daqMap.get(id);
-        }        
+        }
 
         /**
          * Sort collection and return but do not sort in place.
-         * @return The sorted copy of the collection.
+         * 
+         * @return the sorted copy of the collection
          */
         public BaseConditionsObjectCollection<EcalChannel> sorted() {
             return sorted(new ChannelIdComparator());
@@ -360,9 +380,10 @@ public final class EcalChannel extends BaseConditionsObject {
         class ChannelIdComparator implements Comparator<EcalChannel> {
             /**
              * Compare two ECAL channel objects using their channel ID.
-             * @param c1 The first object.
-             * @param c2 The second object.
-             * @return -1, 0, or 1 if first channel is less than, equal to or greater than second.
+             * 
+             * @param c1 the first object
+             * @param c2 the second object
+             * @return -1, 0, or 1 if first channel is less than, equal to or greater than second
              */
             public int compare(EcalChannel c1, EcalChannel c2) {
                 if (c1.getChannelId() < c2.getChannelId()) {
@@ -378,63 +399,69 @@ public final class EcalChannel extends BaseConditionsObject {
 
     /**
      * Get the crate number of the channel.
-     * @return The crate number.
-     *
+     * 
+     * @return the crate number
      */
-    @Field(names = {"crate"})
+    @Field(names = { "crate" })
     public int getCrate() {
         return getFieldValue("crate");
     }
 
     /**
      * Get the slot number of the channel.
-     * @return The slot number.
+     * 
+     * @return the slot number
      */
-    @Field(names = {"slot"})
+    @Field(names = { "slot" })
     public int getSlot() {
         return getFieldValue("slot");
     }
 
     /**
      * Get the channel number of the channel.
-     * @return The channel number.
+     * 
+     * @return the channel number
      */
-    @Field(names = {"channel"})
+    @Field(names = { "channel" })
     public int getChannel() {
         return getFieldValue("channel");
     }
 
     /**
      * Get the x value of the channel.
-     * @return The x value.
+     * 
+     * @return the x value
      */
-    @Field(names = {"x"})
+    @Field(names = { "x" })
     public int getX() {
         return getFieldValue("x");
     }
 
     /**
      * Get the y value of the channel.
-     * @return The y value.
+     * 
+     * @return the y value
      */
-    @Field(names = {"y"})
+    @Field(names = { "y" })
     public int getY() {
         return getFieldValue("y");
     }
 
     /**
      * Get the ID of the channel.
-     * @return The ID of the channel.
+     * 
+     * @return the ID of the channel
      */
-    @Field(names = {"channel_id"})
+    @Field(names = { "channel_id" })
     public int getChannelId() {
         return getFieldValue("channel_id");
     }
 
     /**
      * Implementation of equals.
-     * @param o The object to compare equality to.
-     * @return True if objects are equal.
+     * 
+     * @param o the object to compare equality to
+     * @return <code>true</code> if objects are equal
      */
     public boolean equals(final Object o) {
         if (o == null) {
@@ -447,7 +474,7 @@ public final class EcalChannel extends BaseConditionsObject {
             return true;
         }
         final EcalChannel c = (EcalChannel) o;
-        return c.getChannelId() == getChannelId() && c.getCrate() == getCrate() && c.getSlot() == getSlot() 
+        return c.getChannelId() == getChannelId() && c.getCrate() == getCrate() && c.getSlot() == getSlot()
                 && c.getChannel() == getChannel() && c.getX() == getX() && c.getY() == getY();
     }
 }

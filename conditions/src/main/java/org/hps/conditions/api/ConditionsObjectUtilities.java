@@ -27,8 +27,8 @@ public final class ConditionsObjectUtilities {
     /**
      * Get the list of table names for the class.
      *
-     * @param type The class.
-     * @return The list of table names.
+     * @param type the class
+     * @return the list of table names
      */
     public static String[] getTableNames(final Class<? extends ConditionsObject> type) {
         final Table tableAnnotation = type.getAnnotation(Table.class);
@@ -42,8 +42,8 @@ public final class ConditionsObjectUtilities {
     /**
      * Get the list of database field names for the class.
      *
-     * @param type The class.
-     * @return The list of field names.
+     * @param type the class
+     * @return the list of field names
      */
     public static Set<String> getFieldNames(final Class<? extends ConditionsObject> type) {
         final Set<String> fieldNames = new HashSet<String>();
@@ -71,8 +71,8 @@ public final class ConditionsObjectUtilities {
     /**
      * Get the class for the collection of the ConditionsObject type.
      *
-     * @param type The class of the ConditionsObject.
-     * @return The class of the collection.
+     * @param type the class of the ConditionsObject
+     * @return the class of the collection
      */
     @SuppressWarnings("unchecked")
     public static Class<? extends BaseConditionsObjectCollection<? extends ConditionsObject>> getCollectionType(

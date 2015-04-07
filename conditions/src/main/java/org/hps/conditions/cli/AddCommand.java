@@ -52,7 +52,7 @@ public class AddCommand extends AbstractCommand {
     /**
      * Execute the command with the given arguments.
      *
-     * @param arguments The command line arguments.
+     * @param arguments the command line arguments
      */
     final void execute(final String[] arguments) {
 
@@ -134,15 +134,15 @@ public class AddCommand extends AbstractCommand {
     /**
      * Create a conditions record.
      *
-     * @param runStart The run start.
-     * @param runEnd The run end.
-     * @param tableName The table name.
-     * @param name The key name.
-     * @param collectionId The collection ID.
-     * @param createdBy The user name.
-     * @param tag The conditions tag.
-     * @param notes The text notes.
-     * @return The new conditions record.
+     * @param runStart the run start
+     * @param runEnd the run end
+     * @param tableName the table name
+     * @param name the key name
+     * @param collectionId the collection ID
+     * @param createdBy the user name
+     * @param tag the conditions tag
+     * @param notes the text notes about the collection
+     * @return the new conditions record
      */
     // FIXME: Too many method parameters (max 7 is recommended).
     private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,

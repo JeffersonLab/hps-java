@@ -56,11 +56,11 @@ public final class ConnectionParameters {
     /**
      * Fully qualified constructor.
      *
-     * @param user The user name.
-     * @param password The password.
-     * @param hostname The hostname.
-     * @param port The port number.
-     * @param database The database name.
+     * @param user the user name
+     * @param password the password
+     * @param hostname the hostname
+     * @param port the port number
+     * @param database the database name
      */
     public ConnectionParameters(final String user, final String password, final String database, final String hostname,
             final int port) {
@@ -74,7 +74,7 @@ public final class ConnectionParameters {
     /**
      * Get Properties object for this connection.
      *
-     * @return The Properties for this connection.
+     * @return the Properties for this connection
      */
     public Properties getConnectionProperties() {
         final Properties p = new Properties();
@@ -86,16 +86,16 @@ public final class ConnectionParameters {
     /**
      * Get the hostname.
      *
-     * @return The hostname.
+     * @return the hostname
      */
-    final String getHostname() {
+    String getHostname() {
         return hostname;
     }
 
     /**
      * Get the port number.
      *
-     * @return The port number.
+     * @return the port number
      */
     int getPort() {
         return port;
@@ -104,7 +104,7 @@ public final class ConnectionParameters {
     /**
      * Get the name of the database.
      *
-     * @return The name of the database.
+     * @return the name of the database
      */
     String getDatabase() {
         return database;
@@ -112,8 +112,8 @@ public final class ConnectionParameters {
 
     /**
      * Get the user name.
-     * 
-     * @return The user name.
+     *
+     * @return the user name
      */
     String getUser() {
         return user;
@@ -121,8 +121,8 @@ public final class ConnectionParameters {
 
     /**
      * Get the password.
-     * 
-     * @return The password.
+     *
+     * @return the password
      */
     String getPassword() {
         return password;
@@ -133,7 +133,7 @@ public final class ConnectionParameters {
      * <p>
      * This is public because the DQM database manager is using it.
      *
-     * @return The connection string.
+     * @return the connection string
      */
     public String getConnectionString() {
         return "jdbc:mysql://" + hostname + ":" + port + "/";
@@ -143,7 +143,7 @@ public final class ConnectionParameters {
      * Create a database connection from these parameters. The caller becomes the "owner" and is responsible for closing
      * it when finished.
      *
-     * @return The Connection object.
+     * @return the new <code>Connection</code> object
      */
     public Connection createConnection() {
         final Properties connectionProperties = getConnectionProperties();
@@ -160,10 +160,10 @@ public final class ConnectionParameters {
     /**
      * Configure the connection parameters from a properties file.
      *
-     * @param file The properties file.
-     * @return The connection parameters.
+     * @param file the properties file
+     * @return the connection parameters
      */
-    public static final ConnectionParameters fromProperties(final File file) {
+    public static ConnectionParameters fromProperties(final File file) {
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(file);
@@ -176,8 +176,8 @@ public final class ConnectionParameters {
     /**
      * Configure the connection parameters from an embedded classpath resource which should be a properties file.
      *
-     * @param resource The resource path.
-     * @return The connection parameters.
+     * @param resource the resource path
+     * @return the connection parameters
      */
     public static ConnectionParameters fromResource(final String resource) {
         return fromProperties(ConnectionParameters.class.getResourceAsStream(resource));
@@ -186,8 +186,8 @@ public final class ConnectionParameters {
     /**
      * Configure the connection parameters from an <code>InputStream</code> of properties.
      *
-     * @param in The InputStream of the properties.
-     * @return The connection parameters.
+     * @param in the InputStream of the properties
+     * @return the connection parameters
      * @throws RuntimeException if the InputStream is invalid
      */
     private static ConnectionParameters fromProperties(final InputStream in) {

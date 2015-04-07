@@ -22,7 +22,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * <p>
  * The beam energy is hard-coded to 1.92 GeV for now, pending updates with better information.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ImportBeamConditionsEngRun {
 
@@ -44,8 +44,8 @@ public final class ImportBeamConditionsEngRun {
 
     /**
      * Import the Eng Run beam conditions from a text file.
-     * @param args The argument list.
-     * @throws Exception If there is an error importing the text file.
+     * @param args the argument list
+     * @throws Exception if there is an error importing the text file
      */
     public static void main(final String[] args) throws Exception {
 
@@ -101,8 +101,8 @@ public final class ImportBeamConditionsEngRun {
             final int run = entry.getKey();
             final BeamConditions beam = entry.getValue();
             final int collectionId = manager.getNextCollectionID("beam");
-            final ConditionsRecord record = 
-                    new ConditionsRecord(collectionId, run, run, "beam", "beam", "imported from HPS_Runs.pdf", "eng_run");
+            final ConditionsRecord record = new ConditionsRecord(
+                    collectionId, run, run, "beam", "beam", "imported from HPS_Runs.pdf", "eng_run");
             System.out.println(record);
             System.out.println(beam);
             final BeamConditionsCollection collection = new BeamConditionsCollection();
@@ -115,9 +115,9 @@ public final class ImportBeamConditionsEngRun {
 
     /**
      * Set the value of the beam current.
-     * @param beam The beam conditions object.
-     * @param fieldName The name of the field.
-     * @param rawValue The raw value from the text file.
+     * @param beam the beam conditions object
+     * @param fieldName the name of the field
+     * @param rawValue the raw value from the text file
      */
     static void setValue(final BeamConditions beam, final String fieldName, final String rawValue) {
         final double value = Double.parseDouble(rawValue);

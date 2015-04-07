@@ -41,8 +41,8 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
 
     /**
      * Class constructor.
-     * @param objectType The type of the object.
-     * @param collectionType The type of the collection.
+     * @param objectType the type of the object
+     * @param collectionType the type of the collection
      */
     ConditionsSeriesConverter(final Class<ObjectType> objectType, final Class<CollectionType> collectionType) {
         this.collectionType = collectionType;
@@ -51,8 +51,8 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
 
     /**
      * Create a new conditions series.
-     * @param tableName The name of the data table.
-     * @return The conditions series.
+     * @param tableName the name of the data table
+     * @return the conditions series
      */
     @SuppressWarnings({ "unchecked" })
     final ConditionsSeries<ObjectType, CollectionType> createSeries(final String tableName) {
@@ -77,7 +77,7 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
         }
 
         // Create a new conditions series.
-        final ConditionsSeries<ObjectType, CollectionType> series = 
+        final ConditionsSeries<ObjectType, CollectionType> series =
                 new ConditionsSeries<ObjectType, CollectionType>();
 
         // Get the ConditionsRecord with the meta-data, which will use the current run number from the manager.
@@ -107,7 +107,7 @@ final class ConditionsSeriesConverter<ObjectType extends ConditionsObject,
                 // Loop over rows.
                 while (resultSet.next()) {
                     // Create new ConditionsObject.
-                    final ConditionsObject newObject = 
+                    final ConditionsObject newObject =
                             ConditionsRecordConverter.createConditionsObject(resultSet, tableMetaData);
 
                     // Add new object to collection.

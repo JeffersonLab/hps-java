@@ -10,14 +10,14 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Read {@link org.hps.conditions.api.ConditionsRecord} objects from the conditions database.
- * 
+ *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ConditionsRecordConverter extends AbstractConditionsObjectConverter<ConditionsRecordCollection> {
 
     /**
      * Get the ConditionsRecords for a run based on current configuration of the conditions system.
-     * 
+     *
      * @param manager The current conditions manager.
      * @param name The name of the conditions set.
      * @return The matching ConditionsRecords.

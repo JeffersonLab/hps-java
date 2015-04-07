@@ -19,17 +19,17 @@ final class EcalCrystalChannelMap {
     /**
      * Map of crystal to channel.
      */
-    Map<EcalCrystal, EcalChannel> crystalMap = new HashMap<EcalCrystal, EcalChannel>();
-    
+    private Map<EcalCrystal, EcalChannel> crystalMap = new HashMap<EcalCrystal, EcalChannel>();
+
     /**
      * Map of channel to crystal.
      */
-    Map<EcalChannel, EcalCrystal> channelMap = new HashMap<EcalChannel, EcalCrystal>();
+    private Map<EcalChannel, EcalCrystal> channelMap = new HashMap<EcalChannel, EcalCrystal>();
 
     /**
      * Creates the map between crystals and channels.
-     * @param api The ECAL API.
-     * @param channels The list of channels.
+     * @param api the ECAL geometry API
+     * @param channels the list of channels
      */
     EcalCrystalChannelMap(final HPSEcalAPI api, final EcalChannelCollection channels) {
 
@@ -46,7 +46,7 @@ final class EcalCrystalChannelMap {
         for (EcalChannel channel : channels) {
             final EcalCrystal crystal = api.getCrystal(channel.getX(), channel.getY());
             if (crystal == null) {
-                throw new RuntimeException("ECAl crystal was not found for channel X Y: " 
+                throw new RuntimeException("ECAl crystal was not found for channel X Y: "
                         + channel.getX() + " " + channel.getY());
             }
             channelMap.put(channel, crystal);
@@ -55,17 +55,17 @@ final class EcalCrystalChannelMap {
 
     /**
      * Get a channel from a crystal.
-     * @param crystal The geometry object.
-     * @return The channel information or null if does not exist.
+     * @param crystal the crystal's geometry object
+     * @return the channel information or <code>null</code> if does not exist
      */
     EcalChannel getEcalChannel(final EcalCrystal crystal) {
         return crystalMap.get(crystal);
-    }    
+    }
 
     /**
-     * Get a channel from a crystal.
-     * @param crystal The geometry object.
-     * @return The channel information or null if does not exist.
+     * Get a crystal from a channel.
+     * @param channel the ECAL channel object
+     * @return the crystal's geometry object or <code>null</code> if does not exist
      */
     EcalCrystal getEcalCrystal(final EcalChannel channel) {
         return channelMap.get(channel);

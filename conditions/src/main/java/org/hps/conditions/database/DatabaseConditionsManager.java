@@ -223,7 +223,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the static instance of this class.
      *
-     * @return The static instance of the manager.
+     * @return the static instance of the manager
      */
     public static synchronized DatabaseConditionsManager getInstance() {
 
@@ -261,7 +261,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Set the log level.
      *
-     * @param level The log level.
+     * @param level the new log level
      */
     public void setLogLevel(final Level level) {
         logger.config("setting log level to " + level);
@@ -273,7 +273,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Open the database connection.
      *
-     * @return True if a connection was opened; false if using an existing connection.
+     * @return <code>true</code> if a connection was opened; <code>false</code> if using an existing connection.
      */
     public synchronized boolean openConnection() {
         boolean openedConnection = false;
@@ -326,9 +326,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
     /**
      * Close the database connection but only if there was a connection opened based on the flag. Otherwise, it should
-     * be left open.
+     * be left open.  Used in conjunction with return value of {@link #openConnection()}.
      *
-     * @param connectionOpened True to close the connection; false to leave it open.
+     * @param connectionOpened <code>true</code> to close the connection; <code>false</code> to leave it open
      */
     public synchronized void closeConnection(final boolean connectionOpened) {
         if (connectionOpened) {
@@ -339,11 +339,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get a conditions series with one or more collections.
      *
-     * @param collectionType The type of the collection.
-     * @param tableName The name of the data table.
-     * @param <ObjectType> The type of the conditions object.
-     * @param <CollectionType> The type of the conditions collection.
-     * @return The conditions series.
+     * @param collectionType the type of the collection
+     * @param tableName the name of the data table
+     * @param <ObjectType> the type of the conditions object
+     * @param <CollectionType> the type of the conditions collection
+     * @return the conditions series
      */
     @SuppressWarnings("unchecked")
     public
@@ -392,35 +392,35 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Utility method to determine if a run number is from the 2012 Test Run.
      *
-     * @param runNumber The run number.
-     * @return True if run number is from the Test Run.
+     * @param runNumber the run number
+     * @return <code>true</code> if run number is from the Test Run
      */
     public static boolean isTestRun(final int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
     }
 
     /**
-     * True if Test Run configuration is selected.
+     * Return <code>true</code> if Test Run configuration is active
      *
-     * @return True if current run is from the Test Run.
+     * @return <code>true</code> if Test Run configuration is active
      */
     public boolean isTestRun() {
         return isTestRun;
     }
 
     /**
-     * Get the current LCSim compact <code>Detector</code> object.
+     * Get the current LCSim compact <code>Detector</code> object with the geometry and detector model.
      *
-     * @return The detector object.
+     * @return the detector object
      */
     public Detector getDetectorObject() {
         return getCachedConditions(Detector.class, "compact.xml").getCachedData();
     }
 
     /**
-     * Configure this object from an XML file.
+     * Configure some properties of this object from an XML file
      *
-     * @param file The XML file.
+     * @param file the XML file
      */
     public void setXmlConfig(final File file) {
         logger.config("setting XML config from file " + file.getPath());
@@ -437,7 +437,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Configure this object from an embedded XML resource.
      *
-     * @param resource The embedded XML resource.
+     * @param resource the embedded XML resource
      */
     public void setXmlConfig(final String resource) {
         logger.config("setting XML config from resource " + resource);
@@ -448,7 +448,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Set the path to a properties file containing connection settings.
      *
-     * @param file The properties file
+     * @param file the properties file
      */
     public void setConnectionProperties(final File file) {
         logger.config("setting connection properties file " + file.getPath());
@@ -462,7 +462,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Set the connection parameters of the conditions database.
      *
-     * @param connectionParameters The connection parameters.
+     * @param connectionParameters the connection parameters
      */
     public void setConnectionParameters(final ConnectionParameters connectionParameters) {
         this.connectionParameters = connectionParameters;
@@ -471,7 +471,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Set the connection parameters from an embedded resource location.
      *
-     * @param resource The classpath resource location.
+     * @param resource the classpath resource location
      */
     public void setConnectionResource(final String resource) {
         logger.config("setting connection resource " + resource);
@@ -481,8 +481,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the next collection ID for a database conditions table.
      *
-     * @param tableName The name of the table.
-     * @return The next collection ID.
+     * @param tableName the name of the table
+     * @return the next collection ID
      */
     public synchronized int getNextCollectionID(final String tableName) {
         final boolean openedConnection = openConnection();
@@ -501,11 +501,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This method will return true if the given collection ID already exists in the table.
+     * This method will return <code>true</code> if the given collection ID already exists in the table.
      *
-     * @param tableName The name of the table.
-     * @param collectionID The collection ID value.
-     * @return True if collection exists.
+     * @param tableName the name of the table
+     * @param collectionID the collection ID value
+     * @return <code>true</code> if collection exists
      */
     public boolean collectionExists(final String tableName, final int collectionID) {
         final String sql = "SELECT * FROM " + tableName + " where collection_id = " + collectionID;
@@ -527,8 +527,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * This method can be used to perform a database SELECT query.
      *
-     * @param query The SQL query string.
-     * @return The ResultSet from the query or null.
+     * @param query the SQL query string
+     * @return the <code>ResultSet</code> from the query
+     * @throws RuntimeException if there is a query error
      */
     ResultSet selectQuery(final String query) {
         logger.fine("executing SQL select query ..." + '\n' + query);
@@ -546,8 +547,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Perform a SQL query with an update command like INSERT, DELETE or UPDATE.
      *
-     * @param query The SQL query string.
-     * @return The keys of the rows affected.
+     * @param query the SQL query string
+     * @return the keys of the rows affected
      */
     public List<Integer> updateQuery(final String query) {
         final boolean openedConnection = openConnection();
@@ -575,8 +576,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Find a collection of conditions validity records by key name. The key name is distinct from the table name, but
      * they are usually set to the same value.
      *
-     * @param name The conditions key name.
-     * @return The set of matching conditions records.
+     * @param name the conditions key name
+     * @return the set of matching conditions records
      */
     public ConditionsRecordCollection findConditionsRecords(final String name) {
         final ConditionsRecordCollection runConditionsRecords = getCachedConditions(ConditionsRecordCollection.class,
@@ -601,17 +602,17 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * True if there is a conditions record with the given name.
      *
-     * @param name The conditions name.
-     * @return True if a conditions record exists with the given name.
+     * @param name the conditions record name (usually will match to table name)
+     * @return <code>true</code> if a conditions record exists with the given name
      */
     public boolean hasConditionsRecord(final String name) {
         return !findConditionsRecords(name).isEmpty();
     }
 
     /**
-     * Get a list of all the ConditionsRecord objects.
+     * Get a list of all the {@link ConditionsRecord} objects.
      *
-     * @return The list of all the ConditionsRecord objects.
+     * @return the list of all the {@link ConditionsRecord} objects
      */
     // FIXME: This should use a cache that is created during initialization, rather than look these up every time.
     public ConditionsRecordCollection getConditionsRecords() {
@@ -637,7 +638,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the combined ECAL conditions for this run.
      *
-     * @return The combined ECAL conditions.
+     * @return the combined ECAL conditions
      */
     public EcalConditions getEcalConditions() {
         return this.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
@@ -646,7 +647,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the combined SVT conditions for this run.
      *
-     * @return The combined SVT conditions.
+     * @return the combined SVT conditions
      */
     public SvtConditions getSvtConditions() {
         return this.getCachedConditions(SvtConditions.class, "svt_conditions").getCachedData();
@@ -674,18 +675,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * True if conditions system is frozen.
+     * True if conditions system is frozen
      *
-     * @return True if conditions system is frozen.
+     * @return <code>true</code> if conditions system is currently frozen
      */
     public boolean isFrozen() {
         return isFrozen;
     }
 
     /**
-     * Set a tag used to filter ConditionsRecords.
+     * Set a tag used to filter the accessible conditions records
      *
-     * @param tag The tag value used to filter ConditionsRecords.
+     * @param tag the tag value used to filter returned conditions records
      */
     public void setTag(final String tag) {
         this.tag = tag;
@@ -695,10 +696,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Insert a collection of ConditionsObjects into the database.
      *
-     * @param collection The collection to insert.
-     * @param <ObjectType> The type of the conditions object.
-     * @throws SQLException If there is a database error.
-     * @throws ConditionsObjectException If there is a problem with the ConditionsObjects.
+     * @param collection the collection to insert
+     * @param <ObjectType> the type of the conditions object
+     * @throws SQLException if there is a database or SQL error
+     * @throws ConditionsObjectException if there is a problem inserting the object
      */
     public <ObjectType extends ConditionsObject> void insertCollection(
             final ConditionsObjectCollection<ObjectType> collection)
@@ -717,7 +718,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             if (metaDataList == null) {
                 // This is a fatal error because no meta data is available for the type.
                 throw new ConditionsObjectException("Failed to find meta data for type: " + collection.getClass());
-            } 
+            }
         }
         if (collection.getCollectionId() == -1) {
             try {
@@ -775,7 +776,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Check if connected to the database.
      *
-     * @return true if connected
+     * @return <code>true</code> if connected
      */
     public boolean isConnected() {
         return isConnected;
@@ -784,7 +785,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the Logger for this class, which can be used by related sub-classes if they do not have their own logger.
      *
-     * @return The Logger for this class.
+     * @return the Logger for this class
      */
     public static Logger getLogger() {
         return logger;
@@ -793,8 +794,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Find table information from the name.
      *
-     * @param name The name of the table.
-     * @return The table information or null if does not exist.
+     * @param name the name of the table
+     * @return the table information or <code>null</code> if does not exist
      */
     public TableMetaData findTableMetaData(final String name) {
         return tableRegistry.findByTableName(name);
@@ -803,8 +804,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Find table information from the collection type.
      *
-     * @param type The collection type.
-     * @return The table information or null if does not exist.
+     * @param type the collection type
+     * @return the table information or <code>null</code> if does not exist
      */
     public List<TableMetaData> findTableMetaData(final Class<?> type) {
         return tableRegistry.findByCollectionType(type);
@@ -813,7 +814,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the name of the ECAL in the detector geometry.
      *
-     * @return The name of the ECAL.
+     * @return the name of the ECAL
      */
     public String getEcalName() {
         return ecalName;
@@ -822,7 +823,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Get the subdetector object of the ECAL.
      *
-     * @return The ECAL subdetector.
+     * @return the ECAL subdetector
      */
     public Subdetector getEcalSubdetector() {
         return this.getDetectorObject().getSubdetector(ecalName);
@@ -831,16 +832,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * True if conditions manager is properly initialized.
      *
-     * @return True if the manager is initialized.
+     * @return <code>true</code> if the manager is initialized
      */
     public boolean isInitialized() {
         return isInitialized;
     }
 
     /**
-     * Get the set of unique conditions tags from the conditions table.
+     * Get the set of available conditions tags from the conditions table
      *
-     * @return The list of unique conditions tags.
+     * @return the set of available conditions tags
      */
     public Set<String> getTags() {
         logger.fine("getting list of available conditions tags");
@@ -872,11 +873,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
 
     /**
      * Perform all necessary initialization, including setup of the XML configuration and loading of conditions
-     * onto the Detector.
+     * onto the Detector.  This is called from the {@link #setDetector(String, int)} method to setup the manager
+     * for a new run or detector.
      *
-     * @param detectorName The name of the detector model.
-     * @param runNumber The run number.
-     * @throws ConditionsNotFoundException If there is a conditions system error.
+     * @param detectorName the name of the detector model
+     * @param runNumber the run number
+     * @throws ConditionsNotFoundException if there is a conditions system error
      */
     private void initialize(final String detectorName, final int runNumber) throws ConditionsNotFoundException {
 
@@ -972,7 +974,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Set the name of the ECAL sub-detector.
      *
-     * @param ecalName The name of the ECAL.
+     * @param ecalName the name of the ECAL subdetector
      */
     private void setEcalName(final String ecalName) {
         if (ecalName == null) {
@@ -983,9 +985,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Set the name of the SVT sub-detector.
+     * Set the name of the SVT subdetector.
      *
-     * @param svtName The name of the SVT.
+     * @param svtName the name of the SVT subdetector
      */
     private void setSvtName(final String svtName) {
         if (svtName == null) {
@@ -996,10 +998,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * True if the conditions record matches the current tag.
+     * Return <code>true</code> if the conditions record matches the current tag
      *
-     * @param record The conditions record.
-     * @return True if conditions record matches the currently used tag.
+     * @param record the conditions record
+     * @return <code>true</code> if conditions record matches the currently used tag
      */
     private boolean matchesTag(final ConditionsRecord record) {
         if (this.tag == null) {
@@ -1020,10 +1022,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private void cacheConditionsSets() {
         for (TableMetaData meta : tableRegistry.values()) {
             try {
-                logger.fine("caching conditions " + meta.key + " with type " + meta.collectionClass.getCanonicalName());
-                getCachedConditions(meta.collectionClass, meta.key);
+                logger.fine("caching conditions " + meta.getKey() + " with type " + meta.getCollectionClass().getCanonicalName());
+                getCachedConditions(meta.getCollectionClass(), meta.getKey());
             } catch (Exception e) {
-                logger.warning("could not cache conditions " + meta.key);
+                logger.warning("could not cache conditions " + meta.getKey());
             }
         }
     }
@@ -1075,7 +1077,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Load configuration information from an XML document.
      *
-     * @param document The XML document.
+     * @param document the XML document
      */
     private void loadConfiguration(final Document document) {
 

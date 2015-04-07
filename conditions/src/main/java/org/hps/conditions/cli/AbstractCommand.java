@@ -42,9 +42,9 @@ abstract class AbstractCommand {
 
     /**
      * Class constructor.
-     * @param name The string that invokes this command.
-     * @param description The description of this command.
-     * @param options The command's options (Apache CLI).
+     * @param name the string that invokes this command
+     * @param description the description of this command
+     * @param options the command's options (Apache CLI)
      */
     AbstractCommand(final String name, final String description, final Options options) {
         this.name = name;
@@ -54,7 +54,7 @@ abstract class AbstractCommand {
 
     /**
      * Get the name of this command.
-     * @return A String of the name of this command.
+     * @return the name of this command
      */
     final String getName() {
         return this.name;
@@ -62,15 +62,15 @@ abstract class AbstractCommand {
 
     /**
      * Get the description of this command.
-     * @return A String of the description of this command.
+     * @return the description of this command
      */
     protected final String getDescription() {
         return this.description;
     }
 
     /**
-     * Options for this command.
-     * @return Options object for this command.
+     * Get the <code>Options</code> for this command (Apache CLI).
+     * @return the <code>Options</code> object for this command
      */
     protected final Options getOptions() {
         return options;
@@ -86,7 +86,7 @@ abstract class AbstractCommand {
 
     /**
      * Set whether verbose output is enabled.
-     * @param verbose True to enable verbose output.
+     * @param verbose <code>true</code> to enable verbose output
      */
     final void setVerbose(final boolean verbose) {
         this.verbose = verbose;
@@ -94,7 +94,7 @@ abstract class AbstractCommand {
 
     /**
      * Get verbose flag.
-     * @return The verbose flag.
+     * @return the verbose flag
      */
     protected boolean getVerbose() {
         return verbose;
@@ -102,8 +102,8 @@ abstract class AbstractCommand {
 
     /**
      * Parse the sub-command's options.
-     * @param arguments The sub-command's arguments.
-     * @return The parsed command line.
+     * @param arguments the sub-command's arguments
+     * @return the parsed command line
      */
     protected final CommandLine parse(final String[] arguments) {
         CommandLine commandLine = null;

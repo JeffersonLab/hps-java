@@ -18,37 +18,40 @@ import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 /**
- * This class checks that event processing works correctly for files that 
- * have multiple runs in them.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This class checks that event processing works correctly for files that have multiple runs in them.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class RunNumberTest extends TestCase {
+public final class RunNumberTest extends TestCase {
 
-    // This test file has a few events from each of the "good runs" of the 2012 Test Run.
-    private static final String fileLocation = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
+    /**
+     * Test file with a few events from each of the "good runs" of the 2012 Test Run.
+     */
+    private static final String URL = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
 
-    // Number of runs that should be processed in the job.
-    static final int NRUNS = 9;
+    /**
+     * Number of runs that should be processed in the job.
+     */
+    private static final int RUN_COUNT = 9;
 
     /**
      * Run the test.
-     * @throws Exception
+     * @throws Exception if there is a test error
      */
     public void test() throws Exception {
 
         // Cache a data file from the www.
-        FileCache cache = new FileCache();
-        File testFile = cache.getCachedFile(new URL(fileLocation));
+        final FileCache cache = new FileCache();
+        final File testFile = cache.getCachedFile(new URL(URL));
 
         // Create the record loop.
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setLogLevel(Level.WARNING);
-        LCSimLoop loop = new LCSimLoop();
+        final LCSimLoop loop = new LCSimLoop();
 
         // Configure the loop.
         loop.setLCIORecordSource(testFile);
-        RunNumberDriver runNumberDriver = new RunNumberDriver();
+        final RunNumberDriver runNumberDriver = new RunNumberDriver();
         loop.add(runNumberDriver);
 
         // Run over all events.
@@ -71,16 +74,18 @@ public class RunNumberTest extends TestCase {
         }
 
         // Check that correct number of runs was processed.
-        assertEquals("Number of runs processed was incorrect.", NRUNS, runNumberDriver.nRuns);
+        assertEquals("Number of runs processed was incorrect.", RUN_COUNT, runNumberDriver.nRuns);
 
         // Check that the number of unique runs was correct.
-        assertEquals("Number of unique runs was incorrect.", NRUNS, runNumberDriver.uniqueRuns.size());
+        assertEquals("Number of unique runs was incorrect.", RUN_COUNT, runNumberDriver.uniqueRuns.size());
 
         // Check that detectorChanged was called the correct number of times.
-        assertEquals("The detectorChanged method was called an incorrect number of times.", NRUNS, runNumberDriver.nDetectorChanged);
-        
+        assertEquals("The detectorChanged method was called an incorrect number of times.",
+                RUN_COUNT, runNumberDriver.nDetectorChanged);
+
         // Check that there was a unique Detector created for each run.
-        assertEquals("The number of Detector objects created was not correct.", NRUNS, runNumberDriver.uniqueDetectorObjects.size());
+        assertEquals("The number of Detector objects created was not correct.",
+                RUN_COUNT, runNumberDriver.uniqueDetectorObjects.size());
     }
 
     /**
@@ -88,16 +93,41 @@ public class RunNumberTest extends TestCase {
      */
     static class RunNumberDriver extends Driver {
 
-        int nRuns = 0;
-        int nDetectorChanged = 0;
-        List<Integer> runsProcessed = new ArrayList<Integer>();
-        Set<Integer> uniqueRuns = new LinkedHashSet<Integer>();  
-        Set<Detector> uniqueDetectorObjects = new HashSet<Detector>();
-        static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        
-        public void detectorChanged(Detector detector) {
-            //System.out.println("detectorChanged - detector " + detector.getDetectorName() + " and run #" + conditionsManager.getRun());
-            int run = conditionsManager.getRun();
+        /**
+         * Number of runs processed.
+         */
+        private int nRuns = 0;
+
+        /**
+         * Number of times {@link #detectorChanged(Detector)} was called.
+         */
+        private int nDetectorChanged = 0;
+
+        /**
+         * List of run numbers processed.
+         */
+        private List<Integer> runsProcessed = new ArrayList<Integer>();
+
+        /**
+         * Set of unique run numbers processed.
+         */
+        private Set<Integer> uniqueRuns = new LinkedHashSet<Integer>();
+
+        /**
+         * Set of unique detector objects.
+         */
+        private Set<Detector> uniqueDetectorObjects = new HashSet<Detector>();
+
+        /**
+         * Reference to conditions manager.
+         */
+        private static DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+
+        /**
+         * Hook for conditions changed used to test multiple run processing.
+         */
+        public void detectorChanged(final Detector detector) {
+            final int run = conditionsManager.getRun();
             uniqueRuns.add(run);
             runsProcessed.add(run);
             ++nRuns;

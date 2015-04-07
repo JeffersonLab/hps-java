@@ -11,63 +11,77 @@ import org.hps.util.Pair;
 
 /**
  * This abstract class provides basic setup information for an SVT sensor channel.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-public class AbstractSvtChannel extends BaseConditionsObject {
+public abstract class AbstractSvtChannel extends BaseConditionsObject {
 
-    // TODO: Put constants into their own class
+    /**
+     * Default number of samples to read out.
+     */
+    // TODO: Put constants into their own class.
     public static final int MAX_NUMBER_OF_SAMPLES = 6;
 
-    public static abstract class AbstractSvtChannelCollection<T extends AbstractSvtChannel> extends BaseConditionsObjectCollection<T> {
-
-        Map<Integer, T> channelMap = new HashMap<Integer, T>();
+    /**
+     * Collection implementation for {@link AbstractSvtChannel}.
+     *
+     * @param <T> A type extending AbstractSvtChannel
+     */
+    @SuppressWarnings("serial")
+    public abstract static class AbstractSvtChannelCollection<T extends AbstractSvtChannel>
+        extends BaseConditionsObjectCollection<T> {
 
         /**
-         *  Add a channel of type extending {@link AbstractSvtChannel} to the
-         *  channel map
-         * 
-         *  @param A channel of a type extending {@link AbstractSvtChannel}
+         * Map of channel number to object.
          */
-        public boolean add(T channel) {
+        private Map<Integer, T> channelMap = new HashMap<Integer, T>();
+
+        /**
+         * Add a channel of type extending {@link AbstractSvtChannel} to the channel map.
+         *
+         * @param channel channel of a type extending {@link AbstractSvtChannel}
+         */
+        @Override
+        public final boolean add(final T channel) {
 
             // If it doesn't exist, add the channel to the channel map
             if (channelMap.containsKey(channel.getChannelID())) {
-                throw new IllegalArgumentException("[ " + this.getClass().getSimpleName() + " ]: Channel ID already exists: " + channel.getChannelID());
+                throw new IllegalArgumentException("[ " + this.getClass().getSimpleName()
+                        + " ]: Channel ID already exists: " + channel.getChannelID());
             }
             channelMap.put(channel.getChannelID(), channel);
 
             // Add to the collection
-            return super.add(channel);                                  
+            return super.add(channel);
         }
 
         /**
-         *  Find a channel of type extending {@link AbstractSvtChannel} using the
-         *  channel ID
-         * 
-         *  @param channelID
-         *  @return An SVT channel of type extending {@link AbstractSvtChannel}
+         *  Find a channel of type extending {@link AbstractSvtChannel} using the channel ID.
+         *
+         *  @param channelID the channel ID
+         *  @return an SVT channel of type extending {@link AbstractSvtChannel}
          */
-        public T findChannel(int channelID) {
+        public final T findChannel(final int channelID) {
             return channelMap.get(channelID);
         }
 
         /**
-         *  Find the collection of channels of type extending
-         *  {@link AbstractSvtChannel} that match a DAQ pair.
-         * 
-         *  @param pair The DAQ pair.
-         *  @return The channels matching the DAQ pair or null if not found.
+         *  Find the collection of channels of type extending {@link AbstractSvtChannel} that match a DAQ pair
+         *  (FEB ID and FEB Hybrid ID).
+         *
+         *  @param pair the DAQ pair
+         *  @return the channels matching the DAQ pair or null if not found
          */
-        public abstract Collection<T> find(Pair<Integer, Integer> pair);
+        public abstract Collection<T> find(final Pair<Integer, Integer> pair);
 
         /**
          *  Convert this object to a human readable string.
-         * 
+         *
          *  @return This object converted to a string.
          */
-        public String toString() {
-            StringBuffer buff = new StringBuffer();
+        @Override
+        public final String toString() {
+            final StringBuffer buff = new StringBuffer();
             for (T channel : this) {
                 buff.append(channel.toString() + '\n');
             }
@@ -77,39 +91,39 @@ public class AbstractSvtChannel extends BaseConditionsObject {
 
     /**
      *  Get the channel ID.
-     * 
-     *  @return The SVT channel ID.
+     *
+     *  @return the SVT channel ID
      */
     @Field(names = {"channel_id"})
-    public int getChannelID() {
+    public final int getChannelID() {
         return getFieldValue("channel_id");
     }
 
     /**
      *  Get the channel number (0-639). This is different from the ID.
-     * 
-     *  @return The channel number.
+     *
+     *  @return the channel number
      */
     @Field(names = {"channel"})
-    public int getChannel() {
+    public final int getChannel() {
         return getFieldValue("channel");
     }
-    
+
     /**
      *  Set the channel ID.
-     * 
-     *  @param channelID : The SVT channel ID
+     *
+     *  @param channelID the SVT channel ID
      */
-    public void setChannelID(int channelID) { 
+    public final void setChannelID(final int channelID) {
         this.setFieldValue("channel_id", channelID);
     }
-    
+
     /**
      *  Set the channel number (0-639). This is different from the ID.
-     * 
-     *  @param channel : The channel number
+     *
+     *  @param channel the channel number
      */
-    public void setChannel(int channel) { 
+    public final void setChannel(final int channel) {
         this.setFieldValue("channel", channel);
     }
 }

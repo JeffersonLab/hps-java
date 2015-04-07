@@ -75,7 +75,7 @@ class PrintCommand extends AbstractCommand {
     /**
      * Print out the conditions sets selected by the user's command line arguments.
      *
-     * @param arguments The command line arguments.
+     * @param arguments the command line arguments
      */
     final void execute(final String[] arguments) {
 
@@ -163,7 +163,7 @@ class PrintCommand extends AbstractCommand {
     /**
      * Print out the conditions records either to the console or a file (if that option is enabled).
      *
-     * @param conditionsKeys The list of conditions keys (usually same as table names).
+     * @param conditionsKeys the list of conditions keys (usually same as table names)
      */
     private void printConditionsRecords(final Set<String> conditionsKeys) {
 
@@ -202,7 +202,7 @@ class PrintCommand extends AbstractCommand {
 
     /**
      * Print the list of collections.
-     * @param collectionList The list of collections.
+     * @param collectionList the list of collections
      */
     private void printCollections(final List<ConditionsObjectCollection<?>> collectionList) {
         // Loop over all the collections and print them.
@@ -219,7 +219,7 @@ class PrintCommand extends AbstractCommand {
 
     /**
      * Print a single collection.
-     * @param collection The collection.
+     * @param collection the collection to print
      */
     private void printCollection(final ConditionsObjectCollection<?> collection) {
         final StringBuffer buffer = new StringBuffer();
@@ -238,7 +238,7 @@ class PrintCommand extends AbstractCommand {
 
     /**
      * Print the header for a collection.
-     * @param collection The collection.
+     * @param collection the collection
      */
     private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
         System.out.println("--------------------------------------");
@@ -249,8 +249,8 @@ class PrintCommand extends AbstractCommand {
     }
 
     /**
-     * Print the column names.
-     * @param tableMetaData The table meta data.
+     * Print the column names for a table.
+     * @param tableMetaData the table meta data
      */
     private void printColumnNames(final TableMetaData tableMetaData) {
         if (printIDs) {

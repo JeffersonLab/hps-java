@@ -16,65 +16,105 @@ import org.lcsim.util.log.LogUtil;
 /**
  * Abstract class providing some of the common methods used in creating SVT
  * conditions objects from the database.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  *
- * @param <T extends AbstractSvtConditions> SVT conditions object type
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ * @param <T> SVT conditions object type
  */
 public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtConditions> implements ConditionsConverter<T> {
 
+    /**
+     * The combined detector conditions object.
+     */
+    // FIXME: Should be private with accessor methods.
     protected T conditions;
+
+    /**
+     * Initialize logging.
+     */
     static Logger logger = LogUtil.create(AbstractSvtConditionsConverter.class);
 
-    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(DatabaseConditionsManager manager) {
+    /**
+     * Get the default {@link SvtShapeFitParametersCollection} collection from the manager.
+     * @param manager the current conditions manager
+     * @return the default {@link SvtShapeFitParametersCollection}
+     */
+    protected SvtShapeFitParametersCollection getSvtShapeFitParametersCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(SvtShapeFitParametersCollection.class, "svt_shape_fit_parameters").getCachedData();
     }
-    
-    protected SvtBadChannelCollection getSvtBadChannelCollection(DatabaseConditionsManager manager) {
+
+    /**
+     * Get the default {@link SvtBadChannelCollection} collection from the manager.
+     * @param manager the current conditions manager
+     * @return the default {@link SvtBadChannelCollection}
+     */
+    protected SvtBadChannelCollection getSvtBadChannelCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(SvtBadChannelCollection.class, "svt_bad_channels").getCachedData();
     }
-    
-    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(DatabaseConditionsManager manager) {
+
+    /**
+     * Get the default series of {@link SvtBadChannelCollection} collections from the manager.
+     * @param manager the current conditions manager
+     * @return the default series of {@link SvtBadChannelCollection}
+     */
+    protected ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> getSvtBadChannelSeries(final DatabaseConditionsManager manager) {
         return manager.getConditionsSeries(SvtBadChannelCollection.class, "svt_bad_channels");
     }
-    
-    protected SvtCalibrationCollection getSvtCalibrationCollection(DatabaseConditionsManager manager) {
+
+    /**
+     * Get the default {@link SvtCalibrationCollection} collection from the manager.
+     * @param manager the current conditions manager
+     * @return the default {@link SvtCalibrationCollection}
+     */
+    protected SvtCalibrationCollection getSvtCalibrationCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(SvtCalibrationCollection.class, "svt_calibrations").getCachedData();
     }
-    
-    protected SvtGainCollection getSvtGainCollection(DatabaseConditionsManager manager) {
+
+    /**
+     * Get the default {@link SvtGainCollection} collection from the manager.
+     * @param manager the current conditions manager
+     * @return the default {@link SvtGainCollection}
+     */
+    protected SvtGainCollection getSvtGainCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(SvtGainCollection.class, "svt_gains").getCachedData();
     }
-    
+
     /**
      * Create and return the SVT conditions object.
-     * @param manager The current conditions manager.
-     * @param name The conditions key, which is ignored for now.
+     *
+     * @param manager the current conditions manager
+     * @param name the conditions key, which is ignored for now
+     * @return the SVT conditions object
      */
-    public T getData(ConditionsManager manager, String name) {
+    @Override
+    public T getData(final ConditionsManager manager, final String name) {
 
-        DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
+        final DatabaseConditionsManager dbConditionsManager = (DatabaseConditionsManager) manager;
 
         // Get the SVT calibrations (baseline, noise) from the conditions database
-        SvtCalibrationCollection calibrations = getSvtCalibrationCollection(dbConditionsManager);
+        final SvtCalibrationCollection calibrations = getSvtCalibrationCollection(dbConditionsManager);
         for (SvtCalibration calibration : calibrations) {
-            AbstractSvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
+            final AbstractSvtChannel channel = conditions.getChannelMap().findChannel(calibration.getChannelID());
             conditions.getChannelConstants(channel).setCalibration(calibration);
         }
 
         // Get the Channel pulse fit parameters from the conditions database
-        SvtShapeFitParametersCollection shapeFitParametersCollection = getSvtShapeFitParametersCollection(dbConditionsManager);
+        final SvtShapeFitParametersCollection shapeFitParametersCollection =
+                getSvtShapeFitParametersCollection(dbConditionsManager);
         for (SvtShapeFitParameters shapeFitParameters : shapeFitParametersCollection) {
-            AbstractSvtChannel channel = conditions.getChannelMap().findChannel(shapeFitParameters.getChannelID());
+            final AbstractSvtChannel channel = conditions.getChannelMap().findChannel(
+                    shapeFitParameters.getChannelID());
             conditions.getChannelConstants(channel).setShapeFitParameters(shapeFitParameters);
         }
 
-        // Get the bad channels from the conditions database. If there aren't any bad channels, notify the user and move on.
+        // Get the bad channels from the conditions database.
+        // If there aren't any bad channels, notify the user and move on.
         try {
-            ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> badChannelSeries = getSvtBadChannelSeries(dbConditionsManager);
+            final ConditionsSeries<SvtBadChannel, SvtBadChannelCollection> badChannelSeries =
+                    getSvtBadChannelSeries(dbConditionsManager);
             for (ConditionsObjectCollection<SvtBadChannel> badChannelCollection : badChannelSeries) {
                 for (SvtBadChannel badChannel : badChannelCollection) {
-                    AbstractSvtChannel channel = conditions.getChannelMap().findChannel(badChannel.getChannelId());
+                    final AbstractSvtChannel channel = conditions.getChannelMap().findChannel(
+                            badChannel.getChannelId());
                     conditions.getChannelConstants(channel).setBadChannel(true);
                 }
             }
@@ -83,10 +123,10 @@ public abstract class AbstractSvtConditionsConverter<T extends AbstractSvtCondit
         }
 
         // Get the gains and offsets from the conditions database
-        SvtGainCollection channelGains = getSvtGainCollection(dbConditionsManager);
+        final SvtGainCollection channelGains = getSvtGainCollection(dbConditionsManager);
         for (SvtGain channelGain : channelGains) {
-            int channelId = channelGain.getChannelID();
-            AbstractSvtChannel channel = conditions.getChannelMap().findChannel(channelId);
+            final int channelId = channelGain.getChannelID();
+            final AbstractSvtChannel channel = conditions.getChannelMap().findChannel(channelId);
             conditions.getChannelConstants(channel).setGain(channelGain);
         }
 

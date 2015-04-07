@@ -16,7 +16,7 @@ public @interface Field {
     /**
      * The names of the table columns associated with this method.
      * 
-     * @return The names of the table column associated with this method.
+     * @return the names of the table columns associated with this method
      */
     String[] names() default "";
 }

@@ -12,55 +12,55 @@ public interface ConditionsObject {
     /**
      * Get the row ID of this object, which will be -1 for records not in the database.
      *
-     * @return The database row ID.
+     * @return the database row ID
      */
     int getRowId();
 
     /**
      * Set the value of a field.
      *
-     * @param field The name of the field.
-     * @param value The field value.
+     * @param field the name of the field
+     * @param value the field value
      */
     void setFieldValue(String field, Object value);
 
     /**
      * Set all of the field values on this object.
      *
-     * @param fieldValues The map containing pairs of field names and values.
+     * @param fieldValues the map containing pairs of field names and values
      */
     void setFieldValues(FieldValueMap fieldValues);
 
     /**
-     * Get the map of field values.
+     * Get the map of field values for the object.
      *
-     * @return The <code>FieldValueMap</code>.
+     * @return the <code>FieldValueMap</code> containing keys and values for the conditions object
      */
     FieldValueMap getFieldValues();
 
     /**
      * Get a field value, cast to the given class.
      *
-     * @param field The field value.
-     * @param type The class of the field.
-     * @param <T> The inferred type of the field.
-     * @return The field value casted to type T.
+     * @param field the field value
+     * @param type the class of the field
+     * @param <T> the inferred type of the field
+     * @return the field value cast to type T
      */
     <T> T getFieldValue(Class<T> type, String field);
 
     /**
      * Get a field value with implicit return type.
      *
-     * @param field The field's name.
-     * @param <T> The inferred type of the field.
-     * @return The field value cast to type.
+     * @param field the field's name
+     * @param <T> the inferred type of the field
+     * @return the field value cast to type
      */
     <T> T getFieldValue(String field);
 
     /**
-     * Set the row ID of this object. This cannot be reset once set to a valid ID (e.g. not -1).
+     * Set the row ID of this object. This cannot be reset once set to a value > 0.
      *
-     * @param rowId The object's row ID.
+     * @param rowId the object's row ID
      * @throws ConditionsObjectException if already set
      */
     void setRowID(int rowId) throws ConditionsObjectException;
@@ -69,7 +69,7 @@ public interface ConditionsObject {
      * Return true if this object is new, e.g. it does not have a valid row ID. This means that it does not have a
      * database record in its table.
      *
-     * @return True if record is new.
+     * @return <code>true</code> if record is new
      */
     boolean isNew();
 
@@ -81,9 +81,9 @@ public interface ConditionsObject {
         /**
          * Compare objects according to standard Java conventions.
          *
-         * @param o1 The first object.
-         * @param o2 The second object.
-         * @return The result of comparison operation.
+         * @param o1 the first object
+         * @param o2 the second object
+         * @return the result of comparison operation
          */
         public int compare(final ConditionsObject o1, final ConditionsObject o2) {
             if (o1.getRowId() < o2.getRowId()) {

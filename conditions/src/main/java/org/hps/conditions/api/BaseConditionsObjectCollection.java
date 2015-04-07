@@ -48,8 +48,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * This constructor uses the given conditions record and table meta data objects and will assign the collection ID
      * from the conditions record.
      *
-     * @param tableMetaData The table meta data.
-     * @param conditionsRecord The conditions record.
+     * @param tableMetaData the table meta data
+     * @param conditionsRecord the conditions record
      */
     public BaseConditionsObjectCollection(final ConditionsRecord conditionsRecord, final TableMetaData tableMetaData) {
         this.conditionsRecord = conditionsRecord;
@@ -60,9 +60,9 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * This constructor is used to explicitly assign all class variable values.
      *
-     * @param conditionsRecord The conditions record.
-     * @param tableMetaData The table meta data.
-     * @param collectionID The new collection ID.
+     * @param conditionsRecord the conditions record
+     * @param tableMetaData the table meta data
+     * @param collectionID the new collection ID
      */
     public BaseConditionsObjectCollection(final ConditionsRecord conditionsRecord, final TableMetaData tableMetaData,
             final int collectionID) {
@@ -75,7 +75,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * Set the associated table meta data for this collection. Once set it cannot be reassigned, which will cause an
      * exception to be thrown.
      *
-     * @param tableMetaData The table meta data for this collection.
+     * @param tableMetaData the table meta data for this collection
      */
     public final void setTableMetaData(final TableMetaData tableMetaData) {
         if (this.tableMetaData != null) {
@@ -88,7 +88,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * Set the associated conditions record this collection. Once set it cannot be reassigned, which will cause an
      * exception to be thrown.
      *
-     * @param conditionsRecord The conditions record for the collection.
+     * @param conditionsRecord the conditions record for the collection
      */
     public final void setConditionsRecord(final ConditionsRecord conditionsRecord) {
         if (this.conditionsRecord != null) {
@@ -102,9 +102,10 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#add(Object)}.
      *
-     * @param object The object do add to the collection.
-     * @return True if the add operation succeeded.
+     * @param object the object do add to the collection
+     * @return <code>true</code> if the add operation succeeded
      */
+    @Override
     public boolean add(final ObjectType object) {
         if (contains(object)) {
             throw new IllegalArgumentException("Cannot add duplicate object " + object + " to collection.");
@@ -117,7 +118,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#getTableMetaData()}.
      *
-     * @return The table meta data for the collection.
+     * @return the table meta data for the collection.
      */
     @Override
     public final TableMetaData getTableMetaData() {
@@ -129,7 +130,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#getCollectionId()}.
      *
-     * @return The collection ID.
+     * @return the collection ID
      */
     @Override
     public final int getCollectionId() {
@@ -145,7 +146,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#getConditionsRecord()}.
      *
-     * @return The conditions record for the collection.
+     * @return the conditions record for the collection
      */
     @Override
     public final ConditionsRecord getConditionsRecord() {
@@ -157,8 +158,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#setCollectionId(int)}.
      *
-     * @param collectionId The new collection ID.
-     * @throws ConditionsObjectException If the ID was already assigned.
+     * @param collectionId the new collection ID
+     * @throws ConditionsObjectException if the ID was already assigned
      */
     @Override
     public final void setCollectionId(final int collectionId) throws ConditionsObjectException {
@@ -174,8 +175,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#insert()}.
      *
-     * @throws ConditionsObjectException If there was a problem inserting the object.
-     * @throws SQLException If there was a SQL syntax error while executing the operation.
+     * @throws ConditionsObjectException if there was a problem inserting the object
+     * @throws SQLException if there was a SQL syntax error while executing the operation
      */
     @Override
     public final void insert() throws ConditionsObjectException, SQLException {
@@ -187,7 +188,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#select()}.
      *
-     * @return The number of records selected.
+     * @return the number of records selected
      */
     @Override
     public final int select() {
@@ -199,7 +200,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#delete()}.
      *
-     * @return The number of objects deleted.
+     * @return the number of objects deleted
      */
     @Override
     public int delete() {
@@ -211,7 +212,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
      * <p>
      * Implements {@link ConditionsObjectCollection#update()}.
      *
-     * @return The number of records updated.
+     * @return the number of records updated
      */
     @Override
     public final int update() {
@@ -220,7 +221,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
 
     /**
      * Convert this object to a string.
-     * @return The object converted to a string.
+     * @return the object converted to a string
      */
     public String toString() {
         final StringBuffer buffer = new StringBuffer();
@@ -234,9 +235,9 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * Get an object by index.
      *
-     * @param index The index in the set.
-     * @return The object at the index.
-     * @throws IndexOutOfBoundsException If the index value is invalid.
+     * @param index the index in the set
+     * @return the object at the index
+     * @throws IndexOutOfBoundsException if the index is out of bounds
      */
     public final ObjectType get(final int index) {
         if (index + 1 > this.size() || index < 0) {
@@ -255,7 +256,7 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * Sort the collection in place.
      *
-     * @param comparator The comparator to use for sorting.
+     * @param comparator the comparator to use for sorting
      */
     public void sort(final Comparator<ObjectType> comparator) {
         final List<ObjectType> objects = new ArrayList<ObjectType>(this);
@@ -267,8 +268,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     /**
      * Get a sorted list of the objects, leaving original collection in place.
      *
-     * @param comparator The comparator to use for the sort.
-     * @return A sorted list of the objects.
+     * @param comparator the comparator to use for the sort
+     * @return a sorted list of the objects
      */
     @SuppressWarnings("unchecked")
     public BaseConditionsObjectCollection<ObjectType> sorted(final Comparator<ObjectType> comparator) {
@@ -295,8 +296,8 @@ public class BaseConditionsObjectCollection<ObjectType extends ConditionsObject>
     }
 
     /**
-     * Create and return a sorted collection, leaving the original collection unsorted.
-     * @return The sorted collection.
+     * Sort and return a copy of the collection.
+     * @return the sorted collection
      */
     @SuppressWarnings("unchecked")
     @Override

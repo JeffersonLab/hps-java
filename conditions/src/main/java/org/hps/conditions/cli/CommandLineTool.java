@@ -32,7 +32,7 @@ public class CommandLineTool {
     /**
      * Setup logging.
      */
-    private static final Logger LOGGER = 
+    private static final Logger LOGGER =
             LogUtil.create(CommandLineTool.class.getSimpleName(), new DefaultLogFormatter(), Level.WARNING);
 
     /**
@@ -72,7 +72,7 @@ public class CommandLineTool {
     /**
      * Run the command line tool, parsing the command line and sending arguments to sub-command handlers.
      *
-     * @param arguments The command line arguments passed directly from {@link #main(String[])}.
+     * @param arguments the command line arguments passed directly from {@link #main(String[])}
      */
     private void run(final String[] arguments) {
         try {
@@ -131,7 +131,7 @@ public class CommandLineTool {
     /**
      * Setup the conditions system based on command line arguments.
      *
-     * @param commandLine The parsed command line arguments.
+     * @param commandLine the parsed command line arguments
      */
     private void setupConditionsManager(final CommandLine commandLine) {
 
@@ -209,7 +209,7 @@ public class CommandLineTool {
     /**
      * Exit with the given status.
      *
-     * @param status The exit status.
+     * @param status the exit status
      */
     private void exit(final int status) {
         System.exit(status);
@@ -217,7 +217,7 @@ public class CommandLineTool {
 
     /**
      * Register a sub-command handler.
-     * @param command The sub-command handler.
+     * @param command the sub-command handler
      */
     private void registerCommand(final AbstractCommand command) {
         if (commands.containsKey(command.getName())) {
@@ -228,7 +228,7 @@ public class CommandLineTool {
 
     /**
      * Create a basic instance of this class.
-     * @return The instance of this class.
+     * @return the instance of this class
      */
     private static CommandLineTool create() {
         final CommandLineTool cli = new CommandLineTool();

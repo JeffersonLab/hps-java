@@ -44,7 +44,7 @@ public final class EcalConditions {
 
     /**
      * Class constructor.
-     * @param subdetector The ECAL subdetector object.
+     * @param subdetector the ECAL subdetector object
      */
     EcalConditions(final Subdetector subdetector) {
         if (subdetector == null) {
@@ -55,7 +55,7 @@ public final class EcalConditions {
 
     /**
      * Set the channel map.
-     * @param channelCollection The channel map.
+     * @param channelCollection the channel map
      */
     void setChannelCollection(final EcalChannelCollection channelCollection) {
         this.channelCollection = channelCollection;
@@ -66,7 +66,7 @@ public final class EcalConditions {
 
     /**
      * Get the map between database IDs and <code>EcalChannel</code> objects.
-     * @return The channel map.
+     * @return the channel map
      */
     public EcalChannelCollection getChannelCollection() {
         return channelCollection;
@@ -74,8 +74,8 @@ public final class EcalConditions {
 
     /**
      * Get the channel information for a geometric crystal.
-     * @param crystal The geometric crystal.
-     * @return The channel information or null if does not exist.
+     * @param crystal the geometric crystal
+     * @return the channel information or null if does not exist
      */
     public EcalChannel getChannel(final EcalCrystal crystal) {
         return crystalMap.getEcalChannel(crystal);
@@ -85,9 +85,9 @@ public final class EcalConditions {
      * Get the conditions constants for a specific channel. These will be
      * created if they do not exist for the given channel, BUT only channels in
      * the channel map are accepted as an argument.
-     * @param channel The ECAL channel.
-     * @return The conditions constants for the channel.
-     * @throws IllegalArgumentException if channel does not exist in the channel map.
+     * @param channel the ECAL channel
+     * @return the conditions constants for the channel
+     * @throws IllegalArgumentException if channel does not exist in the channel map
      */
     public EcalChannelConstants getChannelConstants(final EcalChannel channel) {
         // This channel must come from the map.

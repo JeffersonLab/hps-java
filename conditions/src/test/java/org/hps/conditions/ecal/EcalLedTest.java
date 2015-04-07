@@ -9,34 +9,51 @@ import org.hps.conditions.ecal.EcalLedCalibration.EcalLedCalibrationCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
- * A very basic test to make sure ECAL LED information is 
- * readable from the conditions dev database.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * A test to make sure ECAL LED information is readable from the conditions dev database.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class EcalLedTest extends TestCase {
-          
-    DatabaseConditionsManager conditionsManager;
+public final class EcalLedTest extends TestCase {
+
+    /**
+     * Run number to use for test.
+     */
+    private static final int RUN_NUMBER = 2000;
+
+    /**
+     * The conditions manager.
+     */
+    private static DatabaseConditionsManager conditionsManager;
+
+    /**
+     * Setup the conditions manager.
+     */
+    @Override
     public void setUp() {
         conditionsManager = DatabaseConditionsManager.getInstance();
         try {
-            conditionsManager.setDetector("HPS-ECalCommissioning-v2", 2000);
+            conditionsManager.setDetector("HPS-ECalCommissioning-v2", RUN_NUMBER);
         } catch (ConditionsNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
-	
+
+    /**
+     * Load ECAL LED conditions.
+     */
     public void testEcalLed() {
-        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        
+
         // LED channel information.
-        EcalLedCollection leds = manager.getCachedConditions(EcalLedCollection.class, "ecal_leds").getCachedData();
-        for (EcalLed led : leds) {    	
-        	System.out.println(led);
+        final EcalLedCollection leds = conditionsManager.getCachedConditions(
+                EcalLedCollection.class, "ecal_leds").getCachedData();
+        for (EcalLed led : leds) {
+            System.out.println(led);
         }
-        
+
         // LED calibration data.
-        EcalLedCalibrationCollection calibrations = manager.getCachedConditions(EcalLedCalibrationCollection.class, "ecal_led_calibrations").getCachedData();
-        for (EcalLedCalibration calibration : calibrations) {        
+        final EcalLedCalibrationCollection calibrations = conditionsManager.getCachedConditions(
+                EcalLedCalibrationCollection.class, "ecal_led_calibrations").getCachedData();
+        for (final EcalLedCalibration calibration : calibrations) {
             System.out.println(calibration);
         }
     }

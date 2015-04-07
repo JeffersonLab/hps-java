@@ -20,7 +20,7 @@ public final class DatabaseUtilities {
     /**
      * Cleanup a JDBC <code>ResultSet</code> by closing it and its <code>Statement</code>
      *
-     * @param resultSet The database ResultSet.
+     * @param resultSet the database <code>ResultSet</code>
      */
     static void cleanup(final ResultSet resultSet) {
         Statement statement = null;

@@ -30,7 +30,7 @@ public final class EcalCalibration extends BaseConditionsObject {
 
         /**
          * Sort and return the collection but do no modify in place.
-         * @return The sorted collection.
+         * @return the sorted collection
          */
         public BaseConditionsObjectCollection<EcalCalibration> sorted() {
             return sorted(new ChannelIdComparator());
@@ -42,9 +42,9 @@ public final class EcalCalibration extends BaseConditionsObject {
         class ChannelIdComparator implements Comparator<EcalCalibration> {
             /**
              * Compare two ECAL calibration objects.
-             * @param o1 The first object.
-             * @param o2 The second object.
-             * @return -1, 0, 1 if first channel ID is less than, equal to, or greater than the second.
+             * @param o1 the first object
+             * @param o2 the second object
+             * @return -1, 0, 1 if first channel ID is less than, equal to, or greater than the second
              */
             public int compare(final EcalCalibration o1, final EcalCalibration o2) {
                 if (o1.getChannelId() < o2.getChannelId()) {
@@ -66,9 +66,9 @@ public final class EcalCalibration extends BaseConditionsObject {
 
     /**
      * Full qualified constructor.
-     * @param channelId The channel ID.
-     * @param pedestal The pedestal measurement (ADC counts).
-     * @param noise The noise measured as RMS.
+     * @param channelId the channel ID
+     * @param pedestal the pedestal measurement (ADC counts)
+     * @param noise the noise measured as RMS
      */
     public EcalCalibration(final int channelId, final double pedestal, final double noise) {
         this.setFieldValue("ecal_channel_id", channelId);
@@ -78,7 +78,7 @@ public final class EcalCalibration extends BaseConditionsObject {
 
     /**
      * Get the ECAL channel ID.
-     * @return The ECAL channel ID.
+     * @return the ECAL channel ID
      */
     @Field(names = {"ecal_channel_id"})
     public int getChannelId() {
@@ -88,7 +88,7 @@ public final class EcalCalibration extends BaseConditionsObject {
     /**
      * Get the pedestal value in units of ADC counts, which is the mean of the
      * digitized preamplifier output.
-     * @return The gain value.
+     * @return the gain value
      */
     @Field(names = {"pedestal"})
     public double getPedestal() {
@@ -98,7 +98,7 @@ public final class EcalCalibration extends BaseConditionsObject {
     /**
      * Get the noise value in units of ADC counts, which is the standard
      * deviation of the digitized preamplifier output.
-     * @return The noise value.
+     * @return the noise value
      */
     @Field(names = {"noise"})
     public double getNoise() {

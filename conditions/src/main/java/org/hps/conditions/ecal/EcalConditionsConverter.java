@@ -18,21 +18,21 @@ import org.lcsim.geometry.Detector;
  * from the database, based on the current run number known by the conditions
  * manager.
  *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  * @see EcalConditions
  * @see EcalChannel
  * @see EcalGain
  * @see EcalCalibration
  * @see EcalBadChannel
  * @see EcalTimeShift
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
 public class EcalConditionsConverter implements ConditionsConverter<EcalConditions> {
 
     /**
      * Get the default {@link EcalChannel} collection.
-     * @param manager The conditions manager.
-     * @return The default ECAL channel object collection.
+     * @param manager the conditions manager
+     * @return the default ECAL channel object collection
      */
     protected EcalChannelCollection getEcalChannelCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
@@ -40,8 +40,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
     /**
      * Get the default {@link EcalGain} collection.
-     * @param manager The conditions manager.
-     * @return The ECAL channel gain collection.
+     * @param manager the conditions manager
+     * @return the ECAL channel gain collection
      */
     protected EcalGainCollection getEcalGainCollection(final DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalGainCollection.class, "ecal_gains").getCachedData();
@@ -49,8 +49,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
     /**
      * Get the default collections of {@link EcalBadChannel} objects.
-     * @param manager The conditions manager.
-     * @return The collections of ECAL bad channel objects.
+     * @param manager the conditions manager
+     * @return the collections of ECAL bad channel objects
      */
     protected ConditionsSeries<EcalBadChannel, EcalBadChannelCollection> getEcalBadChannelSeries(final DatabaseConditionsManager manager) {
         return manager.getConditionsSeries(EcalBadChannelCollection.class, "ecal_bad_channels");
@@ -58,8 +58,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
     /**
      * Get the default {@link EcalCalibration} collection.
-     * @param manager The conditions manager.
-     * @return The collection of ECAL channel calibration objects.
+     * @param manager the conditions manager
+     * @return the collection of ECAL channel calibration objects
      */
     protected EcalCalibrationCollection getEcalCalibrationCollection(DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalCalibrationCollection.class, "ecal_calibrations").getCachedData();
@@ -67,8 +67,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
     
     /**
      * Get the default {@link EcalTimeShift} collection.
-     * @param manager The conditions manager.
-     * @return The collection of ECAL time shift objects.
+     * @param manager the conditions manager
+     * @return the collection of ECAL time shift objects
      */
     protected EcalTimeShiftCollection getEcalTimeShiftCollection(DatabaseConditionsManager manager) {
         return manager.getCachedConditions(EcalTimeShiftCollection.class, "ecal_time_shifts").getCachedData();
@@ -76,8 +76,8 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
         
     /**
      * Create combined ECAL conditions object containing all data for the current run.
-     * @param manager The conditions manager.
-     * @param name The conditions set name (unused but must satisfy conditions API).
+     * @param manager the conditions manager
+     * @param name the conditions set name (unused but must satisfy conditions API)
      */
     public final EcalConditions getData(ConditionsManager manager, String name) {
 
@@ -143,7 +143,7 @@ public class EcalConditionsConverter implements ConditionsConverter<EcalConditio
 
     /**
      * Get the type handled by this converter.
-     * @return The type handled by this converter.
+     * @return the type handled by this converter
      */
     public final Class<EcalConditions> getType() {
         return EcalConditions.class;

@@ -17,7 +17,7 @@ public @interface Table {
 
     /**
      * Get the names of the tables.
-     * @return The names of the tables.
+     * @return the names of the tables
      */
     String[] names() default "";
 }

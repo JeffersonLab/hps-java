@@ -25,7 +25,7 @@ public final class BeamCurrent extends BaseConditionsObject {
 
     /**
      * Get the integrated beam current.
-     * @return The integrated beam current.
+     * @return the integrated beam current
      */
     @Field(names = {"beam_current"})
     public double getIntegratedBeamCurrent() {

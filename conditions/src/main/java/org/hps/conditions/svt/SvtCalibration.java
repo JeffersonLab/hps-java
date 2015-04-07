@@ -11,36 +11,40 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
 
 /**
  * This class encapsulates noise and pedestal measurement for an SVT channel.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
 @Table(names = {"svt_calibrations", "test_run_svt_calibrations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public final class SvtCalibration extends BaseConditionsObject {
 
+    /**
+     * The collection implementation for {@link SvtCalibration}.
+     */
+    @SuppressWarnings("serial")
     public static class SvtCalibrationCollection extends BaseConditionsObjectCollection<SvtCalibration> {
     }
 
     /**
-     *  Default Constructor
+     * Default constructor.
      */
-    public SvtCalibration() { 
+    public SvtCalibration() {
     }
-    
+
     /**
-     *  Constructor
-     *  
-     *  @param channelID : The SVT channel ID
+     * Constructor with channel ID.
+     *
+     * @param channelID the SVT channel ID
      */
-    public SvtCalibration(int channelID) { 
-       this.setChannelID(channelID); 
+    public SvtCalibration(final int channelID) {
+       this.setChannelID(channelID);
     }
-    
+
     /**
      * Get the channel ID.
-     * 
-     * @return The channel ID.
+     *
+     * @return The channel ID
      */
     @Field(names = {"svt_channel_id"})
     public int getChannelID() {
@@ -48,12 +52,13 @@ public final class SvtCalibration extends BaseConditionsObject {
     }
 
     /**
-     *  Get the noise value.
-     * 
-     *  @return The noise value.
+     * Get the noise value.
+     *
+     * @param sample the sample number (0-5)
+     * @return the noise value
      */
     @Field(names = {"noise_0", "noise_1", "noise_2", "noise_3", "noise_4", "noise_5"})
-    public double getNoise(int sample) {
+    public double getNoise(final int sample) {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }
@@ -61,12 +66,13 @@ public final class SvtCalibration extends BaseConditionsObject {
     }
 
     /**
-     *  Get the pedestal value.
-     * 
-     *  @return The pedestal value.
+     * Get the pedestal value.
+     *
+     * @param sample the sample number (0-5)
+     * @return The pedestal value.
      */
     @Field(names = {"pedestal_0", "pedestal_1", "pedestal_2", "pedestal_3", "pedestal_4", "pedestal_5"})
-    public double getPedestal(int sample) {
+    public double getPedestal(final int sample) {
         if (sample < 0 || sample > MAX_NUMBER_OF_SAMPLES) {
             throw new IllegalArgumentException("Sample number is not within range.");
         }
@@ -74,43 +80,44 @@ public final class SvtCalibration extends BaseConditionsObject {
     }
 
     /**
-     *  Set the channel ID.
-     * 
-     *  @param channelID
+     * Set the channel ID.
+     *
+     * @param channelID the channel ID
      */
-    public void setChannelID(int channelID) { 
+    public void setChannelID(final int channelID) {
         this.setFieldValue("svt_channel_id", channelID);
     }
-   
+
     /**
-     *  Set the noise value for the given sample.
-     *  
-     *  @param sample
-     *  @param noise
+     * Set the noise value for the given sample.
+     *
+     * @param sample the sample number
+     * @param noise the noise
      */
-    public void setNoise(int sample, double noise) { 
-        String noiseField = "noise_" + Integer.toString(sample);
+    public void setNoise(final int sample, final double noise) {
+        final String noiseField = "noise_" + Integer.toString(sample);
         this.setFieldValue(noiseField, noise);
     }
-   
+
     /**
-     * Set the pedestal value for the given sample 
-     * 
-     * @param sample
-     * @param pedestal
+     * Set the pedestal value for the given sample.
+     *
+     * @param sample the sample number
+     * @param pedestal the pedestal value
      */
-    public void setPedestal(int sample, double pedestal) { 
-        String pedestalField = "pedestal_" + Integer.toString(sample);
+    public void setPedestal(final int sample, final double pedestal) {
+        final String pedestalField = "pedestal_" + Integer.toString(sample);
         this.setFieldValue(pedestalField, pedestal);
     }
-    
+
     /**
-     *  Convert this object to a human readable string.
-     * 
-     *  @return This object converted to a string.
+     * Convert this object to a human readable string.
+     *
+     * @return This object converted to a string.
      */
+    // FIXME: This is a mess when it prints to console.
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        final StringBuffer buffer = new StringBuffer();
         buffer.append("Channel ID: " + this.getChannelID());
         for (int i = 0; i < 115; i++) {
             buffer.append("-");

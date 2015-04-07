@@ -9,29 +9,31 @@ import org.hps.util.Pair;
 /**
  * This class is a container that allows associating a t0 shift with a specific
  * sensor by FPGA ID and hybrid ID.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
 @Table(names = {"test_run_svt_t0_shifts"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
-    public static class TestRunSvtT0ShiftCollection extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<TestRunSvtT0Shift> {
+    /**
+     * Collection implementation for {@link TestRunSvtT0Shift} objects.
+     */
+    @SuppressWarnings("serial")
+    public static class TestRunSvtT0ShiftCollection 
+        extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<TestRunSvtT0Shift> {
 
         /**
          * Get the {@link TestRunSvtT0Shift} associated with a given DAQ pair
-         * 
+         *
          * @param DAQ pair for a given sensor
-         * @return The {@link TestRunSvtT0Shift} associated with the DAQ pair.
-         *         If a t0 shift for a given DAQ pair can't be found, it returns
-         *         null.
+         * @return the {@link TestRunSvtT0Shift} associated with the DAQ pair or null if does not exist
          */
         @Override
-        public TestRunSvtT0Shift getT0Shift(Pair<Integer, Integer> pair) {
-
-            int fpgaID = pair.getFirstElement();
-            int hybridID = pair.getSecondElement();
-            for (TestRunSvtT0Shift t0Shift : this) {
+        public TestRunSvtT0Shift getT0Shift(final Pair<Integer, Integer> pair) {
+            final int fpgaID = pair.getFirstElement();
+            final int hybridID = pair.getSecondElement();
+            for (final TestRunSvtT0Shift t0Shift : this) {
                 if (t0Shift.getFpgaID() == fpgaID && t0Shift.getHybridID() == hybridID) {
                     return t0Shift;
                 }
@@ -42,8 +44,8 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
     /**
      * Get the FPGA ID.
-     * 
-     * @return The FPGA ID.
+     *
+     * @return the FPGA ID
      */
     @Field(names = {"fpga"})
     public int getFpgaID() {
@@ -52,8 +54,8 @@ public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {
 
     /**
      * Get the hybrid ID.
-     * 
-     * @return The hybrid ID.
+     *
+     * @return the hybrid ID
      */
     @Field(names = {"hybrid"})
     public int getHybridID() {

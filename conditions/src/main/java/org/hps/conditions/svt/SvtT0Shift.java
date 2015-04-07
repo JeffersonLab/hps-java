@@ -7,29 +7,32 @@ import org.hps.conditions.database.Table;
 import org.hps.util.Pair;
 
 /**
- * This class is a data holder for associating a t0 shift with a specific sensor
- * by FEB ID and FEB hybrid ID.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * This class is a data holder for associating a t0 time shift with a specific sensor by DAQ pair
+ * (FEB ID and FEB hybrid ID).
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-@Table(names = {"svt_t0_shifts"})
+@Table(names = { "svt_t0_shifts" })
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED)
 public final class SvtT0Shift extends AbstractSvtT0Shift {
 
+    /**
+     * Concrete collection implementation for {@link SvtT0Shift}.
+     */
+    @SuppressWarnings("serial")
     public static class SvtT0ShiftCollection extends AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<SvtT0Shift> {
 
         /**
-         * Get the {@link SvtT0Shift} associated with a given DAQ pair
-         * 
+         * Get the {@link SvtT0Shift} associated with a given DAQ pair.
+         *
          * @param DAQ pair for a given sensor
-         * @return The {@link SvtT0Shift} associated with the DAQ pair. If a t0
-         *         shift for a given DAQ pair can't be found, it returns null.
+         * @return the {@link SvtT0Shift} associated with the DAQ pair or null if does not exist
          */
         @Override
-        public SvtT0Shift getT0Shift(Pair<Integer, Integer> pair) {
-            int febID = pair.getFirstElement();
-            int febHybridID = pair.getSecondElement();
+        public SvtT0Shift getT0Shift(final Pair<Integer, Integer> pair) {
+            final int febID = pair.getFirstElement();
+            final int febHybridID = pair.getSecondElement();
             for (SvtT0Shift t0Shift : this) {
                 if (t0Shift.getFebID() == febID && t0Shift.getFebHybridID() == febHybridID) {
                     return t0Shift;
@@ -41,10 +44,10 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
 
     /**
      * Get the FEB ID.
-     * 
-     * @return The FEB ID.
+     *
+     * @return the FEB ID
      */
-    @Field(names = {"feb_id"})
+    @Field(names = { "feb_id" })
     public int getFebID() {
         return getFieldValue("feb_id");
     }
@@ -52,9 +55,9 @@ public final class SvtT0Shift extends AbstractSvtT0Shift {
     /**
      * Get the FEB hybrid ID.
      *
-     * @return The FEB hybrid ID.
+     * @return the FEB hybrid ID
      */
-    @Field(names = {"feb_hybrid_id"})
+    @Field(names = { "feb_hybrid_id" })
     public int getFebHybridID() {
         return getFieldValue("feb_hybrid_id");
     }

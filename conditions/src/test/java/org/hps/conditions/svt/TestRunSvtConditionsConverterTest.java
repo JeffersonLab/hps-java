@@ -4,14 +4,29 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 
-public class TestRunSvtConditionsConverterTest extends TestCase {
+/**
+ * Create combined SVT conditions for Test Run.
+ *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+ */
+public final class TestRunSvtConditionsConverterTest extends TestCase {
 
+    /**
+     * The run number to use for the test.
+     */
+    private static final int RUN_NUMBER = 1351;
+
+    /**
+     * Create combined SVT Test Run conditions.
+     * @throws Exception if there is a conditions system error
+     */
     public void test() throws Exception {
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.setXmlConfig("/org/hps/conditions/config/conditions_database_testrun_2012.xml");
-        conditionsManager.setDetector("HPS-TestRun-v5", 1351);
+        conditionsManager.setDetector("HPS-TestRun-v5", RUN_NUMBER);
 
-        TestRunSvtConditions svtConditions = conditionsManager.getCachedConditions(TestRunSvtConditions.class, "svt_conditions").getCachedData();
+        final TestRunSvtConditions svtConditions = conditionsManager.getCachedConditions(TestRunSvtConditions.class,
+                "svt_conditions").getCachedData();
         assertNotNull(svtConditions);
         System.out.println("[ " + this.getClass().getSimpleName() + "]: Printing test run SVT conditions.");
         System.out.println(svtConditions);

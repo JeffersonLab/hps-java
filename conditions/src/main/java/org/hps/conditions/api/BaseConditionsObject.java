@@ -31,7 +31,7 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#getRowId()}.
      *
-     * @return The row ID.
+     * @return the row ID
      */
     @Override
     public final int getRowId() {
@@ -43,7 +43,7 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#isNew()}.
      *
-     * @return True if object is new.
+     * @return <code>true</code> if object is new
      */
     @Override
     public final boolean isNew() {
@@ -55,8 +55,8 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#setFieldValue(String, Object)}.
      *
-     * @param key The name of the field.
-     * @param value The value of the field.
+     * @param key the name of the field
+     * @param value the value of the field
      */
     @Override
     public final void setFieldValue(final String key, final Object value) {
@@ -68,7 +68,7 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#setFieldValues(FieldValueMap)}.
      *
-     * @param fieldValues The list of key-value pairs.
+     * @param fieldValues the list of key-value pairs
      */
     @Override
     public final void setFieldValues(final FieldValueMap fieldValues) {
@@ -80,10 +80,10 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#getFieldValue(Class, String)}.
      *
-     * @param klass The inferred return type.
-     * @param field The name of the field.
-     * @param <T> The generic type for inferrence of return type.
-     * @return The value of the field.
+     * @param klass the inferred return type
+     * @param field the name of the field
+     * @param <T> the type for inference of return type
+     * @return the value of the field
      */
     @Override
     public final <T> T getFieldValue(final Class<T> klass, final String field) {
@@ -95,7 +95,7 @@ public class BaseConditionsObject implements ConditionsObject {
      * <p>
      * Implements {@link ConditionsObject#getFieldValues()}.
      *
-     * @return The field-value map.
+     * @return the field-value map
      */
     @Override
     public final FieldValueMap getFieldValues() {
@@ -105,9 +105,9 @@ public class BaseConditionsObject implements ConditionsObject {
     /**
      * Get a field value.
      *
-     * @param field The field name.
-     * @param <T> The type inferred from the assigned variable.
-     * @return The field value.
+     * @param field the field name
+     * @param <T> the type inferred from the assigned variable
+     * @return the field value
      */
     @SuppressWarnings("unchecked")
     public final <T> T getFieldValue(final String field) {
@@ -117,8 +117,8 @@ public class BaseConditionsObject implements ConditionsObject {
     /**
      * Set the database row ID of the object.
      *
-     * @param rowId The database row ID.
-     * @throws ConditionsObjectException If the object already has a row ID.
+     * @param rowId the database row ID
+     * @throws ConditionsObjectException if the object already has a row ID
      */
     public final void setRowID(final int rowId) throws ConditionsObjectException {
         if (!isNew()) {

@@ -14,36 +14,53 @@ import org.lcsim.util.loop.LCSimLoop;
 
 /**
  * This is a basic test of using ConditionsDriver that doesn't actually check anything at the moment.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class ConditionsDriverTest extends TestCase {
-           
+public final class ConditionsDriverTest extends TestCase {
+
+    /**
+     * The run number to use for the test.
+     */
+    private static final int RUN_NUMBER = 1351;
+
+    /**
+     * Test the {@link ConditionsDriver} on Test Run data.
+     * @throws Exception if there is a test error or conditions error
+     */
     public void testConditionsDriverTestRun() throws Exception {
-        
+
         DatabaseConditionsManager.getInstance();
-        
-        FileCache cache = new FileCache();
-        File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ConditionsTest.slcio"));
-                    
-        ConditionsDriver conditionsDriver = new ConditionsDriver();
+
+        final FileCache cache = new FileCache();
+        final File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/ConditionsTest.slcio"));
+
+        final ConditionsDriver conditionsDriver = new ConditionsDriver();
         conditionsDriver.setDetectorName("HPS-TestRun-v5");
         conditionsDriver.setTag("test_run");
-        conditionsDriver.setRunNumber(1351);
+        conditionsDriver.setRunNumber(RUN_NUMBER);
         conditionsDriver.setFreeze(true);
-        
-        LCSimLoop loop = new LCSimLoop();
+
+        final LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
         conditionsDriver.initialize();
         loop.add(new EventMarkerDriver());
         loop.add(new CheckDriver());
         loop.loop(-1);
     }
-    
+
+    /**
+     * This {@link org.lcsim.util.Driver} prints out when the conditions change.
+     */
     static class CheckDriver extends Driver {
 
-        public void detectorChanged(Detector detector) {
-            System.out.println("detectorChanged - detector " + detector.getDetectorName() 
+        /**
+         * Hook for conditions system change.
+         * @param detector the detector object
+         */
+        public void detectorChanged(final Detector detector) {
+            System.out.println("detectorChanged - detector " + detector.getDetectorName()
                     + " and run #" + DatabaseConditionsManager.getInstance().getRun());
-        }        
+        }
     }
 }

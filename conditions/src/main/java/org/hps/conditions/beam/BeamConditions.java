@@ -37,7 +37,7 @@ public final class BeamConditions extends BaseConditionsObject {
      * Get the average beam current (nA).
      * A value of 0 indicates there was no beam.
      * A null value means it was not recorded.
-     * @return The beam current (nA).
+     * @return the beam current (nA)
      */
     @Field(names = {"current"})
     public Double getCurrent() {
@@ -46,7 +46,7 @@ public final class BeamConditions extends BaseConditionsObject {
 
     /**
      * Get the average beam position in X (mm).
-     * @return The beam position (mm).
+     * @return the beam position (mm)
      */
     @Field(names = {"position_x"})
     public Double getPositionX() {
@@ -55,7 +55,7 @@ public final class BeamConditions extends BaseConditionsObject {
 
     /**
      * Get the average beam position in Y (mm).
-     * @return The beam position (mm).
+     * @return the beam position (mm)
      */
     @Field(names = {"position_y"})
     public Double getPositionY() {
@@ -66,7 +66,7 @@ public final class BeamConditions extends BaseConditionsObject {
      * Get the beam energy (GeV).
      * A value of 0 indicates there was no beam.
      * A null value means it was not recorded.
-     * @return The beam energy.
+     * @return the beam energy
      */
     @Field(names = {"energy"})
     public Double getEnergy() {

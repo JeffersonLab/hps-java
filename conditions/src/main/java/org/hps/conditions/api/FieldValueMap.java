@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 /**
  * Simple class extending <code>java.lang.Map</code> that maps field names
  * to values for conditions objects.
+ * 
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 public final class FieldValueMap extends LinkedHashMap<String, Object> {

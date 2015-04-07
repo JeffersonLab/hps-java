@@ -3,8 +3,7 @@
  * implementations, of the database conditions API for HPS.  These classes
  * include simple ORM between conditions objects and the database.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  * @see ConditionsObject
  * @see ConditionsObjectCollection
  * @see ConditionsSeries

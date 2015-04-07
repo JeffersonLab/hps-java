@@ -13,16 +13,21 @@ import static org.hps.conditions.svt.SvtChannel.MAX_NUMBER_OF_SAMPLES;
  * {@link TestRunSvtChannel} objects from the SVT channel map should be used to
  * lookup the conditions using the
  * {@link #getChannelConstants(TestRunSvtChannel)} method.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
 public final class TestRunSvtConditions extends AbstractSvtConditions {
 
     /**
+     * Length of divider when printing.
+     */
+    private static final int DIVIDER_LEN = 115;
+
+    /**
      * Get the {@link TestRunSvtDaqMappingCollection} associated with these
      * conditions.
-     * 
+     *
      * @return The SVT DAQ map.
      */
     @Override
@@ -32,7 +37,7 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
 
     /**
      * Get the {@link TestRunSvtChannelCollection} for this set of conditions.
-     * 
+     *
      * @return The SVT channel map.
      */
     @Override
@@ -43,7 +48,7 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
     /**
      * Get the {@link TestRunSvtT0ShiftCollection} associated with these
      * conditions.
-     * 
+     *
      * @return The {@link TestRunSvtT0ShiftCollection}
      */
     @Override
@@ -56,11 +61,10 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
      * formatted table of channel data independently of how its member objects
      * implement their string conversion method. For now, it does not print the
      * time shifts by sensor as all other information is by channel.
-     * 
-     * @return This object converted to a string, without the DAQ map. TODO:
-     *         Make this look more human readable. At the moment, reading this
-     *         requires a huge terminal window.
+     *
+     * @return this object converted to a string, without the DAQ map
      */
+    // TODO: Make this look more human readable. At the moment, reading this requires a huge terminal window.
     public String toString() {
         StringBuffer buff = new StringBuffer();
 
@@ -114,7 +118,7 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
         buff.append("    ");
         buff.append("Bad Channels");
         buff.append('\n');
-        for (int i = 0; i < 115; i++) {
+        for (int i = 0; i < DIVIDER_LEN; i++) {
             buff.append("-");
         }
         buff.append('\n');
@@ -124,10 +128,10 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
             System.out.println("Channel: " + channel.toString());
 
             // Get the conditions for the channel.
-            ChannelConstants constants = getChannelConstants(channel);
-            SvtGain gain = constants.getGain();
-            SvtShapeFitParameters shapeFit = constants.getShapeFitParameters();
-            SvtCalibration calibration = constants.getCalibration();
+            final ChannelConstants constants = getChannelConstants(channel);
+            final SvtGain gain = constants.getGain();
+            final SvtShapeFitParameters shapeFit = constants.getShapeFitParameters();
+            final SvtCalibration calibration = constants.getCalibration();
 
             // Channel data.
             buff.append(String.format("%-6d %-5d %-8d %-8d ", channel.getChannelID(), channel.getFpgaID(), channel.getHybridID(), channel.getChannel()));
@@ -146,7 +150,8 @@ public final class TestRunSvtConditions extends AbstractSvtConditions {
             buff.append(String.format("%-6.4f %-9.4f ", gain.getGain(), gain.getOffset()));
 
             // Pulse shape.
-            buff.append(String.format("%-10.4f %-8.4f %-8.4f", shapeFit.getAmplitude(), shapeFit.getT0(), shapeFit.getTp()));
+            buff.append(String.format("%-10.4f %-8.4f %-8.4f", 
+                    shapeFit.getAmplitude(), shapeFit.getT0(), shapeFit.getTp()));
 
             // Bad channel.
             buff.append(constants.isBadChannel());

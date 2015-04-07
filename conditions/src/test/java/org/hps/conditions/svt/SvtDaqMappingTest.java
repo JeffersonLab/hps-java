@@ -3,55 +3,62 @@ package org.hps.conditions.svt;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.database.TableMetaData;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 
 /**
  * This test checks if the SVT DAQ map was loaded with reasonable values and is
  * being read correctly from the conditions database.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ *
+ * @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
  */
-public class SvtDaqMappingTest extends TestCase {
+public final class SvtDaqMappingTest extends TestCase {
 
-    // --- Constants ---// 
-    // -----------------//
-
-    // Total number of SVT sensors
+    /**
+     * Total number of SVT sensors.
+     */
     public static final int TOTAL_NUMBER_OF_SENSORS = 36;
-    // Min and max values of front end boad (FEB) hybrid ID's
+
+    /**
+     * Minimum FEB Hybrid ID.
+     */
     public static final int MIN_FEB_HYBRID_ID = 0;
+
+    /**
+     * Maximum FEB Hybrid ID.
+     */
     public static final int MAX_FEB_HYBRID_ID = 3;
 
-    // -----------------//
 
+    /**
+     * Load the DAQ map from the database.
+     * @throws Exception if there is a test error
+     */
     public void test() throws Exception {
-
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
-
-        SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();
-
+        final SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(
+                SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();
         int totalSensors = 0;
         int febHybridID;
         //this.printDebug("");
         for (SvtDaqMapping daqMapping : daqMappingCollection) {
-
             //this.printDebug("Sensor: \n" + daqMapping.toString());
-
             // Check that the FEB Hybrid ID is within the allowable limits
             febHybridID = daqMapping.getFebHybridID();
-            assertTrue("FEB Hybrid ID is out of range!.", febHybridID >= MIN_FEB_HYBRID_ID && febHybridID <= MAX_FEB_HYBRID_ID);
-
+            assertTrue("FEB Hybrid ID is out of range!.",
+                    febHybridID >= MIN_FEB_HYBRID_ID && febHybridID <= MAX_FEB_HYBRID_ID);
             totalSensors++;
         }
-
         //this.printDebug("Total number of sensors found: " + totalSensors);
         assertTrue(totalSensors == TOTAL_NUMBER_OF_SENSORS);
 
     }
 
-    private void printDebug(String debugMessage) {
+    /**
+     * Print debug message.
+     * @param debugMessage the message
+     */
+    private void printDebug(final String debugMessage) {
         System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
     }
 }

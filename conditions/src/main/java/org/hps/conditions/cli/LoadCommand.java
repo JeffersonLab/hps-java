@@ -51,7 +51,7 @@ class LoadCommand extends AbstractCommand {
     /**
      * Execute the 'load' command with the given arguments.
      *
-     * @param arguments The command arguments.
+     * @param arguments the command arguments
      */
     @Override
     public void execute(final String[] arguments) {
@@ -107,9 +107,9 @@ class LoadCommand extends AbstractCommand {
 
     /**
      * Parse an input text file and add column names and row data to the input lists.
-     * @param fileName The name of the text file.
-     * @param columnNames The list of columns (modified by this method).
-     * @param rows The list of rows (modified by this method).
+     * @param fileName the name of the text file
+     * @param columnNames the list of columns (modified by this method)
+     * @param rows the list of rows (modified by this method)
      */
     private final void parseFile(final String fileName, final List<String> columnNames, 
             final List<List<String>> rows) {

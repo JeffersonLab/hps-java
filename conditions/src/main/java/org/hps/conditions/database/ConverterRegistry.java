@@ -33,7 +33,7 @@ public final class ConverterRegistry extends HashMap<Class<? extends ConditionsO
     /**
      * Automatically create converters for all {@link org.hps.conditions.api.ConditionsObject} classes.
      * 
-     * @return The registry of converters.
+     * @return the global registry of converters
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     static ConverterRegistry create() {
@@ -88,10 +88,10 @@ public final class ConverterRegistry extends HashMap<Class<? extends ConditionsO
 
     /**
      * Convert the object to a string.
-     * @return The object converted to a string.
+     * @return the object converted to a string
      */
     @SuppressWarnings("rawtypes")
-    public final String toString() {
+    public String toString() {
         final StringBuffer buff = new StringBuffer();
         for (Entry<Class<? extends ConditionsObject>, AbstractConditionsObjectConverter> entry : entrySet()) {
             buff.append(entry.getValue().toString());

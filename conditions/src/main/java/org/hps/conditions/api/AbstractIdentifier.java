@@ -11,14 +11,14 @@ public abstract class AbstractIdentifier {
     /**
      * Encode the ID into a long.
      *
-     * @return The ID encoded into a long.
+     * @return the ID encoded into a <code>long</code>
      */
     public abstract long encode();
 
     /**
      * Check if the ID is valid.
      *
-     * @return True if valid.
+     * @return <code>true</code> if valid
      */
     public abstract boolean isValid();
 }
