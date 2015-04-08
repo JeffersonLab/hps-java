@@ -4,7 +4,9 @@
     
     <info name="HPS-EngRun2015-Nominal-v0">
         <comment>HPS detector for 2015 Engineering Run with tracker at nominal opening = 15mrad
-                  this detector uses the full 3d fieldmap scaled to By=-0.3309T</comment>
+                  this detector uses the full 3d fieldmap scaled to By=-0.3309T
+                  MG--4/8/2015:  plan is to run at ~1GeV; removed fieldmap and set box dipole to 0.25T; 
+        </comment>
     </info>
 
     <define>
@@ -29,7 +31,7 @@
         <constant name="dipoleMagnetHeight" value="100*cm"/>
         <constant name="dipoleMagnetWidth" value="100*cm"/>
         <constant name="dipoleMagnetLength" value="108*cm"/>
-        <constant name="constBFieldY" value="-0.5"/>
+        <constant name="constBFieldY" value="-0.25"/><!-- set for 1GeV running -->
          
         
         <!-- ECAL crystal dimensions -->
@@ -479,7 +481,7 @@
 
     </readouts>
 
-  <fields>
+<!--  <fields>
         <field 
             type="FieldMap3D"
             name="HPSDipoleFieldMap3D" 
@@ -488,6 +490,11 @@
             yoffset="0.0*cm"
             zoffset="45.72*cm"
         />
+    </fields>-->
+
+    
+    <fields>
+        <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
     </fields>
 
     <includes>
