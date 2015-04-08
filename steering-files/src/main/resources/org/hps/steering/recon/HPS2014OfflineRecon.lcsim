@@ -15,7 +15,7 @@
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />  
         <driver name="TrackDataDriver" />              
-        <driver name="GBLDriver"/> 
+        <!--<driver name="GBLDriver"/>--> 
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -26,7 +26,7 @@
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
-            <useTimestamps>true</useTimestamps>
+            <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>

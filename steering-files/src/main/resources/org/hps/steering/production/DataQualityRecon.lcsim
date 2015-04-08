@@ -15,6 +15,7 @@
         <driver name="TrackMCEfficiency"/> 
         <driver name="FinalStateMonitoring"/>          
         <driver name="V0Monitoring"/>          
+        <driver name="TridentMonitoring"/>
         <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -46,6 +47,9 @@
             <overwriteDB>false</overwriteDB>
         </driver> 
         <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
+            <overwriteDB>false</overwriteDB>
+        </driver>
+        <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
             <overwriteDB>false</overwriteDB>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

@@ -22,6 +22,7 @@ public class HitTimeTrackCheck implements TrackCheck {
     private int seedsPassed = 0;
     private int tracksChecked = 0;
     private int tracksPassed = 0;
+    private boolean debug = false;
 
     public HitTimeTrackCheck(double rmsTimeCut) {
         this.rmsTimeCut = rmsTimeCut;
@@ -56,7 +57,7 @@ public class HitTimeTrackCheck implements TrackCheck {
         if (passCheck) {
             seedsPassed++;
         }
-        if (seedsChecked % 10000 == 0) {
+        if (debug && seedsChecked % 10000 == 0) {
             System.out.format("Checked %d seeds, %d passed (%d failed)\n", seedsChecked, seedsPassed, seedsChecked - seedsPassed);
         }
         return passCheck;
@@ -91,7 +92,7 @@ public class HitTimeTrackCheck implements TrackCheck {
         if (passCheck) {
             tracksPassed++;
         }
-        if (tracksChecked % 100 == 0) {
+        if (debug && tracksChecked % 100 == 0) {
             System.out.format("Checked %d tracks, %d passed (%d failed)\n", tracksChecked, tracksPassed, tracksChecked - tracksPassed);
         }
         return passCheck;

@@ -117,36 +117,42 @@ public class TrackingMonitoring extends DataQualityMonitor {
             sumchisq += trk.getChi2();
 
             int nStrips = 0;
-            double meanTime = 0;
-            double rmsTime = 0;
-
             int nSeedStrips = 0;
-            double rmsSeedTime = 0;
+            double meanTime = 0;
+            double meanSeedTime = 0;
             for (TrackerHit hit : trk.getTrackerHits()) {
-//                System.out.format("cross time: %f\n", hit.getTime());
                 Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
                 for (TrackerHit hts : htsList) {
                     nStrips++;
                     meanTime += hts.getTime();
-                    rmsTime += hts.getTime() * hts.getTime();
-//                    rmsTime += Math.abs(hts.getTime());
-
-//                    System.out.format("strip time: %f\n", hts.getTime());
                     int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
                     if (layer <= 6) {
                         nSeedStrips++;
-                        rmsSeedTime += hts.getTime() * hts.getTime();
+                        meanSeedTime += hts.getTime();
                     }
                 }
             }
             meanTime /= nStrips;
-//            rmsTime = Math.sqrt(rmsTime / nStrips);
+            meanSeedTime /= nSeedStrips;
+
+            double rmsTime = 0;
+            double rmsSeedTime = 0;
+            for (TrackerHit hit : trk.getTrackerHits()) {
+                Collection<TrackerHit> htsList = hittostrip.allFrom(hittorotated.from(hit));
+                for (TrackerHit hts : htsList) {
+                    rmsTime += Math.pow(hts.getTime() - meanTime, 2);
+                    int layer = ((HpsSiSensor) ((RawTrackerHit) hts.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                    if (layer <= 6) {
+                        rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
+                    }
+                }
+            }
             rmsTime = Math.sqrt(rmsTime / nStrips);
             aida.histogram1D(plotDir + "Mean time of hits on track").fill(meanTime);
             aida.histogram1D(plotDir + "RMS time of hits on track").fill(rmsTime);
             aida.histogram2D(plotDir + "Track chi2 vs. RMS time of hits").fill(rmsTime, trk.getChi2());
 
-            rmsSeedTime = Math.sqrt(rmsSeedTime/nSeedStrips);
+            rmsSeedTime = Math.sqrt(rmsSeedTime / nSeedStrips);
             aida.histogram1D(plotDir + "RMS time of hits on seed layers").fill(rmsSeedTime);
 //            System.out.format("%d seed strips, RMS time %f\n", nSeedStrips, rmsSeedTime);
 
