@@ -1,6 +1,5 @@
 package org.hps.monitoring.trigger;
 
-import org.hps.analysis.trigger.DiagSnapshot;
 import org.hps.analysis.trigger.data.DiagnosticSnapshot;
 
 /**
