@@ -105,7 +105,7 @@ public class TriggerDiagnosticDriver extends Driver {
     private boolean printSinglesTriggerInternalFail = true;
     private boolean printPairTriggerEfficiencyFail = true;
     private boolean printPairTriggerInternalFail = true;
-    private int     statPrintInterval = 100000;
+    private int     statPrintInterval = Integer.MAX_VALUE;
 
     // Cut index arrays for trigger verification.
 	private static final int ENERGY_MIN   = TriggerDiagnosticUtil.SINGLES_ENERGY_MIN;
@@ -259,6 +259,10 @@ public class TriggerDiagnosticDriver extends Driver {
 						pairCutsEnabled[i][3 + ENERGY_SLOPE] = pairs[i].getEnergySlopeCutConfig().isEnabled();
 						pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
 					}
+					
+					// Update the trigger plots values.
+					globalTriggerPlots.setEnergySlopeParamF(0, daq.getSSPConfig().getPair1Config().getEnergySlopeCutConfig().getParameterF());
+					globalTriggerPlots.setEnergySlopeParamF(1, daq.getSSPConfig().getPair2Config().getEnergySlopeCutConfig().getParameterF());
 					
 					// Print a DAQ configuration settings header.
 					System.out.println();
@@ -419,9 +423,6 @@ public class TriggerDiagnosticDriver extends Driver {
 		// ==== Obtain SSP and TI Banks =============================
 		// ==========================================================
 		
-		// Output the event number and information.
-		OutputLogger.printf("Event Number %d (%d)%n", globalStats.getEventCount(), event.getEventNumber());
-		
 		// Get the SSP clusters.
 		if(event.hasCollection(GenericObject.class, bankCollectionName)) {
 			// Get the bank list.
@@ -485,6 +486,9 @@ public class TriggerDiagnosticDriver extends Driver {
 			System.err.println("TriggerDiagnosticDriver :: SEVERE WARNING :: TI bank or SSP bank missing from event!");
 			return;
 		}
+		
+		// Output the event number and information.
+		OutputLogger.printf("Event Number %d (%d)%n", sspBank.getEventNumber(), event.getEventNumber());
 		
 		
 		
@@ -1622,11 +1626,17 @@ public class TriggerDiagnosticDriver extends Driver {
 		// Run the SSP clusters through the singles trigger to determine
 		// whether they pass it or not.
 		for(SSPCluster cluster : sspClusters) {
+			// Add the cluster to the "NO_CUTS" plots for each singles
+			// TI bit that is active.
+			if(tiBank.isSingle0Trigger()) { globalTriggerPlots.sawCluster(0, cluster); }
+			if(tiBank.isSingle1Trigger()) { globalTriggerPlots.sawCluster(1, cluster); }
+			
 			triggerLoop:
 			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
-				// For a cluster to have formed it is assumed to have passed
-				// the cluster seed energy cuts. This can not be verified
-				// since the SSP bank does not report individual hit. 
+				// For a cluster to have formed it is assumed to have
+				// passed the cluster seed energy cuts. This can not
+				// be verified since the SSP bank does not report
+				// individual hit. 
 				boolean passSeedLow = true;
 				boolean passSeedHigh = true;
 				
@@ -1654,6 +1664,12 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue triggerLoop;
 				}
 				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
+				}
+				
 				// If all the necessary checks passed, store the new
 				// trigger for verification.
 				sspSinglesTriggers.get(triggerNum).add(trigger);
@@ -1663,6 +1679,11 @@ public class TriggerDiagnosticDriver extends Driver {
 		// Run the reconstructed clusters through the singles trigger
 		// to determine whether they pass it or not.
 		for(Cluster cluster : reconClusters) {
+			// Add the cluster to the "NO_CUTS" plots for each singles
+			// TI bit that is active.
+			if(tiBank.isSingle0Trigger()) { globalTriggerPlots.sawCluster(0, cluster); }
+			if(tiBank.isSingle1Trigger()) { globalTriggerPlots.sawCluster(1, cluster); }
+			
 			// Simulate each of the cluster singles triggers.
 			triggerLoop:
 			for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
@@ -1694,6 +1715,12 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue triggerLoop;
 				} if(singlesCutsEnabled[triggerNum][HIT_COUNT] && !trigger.getStateHitCount()) {
 					continue triggerLoop;
+				}
+				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
 				}
 				
 				// Store the trigger.
@@ -1761,6 +1788,12 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue pairTriggerLoop;
 				}
 				
+				// Add the cluster to the "NO_CUTS" plots for each
+				// singles TI bit that is active.
+				if((triggerIndex == 0 && tiBank.isPair0Trigger()) || (triggerIndex == 1 && tiBank.isPair1Trigger())) {
+					globalTriggerPlots.sawPair(triggerIndex, reconPair);
+				}
+				
 				// For a cluster to have formed it is assumed to have passed
 				// the cluster seed energy cuts. This can not be verified
 				// since the SSP bank does not report individual hit. 
@@ -1814,6 +1847,12 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue pairTriggerLoop;
 				}
 				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
+				}
+				
 				// Add the trigger to the list.
 				reconPairsTriggers.get(triggerIndex).add(trigger);
 			}
@@ -1827,6 +1866,12 @@ public class TriggerDiagnosticDriver extends Driver {
 				// destroyed.
 				if(!pairsTrigger[triggerIndex].pairTimeCoincidenceCut(sspPair)) {
 					continue pairTriggerLoop;
+				}
+				
+				// Add the cluster to the "NO_CUTS" plots for each
+				// singles TI bit that is active.
+				if((triggerIndex == 0 && tiBank.isPair0Trigger()) || (triggerIndex == 1 && tiBank.isPair1Trigger())) {
+					globalTriggerPlots.sawPair(triggerIndex, sspPair);
 				}
 				
 				// For a cluster to have formed it is assumed to have passed
@@ -1880,6 +1925,12 @@ public class TriggerDiagnosticDriver extends Driver {
 					continue pairTriggerLoop;
 				} if(pairCutsEnabled[triggerIndex][3 + COPLANARITY] && !trigger.getStateCoplanarity()) {
 					continue pairTriggerLoop;
+				}
+				
+				// If all the trigger cuts passed, plot this trigger
+				// in the "triggered" plots.
+				if(trigger.getTriggerState()) {
+					globalTriggerPlots.passedTrigger(trigger);
 				}
 				
 				// Add the trigger to the list.
