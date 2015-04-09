@@ -18,24 +18,61 @@ import org.jlab.coda.et.enums.Mode;
  */
 class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
-    private JTextField etNameField;
-    private JTextField hostField;
-    private JTextField portField;
-    private JCheckBox blockingCheckBox;
-    private JCheckBox verboseCheckBox;
-    private JTextField stationNameField;
-    private JTextField chunkSizeField;
-    private JTextField queueSizeField;
-    private JTextField stationPositionField;
-    private JComboBox<?> waitModeComboBox;
-    private JTextField waitTimeField;
-    private JTextField prescaleField;
+    /**
+     * Updates the GUI from changes in the ConfigurationModel.
+     */
+    public class ConnectionSettingsChangeListener implements PropertyChangeListener {
+        @Override
+        public void propertyChange(final PropertyChangeEvent evt) {
+            ConnectionSettingsPanel.this.getConfigurationModel().removePropertyChangeListener(this);
+            try {
+                final Object value = evt.getNewValue();
+                if (evt.getPropertyName().equals(ConfigurationModel.ET_NAME_PROPERTY)) {
+                    ConnectionSettingsPanel.this.etNameField.setText((String) value);
+                } else if (evt.getPropertyName().equals(ConfigurationModel.HOST_PROPERTY)) {
+                    ConnectionSettingsPanel.this.hostField.setText((String) value);
+                } else if (evt.getPropertyName().equals(ConfigurationModel.PORT_PROPERTY)) {
+                    ConnectionSettingsPanel.this.portField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.BLOCKING_PROPERTY)) {
+                    ConnectionSettingsPanel.this.blockingCheckBox.setSelected((Boolean) value);
+                } else if (evt.getPropertyName().equals(ConfigurationModel.VERBOSE_PROPERTY)) {
+                    ConnectionSettingsPanel.this.verboseCheckBox.setSelected((Boolean) value);
+                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_NAME_PROPERTY)) {
+                    ConnectionSettingsPanel.this.stationNameField.setText((String) value);
+                } else if (evt.getPropertyName().equals(ConfigurationModel.CHUNK_SIZE_PROPERTY)) {
+                    ConnectionSettingsPanel.this.chunkSizeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.QUEUE_SIZE_PROPERTY)) {
+                    ConnectionSettingsPanel.this.queueSizeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_POSITION_PROPERTY)) {
+                    ConnectionSettingsPanel.this.stationPositionField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_MODE_PROPERTY)) {
+                    ConnectionSettingsPanel.this.waitModeComboBox.setSelectedItem(((Mode) value).name());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_TIME_PROPERTY)) {
+                    ConnectionSettingsPanel.this.waitTimeField.setText(value.toString());
+                } else if (evt.getPropertyName().equals(ConfigurationModel.PRESCALE_PROPERTY)) {
+                    ConnectionSettingsPanel.this.prescaleField.setText(value.toString());
+                }
+            } finally {
+                ConnectionSettingsPanel.this.getConfigurationModel().addPropertyChangeListener(this);
+            }
+        }
+    }
 
-    static final String[] waitModes = { 
-        Mode.SLEEP.name(), 
-        Mode.TIMED.name(), 
-        Mode.ASYNC.name() 
-    };
+    static final String[] waitModes = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
+    private final JCheckBox blockingCheckBox;
+    private final JTextField chunkSizeField;
+    private final JTextField etNameField;
+    private final JTextField hostField;
+    private final JTextField portField;
+    private final JTextField prescaleField;
+    private final JTextField queueSizeField;
+    private final JTextField stationNameField;
+    private final JTextField stationPositionField;
+    private final JCheckBox verboseCheckBox;
+
+    private final JComboBox<?> waitModeComboBox;
+
+    private final JTextField waitTimeField;
 
     /**
      * Class constructor.
@@ -43,161 +80,123 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
     ConnectionSettingsPanel() {
 
         super(new Insets(5, 5, 5, 5), true);
-                        
-        setLayout(new GridBagLayout());
 
-        etNameField = addField("ET Name", "", 20);
-        etNameField.addPropertyChangeListener("value", this);
+        this.setLayout(new GridBagLayout());
 
-        hostField = addField("Host", 20);
-        hostField.addPropertyChangeListener("value", this);
+        this.etNameField = this.addField("ET Name", "", 20);
+        this.etNameField.addPropertyChangeListener("value", this);
 
-        portField = addField("Port", 5);
-        portField.addPropertyChangeListener("value", this);
+        this.hostField = this.addField("Host", 20);
+        this.hostField.addPropertyChangeListener("value", this);
 
-        blockingCheckBox = addCheckBox("Blocking", false, true);
-        blockingCheckBox.setActionCommand(Commands.BLOCKING_CHANGED);
-        blockingCheckBox.addActionListener(this);
+        this.portField = this.addField("Port", 5);
+        this.portField.addPropertyChangeListener("value", this);
 
-        verboseCheckBox = addCheckBox("Verbose", false, true);
-        verboseCheckBox.setActionCommand(Commands.VERBOSE_CHANGED);
-        verboseCheckBox.addActionListener(this);
+        this.blockingCheckBox = this.addCheckBox("Blocking", false, true);
+        this.blockingCheckBox.setActionCommand(Commands.BLOCKING_CHANGED);
+        this.blockingCheckBox.addActionListener(this);
 
-        stationNameField = addField("Station Name", 10);
-        stationNameField.addPropertyChangeListener("value", this);
+        this.verboseCheckBox = this.addCheckBox("Verbose", false, true);
+        this.verboseCheckBox.setActionCommand(Commands.VERBOSE_CHANGED);
+        this.verboseCheckBox.addActionListener(this);
 
-        chunkSizeField = addField("Chunk Size", 3);
-        chunkSizeField.addPropertyChangeListener("value", this);
+        this.stationNameField = this.addField("Station Name", 10);
+        this.stationNameField.addPropertyChangeListener("value", this);
 
-        queueSizeField = addField("Queue Size", 3);
-        queueSizeField.addPropertyChangeListener("value", this);
+        this.chunkSizeField = this.addField("Chunk Size", 3);
+        this.chunkSizeField.addPropertyChangeListener("value", this);
 
-        stationPositionField = addField("Station Position", 3);
-        stationPositionField.addPropertyChangeListener("value", this);
+        this.queueSizeField = this.addField("Queue Size", 3);
+        this.queueSizeField.addPropertyChangeListener("value", this);
 
-        waitModeComboBox = addComboBox("Wait Mode", waitModes);
-        waitModeComboBox.setActionCommand(Commands.WAIT_MODE_CHANGED);
-        waitModeComboBox.addActionListener(this);
+        this.stationPositionField = this.addField("Station Position", 3);
+        this.stationPositionField.addPropertyChangeListener("value", this);
 
-        waitTimeField = addField("Wait Time [microseconds]", 8);
-        waitTimeField.addPropertyChangeListener(this);
+        this.waitModeComboBox = this.addComboBox("Wait Mode", waitModes);
+        this.waitModeComboBox.setActionCommand(Commands.WAIT_MODE_CHANGED);
+        this.waitModeComboBox.addActionListener(this);
 
-        prescaleField = addField("Prescale", 8);
-        prescaleField.addPropertyChangeListener(this);
-    }
+        this.waitTimeField = this.addField("Wait Time [microseconds]", 8);
+        this.waitTimeField.addPropertyChangeListener(this);
 
-    /**
-     * Enable or disable the connection panel GUI elements.
-     * @param e Set to true for enabled; false to disable.
-     */
-    void enableConnectionPanel(boolean e) {
-        etNameField.setEnabled(e);
-        hostField.setEnabled(e);
-        portField.setEnabled(e);
-        blockingCheckBox.setEnabled(e);
-        verboseCheckBox.setEnabled(e);
-        stationNameField.setEnabled(e);
-        chunkSizeField.setEnabled(e);
-        queueSizeField.setEnabled(e);
-        stationPositionField.setEnabled(e);
-        waitModeComboBox.setEnabled(e);
-        waitTimeField.setEnabled(e);
-        prescaleField.setEnabled(e);
-    }
-
-    /**
-     * Updates the GUI from changes in the ConfigurationModel.
-     */
-    public class ConnectionSettingsChangeListener implements PropertyChangeListener {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {                       
-            configurationModel.removePropertyChangeListener(this);
-            try {
-                Object value = evt.getNewValue();
-                if (evt.getPropertyName().equals(ConfigurationModel.ET_NAME_PROPERTY)) {
-                    etNameField.setText((String) value);
-                } else if (evt.getPropertyName().equals(ConfigurationModel.HOST_PROPERTY)) {
-                    hostField.setText((String) value);
-                } else if (evt.getPropertyName().equals(ConfigurationModel.PORT_PROPERTY)) {
-                    portField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.BLOCKING_PROPERTY)) {
-                    blockingCheckBox.setSelected((Boolean) value);
-                } else if (evt.getPropertyName().equals(ConfigurationModel.VERBOSE_PROPERTY)) {
-                    verboseCheckBox.setSelected((Boolean) value);
-                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_NAME_PROPERTY)) {
-                    stationNameField.setText((String) value);
-                } else if (evt.getPropertyName().equals(ConfigurationModel.CHUNK_SIZE_PROPERTY)) {
-                    chunkSizeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.QUEUE_SIZE_PROPERTY)) {
-                    queueSizeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.STATION_POSITION_PROPERTY)) {
-                    stationPositionField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_MODE_PROPERTY)) {
-                    waitModeComboBox.setSelectedItem(((Mode) value).name());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.WAIT_TIME_PROPERTY)) {
-                    waitTimeField.setText(value.toString());
-                } else if (evt.getPropertyName().equals(ConfigurationModel.PRESCALE_PROPERTY)) {
-                    prescaleField.setText(value.toString());
-                }
-            } finally {
-                configurationModel.addPropertyChangeListener(this);
-            }
-        }
-    }
-
-    /**
-     * Updates ConfigurationModel from changes in the GUI components.
-     */
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (!accept(evt)) {
-            return;
-        }               
-        Object source = evt.getSource();
-        configurationModel.removePropertyChangeListener(this);
-        try {
-            if (source.equals(etNameField)) {
-                configurationModel.setEtName(etNameField.getText());
-            } else if (source.equals(hostField)) {
-                configurationModel.setHost(hostField.getText());
-            } else if (source.equals(portField)) {
-                configurationModel.setPort(Integer.parseInt(portField.getText()));
-            } else if (source.equals(stationNameField)) {
-                configurationModel.setStationName(stationNameField.getText());
-            } else if (source.equals(chunkSizeField)) {
-                configurationModel.setChunkSize(Integer.parseInt(chunkSizeField.getText()));
-            } else if (source.equals(queueSizeField)) {
-                configurationModel.setQueueSize(Integer.parseInt(queueSizeField.getText()));
-            } else if (source.equals(stationPositionField)) {
-                configurationModel.setStationPosition(Integer.parseInt(stationPositionField.getText()));
-            } else if (source.equals(waitTimeField)) {
-                configurationModel.setWaitTime(Integer.parseInt(waitTimeField.getText()));
-            } else if (source.equals(prescaleField)) {
-                configurationModel.setPrescale(Integer.parseInt(prescaleField.getText()));
-            }
-        } finally {
-            configurationModel.addPropertyChangeListener(this);
-        }
+        this.prescaleField = this.addField("Prescale", 8);
+        this.prescaleField.addPropertyChangeListener(this);
     }
 
     /**
      * Used to update the ConfigurationModel from GUI components.
      */
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(final ActionEvent e) {
         if (Commands.WAIT_MODE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setWaitMode(Mode.valueOf((String) waitModeComboBox.getSelectedItem()));
+            this.getConfigurationModel().setWaitMode(Mode.valueOf((String) this.waitModeComboBox.getSelectedItem()));
         } else if (Commands.BLOCKING_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setBlocking(blockingCheckBox.isSelected());
+            this.getConfigurationModel().setBlocking(this.blockingCheckBox.isSelected());
         } else if (Commands.VERBOSE_CHANGED.equals(e.getActionCommand())) {
-            configurationModel.setVerbose(verboseCheckBox.isSelected());
+            this.getConfigurationModel().setVerbose(this.verboseCheckBox.isSelected());
         }
     }
-    
-    public void setConfigurationModel(ConfigurationModel model) {
+
+    /**
+     * Enable or disable the connection panel GUI elements.
+     * 
+     * @param e Set to true for enabled; false to disable.
+     */
+    void enableConnectionPanel(final boolean e) {
+        this.etNameField.setEnabled(e);
+        this.hostField.setEnabled(e);
+        this.portField.setEnabled(e);
+        this.blockingCheckBox.setEnabled(e);
+        this.verboseCheckBox.setEnabled(e);
+        this.stationNameField.setEnabled(e);
+        this.chunkSizeField.setEnabled(e);
+        this.queueSizeField.setEnabled(e);
+        this.stationPositionField.setEnabled(e);
+        this.waitModeComboBox.setEnabled(e);
+        this.waitTimeField.setEnabled(e);
+        this.prescaleField.setEnabled(e);
+    }
+
+    /**
+     * Updates ConfigurationModel from changes in the GUI components.
+     */
+    @Override
+    public void propertyChange(final PropertyChangeEvent evt) {
+        if (!this.accept(evt)) {
+            return;
+        }
+        final Object source = evt.getSource();
+        this.getConfigurationModel().removePropertyChangeListener(this);
+        try {
+            if (source.equals(this.etNameField)) {
+                this.getConfigurationModel().setEtName(this.etNameField.getText());
+            } else if (source.equals(this.hostField)) {
+                this.getConfigurationModel().setHost(this.hostField.getText());
+            } else if (source.equals(this.portField)) {
+                this.getConfigurationModel().setPort(Integer.parseInt(this.portField.getText()));
+            } else if (source.equals(this.stationNameField)) {
+                this.getConfigurationModel().setStationName(this.stationNameField.getText());
+            } else if (source.equals(this.chunkSizeField)) {
+                this.getConfigurationModel().setChunkSize(Integer.parseInt(this.chunkSizeField.getText()));
+            } else if (source.equals(this.queueSizeField)) {
+                this.getConfigurationModel().setQueueSize(Integer.parseInt(this.queueSizeField.getText()));
+            } else if (source.equals(this.stationPositionField)) {
+                this.getConfigurationModel().setStationPosition(Integer.parseInt(this.stationPositionField.getText()));
+            } else if (source.equals(this.waitTimeField)) {
+                this.getConfigurationModel().setWaitTime(Integer.parseInt(this.waitTimeField.getText()));
+            } else if (source.equals(this.prescaleField)) {
+                this.getConfigurationModel().setPrescale(Integer.parseInt(this.prescaleField.getText()));
+            }
+        } finally {
+            this.getConfigurationModel().addPropertyChangeListener(this);
+        }
+    }
+
+    @Override
+    public void setConfigurationModel(final ConfigurationModel model) {
         super.setConfigurationModel(model);
-        
+
         // This listener updates the GUI from changes in the configuration.
-        this.configurationModel.addPropertyChangeListener(new ConnectionSettingsChangeListener());
+        this.getConfigurationModel().addPropertyChangeListener(new ConnectionSettingsChangeListener());
     }
 }
