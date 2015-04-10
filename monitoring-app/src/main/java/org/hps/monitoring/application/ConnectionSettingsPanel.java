@@ -15,8 +15,11 @@ import org.jlab.coda.et.enums.Mode;
 
 /**
  * Connection settings panel.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class ConnectionSettingsPanel extends AbstractFieldsPanel {
+@SuppressWarnings("serial")
+final class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
     /**
      * Updates the GUI from changes in the ConfigurationModel.
@@ -58,20 +61,69 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         }
     }
 
-    static final String[] waitModes = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
+    /**
+     * The available wait mode settings (sleep, timed and asynchronous).
+     */
+    private static final String[] WAIT_MODES = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
+
+    /**
+     * Check box for blocking setting.
+     */
     private final JCheckBox blockingCheckBox;
+
+    /**
+     * Field for chunk size.
+     */
     private final JTextField chunkSizeField;
+
+    /**
+     * Field for ET name (file).
+     */
     private final JTextField etNameField;
+
+    /**
+     * Field for host name.
+     */
     private final JTextField hostField;
+
+    /**
+     * Field for TCP/IP port.
+     */
     private final JTextField portField;
+
+    /**
+     * Field for prescale setting.
+     */
     private final JTextField prescaleField;
+
+    /**
+     * Field for queue size.
+     */
     private final JTextField queueSizeField;
+
+    /**
+     * Field for station name.
+     */
     private final JTextField stationNameField;
+
+    /**
+     * Field for station position.
+     */
     private final JTextField stationPositionField;
+
+    /**
+     * Check box for verbose flag.
+     */
     private final JCheckBox verboseCheckBox;
 
+    /**
+     * Check box for wait mode selection.
+     */
     private final JComboBox<?> waitModeComboBox;
 
+    /**
+     * Field for wait time.
+     */
     private final JTextField waitTimeField;
 
     /**
@@ -112,7 +164,7 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         this.stationPositionField = this.addField("Station Position", 3);
         this.stationPositionField.addPropertyChangeListener("value", this);
 
-        this.waitModeComboBox = this.addComboBox("Wait Mode", waitModes);
+        this.waitModeComboBox = this.addComboBox("Wait Mode", WAIT_MODES);
         this.waitModeComboBox.setActionCommand(Commands.WAIT_MODE_CHANGED);
         this.waitModeComboBox.addActionListener(this);
 
@@ -125,6 +177,8 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
     /**
      * Used to update the ConfigurationModel from GUI components.
+     *
+     * @param e the <code>ActionEvent</code> to handle
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
@@ -139,8 +193,8 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
     /**
      * Enable or disable the connection panel GUI elements.
-     * 
-     * @param e Set to true for enabled; false to disable.
+     *
+     * @param e <code>true</code> to enable the components in the panel
      */
     void enableConnectionPanel(final boolean e) {
         this.etNameField.setEnabled(e);
@@ -192,6 +246,10 @@ class ConnectionSettingsPanel extends AbstractFieldsPanel {
         }
     }
 
+    /**
+     * Set configuration model (using <code>super</code> method) and add a property change listener for connection
+     * settings.
+     */
     @Override
     public void setConfigurationModel(final ConfigurationModel model) {
         super.setConfigurationModel(model);

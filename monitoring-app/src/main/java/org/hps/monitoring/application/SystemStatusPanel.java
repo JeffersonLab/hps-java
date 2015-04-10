@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.hps.monitoring.application;
 
@@ -13,39 +13,35 @@ import org.hps.monitoring.application.SystemStatusEventsTable.SystemStatusEvents
 import org.hps.monitoring.subsys.SystemStatus;
 
 /**
- * This is a panel showing the two tables for viewing the system statuses,
- * one showing the current state of all system status monitors and the other
- * all system status change events.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is a panel showing the two tables for viewing the system statuses, one showing the current state of all system
+ * status monitors and the other all system status change events.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class SystemStatusPanel extends JPanel {
-    
-    SystemStatusTable statusTable = new SystemStatusTable();
+final class SystemStatusPanel extends JPanel {
+
     SystemStatusEventsTable eventsTable = new SystemStatusEventsTable();
-        
-    SystemStatusPanel() {         
+    SystemStatusTable statusTable = new SystemStatusTable();
+
+    SystemStatusPanel() {
         super(new BorderLayout());
-        JSplitPane splitPane = new JSplitPane(
-                JSplitPane.VERTICAL_SPLIT, 
-                new JScrollPane(statusTable), 
-                new JScrollPane(eventsTable));
+        final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(this.statusTable),
+                new JScrollPane(this.eventsTable));
         splitPane.setDividerLocation(50);
-        add(splitPane,
-            BorderLayout.CENTER);
-    }   
-    
-    void addSystemStatus(SystemStatus status) {
-        // Register listeners of table models on this status.
-        statusTable.getTableModel().addSystemStatus(status);        
-        eventsTable.tableModel.addSystemStatus(status);
+        add(splitPane, BorderLayout.CENTER);
     }
-    
+
+    void addSystemStatus(final SystemStatus status) {
+        // Register listeners of table models on this status.
+        this.statusTable.getTableModel().addSystemStatus(status);
+        this.eventsTable.tableModel.addSystemStatus(status);
+    }
+
     void clear() {
         // Clear the system status monitor table.
-        statusTable.getTableModel().clear();    
+        this.statusTable.getTableModel().clear();
 
         // Clear the system status events table.
-        ((SystemStatusEventsTableModel)eventsTable.getModel()).clear();
+        ((SystemStatusEventsTableModel) this.eventsTable.getModel()).clear();
     }
 }

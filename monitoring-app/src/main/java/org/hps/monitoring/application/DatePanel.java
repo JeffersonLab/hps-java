@@ -6,32 +6,71 @@ import java.util.Date;
 
 /**
  * A small JPanel with a date field and a label on its border.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class DatePanel extends FieldPanel {
+@SuppressWarnings("serial")
+final class DatePanel extends FieldPanel {
 
+    /**
+     * Default date formatting.
+     */
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    DatePanel(String fieldName, String defaultValue, int size, boolean editable) {
-        super(fieldName, defaultValue, size, editable);
-    }
-
-    DatePanel(String fieldName, Date defaultValue, SimpleDateFormat format, int size, boolean editable) {
+    /**
+     * Create a date panel.
+     *
+     * @param fieldName the field name for the label
+     * @param defaultValue the default value
+     * @param format the date formatter
+     * @param size the size of the field
+     * @param editable <code>true</code> to enable editing
+     */
+    DatePanel(final String fieldName, final Date defaultValue, final SimpleDateFormat format, final int size,
+            final boolean editable) {
         super(fieldName, format.format(defaultValue), size, editable);
     }
 
-    void setDateFormat(SimpleDateFormat dateFormat) {
+    /**
+     * Create a date panel with default date formatting.
+     *
+     * @param fieldName the field name for the label
+     * @param defaultValue the default value
+     * @param size the size of the field
+     * @param editable <code>true</code> to enable editing
+     */
+    DatePanel(final String fieldName, final String defaultValue, final int size, final boolean editable) {
+        super(fieldName, defaultValue, size, editable);
+    }
+
+    /**
+     * Get the value of the field.
+     *
+     * @return the <code>Date</code> object
+     */
+    Date getDateValue() {
+        try {
+            return this.dateFormat.parse(getValue());
+        } catch (final ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Set the date formatter.
+     *
+     * @param dateFormat the date formatter
+     */
+    void setDateFormat(final SimpleDateFormat dateFormat) {
         this.dateFormat = dateFormat;
     }
 
-    void setValue(Date date) {
-        setValue(dateFormat.format(date));
-    }
-
-    Date getDateValue() {
-        try {
-            return dateFormat.parse(getValue());
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * Set the value of the field.
+     *
+     * @param date the <code>Date</code> object
+     */
+    void setValue(final Date date) {
+        setValue(this.dateFormat.format(date));
     }
 }

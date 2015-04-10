@@ -16,6 +16,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.HasConfigurationModel;
@@ -23,6 +24,8 @@ import org.hps.monitoring.application.model.HasConfigurationModel;
 /**
  * A <code>JPanel</code> which has a number of fields with the labels in the first column and the components for
  * showing/editing the fields in the second. It uses <code>GridBagConstraints</code> for layout.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel,
@@ -83,18 +86,14 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
      * @return <code>true</code> if property change event should be accepted
      */
     boolean accept(final PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals("ancestor")) {
-            return false;
-        } else {
-            return true;
-        }
+        return !"ancestor".equals(evt.getPropertyName());
     }
 
     /**
      * Add an ActionListener to this component. By default this does nothing, but individual sub-components should
      * attach this to individual components.
      *
-     * @param listener The AcitonListener to add.
+     * @param listener the AcitonListener to add
      */
     @Override
     public void addActionListener(final ActionListener listener) {
@@ -124,10 +123,10 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a check box.
      *
-     * @param name The name of the check box.
-     * @param selected Whether the check box is selected or not.
-     * @param enabled Whether it is enabled or not.
-     * @return The JCheckBox component.
+     * @param name the name of the check box
+     * @param selected whether the check box is selected or not
+     * @param enabled whether it is enabled or not
+     * @return the JCheckBox component
      */
     protected final JCheckBox addCheckBox(final String name, final boolean selected, final boolean enabled) {
 
@@ -157,10 +156,10 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a check box.
      *
-     * @param name The name of the check box.
-     * @param tooltip The tooltip text.
-     * @param selected Whether the box is selected or not.
-     * @param enabled Whether it is enabled or not.
+     * @param name the name of the check box
+     * @param tooltip the tooltip text
+     * @param selected <code>true</code> if component is selected
+     * @param enabled <code>true</code> if component enabled
      * @return The JCheckBox component.
      */
     protected final JCheckBox addCheckBox(final String name, final String tooltip, final boolean selected,
@@ -173,9 +172,9 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a combo box.
      *
-     * @param name The name of the combo box.
-     * @param values The set of values for the combo box.
-     * @return The JComboBox component.
+     * @param name the name of the combo box
+     * @param values the set of values for the combo box
+     * @return the JComboBox component
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected final JComboBox addComboBox(final String name, final String[] values) {
@@ -186,7 +185,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
         c.insets = this.insets;
         c.anchor = GridBagConstraints.WEST;
         final JLabel waitModeLabel = new JLabel(name);
-        waitModeLabel.setHorizontalAlignment(JLabel.LEFT);
+        waitModeLabel.setHorizontalAlignment(SwingConstants.LEFT);
         this.add(waitModeLabel, c);
 
         c = new GridBagConstraints();
@@ -206,9 +205,9 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a multiline combo box.
      *
-     * @param name The name of the combo box.
-     * @param values The values for the combo box.
-     * @return The JComboBox component.
+     * @param name the name of the combo box
+     * @param values the values for the combo box
+     * @return the <code>JComboBox</code> component
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected final JComboBox addComboBoxMultiline(final String name, final String[] values) {
@@ -220,7 +219,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
         c.insets = this.insets;
         c.anchor = GridBagConstraints.WEST;
         final JLabel waitModeLabel = new JLabel(name + ":");
-        waitModeLabel.setHorizontalAlignment(JLabel.LEFT);
+        waitModeLabel.setHorizontalAlignment(SwingConstants.LEFT);
         this.add(waitModeLabel, c);
         ++this.currentGridY;
 
@@ -242,8 +241,8 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a labeled JComponent to the panel.
      *
-     * @param name The label text.
-     * @param component The component to add.
+     * @param name the label text
+     * @param component the component to add
      */
     void addComponent(final String name, final JComponent component) {
 
@@ -270,9 +269,9 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a field.
      *
-     * @param name The name of the field.
-     * @param size The size of the field.
-     * @return The JTextField component.
+     * @param name the name of the field
+     * @param size the size of the field
+     * @return the <code>JTextField</code> component
      */
     protected final JTextField addField(final String name, final int size) {
         return this.addField(name, "", size, this.editable);
@@ -281,10 +280,10 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a field.
      *
-     * @param name The name of the field.
-     * @param value The default value of the field.
-     * @param size The size of the field.
-     * @return The JTextField component.
+     * @param name the name of the field
+     * @param value the default value of the field
+     * @param size the size of the field
+     * @return the <code>JTextField</code> component
      */
     protected final JTextField addField(final String name, final String value, final int size) {
         return this.addField(name, value, size, this.editable);
@@ -293,11 +292,11 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a field.
      *
-     * @param name The name of the field.
-     * @param value The default value of the field.
-     * @param size The size of the field.
-     * @param editable The editable setting.
-     * @return The JTextField component.
+     * @param name the name of the field
+     * @param value the default value of the field
+     * @param size the size of the field
+     * @param editable the editable setting
+     * @return the <code>JTextField</code> component
      */
     protected final JFormattedTextField addField(final String name, final String value, final int size,
             final boolean editable) {
@@ -317,7 +316,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
         // JFormattedTextField field = new JFormattedTextField(value, size);
         final JFormattedTextField field = new JFormattedTextField(value);
         field.setColumns(size);
-        field.setHorizontalAlignment(JTextField.RIGHT);
+        field.setHorizontalAlignment(SwingConstants.RIGHT);
         field.setEditable(editable);
         field.setBackground(Color.WHITE);
         this.add(field, c);
@@ -330,12 +329,12 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     /**
      * Add a field.
      *
-     * @param name The name of the field.
-     * @param value The default value of the field.
-     * @param tooltip The tooltip text.
-     * @param size The size of the field.
-     * @param editable The editable setting.
-     * @return The JTextField component.
+     * @param name the name of the field
+     * @param value the default value of the field
+     * @param tooltip the tooltip text
+     * @param size the size of the field
+     * @param editable the editable setting
+     * @return the <code>JTextField</code> component
      */
     protected final JFormattedTextField addField(final String name, final String value, final String tooltip,
             final int size, final boolean editable) {
@@ -345,9 +344,9 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     }
 
     /**
-     * Get the configuration model for this component.
-     * 
-     * @return the configuration model for the component
+     * Get the {@link org.hps.monitoring.application.model.ConfigurationModel} for this component
+     *
+     * @return the {@link org.hps.monitoring.application.model.ConfigurationModel} for this component
      */
     @Override
     public ConfigurationModel getConfigurationModel() {

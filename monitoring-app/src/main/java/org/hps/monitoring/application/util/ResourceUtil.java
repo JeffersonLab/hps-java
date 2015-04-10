@@ -19,106 +19,106 @@ import org.hps.record.LCSimEventBuilder;
 import org.reflections.Reflections;
 
 /**
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ResourceUtil {
 
-    private ResourceUtil() {        
-    }
-    
     /**
-     * Get the files with extension 'lcsim' from all loaded jar files.
-     * @param packageName The package name for filtering the resources.
-     * @return A list of embedded steering file resources.
-     */
-    public static String[] findSteeringResources(String packageName) {
-        List<String> resources = new ArrayList<String>();
-        URL url = ResourceUtil.class.getResource("ResourceUtil.class");
-        String scheme = url.getProtocol();
-        if (!"jar".equals(scheme)) {
-            throw new RuntimeException("Unsupported URL protocol: " + url.getProtocol());
-        }
-        try {
-            JarURLConnection con = (JarURLConnection) url.openConnection();
-            JarFile archive = con.getJarFile();
-            Enumeration<JarEntry> entries = archive.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
-                    resources.add(entry.getName());
-                }
-            }
-            archive.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        java.util.Collections.sort(resources);
-        String[] arr = new String[resources.size()];
-        for (int i = 0; i < arr.length; i++) {
-            arr[i] = resources.get(i);
-        }
-        return arr;
-    }
-    
-    /**
-     * Find all classes that implement {@link org.hps.record.LCSimEventBuilder} and return
-     * a list of their canonical names.
-     * @return The list of classes implementing LCSimEventBuilder.
-     */
-    public static String[] findEventBuilderClassNames() {
-        Reflections reflections = new Reflections("org.hps");
-        Set<Class<? extends LCSimEventBuilder>> subTypes = reflections.getSubTypesOf(LCSimEventBuilder.class);
-        Set<String> classNames = new HashSet<String>();
-        for (Class<? extends LCSimEventBuilder> type : subTypes) {
-            classNames.add(type.getCanonicalName());
-        }
-        return classNames.toArray(new String[classNames.size()]);        
-    }
- 
-    /**
-     * Find a list of available detector names.
-     * Only those detectors that have names starting with "HPS" in their
+     * Find a list of available detector names. Only those detectors that have names starting with "HPS" in their
      * detector.properties files will be returned.
+     *
      * @return The list of available detector names.
      */
     public static String[] findDetectorNames() {
-        ClassLoader classLoader = ResourceUtil.class.getClassLoader();
-        List<String> detectorNames = new ArrayList<String>();
-        URL url = ResourceUtil.class.getResource("ResourceUtil.class");
-        String protocol = url.getProtocol();
+        final ClassLoader classLoader = ResourceUtil.class.getClassLoader();
+        final List<String> detectorNames = new ArrayList<String>();
+        final URL url = ResourceUtil.class.getResource("ResourceUtil.class");
+        final String protocol = url.getProtocol();
         if (!"jar".equals(protocol)) {
             throw new RuntimeException("Unsupported URL protocol: " + url.getProtocol());
         }
         try {
-            JarURLConnection con = (JarURLConnection) url.openConnection();
-            JarFile archive = con.getJarFile();
-            Enumeration<JarEntry> entries = archive.entries();
+            final JarURLConnection con = (JarURLConnection) url.openConnection();
+            final JarFile archive = con.getJarFile();
+            final Enumeration<JarEntry> entries = archive.entries();
             while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
+                final JarEntry entry = entries.nextElement();
                 if (entry.getName().endsWith("detector.properties")) {
-                    InputStream inputStream = classLoader.getResourceAsStream(entry.getName());
+                    final InputStream inputStream = classLoader.getResourceAsStream(entry.getName());
                     if (inputStream == null) {
                         throw new RuntimeException("Failed to load jar entry: " + entry.getName());
                     }
-                    Properties properties = new Properties();
+                    final Properties properties = new Properties();
                     properties.load(inputStream);
-                    String detectorName = properties.getProperty("name");
+                    final String detectorName = properties.getProperty("name");
                     if (detectorName.startsWith("HPS")) {
                         detectorNames.add(detectorName);
                     }
                 }
             }
             archive.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
         Collections.sort(detectorNames);
         return detectorNames.toArray(new String[detectorNames.size()]);
-    }        
-    
+    }
+
+    /**
+     * Find all classes that implement {@link org.hps.record.LCSimEventBuilder} and return a list of their canonical
+     * names.
+     *
+     * @return The list of classes implementing LCSimEventBuilder.
+     */
+    public static String[] findEventBuilderClassNames() {
+        final Reflections reflections = new Reflections("org.hps");
+        final Set<Class<? extends LCSimEventBuilder>> subTypes = reflections.getSubTypesOf(LCSimEventBuilder.class);
+        final Set<String> classNames = new HashSet<String>();
+        for (final Class<? extends LCSimEventBuilder> type : subTypes) {
+            classNames.add(type.getCanonicalName());
+        }
+        return classNames.toArray(new String[classNames.size()]);
+    }
+
+    /**
+     * Get the files with extension 'lcsim' from all loaded jar files.
+     *
+     * @param packageName The package name for filtering the resources.
+     * @return A list of embedded steering file resources.
+     */
+    public static String[] findSteeringResources(final String packageName) {
+        final List<String> resources = new ArrayList<String>();
+        final URL url = ResourceUtil.class.getResource("ResourceUtil.class");
+        final String scheme = url.getProtocol();
+        if (!"jar".equals(scheme)) {
+            throw new RuntimeException("Unsupported URL protocol: " + url.getProtocol());
+        }
+        try {
+            final JarURLConnection con = (JarURLConnection) url.openConnection();
+            final JarFile archive = con.getJarFile();
+            final Enumeration<JarEntry> entries = archive.entries();
+            while (entries.hasMoreElements()) {
+                final JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".lcsim") && entry.getName().contains(packageName)) {
+                    resources.add(entry.getName());
+                }
+            }
+            archive.close();
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+        java.util.Collections.sort(resources);
+        final String[] arr = new String[resources.size()];
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = resources.get(i);
+        }
+        return arr;
+    }
+
     public static String[] getConditionsTags() {
         return DatabaseConditionsManager.getInstance().getTags().toArray(new String[] {});
+    }
+
+    private ResourceUtil() {
     }
 }

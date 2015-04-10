@@ -28,15 +28,21 @@ import org.lcsim.conditions.ConditionsListener;
 /**
  * The component for showing conditions tables in the monitoring app.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class ConditionsPanel extends JPanel {
+@SuppressWarnings("serial")
+public final class ConditionsPanel extends JPanel {
 
     /**
      * The listener for updating the panel when conditions are changed.
      */
     class ConditionsPanelListener implements ConditionsListener {
 
+        /**
+         * Handle conditions change event.
+         *
+         * @param event the conditions change event
+         */
         @Override
         public void conditionsChanged(final ConditionsEvent event) {
 
@@ -65,12 +71,24 @@ public class ConditionsPanel extends JPanel {
         }
     }
 
+    /**
+     * The GUI component listing the conditions sets for the run.
+     */
     private final JList<String> conditionsList = new JList<String>();
 
+    /**
+     * The table which shows the currently selected conditions set from the list.
+     */
     private final JTable conditionsTable = new JTable();
 
+    /**
+     * Map of conditions set names to table models.
+     */
     private Map<String, ConditionsCollectionTableModel> tableModels;
 
+    /**
+     * Class constructor which will initialize sub-components.
+     */
     ConditionsPanel() {
         super(new BorderLayout());
 
@@ -81,7 +99,7 @@ public class ConditionsPanel extends JPanel {
                 final String tableName = ConditionsPanel.this.conditionsList.getSelectedValue();
                 final TableModel model = ConditionsPanel.this.tableModels.get(tableName);
                 ConditionsPanel.this.conditionsTable.setModel(model);
-                ConditionsPanel.this.conditionsTable.setRowSorter(new TableRowSorter(model));
+                ConditionsPanel.this.conditionsTable.setRowSorter(new TableRowSorter<TableModel>(model));
                 ConditionsPanel.this.conditionsTable.revalidate();
             }
         });
@@ -90,7 +108,7 @@ public class ConditionsPanel extends JPanel {
 
         final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.conditionsList, new JScrollPane(
                 this.conditionsTable));
-        splitPane.setResizeWeight(0.6);
+        // splitPane.setResizeWeight(0.6);
 
         this.add(splitPane);
     }

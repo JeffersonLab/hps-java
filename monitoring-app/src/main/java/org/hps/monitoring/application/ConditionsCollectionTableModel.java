@@ -10,10 +10,10 @@ import org.hps.conditions.database.TableMetaData;
 /**
  * This is a table model for a collection of conditions objects.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class ConditionsCollectionTableModel extends DefaultTableModel {
+@SuppressWarnings("serial")
+final class ConditionsCollectionTableModel extends DefaultTableModel {
 
     /**
      * The {@link org.hps.conditions.api.ConditionsObjectCollection} for the model.

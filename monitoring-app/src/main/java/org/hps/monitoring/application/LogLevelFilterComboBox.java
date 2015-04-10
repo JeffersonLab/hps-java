@@ -14,62 +14,74 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
  * This is a combo box used to filter the log table messages by level.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {
-   
-    ConfigurationModel configurationModel;
-    
-    static final Level[] LOG_LEVELS = new Level[] {
-        Level.ALL, 
-        Level.FINEST, 
-        Level.FINER, 
-        Level.FINE, 
-        Level.CONFIG, 
-        Level.INFO, 
-        Level.WARNING, 
-        Level.SEVERE
-    };
-    
-    LogLevelFilterComboBox(ConfigurationModel configurationModel) {
-        
+@SuppressWarnings("serial")
+final class LogLevelFilterComboBox extends JComboBox<Level> implements ActionListener, PropertyChangeListener {
+
+    /**
+     * Available log levels.
+     */
+    private static final Level[] LOG_LEVELS = new Level[] { Level.ALL, Level.FINEST, Level.FINER, Level.FINE,
+            Level.CONFIG, Level.INFO, Level.WARNING, Level.SEVERE };
+
+    /**
+     * The {@link org.hps.monitoring.application.model.ConfigurationModel} providing the backing model.
+     */
+    private final ConfigurationModel configurationModel;
+
+    /**
+     * Class constructor.
+     *
+     * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} providing the
+     *            backing model
+     */
+    LogLevelFilterComboBox(final ConfigurationModel configurationModel) {
+
         configurationModel.addPropertyChangeListener(this);
-        this.configurationModel = configurationModel;       
-        
+        this.configurationModel = configurationModel;
+
         setModel(new DefaultComboBoxModel<Level>(LOG_LEVELS));
         setPrototypeDisplayValue(Level.WARNING);
-        setSelectedItem(Level.ALL);                       
+        setSelectedItem(Level.ALL);
         setActionCommand(Commands.LOG_LEVEL_FILTER_CHANGED);
         addActionListener(this);
         setPreferredSize(new Dimension(100, getPreferredSize().height));
         setSize(new Dimension(100, getPreferredSize().height));
-    }   
-    
+    }
+
     /**
-     * Push change in log level filtering to the configuration model.
+     * The {@link java.awt.event.ActionEvent} handling, which is used to push changes to the global data model.
+     *
+     * @param event the {@link java.awt.event.ActionEvent} object
      */
-    public void actionPerformed(ActionEvent event) {
+    @Override
+    public void actionPerformed(final ActionEvent event) {
         if (event.getActionCommand().equals(Commands.LOG_LEVEL_FILTER_CHANGED)) {
-            configurationModel.removePropertyChangeListener(this);
-            try {                
-                configurationModel.setLogLevelFilter((Level) getSelectedItem());
+            this.configurationModel.removePropertyChangeListener(this);
+            try {
+                this.configurationModel.setLogLevelFilter((Level) getSelectedItem());
             } finally {
-                configurationModel.addPropertyChangeListener(this);
+                this.configurationModel.addPropertyChangeListener(this);
             }
         }
     }
-    
+
     /**
-     * Get change in log level filtering from the configuration model.     
+     * The {@link java.beans.PropertyChangeEvent} handling, which is used to get changes from the model into the GUI.
+     *
+     * @param event the {@link java.beans.PropertyChangeEvent} object to handle
      */
-    public void propertyChange(PropertyChangeEvent event) {
+    @Override
+    public void propertyChange(final PropertyChangeEvent event) {
         if (event.getPropertyName().equals(ConfigurationModel.LOG_LEVEL_FILTER_PROPERTY)) {
-            Level newLevel = (Level) event.getNewValue();
-            configurationModel.removePropertyChangeListener(this);
+            final Level newLevel = (Level) event.getNewValue();
+            this.configurationModel.removePropertyChangeListener(this);
             try {
                 setSelectedItem(newLevel);
             } finally {
-                configurationModel.addPropertyChangeListener(this);
+                this.configurationModel.addPropertyChangeListener(this);
             }
         }
     }

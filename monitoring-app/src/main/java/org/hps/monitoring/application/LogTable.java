@@ -18,93 +18,91 @@ import javax.swing.table.TableRowSorter;
 import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
- * This is a simple Swing component for the table of log messages.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is a simple {@link avax.swing.JTable} component for displaying log messages.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class LogTable extends JTable implements PropertyChangeListener {
-    
-    static final String[] COLUMN_NAMES = { "Date", "Level", "Message" };
-    
-    LogRecordModel model;
-    TableRowSorter<LogRecordModel> sorter;
+@SuppressWarnings("serial")
+final class LogTable extends JTable implements PropertyChangeListener {
 
-    Level filterLevel = Level.ALL;
-    
-    final static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            
-    LogTable(ConfigurationModel configurationModel) {
-        configurationModel.addPropertyChangeListener(this);
-        model = new LogRecordModel();
-        setModel(model);
-        sorter = new TableRowSorter<LogRecordModel>(model);
-        sorter.setRowFilter(new LevelFilter());
-        getColumnModel().getColumn(0).setCellRenderer(new DateRenderer());        
-        setRowSorter(sorter);
-        getColumnModel().getColumn(0).setPreferredWidth(142);
-        getColumnModel().getColumn(0).setMaxWidth(142);
-        getColumnModel().getColumn(1).setPreferredWidth(60);
-        getColumnModel().getColumn(1).setMaxWidth(60);
-        setEnabled(false);
-    }
-        
+    /**
+     * The table cell renderer for displaying dates.
+     */
     static class DateRenderer extends DefaultTableCellRenderer {
-        public void setValue(Object value) {
-            setText((value == null) ? "" : formatter.format(value));
+        @Override
+        public void setValue(final Object value) {
+            setText(value == null ? "" : DATE_FORMAT.format(value));
         }
-    }       
+    }
 
-    class LevelFilter extends RowFilter<LogRecordModel, Integer> {
+    /**
+     * A filter which determines what level of messages to display in the table.
+     */
+    private class LevelFilter extends RowFilter<LogRecordModel, Integer> {
 
-        public boolean include(Entry<? extends LogRecordModel, ? extends Integer> entry) {
-            LogRecordModel model = entry.getModel();
-            LogRecord record = model.get(entry.getIdentifier());
-            if (record.getLevel().intValue() >= filterLevel.intValue()) {
+        /**
+         * Return <code>true</code> to display the entry.
+         *
+         * @param entry the table entry (model with a row ID)
+         */
+        @Override
+        public boolean include(final Entry<? extends LogRecordModel, ? extends Integer> entry) {
+            final LogRecordModel model = entry.getModel();
+            final LogRecord record = model.get(entry.getIdentifier());
+            if (record.getLevel().intValue() >= LogTable.this.filterLevel.intValue()) {
                 return true;
             }
             return false;
         }
     }
-   
-    static class LogRecordModel extends AbstractTableModel {        
-        
-        List<LogRecord> records = new ArrayList<LogRecord>();
 
-        LogRecord get(Integer rowIndex) {
-            return records.get(rowIndex);
-        }
+    /**
+     * The table model implementation.
+     */
+    static class LogRecordModel extends AbstractTableModel {
 
-        void add(LogRecord record) {
-            records.add(record);
+        /**
+         * The list of {@link java.util.logging.LogRecord} objects to display in the table.
+         */
+        private final List<LogRecord> records = new ArrayList<LogRecord>();
+
+        /**
+         * Add a new {@link java.util.logging.LogRecord} object to the table.
+         *
+         * @param record the new {@link java.util.logging.LogRecord} object
+         */
+        void add(final LogRecord record) {
+            this.records.add(record);
             fireTableDataChanged();
         }
 
-        @Override
-        public int getRowCount() {
-            return records.size();
+        /**
+         * Clear all the records from the table.
+         */
+        void clear() {
+            this.records.clear();
+            fireTableDataChanged();
         }
 
-        @Override
-        public int getColumnCount() {
-            return COLUMN_NAMES.length;
+        /**
+         * Get a record by its index.
+         *
+         * @param rowIndex the row index
+         * @return the {@link java.util.logging.LogRecord} object
+         * @throws IndexOutOfBoundsException if rowIndex is invalid
+         */
+        private LogRecord get(final Integer rowIndex) {
+            return this.records.get(rowIndex);
         }
 
+        /**
+         * Get the class of a column.
+         *
+         * @param columnIndex the column's index
+         * @return the column's class
+         */
         @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            LogRecord record = records.get(rowIndex);
-            switch (columnIndex) {
-            case 0:
-                return new Date(record.getMillis());
-            case 1:
-                return record.getLevel();
-            case 2:
-                return record.getMessage();
-            default:
-                return null;
-            }
-        }
-
-        @Override
-        public Class<?> getColumnClass(int columnIndex) {
+        public Class<?> getColumnClass(final int columnIndex) {
             switch (columnIndex) {
             case 0:
                 return Date.class;
@@ -116,25 +114,123 @@ class LogTable extends JTable implements PropertyChangeListener {
                 return Object.class;
             }
         }
-        
+
+        /**
+         * Get the number of columns.
+         *
+         * @return the number of columns
+         */
         @Override
-        public String getColumnName(int columnIndex) {
+        public int getColumnCount() {
+            return COLUMN_NAMES.length;
+        }
+
+        /**
+         * Get the column name.
+         *
+         * @param columnIndex the column index
+         * @return the name of the column
+         */
+        @Override
+        public String getColumnName(final int columnIndex) {
             return COLUMN_NAMES[columnIndex];
         }
-        
-        void clear() {
-            records.clear();
-            fireTableDataChanged();
+
+        /**
+         * Get the number of rows.
+         *
+         * @return the number of rows
+         */
+        @Override
+        public int getRowCount() {
+            return this.records.size();
         }
+
+        /**
+         * Get a cell value from the table.
+         *
+         * @param rowIndex the row index
+         * @param column the column index
+         * @return the cell value or <code>null</code> if does not exist (e.g. invalid column number)
+         */
+        @Override
+        public Object getValueAt(final int rowIndex, final int columnIndex) {
+            final LogRecord record = this.get(rowIndex);
+            switch (columnIndex) {
+            case 0:
+                return new Date(record.getMillis());
+            case 1:
+                return record.getLevel();
+            case 2:
+                return record.getMessage();
+            default:
+                return null;
+            }
+        }
+    }
+
+    /**
+     * The column names.
+     */
+    static final String[] COLUMN_NAMES = { "Date", "Level", "Message" };
+
+    /**
+     * Date formatting.
+     */
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * The current filtering level.
+     */
+    private Level filterLevel = Level.ALL;
+
+    /**
+     * The backing table model.
+     */
+    private final LogRecordModel model;
+
+    /**
+     * The table sorer.
+     */
+    private final TableRowSorter<LogRecordModel> sorter;
+
+    /**
+     * Class constructor.
+     *
+     * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} for the application
+     */
+    LogTable(final ConfigurationModel configurationModel) {
+        configurationModel.addPropertyChangeListener(this);
+        this.model = new LogRecordModel();
+        setModel(this.model);
+        this.sorter = new TableRowSorter<LogRecordModel>(this.model);
+        this.sorter.setRowFilter(new LevelFilter());
+        getColumnModel().getColumn(0).setCellRenderer(new DateRenderer());
+        setRowSorter(this.sorter);
+        getColumnModel().getColumn(0).setPreferredWidth(142);
+        getColumnModel().getColumn(0).setMaxWidth(142);
+        getColumnModel().getColumn(1).setPreferredWidth(60);
+        getColumnModel().getColumn(1).setMaxWidth(60);
+        setEnabled(false);
+    }
+
+    /**
+     * Get the table model.
+     *
+     * @return the table model
+     */
+    LogRecordModel getLogRecordModel() {
+        return this.model;
     }
 
     /**
      * Get change in log level filtering from the configuration model.
      */
-    public void propertyChange(PropertyChangeEvent event) {
+    @Override
+    public void propertyChange(final PropertyChangeEvent event) {
         if (event.getPropertyName().equals(ConfigurationModel.LOG_LEVEL_FILTER_PROPERTY)) {
-            filterLevel = (Level) event.getNewValue();
-            model.fireTableDataChanged();
+            this.filterLevel = (Level) event.getNewValue();
+            this.model.fireTableDataChanged();
         }
-    }    
+    }
 }

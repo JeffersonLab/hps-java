@@ -15,56 +15,70 @@ import javassist.Modifier;
 
 /**
  * An abstract class which updates a set of listeners when there are property changes to a backing model.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class AbstractModel {
+
+    /**
+     * This method will statically extract property names from a class, which in this package's conventions are
+     * statically declared, public strings that end with "_PROPERTY".
+     *
+     * @param type The class with the properties.
+     * @return The list of property names.
+     */
+    protected static String[] getPropertyNames(final Class<? extends AbstractModel> type) {
+        final List<String> fields = new ArrayList<String>();
+        for (final Field field : type.getDeclaredFields()) {
+            final int modifiers = field.getModifiers();
+            if (Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers) && field.getName().endsWith("_PROPERTY")) {
+                try {
+                    fields.add((String) field.get(null));
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return fields.toArray(new String[] {});
+    }
 
     protected PropertyChangeSupport propertyChangeSupport;
 
     public AbstractModel() {
-        propertyChangeSupport = new PropertyChangeSupport(this);
+        this.propertyChangeSupport = new PropertyChangeSupport(this);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
+    public void addPropertyChangeListener(final PropertyChangeListener listener) {
+        this.propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
-    }
-       
-    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+    public void fireModelChanged() {
+        firePropertiesChanged(Arrays.asList(getPropertyNames()));
     }
 
-    protected void firePropertyChange(PropertyChangeEvent evt) {
-        propertyChangeSupport.firePropertyChange(evt);
-    }
-
-    abstract public String[] getPropertyNames();
-
-    void firePropertiesChanged(Collection<String> properties) {
-        propertyLoop: for (String property : properties) {
+    void firePropertiesChanged(final Collection<String> properties) {
+        propertyLoop: for (final String property : properties) {
             Method getMethod = null;
-            for (Method method : getClass().getMethods()) {
+            for (final Method method : getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
                     getMethod = method;
                     break;
                 }
             }
-            //System.out.println(getMethod.getName());
+            // System.out.println(getMethod.getName());
             try {
                 Object value = null;
                 try {
                     value = getMethod.invoke(this, (Object[]) null);
-                    //System.out.println("  value = " + value);
-                } catch (NullPointerException e) {
+                    // System.out.println("  value = " + value);
+                } catch (final NullPointerException e) {
                     // This means there is no get method for the property which is a throwable error.
                     throw new RuntimeException("Property " + property + " is missing a get method.", e);
-                } catch (InvocationTargetException e) {
+                } catch (final InvocationTargetException e) {
                     // Is the cause of the problem an illegal argument to the method?
                     if (e.getCause() instanceof IllegalArgumentException) {
-                        // For this error, assume that the key itself is missing from the configuration which is a warning.
+                        // For this error, assume that the key itself is missing from the configuration which is a
+                        // warning.
                         System.err.println("The key " + property + " is not set in the configuration.");
                         continue propertyLoop;
                     } else {
@@ -74,7 +88,8 @@ public abstract class AbstractModel {
                 }
                 if (value != null) {
                     firePropertyChange(property, value, value);
-                    for (PropertyChangeListener listener : propertyChangeSupport.getPropertyChangeListeners()) {
+                    for (final PropertyChangeListener listener : this.propertyChangeSupport
+                            .getPropertyChangeListeners()) {
                         // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!
                         listener.propertyChange(new PropertyChangeEvent(this, property, value, value));
                     }
@@ -85,30 +100,18 @@ public abstract class AbstractModel {
             }
         }
     }
-    
-    public void fireModelChanged() {
-        firePropertiesChanged(Arrays.asList(getPropertyNames()));
+
+    protected void firePropertyChange(final PropertyChangeEvent evt) {
+        this.propertyChangeSupport.firePropertyChange(evt);
     }
 
-    /**
-     * This method will statically extract property names from a class, which in this package's conventions are statically declared, 
-     * public strings that end with "_PROPERTY".
-     * 
-     * @param type The class with the properties.
-     * @return The list of property names.
-     */
-    protected static String[] getPropertyNames(Class<? extends AbstractModel> type) {
-        List<String> fields = new ArrayList<String>();
-        for (Field field : type.getDeclaredFields()) {
-            int modifiers = field.getModifiers();
-            if (Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers) && field.getName().endsWith("_PROPERTY")) {
-                try {
-                    fields.add((String) field.get(null));
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        return fields.toArray(new String[] {});
+    protected void firePropertyChange(final String propertyName, final Object oldValue, final Object newValue) {
+        this.propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+    }
+
+    abstract public String[] getPropertyNames();
+
+    public void removePropertyChangeListener(final PropertyChangeListener listener) {
+        this.propertyChangeSupport.removePropertyChangeListener(listener);
     }
 }

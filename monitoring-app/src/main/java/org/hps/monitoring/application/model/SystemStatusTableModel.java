@@ -16,32 +16,47 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 
 /**
  * A <code>JTableModel</code> that has a list of {@link org.hps.monitoring.subsys.SystemStatus} objects.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
 
-    public static final int RESET_COL = 0;
     public static final int ACTIVE_COL = 1;
-    public static final int STATUS_COL = 2;
-    public static final int SYSTEM_COL = 3;
-    public static final int DESCRIPTION_COL = 4;
-    public static final int MESSAGE_COL = 5;
-    public static final int LAST_CHANGED_COL = 6;
     public static final int CLEARABLE_COL = 7;
+    static final String[] columnNames = { "Reset", "Active", "Status", "System", "Description", "Message",
+        "Last Changed", "Clearable" };
+    public static final int DESCRIPTION_COL = 4;
+    public static final int LAST_CHANGED_COL = 6;
+    public static final int MESSAGE_COL = 5;
+    public static final int RESET_COL = 0;
+    public static final int STATUS_COL = 2;
 
-    static final String[] columnNames = { "Reset", "Active", "Status", "System", "Description", "Message", "Last Changed", "Clearable" };
+    public static final int SYSTEM_COL = 3;
 
-    List<SystemStatus> statuses = new ArrayList<SystemStatus>();
     final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
+    List<SystemStatus> statuses = new ArrayList<SystemStatus>();
 
-    public void addSystemStatus(SystemStatus status) {
-        statuses.add(status);
+    public void addSystemStatus(final SystemStatus status) {
+        this.statuses.add(status);
         status.addListener(this);
         fireTableDataChanged();
     }
 
+    public void clear() {
+        this.statuses.clear();
+        fireTableDataChanged();
+    }
+
     @Override
-    public int getRowCount() {
-        return statuses.size();
+    public Class getColumnClass(final int column) {
+        switch (column) {
+        case ACTIVE_COL:
+            return Boolean.class;
+        case LAST_CHANGED_COL:
+            return Date.class;
+        default:
+            return String.class;
+        }
     }
 
     @Override
@@ -50,13 +65,18 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
     }
 
     @Override
-    public String getColumnName(int col) {
+    public String getColumnName(final int col) {
         return columnNames[col];
     }
 
     @Override
+    public int getRowCount() {
+        return this.statuses.size();
+    }
+
+    @Override
     public Object getValueAt(final int rowIndex, final int columnIndex) {
-        SystemStatus status = statuses.get(rowIndex);
+        final SystemStatus status = this.statuses.get(rowIndex);
         switch (columnIndex) {
         case ACTIVE_COL:
             return status.isActive();
@@ -77,13 +97,14 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
             if (status.isClearable()) {
                 final JButton button = new JButton();
                 button.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        SystemStatus status = statuses.get(rowIndex);
+                    @Override
+                    public void actionPerformed(final ActionEvent e) {
+                        final SystemStatus status = SystemStatusTableModel.this.statuses.get(rowIndex);
                         // Only clearable statuses can have this state set. Check for this
                         // just to be safe, even though no button is available for non-clearable
                         // statuses.
                         if (status.isClearable()) {
-                            StatusCode oldStatusCode = status.getStatusCode();
+                            final StatusCode oldStatusCode = status.getStatusCode();
                             status.setStatus(StatusCode.CLEARED, "Cleared from " + oldStatusCode.name() + " state.");
                         }
                     }
@@ -100,40 +121,24 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
     }
 
     @Override
-    public Class getColumnClass(int column) {
-        switch (column) {
-        case ACTIVE_COL:
-            return Boolean.class;
-        case LAST_CHANGED_COL:
-            return Date.class;
-        default:
-            return String.class;
-        }
-    }
-
-    @Override
-    public boolean isCellEditable(int row, int col) {
-        if (col == ACTIVE_COL)
-            return true;
-        else
-            return false;
-    }
-
-    @Override
-    public void statusChanged(SystemStatus status) {
-        int rowNumber = statuses.indexOf(status);
-        fireTableRowsUpdated(rowNumber, rowNumber);
-    }
-
-    public void clear() {
-        statuses.clear();
-        fireTableDataChanged();
-    }
-
-    @Override
-    public void setValueAt(Object value, int row, int col) {
+    public boolean isCellEditable(final int row, final int col) {
         if (col == ACTIVE_COL) {
-            statuses.get(row).setActive((Boolean) value);
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    @Override
+    public void setValueAt(final Object value, final int row, final int col) {
+        if (col == ACTIVE_COL) {
+            this.statuses.get(row).setActive((Boolean) value);
+        }
+    }
+
+    @Override
+    public void statusChanged(final SystemStatus status) {
+        final int rowNumber = this.statuses.indexOf(status);
+        fireTableRowsUpdated(rowNumber, rowNumber);
     }
 }

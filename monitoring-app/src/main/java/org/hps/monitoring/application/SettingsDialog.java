@@ -9,21 +9,22 @@ import javax.swing.JDialog;
 import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
- * The modal dialog for entering settings. It contains a <code>JPanel</code> with the different
- * settings sub-tabs.
+ * The modal dialog for entering settings. It contains a <code>JPanel</code> with the different settings sub-tabs.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class SettingsDialog extends JDialog {
+final class SettingsDialog extends JDialog {
 
     final SettingsPanel settingsPanel;
 
-    public SettingsDialog(ConfigurationModel configurationModel, ActionListener listener) {
+    public SettingsDialog(final ConfigurationModel configurationModel, final ActionListener listener) {
 
         // Initialize the GUI panel.
-        settingsPanel = new SettingsPanel(this, configurationModel, listener);
-        
+        this.settingsPanel = new SettingsPanel(this, configurationModel, listener);
+
         // Configure the frame.
         setTitle("Settings");
-        setContentPane(settingsPanel);
+        setContentPane(this.settingsPanel);
         setResizable(false);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setModalityType(ModalityType.APPLICATION_MODAL);
@@ -31,13 +32,15 @@ class SettingsDialog extends JDialog {
 
         // Add window listener for turning invisible when closing.
         addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
+            @Override
+            public void windowClosing(final WindowEvent e) {
                 setVisible(false);
             }
-            
-            public void windowOpened(WindowEvent event) {
-                SettingsDialog.this.setLocationRelativeTo(null);                    
+
+            @Override
+            public void windowOpened(final WindowEvent event) {
+                SettingsDialog.this.setLocationRelativeTo(null);
             }
-        });        
+        });
     }
 }

@@ -18,116 +18,173 @@ import org.hps.record.enums.DataSourceType;
 
 /**
  * This is the primary menu bar for the monitoring application.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {
-    
-    ConfigurationModel configurationModel;
-    
-    JMenuItem closeFileItem;
-    JMenuItem openFileItem;    
-    JMenu settingsMenu;
-    JMenuItem logItem;
-    JMenuItem serverItem;
-    JMenu recentFilesMenu;    
-    
-    class RecentFileItem extends JMenuItem {
-        
-        String path;        
-        
-        RecentFileItem(String path, int mnemonic) {
-            setText((mnemonic - KeyEvent.VK_0) + " " + path);
+final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {
+
+    /**
+     * The implementation of {@link javax.swing.JMenuItem} for recent file items.
+     */
+    private class RecentFileItem extends JMenuItem {
+
+        /**
+         * The recent file's path.
+         */
+        private final String path;
+
+        /**
+         * Class constructor with file's path and its numerical mnemonic (0-9).
+         *
+         * @param path the path
+         * @param mnemonic the item's mnemonic shortcut (0-9)
+         */
+        RecentFileItem(final String path, final int mnemonic) {
+            setText(mnemonic - KeyEvent.VK_0 + " " + path);
             setMnemonic(mnemonic);
             this.path = path;
         }
-        
-        String getPath() {
-            return path;
-        }        
+
+        /**
+         * Get the file path of the item.
+         *
+         * @return the file path
+         */
+        private String getPath() {
+            return this.path;
+        }
     }
-                   
-    MenuBar(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
-         
-        this.configurationModel = configurationModel;        
+
+    /**
+     * Starting mnemonic for recent files (this is equivalent to '0').
+     */
+    private static final int RECENT_FILES_START_INDEX = 48;
+
+    /**
+     * Menu item for closing a file source.
+     */
+    private final JMenuItem closeFileItem;
+
+    /**
+     * The application backing model.
+     */
+    private final ConfigurationModel configurationModel;
+
+    /**
+     * Menu item for logging to a file.
+     */
+    private final JMenuItem logItem;
+
+    /**
+     * Menu item for opening a file data source.
+     */
+    private final JMenuItem openFileItem;
+
+    /**
+     * Menu with list of recent files (10 max).
+     */
+    private final JMenu recentFilesMenu;
+
+    /**
+     * Menu item for activating the remote AIDA server.
+     */
+    private final JMenuItem serverItem;
+
+    /**
+     * Menu item for opening the settings dialog window.
+     */
+    private final JMenu settingsMenu;
+
+    /**
+     * Class constructor.
+     *
+     * @param configurationModel the {@link org.hps.monitoring.application.model.ConfigurationModel} providing the model
+     * @param connectionModel the {@link org.hps.monitoring.application.model.ConnectionStatusModel} providing
+     *            connection status
+     * @param listener an {@link ava.awt.event.ActionListener} which is assigned to certain components
+     */
+    MenuBar(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel,
+            final ActionListener listener) {
+
+        this.configurationModel = configurationModel;
         this.configurationModel.addPropertyChangeListener(this);
-        
+
         // Need to listen for connection status changes.
-        connectionModel.addPropertyChangeListener(this);  
-        
-        JMenu fileMenu = new JMenu("File");
+        connectionModel.addPropertyChangeListener(this);
+
+        final JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
-        
-        openFileItem = new JMenuItem("Open File ...");
-        openFileItem.setMnemonic(KeyEvent.VK_P);
-        openFileItem.setActionCommand(Commands.OPEN_FILE);
-        openFileItem.addActionListener(listener);
-        openFileItem.setToolTipText("Open an EVIO or LCIO data file");
-        fileMenu.add(openFileItem);
-        
-        closeFileItem = new JMenuItem("Close File");
-        closeFileItem.setMnemonic(KeyEvent.VK_C);
-        closeFileItem.setActionCommand(Commands.CLOSE_FILE);
-        closeFileItem.addActionListener(listener);
-        closeFileItem.setToolTipText("Close the current file data source");
-        fileMenu.add(closeFileItem);
-                                      
-        recentFilesMenu = new JMenu("Recent Files");
-        recentFilesMenu.setMnemonic(KeyEvent.VK_R);
-        recentFilesMenu.setToolTipText("List of recent data files");
-        JMenuItem noRecentFilesItem = new JMenuItem("No recent files");
+
+        this.openFileItem = new JMenuItem("Open File ...");
+        this.openFileItem.setMnemonic(KeyEvent.VK_P);
+        this.openFileItem.setActionCommand(Commands.OPEN_FILE);
+        this.openFileItem.addActionListener(listener);
+        this.openFileItem.setToolTipText("Open an EVIO or LCIO data file");
+        fileMenu.add(this.openFileItem);
+
+        this.closeFileItem = new JMenuItem("Close File");
+        this.closeFileItem.setMnemonic(KeyEvent.VK_C);
+        this.closeFileItem.setActionCommand(Commands.CLOSE_FILE);
+        this.closeFileItem.addActionListener(listener);
+        this.closeFileItem.setToolTipText("Close the current file data source");
+        fileMenu.add(this.closeFileItem);
+
+        this.recentFilesMenu = new JMenu("Recent Files");
+        this.recentFilesMenu.setMnemonic(KeyEvent.VK_R);
+        this.recentFilesMenu.setToolTipText("List of recent data files");
+        final JMenuItem noRecentFilesItem = new JMenuItem("No recent files");
         noRecentFilesItem.setEnabled(false);
-        recentFilesMenu.add(noRecentFilesItem);
-        fileMenu.add(recentFilesMenu);
-        
+        this.recentFilesMenu.add(noRecentFilesItem);
+        fileMenu.add(this.recentFilesMenu);
+
         fileMenu.addSeparator();
-        
-        JMenuItem exitItem = new JMenuItem("Exit");
+
+        final JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.setActionCommand(Commands.EXIT);
         exitItem.addActionListener(listener);
         exitItem.setToolTipText("Exit from the application");
         fileMenu.add(exitItem);
-                
-        settingsMenu = new JMenu("Settings");
-        settingsMenu.setMnemonic(KeyEvent.VK_S);
-        add(settingsMenu);
-        
-        JMenuItem settingsItem = new JMenuItem("Open Settings Window ...");
+
+        this.settingsMenu = new JMenu("Settings");
+        this.settingsMenu.setMnemonic(KeyEvent.VK_S);
+        add(this.settingsMenu);
+
+        final JMenuItem settingsItem = new JMenuItem("Open Settings Window ...");
         settingsItem.setMnemonic(KeyEvent.VK_O);
         settingsItem.setActionCommand(Commands.SHOW_SETTINGS);
         settingsItem.addActionListener(listener);
         settingsItem.setToolTipText("Show settings dialog");
-        settingsMenu.add(settingsItem);
-        
-        JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
+        this.settingsMenu.add(settingsItem);
+
+        final JMenuItem loadConfigItem = new JMenuItem("Load Settings ...");
         loadConfigItem.addActionListener(listener);
         loadConfigItem.setMnemonic(KeyEvent.VK_L);
         loadConfigItem.setActionCommand(Commands.LOAD_SETTINGS);
         loadConfigItem.setToolTipText("Load settings from a properties file");
-        settingsMenu.add(loadConfigItem);
+        this.settingsMenu.add(loadConfigItem);
 
-        JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
+        final JMenuItem saveConfigItem = new JMenuItem("Save Settings ...");
         saveConfigItem.addActionListener(listener);
         saveConfigItem.setMnemonic(KeyEvent.VK_S);
         saveConfigItem.setActionCommand(Commands.SAVE_SETTINGS);
         saveConfigItem.setToolTipText("Save configuration to a properties file");
-        settingsMenu.add(saveConfigItem);
-        
-        JMenuItem defaultSettingsItem = new JMenuItem("Load Default Settings");
+        this.settingsMenu.add(saveConfigItem);
+
+        final JMenuItem defaultSettingsItem = new JMenuItem("Load Default Settings");
         defaultSettingsItem.addActionListener(listener);
         defaultSettingsItem.setMnemonic(KeyEvent.VK_D);
         defaultSettingsItem.setActionCommand(Commands.LOAD_DEFAULT_SETTINGS);
         defaultSettingsItem.setToolTipText("Load the default settings");
-        settingsMenu.add(defaultSettingsItem);
-        
-        JMenu plotsMenu = new JMenu("Plots");
+        this.settingsMenu.add(defaultSettingsItem);
+
+        final JMenu plotsMenu = new JMenu("Plots");
         plotsMenu.setMnemonic(KeyEvent.VK_P);
         add(plotsMenu);
-        
-        JMenuItem savePlotsItem = new JMenuItem("Save plots ...");
+
+        final JMenuItem savePlotsItem = new JMenuItem("Save plots ...");
         savePlotsItem.setMnemonic(KeyEvent.VK_S);
         savePlotsItem.setActionCommand(Commands.SAVE_PLOTS);
         savePlotsItem.addActionListener(listener);
@@ -135,140 +192,162 @@ class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener
         savePlotsItem.setToolTipText("Save all plots to a file");
         plotsMenu.add(savePlotsItem);
 
-        JMenuItem clearPlotsItem = new JMenuItem("Clear plots");
+        final JMenuItem clearPlotsItem = new JMenuItem("Clear plots");
         clearPlotsItem.setMnemonic(KeyEvent.VK_C);
         clearPlotsItem.setActionCommand(Commands.CLEAR_PLOTS);
         clearPlotsItem.addActionListener(listener);
         clearPlotsItem.setEnabled(true);
         clearPlotsItem.setToolTipText("Clear the AIDA plots");
         plotsMenu.add(clearPlotsItem);
-        
-        JMenu toolsMenu = new JMenu("Tools");
+
+        final JMenu toolsMenu = new JMenu("Tools");
         toolsMenu.setMnemonic(KeyEvent.VK_T);
         add(toolsMenu);
-        
-        JMenuItem screenshotItem = new JMenuItem("Save Screenshot ...");
+
+        final JMenuItem screenshotItem = new JMenuItem("Save Screenshot ...");
         screenshotItem.setMnemonic(KeyEvent.VK_S);
         screenshotItem.setActionCommand(Commands.SAVE_SCREENSHOT);
         screenshotItem.addActionListener(listener);
         screenshotItem.setEnabled(true);
         screenshotItem.setToolTipText("Save a screenshot to a graphics file");
         toolsMenu.add(screenshotItem);
-        
-        logItem = new JMenuItem("Log to File ...");
-        logItem.setMnemonic(KeyEvent.VK_L);
-        logItem.setActionCommand(Commands.LOG_TO_FILE);
-        logItem.addActionListener(listener);
-        logItem.setEnabled(true);
-        logItem.setToolTipText("Redirect System.out to a file instead of terminal");
-        toolsMenu.add(logItem);
-        
-        serverItem = new JMenuItem("Start AIDA Server ...");
-        serverItem.setMnemonic(KeyEvent.VK_A);
-        serverItem.setActionCommand(Commands.START_AIDA_SERVER);
-        serverItem.setEnabled(true);
-        serverItem.setToolTipText("Start AIDA RMI Server");
-        serverItem.addActionListener(listener);
-        toolsMenu.add(serverItem);
-        
-        JMenu windowMenu = new JMenu("Window");
+
+        this.logItem = new JMenuItem("Log to File ...");
+        this.logItem.setMnemonic(KeyEvent.VK_L);
+        this.logItem.setActionCommand(Commands.LOG_TO_FILE);
+        this.logItem.addActionListener(listener);
+        this.logItem.setEnabled(true);
+        this.logItem.setToolTipText("Redirect System.out to a file instead of terminal");
+        toolsMenu.add(this.logItem);
+
+        this.serverItem = new JMenuItem("Start AIDA Server ...");
+        this.serverItem.setMnemonic(KeyEvent.VK_A);
+        this.serverItem.setActionCommand(Commands.START_AIDA_SERVER);
+        this.serverItem.setEnabled(true);
+        this.serverItem.setToolTipText("Start AIDA RMI Server");
+        this.serverItem.addActionListener(listener);
+        toolsMenu.add(this.serverItem);
+
+        final JMenu windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         add(windowMenu);
-        
-        JMenuItem maximizeItem = new JMenuItem("Maximize");
+
+        final JMenuItem maximizeItem = new JMenuItem("Maximize");
         maximizeItem.setMnemonic(KeyEvent.VK_M);
         maximizeItem.setActionCommand(Commands.MAXIMIZE_WINDOW);
         maximizeItem.addActionListener(listener);
         maximizeItem.setEnabled(true);
         maximizeItem.setToolTipText("Maximize the application window");
         windowMenu.add(maximizeItem);
-        
-        JMenuItem minimizeItem = new JMenuItem("Minimize");
+
+        final JMenuItem minimizeItem = new JMenuItem("Minimize");
         minimizeItem.setMnemonic(KeyEvent.VK_I);
         minimizeItem.setActionCommand(Commands.MINIMIZE_WINDOW);
         minimizeItem.addActionListener(listener);
         minimizeItem.setEnabled(true);
         minimizeItem.setToolTipText("Minimize the application window");
         windowMenu.add(minimizeItem);
-        
-        JMenuItem defaultsItem = new JMenuItem("Restore Defaults");
+
+        final JMenuItem defaultsItem = new JMenuItem("Restore Defaults");
         defaultsItem.setMnemonic(KeyEvent.VK_D);
         defaultsItem.setActionCommand(Commands.DEFAULT_WINDOW);
         defaultsItem.addActionListener(listener);
         defaultsItem.setEnabled(true);
         defaultsItem.setToolTipText("Restore the window defaults");
-        windowMenu.add(defaultsItem);               
+        windowMenu.add(defaultsItem);
     }
 
+    /**
+     * The {@link java.awt.event.ActionEvent} handling which sets GUI values from the model.
+     *
+     * @param the {@link java.awt.event.ActionEvent} to handle
+     */
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        configurationModel.removePropertyChangeListener(this);        
-        try {            
-            if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
-                ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
-                boolean connected = status.equals(ConnectionStatus.CONNECTED);
-                closeFileItem.setEnabled(!connected);
-                openFileItem.setEnabled(!connected);
-            } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
-                Boolean logToFile = (Boolean) evt.getNewValue();
-                if (logToFile == true) {
-                    // Toggle log item state to send to terminal.
-                    logItem.setText("Log to Terminal ...");
-                    logItem.setActionCommand(Commands.LOG_TO_TERMINAL);
-                    logItem.setToolTipText("Log messages to the terminal");
-                } else {
-                    // Toggle log item state to send to file.
-                    logItem.setText("Log to File ...");
-                    logItem.setActionCommand(Commands.LOG_TO_FILE);
-                    logItem.setToolTipText("Log messages to a file");
-                }
-            } else if (evt.getPropertyName().equals(ConfigurationModel.RECENT_FILES_PROPERTY)) {
-                setRecentFiles(configurationModel.getRecentFilesList());
-            } 
-            
-        } finally {
-            configurationModel.addPropertyChangeListener(this);
+    public void actionPerformed(final ActionEvent e) {
+        if (e.getActionCommand().equals(Commands.DATA_SOURCE_CHANGED)) {
+            if (!this.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
+                this.closeFileItem.setEnabled(true);
+            } else {
+                this.closeFileItem.setEnabled(false);
+            }
         }
     }
 
+    /**
+     * The {@link java.beans.PropertyChangeEvent} handling which sets GUI values from the model.
+     *
+     * @param the {@link java.beans.PropertyChangeEvent} to handle
+     */
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals(Commands.DATA_SOURCE_CHANGED)) {
-            if (!configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
-                closeFileItem.setEnabled(true);
-            } else {
-                closeFileItem.setEnabled(false);
-            }
-        } 
-    }    
-    
-    void setRecentFiles(List<String> recentFiles) {
-        recentFilesMenu.removeAll();
-        int fileMnemonic = 48; /* starts at KeyEvent.VK_0 */
-        for (String recentFile : recentFiles) {
-            RecentFileItem recentFileItem = new RecentFileItem(recentFile, fileMnemonic);
-            recentFileItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {            
-                    String recentFile = ((RecentFileItem) e.getSource()).getPath();
-                    DataSourceType dst = DataSourceType.getDataSourceType(recentFile);
-                    configurationModel.setDataSourcePath(recentFile); 
-                    configurationModel.setDataSourceType(dst);
+    public void propertyChange(final PropertyChangeEvent evt) {
+        this.configurationModel.removePropertyChangeListener(this);
+        try {
+            if (evt.getPropertyName().equals(ConnectionStatusModel.CONNECTION_STATUS_PROPERTY)) {
+                final ConnectionStatus status = (ConnectionStatus) evt.getNewValue();
+                final boolean connected = status.equals(ConnectionStatus.CONNECTED);
+                this.closeFileItem.setEnabled(!connected);
+                this.openFileItem.setEnabled(!connected);
+            } else if (evt.getPropertyName().equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
+                final Boolean logToFile = (Boolean) evt.getNewValue();
+                if (logToFile) {
+                    // Toggle log item state to send to terminal.
+                    this.logItem.setText("Log to Terminal ...");
+                    this.logItem.setActionCommand(Commands.LOG_TO_TERMINAL);
+                    this.logItem.setToolTipText("Log messages to the terminal");
+                } else {
+                    // Toggle log item state to send to file.
+                    this.logItem.setText("Log to File ...");
+                    this.logItem.setActionCommand(Commands.LOG_TO_FILE);
+                    this.logItem.setToolTipText("Log messages to a file");
                 }
-            });                
-            recentFilesMenu.add(recentFileItem);
+            } else if (evt.getPropertyName().equals(ConfigurationModel.RECENT_FILES_PROPERTY)) {
+                setRecentFiles(this.configurationModel.getRecentFilesList());
+            }
+
+        } finally {
+            this.configurationModel.addPropertyChangeListener(this);
+        }
+    }
+
+    /**
+     * Set the recent file menu items.
+     *
+     * @param recentFiles the list of recent files from the model
+     */
+    private void setRecentFiles(final List<String> recentFiles) {
+        this.recentFilesMenu.removeAll();
+        int fileMnemonic = RECENT_FILES_START_INDEX; /* starts at KeyEvent.VK_0 */
+        for (final String recentFile : recentFiles) {
+            final RecentFileItem recentFileItem = new RecentFileItem(recentFile, fileMnemonic);
+            recentFileItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    final String recentFile = ((RecentFileItem) e.getSource()).getPath();
+                    final DataSourceType dst = DataSourceType.getDataSourceType(recentFile);
+                    MenuBar.this.configurationModel.setDataSourcePath(recentFile);
+                    MenuBar.this.configurationModel.setDataSourceType(dst);
+                }
+            });
+            this.recentFilesMenu.add(recentFileItem);
             ++fileMnemonic;
-        }        
+        }
     }
-    
+
+    /**
+     * Set state for AIDA server started.
+     */
     void startAIDAServer() {
-        serverItem.setActionCommand(Commands.STOP_AIDA_SERVER);
-        serverItem.setText("Stop AIDA Server");
-        serverItem.setToolTipText("Stop the remote AIDA server");
+        this.serverItem.setActionCommand(Commands.STOP_AIDA_SERVER);
+        this.serverItem.setText("Stop AIDA Server");
+        this.serverItem.setToolTipText("Stop the remote AIDA server");
     }
-    
+
+    /**
+     * Set state for AIDA server stopped.
+     */
     void stopAIDAServer() {
-        serverItem.setActionCommand(Commands.START_AIDA_SERVER);
-        serverItem.setText("Start AIDA Server");
-        serverItem.setToolTipText("Start the remote AIDA server");
+        this.serverItem.setActionCommand(Commands.START_AIDA_SERVER);
+        this.serverItem.setText("Start AIDA Server");
+        this.serverItem.setToolTipText("Start the remote AIDA server");
     }
 }

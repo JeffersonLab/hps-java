@@ -3,8 +3,8 @@ package org.hps.monitoring.application;
 import hep.aida.jfree.AnalysisFactory;
 import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.PlotterRegionListener;
-import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -29,7 +29,6 @@ import java.util.logging.StreamHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
@@ -60,217 +59,308 @@ import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.DefaultLogFormatter;
 
 /**
- * This is the primary class that implements the monitoring GUI application.
- * It should not be used directly.  Instead the {@link Main} class should be
- * used from the command line.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is the primary class that implements the data monitoring GUI application.
+ * <p>
+ * It should not be used directly. Instead the {@link Main} class should be used from the command line.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class MonitoringApplication implements ActionListener, PropertyChangeListener {
 
-    // Statically initialize logging, which will be fully setup later.
-    static final Logger logger;
-    static {
-        logger = Logger.getLogger(MonitoringApplication.class.getSimpleName());
-    }
-    static final Level DEFAULT_LEVEL = Level.ALL;
-
-    // Default log stream.
-    MonitoringApplicationStreamHandler streamHandler;
-    LogHandler logHandler;
-    PrintStream sysOut = System.out;
-    PrintStream sysErr = System.err;
-    
-    // Application error handling.
-    ErrorHandler errorHandler;
-   
-    // The main GUI components inside a JFrame.
-    MonitoringApplicationFrame frame;    
-    
-    // The primary data models.
-    final RunModel runModel = new RunModel();
-    final ConfigurationModel configurationModel = new ConfigurationModel();
-    final ConnectionStatusModel connectionModel = new ConnectionStatusModel();
-        
-    // The default configuration resource embedded in the jar.
-    static final String DEFAULT_CONFIGURATION = "/org/hps/monitoring/config/default_config.prop";
-
-    // Encapsulation of ET connection and event processing.
-    EventProcessing processing;
-        
-    // Filters for opening files.
-    static final FileFilter lcioFilter = new FileNameExtensionFilter("LCIO files", "slcio");
-    static final EvioFileFilter evioFilter = new EvioFileFilter();
-    
-    AIDAServer server = new AIDAServer("hps-monitoring-app");
-    static final RmiStoreFactory rsf = new RmiStoreFactory();
-            
     /**
-     * Default log handler.
+     * The default log handler which puts records into the table GUI component.
      */
     class LogHandler extends Handler {
 
         /**
+         * Close the handler.
+         *
+         * @throws SecurityException never
+         */
+        @Override
+        public void close() throws SecurityException {
+            // Does nothing.
+        }
+
+        /**
+         * Flush the handler.
+         */
+        @Override
+        public void flush() {
+            // Does nothing.
+        }
+
+        /**
          * This method inserts a record into the log table.
          */
-        public void publish(LogRecord record) {
+        @Override
+        public void publish(final LogRecord record) {
+            // Add the record to the table's model.
             getLogRecordModel().add(record);
         }
-
-        public void close() throws SecurityException {
-        }
-
-        public void flush() {
-        }
-    }    
-    
-    LogRecordModel getLogRecordModel() {
-        return frame.logPanel.logTable.model;
     }
-    
-    LogTable getLogTable() {
-        return frame.logPanel.logTable;
-    }
-    
+
+    /**
+     * Log handler which publishes messages to a stream (console or file in this case).
+     */
     class MonitoringApplicationStreamHandler extends StreamHandler {
-        
-        MonitoringApplicationStreamHandler(PrintStream ps) {
+
+        /**
+         * Class constructor.
+         *
+         * @param ps the output stream
+         */
+        MonitoringApplicationStreamHandler(final PrintStream ps) {
             super(ps, new DefaultLogFormatter());
         }
-        
-        public void publish(LogRecord record) {
+
+        /**
+         * Publish a record which will automatically flush the handler.
+         *
+         * @param record the <code>LogRecord</code> to publish
+         */
+        @Override
+        public void publish(final LogRecord record) {
             super.publish(record);
+
+            // FIXME: Is this efficient? Should this always happen here?
             flush();
         }
-        
-        public void setOutputStream(OutputStream out) {
+
+        /**
+         * Set the output stream.
+         *
+         * @param out the output stream
+         */
+        @Override
+        public void setOutputStream(final OutputStream out) {
             super.setOutputStream(out);
-        }        
+        }
     }
-                 
+
+    /**
+     * The default configuration resource from the jar.
+     */
+    private static final String DEFAULT_CONFIGURATION = "/org/hps/monitoring/config/default_config.prop";
+
+    /**
+     * The default log level (shows all messages).
+     */
+    private static final Level DEFAULT_LEVEL = Level.ALL;
+
+    /**
+     * A filter for selecting EVIO files.
+     */
+    private static final EvioFileFilter EVIO_FILTER = new EvioFileFilter();
+
+    /**
+     * A filter for selecting LCIO files.
+     */
+    private static final FileFilter LCIO_FILTER = new FileNameExtensionFilter("LCIO files", "slcio");
+
+    /**
+     * Global logging object.
+     */
+    private static final Logger LOGGER;
+
+    /**
+     * Saved reference to <code>System.err</code> for convenience.
+     */
+    private static final PrintStream SYS_ERR = System.err;
+
+    /**
+     * Saved reference to <code>System.out</code> for convenience.
+     */
+    private static final PrintStream SYS_OUT = System.out;
+
+    /**
+     * Initialize logging which will be fully configured later.
+     */
+    static {
+        LOGGER = Logger.getLogger(MonitoringApplication.class.getSimpleName());
+    }
+
+    /**
+     * Static utility method for creating new instance.
+     *
+     * @param configuration the application settings
+     * @return the new monitoring application instance
+     */
+    static MonitoringApplication create(final Configuration configuration) {
+        return new MonitoringApplication(configuration);
+    }
+
+    /**
+     * The global configuration model.
+     */
+    private final ConfigurationModel configurationModel = new ConfigurationModel();
+
+    /**
+     * The global connection status model.
+     */
+    private final ConnectionStatusModel connectionModel = new ConnectionStatusModel();
+
+    /**
+     * The error handling object.
+     */
+    private ErrorHandler errorHandler;
+
+    /**
+     * The primary GUI component which is a <code>JFrame</code>.
+     */
+    private MonitoringApplicationFrame frame;
+
+    /**
+     * The current log handler.
+     */
+    private LogHandler logHandler;
+
+    /**
+     * Event processing wrapper.
+     */
+    private EventProcessing processing;
+
+    /**
+     * The model which has information about the current run and events being processed.
+     */
+    private final RunModel runModel = new RunModel();
+
+    /**
+     * A remote AIDA server instance.
+     */
+    private final AIDAServer server = new AIDAServer("hps-monitoring-app");
+
+    /**
+     * The handler for putting messages into the log table.
+     */
+    private MonitoringApplicationStreamHandler streamHandler;
+
     /**
      * Instantiate and show the monitoring application with the given configuration.
-     * @param userConfiguration The Configuration object containing application settings.
+     *
+     * @param userConfiguration the Configuration object containing application settings
      */
-    MonitoringApplication(Configuration userConfiguration) {
-        
+    MonitoringApplication(final Configuration userConfiguration) {
+
         try {
-        
+
             // Setup the main GUI component.
-            frame = new MonitoringApplicationFrame(this);
-            
+            this.frame = new MonitoringApplicationFrame(this);
+
             // Add window listener to perform clean shutdown.
-            frame.addWindowListener(new WindowListener() {
+            this.frame.addWindowListener(new WindowListener() {
 
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
                 @Override
-                public void windowOpened(WindowEvent e) {
+                public void windowActivated(final WindowEvent e) {
                 }
 
+                /**
+                 * Activate cleanup when window closes.
+                 *
+                 * @param e the window event
+                 */
                 @Override
-                public void windowClosing(WindowEvent e) {
-                }
-
-                @Override
-                public void windowClosed(WindowEvent e) {
+                public void windowClosed(final WindowEvent e) {
                     exit();
                 }
 
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
                 @Override
-                public void windowIconified(WindowEvent e) {
+                public void windowClosing(final WindowEvent e) {
                 }
 
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
                 @Override
-                public void windowDeiconified(WindowEvent e) {
+                public void windowDeactivated(final WindowEvent e) {
                 }
 
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
                 @Override
-                public void windowActivated(WindowEvent e) {
+                public void windowDeiconified(final WindowEvent e) {
                 }
 
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
                 @Override
-                public void windowDeactivated(WindowEvent e) {
+                public void windowIconified(final WindowEvent e) {
+                }
+
+                /**
+                 * Not used.
+                 *
+                 * @param e
+                 */
+                @Override
+                public void windowOpened(final WindowEvent e) {
                 }
             });
-        
+
             // Setup the error handler.
-            errorHandler = new ErrorHandler(frame, logger);
-                       
+            this.errorHandler = new ErrorHandler(this.frame, LOGGER);
+
             // Add this class as a listener on the configuration model.
-            configurationModel.addPropertyChangeListener(this);
-        
+            this.configurationModel.addPropertyChangeListener(this);
+
             // Setup the logger.
             setupLogger();
-               
+
             // Setup AIDA plotting and connect it to the GUI.
             setupAida();
-            
+
             // Load the default configuration.
             loadConfiguration(new Configuration(DEFAULT_CONFIGURATION), false);
-                    
+
             if (userConfiguration != null) {
                 // Load user configuration.
                 loadConfiguration(userConfiguration, true);
-            } 
-        
+            }
+
             // Enable the GUI now that initialization is complete.
-            frame.setEnabled(true);
-        
-            logger.info("application initialized successfully");
-        
-        } catch (Exception e) {
+            this.frame.setEnabled(true);
+
+            LOGGER.info("application initialized successfully");
+
+        } catch (final Exception e) {
             // Don't use the ErrorHandler here because we don't know that it initialized successfully.
             System.err.println("MonitoringApplication failed to initialize without errors!");
-            DialogUtil.showErrorDialog(null, "Error Starting Monitoring Application", "Monitoring application failed to initialize.");
+            DialogUtil.showErrorDialog(null, "Error Starting Monitoring Application",
+                    "Monitoring application failed to initialize.");
             e.printStackTrace();
             System.exit(1);
-        }        
-    }
-    
-    /**
-     * Setup the logger.
-     */
-    void setupLogger() {
-        logger.setUseParentHandlers(false);        
-        logHandler = new LogHandler();
-        logger.addHandler(logHandler);
-        streamHandler = new MonitoringApplicationStreamHandler(System.out);
-        logger.addHandler(streamHandler);
-        for (Handler handler : logger.getHandlers()) {
-            handler.setLevel(DEFAULT_LEVEL);
-        }
-        logger.setLevel(DEFAULT_LEVEL);
-        logger.info("logging initialized");
-    }
-        
-    /**
-     * Static utility method for creating new instance.
-     * @param configuration The application settings.
-     * @return The new monitoring application instance.
-     */
-    static MonitoringApplication create(Configuration configuration) {
-        return new MonitoringApplication(configuration);
-    }    
-        
-    /**
-     * Handle property changes.
-     * @param evt The property change event.
-     */
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(ConfigurationModel.LOG_LEVEL_PROPERTY)) {
-            setLogLevel();
         }
     }
-    
+
     /**
      * The primary action handler for the application.
-     * @param e The ActionEvent to handle.
+     *
+     * @param e the {@link java.awt.ActionEvent} to handle
      */
-    public void actionPerformed(ActionEvent e) {
+    @Override
+    public void actionPerformed(final ActionEvent e) {
 
-        //logger.finest("actionPerformed - " + e.getActionCommand());
-        
-        String command = e.getActionCommand();
+        // logger.finest("actionPerformed - " + e.getActionCommand());
+
+        final String command = e.getActionCommand();
         if (Commands.CONNECT.equals(command)) {
             startSession();
         } else if (Commands.DISCONNECT.equals(command)) {
@@ -279,20 +369,20 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             savePlots();
         } else if (Commands.EXIT.equals(command)) {
             // This will trigger the window closing action that cleans everything up.
-            frame.dispose();
-        } else if (Commands.PAUSE.equals(command)) { 
-            processing.pause();
+            this.frame.dispose();
+        } else if (Commands.PAUSE.equals(command)) {
+            this.processing.pause();
         } else if (Commands.NEXT.equals(command)) {
-            processing.next();
+            this.processing.next();
         } else if (Commands.RESUME.equals(command)) {
-            processing.resume();
+            this.processing.resume();
         } else if (Commands.SHOW_SETTINGS.equals(command)) {
             showSettingsDialog();
         } else if (Commands.LOAD_SETTINGS.equals(command)) {
             loadSettings();
         } else if (Commands.SAVE_SETTINGS.equals(command)) {
             saveSettings();
-        }  else if (Commands.CLEAR_PLOTS.equals(command)) {
+        } else if (Commands.CLEAR_PLOTS.equals(command)) {
             clearPlots();
         } else if (Commands.LOAD_DEFAULT_SETTINGS.equals(command)) {
             loadDefaultSettings();
@@ -321,102 +411,589 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         } else if (Commands.STOP_AIDA_SERVER.equals(command)) {
             stopAIDAServer();
         }
-    }    
-    
-    /**
-     * Setup AIDA plotting into the GUI components.
-     */
-    void setupAida() {
-        // Register the factory for displaying plots in tabs.
-        MonitoringAnalysisFactory.register();
-        
-        // Set the root tab pane for displaying plots.
-        MonitoringPlotFactory.setRootPane(frame.plotPanel.getPlotPane());
-        
-        // Setup the region listener to connect the plot info window.
-        MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
-            @Override
-            public void regionSelected(PlotterRegion region) {
-                if (region != null) {
-                    frame.plotInfoPanel.setCurrentRegion(region);
-                }
-            }
-        });
-        
-        // Perform global configuration of the JFreeChart back end.
-        AnalysisFactory.configure();
     }
-                
+
+    /**
+     * Redirect <code>System.out</code> and <code>System.err</code> to file chosen by a file chooser.
+     */
+    private void chooseLogFile() {
+        final JFileChooser fc = new JFileChooser();
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setDialogTitle("Save Log Messages to File");
+        fc.setCurrentDirectory(new File("."));
+        final int r = fc.showSaveDialog(this.frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            final String fileName = fc.getSelectedFile().getPath();
+            if (new File(fileName).exists()) {
+                DialogUtil.showErrorDialog(this.frame, "File Exists", "File already exists.");
+            } else {
+                logToFile(new File(fileName));
+            }
+        }
+    }
+
+    /**
+     * Clear the current set of AIDA plots in the default data tree.
+     */
+    private void clearPlots() {
+        final int confirmation = DialogUtil.showConfirmationDialog(this.frame,
+                "Are you sure you want to clear the plots", "Clear Plots Confirmation");
+        if (confirmation == JOptionPane.YES_OPTION) {
+            AIDA.defaultInstance().clearAll();
+            DialogUtil.showInfoDialog(this.frame, "Plots Clear", "The AIDA plots were cleared.");
+        }
+        LOGGER.info("plots were cleared");
+    }
+
+    /**
+     * Remove the currently selected file from the data source list.
+     */
+    private void closeFile() {
+        if (!this.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
+            final DataSourceItem item = (DataSourceItem) this.frame.getToolbarPanel().getDataSourceComboBox()
+                    .getSelectedItem();
+            if (item.getPath().equals(this.configurationModel.getDataSourcePath())) {
+                this.frame.getToolbarPanel().getDataSourceComboBox()
+                        .removeItem(this.frame.getToolbarPanel().getDataSourceComboBox().getSelectedItem());
+            }
+        }
+    }
+
+    /**
+     * Exit from the application from exit menu item or hitting close window button.
+     */
+    private void exit() {
+        if (this.connectionModel.isConnected()) {
+            this.processing.stop();
+        }
+        this.logHandler.setLevel(Level.OFF);
+        LOGGER.info("exiting the application");
+        this.streamHandler.flush();
+        System.exit(0);
+    }
+
+    /**
+     * Get the current configuration model.
+     *
+     * @return the current configuration model
+     */
+    ConfigurationModel getConfigurationModel() {
+        return this.configurationModel;
+    }
+
+    /**
+     * Get the current connection status model.
+     *
+     * @return the current connections status model
+     */
+    ConnectionStatusModel getConnectionModel() {
+        return this.connectionModel;
+    }
+
+    /**
+     * Get the application's error handling object.
+     *
+     * @return the error handling object
+     */
+    ErrorHandler getErrorHandler() {
+        return this.errorHandler;
+    }
+
+    /**
+     * Get the logger.
+     *
+     * @return the logger
+     */
+    Logger getLogger() {
+        return LOGGER;
+    }
+
+    /**
+     * Get the table model for log records.
+     *
+     * @return the table model for log records
+     */
+    LogRecordModel getLogRecordModel() {
+        return this.frame.getLogPanel().getLogTable().getLogRecordModel();
+    }
+
+    /**
+     * Get the log table.
+     *
+     * @return the log table
+     */
+    LogTable getLogTable() {
+        return this.frame.getLogPanel().getLogTable();
+    }
+
+    /**
+     * Get a list of relevant run data from the model for writing to a PDF.
+     *
+     * @return the list of run data from the model
+     */
+    private List<String> getRunData() {
+        final List<String> data = new ArrayList<String>();
+        data.add("Created: " + new Date());
+        data.add("Run Number: " + this.runModel.getRunNumber());
+        data.add("Started: " + this.runModel.getStartDate());
+        data.add("Ended: " + this.runModel.getEndDate());
+        data.add("Length: " + this.runModel.getRunLength() + " seconds");
+        data.add("Total Events: " + this.runModel.getTotalEvents());
+        data.add("Elapsed Time: " + this.runModel.getElapsedTime());
+        data.add("Events Processed: " + this.runModel.getEventsReceived());
+        return data;
+    }
+
+    /**
+     * Get the run model with information about the run and event(s) currently being processed.
+     *
+     * @return the run model
+     */
+    RunModel getRunModel() {
+        return this.runModel;
+    }
+
     /**
      * This method sets the configuration on the model, which fires a change for every property.
+     *
      * @param configuration The new configuration.
      * @param merge True to merge the configuration into the current one rather than replace it.
      */
-    void loadConfiguration(Configuration configuration, boolean merge) {
-                               
+    private void loadConfiguration(final Configuration configuration, final boolean merge) {
+
         if (merge) {
             // This will merge in additional properties so that default or current settings are preserved.
-            configurationModel.merge(configuration);
+            this.configurationModel.merge(configuration);
         } else {
             // HACK: Clear data source combo box for clean configuration.
-            frame.toolbarPanel.dataSourceComboBox.removeAllItems();
-            
+            this.frame.getToolbarPanel().getDataSourceComboBox().removeAllItems();
+
             // This will reset all configuration properties.
-            configurationModel.setConfiguration(configuration);
+            this.configurationModel.setConfiguration(configuration);
         }
-        
-        if (configuration.getFile() != null)
-            logger.config("loaded config from file " + configuration.getFile().getPath());
-        else
-            logger.config("loaded config from resource " + configuration.getResourcePath());
+
+        if (configuration.getFile() != null) {
+            LOGGER.config("loaded config from file " + configuration.getFile().getPath());
+        } else {
+            LOGGER.config("loaded config from resource " + configuration.getResourcePath());
+        }
     }
-              
+
+    /**
+     * Load default application settings.
+     */
+    private void loadDefaultSettings() {
+        loadConfiguration(new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION), false);
+        DialogUtil.showInfoDialog(this.frame, "Default Configuration Loaded", "The default configuration was loaded.");
+        LOGGER.config("default settings loaded");
+    }
+
+    /**
+     * Load settings from a properties file using a file chooser.
+     */
+    private void loadSettings() {
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Load Settings");
+        fc.setCurrentDirectory(new File("."));
+        final int r = fc.showDialog(this.frame, "Load ...");
+        if (r == JFileChooser.APPROVE_OPTION) {
+            final File f = fc.getSelectedFile();
+            loadConfiguration(new Configuration(f), true);
+            LOGGER.info("loaded configuration from file: " + f.getPath());
+            DialogUtil.showInfoDialog(this.frame, "Settings Loaded", "Settings were loaded successfully.");
+        }
+    }
+
+    /**
+     * Redirect <code>System.out</code> and <code>System.err</code> to a file.
+     *
+     * @param file The output log file.
+     * @throws FileNotFoundException if the file does not exist.
+     */
+    private void logToFile(final File file) {
+        try {
+
+            // Create the output file stream.
+            final PrintStream fileStream = new PrintStream(new FileOutputStream(file.getPath()));
+            System.setOut(fileStream);
+            System.setErr(fileStream);
+
+            // Flush the current handler, but do NOT close here or System.out gets clobbered!
+            this.streamHandler.flush();
+
+            // Replace the current handler with one using the file stream.
+            LOGGER.removeHandler(this.streamHandler);
+            this.streamHandler = new MonitoringApplicationStreamHandler(fileStream);
+            this.streamHandler.setLevel(LOGGER.getLevel());
+            LOGGER.addHandler(this.streamHandler);
+
+            // Set the properties on the model.
+            this.configurationModel.setLogFileName(file.getPath());
+            this.configurationModel.setLogToFile(true);
+
+            LOGGER.info("Saving log messages to " + this.configurationModel.getLogFileName());
+            DialogUtil.showInfoDialog(this.frame, "Logging to File", "Log messages redirected to file" + '\n'
+                    + this.configurationModel.getLogFileName());
+
+        } catch (final FileNotFoundException e) {
+            this.errorHandler.setError(e).log().showErrorDialog();
+        }
+    }
+
+    /**
+     * Send <code>System.out</code> and <code>System.err</code> back to the terminal, e.g. if they were previously sent
+     * to a file.
+     */
+    private void logToTerminal() {
+
+        // Reset System.out and err back to original streams.
+        System.setOut(MonitoringApplication.SYS_OUT);
+        System.setErr(MonitoringApplication.SYS_ERR);
+
+        // Flush and close the current handler, which is using a file stream.
+        this.streamHandler.flush();
+        this.streamHandler.close();
+
+        // Replace the handler with the one printing to the terminal.
+        LOGGER.removeHandler(this.streamHandler);
+        this.streamHandler = new MonitoringApplicationStreamHandler(System.out);
+        this.streamHandler.setLevel(LOGGER.getLevel());
+        LOGGER.addHandler(this.streamHandler);
+
+        LOGGER.log(Level.INFO, "log messages redirected to terminal");
+
+        // Update the model to indicate logging to file has been disabled.
+        this.configurationModel.setLogToFile(false);
+
+        DialogUtil.showInfoDialog(this.frame, "Log to Terminal", "Log messages will be sent to the terminal.");
+    }
+
+    /**
+     * Maximize the application window.
+     */
+    private void maximizeWindow() {
+        this.frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+    }
+
+    /**
+     * Minimize the application window.
+     */
+    private void minimizeWindow() {
+        this.frame.setExtendedState(Frame.ICONIFIED);
+    }
+
+    /**
+     * Open a file data source using a <code>JFileChooser</code>.
+     */
+    private void openFile() {
+        final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.addChoosableFileFilter(LCIO_FILTER);
+        fc.addChoosableFileFilter(EVIO_FILTER);
+        fc.setDialogTitle("Select Data File");
+        final int r = fc.showDialog(this.frame, "Select ...");
+        if (r == JFileChooser.APPROVE_OPTION) {
+
+            // Set data source path.
+            final String filePath = fc.getSelectedFile().getPath();
+
+            // Set data source type.
+            final FileFilter filter = fc.getFileFilter();
+            DataSourceType type = null;
+            if (filter == LCIO_FILTER) {
+                type = DataSourceType.LCIO_FILE;
+            } else if (filter == EVIO_FILTER) {
+                type = DataSourceType.EVIO_FILE;
+            } else {
+                // This should never happen.
+                throw new RuntimeException();
+            }
+
+            this.configurationModel.setDataSourcePath(filePath);
+            this.configurationModel.setDataSourceType(type);
+
+            this.configurationModel.addRecentFile(filePath);
+
+            LOGGER.config("set new data source " + filePath + " with type " + type);
+        }
+    }
+
+    /**
+     * Handle property changes.
+     *
+     * @param evt The property change event.
+     */
+    @Override
+    public void propertyChange(final PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals(ConfigurationModel.LOG_LEVEL_PROPERTY)) {
+            setLogLevel();
+        }
+    }
+
     /**
      * Reset the plots and clear the tabs in the plot window.
      */
-    void resetPlots() {
-        
+    private void resetPlots() {
+
         // Clear global list of registered plotters.
-        MonitoringPlotFactory.getPlotterRegistry().clear();  
-        
+        MonitoringPlotFactory.getPlotterRegistry().clear();
+
         // Clear the static AIDA tree in case plots are hanging around from previous sessions.
         AIDA.defaultInstance().clearAll();
 
         // Reset plot panel which removes all its tabs.
-        frame.plotPanel.reset();
-        
-        logger.info("plots were cleared");
-    }                                    
-                   
+        this.frame.getPlotPanel().reset();
+
+        LOGGER.info("plots were cleared");
+    }
+
+    /**
+     * Restore the default GUI layout.
+     */
+    private void restoreDefaultWindow() {
+        maximizeWindow();
+        this.frame.restoreDefaults();
+    }
+
+    /**
+     * Run the disconnection on a separate thread.
+     */
+    private void runDisconnectThread() {
+        new Thread() {
+            @Override
+            public void run() {
+                LOGGER.fine("disconnect thread is running ...");
+                MonitoringApplication.this.connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTING);
+                MonitoringApplication.this.processing.stop();
+                LOGGER.fine("disconnect thread finished!");
+            }
+        }.run();
+    }
+
+    /**
+     * Save the log table to a file using a file chooser.
+     */
+    private void saveLogTable() {
+        saveTable(this.frame.getLogPanel().getLogTable());
+    }
+
+    /**
+     * Save plots to an AIDA, ROOT or PDF file using a file chooser.
+     */
+    private void savePlots() {
+        final JFileChooser fc = new JFileChooser();
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("ROOT file", "root"));
+        final FileFilter filter = new FileNameExtensionFilter("AIDA file", "aida");
+        fc.addChoosableFileFilter(filter);
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setFileFilter(filter);
+        final int r = fc.showSaveDialog(this.frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            final File selectedFile = fc.getSelectedFile();
+            if (!selectedFile.exists()) {
+                String fileName = fc.getSelectedFile().getAbsolutePath();
+                final String extension = ((FileNameExtensionFilter) fc.getFileFilter()).getExtensions()[0];
+                if (!fileName.endsWith(".aida") && !fileName.endsWith(".root") && !fileName.endsWith(".pdf")) {
+                    fileName += "." + extension;
+                }
+                try {
+                    if ("pdf".equals(extension)) {
+                        // Write to a single PDF file.
+                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName,
+                                getRunData());
+                    } else {
+                        // Save plot object data to AIDA or ROOT file.
+                        AIDA.defaultInstance().saveAs(fileName);
+                    }
+                    LOGGER.info("saved plots to " + fileName);
+                    DialogUtil.showInfoDialog(this.frame, "Plots Saved", "Plots were successfully saved to " + '\n'
+                            + fileName);
+                } catch (final IOException e) {
+                    this.errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log()
+                            .showErrorDialog();
+                }
+            } else {
+                DialogUtil.showErrorDialog(this.frame, "File Exists", "Selected file already exists.");
+            }
+        }
+    }
+
+    /**
+     * Save a screenshot to a file using a file chooser.
+     */
+    private void saveScreenshot() {
+        final JFileChooser fc = new JFileChooser();
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setDialogTitle("Save Screenshot");
+        final FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("png file (*.png)", "png");
+        final String format = pngFilter.getExtensions()[0];
+        fc.addChoosableFileFilter(pngFilter);
+        fc.setCurrentDirectory(new File("."));
+        final int r = fc.showSaveDialog(this.frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            String fileName = fc.getSelectedFile().getPath();
+            if (!fileName.endsWith("." + format)) {
+                fileName += "." + format;
+            }
+            /*
+             * final Object lock = new Object(); synchronized (lock) { try { lock.wait(500); } catch (final
+             * InterruptedException e) { e.printStackTrace(); } }
+             */
+            writeScreenshot(fileName, format);
+            DialogUtil.showInfoDialog(this.frame, "Screenshot Saved", "Screenshot was saved to file" + '\n' + fileName);
+            LOGGER.info("saved screenshot to " + fileName);
+        }
+    }
+
+    /**
+     * Save current settings to a file using a file chooser.
+     */
+    private void saveSettings() {
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Save Configuration");
+        fc.setCurrentDirectory(new File("."));
+        final int r = fc.showSaveDialog(this.frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            final File f = fc.getSelectedFile();
+            this.configurationModel.getConfiguration().writeToFile(f);
+            LOGGER.info("saved configuration to file: " + f.getPath());
+            DialogUtil.showInfoDialog(this.frame, "Settings Saved", "Settings were saved successfully.");
+        }
+    }
+
+    /**
+     * Export a JTable's data to a comma-delimited text file using a file chooser.
+     *
+     * @param table the table to export
+     */
+    private void saveTable(final JTable table) {
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Save Table to Text File");
+        fc.setCurrentDirectory(new File("."));
+        final int r = fc.showSaveDialog(this.frame);
+        if (r == JFileChooser.APPROVE_OPTION) {
+            final String fileName = fc.getSelectedFile().getPath();
+            try {
+                TableExporter.export(table, fileName, ',');
+                LOGGER.info("saved table data to " + fileName);
+                DialogUtil.showInfoDialog(this.frame, "Table Data Saved", "The table was exported successfully.");
+            } catch (final IOException e) {
+                DialogUtil.showErrorDialog(this.frame, "Table Export Error", "The table export failed.");
+                LOGGER.warning("failed to save table data to " + fileName);
+            }
+        }
+    }
+
+    /**
+     * Set the log level from the configuration model.
+     */
+    private void setLogLevel() {
+        final Level newLevel = this.configurationModel.getLogLevel();
+        if (LOGGER.getLevel() != newLevel) {
+            LOGGER.setLevel(newLevel);
+            LOGGER.log(Level.INFO, "Log Level was changed to <" + this.configurationModel.getLogLevel().toString()
+                    + ">");
+        }
+    }
+
+    /**
+     * Setup AIDA plotting into the GUI components.
+     */
+    private void setupAida() {
+        // Register the factory for displaying plots in tabs.
+        MonitoringAnalysisFactory.register();
+
+        // Set the root tab pane for displaying plots.
+        MonitoringPlotFactory.setRootPane(this.frame.getPlotPanel().getPlotPane());
+
+        // Setup the region listener to connect the plot info window.
+        MonitoringPlotFactory.setPlotterRegionListener(new PlotterRegionListener() {
+            @Override
+            public void regionSelected(final PlotterRegion region) {
+                if (region != null) {
+                    MonitoringApplication.this.frame.getPlotInfoPanel().setCurrentRegion(region);
+                }
+            }
+        });
+
+        // Perform global configuration of the JFreeChart back end.
+        AnalysisFactory.configure();
+    }
+
+    /**
+     * Setup the logger.
+     */
+    private void setupLogger() {
+        LOGGER.setUseParentHandlers(false);
+        this.logHandler = new LogHandler();
+        LOGGER.addHandler(this.logHandler);
+        this.streamHandler = new MonitoringApplicationStreamHandler(System.out);
+        LOGGER.addHandler(this.streamHandler);
+        for (final Handler handler : LOGGER.getHandlers()) {
+            handler.setLevel(DEFAULT_LEVEL);
+        }
+        LOGGER.setLevel(DEFAULT_LEVEL);
+        LOGGER.info("logging initialized");
+    }
+
     /**
      * Configure the system status monitor panel for a new job.
      */
-    void setupSystemStatusMonitor() {
-        
+    private void setupSystemStatusMonitor() {
+
         // Clear the system status monitor table.
-        frame.systemStatusPanel.clear();
+        this.frame.getSystemStatusPanel().clear();
 
         // Get the global registry of SystemStatus objects.
-        SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
+        final SystemStatusRegistry registry = SystemStatusRegistry.getSystemStatusRegistery();
 
         // Process the SystemStatus objects.
-        for (SystemStatus systemStatus : registry.getSystemStatuses()) {
+        for (final SystemStatus systemStatus : registry.getSystemStatuses()) {
             // This will add the status to the two tables.
-            frame.systemStatusPanel.addSystemStatus(systemStatus);
+            this.frame.getSystemStatusPanel().addSystemStatus(systemStatus);
         }
-        
-        logger.info("system status monitor initialized successfully");
+
+        LOGGER.info("system status monitor initialized successfully");
     }
-    
+
+    /**
+     * Show the settings dialog window.
+     */
+    private void showSettingsDialog() {
+        this.frame.getSettingsDialog().setVisible(true);
+    }
+
+    /**
+     * Start the AIDA server instance.
+     */
+    private void startAIDAServer() {
+        if (this.configurationModel.hasValidProperty(ConfigurationModel.AIDA_SERVER_NAME_PROPERTY)) {
+            this.server.setName(this.configurationModel.getAIDAServerName());
+        }
+        final boolean started = this.server.start();
+        if (started) {
+            this.frame.getApplicationMenu().startAIDAServer();
+            LOGGER.info("AIDA server started at " + this.server.getName());
+            DialogUtil
+                    .showInfoDialog(this.frame, "AIDA Server Started", "The remote AIDA server started successfully.");
+        } else {
+            LOGGER.warning("AIDA server failed to start");
+            DialogUtil.showErrorDialog(this.frame, "Failed to Start AIDA Server",
+                    "The remote AIDA server failed to start.");
+        }
+    }
+
     /**
      * Start a new monitoring session.
      */
-    synchronized void startSession() {
-        
-        logger.info("starting new session");
+    private synchronized void startSession() {
+
+        LOGGER.info("starting new session");
 
         try {
-                        
+
             // Reset the plot panel and global AIDA state.
             resetPlots();
 
@@ -426,457 +1003,80 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             SystemStatusRegistry.getSystemStatusRegistery().clear();
 
             // List of extra composite record processors including the updater for the RunPanel.
-            List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
-            processors.add(frame.dashboardPanel.new EventDashboardUpdater());
-            
+            final List<CompositeRecordProcessor> processors = new ArrayList<CompositeRecordProcessor>();
+            processors.add(this.frame.getEventDashboard().new EventDashboardUpdater());
+
             // Add Driver to update the trigger diagnostics tables.
-            List<Driver> drivers = new ArrayList<Driver>();
-            drivers.add(frame.triggerPanel.new TriggerDiagnosticGUIDriver());
+            final List<Driver> drivers = new ArrayList<Driver>();
+            drivers.add(this.frame.getTriggerPanel().new TriggerDiagnosticGUIDriver());
 
             // Add listener to push conditions changes to conditions panel.
-            List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
-            conditionsListeners.add(frame.conditionsPanel.new ConditionsPanelListener());
-            
+            final List<ConditionsListener> conditionsListeners = new ArrayList<ConditionsListener>();
+            conditionsListeners.add(this.frame.getConditionsPanel().new ConditionsPanelListener());
+
             // Instantiate the event processing wrapper.
-            processing = new EventProcessing(this, processors, drivers, conditionsListeners);
-            
+            this.processing = new EventProcessing(this, processors, drivers, conditionsListeners);
+
             // Connect to the ET system, if applicable.
-            processing.connect();
-            
+            this.processing.connect();
+
             // Configure event processing from the global application settings, including setup of record loop.
-            logger.info("setting up event processing on source " + configurationModel.getDataSourcePath() 
-                    + " with type " + configurationModel.getDataSourceType());
-            processing.setup(configurationModel);
-                                  
+            LOGGER.info("setting up event processing on source " + this.configurationModel.getDataSourcePath()
+                    + " with type " + this.configurationModel.getDataSourceType());
+            this.processing.setup(this.configurationModel);
+
             // Setup the system status monitor table.
             setupSystemStatusMonitor();
-                                            
-            // Start the event processing thread.            
-            processing.start();            
-            
-            logger.info("new session successfully initialized");
 
-        } catch (Exception e) {
+            // Start the event processing thread.
+            this.processing.start();
+
+            LOGGER.info("new session successfully initialized");
+
+        } catch (final Exception e) {
 
             // Disconnect from the ET system.
-            processing.disconnect();
-            
+            this.processing.disconnect();
+
             // Log the error that occurred and show a pop up dialog.
-            errorHandler.setError(e).log().printStackTrace().showErrorDialog("There was an error while starting the session." 
-                    + '\n' + "See the log for details.", "Session Error");
-            
-            logger.severe("failed to start new session");
+            this.errorHandler
+                    .setError(e)
+                    .log()
+                    .printStackTrace()
+                    .showErrorDialog(
+                            "There was an error while starting the session." + '\n' + "See the log for details.",
+                            "Session Error");
+
+            LOGGER.severe("failed to start new session");
         }
     }
-           
+
     /**
-     * Exit from the application from exit menu item or hitting close window button.
+     * Stop the AIDA server instance.
      */
-    void exit() {        
-        if (connectionModel.isConnected()) {
-            processing.stop();
-        }
-        logHandler.setLevel(Level.OFF);
-        logger.info("exiting the application");
-        streamHandler.flush();
-        System.exit(0);
-    }
-            
-    /**
-     * Save plots to an AIDA, ROOT or PDF file using a file chooser.
-     */
-    void savePlots() {
-        JFileChooser fc = new JFileChooser();
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("ROOT file", "root"));
-        FileFilter filter = new FileNameExtensionFilter("AIDA file", "aida");
-        fc.addChoosableFileFilter(filter);
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fc.setFileFilter(filter);
-        int r = fc.showSaveDialog(frame);
-        if (r == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fc.getSelectedFile();
-            if (!selectedFile.exists()) {
-                String fileName = fc.getSelectedFile().getAbsolutePath();
-                String extension = ((FileNameExtensionFilter) fc.getFileFilter()).getExtensions()[0];
-                if (!fileName.endsWith(".aida") && !fileName.endsWith(".root") && !fileName.endsWith(".pdf")) {
-                    fileName += "." + extension;
-                }
-                try {
-                    if (extension.equals("pdf")) {
-                        // Write to a single PDF file.
-                        ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName, getRunData());
-                    } else {
-                        // Save plot object data to AIDA or ROOT file.
-                        AIDA.defaultInstance().saveAs(fileName);
-                    }
-                    logger.info("saved plots to " + fileName);
-                    DialogUtil.showInfoDialog(frame, "Plots Saved", "Plots were successfully saved to " + '\n' + fileName);
-                } catch (IOException e) {
-                    errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log().showErrorDialog();
-                }
-            } else {
-                DialogUtil.showErrorDialog(frame, "File Exists", "Selected file already exists.");
-            }
-        }
-    }
-    
-    /**
-     * Get a list of run data for writing to a PDF.
-     * @return The list of run data from the model.
-     */
-    List<String> getRunData() {
-         List<String> data = new ArrayList<String>();
-         data.add("Created: " + new Date());
-         data.add("Run Number: " + runModel.getRunNumber());
-         data.add("Started: " + runModel.getStartDate());
-         data.add("Ended: " + runModel.getEndDate());
-         data.add("Length: " + runModel.getRunLength() + " seconds");
-         data.add("Total Events: " + runModel.getTotalEvents());
-         data.add("Elapsed Time: " + runModel.getElapsedTime());
-         data.add("Events Processed: " + runModel.getEventsReceived());
-         return data;
-    }
-    
-    /**
-     * Clear the current set of AIDA plots in the default data tree.
-     */
-    void clearPlots() {
-        int confirmation = DialogUtil.showConfirmationDialog(frame, 
-                "Are you sure you want to clear the plots", "Clear Plots Confirmation");
-        if (confirmation == JOptionPane.YES_OPTION) {
-            AIDA.defaultInstance().clearAll();
-            DialogUtil.showInfoDialog(frame, "Plots Clear", "The AIDA plots were cleared.");
-        }
-        logger.info("plots were cleared");
-    }
-    
-    /**
-     * Load default application settings.
-     */
-    void loadDefaultSettings() {
-        loadConfiguration(new Configuration(MonitoringApplication.DEFAULT_CONFIGURATION), false);
-        DialogUtil.showInfoDialog(frame, "Default Configuration Loaded", "The default configuration was loaded.");
-        logger.config("default settings loaded");
-    }
-    
-    /**
-     * Show the settings dialog window.
-     */
-    void showSettingsDialog() {
-        frame.settingsDialog.setVisible(true);        
-    }
-        
-    /**
-     * Open a file data source using a <code>JFileChooser</code>.
-     */
-    void openFile() {
-        JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.addChoosableFileFilter(lcioFilter);
-        fc.addChoosableFileFilter(evioFilter);
-        fc.setDialogTitle("Select Data File");
-        int r = fc.showDialog(frame, "Select ...");        
-        if (r == JFileChooser.APPROVE_OPTION) {
-                                  
-            // Set data source path.            
-            final String filePath = fc.getSelectedFile().getPath();
-            
-            // Set data source type.
-            FileFilter filter = fc.getFileFilter();
-            DataSourceType type = null;
-            if (filter == lcioFilter) {
-                type = DataSourceType.LCIO_FILE;
-            } else if (filter == evioFilter) {
-                type = DataSourceType.EVIO_FILE;
-            } else {
-                // This should never happen.
-                throw new RuntimeException();
-            }
-                        
-            configurationModel.setDataSourcePath(filePath);
-            configurationModel.setDataSourceType(type);
-            
-            configurationModel.addRecentFile(filePath);
-            
-            logger.config("set new data source " + filePath + " with type " + type);
-        }
-    }    
-    
-    /**
-     * Save current settings to a file using a file chooser.
-     */
-    void saveSettings() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Save Configuration");
-        fc.setCurrentDirectory(new File("."));
-        int r = fc.showSaveDialog(frame);
-        if (r == JFileChooser.APPROVE_OPTION) {
-            File f = fc.getSelectedFile();
-            configurationModel.getConfiguration().writeToFile(f);
-            logger.info("saved configuration to file: " + f.getPath());
-            DialogUtil.showInfoDialog(frame, "Settings Saved", "Settings were saved successfully.");
-        }
-    }
-    
-    /**
-     * Load settings from a properties file using a file chooser.
-     */
-    void loadSettings() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Load Settings");
-        fc.setCurrentDirectory(new File("."));
-        int r = fc.showDialog(frame, "Load ...");
-        if (r == JFileChooser.APPROVE_OPTION) {
-            File f = fc.getSelectedFile();
-            loadConfiguration(new Configuration(f), true);
-            logger.info("loaded configuration from file: " + f.getPath());
-            DialogUtil.showInfoDialog(frame, "Settings Loaded", "Settings were loaded successfully.");
-        }
-    }
-    
-    /**
-     * Maximize the application window.
-     */
-    void maximizeWindow() {
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-    }   
-    
-    /**
-     * Minimize the application window.
-     */
-    void minimizeWindow() {
-        frame.setExtendedState(JFrame.ICONIFIED);
-    }    
-    
-    /**
-     * Restore the default GUI layout.
-     */
-    void restoreDefaultWindow() {
-        maximizeWindow();
-        frame.restoreDefaults();
-    }    
-    
-    /**
-     * Remove the currently selected file from the data source list.
-     */
-    void closeFile() {
-        if (!configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
-            DataSourceItem item = (DataSourceItem) frame.toolbarPanel.dataSourceComboBox.getSelectedItem();
-            if (item.getPath().equals(configurationModel.getDataSourcePath())) {
-                frame.toolbarPanel.dataSourceComboBox.removeItem(frame.toolbarPanel.dataSourceComboBox.getSelectedItem());    
-            }            
-        }
-    }
-    
-    /**
-     * Save a screenshot to a file using a file chooser.
-     */
-    void saveScreenshot() {
-        JFileChooser fc = new JFileChooser();
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.setDialogTitle("Save Screenshot");
-        FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("png file (*.png)", "png");
-        String format = pngFilter.getExtensions()[0];
-        fc.addChoosableFileFilter(pngFilter);
-        fc.setCurrentDirectory(new File("."));
-        int r = fc.showSaveDialog(frame);
-        if (r == JFileChooser.APPROVE_OPTION) {            
-            String fileName = fc.getSelectedFile().getPath();
-            if (!fileName.endsWith("." + format)) {
-                fileName += "." + format;
-            }
-            frame.repaint();
-            Object lock = new Object();
-            synchronized (lock) {
-                try {
-                    lock.wait(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            writeScreenshot(fileName, format);
-            DialogUtil.showInfoDialog(frame, "Screenshot Saved", "Screenshot was saved to file" + '\n' + fileName);
-            logger.info("saved screenshot to " + fileName);
-        }
+    private void stopAIDAServer() {
+        this.server.disconnect();
+        this.frame.getApplicationMenu().stopAIDAServer();
+        LOGGER.info("AIDA server was stopped");
+        DialogUtil.showInfoDialog(this.frame, "AIDA Server Stopped", "The AIDA server was stopped.");
     }
 
     /**
      * Save a screenshot to an output file.
-     * @param fileName The name of the output file.
+     *
+     * @param fileName the name of the output file
+     * @param format the output file format (must be accepted by <code>ImageIO</code>)
      */
-    void writeScreenshot(String fileName, String format) {
-        BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
-        frame.paint(image.getGraphics()); 
+    private void writeScreenshot(final String fileName, final String format) {
+        this.frame.repaint();
+        final BufferedImage image = new BufferedImage(this.frame.getWidth(), this.frame.getHeight(),
+                BufferedImage.TYPE_INT_RGB);
+        this.frame.paint(image.getGraphics());
         try {
             ImageIO.write(image, format, new File(fileName));
-        } catch (IOException e) {
-            errorHandler.setError(e).setMessage("Failed to save screenshot.").printStackTrace().log().showErrorDialog();
-        }        
-    }            
-    
-    /**
-     * Set the log level from the configuration model.
-     */
-    void setLogLevel() {
-        Level newLevel = configurationModel.getLogLevel();
-        if (logger.getLevel() != newLevel) {
-            logger.setLevel(newLevel);
-            logger.log(Level.INFO, "Log Level was changed to <" + configurationModel.getLogLevel().toString() + ">");
+        } catch (final IOException e) {
+            this.errorHandler.setError(e).setMessage("Failed to save screenshot.").printStackTrace().log()
+                    .showErrorDialog();
         }
-    }      
-    
-    /**
-     * Export a JTable's data to a comma-delimited text file using a file chooser.
-     */
-    void saveTable(JTable table) {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Save Table to Text File");
-        fc.setCurrentDirectory(new File("."));
-        int r = fc.showSaveDialog(frame);
-        if (r == JFileChooser.APPROVE_OPTION) {            
-            String fileName = fc.getSelectedFile().getPath();
-            try {
-                TableExporter.export(table, fileName, ',');
-                logger.info("saved table data to " + fileName);
-                DialogUtil.showInfoDialog(frame, "Table Data Saved", "The table was exported successfully.");
-            } catch (IOException e) {
-                DialogUtil.showErrorDialog(frame, "Table Export Error", "The table export failed.");
-                logger.warning("failed to save table data to " + fileName);
-            }                        
-        }
-    }
-    
-    /**
-     * Save the log table to a file using a file chooser.
-     */
-    void saveLogTable() {
-        saveTable(frame.logPanel.logTable);
-    }
-        
-    /**
-     * Redirect <code>System.out</code> and <code>System.err</code> to file chosen
-     * by a file chooser.
-     */
-    void chooseLogFile() {
-        JFileChooser fc = new JFileChooser();
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.setDialogTitle("Save Log Messages to File");       
-        fc.setCurrentDirectory(new File("."));
-        int r = fc.showSaveDialog(frame);
-        if (r == JFileChooser.APPROVE_OPTION) {            
-            String fileName = fc.getSelectedFile().getPath();
-            if (new File(fileName).exists()) {
-                DialogUtil.showErrorDialog(frame, "File Exists", "File already exists.");
-            } else {
-                logToFile(new File(fileName));
-            }
-        }        
-    }
-    
-    /**
-     * Redirect <code>System.out</code> and <code>System.err</code> to a file.
-     * @param file The output log file.
-     * @throws FileNotFoundException if the file does not exist.
-     */
-    void logToFile(File file) {
-        try {
-            
-            // Create the output file stream.
-            PrintStream fileStream = new PrintStream(new FileOutputStream(file.getPath()));
-            System.setOut(fileStream);
-            System.setErr(fileStream);
-            
-            // Flush the current handler, but do NOT close here or System.out gets clobbered!
-            streamHandler.flush();
-            
-            // Replace the current handler with one using the file stream.
-            logger.removeHandler(streamHandler);
-            streamHandler = new MonitoringApplicationStreamHandler(fileStream);
-            streamHandler.setLevel(logger.getLevel());
-            logger.addHandler(streamHandler);
-            
-            // Set the properties on the model.
-            configurationModel.setLogFileName(file.getPath());
-            configurationModel.setLogToFile(true);
-            
-            logger.info("Saving log messages to " + configurationModel.getLogFileName());
-            DialogUtil.showInfoDialog(frame, "Logging to File", 
-                    "Log messages redirected to file" + '\n' + configurationModel.getLogFileName());
-            
-        } catch (FileNotFoundException e) {
-            errorHandler.setError(e).log().showErrorDialog();
-        }
-    }      
-    
-    /**
-     * Send <code>System.out</code> and <code>System.err</code> back to the terminal, 
-     * e.g. if they were previously sent to a file.
-     */
-    void logToTerminal() {
-        
-        // Reset System.out and err back to original streams.
-        System.setOut(sysOut);
-        System.setErr(sysErr);
-        
-        // Flush and close the current handler, which is using a file stream.
-        streamHandler.flush();
-        streamHandler.close();
-        
-        // Replace the handler with the one printing to the terminal.
-        logger.removeHandler(streamHandler);               
-        streamHandler = new MonitoringApplicationStreamHandler(System.out);
-        streamHandler.setLevel(logger.getLevel());
-        logger.addHandler(streamHandler);
-        
-        logger.log(Level.INFO, "log messages redirected to terminal");
-        
-        // Update the model to indicate logging to file has been disabled.
-        configurationModel.setLogToFile(false);
-        
-        DialogUtil.showInfoDialog(frame, "Log to Terminal", "Log messages will be sent to the terminal.");
-    }    
-    
-    /**
-     * Start the AIDA server instance.
-     */
-    void startAIDAServer() {
-        if (configurationModel.hasValidProperty(ConfigurationModel.AIDA_SERVER_NAME_PROPERTY)) {
-            server.setName(configurationModel.getAIDAServerName());
-        }
-        boolean started = server.start();
-        if (started) {
-            frame.menu.startAIDAServer();
-            logger.info("AIDA server started at " + server.getName());
-            DialogUtil.showInfoDialog(frame, "AIDA Server Started", "The remote AIDA server started successfully.");
-        } else {
-            logger.warning("AIDA server failed to start");
-            DialogUtil.showErrorDialog(frame, "Failed to Start AIDA Server", "The remote AIDA server failed to start.");
-        }
-    }
-    
-    /**
-     * Stop the AIDA server instance.
-     */
-    void stopAIDAServer() {
-        server.disconnect();
-        frame.menu.stopAIDAServer();
-        logger.info("AIDA server was stopped");
-        DialogUtil.showInfoDialog(frame, "AIDA Server Stopped", "The AIDA server was stopped.");
-    }    
-    
-    /**
-     * Run the disconnection on a separate thread.
-     */
-    void runDisconnectThread() {
-        new Thread() {
-            public void run() {
-                logger.fine("disconnect thread is running ...");
-                connectionModel.setConnectionStatus(ConnectionStatus.DISCONNECTING);
-                MonitoringApplication.this.processing.stop();
-                logger.fine("disconnect thread finished!");
-            }
-        }.run();
     }
 }

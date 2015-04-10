@@ -2,6 +2,7 @@ package org.hps.monitoring.application;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
@@ -12,132 +13,283 @@ import javax.swing.JTabbedPane;
 
 /**
  * This class instantiates the primary GUI components of the monitoring application.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-class MonitoringApplicationFrame extends JFrame {
-            
-    EventDashboard dashboardPanel;    
-    PlotPanel plotPanel;
-    PlotInfoPanel plotInfoPanel;
-    LogPanel logPanel;
-    TriggerDiagnosticsPanel triggerPanel;
-    ConditionsPanel conditionsPanel;
-    SystemStatusPanel systemStatusPanel;
-    ToolbarPanel toolbarPanel;
-    MenuBar menu; 
-    
-    JSplitPane mainSplitPane;
-    JSplitPane rightSplitPane;
-    JSplitPane leftSplitPane;
-        
-    SettingsDialog settingsDialog;
-       
-    static final Rectangle BOUNDS = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    static final int PIXEL_WIDTH_MAX = (int) BOUNDS.getWidth();
-    static final int PIXEL_HEIGHT_MAX = (int) BOUNDS.getHeight();
-    
+final class MonitoringApplicationFrame extends JFrame {
+
     /**
-     * 
-     * @param listener
+     * The current graphics bounds.
      */
-    public MonitoringApplicationFrame(
-            MonitoringApplication application) {
-        
+    private static final Rectangle BOUNDS = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+
+    /**
+     * The maximum height of a window in pixels.
+     */
+    private static final int PIXEL_HEIGHT_MAX = (int) BOUNDS.getHeight();
+
+    /**
+     * The maximum width of a window in pixels.
+     */
+    private static final int PIXEL_WIDTH_MAX = (int) BOUNDS.getWidth();
+
+    /**
+     * The conditions panel.
+     */
+    private final ConditionsPanel conditionsPanel;
+
+    /**
+     * The dashboard panel.
+     */
+    private final EventDashboard dashboardPanel;
+
+    /**
+     * The left split pane that divides the dashboard and the tabs.
+     */
+    private final JSplitPane leftSplitPane;
+
+    /**
+     * The log panel.
+     */
+    private final LogPanel logPanel;
+
+    /**
+     * The primary split pain dividing the left and right panels.
+     */
+    private final JSplitPane mainSplitPane;
+
+    /**
+     * The application's menu bar.
+     */
+    private final MenuBar menu;
+
+    /**
+     * The plot info panel.
+     */
+    private final PlotInfoPanel plotInfoPanel;
+
+    /**
+     * The plot panel.
+     */
+    private final PlotPanel plotPanel;
+
+    /**
+     * The right split pane showing plots and statistics.
+     */
+    private final JSplitPane rightSplitPane;
+
+    /**
+     * The settings dialog window.
+     */
+    private final SettingsDialog settingsDialog;
+
+    /**
+     * The system status panel which shows under the tabs.
+     */
+    private final SystemStatusPanel systemStatusPanel;
+
+    /**
+     * The toolbar panel with the buttons, data source and connection information.
+     */
+    private final ToolbarPanel toolbarPanel;
+
+    /**
+     * The trigger diagnostics panel.
+     */
+    private final TriggerDiagnosticsPanel triggerPanel;
+
+    /**
+     * Class constructor.
+     *
+     * @param application the associated application object
+     */
+    public MonitoringApplicationFrame(final MonitoringApplication application) {
+
         // Disable interaction until specifically enabled externally after initialization.
         setEnabled(false);
-                
+
         // Create the content panel.
-        JPanel contentPanel = new JPanel();
+        final JPanel contentPanel = new JPanel();
         setContentPane(contentPanel);
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setOpaque(true);
         contentPanel.setPreferredSize(new Dimension(PIXEL_WIDTH_MAX, PIXEL_HEIGHT_MAX));
-                
+
         // Create the top panel.
-        toolbarPanel = new ToolbarPanel(application.configurationModel, application.connectionModel, application);        
-        contentPanel.add(toolbarPanel, BorderLayout.NORTH);
-                        
+        this.toolbarPanel = new ToolbarPanel(application.getConfigurationModel(), application.getConnectionModel(),
+                application);
+        contentPanel.add(this.toolbarPanel, BorderLayout.NORTH);
+
         // Create the bottom panel.
-        JPanel bottomPanel = new JPanel();
+        final JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
         contentPanel.add(bottomPanel, BorderLayout.CENTER);
-                                        
+
         // Create the left panel.
-        JPanel leftPanel = new JPanel();
+        final JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
-                            
+
         // Create the run dashboard.
-        dashboardPanel = new EventDashboard(application.runModel);
+        this.dashboardPanel = new EventDashboard(application.getRunModel());
 
         // Create the tabbed pane for content in bottom of left panel such as log table and system monitor.
-        JTabbedPane tableTabbedPane = new JTabbedPane();
-        
+        final JTabbedPane tableTabbedPane = new JTabbedPane();
+
         // Create the log table and add it to the tabs.
-        logPanel = new LogPanel(application.configurationModel, application);
-        tableTabbedPane.addTab("Log Messages", logPanel);
-        
+        this.logPanel = new LogPanel(application.getConfigurationModel(), application);
+        tableTabbedPane.addTab("Log Messages", this.logPanel);
+
         // Create the system monitor.
-        //systemStatusTable = new SystemStatusTable();
-        systemStatusPanel = new SystemStatusPanel();
-        tableTabbedPane.addTab("System Status Monitor", systemStatusPanel);
-        
+        // systemStatusTable = new SystemStatusTable();
+        this.systemStatusPanel = new SystemStatusPanel();
+        tableTabbedPane.addTab("System Status Monitor", this.systemStatusPanel);
+
         // Add the trigger diagnostics tables.
-        triggerPanel = new TriggerDiagnosticsPanel();
-        tableTabbedPane.addTab("Trigger Diagnostics", triggerPanel);
-        
+        this.triggerPanel = new TriggerDiagnosticsPanel();
+        tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
+
         // Add the conditions panel.
-        conditionsPanel = new ConditionsPanel();
-        tableTabbedPane.addTab("Detector Conditions", conditionsPanel);
-        
+        this.conditionsPanel = new ConditionsPanel();
+        tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
+
         // Vertical split pane in left panel.
-        leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, dashboardPanel, tableTabbedPane);
-        leftSplitPane.setDividerLocation(250);
-        leftPanel.add(leftSplitPane, BorderLayout.CENTER);
-                                
+        this.leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.dashboardPanel, tableTabbedPane);
+        this.leftSplitPane.setDividerLocation(250);
+        leftPanel.add(this.leftSplitPane, BorderLayout.CENTER);
+
         // Create the right panel.
-        JPanel rightPanel = new JPanel();
+        final JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BorderLayout());
-                
+
         // Create the plot info panel.
-        plotInfoPanel = new PlotInfoPanel();
-                
+        this.plotInfoPanel = new PlotInfoPanel();
+
         // Create the plot panel.
-        plotPanel = new PlotPanel();        
-        plotInfoPanel.saveButton.addActionListener(plotPanel);
-        
+        this.plotPanel = new PlotPanel();
+        this.plotInfoPanel.saveButton.addActionListener(this.plotPanel);
+
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
-        rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, plotPanel, plotInfoPanel);
-        rightSplitPane.setDividerLocation(680);
-        rightPanel.add(rightSplitPane, BorderLayout.CENTER);
-                       
+        this.rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.plotPanel, this.plotInfoPanel);
+        this.rightSplitPane.setDividerLocation(680);
+        rightPanel.add(this.rightSplitPane, BorderLayout.CENTER);
+
         // Create the main horizontal split pane for dividing the left and right panels.
-        mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        mainSplitPane.setDividerLocation(600);
-        bottomPanel.add(mainSplitPane, BorderLayout.CENTER);
-        
+        this.mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+        this.mainSplitPane.setDividerLocation(600);
+        bottomPanel.add(this.mainSplitPane, BorderLayout.CENTER);
+
         // Create the menu bar.
-        menu = new MenuBar(application.configurationModel, application.connectionModel, application);
-        setJMenuBar(menu);
-        toolbarPanel.dataSourceComboBox.addActionListener(menu);
-        
+        this.menu = new MenuBar(application.getConfigurationModel(), application.getConnectionModel(), application);
+        setJMenuBar(this.menu);
+        this.toolbarPanel.getDataSourceComboBox().addActionListener(this.menu);
+
         // Setup the settings dialog box (invisible until activated).
-        settingsDialog = new SettingsDialog(application.configurationModel, application);        
-               
-        // Setup the frame now that all components have been added.        
+        this.settingsDialog = new SettingsDialog(application.getConfigurationModel(), application);
+
+        // Setup the frame now that all components have been added.
         pack();
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setVisible(true); 
+        setExtendedState(Frame.MAXIMIZED_BOTH);
+        setVisible(true);
     }
-             
+
+    /**
+     * Get the application menu.
+     *
+     * @return the application menu
+     */
+    MenuBar getApplicationMenu() {
+        return this.menu;
+    }
+
+    /**
+     * Get the panel showing conditions information.
+     *
+     * @return the conditions panel
+     */
+    ConditionsPanel getConditionsPanel() {
+        return this.conditionsPanel;
+    }
+
+    /**
+     * Get the panel for the dashboard.
+     *
+     * @return the dashboard panel
+     */
+    EventDashboard getEventDashboard() {
+        return this.dashboardPanel;
+    }
+
+    /**
+     * Get the panel that shows the log table and controls.
+     *
+     * @return the log panel
+     */
+    LogPanel getLogPanel() {
+        return this.logPanel;
+    }
+
+    /**
+     * Get the plot info panel that shows plot statistics.
+     *
+     * @return the plot info panel
+     */
+    PlotInfoPanel getPlotInfoPanel() {
+        return this.plotInfoPanel;
+    }
+
+    /**
+     * Get the plot panel for displaying AIDA plots.
+     *
+     * @return the plot panel
+     */
+    PlotPanel getPlotPanel() {
+        return this.plotPanel;
+    }
+
+    /**
+     * Get the settings dialog window.
+     *
+     * @return the settings dialog window
+     */
+    SettingsDialog getSettingsDialog() {
+        return this.settingsDialog;
+    }
+
+    /**
+     * Get the system status panel.
+     *
+     * @return the system status panel
+     */
+    SystemStatusPanel getSystemStatusPanel() {
+        return this.systemStatusPanel;
+    }
+
+    /**
+     * Get the toolbar panel with the buttons etc.
+     *
+     * @return the toolbar panel
+     */
+    ToolbarPanel getToolbarPanel() {
+        return this.toolbarPanel;
+    }
+
+    /**
+     * Get the trigger diagnostics panel.
+     *
+     * @return the trigger diagnostics panel
+     */
+    TriggerDiagnosticsPanel getTriggerPanel() {
+        return this.triggerPanel;
+    }
+
     /**
      * Restore default window settings.
      */
     void restoreDefaults() {
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        mainSplitPane.resetToPreferredSizes();
-        leftSplitPane.resetToPreferredSizes();
-        rightSplitPane.resetToPreferredSizes();        
-    }    
+        setExtendedState(Frame.MAXIMIZED_BOTH);
+        this.mainSplitPane.resetToPreferredSizes();
+        this.leftSplitPane.resetToPreferredSizes();
+        this.rightSplitPane.resetToPreferredSizes();
+    }
 }

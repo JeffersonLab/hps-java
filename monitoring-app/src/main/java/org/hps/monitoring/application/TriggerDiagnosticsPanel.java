@@ -18,36 +18,12 @@ import org.lcsim.util.Driver;
 
 /**
  * This is a panel containing the trigger diagnostics tables.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-class TriggerDiagnosticsPanel extends JPanel {
+final class TriggerDiagnosticsPanel extends JPanel {
 
-    JTabbedPane tabs = new JTabbedPane();
-    ClusterTablePanel clusterPanel = new ClusterTablePanel();
-    SinglesTablePanel singlesPanel = new SinglesTablePanel();
-    PairTablePanel pairsPanel = new PairTablePanel();
-    EfficiencyTablePanel efficiencyPanel = new EfficiencyTablePanel();
-    
-    List<DiagnosticUpdatable> updateList = new ArrayList<DiagnosticUpdatable>();
-    
-    TriggerDiagnosticsPanel() {
-        setLayout(new BorderLayout());
-                       
-        tabs.addTab("Clusters", clusterPanel);
-        tabs.addTab("Singles", singlesPanel);
-        tabs.addTab("Pairs", pairsPanel);
-        tabs.addTab("Efficiency", efficiencyPanel);
-        
-        updateList.add(clusterPanel);
-        updateList.add(singlesPanel);
-        updateList.add(pairsPanel);
-        updateList.add(efficiencyPanel);
-        
-        add(tabs, BorderLayout.CENTER);
-    }
-        
     /**
      * Driver for updating the tables.
      */
@@ -55,24 +31,50 @@ class TriggerDiagnosticsPanel extends JPanel {
 
         // FIXME: Hard-coded collection name.
         private String diagnosticCollectionName = "DiagnosticSnapshot";
-        
+
         @Override
-        public void process(EventHeader event) {
+        public void process(final EventHeader event) {
             // Updates are only performed if a diagnostic snapshot object
             // exists. Otherwise, do nothing.
-            if(event.hasCollection(DiagnosticSnapshot.class, diagnosticCollectionName)) {
+            if (event.hasCollection(DiagnosticSnapshot.class, this.diagnosticCollectionName)) {
                 // Get the snapshot collection.
-                List<DiagnosticSnapshot> snapshotList = event.get(DiagnosticSnapshot.class, diagnosticCollectionName);
-                
+                final List<DiagnosticSnapshot> snapshotList = event.get(DiagnosticSnapshot.class,
+                        this.diagnosticCollectionName);
+
                 // Update the GUI panels.
-                for (DiagnosticUpdatable update : updateList) {
+                for (final DiagnosticUpdatable update : TriggerDiagnosticsPanel.this.updateList) {
                     update.updatePanel(snapshotList.get(1), snapshotList.get(0));
                 }
-            } 
+            }
         }
-        
-        void setDiagnosticCollectionName(String name) {
-            diagnosticCollectionName = name;
+
+        void setDiagnosticCollectionName(final String name) {
+            this.diagnosticCollectionName = name;
         }
-    }  
+    }
+
+    ClusterTablePanel clusterPanel = new ClusterTablePanel();
+    EfficiencyTablePanel efficiencyPanel = new EfficiencyTablePanel();
+    PairTablePanel pairsPanel = new PairTablePanel();
+    SinglesTablePanel singlesPanel = new SinglesTablePanel();
+
+    JTabbedPane tabs = new JTabbedPane();
+
+    List<DiagnosticUpdatable> updateList = new ArrayList<DiagnosticUpdatable>();
+
+    TriggerDiagnosticsPanel() {
+        setLayout(new BorderLayout());
+
+        this.tabs.addTab("Clusters", this.clusterPanel);
+        this.tabs.addTab("Singles", this.singlesPanel);
+        this.tabs.addTab("Pairs", this.pairsPanel);
+        this.tabs.addTab("Efficiency", this.efficiencyPanel);
+
+        this.updateList.add(this.clusterPanel);
+        this.updateList.add(this.singlesPanel);
+        this.updateList.add(this.pairsPanel);
+        this.updateList.add(this.efficiencyPanel);
+
+        add(this.tabs, BorderLayout.CENTER);
+    }
 }

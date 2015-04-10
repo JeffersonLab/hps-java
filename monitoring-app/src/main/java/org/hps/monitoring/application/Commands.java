@@ -1,8 +1,8 @@
 package org.hps.monitoring.application;
 
 /**
- * These strings are used to identify ActionEvents in the MonitoringApplication. A few commands
- * handled only by sub-components are not listed here.
+ * These strings are used to identify ActionEvents in the MonitoringApplication. A few commands handled only by
+ * sub-components are not listed here.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */

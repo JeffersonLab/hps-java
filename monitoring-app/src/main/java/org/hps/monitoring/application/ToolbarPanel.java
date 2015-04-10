@@ -13,21 +13,22 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
  * A GUI component for the top-level toolbar of the monitoring app.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public class ToolbarPanel extends JPanel {
+final class ToolbarPanel extends JPanel {
 
-    DataSourceComboBox dataSourceComboBox;
-    JPanel buttonsPanel;
+    private final JPanel buttonsPanel;
+    private final DataSourceComboBox dataSourceComboBox;
 
-    ToolbarPanel(ConfigurationModel configurationModel, ConnectionStatusModel connectionModel, ActionListener listener) {
+    ToolbarPanel(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel,
+            final ActionListener listener) {
 
         setLayout(new FlowLayout(FlowLayout.LEFT));
-        
-        JPanel containerPanel = new JPanel();
+
+        final JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new GridBagLayout());
-        
+
         // Create the connection status panel.
         GridBagConstraints gbs = new GridBagConstraints();
         gbs.anchor = GridBagConstraints.WEST;
@@ -36,30 +37,34 @@ public class ToolbarPanel extends JPanel {
         gbs.weightx = 0.5;
         gbs.fill = GridBagConstraints.BOTH;
         gbs.insets = new Insets(10, 0, 0, 10);
-        JPanel connectionPanel = new ConnectionStatusPanel(connectionModel);
+        final JPanel connectionPanel = new ConnectionStatusPanel(connectionModel);
         containerPanel.add(connectionPanel, gbs);
 
         // Create the buttons panel.
-        buttonsPanel = new EventButtonsPanel(connectionModel, listener);
+        this.buttonsPanel = new EventButtonsPanel(connectionModel, listener);
         gbs.anchor = GridBagConstraints.WEST;
         gbs.gridx = 1;
         gbs.gridy = 0;
         gbs.weightx = 0.5;
         gbs.fill = GridBagConstraints.BOTH;
         gbs.insets = new Insets(0, 0, 0, 10);
-        containerPanel.add(buttonsPanel, gbs);
+        containerPanel.add(this.buttonsPanel, gbs);
 
         // Add the data source combo box.
-        dataSourceComboBox = new DataSourceComboBox(configurationModel, connectionModel);
+        this.dataSourceComboBox = new DataSourceComboBox(configurationModel, connectionModel);
         gbs = new GridBagConstraints();
         gbs.anchor = GridBagConstraints.WEST;
         gbs.gridx = 2;
         gbs.gridy = 0;
         gbs.weightx = 1.0;
         gbs.fill = GridBagConstraints.HORIZONTAL;
-        containerPanel.add(dataSourceComboBox, gbs);
-        
+        containerPanel.add(this.dataSourceComboBox, gbs);
+
         add(containerPanel);
+    }
+
+    DataSourceComboBox getDataSourceComboBox() {
+        return this.dataSourceComboBox;
     }
 
 }

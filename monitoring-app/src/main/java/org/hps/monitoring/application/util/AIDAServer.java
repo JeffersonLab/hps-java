@@ -11,69 +11,74 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * AIDA RMI server wrapper.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class AIDAServer {
-    
-    RmiServerImpl server;
-    String name;
+
     boolean connected = false;
-   
+    String name;
+    RmiServerImpl server;
+
     /**
-     * Class constructor. 
+     * Class constructor.
+     *
      * @param name The name of the AIDA server.
      */
-    public AIDAServer(String name) {
+    public AIDAServer(final String name) {
         this.name = name;
     }
-    
+
+    /**
+     * True if connected.
+     *
+     * @return True if connected to server.
+     */
+    public boolean connected() {
+        return this.connected;
+    }
+
+    /**
+     * Close the server down by disconnecting it.
+     */
+    public void disconnect() {
+        this.server.disconnect();
+        this.connected = false;
+    }
+
+    public String getName() {
+        try {
+            return InetAddress.getLocalHost().getCanonicalHostName() + this.server.getBindName() + ":"
+                    + RmiRemoteUtils.port;
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * Set the name that will be used for the path part of the URL.
+     *
      * @param name The server's name.
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     /**
      * Start the remote AIDA server.
+     *
      * @return True if server started successfully; false if an error occurred during initialization.
      */
     public boolean start() {
-        RemoteServer treeServer = new RemoteServer((IDevTree) AIDA.defaultInstance().tree());
+        final RemoteServer treeServer = new RemoteServer((IDevTree) AIDA.defaultInstance().tree());
         try {
-            server = new RmiServerImpl(treeServer, "/" + name);
-            connected = true;
-        }
-        catch (Exception e) {
+            this.server = new RmiServerImpl(treeServer, "/" + this.name);
+            this.connected = true;
+        } catch (final Exception e) {
             e.printStackTrace();
-            connected = false;
+            this.connected = false;
         }
-        return connected;
-    }
-    
-    /** 
-     * Close the server down by disconnecting it.
-     */
-    public void disconnect() {
-        server.disconnect();
-        connected = false;
-    }
-    
-    /**
-     * True if connected.
-     * @return True if connected to server.
-     */
-    public boolean connected() {
-        return connected;
-    }    
-    
-    public String getName() {
-        try {
-            return InetAddress.getLocalHost().getCanonicalHostName() + server.getBindName() + ":" + RmiRemoteUtils.port;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return this.connected;
     }
 }

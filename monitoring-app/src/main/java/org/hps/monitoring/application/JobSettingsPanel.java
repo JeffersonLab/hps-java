@@ -28,29 +28,41 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 /**
- * This is the GUI panel for setting job parameters. It is connected to the global configuration via a
+ * This is the GUI panel for setting job parameters. It is connected to the global configuration settings via a
  * {@link org.hps.monitoring.model.ConfigurationModel} object.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // FIXME: Combo boxes should use explicit types.
-class JobSettingsPanel extends AbstractFieldsPanel {
+@SuppressWarnings("serial")
+final class JobSettingsPanel extends AbstractFieldsPanel {
 
     /**
      * This filter will accept only files called compact.xml which should be an LCSim detector description file.
      */
     static class CompactFileFilter extends FileFilter {
 
+        /**
+         * Class constructor.
+         */
         public CompactFileFilter() {
         }
 
+        /**
+         * Returns <code>true</code> if the path passes the filter.
+         *
+         * @return <code>true</code> if the path passes the filter
+         */
         @Override
         public boolean accept(final File pathname) {
-            if (pathname.getName().equals("compact.xml")) {
-                return true;
-            } else {
-                return false;
-            }
+            return "compact.xml".equals(pathname.getName());
         }
 
+        /**
+         * Get the description of the filter.
+         *
+         * @return the description of the filter
+         */
         @Override
         public String getDescription() {
             return "Compact XML files";
@@ -61,6 +73,10 @@ class JobSettingsPanel extends AbstractFieldsPanel {
      * Update the GUI from changes in the underlying model. The changes are distinguishable by their property name.
      */
     private class JobSettingsChangeListener implements PropertyChangeListener {
+
+        /**
+         * Handle {@link java.beans.PropertyChangeEvent} by updating the GUI from changes to the model.
+         */
         @Override
         public void propertyChange(final PropertyChangeEvent evt) {
             if (evt.getSource() instanceof ConfigurationModel) {
@@ -121,37 +137,110 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         }
     }
 
-    // The available LogLevel settings as an array of strings.
+    /**
+     * The available LogLevel settings as an array of strings.
+     */
     static final String[] LOG_LEVELS = new String[] { Level.ALL.toString(), Level.FINEST.toString(),
-        Level.FINER.toString(), Level.FINE.toString(), Level.CONFIG.toString(), Level.INFO.toString(),
-        Level.WARNING.toString(), Level.SEVERE.toString(), Level.OFF.toString() };
-    // The package where steering resources must be located.
-    static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
+            Level.FINER.toString(), Level.FINE.toString(), Level.CONFIG.toString(), Level.INFO.toString(),
+            Level.WARNING.toString(), Level.SEVERE.toString(), Level.OFF.toString() };
+
+    /**
+     * The package where steering resources must be located.
+     */
+    private static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
+
+    /**
+     * Field for name of remote AIDA server.
+     */
     private final JTextField aidaServerNameField;
+
+    /**
+     * Combo box for selecting a conditions system tag.
+     */
     private final JComboBox<String> conditionsTagComboBox;
+
+    /**
+     * Field setting a detector alias to a local file.
+     */
     private final JTextField detectorAliasField;
+
+    /**
+     * Combo box for selecting a detector model.
+     */
     private final JComboBox<String> detectorNameComboBox;
+
+    /**
+     * Check box for enabling disconnect on end run.
+     */
     private final JCheckBox disconnectOnEndRunCheckBox;
+
+    /**
+     * Check box for enabling disconnect on event processing errors.
+     */
     private final JCheckBox disconnectOnErrorCheckBox;
+
+    /**
+     * Combo box for selecting the event builder class.
+     */
     private final JComboBox<String> eventBuilderComboBox;
+
+    /**
+     * Check box for freezing conditions system provided there is a user selected run number and detector.
+     */
     private final JCheckBox freezeConditionsCheckBox;
+
+    /**
+     * Field for specifying an output log file.
+     */
     private final JTextField logFileNameField;
+
+    /**
+     * Field for setting the log level.
+     */
     private final JComboBox<?> logLevelComboBox;
+
+    /**
+     * Check box for enabling logging to a file.
+     */
     private final JCheckBox logToFileCheckbox;
+
+    /**
+     * Field for setting the maximum number of events to process in the session.
+     */
     private final JTextField maxEventsField;
+
+    /**
+     * Combo box for selecting the processing stage(s) to execute (ET, EVIO or LCIO).
+     */
     private final JComboBox<ProcessingStage> processingStageComboBox;
 
+    /**
+     * Field for setting an XML steering file.
+     */
     private final JTextField steeringFileField;
 
+    /**
+     * Combo box for selecting a steering file resource.
+     */
     private final JComboBox<?> steeringResourcesComboBox;
 
+    /**
+     * Combo box for selecting between current file or resource for XML steering.
+     */
     private final JComboBox<?> steeringTypeComboBox;
 
+    /**
+     * Field for setting a user run number for conditions system activation.
+     */
     private final JTextField userRunNumberField;
 
     /**
      * Class constructor.
+     *
+     * @param model the current {@link org.hps.monitoring.application.model.ConfigurationModel} with global
+     *            configuration
      */
+    @SuppressWarnings("unchecked")
     JobSettingsPanel(final ConfigurationModel model) {
 
         super(new Insets(5, 3, 3, 5), true);
@@ -248,6 +337,11 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         this.aidaServerNameField.addPropertyChangeListener("value", this);
     }
 
+    /**
+     * Handle {@link java.awt.event.ActionEvent} objects by pushing changes from the GUI into the model.
+     *
+     * @param event the {@link java.awt.event.ActionEvent} to handle
+     */
     @Override
     public void actionPerformed(final ActionEvent event) {
         try {
@@ -300,7 +394,9 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
 
     /**
-     * Attaches the ActionListener from the main app to specific GUI components in this class.
+     * Attaches the ActionListener from the main application to specific GUI components in this class.
+     *
+     * @param the {@link java.awt.event.ActionListener} to register with the relevant components
      */
     @Override
     public void addActionListener(final ActionListener listener) {
@@ -309,25 +405,25 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
 
     /**
-     * Parse the lcsim steering file to see if it appears to be valid.
+     * Parse the LCSim XML steering file to see if it looks valid.
      *
-     * @param file The input steering file.
-     * @throws IOException if there is a basic IO problem.
-     * @throws JDOMException if the XML is not valid.
+     * @param file the input steering file
+     * @throws IOException if there is a basic IO problem like reading the file
+     * @throws JDOMException if the XML is not valid
      */
     private void checkSteeringFile(final File file) throws IOException, JDOMException {
         final SAXBuilder builder = new SAXBuilder();
         final Document document = builder.build(file);
         final Element rootNode = document.getRootElement();
-        if (!rootNode.getName().equals("lcsim")) {
-            throw new IOException("Not an LCSim XML file: " + file.getPath());
+        if (!"lcsim".equals(rootNode.getName())) {
+            throw new IOException("not an LCSim XML file: " + file.getPath());
         }
     }
 
     /**
      * Choose a compact XML file to override the one embedded in the jar as a resource.
      */
-    void chooseCompactFile() {
+    private void chooseCompactFile() {
         final JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Choose a Compact XML File");
         fc.setCurrentDirectory(new File("."));
@@ -340,9 +436,9 @@ class JobSettingsPanel extends AbstractFieldsPanel {
     }
 
     /**
-     * Choose an lcsim steering file.
+     * Choose an LCSim steering file.
      */
-    void chooseSteeringFile() {
+    private void chooseSteeringFile() {
         final JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Choose an LCSim Steering File");
         fc.setCurrentDirectory(new File("."));
@@ -418,6 +514,14 @@ class JobSettingsPanel extends AbstractFieldsPanel {
         }
     }
 
+    /**
+     * Sets the {@link org.hps.monitoring.application.model.ConfigurationModel} for the component containing global
+     * configuration.
+     * <p>
+     * The job settings will be updated automatically if the model changes.
+     *
+     * @param the {@link org.hps.monitoring.application.model.ConfigurationModel} for the component
+     */
     @Override
     public void setConfigurationModel(final ConfigurationModel model) {
         super.setConfigurationModel(model);

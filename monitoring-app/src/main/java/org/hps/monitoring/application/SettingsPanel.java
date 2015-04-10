@@ -16,44 +16,46 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
  * The container component with the tabs that have job and connection settings.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-class SettingsPanel extends JPanel implements ActionListener {
+final class SettingsPanel extends JPanel implements ActionListener {
 
-    JTabbedPane tabs;
-    JobSettingsPanel jobPanel;
-    ConnectionSettingsPanel connectionPanel;
     static final String OKAY_COMMAND = "settingsOkay";
-
+    ConnectionSettingsPanel connectionPanel;
+    JobSettingsPanel jobPanel;
     JDialog parent;
 
-    SettingsPanel(JDialog parent, ConfigurationModel configurationModel, ActionListener listener) {
+    JTabbedPane tabs;
+
+    SettingsPanel(final JDialog parent, final ConfigurationModel configurationModel, final ActionListener listener) {
 
         this.parent = parent;
-        
-        connectionPanel = new ConnectionSettingsPanel();        
-        jobPanel = new JobSettingsPanel(configurationModel);
-        
+
+        this.connectionPanel = new ConnectionSettingsPanel();
+        this.jobPanel = new JobSettingsPanel(configurationModel);
+
         // Push configuration to sub-components.
-        connectionPanel.setConfigurationModel(configurationModel);
-        jobPanel.setConfigurationModel(configurationModel);
-        
+        this.connectionPanel.setConfigurationModel(configurationModel);
+        this.jobPanel.setConfigurationModel(configurationModel);
+
         // Add ActionListener to sub-components.
-        connectionPanel.addActionListener(listener);
-        jobPanel.addActionListener(listener);
-               
+        this.connectionPanel.addActionListener(listener);
+        this.jobPanel.addActionListener(listener);
+
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-        tabs = new JTabbedPane();
-        tabs.addTab("Connection Settings", connectionPanel);
-        tabs.addTab("Job Settings", jobPanel);
-        add(tabs);
+        this.tabs = new JTabbedPane();
+        this.tabs.addTab("Connection Settings", this.connectionPanel);
+        this.tabs.addTab("Job Settings", this.jobPanel);
+        add(this.tabs);
 
-        JButton okayButton = new JButton("Okay");
+        final JButton okayButton = new JButton("Okay");
         okayButton.setActionCommand(OKAY_COMMAND);
         okayButton.addActionListener(this);
 
         add(Box.createRigidArea(new Dimension(1, 5)));
-        JPanel buttonsPanel = new JPanel();
+        final JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
         buttonsPanel.setLayout(new FlowLayout());
         add(buttonsPanel);
@@ -61,9 +63,9 @@ class SettingsPanel extends JPanel implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(final ActionEvent e) {
         if (e.getActionCommand().equals(OKAY_COMMAND)) {
-            parent.setVisible(false);
+            this.parent.setVisible(false);
         }
-    }    
+    }
 }
