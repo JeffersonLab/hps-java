@@ -8,10 +8,11 @@ import org.hps.conditions.database.MultipleCollectionsAction;
 import org.hps.conditions.database.Table;
 
 /**
- * Encapsulates an SVT alignment constant, which is an encoded, string key with a double value 
- * representing the translation or rotation of a detector component.
+ * Encapsulates an SVT alignment constant, which is an encoded, string key with a double value representing the
+ * translation or rotation of a detector component.
  * <p>
  * The format of the keys is ABCDE where:<br>
+ *
  * <pre>
  * A == half == [1,2]
  * B == alignment type == [1,2]
@@ -19,54 +20,13 @@ import org.hps.conditions.database.Table;
  * DE == module number == [01-10]
  * </pre>
  * <p>
- * The key naming conventions are from the  
- * <a href="http://www.desy.de/~blobel/mptalks.html">Millipede</a> package.
+ * The key naming conventions are from the <a href="http://www.desy.de/~blobel/mptalks.html">Millipede</a> package.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @Table(names = "svt_alignments")
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
 public final class SvtAlignmentConstant extends BaseConditionsObject {
-
-    /**
-     * Collection implementation for {@link SvtAlignmentConstant}.
-     */
-    @SuppressWarnings("serial")
-    public static class SvtAlignmentConstantCollection extends BaseConditionsObjectCollection<SvtAlignmentConstant> {
-    }
-
-    /**
-     * Top or bottom half.
-     */
-    public enum Half {
-        /** Top half. */
-        TOP(1),
-        /** Bottom half. */
-        BOTTOM(2);
-
-        /**
-         * The integer value designating top or bottom half.
-         */
-        private int value;
-
-        /**
-         * Create from top or bottom value.
-         *
-         * @param value the value for half
-         */
-        private Half(final int value) {
-            this.value = value;
-        }
-
-        /**
-         * Get the value.
-         *
-         * @return the value
-         */
-        int getValue() {
-            return value;
-        }
-    };
 
     /**
      * The alignment constant type which is rotation or translation.
@@ -80,10 +40,11 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
         /**
          * The value of the alignment type constants.
          */
-        private int value;
+        private final int value;
 
         /**
          * Constructor that has value of constant.
+         *
          * @param value the value of the constant
          */
         private AlignmentType(final int value) {
@@ -91,12 +52,53 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
         }
 
         /**
-         * Get the value of the constant.
+         * Get the value for the alignment constant type.
+         *
          * @return the value of the constant
          */
         int getValue() {
-            return value;
+            return this.value;
         }
+    }
+
+    /**
+     * Top or bottom half.
+     */
+    public enum Half {
+        /** Bottom half. */
+        BOTTOM(2),
+        /** Top half. */
+        TOP(1);
+
+        /**
+         * The integer value designating top or bottom half.
+         */
+        private final int value;
+
+        /**
+         * Create from top or bottom value.
+         *
+         * @param value the value for half
+         */
+        private Half(final int value) {
+            this.value = value;
+        }
+
+        /**
+         * Get the value for the half.
+         *
+         * @return the value
+         */
+        int getValue() {
+            return this.value;
+        }
+    };
+
+    /**
+     * Collection implementation for {@link SvtAlignmentConstant}.
+     */
+    @SuppressWarnings("serial")
+    public static class SvtAlignmentConstantCollection extends BaseConditionsObjectCollection<SvtAlignmentConstant> {
     };
 
     /**
@@ -113,7 +115,7 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
         /**
          * Value for the constant.
          */
-        private int value;
+        private final int value;
 
         /**
          * Create from value.
@@ -125,12 +127,12 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
         }
 
         /**
-         * Get the value
+         * Get the value for the unit axis.
          *
          * @return the value
          */
         int getValue() {
-            return value;
+            return this.value;
         }
     };
 
@@ -140,47 +142,10 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
     private static final int MAX_MODULE_NUMBER = 10;
 
     /**
-     * Get the alignment constant's encoded, raw value.
-     *
-     * @return the alignment constant's key
-     */
-    @Field(names = { "parameter" })
-    public String getParameter() {
-        return getFieldValue("parameter");
-    }
-
-    /**
-     * Get the the alignment constant's value, which is always a single double.
-     *
-     * @return the alignment constant's value as a double
-     */
-    @Field(names = { "value" })
-    public double getValue() {
-        return getFieldValue("value");
-    }
-
-    /**
-     * Decode the Half value from the key.
-     * 
-     * @return the Half value from the key
-     * @see {@link SvtAlignmentConstant#Half}
-     */
-    public Half getHalf() {
-        final int half = Integer.parseInt(getParameter().substring(0, 1));
-        if (half == Half.TOP.getValue()) {
-            return Half.TOP;
-        } else if (half == Half.BOTTOM.getValue()) {
-            return Half.BOTTOM;
-        } else {
-            throw new IllegalArgumentException("Could not parse valid Half from " + getParameter());
-        }
-    }
-
-    /**
      * Decode the AlignmentType value from the key.
      *
      * @return the AlignmentType value from the key
-     * @see {@link SvtAlignmentConstant#AlignmentType}
+     * @see AlignmentType
      */
     public AlignmentType getAlignmentType() {
         final int alignmentType = Integer.parseInt(getParameter().substring(1, 2));
@@ -194,10 +159,50 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
     }
 
     /**
+     * Decode the Half value from the key.
+     *
+     * @return the Half value from the key
+     * @see Half
+     */
+    public Half getHalf() {
+        final int half = Integer.parseInt(getParameter().substring(0, 1));
+        if (half == Half.TOP.getValue()) {
+            return Half.TOP;
+        } else if (half == Half.BOTTOM.getValue()) {
+            return Half.BOTTOM;
+        } else {
+            throw new IllegalArgumentException("Could not parse valid Half from " + getParameter());
+        }
+    }
+
+    /**
+     * Decode the module number from the key.
+     *
+     * @return the module number from the key
+     */
+    public int getModuleNumber() {
+        final int moduleNumber = Integer.parseInt(getParameter().substring(3, 5));
+        if (moduleNumber > MAX_MODULE_NUMBER || moduleNumber == 0) {
+            throw new IllegalArgumentException("The decoded module number " + moduleNumber + " is invalid.");
+        }
+        return moduleNumber;
+    }
+
+    /**
+     * Get the alignment constant's encoded, raw value.
+     *
+     * @return the alignment constant's key
+     */
+    @Field(names = { "parameter" })
+    public String getParameter() {
+        return getFieldValue("parameter");
+    }
+
+    /**
      * Decode the UnitAxis from the key.
      *
      * @return the UnitAxis v
-     * @see {@link SvtAlignmentConstant#UnitAxis}  
+     * @see UnitAxis
      */
     public UnitAxis getUnitAxis() {
         final int unitAxis = Integer.parseInt(getParameter().substring(2, 3));
@@ -213,16 +218,13 @@ public final class SvtAlignmentConstant extends BaseConditionsObject {
     }
 
     /**
-     * Decode the module number from the key.
+     * Get the the alignment constant's value, which is always a single double.
      *
-     * @return the module number from the key
+     * @return the alignment constant's value as a double
      */
-    public int getModuleNumber() {
-        final int moduleNumber = Integer.parseInt(getParameter().substring(3, 5));
-        if (moduleNumber > MAX_MODULE_NUMBER || moduleNumber == 0) {
-            throw new IllegalArgumentException("The decoded module number " + moduleNumber + " is invalid.");
-        }
-        return moduleNumber;
+    @Field(names = { "value" })
+    public double getValue() {
+        return getFieldValue("value");
     }
 
     /**

@@ -17,14 +17,9 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 public final class SvtConditionsReader {
 
     /**
-     * SAX parser factory.
+     * SAX handler for calibration elements.
      */
-    private SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-
-    /**
-     * SAX parser.
-     */
-    private SAXParser parser;
+    private CalibrationHandler calibrationHandler;
 
     /**
      * SAX handler for DAQ map elements.
@@ -32,9 +27,14 @@ public final class SvtConditionsReader {
     private DaqMapHandler daqMapHandler;
 
     /**
-     * SAX handler for calibration elements.
+     * SAX parser.
      */
-    private CalibrationHandler calibrationHandler;
+    private final SAXParser parser;
+
+    /**
+     * SAX parser factory.
+     */
+    private final SAXParserFactory parserFactory = SAXParserFactory.newInstance();
 
     /**
      * Default constructor.
@@ -44,7 +44,37 @@ public final class SvtConditionsReader {
     public SvtConditionsReader() throws Exception {
 
         // Create a new SAX parser.
-        parser = parserFactory.newSAXParser();
+        this.parser = this.parserFactory.newSAXParser();
+    }
+
+    /**
+     * Get the collection of {@link SvtDaqMapping} objects created when parsing the DAQ map. If a DAQ map hasn't been
+     * parsed yet, an empty collection will be returned.
+     *
+     * @return A collection of {@link SvtDaqMapping} objects
+     */
+    public SvtDaqMappingCollection getDaqMapCollection() {
+        return this.daqMapHandler.getDaqMap();
+    }
+
+    /**
+     * Get the collection of {@link SvtCalibration} objects built from parsing a calibrations file. If a calibrations
+     * file hasn't been parsed yet, an empty collection will be returned.
+     *
+     * @return A collection of {@link SvtCalibration} objects
+     */
+    public SvtCalibrationCollection getSvtCalibrationCollection() {
+        return this.calibrationHandler.getCalibrations();
+    }
+
+    /**
+     * Get the collection of {@link SvtChannel} objects built from parsing the DAQ map. If a DAQ maps hasn't been parsed
+     * yet, an empty collection will be returned.
+     *
+     * @return A collection of {@link SvtChannel} objects
+     */
+    public SvtChannelCollection getSvtChannelCollection() {
+        return this.daqMapHandler.getSvtChannels();
     }
 
     /**
@@ -56,10 +86,10 @@ public final class SvtConditionsReader {
     public void parseCalibrations(final File calibrationFile) throws Exception {
 
         // Instantiate the calibration handler.
-        calibrationHandler = new CalibrationHandler();
+        this.calibrationHandler = new CalibrationHandler();
 
         // Parse the calibration file and create the collection of SvtCalibrations.
-        parser.parse(calibrationFile, calibrationHandler);
+        this.parser.parse(calibrationFile, this.calibrationHandler);
     }
 
     /**
@@ -71,40 +101,10 @@ public final class SvtConditionsReader {
     public void parseDaqMap(final File daqMapFile) throws Exception {
 
         // Instantiate the DAQ map handler.
-        daqMapHandler = new DaqMapHandler();
+        this.daqMapHandler = new DaqMapHandler();
 
         // Parse the DAQ map file and create the collection of SvtDaqMapping objects.
-        parser.parse(daqMapFile, daqMapHandler);
+        this.parser.parse(daqMapFile, this.daqMapHandler);
 
-    }
-
-    /**
-     * Get the collection of {@link SvtDaqMapping} objects created when parsing the DAQ map. If a DAQ map hasn't been
-     * parsed yet, an empty collection will be returned.
-     *
-     * @return A collection of {@link SvtDaqMappig} objects
-     */
-    public SvtDaqMappingCollection getDaqMapCollection() {
-        return daqMapHandler.getDaqMap();
-    }
-
-    /**
-     * Get the collection of {@link SvtChannel} objects built from parsing the DAQ map. If a DAQ maps hasn't been parsed
-     * yet, an empty collection will be returned.
-     *
-     * @return A collection of {@link SvtChannel} objects
-     */
-    public SvtChannelCollection getSvtChannelCollection() {
-        return daqMapHandler.getSvtChannels();
-    }
-
-    /**
-     * Get the collection of {@link SvtCalibration} objects built from parsing a calibrations file. If a calibrations
-     * file hasn't been parsed yet, an empty collection will be returned.
-     *
-     * @return A collection of {@link SvtCalibration} objects
-     */
-    public SvtCalibrationCollection getSvtCalibrationCollection() {
-        return calibrationHandler.getCalibrations();
     }
 }
