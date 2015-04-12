@@ -108,11 +108,11 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     	
     	// Define plot type directories.
     	String[] plotDir = new String[PLOT_COUNT];
-    	plotType[NO_CUTS] = "No Cuts/";
-    	plotType[ALL_CUTS] = "Passed All Cuts/";
-    	plotType[OVER_1HIT] = "2+ Hits/";
-    	plotType[OVER_2HIT] = "3+ Hits";
-    	plotType[SINGLES_CUTS] = "Passed Singles Cuts/";
+    	plotType[NO_CUTS] = "NoCuts/";
+    	plotType[ALL_CUTS] = "PassedAll/";
+    	plotType[OVER_1HIT] = "2PlusHits/";
+    	plotType[OVER_2HIT] = "3PlusHits";
+    	plotType[SINGLES_CUTS] = "PassedSingles/";
     	
     	// Instantiate the singles plot arrays.
     	clusterSeedEnergy = new IHistogram1D[PLOT_COUNT];
@@ -131,16 +131,17 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     	
     	// Instantiate the plots.
     	for(int i = 0; i < PLOT_COUNT; i++) {
+    		System.out.println(plotDir[i] + "Cluster Seed Energy" + plotType[i]);
     		clusterSeedEnergy[i] = aida.histogram1D(plotDir[i] + "Cluster Seed Energy" + plotType[i], 176, 0.0, 2.2);
     		clusterHitCount[i] = aida.histogram1D(plotDir[i] + "Cluster Hit Count Distribution" + plotType[i], 9, 0.5, 9.5);
     		clusterTotalEnergy[i] = aida.histogram1D(plotDir[i] + "Cluster Total Energy Distribution" + plotType[i], 176, 0.0, 2.2);
     		clusterDistribution[i] = aida.histogram2D(plotDir[i] + "Cluster Seed Distribution" + plotType[i], 46, -23, 23, 11, -5.5, 5.5);
     		
     		if(i != PLOT_COUNT - 1) {
-    			pairEnergySum[i] = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
-    			pairEnergyDifference[i] = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
-    			pairCoplanarity[i] = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 180, 0.0, 180.0);
-    			pairEnergySlope[i] = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 100, 0.0, 4.0);
+    			pairEnergySum[i] = aida.histogram1D(plotDir[i] + "Pair Energy Sum Distribution" + plotType[i], 176, 0.0, 4.4);
+    			pairEnergyDifference[i] = aida.histogram1D(plotDir[i] + "Pair Energy Difference Distribution" + plotType[i], 176, 0.0, 2.2);
+    			pairCoplanarity[i] = aida.histogram1D(plotDir[i] + "Pair Coplanarity Distribution" + plotType[i], 180, 0.0, 180.0);
+    			pairEnergySlope[i] = aida.histogram1D(plotDir[i] + "Pair Energy Slope Distribution" + plotType[i], 100, 0.0, 4.0);
     		}
     	}
     	
