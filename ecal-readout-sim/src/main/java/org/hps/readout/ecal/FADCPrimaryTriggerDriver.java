@@ -79,7 +79,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     	// Define plot type names.
     	String[] plotType = new String[PLOT_COUNT];
     	plotType[NO_CUTS] = "";
-    	plotType[ALL_CUTS] = " (Passed Single Cuts)";
+    	plotType[ALL_CUTS] = " (Passed All Cuts)";
     	plotType[OVER_1HIT] = " (More than 1 Hit)";
     	plotType[OVER_2HIT] = " (More than 2 Hits)";
     	plotType[SINGLES_CUTS] = " (Passed Single Cuts)";
