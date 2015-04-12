@@ -55,46 +55,123 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     // ==================================================================
     // ==== Trigger Distribution Plots ==================================
     // ==================================================================
+    private static final int NO_CUTS       = 0;
+    private static final int ALL_CUTS      = 1;
+    private static final int OVER_1HIT     = 2;
+    private static final int OVER_2HIT     = 3;
+    private static final int SINGLES_CUTS  = 4;
+    private static final int PLOT_COUNT    = 5;
     private AIDA aida = AIDA.defaultInstance();
-    private IHistogram1D clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
-    private IHistogram1D clusterSeedEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
-    private IHistogram1D clusterSeedEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
-    private IHistogram1D clusterSeedEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
-    private IHistogram1D clusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution", 9, 1, 10);
-    private IHistogram1D clusterHitCount100 = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Over 100 MeV)", 9, 1, 10);
-    private IHistogram1D clusterHitCountSingle = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed Single Cuts)", 9, 1, 10);
-    private IHistogram1D clusterHitCountAll = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed All Cuts)", 9, 1, 10);
-    private IHistogram1D clusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
-    private IHistogram1D clusterTotalEnergy100 = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Over 100 MeV)", 176, 0.0, 2.2);
-    private IHistogram1D clusterTotalEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
-    private IHistogram1D clusterTotalEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D[] clusterSeedEnergy;
+    //private IHistogram1D clusterSeedEnergy = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+    //private IHistogram1D clusterSeedEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+    //private IHistogram1D clusterSeedEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Seed Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D[] clusterHitCount;
+    //private IHistogram1D clusterHitCount = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution", 9, 1, 10);
+    //private IHistogram1D clusterHitCountSingle = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed Single Cuts)", 9, 1, 10);
+    //private IHistogram1D clusterHitCountAll = aida.histogram1D("Trigger Plots :: Cluster Hit Count Distribution (Passed All Cuts)", 9, 1, 10);
+    private IHistogram1D[] clusterTotalEnergy;
+    //private IHistogram1D clusterTotalEnergy = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution", 176, 0.0, 2.2);
+    //private IHistogram1D clusterTotalEnergySingle = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed Single Cuts)", 176, 0.0, 2.2);
+    //private IHistogram1D clusterTotalEnergyAll = aida.histogram1D("Trigger Plots :: Cluster Total Energy Distribution (Passed All Cuts)", 176, 0.0, 2.2);
     
-    private IHistogram1D pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
-    private IHistogram1D pairEnergySumAll = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution (Passed All Cuts)", 176, 0.0, 4.4);    
-    private IHistogram1D pairEnergyDifference = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
-    private IHistogram1D pairEnergyDifferenceAll = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution (Passed All Cuts)", 176, 0.0, 2.2);
-    private IHistogram1D pairCoplanarity = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 180, 0.0, 180.0);
-    private IHistogram1D pairCoplanarityAll = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution (Passed All Cuts)", 180, 0.0, 180.0);
-    private IHistogram1D pairEnergySlope = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 100, 0.0, 4.0);
-    private IHistogram1D pairEnergySlopeAll = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution (Passed All Cuts)", 100, 0.0, 4.0);
+    private IHistogram1D[] pairEnergySum;
+    //private IHistogram1D pairEnergySum = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
+    //private IHistogram1D pairEnergySumAll = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution (Passed All Cuts)", 176, 0.0, 4.4); 
+    private IHistogram1D[] pairEnergyDifference;
+    //private IHistogram1D pairEnergyDifference = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
+    //private IHistogram1D pairEnergyDifferenceAll = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution (Passed All Cuts)", 176, 0.0, 2.2);
+    private IHistogram1D[] pairCoplanarity;
+    //private IHistogram1D pairCoplanarity = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 180, 0.0, 180.0);
+    //private IHistogram1D pairCoplanarityAll = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution (Passed All Cuts)", 180, 0.0, 180.0);
+    private IHistogram1D[] pairEnergySlope;
+    //private IHistogram1D pairEnergySlope = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 100, 0.0, 4.0);
+    //private IHistogram1D pairEnergySlopeAll = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution (Passed All Cuts)", 100, 0.0, 4.0);
     
-    private IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram2D clusterDistribution100 = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Over 100 MeV)", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram2D[] clusterDistribution;
+    //private IHistogram2D clusterDistribution = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    //private IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
+    //private IHistogram2D clusterDistributionAll = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed All Cuts)", 46, -23, 23, 11, -5.5, 5.5);
     
-    // ==================================================================
-    // ==== Hardware Diagnostic Variables ===============================
-    // ==================================================================
-    private IHistogram2D diagClusters = aida.histogram2D("Diagnostic Plots :: Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram1D[] diagHitCount = {
-                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Top)", 8, 0, 8),
-                aida.histogram1D("Diagnostic Plots :: Cluster Hit Count Distribution (Bottom)", 8, 0, 8)
-            };
-    private IHistogram1D[] diagTotalEnergy = {
-                aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Top)", 1024, 0.0, 8.192),
-                aida.histogram1D("Diagnostic Plots :: Cluster Total Energy Distribution (Bottom)", 1024, 0.0, 8.192)
-            };
+    /**
+     * Initializes the cluster pair queues and other variables.
+     */
+    @Override
+    public void startOfData() {
+    	// Define plot type names.
+    	String[] plotType = new String[PLOT_COUNT];
+    	plotType[NO_CUTS] = "";
+    	plotType[ALL_CUTS] = " (Passed Single Cuts)";
+    	plotType[OVER_1HIT] = " (More than 1 Hit)";
+    	plotType[OVER_2HIT] = " (More than 2 Hits)";
+    	plotType[SINGLES_CUTS] = " (Passed Single Cuts)";
+    	
+    	// Define plot type directories.
+    	String[] plotDir = new String[PLOT_COUNT];
+    	plotType[NO_CUTS] = "No Cuts/";
+    	plotType[ALL_CUTS] = "Passed All Cuts/";
+    	plotType[OVER_1HIT] = "2+ Hits/";
+    	plotType[OVER_2HIT] = "3+ Hits";
+    	plotType[SINGLES_CUTS] = "Passed Singles Cuts/";
+    	
+    	// Instantiate the singles plot arrays.
+    	clusterSeedEnergy = new IHistogram1D[PLOT_COUNT];
+    	clusterHitCount = new IHistogram1D[PLOT_COUNT];
+    	clusterTotalEnergy = new IHistogram1D[PLOT_COUNT];
+    	clusterDistribution = new IHistogram2D[PLOT_COUNT];
+    	
+    	// Instantiate the pair plot arrays. Note that the pair cuts
+    	// only ever see clusters that pass the singles cuts, so the
+    	// "passed singles cuts" plots are meaningless. Thusly, the
+    	// pair plots have one fewer plot than the singles.
+    	pairEnergySum = new IHistogram1D[PLOT_COUNT - 1];
+    	pairEnergyDifference = new IHistogram1D[PLOT_COUNT - 1];
+    	pairCoplanarity = new IHistogram1D[PLOT_COUNT - 1];
+    	pairEnergySlope = new IHistogram1D[PLOT_COUNT - 1];
+    	
+    	// Instantiate the plots.
+    	for(int i = 0; i < PLOT_COUNT; i++) {
+    		clusterSeedEnergy[i] = aida.histogram1D(plotDir[i] + "Cluster Seed Energy" + plotType[i], 176, 0.0, 2.2);
+    		clusterHitCount[i] = aida.histogram1D(plotDir[i] + "Cluster Hit Count Distribution" + plotType[i], 9, 0.5, 9.5);
+    		clusterTotalEnergy[i] = aida.histogram1D(plotDir[i] + "Cluster Total Energy Distribution" + plotType[i], 176, 0.0, 2.2);
+    		clusterDistribution[i] = aida.histogram2D(plotDir[i] + "Cluster Seed Distribution" + plotType[i], 46, -23, 23, 11, -5.5, 5.5);
+    		
+    		if(i != PLOT_COUNT - 1) {
+    			pairEnergySum[i] = aida.histogram1D("Trigger Plots :: Pair Energy Sum Distribution", 176, 0.0, 4.4);
+    			pairEnergyDifference[i] = aida.histogram1D("Trigger Plots :: Pair Energy Difference Distribution", 176, 0.0, 2.2);
+    			pairCoplanarity[i] = aida.histogram1D("Trigger Plots :: Pair Coplanarity Distribution", 180, 0.0, 180.0);
+    			pairEnergySlope[i] = aida.histogram1D("Trigger Plots :: Pair Energy Slope Distribution", 100, 0.0, 4.0);
+    		}
+    	}
+    	
+        // Make sure that a valid cluster collection name has been
+        // defined. If it has not, throw an exception.
+        if (clusterCollectionName == null) {
+            throw new RuntimeException("The parameter clusterCollectionName was not set!");
+        }
+        
+        // Initialize the top and bottom cluster queues.
+        topClusterQueue = new LinkedList<List<Cluster>>();
+        botClusterQueue = new LinkedList<List<Cluster>>();
+        
+        // Populate the top cluster queue. It should be populated with
+        // a number of empty lists equal to (2 * pairCoincidence + 1).
+        for (int i = 0; i < 2 * pairCoincidence + 1; i++) {
+            topClusterQueue.add(new ArrayList<Cluster>());
+        }
+        
+        // Populate the bottom cluster queue. It should be populated with
+        // a number of empty lists equal to (2 * pairCoincidence + 1).
+        for (int i = 0; i < pairCoincidence + 1; i++) {
+            botClusterQueue.add(new ArrayList<Cluster>());
+        }
+        
+        // If a background level has been set, pick the correct cuts.
+        if(backgroundLevel != -1) { setBackgroundCuts(backgroundLevel); }
+        
+        // Run the superclass method.
+        super.startOfData();
+    }
     
     /**
      * Prints out the results of the trigger at the end of the run.
@@ -173,24 +250,32 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 if(ix > 0) { ix = ix - 1; }
                 
                 // Fill the general plots.
-                clusterSeedEnergy.fill(seedEnergy, 1);
-                clusterTotalEnergy.fill(clusterEnergy, 1);
-                clusterHitCount.fill(hitCount, 1);
-                clusterDistribution.fill(ix, iy, 1);
+                clusterSeedEnergy[NO_CUTS].fill(seedEnergy);
+                clusterTotalEnergy[NO_CUTS].fill(clusterEnergy);
+                clusterHitCount[NO_CUTS].fill(hitCount);
+                clusterDistribution[NO_CUTS].fill(ix, iy);
+                //clusterSeedEnergy.fill(seedEnergy, 1);
+                //clusterTotalEnergy.fill(clusterEnergy, 1);
+                //clusterHitCount.fill(hitCount, 1);
+                //clusterDistribution.fill(ix, iy, 1);
                 
-                // Fill the "over 100 MeV" plots if applicable.
-                if(seedEnergy >= 0.100) {
-                    clusterSeedEnergy100.fill(seedEnergy, 1);
-                    clusterTotalEnergy100.fill(clusterEnergy, 1);
-                    clusterHitCount100.fill(hitCount, 1);
-                    clusterDistribution100.fill(ix, iy, 1);
+                // Fill the hit count plots for N > 1.
+                if(hitCount > 1) {
+                	// Populate the plots.
+                    clusterSeedEnergy[OVER_1HIT].fill(seedEnergy);
+                    clusterTotalEnergy[OVER_1HIT].fill(clusterEnergy);
+                    clusterHitCount[OVER_1HIT].fill(hitCount);
+                    clusterDistribution[OVER_1HIT].fill(ix, iy);
+                	
+                    // Fill the hit count plots for N > 2.
+                    if(hitCount > 2) {
+                    	// Populate the plots.
+                        clusterSeedEnergy[OVER_2HIT].fill(seedEnergy);
+                        clusterTotalEnergy[OVER_2HIT].fill(clusterEnergy);
+                        clusterHitCount[OVER_2HIT].fill(hitCount);
+                        clusterDistribution[OVER_2HIT].fill(ix, iy);
+                    }
                 }
-                
-                // Populate the diagnostic plots.
-                diagClusters.fill(ix, iy, 1);
-                int plotIndex = iy > 0 ? 0 : 1;
-                diagTotalEnergy[plotIndex].fill(clusterEnergy, 1);
-                diagHitCount[plotIndex].fill(hitCount < 8 ? hitCount : 7, 1);
                 
                 // ==== Seed Hit Energy Cut ====================================
                 // =============================================================
@@ -246,10 +331,14 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
                 clusterTotalEnergyCount++;
                 
                 // Fill the "passed single cuts" plots.
-                clusterSeedEnergySingle.fill(seedEnergy, 1);
-                clusterTotalEnergySingle.fill(clusterEnergy, 1);
-                clusterHitCountSingle.fill(hitCount, 1);
-                clusterDistributionSingle.fill(ix, iy, 1);
+                clusterSeedEnergy[SINGLES_CUTS].fill(seedEnergy);
+                clusterTotalEnergy[SINGLES_CUTS].fill(clusterEnergy);
+                clusterHitCount[SINGLES_CUTS].fill(hitCount);
+                clusterDistribution[SINGLES_CUTS].fill(ix, iy, 1);
+                //clusterSeedEnergySingle.fill(seedEnergy, 1);
+                //clusterTotalEnergySingle.fill(clusterEnergy, 1);
+                //clusterHitCountSingle.fill(hitCount, 1);
+                //clusterDistributionSingle.fill(ix, iy, 1);
                 
                 // A cluster that passes all of the single-cluster cuts
                 // can be used in cluster pairs.
@@ -404,40 +493,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-    
-    /**
-     * Initializes the cluster pair queues and other variables.
-     */
-    @Override
-    public void startOfData() {
-        // Make sure that a valid cluster collection name has been
-        // defined. If it has not, throw an exception.
-        if (clusterCollectionName == null) {
-            throw new RuntimeException("The parameter clusterCollectionName was not set!");
-        }
-        
-        // Initialize the top and bottom cluster queues.
-        topClusterQueue = new LinkedList<List<Cluster>>();
-        botClusterQueue = new LinkedList<List<Cluster>>();
-        
-        // Populate the top cluster queue. It should be populated with
-        // a number of empty lists equal to (2 * pairCoincidence + 1).
-        for (int i = 0; i < 2 * pairCoincidence + 1; i++) {
-            topClusterQueue.add(new ArrayList<Cluster>());
-        }
-        
-        // Populate the bottom cluster queue. It should be populated with
-        // a number of empty lists equal to (2 * pairCoincidence + 1).
-        for (int i = 0; i < pairCoincidence + 1; i++) {
-            botClusterQueue.add(new ArrayList<Cluster>());
-        }
-        
-        // If a background level has been set, pick the correct cuts.
-        if(backgroundLevel != -1) { setBackgroundCuts(backgroundLevel); }
-        
-        // Run the superclass method.
-        super.startOfData();
     }
 
     /**
@@ -599,10 +654,32 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             double coplanarity = TriggerModule.getValueCoplanarity(clusterPair);
             
             // Fill the general plots.
-            pairEnergySum.fill(energySum, 1);
-            pairEnergyDifference.fill(energyDifference, 1);
-            pairEnergySlope.fill(energySlope, 1);
-            pairCoplanarity.fill(coplanarity, 1);
+            pairEnergySum[NO_CUTS].fill(energySum);
+            pairEnergyDifference[NO_CUTS].fill(energyDifference);
+            pairEnergySlope[NO_CUTS].fill(energySlope);
+            pairCoplanarity[NO_CUTS].fill(coplanarity);
+            //pairEnergySum.fill(energySum, 1);
+            //pairEnergyDifference.fill(energyDifference, 1);
+            //pairEnergySlope.fill(energySlope, 1);
+            //pairCoplanarity.fill(coplanarity, 1);
+            
+            // Fill the hit count plots for N > 1.
+            if(clusterPair[0].getCalorimeterHits().size() > 1 && clusterPair[1].getCalorimeterHits().size() > 1) {
+            	// Populate the plots.
+                pairEnergySum[OVER_1HIT].fill(energySum);
+                pairEnergyDifference[OVER_1HIT].fill(energyDifference);
+                pairEnergySlope[OVER_1HIT].fill(energySlope);
+                pairCoplanarity[OVER_1HIT].fill(coplanarity);
+            	
+                // Fill the hit count plots for N > 2.
+                if(clusterPair[0].getCalorimeterHits().size() > 2 && clusterPair[1].getCalorimeterHits().size() > 2) {
+                	// Populate the plots.
+                    pairEnergySum[OVER_2HIT].fill(energySum);
+                    pairEnergyDifference[OVER_2HIT].fill(energyDifference);
+                    pairEnergySlope[OVER_2HIT].fill(energySlope);
+                    pairCoplanarity[OVER_2HIT].fill(coplanarity);
+                }
+            }
             
             // ==== Pair Energy Sum Cut ====================================
             // =============================================================
@@ -661,17 +738,21 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             
             // Fill the general plots.
             for(int i = 0; i < 2; i++) {
-                clusterSeedEnergyAll.fill(seedEnergy[i], 1);
-                clusterTotalEnergyAll.fill(clusterEnergy[i], 1);
-                clusterHitCountAll.fill(hitCount[i], 1);
-                clusterDistributionAll.fill(ix[i], iy[i], 1);
+                clusterSeedEnergy[ALL_CUTS].fill(seedEnergy[i]);
+                clusterTotalEnergy[ALL_CUTS].fill(clusterEnergy[i]);
+                clusterHitCount[ALL_CUTS].fill(hitCount[i]);
+                clusterDistribution[ALL_CUTS].fill(ix[i], iy[i]);
+                //clusterSeedEnergyAll.fill(seedEnergy[i], 1);
+                //clusterTotalEnergyAll.fill(clusterEnergy[i], 1);
+                //clusterHitCountAll.fill(hitCount[i], 1);
+                //clusterDistributionAll.fill(ix[i], iy[i], 1);
             }
             
             // Fill the "passed all cuts" plots.
-            pairEnergySumAll.fill(energySum, 1);
-            pairEnergyDifferenceAll.fill(energyDifference, 1);
-            pairEnergySlopeAll.fill(energySlope, 1);
-            pairCoplanarityAll.fill(coplanarity, 1);
+            pairEnergySum[ALL_CUTS].fill(energySum, 1);
+            pairEnergyDifference[ALL_CUTS].fill(energyDifference, 1);
+            pairEnergySlope[ALL_CUTS].fill(energySlope, 1);
+            pairCoplanarity[ALL_CUTS].fill(coplanarity, 1);
             
             // Clusters that pass all of the pair cuts produce a trigger.
             return true;
