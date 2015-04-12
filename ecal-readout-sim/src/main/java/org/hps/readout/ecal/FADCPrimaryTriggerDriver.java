@@ -108,11 +108,11 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     	
     	// Define plot type directories.
     	String[] plotDir = new String[PLOT_COUNT];
-    	plotType[NO_CUTS] = "NoCuts/";
-    	plotType[ALL_CUTS] = "PassedAll/";
-    	plotType[OVER_1HIT] = "2PlusHits/";
-    	plotType[OVER_2HIT] = "3PlusHits";
-    	plotType[SINGLES_CUTS] = "PassedSingles/";
+    	plotDir[NO_CUTS] = "NoCuts/";
+    	plotDir[ALL_CUTS] = "PassedAll/";
+    	plotDir[OVER_1HIT] = "2PlusHits/";
+    	plotDir[OVER_2HIT] = "3PlusHits";
+    	plotDir[SINGLES_CUTS] = "PassedSingles/";
     	
     	// Instantiate the singles plot arrays.
     	clusterSeedEnergy = new IHistogram1D[PLOT_COUNT];
