@@ -154,6 +154,11 @@ final class Commands {
     static final String PAUSE = "pause";
 
     /**
+     * Action when plot is selected from a tab.
+     */
+    static final String PLOT_SELECTED = "PlotSelected";
+
+    /**
      * Processing stage changed.
      */
     static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";
@@ -197,6 +202,11 @@ final class Commands {
      * Set the steering resource.
      */
     static final String SET_STEERING_RESOURCE = "setSteeringResource";
+
+    /**
+     * Okay button in settings panel.
+     */
+    static final String SETTINGS_OKAY_COMMAND = "settingsOkay";
 
     /**
      * Show the settings dialog.

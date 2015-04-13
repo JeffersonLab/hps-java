@@ -18,13 +18,27 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
  */
 final class ToolbarPanel extends JPanel {
 
+    /**
+     * The panel with the buttons.
+     */
     private final JPanel buttonsPanel;
+
+    /**
+     * The combo box with the list of data sources.
+     */
     private final DataSourceComboBox dataSourceComboBox;
 
+    /**
+     * Class constructor.
+     *
+     * @param configurationModel the configuration model for the application
+     * @param connectionModel the connection status model
+     * @param listener the action listener to assign to certain components
+     */
     ToolbarPanel(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel,
             final ActionListener listener) {
 
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+        this.setLayout(new FlowLayout(FlowLayout.LEFT));
 
         final JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new GridBagLayout());
@@ -60,11 +74,15 @@ final class ToolbarPanel extends JPanel {
         gbs.fill = GridBagConstraints.HORIZONTAL;
         containerPanel.add(this.dataSourceComboBox, gbs);
 
-        add(containerPanel);
+        this.add(containerPanel);
     }
 
+    /**
+     * Get the combo box with the data sources
+     * 
+     * @return the combo box with the data sources
+     */
     DataSourceComboBox getDataSourceComboBox() {
         return this.dataSourceComboBox;
     }
-
 }

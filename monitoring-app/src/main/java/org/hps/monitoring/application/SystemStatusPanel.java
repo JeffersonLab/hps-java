@@ -20,23 +20,41 @@ import org.hps.monitoring.subsys.SystemStatus;
  */
 final class SystemStatusPanel extends JPanel {
 
-    SystemStatusEventsTable eventsTable = new SystemStatusEventsTable();
-    SystemStatusTable statusTable = new SystemStatusTable();
+    /**
+     * The system status events table.
+     */
+    private final SystemStatusEventsTable eventsTable = new SystemStatusEventsTable();
 
+    /**
+     * The system status table.
+     */
+    private final SystemStatusTable statusTable = new SystemStatusTable();
+
+    /**
+     * Class constructor.
+     */
     SystemStatusPanel() {
         super(new BorderLayout());
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(this.statusTable),
                 new JScrollPane(this.eventsTable));
         splitPane.setDividerLocation(50);
-        add(splitPane, BorderLayout.CENTER);
+        this.add(splitPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Add a system status.
+     *
+     * @param status the system status to add
+     */
     void addSystemStatus(final SystemStatus status) {
         // Register listeners of table models on this status.
         this.statusTable.getTableModel().addSystemStatus(status);
-        this.eventsTable.tableModel.addSystemStatus(status);
+        this.eventsTable.getSystemStatusEventsTableModel().addSystemStatus(status);
     }
 
+    /**
+     * Clear all the table records.
+     */
     void clear() {
         // Clear the system status monitor table.
         this.statusTable.getTableModel().clear();

@@ -20,6 +20,7 @@ import org.hps.monitoring.subsys.StatusCode;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class SystemStatusTable extends JTable {
 
     /**
@@ -27,14 +28,30 @@ final class SystemStatusTable extends JTable {
      */
     private class ButtonRenderer extends JButton implements TableCellRenderer {
 
+        /**
+         * Class constructor.
+         *
+         * @param label the label of the button
+         */
         public ButtonRenderer(final String label) {
             this.setText(label);
         }
 
+        /**
+         * Get the renderer for the table cell.
+         *
+         * @param table the table
+         * @param value the object from the table cell
+         * @param isSelected <code>true</code> if cell is selected
+         * @param hasFocus <code>true</code> if cell has focus
+         * @param rowIndex the row index
+         * @param columnIndex the column index
+         */
         @Override
         public Component getTableCellRendererComponent(final JTable table, final Object value,
-                final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-            final boolean clearable = (Boolean) table.getModel().getValueAt(row, SystemStatusTableModel.CLEARABLE_COL);
+                final boolean isSelected, final boolean hasFocus, final int rowIndex, final int columnIndex) {
+            final boolean clearable = (Boolean) table.getModel().getValueAt(rowIndex,
+                    SystemStatusTableModel.CLEARABLE_COL);
             if (clearable) {
                 return this;
             } else {
@@ -48,12 +65,26 @@ final class SystemStatusTable extends JTable {
      * button. The <code>ActionListener</code> then sets the <code>StatusCode</code> to <code>CLEARED</code>.
      */
     private static class JTableButtonMouseListener extends MouseAdapter {
+
+        /**
+         * The table.
+         */
         private final JTable table;
 
+        /**
+         * Class constructor.
+         *
+         * @param table the table for the listener
+         */
         public JTableButtonMouseListener(final JTable table) {
             this.table = table;
         }
 
+        /**
+         * Implement mouse clicked action.
+         *
+         * @param e the mouse event
+         */
         @Override
         public void mouseClicked(final MouseEvent e) {
             final int column = this.table.getColumnModel().getColumnIndexAtX(e.getX());
@@ -67,20 +98,24 @@ final class SystemStatusTable extends JTable {
         }
     }
 
+    /**
+     * Class constructor.
+     */
     SystemStatusTable() {
 
-        setModel(new SystemStatusTableModel());
+        this.setModel(new SystemStatusTableModel());
 
         // Rendering of system status cells using different background colors.
-        getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setCellRenderer(new DefaultTableCellRenderer() {
+        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL)
+        .setCellRenderer(new DefaultTableCellRenderer() {
 
             @Override
             public Component getTableCellRendererComponent(final JTable table, final Object value,
                     final boolean isSelected, final boolean hasFocus, final int row, final int col) {
 
                 // Cells are by default rendered as a JLabel.
-                final JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-                        row, col);
+                final JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected,
+                        hasFocus, row, col);
 
                 // Color code the cell by its status.
                 final StatusCode statusCode = StatusCode.valueOf((String) value);
@@ -90,38 +125,43 @@ final class SystemStatusTable extends JTable {
         });
 
         // Date formatting for last changed.
-        getColumnModel().getColumn(SystemStatusTableModel.LAST_CHANGED_COL).setCellRenderer(
-                new DefaultTableCellRenderer() {
+        this.getColumnModel().getColumn(SystemStatusTableModel.LAST_CHANGED_COL)
+        .setCellRenderer(new DefaultTableCellRenderer() {
 
-                    final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
 
-                    @Override
-                    public Component getTableCellRendererComponent(final JTable table, Object value,
-                            final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-                        if (value instanceof Date) {
-                            value = this.dateFormat.format(value);
-                        }
-                        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    }
-                });
+            @Override
+            public Component getTableCellRendererComponent(final JTable table, Object value,
+                    final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                if (value instanceof Date) {
+                    value = this.dateFormat.format(value);
+                }
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
 
         // Button for clearing system statuses.
-        getColumnModel().getColumn(SystemStatusTableModel.RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
-        addMouseListener(new JTableButtonMouseListener(this));
-        getColumn("Clearable").setWidth(0);
-        getColumn("Clearable").setMinWidth(0);
-        getColumn("Clearable").setMaxWidth(0);
+        this.getColumnModel().getColumn(SystemStatusTableModel.RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
+        this.addMouseListener(new JTableButtonMouseListener(this));
+        this.getColumn("Clearable").setWidth(0);
+        this.getColumn("Clearable").setMinWidth(0);
+        this.getColumn("Clearable").setMaxWidth(0);
 
         // Column widths.
-        getColumnModel().getColumn(SystemStatusTableModel.ACTIVE_COL).setPreferredWidth(8);
-        getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setPreferredWidth(10);
-        getColumnModel().getColumn(SystemStatusTableModel.SYSTEM_COL).setPreferredWidth(10);
+        this.getColumnModel().getColumn(SystemStatusTableModel.ACTIVE_COL).setPreferredWidth(8);
+        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setPreferredWidth(10);
+        this.getColumnModel().getColumn(SystemStatusTableModel.SYSTEM_COL).setPreferredWidth(10);
         // TODO: Add default width setting for every column.
 
-        setAutoCreateRowSorter(true);
+        this.setAutoCreateRowSorter(true);
     }
 
+    /**
+     * Get the tqble model.
+     * 
+     * @return the table model
+     */
     public SystemStatusTableModel getTableModel() {
-        return (SystemStatusTableModel) getModel();
+        return (SystemStatusTableModel) this.getModel();
     }
 }

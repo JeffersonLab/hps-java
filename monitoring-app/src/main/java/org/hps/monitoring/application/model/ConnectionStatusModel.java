@@ -14,7 +14,7 @@ public final class ConnectionStatusModel extends AbstractModel {
     public static final String CONNECTION_STATUS_PROPERTY = "ConnectionStatus";
     public static final String PAUSED_PROPERTY = "Paused";
 
-    static final String[] propertyNames = new String[] { CONNECTION_STATUS_PROPERTY, PAUSED_PROPERTY };
+    static final String[] propertyNames = new String[] {CONNECTION_STATUS_PROPERTY, PAUSED_PROPERTY};
 
     ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
     boolean paused = false;
@@ -47,7 +47,7 @@ public final class ConnectionStatusModel extends AbstractModel {
     public void setConnectionStatus(final ConnectionStatus connectionStatus) {
         final ConnectionStatus oldValue = connectionStatus;
         this.connectionStatus = connectionStatus;
-        for (final PropertyChangeListener listener : this.propertyChangeSupport.getPropertyChangeListeners()) {
+        for (final PropertyChangeListener listener : this.getPropertyChangeSupport().getPropertyChangeListeners()) {
             listener.propertyChange(new PropertyChangeEvent(this, CONNECTION_STATUS_PROPERTY, oldValue,
                     this.connectionStatus));
         }
@@ -56,7 +56,7 @@ public final class ConnectionStatusModel extends AbstractModel {
     public void setPaused(final boolean paused) {
         final boolean oldValue = this.paused;
         this.paused = paused;
-        for (final PropertyChangeListener listener : this.propertyChangeSupport.getPropertyChangeListeners()) {
+        for (final PropertyChangeListener listener : this.getPropertyChangeSupport().getPropertyChangeListeners()) {
             listener.propertyChange(new PropertyChangeEvent(this, PAUSED_PROPERTY, oldValue, this.paused));
         }
     }

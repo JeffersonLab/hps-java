@@ -25,34 +25,56 @@ import org.hps.monitoring.plotting.MonitoringPlotFactory;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class PlotPanel extends JPanel implements ActionListener {
 
+    /**
+     * The tabs containing the plots.
+     */
     private final JTabbedPane plotPane;
 
+    /**
+     * Class constructor.
+     */
     public PlotPanel() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
         this.plotPane = new JTabbedPane();
-        this.plotPane.setPreferredSize(getPreferredSize());
-        add(this.plotPane, BorderLayout.CENTER);
+        this.plotPane.setPreferredSize(this.getPreferredSize());
+        this.add(this.plotPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Handle an {@link java.awt.event.ActionEvent}.
+     *
+     * @param event the {@link java.awt.event.ActionEvent} to handle
+     */
     @Override
     public void actionPerformed(final ActionEvent event) {
         if (event.getActionCommand().equals(Commands.SAVE_SELECTED_PLOTS)) {
-            final int[] indices = getSelectedTabIndices();
+            final int[] indices = this.getSelectedTabIndices();
             final IPlotter plotter = MonitoringPlotFactory.getPlotterRegistry().find(indices[0], indices[1]);
             if (plotter != null) {
-                savePlotter(plotter);
+                this.savePlotter(plotter);
             } else {
                 DialogUtil.showErrorDialog(this, "Error Finding Plots", "No plots found in selected tab.");
             }
         }
     }
 
+    /**
+     * Get the tabbed pane with the plots.
+     *
+     * @return the tabbed pane with the plots
+     */
     JTabbedPane getPlotPane() {
         return this.plotPane;
     }
 
+    /**
+     * Get the currently selected plot tab.
+     *
+     * @return the currently selected plot tab
+     */
     Component getSelectedTab() {
         return ((JTabbedPane) this.plotPane.getSelectedComponent()).getSelectedComponent();
     }
@@ -62,7 +84,7 @@ final class PlotPanel extends JPanel implements ActionListener {
      *
      * @return The indices of the current tabs.
      */
-    int[] getSelectedTabIndices() {
+    private int[] getSelectedTabIndices() {
         final int[] indices = new int[2];
         indices[0] = this.plotPane.getSelectedIndex();
         final Component component = this.plotPane.getSelectedComponent();
@@ -72,11 +94,19 @@ final class PlotPanel extends JPanel implements ActionListener {
         return indices;
     }
 
+    /**
+     * Remove all tabs from the plot pane.
+     */
     void reset() {
         this.plotPane.removeAll();
     }
 
-    void savePlotter(final IPlotter plotter) {
+    /**
+     * Save the plotter from a tab to a graphics file.
+     * 
+     * @param plotter the plotter to save
+     */
+    private void savePlotter(final IPlotter plotter) {
         final JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);
         fc.setDialogTitle("Save Plots - " + plotter.title());
@@ -92,7 +122,7 @@ final class PlotPanel extends JPanel implements ActionListener {
             if (!path.endsWith("." + filter.getExtensions()[0])) {
                 path += "." + filter.getExtensions()[0];
             }
-            final BufferedImage image = ExportPdf.getImage(getSelectedTab());
+            final BufferedImage image = ExportPdf.getImage(this.getSelectedTab());
             try {
                 ImageIO.write(image, filter.getExtensions()[0], new File(path));
                 DialogUtil.showInfoDialog(this, "Plots Saved", "Plots from panel were saved to" + '\n' + path);

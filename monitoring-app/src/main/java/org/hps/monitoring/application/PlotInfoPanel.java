@@ -45,31 +45,71 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener {
+@SuppressWarnings("serial")
+final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener, FunctionListener, AddActionListener {
 
-    static final String[] COLUMN_NAMES = { "Field", "Value" };
-    static final int MAX_ROWS = 13;
-    static final int MIN_HEIGHT = 300;
-    static final int MIN_WIDTH = 400;
+    /**
+     * The names of the two columns.
+     */
+    private static final String[] COLUMN_NAMES = {"Field", "Value"};
 
-    static final String PLOT_SELECTED = "PlotSelected";
-    Object currentObject;
+    /**
+     * The maximum number of rows in the table.
+     */
+    private static final int MAX_ROWS = 13;
 
-    PlotterRegion currentRegion;
-    JTable infoTable = new JTable();
-    DefaultTableModel model;
-    JComboBox<Object> plotComboBox;
-    JButton saveButton;
+    /**
+     * Minimum height of panel in pixels.
+     */
+    private static final int MIN_HEIGHT = 300;
 
-    Timer timer = new Timer();
+    /**
+     * Minimum width of panel in pixels.
+     */
+    private static final int MIN_WIDTH = 400;
+
+    /**
+     * The currently selected AIDA object.
+     */
+    private Object currentObject;
+
+    /**
+     * The currently selected plotter region.
+     */
+    private PlotterRegion currentRegion;
+
+    /**
+     * The table showing plot statistics.
+     */
+    private final JTable infoTable = new JTable();
+
+    /**
+     * The default table model.
+     */
+    private DefaultTableModel model;
+
+    /**
+     * The combo box for selecting the object from the region.
+     */
+    private JComboBox<Object> plotComboBox;
+
+    /**
+     * The button for saving plot graphics..
+     */
+    private JButton saveButton;
+
+    /**
+     * The timer for updating the table.
+     */
+    private final Timer timer = new Timer();
 
     /**
      * Class constructor, which will setup the GUI components.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked"})
     PlotInfoPanel() {
 
-        setLayout(new FlowLayout(FlowLayout.CENTER));
+        this.setLayout(new FlowLayout(FlowLayout.CENTER));
 
         final JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
@@ -90,11 +130,11 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
             @Override
             public Dimension getMaximumSize() {
                 final Dimension max = super.getMaximumSize();
-                max.height = getPreferredSize().height;
+                max.height = this.getPreferredSize().height;
                 return max;
             }
         };
-        this.plotComboBox.setActionCommand(PLOT_SELECTED);
+        this.plotComboBox.setActionCommand(Commands.PLOT_SELECTED);
         this.plotComboBox.setAlignmentX(CENTER_ALIGNMENT);
         this.plotComboBox.setRenderer(new BasicComboBoxRenderer() {
             @Override
@@ -103,10 +143,10 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
                     final boolean isSelected, final boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value != null) {
-                    final String title = getObjectTitle(value);
-                    setText(value.getClass().getSimpleName() + " - " + title);
+                    final String title = PlotInfoPanel.this.getObjectTitle(value);
+                    this.setText(value.getClass().getSimpleName() + " - " + title);
                 } else {
-                    setText("Click on a plot region ...");
+                    this.setText("Click on a plot region ...");
                 }
                 return this;
             }
@@ -117,7 +157,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         leftPanel.add(new Box.Filler(filler, filler, filler));
 
         // Table with plot info.
-        final String data[][] = new String[0][0];
+        final String[][] data = new String[0][0];
         this.model = new DefaultTableModel(data, COLUMN_NAMES);
         this.model.setColumnIdentifiers(COLUMN_NAMES);
         this.infoTable.setModel(this.model);
@@ -125,27 +165,39 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         this.infoTable.setAlignmentX(CENTER_ALIGNMENT);
         leftPanel.add(this.infoTable);
 
-        add(leftPanel);
+        this.add(leftPanel);
     }
 
     /**
      * Implementation of <code>actionPerformed</code> to handle the selection of a new object from the combo box.
+     *
+     * @param e the {@link java.awt.event.ActionEvent} to handle
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
         // Is there a new item selected in the combo box?
-        if (PLOT_SELECTED.equals(e.getActionCommand())) {
+        if (Commands.PLOT_SELECTED.equals(e.getActionCommand())) {
             if (this.plotComboBox.getSelectedItem() != null) {
                 // Set the current object from the combo box value, to update the GUI state.
-                setCurrentObject(this.plotComboBox.getSelectedItem());
+                this.setCurrentObject(this.plotComboBox.getSelectedItem());
             }
         }
     }
 
     /**
+     * Assign an action listener to certain components.
+     *
+     * @param listener the action listener to add
+     */
+    @Override
+    public void addActionListener(final ActionListener listener) {
+        this.saveButton.addActionListener(listener);
+    }
+
+    /**
      * Add this object as an <code>AIDAListener</code> on the current <code>AIDAObservable</code>.
      */
-    void addListener() {
+    private void addListener() {
         if (this.currentObject instanceof AIDAObservable && !(this.currentObject instanceof FunctionDispatcher)) {
             // Setup a listener on the current AIDA object.
             final AIDAObservable observable = (AIDAObservable) this.currentObject;
@@ -162,94 +214,94 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     /**
      * Add a row to the info table.
      *
-     * @param field The field name.
-     * @param value The field value.
+     * @param field the field name
+     * @param value the field value
      */
-    void addRow(final String field, final Object value) {
-        this.model.insertRow(this.infoTable.getRowCount(), new Object[] { field, value });
+    private void addRow(final String field, final Object value) {
+        this.model.insertRow(this.infoTable.getRowCount(), new Object[] {field, value});
     }
 
     /**
      * Add rows to the info table from the state of a 2D cloud.
      *
-     * @param cloud The AIDA object.
+     * @param cloud the AIDA object
      */
-    void addRows(final ICloud2D cloud) {
-        addRow("title", cloud.title());
-        addRow("entries", cloud.entries());
-        addRow("max entries", cloud.maxEntries());
-        addRow("x lower edge", cloud.lowerEdgeX());
-        addRow("x upper edge", cloud.upperEdgeX());
-        addRow("y lower edge", cloud.lowerEdgeY());
-        addRow("y upper edge", cloud.upperEdgeY());
-        addRow("x mean", String.format("%.10f%n", cloud.meanX()));
-        addRow("y mean", String.format("%.10f%n", cloud.meanY()));
-        addRow("x rms", String.format("%.10f%n", cloud.rmsX()));
-        addRow("y rms", String.format("%.10f%n", cloud.rmsY()));
+    private void addRows(final ICloud2D cloud) {
+        this.addRow("title", cloud.title());
+        this.addRow("entries", cloud.entries());
+        this.addRow("max entries", cloud.maxEntries());
+        this.addRow("x lower edge", cloud.lowerEdgeX());
+        this.addRow("x upper edge", cloud.upperEdgeX());
+        this.addRow("y lower edge", cloud.lowerEdgeY());
+        this.addRow("y upper edge", cloud.upperEdgeY());
+        this.addRow("x mean", String.format("%.10f%n", cloud.meanX()));
+        this.addRow("y mean", String.format("%.10f%n", cloud.meanY()));
+        this.addRow("x rms", String.format("%.10f%n", cloud.rmsX()));
+        this.addRow("y rms", String.format("%.10f%n", cloud.rmsY()));
     }
 
     /**
-     * Add rows to the info table from the state of a 2D cloud.
+     * Add rows to the info table from the state of a function.
      *
-     * @param cloud The AIDA object.
+     * @param function the AIDA function object
      */
-    void addRows(final IFunction function) {
-        addRow("title", function.title());
+    private void addRows(final IFunction function) {
+        this.addRow("title", function.title());
 
         // Add generically the values of all function parameters.
         for (final String parameter : function.parameterNames()) {
-            addRow(parameter, function.parameter(parameter));
+            this.addRow(parameter, function.parameter(parameter));
         }
     }
 
     /**
      * Add rows to the info table from the state of a 1D histogram.
      *
-     * @param histogram The AIDA object.
+     * @param histogram the AIDA object
      */
-    void addRows(final IHistogram1D histogram) {
-        addRow("title", histogram.title());
-        addRow("bins", histogram.axis().bins());
-        addRow("entries", histogram.entries());
-        addRow("mean", String.format("%.10f%n", histogram.mean()));
-        addRow("rms", String.format("%.10f%n", histogram.rms()));
-        addRow("sum bin heights", histogram.sumBinHeights());
-        addRow("max bin height", histogram.maxBinHeight());
-        addRow("overflow entries", histogram.binEntries(IAxis.OVERFLOW_BIN));
-        addRow("underflow entries", histogram.binEntries(IAxis.UNDERFLOW_BIN));
+    private void addRows(final IHistogram1D histogram) {
+        this.addRow("title", histogram.title());
+        this.addRow("bins", histogram.axis().bins());
+        this.addRow("entries", histogram.entries());
+        this.addRow("mean", String.format("%.10f%n", histogram.mean()));
+        this.addRow("rms", String.format("%.10f%n", histogram.rms()));
+        this.addRow("sum bin heights", histogram.sumBinHeights());
+        this.addRow("max bin height", histogram.maxBinHeight());
+        this.addRow("overflow entries", histogram.binEntries(IAxis.OVERFLOW_BIN));
+        this.addRow("underflow entries", histogram.binEntries(IAxis.UNDERFLOW_BIN));
     }
 
     /**
      * Add rows to the info table from the state of a 2D histogram.
      *
-     * @param histogram The AIDA object.
+     * @param histogram the AIDA object
      */
-    void addRows(final IHistogram2D histogram) {
-        addRow("title", histogram.title());
-        addRow("x bins", histogram.xAxis().bins());
-        addRow("y bins", histogram.yAxis().bins());
-        addRow("entries", histogram.entries());
-        addRow("x mean", String.format("%.10f%n", histogram.meanX()));
-        addRow("y mean", String.format("%.10f%n", histogram.meanY()));
-        addRow("x rms", String.format("%.10f%n", histogram.rmsX()));
-        addRow("y rms", String.format("%.10f%n", histogram.rmsY()));
-        addRow("sum bin heights", histogram.sumBinHeights());
-        addRow("max bin height", histogram.maxBinHeight());
-        addRow("x overflow entries", histogram.binEntriesX(IAxis.OVERFLOW_BIN));
-        addRow("y overflow entries", histogram.binEntriesY(IAxis.OVERFLOW_BIN));
-        addRow("x underflow entries", histogram.binEntriesX(IAxis.UNDERFLOW_BIN));
-        addRow("y underflow entries", histogram.binEntriesY(IAxis.UNDERFLOW_BIN));
+    private void addRows(final IHistogram2D histogram) {
+        this.addRow("title", histogram.title());
+        this.addRow("x bins", histogram.xAxis().bins());
+        this.addRow("y bins", histogram.yAxis().bins());
+        this.addRow("entries", histogram.entries());
+        this.addRow("x mean", String.format("%.10f%n", histogram.meanX()));
+        this.addRow("y mean", String.format("%.10f%n", histogram.meanY()));
+        this.addRow("x rms", String.format("%.10f%n", histogram.rmsX()));
+        this.addRow("y rms", String.format("%.10f%n", histogram.rmsY()));
+        this.addRow("sum bin heights", histogram.sumBinHeights());
+        this.addRow("max bin height", histogram.maxBinHeight());
+        this.addRow("x overflow entries", histogram.binEntriesX(IAxis.OVERFLOW_BIN));
+        this.addRow("y overflow entries", histogram.binEntriesY(IAxis.OVERFLOW_BIN));
+        this.addRow("x underflow entries", histogram.binEntriesX(IAxis.UNDERFLOW_BIN));
+        this.addRow("y underflow entries", histogram.binEntriesY(IAxis.UNDERFLOW_BIN));
     }
 
     /**
      * Callback for updating from changed to <code>IFunction</code> object.
      *
-     * @param event The change event (unused in this method).
+     * @param event the change event (unused in this method)
      */
     @Override
     public void functionChanged(final FunctionChangedEvent event) {
         try {
-            runUpdateTable();
+            this.runUpdateTable();
         } catch (final Exception e) {
             e.printStackTrace();
         }
@@ -259,10 +311,11 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
      * Get the title of an AIDA object. Unfortunately there is no base type with this information, so it is read
      * manually from each possible type.
      *
-     * @param object The AIDA object.
-     * @return The title of the object from its title method or value of its toString method, if none exists.
+     * @param object the AIDA object
+     * @return the title of the object from its title method or value of its <code>toString</code> method, if none
+     *         exists
      */
-    String getObjectTitle(final Object object) {
+    private String getObjectTitle(final Object object) {
         if (object instanceof IBaseHistogram) {
             return ((IBaseHistogram) object).title();
         } else if (object instanceof IDataPointSet) {
@@ -274,7 +327,13 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         }
     }
 
-    boolean isValidObject(final Object object) {
+    /**
+     * Return <code>true</code> if the object is a valid AIDA object.
+     *
+     * @param object the object
+     * @return <code>true</code> if object is a valid AIDA object
+     */
+    private boolean isValidObject(final Object object) {
         if (object == null) {
             return false;
         }
@@ -287,7 +346,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     /**
      * Remove this as a listener on the current AIDA object.
      */
-    void removeListener() {
+    private void removeListener() {
         if (this.currentObject != null) {
             if (this.currentObject instanceof AIDAObservable && !(this.currentObject instanceof IFunction)) {
                 // Remove this object as an listener on the AIDA observable.
@@ -302,21 +361,21 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     /**
      * Run the {@link #updateTable()} method on the Swing EDT.
      */
-    void runUpdateTable() {
+    private void runUpdateTable() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                updateTable();
+                PlotInfoPanel.this.updateTable();
             }
         });
     }
 
     /**
-     * Set the current AIDA object that backs this GUI, i.e. an IHistogram1D etc.
+     * Set the current AIDA object that backs this GUI, i.e. an IHistogram1D or other plot object etc.
      *
-     * @param object The backing AIDA object.
+     * @param object the backing AIDA object
      */
-    synchronized void setCurrentObject(final Object object) {
+    private synchronized void setCurrentObject(final Object object) {
 
         if (object == null) {
             throw new IllegalArgumentException("The object arg is null!");
@@ -327,7 +386,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         }
 
         // Remove the AIDAListener from the previous object.
-        removeListener();
+        this.removeListener();
 
         // Set the current object reference.
         this.currentObject = object;
@@ -335,10 +394,10 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
         // Update the table immediately with information from the current object.
         // We need to wait for this the first time, so we know the preferred size
         // of the table GUI component when resizing the content pane.
-        updateTable();
+        this.updateTable();
 
         // Add an AIDAListener to the AIDA object via the AIDAObservable API.
-        addListener();
+        this.addListener();
     }
 
     /**
@@ -349,26 +408,26 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     synchronized void setCurrentRegion(final PlotterRegion region) {
         if (region != this.currentRegion) {
             this.currentRegion = region;
-            updateComboBox();
-            setCurrentObject(this.plotComboBox.getSelectedItem());
-            setupContentPane();
+            this.updateComboBox();
+            this.setCurrentObject(this.plotComboBox.getSelectedItem());
+            this.setupContentPane();
         }
     }
 
     /**
      * Configure the frame's content panel from current component settings.
      */
-    void setupContentPane() {
+    private void setupContentPane() {
         this.plotComboBox.setSize(this.plotComboBox.getPreferredSize());
         this.infoTable.setSize(this.infoTable.getPreferredSize());
-        setVisible(true);
+        this.setVisible(true);
     }
 
     /**
      * This method will be called when the backing AIDA object is updated and a state change is fired via the
      * <code>AIDAObservable</code> API. The table is updated to reflect the new state of the object.
      *
-     * @param evt The EventObject pointing to the backing AIDA object.
+     * @param evt the EventObject pointing to the backing AIDA object
      */
     @Override
     public void stateChanged(final EventObject evt) {
@@ -385,7 +444,7 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
                 }
 
                 // Update the table values on the Swing EDT.
-                runUpdateTable();
+                PlotInfoPanel.this.runUpdateTable();
 
                 // Set the observable to valid so subsequent state changes are received.
                 ((AIDAObservable) PlotInfoPanel.this.currentObject).setValid(PlotInfoPanel.this);
@@ -402,11 +461,11 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     /**
      * Update the combo box contents with the plots from the current region.
      */
-    void updateComboBox() {
+    private void updateComboBox() {
         this.plotComboBox.removeAllItems();
         final List<Object> objects = this.currentRegion.getPlottedObjects();
         for (final Object object : objects) {
-            if (isValidObject(object)) {
+            if (this.isValidObject(object)) {
                 this.plotComboBox.addItem(object);
             }
         }
@@ -415,20 +474,20 @@ final class PlotInfoPanel extends JPanel implements AIDAListener, ActionListener
     /**
      * Update the info table from the state of the current AIDA object.
      */
-    void updateTable() {
+    private void updateTable() {
         this.model.setRowCount(0);
         if (this.currentObject instanceof IHistogram1D) {
-            addRows((IHistogram1D) this.currentObject);
+            this.addRows((IHistogram1D) this.currentObject);
         } else if (this.currentObject instanceof IHistogram2D) {
-            addRows((IHistogram2D) this.currentObject);
+            this.addRows((IHistogram2D) this.currentObject);
         } else if (this.currentObject instanceof ICloud2D) {
-            addRows((ICloud2D) this.currentObject);
+            this.addRows((ICloud2D) this.currentObject);
         } else if (this.currentObject instanceof ICloud1D) {
             if (((ICloud1D) this.currentObject).isConverted()) {
-                addRows(((ICloud1D) this.currentObject).histogram());
+                this.addRows(((ICloud1D) this.currentObject).histogram());
             }
         } else if (this.currentObject instanceof IFunction) {
-            addRows((IFunction) this.currentObject);
+            this.addRows((IFunction) this.currentObject);
         }
     }
 }

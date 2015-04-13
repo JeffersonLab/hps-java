@@ -9,14 +9,14 @@ public interface HasConfigurationModel {
 
     /**
      * Get the current ConfigurationModel of the object.
-     * 
+     *
      * @return The ConfigurationModel.
      */
     ConfigurationModel getConfigurationModel();
 
     /**
      * Set the ConfigurationModel of the object.
-     * 
+     *
      * @param configurationModel The ConfigurationModel.
      */
     void setConfigurationModel(ConfigurationModel configurationModel);

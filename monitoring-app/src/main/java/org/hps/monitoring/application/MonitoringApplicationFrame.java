@@ -107,11 +107,11 @@ final class MonitoringApplicationFrame extends JFrame {
     public MonitoringApplicationFrame(final MonitoringApplication application) {
 
         // Disable interaction until specifically enabled externally after initialization.
-        setEnabled(false);
+        this.setEnabled(false);
 
         // Create the content panel.
         final JPanel contentPanel = new JPanel();
-        setContentPane(contentPanel);
+        this.setContentPane(contentPanel);
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setOpaque(true);
         contentPanel.setPreferredSize(new Dimension(PIXEL_WIDTH_MAX, PIXEL_HEIGHT_MAX));
@@ -167,7 +167,7 @@ final class MonitoringApplicationFrame extends JFrame {
 
         // Create the plot panel.
         this.plotPanel = new PlotPanel();
-        this.plotInfoPanel.saveButton.addActionListener(this.plotPanel);
+        this.plotInfoPanel.addActionListener(this.plotPanel);
 
         // Create the right panel vertical split pane for displaying plots and their information and statistics.
         this.rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.plotPanel, this.plotInfoPanel);
@@ -181,16 +181,16 @@ final class MonitoringApplicationFrame extends JFrame {
 
         // Create the menu bar.
         this.menu = new MenuBar(application.getConfigurationModel(), application.getConnectionModel(), application);
-        setJMenuBar(this.menu);
+        this.setJMenuBar(this.menu);
         this.toolbarPanel.getDataSourceComboBox().addActionListener(this.menu);
 
         // Setup the settings dialog box (invisible until activated).
         this.settingsDialog = new SettingsDialog(application.getConfigurationModel(), application);
 
         // Setup the frame now that all components have been added.
-        pack();
-        setExtendedState(Frame.MAXIMIZED_BOTH);
-        setVisible(true);
+        this.pack();
+        this.setExtendedState(Frame.MAXIMIZED_BOTH);
+        this.setVisible(true);
     }
 
     /**
@@ -287,7 +287,7 @@ final class MonitoringApplicationFrame extends JFrame {
      * Restore default window settings.
      */
     void restoreDefaults() {
-        setExtendedState(Frame.MAXIMIZED_BOTH);
+        this.setExtendedState(Frame.MAXIMIZED_BOTH);
         this.mainSplitPane.resetToPreferredSizes();
         this.leftSplitPane.resetToPreferredSizes();
         this.rightSplitPane.resetToPreferredSizes();

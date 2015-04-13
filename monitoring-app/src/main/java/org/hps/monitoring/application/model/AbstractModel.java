@@ -24,8 +24,8 @@ public abstract class AbstractModel {
      * This method will statically extract property names from a class, which in this package's conventions are
      * statically declared, public strings that end with "_PROPERTY".
      *
-     * @param type The class with the properties.
-     * @return The list of property names.
+     * @param type the class with the properties
+     * @return the list of property names
      */
     protected static String[] getPropertyNames(final Class<? extends AbstractModel> type) {
         final List<String> fields = new ArrayList<String>();
@@ -42,24 +42,43 @@ public abstract class AbstractModel {
         return fields.toArray(new String[] {});
     }
 
-    protected PropertyChangeSupport propertyChangeSupport;
+    /**
+     * The property change support object.
+     */
+    private final PropertyChangeSupport propertyChangeSupport;
 
+    /**
+     * Class constructor.
+     */
     public AbstractModel() {
         this.propertyChangeSupport = new PropertyChangeSupport(this);
     }
 
+    /**
+     * Add a property change listener.
+     *
+     * @param listener the property change listener
+     */
     public void addPropertyChangeListener(final PropertyChangeListener listener) {
         this.propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
+    /**
+     * Fire property change events.
+     */
     public void fireModelChanged() {
-        firePropertiesChanged(Arrays.asList(getPropertyNames()));
+        this.firePropertiesChanged(Arrays.asList(this.getPropertyNames()));
     }
 
+    /**
+     * Fire property change for a list of named properties.
+     *
+     * @param properties the list of property names
+     */
     void firePropertiesChanged(final Collection<String> properties) {
         propertyLoop: for (final String property : properties) {
             Method getMethod = null;
-            for (final Method method : getClass().getMethods()) {
+            for (final Method method : this.getClass().getMethods()) {
                 if (method.getName().equals("get" + property)) {
                     getMethod = method;
                     break;
@@ -87,7 +106,7 @@ public abstract class AbstractModel {
                     }
                 }
                 if (value != null) {
-                    firePropertyChange(property, value, value);
+                    this.firePropertyChange(property, value, value);
                     for (final PropertyChangeListener listener : this.propertyChangeSupport
                             .getPropertyChangeListeners()) {
                         // FIXME: For some reason calling the propertyChangeSupport methods directly here doesn't work!
@@ -101,16 +120,47 @@ public abstract class AbstractModel {
         }
     }
 
+    /**
+     * Fire a property change event.
+     *
+     * @param evt the property change event
+     */
     protected void firePropertyChange(final PropertyChangeEvent evt) {
         this.propertyChangeSupport.firePropertyChange(evt);
     }
 
+    /**
+     * Fire a property change.
+     *
+     * @param propertyName the name of the property
+     * @param oldValue the old property value
+     * @param newValue the new property value
+     */
     protected void firePropertyChange(final String propertyName, final Object oldValue, final Object newValue) {
         this.propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
 
+    /**
+     * Get the property change support object.
+     *
+     * @return the property change support object
+     */
+    PropertyChangeSupport getPropertyChangeSupport() {
+        return this.propertyChangeSupport;
+    }
+
+    /**
+     * Get the list of the property names for this model.
+     *
+     * @return the list of the property names for this model
+     */
     abstract public String[] getPropertyNames();
 
+    /**
+     * Remove a property change listener from the model.
+     *
+     * @param listener the property change listener to remove
+     */
     public void removePropertyChangeListener(final PropertyChangeListener listener) {
         this.propertyChangeSupport.removePropertyChangeListener(listener);
     }

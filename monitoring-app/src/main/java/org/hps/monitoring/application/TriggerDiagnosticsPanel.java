@@ -29,7 +29,9 @@ final class TriggerDiagnosticsPanel extends JPanel {
      */
     class TriggerDiagnosticGUIDriver extends Driver {
 
-        // FIXME: Hard-coded collection name.
+        /**
+         * Default name of trigger diagnostics collection.
+         */
         private String diagnosticCollectionName = "DiagnosticSnapshot";
 
         @Override
@@ -48,22 +50,51 @@ final class TriggerDiagnosticsPanel extends JPanel {
             }
         }
 
+        /**
+         * Set the name of the trigger diagnostics collection.
+         *
+         * @param name the name of the trigger diagnostics collection
+         */
         void setDiagnosticCollectionName(final String name) {
             this.diagnosticCollectionName = name;
         }
     }
 
-    ClusterTablePanel clusterPanel = new ClusterTablePanel();
-    EfficiencyTablePanel efficiencyPanel = new EfficiencyTablePanel();
-    PairTablePanel pairsPanel = new PairTablePanel();
-    SinglesTablePanel singlesPanel = new SinglesTablePanel();
+    /**
+     * The panel with cluster statistics.
+     */
+    private final ClusterTablePanel clusterPanel = new ClusterTablePanel();
 
-    JTabbedPane tabs = new JTabbedPane();
+    /**
+     * The panel with efficiency statistics.
+     */
+    private final EfficiencyTablePanel efficiencyPanel = new EfficiencyTablePanel();
 
-    List<DiagnosticUpdatable> updateList = new ArrayList<DiagnosticUpdatable>();
+    /**
+     * The panel with pairs statistics.
+     */
+    private final PairTablePanel pairsPanel = new PairTablePanel();
 
+    /**
+     * The panel for singles statistics.
+     */
+    private final SinglesTablePanel singlesPanel = new SinglesTablePanel();
+
+    /**
+     * The tabs containing the statistics panels.
+     */
+    private final JTabbedPane tabs = new JTabbedPane();
+
+    /**
+     * The list of objects that can be updated with trigger diagnostics.
+     */
+    private final List<DiagnosticUpdatable> updateList = new ArrayList<DiagnosticUpdatable>();
+
+    /**
+     * Class constructor.
+     */
     TriggerDiagnosticsPanel() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
 
         this.tabs.addTab("Clusters", this.clusterPanel);
         this.tabs.addTab("Singles", this.singlesPanel);
@@ -75,6 +106,6 @@ final class TriggerDiagnosticsPanel extends JPanel {
         this.updateList.add(this.pairsPanel);
         this.updateList.add(this.efficiencyPanel);
 
-        add(this.tabs, BorderLayout.CENTER);
+        this.add(this.tabs, BorderLayout.CENTER);
     }
 }

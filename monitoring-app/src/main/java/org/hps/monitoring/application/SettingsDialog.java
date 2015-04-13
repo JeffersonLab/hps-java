@@ -13,28 +13,38 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class SettingsDialog extends JDialog {
 
-    final SettingsPanel settingsPanel;
+    /**
+     * The panel with the settings.
+     */
+    private final SettingsPanel settingsPanel;
 
+    /**
+     * Class constructor.
+     *
+     * @param configurationModel the configuration model with global settings
+     * @param listener the action listener assigned to certain components
+     */
     public SettingsDialog(final ConfigurationModel configurationModel, final ActionListener listener) {
 
         // Initialize the GUI panel.
         this.settingsPanel = new SettingsPanel(this, configurationModel, listener);
 
         // Configure the frame.
-        setTitle("Settings");
-        setContentPane(this.settingsPanel);
-        setResizable(false);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setModalityType(ModalityType.APPLICATION_MODAL);
-        pack();
+        this.setTitle("Settings");
+        this.setContentPane(this.settingsPanel);
+        this.setResizable(false);
+        this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        this.setModalityType(ModalityType.APPLICATION_MODAL);
+        this.pack();
 
         // Add window listener for turning invisible when closing.
-        addWindowListener(new WindowAdapter() {
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent e) {
-                setVisible(false);
+                SettingsDialog.this.setVisible(false);
             }
 
             @Override

@@ -19,15 +19,36 @@ import org.hps.monitoring.application.model.ConfigurationModel;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class SettingsPanel extends JPanel implements ActionListener {
 
-    static final String OKAY_COMMAND = "settingsOkay";
-    ConnectionSettingsPanel connectionPanel;
-    JobSettingsPanel jobPanel;
-    JDialog parent;
+    /**
+     * The panel with connection settings.
+     */
+    private final ConnectionSettingsPanel connectionPanel;
 
-    JTabbedPane tabs;
+    /**
+     * The panel with general job settings.
+     */
+    private final JobSettingsPanel jobPanel;
 
+    /**
+     * The parent dialog window.
+     */
+    private final JDialog parent;
+
+    /**
+     * The tabs with the sub-panels.
+     */
+    private final JTabbedPane tabs;
+
+    /**
+     * Class constructor.
+     *
+     * @param parent the parent dialog window
+     * @param configurationModel the global configuration model
+     * @param listener the action listener assigned to certain components
+     */
     SettingsPanel(final JDialog parent, final ConfigurationModel configurationModel, final ActionListener listener) {
 
         this.parent = parent;
@@ -48,23 +69,28 @@ final class SettingsPanel extends JPanel implements ActionListener {
         this.tabs = new JTabbedPane();
         this.tabs.addTab("Connection Settings", this.connectionPanel);
         this.tabs.addTab("Job Settings", this.jobPanel);
-        add(this.tabs);
+        this.add(this.tabs);
 
         final JButton okayButton = new JButton("Okay");
-        okayButton.setActionCommand(OKAY_COMMAND);
+        okayButton.setActionCommand(Commands.SETTINGS_OKAY_COMMAND);
         okayButton.addActionListener(this);
 
-        add(Box.createRigidArea(new Dimension(1, 5)));
+        this.add(Box.createRigidArea(new Dimension(1, 5)));
         final JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(okayButton);
         buttonsPanel.setLayout(new FlowLayout());
-        add(buttonsPanel);
-        add(Box.createRigidArea(new Dimension(1, 5)));
+        this.add(buttonsPanel);
+        this.add(Box.createRigidArea(new Dimension(1, 5)));
     }
 
+    /**
+     * Handle action events.
+     *
+     * @param e the action event to handle
+     */
     @Override
     public void actionPerformed(final ActionEvent e) {
-        if (e.getActionCommand().equals(OKAY_COMMAND)) {
+        if (e.getActionCommand().equals(Commands.SETTINGS_OKAY_COMMAND)) {
             this.parent.setVisible(false);
         }
     }
