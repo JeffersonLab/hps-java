@@ -250,11 +250,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             // Add window listener to perform clean shutdown.
             this.frame.addWindowListener(new WindowListener() {
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowActivated(final WindowEvent e) {
                 }
@@ -269,47 +264,22 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                     exit();
                 }
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowClosing(final WindowEvent e) {
                 }
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowDeactivated(final WindowEvent e) {
                 }
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowDeiconified(final WindowEvent e) {
                 }
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowIconified(final WindowEvent e) {
                 }
 
-                /**
-                 * Not used.
-                 *
-                 * @param e
-                 */
                 @Override
                 public void windowOpened(final WindowEvent e) {
                 }
@@ -414,7 +384,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Redirect <code>System.out</code> and <code>System.err</code> to file chosen by a file chooser.
+     * Redirect <code>System.out</code> and <code>System.err</code> to a file chosen by a file chooser.
      */
     private void chooseLogFile() {
         final JFileChooser fc = new JFileChooser();
@@ -556,8 +526,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * This method sets the configuration on the model, which fires a change for every property.
      *
-     * @param configuration The new configuration.
-     * @param merge True to merge the configuration into the current one rather than replace it.
+     * @param configuration the new configuration
+     * @param merge <code>true</code> to merge the configuration into the current one rather than replace it
      */
     private void loadConfiguration(final Configuration configuration, final boolean merge) {
 
@@ -607,8 +577,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * Redirect <code>System.out</code> and <code>System.err</code> to a file.
      *
-     * @param file The output log file.
-     * @throws FileNotFoundException if the file does not exist.
+     * @param file the output log file
+     * @throws FileNotFoundException if the file does not exist
      */
     private void logToFile(final File file) {
         try {
@@ -721,7 +691,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     /**
      * Handle property changes.
      *
-     * @param evt The property change event.
+     * @param evt the <code>PropertyChangeEvent</code> to handle
      */
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {

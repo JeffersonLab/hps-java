@@ -16,6 +16,7 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class ToolbarPanel extends JPanel {
 
     /**
@@ -79,7 +80,7 @@ final class ToolbarPanel extends JPanel {
 
     /**
      * Get the combo box with the data sources
-     * 
+     *
      * @return the combo box with the data sources
      */
     DataSourceComboBox getDataSourceComboBox() {

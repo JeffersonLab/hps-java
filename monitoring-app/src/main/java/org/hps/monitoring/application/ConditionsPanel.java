@@ -26,12 +26,12 @@ import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 
 /**
- * The component for showing conditions tables in the monitoring app.
+ * The component for showing conditions table records in the monitoring application tabs.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-public final class ConditionsPanel extends JPanel {
+final class ConditionsPanel extends JPanel {
 
     /**
      * The listener for updating the panel when conditions are changed.
@@ -66,7 +66,7 @@ public final class ConditionsPanel extends JPanel {
                 final ConditionsObjectCollection<?> collection = manager.getCachedConditions(
                         manager.findTableMetaData(tableName).getCollectionClass(), tableName).getCachedData();
                 ConditionsPanel.this.tableModels
-                .put(tableName, new ConditionsCollectionTableModel(manager, collection));
+                        .put(tableName, new ConditionsCollectionTableModel(manager, collection));
             }
         }
     }
@@ -94,6 +94,12 @@ public final class ConditionsPanel extends JPanel {
 
         this.conditionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.conditionsList.addListSelectionListener(new ListSelectionListener() {
+
+            /**
+             * The selection listener method implementation which will activate a new table in the conditions panel.
+             *
+             * @param e the list selection event
+             */
             @Override
             public void valueChanged(final ListSelectionEvent e) {
                 final String tableName = ConditionsPanel.this.conditionsList.getSelectedValue();
@@ -104,11 +110,11 @@ public final class ConditionsPanel extends JPanel {
             }
         });
 
+        // Initialize with default table model.
         this.conditionsTable.setModel(new DefaultTableModel());
 
         final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.conditionsList, new JScrollPane(
                 this.conditionsTable));
-        // splitPane.setResizeWeight(0.6);
 
         this.add(splitPane);
     }

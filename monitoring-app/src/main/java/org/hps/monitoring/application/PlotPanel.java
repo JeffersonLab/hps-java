@@ -103,7 +103,7 @@ final class PlotPanel extends JPanel implements ActionListener {
 
     /**
      * Save the plotter from a tab to a graphics file.
-     * 
+     *
      * @param plotter the plotter to save
      */
     private void savePlotter(final IPlotter plotter) {

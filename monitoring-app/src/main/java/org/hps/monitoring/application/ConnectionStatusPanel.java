@@ -21,6 +21,7 @@ import org.hps.monitoring.application.model.ConnectionStatusModel;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class ConnectionStatusPanel extends JPanel implements PropertyChangeListener {
 
     /**

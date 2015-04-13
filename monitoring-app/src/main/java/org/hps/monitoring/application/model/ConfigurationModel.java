@@ -273,7 +273,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     /**
-     * Get the ET chunk size
+     * Get the ET chunk size, which is the number of events that will be retrieved at once from the server.
      *
      * @return the ET chunk size
      */
@@ -656,11 +656,11 @@ public final class ConfigurationModel extends AbstractModel {
     /**
      * Set the name of the AIDA server.
      *
-     * @param AIDAServerName the name of the AIDA server
+     * @param aidaServerName the name of the AIDA server
      */
-    public void setAIDAServerName(final String AIDAServerName) {
+    public void setAIDAServerName(final String aidaServerName) {
         final String oldValue = this.getAIDAServerName();
-        this.configuration.set(AIDA_SERVER_NAME_PROPERTY, AIDAServerName);
+        this.configuration.set(AIDA_SERVER_NAME_PROPERTY, aidaServerName);
         this.firePropertyChange(AIDA_SERVER_NAME_PROPERTY, oldValue, this.getAIDAServerName());
     }
 
@@ -719,10 +719,9 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     /**
-     * Set the data source type
+     * Set the data source type (EVIO, LCIO or ET).
      *
-     * @see
-     * @param dataSourceType
+     * @param dataSourceType the data source type
      */
     public void setDataSourceType(final DataSourceType dataSourceType) {
         final DataSourceType oldValue = this.getDataSourceType();
@@ -747,11 +746,13 @@ public final class ConfigurationModel extends AbstractModel {
     /**
      * Set the detector to load from the detector model resources in the jar.
      * <p>
-     * These are present in the jar accordin to the LCSim convension like:
+     * These are present in the jar according to the LCSim convention:
      *
      * <pre>
      * ${DETECTOR_NAME}/detector.properties
      * </pre>
+     * <p>
+     * where <code>detector.properties</code> has the name of the detector matching the directory name.
      *
      * @param detectorName the name of the detector name
      */
@@ -773,7 +774,7 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     /**
-     * Set to <code>true<code> to disconnect if event processing errors occur
+     * Set to <code>true<code> to disconnect if event processing errors occur.
      *
      * @param disconnectOnError set to <code>true</code> to disconnect if event processing errors occur
      */
@@ -801,7 +802,7 @@ public final class ConfigurationModel extends AbstractModel {
      * Set the fully qualified class name of the {@link org.hps.record.LCSimEventBuilder} that should be used to build
      * LCIO events from EVIO.
      *
-     * @param eventBuilderClassName
+     * @param eventBuilderClassName the fully qualified class name of the event builder
      */
     public void setEventBuilderClassName(final String eventBuilderClassName) {
         final String oldValue = this.getEventBuilderClassName();
@@ -810,8 +811,8 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     /**
-     * Set to <code>true</code> to freeze the conditions system after initialization if there is a valid detector name
-     * and run number setting
+     * Set to <code>true</code> to freeze the conditions system after initialization if there is also a valid detector
+     * name and run number setting.
      *
      * @param freezeConditions <code>true</code> to freeze the conditions
      */
@@ -880,8 +881,9 @@ public final class ConfigurationModel extends AbstractModel {
     }
 
     /**
+     * Set the maximum number of events to process before the session will automatically end.
      *
-     * @param maxEvents
+     * @param maxEvents the maximum number of events
      */
     public void setMaxEvents(final Long maxEvents) {
         final Long oldValue = this.getMaxEvents();
@@ -889,30 +891,57 @@ public final class ConfigurationModel extends AbstractModel {
         this.firePropertyChange(MAX_EVENTS_PROPERTY, oldValue, this.getMaxEvents());
     }
 
+    /**
+     * Set the TCP/IP port number of the ET server for the client connection.
+     *
+     * @param port the ET port number
+     */
     public void setPort(final Integer port) {
         final Integer oldValue = this.getPort();
         this.configuration.set(PORT_PROPERTY, port);
         this.firePropertyChange(PORT_PROPERTY, oldValue, this.getPort());
     }
 
+    /**
+     * Set a prescale value for the ET station which will decrease the event rate.
+     * <p>
+     * A prescale of 2 would mean every 2nd event is processed, etc.
+     *
+     * @param prescale the ET station prescale value
+     */
     public void setPrescale(final Integer prescale) {
         final Integer oldValue = this.getPrescale();
         this.configuration.set(PRESCALE_PROPERTY, prescale);
         this.firePropertyChange(PRESCALE_PROPERTY, oldValue, this.getPrescale());
     }
 
+    /**
+     * Set the processing stage which determines which event processing stages are executed.
+     *
+     * @param processingStage the processing stage to execute
+     */
     public void setProcessingStage(final ProcessingStage processingStage) {
         final ProcessingStage oldValue = this.getProcessingStage();
         this.configuration.set(PROCESSING_STAGE_PROPERTY, processingStage);
         this.firePropertyChange(PROCESSING_STAGE_PROPERTY, oldValue, this.getProcessingStage());
     }
 
+    /**
+     * Set the ET queue size.
+     *
+     * @param queueSize the ET queue size
+     */
     public void setQueueSize(final Integer queueSize) {
         final Integer oldValue = this.getQueueSize();
         this.configuration.set(QUEUE_SIZE_PROPERTY, queueSize);
         this.firePropertyChange(QUEUE_SIZE_PROPERTY, oldValue, this.getQueueSize());
     }
 
+    /**
+     * Set the recent files list, which is a list of "\n" delimited file paths.
+     *
+     * @param recentFiles the recent files list as a string
+     */
     public void setRecentFiles(final String recentFiles) {
         String oldValue = null;
         if (this.configuration.checkKey(RECENT_FILES_PROPERTY)) {
@@ -922,6 +951,13 @@ public final class ConfigurationModel extends AbstractModel {
         this.firePropertyChange(RECENT_FILES_PROPERTY, oldValue, this.configuration.get(RECENT_FILES_PROPERTY));
     }
 
+    /**
+     * Set the recent files list.
+     * <p>
+     * This method is not part of the public API and is only used internally.
+     *
+     * @param recentFilesList the recent files list
+     */
     private void setRecentFilesList(final List<String> recentFilesList) {
         final StringBuffer sb = new StringBuffer();
         for (final String recentFile : recentFilesList) {
@@ -931,36 +967,70 @@ public final class ConfigurationModel extends AbstractModel {
         this.configuration.set(RECENT_FILES_PROPERTY, sb.toString());
     }
 
+    /**
+     * Set the ET station name.
+     *
+     * @param stationName the ET station name
+     */
     public void setStationName(final String stationName) {
         final String oldValue = this.getStationName();
         this.configuration.set(STATION_NAME_PROPERTY, stationName);
         this.firePropertyChange(STATION_NAME_PROPERTY, oldValue, this.getStationName());
     }
 
+    /**
+     * Set the ET station position.
+     *
+     * @param stationPosition the ET station position
+     */
     public void setStationPosition(final Integer stationPosition) {
         final Integer oldValue = this.getStationPosition();
         this.configuration.set(STATION_POSITION_PROPERTY, stationPosition);
         this.firePropertyChange(STATION_POSITION_PROPERTY, oldValue, this.getStationPosition());
     }
 
+    /**
+     * Set the steering file path.
+     *
+     * @param steeringFile the steering file path
+     */
     public void setSteeringFile(final String steeringFile) {
         final String oldValue = this.getSteeringFile();
         this.configuration.set(STEERING_FILE_PROPERTY, steeringFile);
         this.firePropertyChange(STEERING_FILE_PROPERTY, oldValue, this.getSteeringFile());
     }
 
+    /**
+     * Set the steering file resource.
+     *
+     * @param steeringResource the steering file resource
+     */
     public void setSteeringResource(final String steeringResource) {
         final String oldValue = this.getSteeringResource();
         this.configuration.set(STEERING_RESOURCE_PROPERTY, steeringResource);
         this.firePropertyChange(STEERING_RESOURCE_PROPERTY, oldValue, steeringResource);
     }
 
+    /**
+     * Set the steering type (file or resource).
+     *
+     * @param steeringType the steering type
+     * @see SteeringType
+     */
     public void setSteeringType(final SteeringType steeringType) {
         final SteeringType oldValue = this.getSteeringType();
         this.configuration.set(STEERING_TYPE_PROPERTY, steeringType.name());
         this.firePropertyChange(STEERING_TYPE_PROPERTY, oldValue, this.getSteeringType());
     }
 
+    /**
+     * Set a user run number which will be used to initialize the conditions system.
+     * <p>
+     * This should most likely be used with {@link #setFreezeConditions(Boolean)} or it is likely to be later overridden
+     * by run numbers from the data.
+     *
+     * @param userRunNumber the user run number
+     */
     public void setUserRunNumber(final Integer userRunNumber) {
         Integer oldValue = null;
         if (this.hasPropertyKey(USER_RUN_NUMBER_PROPERTY)) {
@@ -970,18 +1040,33 @@ public final class ConfigurationModel extends AbstractModel {
         this.firePropertyChange(USER_RUN_NUMBER_PROPERTY, oldValue, this.getUserRunNumber());
     }
 
+    /**
+     * Set verbose mode for the ET system.
+     *
+     * @param verbose the ET verbose flag
+     */
     public void setVerbose(final Boolean verbose) {
         final Boolean oldValue = this.getVerbose();
         this.configuration.set(VERBOSE_PROPERTY, verbose);
         this.firePropertyChange(VERBOSE_PROPERTY, oldValue, this.getVerbose());
     }
 
+    /**
+     * Set the ET wait mode (timed, asynchronous or wait).
+     *
+     * @param waitMode the ET wait mode
+     */
     public void setWaitMode(final Mode waitMode) {
         final Mode oldValue = this.getWaitMode();
         this.configuration.set(WAIT_MODE_PROPERTY, waitMode.name());
         this.firePropertyChange(WAIT_MODE_PROPERTY, oldValue, this.getWaitMode());
     }
 
+    /**
+     * Set the ET wait time, which is ignored if wait mode is not timed.
+     *
+     * @param waitTime the ET wait time
+     */
     public void setWaitTime(final Integer waitTime) {
         final Integer oldValue = this.getWaitTime();
         this.configuration.set(WAIT_TIME_PROPERTY, waitTime);

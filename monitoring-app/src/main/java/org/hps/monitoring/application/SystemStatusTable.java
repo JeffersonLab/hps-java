@@ -24,7 +24,7 @@ import org.hps.monitoring.subsys.StatusCode;
 final class SystemStatusTable extends JTable {
 
     /**
-     * Renders a button if the status is clearable.
+     * Renders a button if the status is clear-able.
      */
     private class ButtonRenderer extends JButton implements TableCellRenderer {
 
@@ -51,7 +51,7 @@ final class SystemStatusTable extends JTable {
         public Component getTableCellRendererComponent(final JTable table, final Object value,
                 final boolean isSelected, final boolean hasFocus, final int rowIndex, final int columnIndex) {
             final boolean clearable = (Boolean) table.getModel().getValueAt(rowIndex,
-                    SystemStatusTableModel.CLEARABLE_COL);
+                    SystemStatusTableModel.CLEARABLE_COLUMN_INDEX);
             if (clearable) {
                 return this;
             } else {
@@ -106,51 +106,52 @@ final class SystemStatusTable extends JTable {
         this.setModel(new SystemStatusTableModel());
 
         // Rendering of system status cells using different background colors.
-        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL)
-        .setCellRenderer(new DefaultTableCellRenderer() {
+        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COLUMN_INDEX)
+                .setCellRenderer(new DefaultTableCellRenderer() {
 
-            @Override
-            public Component getTableCellRendererComponent(final JTable table, final Object value,
-                    final boolean isSelected, final boolean hasFocus, final int row, final int col) {
+                    @Override
+                    public Component getTableCellRendererComponent(final JTable table, final Object value,
+                            final boolean isSelected, final boolean hasFocus, final int row, final int col) {
 
-                // Cells are by default rendered as a JLabel.
-                final JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected,
-                        hasFocus, row, col);
+                        // Cells are by default rendered as a JLabel.
+                        final JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected,
+                                hasFocus, row, col);
 
-                // Color code the cell by its status.
-                final StatusCode statusCode = StatusCode.valueOf((String) value);
-                label.setBackground(statusCode.getColor());
-                return label;
-            }
-        });
+                        // Color code the cell by its status.
+                        final StatusCode statusCode = StatusCode.valueOf((String) value);
+                        label.setBackground(statusCode.getColor());
+                        return label;
+                    }
+                });
 
         // Date formatting for last changed.
-        this.getColumnModel().getColumn(SystemStatusTableModel.LAST_CHANGED_COL)
-        .setCellRenderer(new DefaultTableCellRenderer() {
+        this.getColumnModel().getColumn(SystemStatusTableModel.LAST_CHANGED_COLUMN_INDEX)
+                .setCellRenderer(new DefaultTableCellRenderer() {
 
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
+                    final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
 
-            @Override
-            public Component getTableCellRendererComponent(final JTable table, Object value,
-                    final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-                if (value instanceof Date) {
-                    value = this.dateFormat.format(value);
-                }
-                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            }
-        });
+                    @Override
+                    public Component getTableCellRendererComponent(final JTable table, Object value,
+                            final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                        if (value instanceof Date) {
+                            value = this.dateFormat.format(value);
+                        }
+                        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    }
+                });
 
         // Button for clearing system statuses.
-        this.getColumnModel().getColumn(SystemStatusTableModel.RESET_COL).setCellRenderer(new ButtonRenderer("Clear"));
+        this.getColumnModel().getColumn(SystemStatusTableModel.RESET_COLUMN_INDEX)
+                .setCellRenderer(new ButtonRenderer("Clear"));
         this.addMouseListener(new JTableButtonMouseListener(this));
         this.getColumn("Clearable").setWidth(0);
         this.getColumn("Clearable").setMinWidth(0);
         this.getColumn("Clearable").setMaxWidth(0);
 
         // Column widths.
-        this.getColumnModel().getColumn(SystemStatusTableModel.ACTIVE_COL).setPreferredWidth(8);
-        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COL).setPreferredWidth(10);
-        this.getColumnModel().getColumn(SystemStatusTableModel.SYSTEM_COL).setPreferredWidth(10);
+        this.getColumnModel().getColumn(SystemStatusTableModel.ACTIVE_COLUMN_INDEX).setPreferredWidth(8);
+        this.getColumnModel().getColumn(SystemStatusTableModel.STATUS_COLUMN_INDEX).setPreferredWidth(10);
+        this.getColumnModel().getColumn(SystemStatusTableModel.SYSTEM_COLUMN_INDEX).setPreferredWidth(10);
         // TODO: Add default width setting for every column.
 
         this.setAutoCreateRowSorter(true);
@@ -158,7 +159,7 @@ final class SystemStatusTable extends JTable {
 
     /**
      * Get the tqble model.
-     * 
+     *
      * @return the table model
      */
     public SystemStatusTableModel getTableModel() {

@@ -14,10 +14,11 @@ import org.hps.monitoring.subsys.SystemStatus;
 
 /**
  * This is a panel showing the two tables for viewing the system statuses, one showing the current state of all system
- * status monitors and the other all system status change events.
+ * status monitors and the other with all system status change events.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 final class SystemStatusPanel extends JPanel {
 
     /**

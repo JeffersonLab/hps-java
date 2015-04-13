@@ -2,7 +2,6 @@ package org.hps.monitoring.application.model;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,80 +18,152 @@ import org.hps.monitoring.subsys.SystemStatusListener;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+@SuppressWarnings("serial")
 public final class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {
 
-    public static final int ACTIVE_COL = 1;
-    public static final int CLEARABLE_COL = 7;
-    static final String[] columnNames = { "Reset", "Active", "Status", "System", "Description", "Message",
-        "Last Changed", "Clearable" };
-    public static final int DESCRIPTION_COL = 4;
-    public static final int LAST_CHANGED_COL = 6;
-    public static final int MESSAGE_COL = 5;
-    public static final int RESET_COL = 0;
-    public static final int STATUS_COL = 2;
+    /**
+     * Active field column index.
+     */
+    public static final int ACTIVE_COLUMN_INDEX = 1;
 
-    public static final int SYSTEM_COL = 3;
+    /**
+     * Clearable field column index.
+     */
+    public static final int CLEARABLE_COLUMN_INDEX = 7;
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM-dd-yyyy HH:mm:ss.SSS");
-    List<SystemStatus> statuses = new ArrayList<SystemStatus>();
+    /**
+     * The names of the columns.
+     */
+    private static final String[] COLUMN_NAMES = {"Reset", "Active", "Status", "System", "Description", "Message",
+            "Last Changed", "Clearable"};
 
+    /**
+     * Description column index.
+     */
+    public static final int DESCRIPTION_COLUMN_INDEX = 4;
+
+    /**
+     * Last changed field column index.
+     */
+    public static final int LAST_CHANGED_COLUMN_INDEX = 6;
+
+    /**
+     * Message field column index.
+     */
+    public static final int MESSAGE_COLUMN_INDEX = 5;
+
+    /**
+     * Reset field column index.
+     */
+    public static final int RESET_COLUMN_INDEX = 0;
+
+    /**
+     * Status field column index.
+     */
+    public static final int STATUS_COLUMN_INDEX = 2;
+
+    /**
+     * System field column index.
+     */
+    public static final int SYSTEM_COLUMN_INDEX = 3;
+
+    /**
+     * The list of system status objects that back the model.
+     */
+    private final List<SystemStatus> statuses = new ArrayList<SystemStatus>();
+
+    /**
+     * Add a system status to the model.
+     *
+     * @param status the system status to add to the model
+     */
     public void addSystemStatus(final SystemStatus status) {
         this.statuses.add(status);
         status.addListener(this);
         fireTableDataChanged();
     }
 
+    /**
+     * Clear all the data in the model.
+     */
     public void clear() {
         this.statuses.clear();
         fireTableDataChanged();
     }
 
+    /**
+     * Get the class of the column.
+     *
+     * @param columnIndex the index of the column
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Class getColumnClass(final int column) {
-        switch (column) {
-        case ACTIVE_COL:
+    public Class getColumnClass(final int columnIndex) {
+        switch (columnIndex) {
+        case ACTIVE_COLUMN_INDEX:
             return Boolean.class;
-        case LAST_CHANGED_COL:
+        case LAST_CHANGED_COLUMN_INDEX:
             return Date.class;
         default:
             return String.class;
         }
     }
 
+    /**
+     * Get the column count.
+     *
+     * @return the column count
+     */
     @Override
     public int getColumnCount() {
-        return columnNames.length;
+        return COLUMN_NAMES.length;
     }
 
+    /**
+     * Get the column name.
+     *
+     * @param columnIndex the column index
+     */
     @Override
-    public String getColumnName(final int col) {
-        return columnNames[col];
+    public String getColumnName(final int columnIndex) {
+        return COLUMN_NAMES[columnIndex];
     }
 
+    /**
+     * Get the row count.
+     *
+     * @return the row count
+     */
     @Override
     public int getRowCount() {
         return this.statuses.size();
     }
 
+    /**
+     * Get a table cell value.
+     *
+     * @param rowIndex the row index
+     * @param columnIndex the column index
+     */
     @Override
     public Object getValueAt(final int rowIndex, final int columnIndex) {
         final SystemStatus status = this.statuses.get(rowIndex);
         switch (columnIndex) {
-        case ACTIVE_COL:
+        case ACTIVE_COLUMN_INDEX:
             return status.isActive();
-        case STATUS_COL:
+        case STATUS_COLUMN_INDEX:
             return status.getStatusCode().name();
-        case SYSTEM_COL:
+        case SYSTEM_COLUMN_INDEX:
             return status.getSubsystem().name();
-        case DESCRIPTION_COL:
+        case DESCRIPTION_COLUMN_INDEX:
             return status.getDescription();
-        case MESSAGE_COL:
+        case MESSAGE_COLUMN_INDEX:
             return status.getMessage();
-        case LAST_CHANGED_COL:
+        case LAST_CHANGED_COLUMN_INDEX:
             return new Date(status.getLastChangedMillis());
-        case RESET_COL:
-            // If the status is clearable, then it has a button that can be used to
-            // manually set the state to CLEARED. If the status is not clearable,
+        case RESET_COLUMN_INDEX:
+            // If the status is clear-able, then the cell has a button which can be used to
+            // manually set the state to CLEARED. If the status cannot be cleared,
             // then nothing is rendered in this cell.
             if (status.isClearable()) {
                 final JButton button = new JButton();
@@ -100,9 +171,6 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
                     @Override
                     public void actionPerformed(final ActionEvent e) {
                         final SystemStatus status = SystemStatusTableModel.this.statuses.get(rowIndex);
-                        // Only clearable statuses can have this state set. Check for this
-                        // just to be safe, even though no button is available for non-clearable
-                        // statuses.
                         if (status.isClearable()) {
                             final StatusCode oldStatusCode = status.getStatusCode();
                             status.setStatus(StatusCode.CLEARED, "Cleared from " + oldStatusCode.name() + " state.");
@@ -113,29 +181,42 @@ public final class SystemStatusTableModel extends AbstractTableModel implements 
             } else {
                 return null;
             }
-        case CLEARABLE_COL:
+        case CLEARABLE_COLUMN_INDEX:
             return status.isClearable();
         default:
             return null;
         }
     }
 
+    /**
+     * Return <code>true</code> if cell is editable.
+     *
+     * @return <code>true</code> if cell is editable
+     */
     @Override
-    public boolean isCellEditable(final int row, final int col) {
-        if (col == ACTIVE_COL) {
-            return true;
-        } else {
-            return false;
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex == ACTIVE_COLUMN_INDEX;
+    }
+
+    /**
+     * Set the table cell value.
+     *
+     * @param value the new value
+     * @param rowIndex the row index
+     * @param columnIndex the column index
+     */
+    @Override
+    public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+        if (columnIndex == ACTIVE_COLUMN_INDEX) {
+            this.statuses.get(rowIndex).setActive((Boolean) value);
         }
     }
 
-    @Override
-    public void setValueAt(final Object value, final int row, final int col) {
-        if (col == ACTIVE_COL) {
-            this.statuses.get(row).setActive((Boolean) value);
-        }
-    }
-
+    /**
+     * Notify of system status changed.
+     *
+     * @param status the system status that changed
+     */
     @Override
     public void statusChanged(final SystemStatus status) {
         final int rowNumber = this.statuses.indexOf(status);

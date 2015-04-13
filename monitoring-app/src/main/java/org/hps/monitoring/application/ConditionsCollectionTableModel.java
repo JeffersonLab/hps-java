@@ -68,11 +68,11 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
     @Override
     public Class<?> getColumnClass(final int columnIndex) {
         final Class<?> columnClass = this.columnTypes[columnIndex];
-        if (columnClass.equals(int.class)) {
+        if (int.class.equals(columnClass)) {
             return Integer.class;
-        } else if (columnClass.equals(float.class)) {
+        } else if (float.class.equals(columnClass)) {
             return Float.class;
-        } else if (columnClass.equals(double.class)) {
+        } else if (double.class.equals(columnClass)) {
             return Double.class;
         } else {
             return columnClass;
@@ -92,6 +92,7 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
     /**
      * Get the name of the column.
      *
+     * @param columnIndex the column index
      * @return the name of the column
      */
     @Override
@@ -110,10 +111,11 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
     }
 
     /**
-     * Get a cell value.
+     * Get a table cell value.
      *
      * @param rowIndex the row index
      * @param columnIndex the column index
+     * @return the value of the cell
      */
     @Override
     public Object getValueAt(final int rowIndex, final int columnIndex) {
@@ -128,7 +130,7 @@ final class ConditionsCollectionTableModel extends DefaultTableModel {
     /**
      * Setup the columns from table meta data.
      *
-     * @param tableInfo the {@link org.hps.conditions.database.TableMetaData} with table info
+     * @param tableInfo the {@link org.hps.conditions.database.TableMetaData} with the table info
      */
     private void setupColumns(final TableMetaData tableInfo) {
 

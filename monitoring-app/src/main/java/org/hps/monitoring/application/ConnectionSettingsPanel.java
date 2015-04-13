@@ -22,9 +22,15 @@ import org.jlab.coda.et.enums.Mode;
 final class ConnectionSettingsPanel extends AbstractFieldsPanel {
 
     /**
-     * Updates the GUI from changes in the ConfigurationModel.
+     * Update the GUI from changes in the {@link org.hps.monitoring.application.model.ConfigurationModel}.
      */
     public class ConnectionSettingsChangeListener implements PropertyChangeListener {
+
+        /**
+         * Handle a property change from the model.
+         *
+         * @param the <code>PropertyChangeEvent</code> to handle
+         */
         @Override
         public void propertyChange(final PropertyChangeEvent evt) {
             ConnectionSettingsPanel.this.getConfigurationModel().removePropertyChangeListener(this);
@@ -64,7 +70,7 @@ final class ConnectionSettingsPanel extends AbstractFieldsPanel {
     /**
      * The available wait mode settings (sleep, timed and asynchronous).
      */
-    private static final String[] WAIT_MODES = { Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name() };
+    private static final String[] WAIT_MODES = {Mode.SLEEP.name(), Mode.TIMED.name(), Mode.ASYNC.name()};
 
     /**
      * Check box for blocking setting.

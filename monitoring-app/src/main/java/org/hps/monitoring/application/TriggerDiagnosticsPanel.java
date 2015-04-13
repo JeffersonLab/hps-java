@@ -76,7 +76,7 @@ final class TriggerDiagnosticsPanel extends JPanel {
     private final PairTablePanel pairsPanel = new PairTablePanel();
 
     /**
-     * The panel for singles statistics.
+     * The panel with singles statistics.
      */
     private final SinglesTablePanel singlesPanel = new SinglesTablePanel();
 

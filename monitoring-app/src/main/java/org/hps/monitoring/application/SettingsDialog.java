@@ -9,7 +9,9 @@ import javax.swing.JDialog;
 import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
- * The modal dialog for entering settings. It contains a <code>JPanel</code> with the different settings sub-tabs.
+ * The modal dialog for entering application settings.
+ * <p>
+ * It contains a <code>JPanel</code> with the different settings sub-tabs.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */

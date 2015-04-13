@@ -19,15 +19,19 @@ import org.hps.record.LCSimEventBuilder;
 import org.reflections.Reflections;
 
 /**
+ * This is a set of utility methods for getting jar resources at runtime.
+ *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ResourceUtil {
 
     /**
-     * Find a list of available detector names. Only those detectors that have names starting with "HPS" in their
-     * detector.properties files will be returned.
+     * Find a list of available detector names.
+     * <p>
+     * Only those detectors that have names starting with "HPS" in their <code>detector.properties</code> files will be
+     * returned.
      *
-     * @return The list of available detector names.
+     * @return the list of available HPS detector names
      */
     public static String[] findDetectorNames() {
         final ClassLoader classLoader = ResourceUtil.class.getClassLoader();
@@ -68,7 +72,7 @@ public final class ResourceUtil {
      * Find all classes that implement {@link org.hps.record.LCSimEventBuilder} and return a list of their canonical
      * names.
      *
-     * @return The list of classes implementing LCSimEventBuilder.
+     * @return the list of fully qualified class names that implement LCSimEventBuilder
      */
     public static String[] findEventBuilderClassNames() {
         final Reflections reflections = new Reflections("org.hps");
@@ -81,10 +85,10 @@ public final class ResourceUtil {
     }
 
     /**
-     * Get the files with extension 'lcsim' from all loaded jar files.
+     * Get all of the files with the extension "lcsim" which are in a certain package.
      *
-     * @param packageName The package name for filtering the resources.
-     * @return A list of embedded steering file resources.
+     * @param packageName the package name for filtering the list of resources
+     * @return a list of embedded steering file resources
      */
     public static String[] findSteeringResources(final String packageName) {
         final List<String> resources = new ArrayList<String>();
@@ -115,10 +119,20 @@ public final class ResourceUtil {
         return arr;
     }
 
+    /**
+     * Get the list of available conditions tags from the conditions system.
+     *
+     * @return the list of available conditions tags
+     */
+    // FIXME: This method probably does not belong in this class.
     public static String[] getConditionsTags() {
         return DatabaseConditionsManager.getInstance().getTags().toArray(new String[] {});
     }
 
+    /**
+     * Do not allow class instantiation.
+     */
     private ResourceUtil() {
+        throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

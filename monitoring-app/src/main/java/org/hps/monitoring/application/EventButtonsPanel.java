@@ -116,7 +116,7 @@ final class EventButtonsPanel extends JPanel implements PropertyChangeListener {
      * Add a button to the panel.
      *
      * @param resource the resource for the image icon
-     * @param command the command for the action event
+     * @param actionCommand the command for the action event
      * @param listener the action listener which handles action events
      * @param enabled <code>true</code> if button should be enabled initially
      * @return the new button object
@@ -128,6 +128,8 @@ final class EventButtonsPanel extends JPanel implements PropertyChangeListener {
 
     /**
      * Handle property change events to set status from changes to the connection status model.
+     *
+     * @param evt the <code>PropertyChangeEvent</code> to handle
      */
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {

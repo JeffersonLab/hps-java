@@ -10,14 +10,38 @@ import java.awt.Color;
  */
 public enum ConnectionStatus {
 
-    CONNECTED(Color.GREEN), DISCONNECTED(Color.RED), DISCONNECTING(Color.YELLOW);
+    /**
+     * This is the state when the session is connected to event processing.
+     */
+    CONNECTED(Color.GREEN),
+    /**
+     * This is the disconnected state when event processing is not occurring.
+     */
+    DISCONNECTED(Color.RED),
+    /**
+     * This is the state when the session is being torn down.
+     */
+    DISCONNECTING(Color.YELLOW);
 
-    Color color;
+    /**
+     * The color that should be displayed in the GUI component for this state.
+     */
+    private Color color;
 
-    ConnectionStatus(final Color color) {
+    /**
+     * Class constructor.
+     *
+     * @param color the color to display for this state
+     */
+    private ConnectionStatus(final Color color) {
         this.color = color;
     }
 
+    /**
+     * Get the color to display for this state.
+     *
+     * @return the color to display for this state
+     */
     public Color getColor() {
         return this.color;
     }

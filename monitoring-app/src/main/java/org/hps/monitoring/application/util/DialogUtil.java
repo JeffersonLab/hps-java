@@ -10,15 +10,19 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 /**
+ * This is a set of utility methods for creating Swing dialog windows.
+ *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class DialogUtil {
 
     /**
-     * @param parent
-     * @param message
-     * @param title
-     * @return
+     * Show a confirmation dialog.
+     *
+     * @param parent the parent component
+     * @param message the message
+     * @param title the title of the dialog
+     * @return the result from the user's dialog selection
      */
     public static int showConfirmationDialog(final Component parent, final String title, final String message) {
         final Object[] options = { "Yes", "No", "Cancel" };
@@ -28,9 +32,11 @@ public final class DialogUtil {
     }
 
     /**
-     * @param component
-     * @param error
-     * @param title
+     * Show an error dialog.
+     *
+     * @param component the parent component
+     * @param error the error message
+     * @param title the title of the dialog
      */
     public static void showErrorDialog(final Component component, final String title, final String message) {
         final Runnable runnable = new Runnable() {
@@ -43,9 +49,11 @@ public final class DialogUtil {
     }
 
     /**
-     * @param component
-     * @param error
-     * @param title
+     * Show an error dialog with an associated thrown object.
+     *
+     * @param component the parent component
+     * @param error the <code>Throwable</code> error
+     * @param title the title of the dialog
      */
     public static void showErrorDialog(final Component component, final Throwable error, final String title) {
         final Runnable runnable = new Runnable() {
@@ -58,9 +66,11 @@ public final class DialogUtil {
     }
 
     /**
-     * @param component
-     * @param title
-     * @param message
+     * Show an information dialog.
+     *
+     * @param component the parent component
+     * @param title the title of the dialog
+     * @param message the message
      */
     public static void showInfoDialog(final Component component, final String title, final String message) {
         final Runnable runnable = new Runnable() {
@@ -73,10 +83,12 @@ public final class DialogUtil {
     }
 
     /**
-     * @param parentComponent
-     * @param title
-     * @param message
-     * @return
+     * Show a status dialog which will block GUI interaction.
+     *
+     * @param parentComponent the parent component
+     * @param title the title of the dialog
+     * @param message the message
+     * @return the dialog window component
      */
     public static JDialog showStatusDialog(final Component parentComponent, final String title, final String message) {
         final JOptionPane optionPane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE,
@@ -100,5 +112,12 @@ public final class DialogUtil {
         optionPane.setVisible(true);
         dialog.setVisible(true);
         return dialog;
+    }
+
+    /**
+     * Do not allow class instantiation.
+     */
+    private DialogUtil() {
+        throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

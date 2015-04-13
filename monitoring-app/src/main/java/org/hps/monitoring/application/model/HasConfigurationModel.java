@@ -8,16 +8,16 @@ package org.hps.monitoring.application.model;
 public interface HasConfigurationModel {
 
     /**
-     * Get the current ConfigurationModel of the object.
+     * Get the current {@link ConfigurationModel} of the object.
      *
-     * @return The ConfigurationModel.
+     * @return the associated {@link ConfigurationModel}
      */
     ConfigurationModel getConfigurationModel();
 
     /**
-     * Set the ConfigurationModel of the object.
+     * Set the {@link ConfigurationModel} of the object.
      *
-     * @param configurationModel The ConfigurationModel.
+     * @param configurationModel the new {@link ConfigurationModel}
      */
     void setConfigurationModel(ConfigurationModel configurationModel);
 }

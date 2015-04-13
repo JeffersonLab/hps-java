@@ -21,10 +21,10 @@ import javassist.Modifier;
 public abstract class AbstractModel {
 
     /**
-     * This method will statically extract property names from a class, which in this package's conventions are
-     * statically declared, public strings that end with "_PROPERTY".
+     * This method will extract property names from a class, which in this package's conventions are statically
+     * declared, public strings that end with the sub-string "_PROPERTY".
      *
-     * @param type the class with the properties
+     * @param type the class with the properties settings
      * @return the list of property names
      */
     protected static String[] getPropertyNames(final Class<? extends AbstractModel> type) {

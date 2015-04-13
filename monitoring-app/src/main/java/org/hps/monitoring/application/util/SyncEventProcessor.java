@@ -22,11 +22,23 @@ import org.lcsim.event.base.BaseLCSimEvent;
  * @see org.hps.recon.ecal.daqconfig.ConfigurationManager
  * @see org.hps.recon.ecal.daqconfig.EvioDAQParser
  */
-public class SyncEventProcessor extends EtEventProcessor {
+// FIXME: This class is currently unused.
+public final class SyncEventProcessor extends EtEventProcessor {
 
+    /**
+     * The name of the trigger configuration collection.
+     */
     private static final String TRIGGER_CONFIG = "TriggerConfig";
-    TriggerConfigEvioReader configReader = new TriggerConfigEvioReader();
 
+    /**
+     * The trigger configuration reader.
+     */
+    private final TriggerConfigEvioReader configReader = new TriggerConfigEvioReader();
+
+    /**
+     * Process an ET event and if there is a trigger configuration present, parse it and update the configuration in the
+     * global manager.
+     */
     @Override
     public void process(final EtEvent event) {
         EvioEvent evioEvent = null;

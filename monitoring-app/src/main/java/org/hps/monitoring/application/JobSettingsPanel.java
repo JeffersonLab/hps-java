@@ -33,7 +33,6 @@ import org.jdom.input.SAXBuilder;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-// FIXME: Combo boxes should use explicit types.
 @SuppressWarnings("serial")
 final class JobSettingsPanel extends AbstractFieldsPanel {
 
@@ -76,6 +75,8 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
 
         /**
          * Handle {@link java.beans.PropertyChangeEvent} by updating the GUI from changes to the model.
+         *
+         * @param evt the {@link java.beans.PropertyChangeEvent} to handle
          */
         @Override
         public void propertyChange(final PropertyChangeEvent evt) {
@@ -140,9 +141,9 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
     /**
      * The available LogLevel settings as an array of strings.
      */
-    static final String[] LOG_LEVELS = new String[] { Level.ALL.toString(), Level.FINEST.toString(),
+    static final String[] LOG_LEVELS = new String[] {Level.ALL.toString(), Level.FINEST.toString(),
             Level.FINER.toString(), Level.FINE.toString(), Level.CONFIG.toString(), Level.INFO.toString(),
-            Level.WARNING.toString(), Level.SEVERE.toString(), Level.OFF.toString() };
+            Level.WARNING.toString(), Level.SEVERE.toString(), Level.OFF.toString()};
 
     /**
      * The package where steering resources must be located.
@@ -264,8 +265,8 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         steeringFileButton.setActionCommand(Commands.CHOOSE_STEERING_FILE);
         steeringFileButton.addActionListener(this);
 
-        this.steeringTypeComboBox = this.addComboBox("Steering Type", new String[] { SteeringType.RESOURCE.name(),
-                SteeringType.FILE.name() });
+        this.steeringTypeComboBox = this.addComboBox("Steering Type", new String[] {SteeringType.RESOURCE.name(),
+                SteeringType.FILE.name()});
         this.steeringTypeComboBox.setActionCommand(Commands.STEERING_TYPE_CHANGED);
         this.steeringTypeComboBox.addActionListener(this);
 

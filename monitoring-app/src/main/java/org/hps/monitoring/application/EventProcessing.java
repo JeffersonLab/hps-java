@@ -46,7 +46,7 @@ import org.lcsim.util.Driver;
 final class EventProcessing {
 
     /**
-     * This class is used internally to organize the objects used by an event processing session.
+     * This class organizes and encapsulates most of the objects used by an event processing session.
      */
     private final class SessionState {
 
@@ -56,7 +56,7 @@ final class EventProcessing {
         private List<ConditionsListener> conditionsListeners;
 
         /**
-         * An {@link org.hps.record.et.EtConnection} with ET configuration (can be null if using file source).
+         * An {@link org.hps.record.et.EtConnection} with ET configuration (can be null if using a file source).
          */
         private EtConnection connection;
 
@@ -195,9 +195,10 @@ final class EventProcessing {
 
     /**
      * Class constructor, which will initialize with reference to the current monitoring application and lists of extra
-     * processors to add to the loop as well as supplemental conditions listeners that activate when conditions change.
+     * processors to add to the loop, as well as supplemental conditions listeners that activate when the conditions
+     * change.
      *
-     * @param application the current monitoring application
+     * @param application the current monitoring application object
      * @param processors a list of processors to add after configuration is performed
      * @param drivers a list of extra {@link org.lcsim.util.Driver} objects to add to the loop
      * @param conditionsListeners a list of extra {@link org.lcsim.conditions.ConditionsListener} to add to the loop
@@ -367,9 +368,9 @@ final class EventProcessing {
     }
 
     /**
-     * Interrupt and join to the processing watchdog thread.
+     * Interrupt and join the processing watchdog thread.
      * <p>
-     * This will happen if there is a user requested disconnect from pushing the disconnect button in the GUI.
+     * This will happen if there is a user requested disconnect from pushing the button in the GUI.
      */
     synchronized void killWatchdogThread() {
         // Is the session watchdog thread not null?
@@ -405,7 +406,7 @@ final class EventProcessing {
     }
 
     /**
-     * Notify the loop to pause event processing.
+     * Notify the loop to pause the event processing.
      */
     synchronized void pause() {
         this.logger.finest("pausing");
@@ -493,7 +494,7 @@ final class EventProcessing {
                 setupSteeringFile(steering);
             }
 
-            // Set conditions tag.
+            // Set conditions tag if applicable.
             if (configurationModel.hasValidProperty(ConfigurationModel.CONDITIONS_TAG_PROPERTY)
                     && !configurationModel.getConditionsTag().equals("")) {
                 this.logger.config("conditions tag is set to " + configurationModel.getConditionsTag());
@@ -535,7 +536,7 @@ final class EventProcessing {
 
         this.logger.config("setting up record loop ...");
 
-        // Initialize the loop from configuration model.
+        // Initialize the loop from the ConfigurationModel.
         final CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration()
                 .setStopOnEndRun(configurationModel.getDisconnectOnEndRun())
                 .setStopOnErrors(configurationModel.getDisconnectOnError())
@@ -547,6 +548,7 @@ final class EventProcessing {
         this.logger.config("data source path is " + configurationModel.getDataSourcePath());
         this.logger.config("data source type is " + configurationModel.getDataSourceType());
 
+        // Set the max events.
         if (configurationModel.hasValidProperty(ConfigurationModel.MAX_EVENTS_PROPERTY)) {
             final long maxEvents = configurationModel.getMaxEvents();
             if (maxEvents > 0L) {
@@ -650,12 +652,12 @@ final class EventProcessing {
         // Kill session watchdog thread.
         killWatchdogThread();
 
-        // Wake up all ET stations to unblock the system and make sure secondary stations are detached.
+        // Wake up all ET stations to unblock the system and make sure stations are detached properly.
         if (usingEtServer()) {
             wakeUpEtStations();
         }
 
-        // Stop the event processing now that ET system is unblocked.
+        // Stop the event processing now that ET system should be unblocked.
         this.logger.fine("sending STOP command to loop ...");
         this.sessionState.loop.execute(Command.STOP);
         this.logger.fine("loop got command STOP");

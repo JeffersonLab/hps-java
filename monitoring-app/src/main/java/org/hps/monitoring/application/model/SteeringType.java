@@ -6,5 +6,12 @@ package org.hps.monitoring.application.model;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public enum SteeringType {
-    FILE, RESOURCE;
+    /**
+     * Steering from local file on disk.
+     */
+    FILE,
+    /**
+     * Steering from resource in jar file.
+     */
+    RESOURCE;
 }

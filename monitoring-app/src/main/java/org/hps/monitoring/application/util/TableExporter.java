@@ -8,8 +8,9 @@ import javax.swing.JTable;
 import javax.swing.table.TableModel;
 
 /**
- * This is a utility for exporting a JTable's model data to a text file. Non-numeric fields are all contained in double
- * quotes.
+ * This is a utility for exporting a JTable's model data to a text file.
+ * <p>
+ * Non-numeric fields such as strings are delimited by double quotes.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -18,10 +19,10 @@ public final class TableExporter {
     /**
      * Export the given table to a text file.
      *
-     * @param table The JTable component.
-     * @param path The output file path.
-     * @param fieldDelimiter The field delimiter to use.
-     * @throws IOException if there are errors writing the file.
+     * @param table the JTable component
+     * @param path the output file path
+     * @param fieldDelimiter the field delimiter to use
+     * @throws IOException if there are errors writing the file
      */
     public static void export(final JTable table, final String path, final char fieldDelimiter) throws IOException {
 
@@ -58,6 +59,10 @@ public final class TableExporter {
         out.close();
     }
 
+    /**
+     * Do not allow class instantiation.
+     */
     private TableExporter() {
+        throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

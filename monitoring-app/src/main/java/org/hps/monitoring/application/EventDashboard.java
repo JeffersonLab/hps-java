@@ -20,7 +20,7 @@ import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
 /**
- * This class implements a "dashboard" for displaying information about the current run.
+ * This class implements a dashboard for displaying information about the current run.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
@@ -37,6 +37,9 @@ final class EventDashboard extends JPanel implements PropertyChangeListener {
          */
         class RunTimerTask extends TimerTask {
 
+            /**
+             * Run the timer task to update the GUI from the current values in the model.
+             */
             @Override
             public void run() {
 
@@ -270,69 +273,62 @@ final class EventDashboard extends JPanel implements PropertyChangeListener {
     /**
      * Field for showing the data rate in MB per second.
      */
-    FieldPanel dataRateField = new FieldPanel("Data Rate [MB/s]", "", 12, false);
+    private final FieldPanel dataRateField = new FieldPanel("Data Rate [MB/s]", "", 12, false);
 
     /**
      * Field for showing the total data received in MB.
      */
-    FieldPanel dataReceivedField = new FieldPanel("Data Received [MB]", "", 14, false);
+    private final FieldPanel dataReceivedField = new FieldPanel("Data Received [MB]", "", 14, false);
 
     /**
      * Field for showing the elapsed job time in seconds.
      */
-    FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);
+    private final FieldPanel elapsedTimeField = new FieldPanel("Elapsed Time [sec]", "", 14, false);
 
     /**
      * Field for showing the end date.
      */
-    DatePanel endDateField = new DatePanel("Run End", "", 14, false);
+    private final DatePanel endDateField = new DatePanel("Run End", "", 14, false);
 
     /**
      * Field for showing the current event number.
      */
-    FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
+    private final FieldPanel eventNumberField = new FieldPanel("Event Number", "", 14, false);
 
     /**
      * Field showing the event rate in Hertz.
      */
-    FieldPanel eventRateField = new FieldPanel("Event Rate [Hz]", "", 14, false);
+    private final FieldPanel eventRateField = new FieldPanel("Event Rate [Hz]", "", 14, false);
 
     /**
      * Field for showing the total number of events received.
      */
-    FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
+    private final FieldPanel eventsReceivedField = new FieldPanel("Events Received", "", 14, false);
 
     /**
      * Field for showing the length of the run in seconds.
      */
-    FieldPanel lengthField = new FieldPanel("Run Length [sec]", "", 12, false);
+    private final FieldPanel lengthField = new FieldPanel("Run Length [sec]", "", 12, false);
 
     /**
      * The backing model with run and event information.
      */
-    RunModel runModel;
+    private final RunModel runModel;
 
     /**
      * Field for showing the run number.
      */
-    FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
+    private final FieldPanel runNumberField = new FieldPanel("Run Number", "", 10, false);
 
     /**
      * Field for showing the start date.
      */
-    DatePanel startDateField = new DatePanel("Run Start", "", 14, false);
+    private final DatePanel startDateField = new DatePanel("Run Start", "", 14, false);
 
     /**
      * Field for showing the total events in the run.
      */
-    FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
-
-    /**
-     * Class constructor which will build the GUI components.
-     */
-    public EventDashboard() {
-        build();
-    }
+    private final FieldPanel totalEventsField = new FieldPanel("Total Events in Run", "", 14, false);
 
     /**
      * Class constructor which takes reference to backing model.
@@ -406,14 +402,5 @@ final class EventDashboard extends JPanel implements PropertyChangeListener {
         } else if (RunModel.EVENT_RATE_PROPERTY.equals(evt.getPropertyName())) {
             this.eventRateField.setValue(DECIMAL_FORMAT.format(value));
         }
-    }
-
-    /**
-     * Set the backing {@link org.hps.monitoring.application.model.RunModel} of the component.
-     *
-     * @param runModel the backing {@link org.hps.monitoring.application.model.RunModel} of the component
-     */
-    public void setModel(final RunModel runModel) {
-        this.runModel = runModel;
     }
 }

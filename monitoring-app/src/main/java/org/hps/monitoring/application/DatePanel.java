@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * A small JPanel with a date field and a label on its border.
+ * A small <code>JPanel</code> with a date field and a label on its border.
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */

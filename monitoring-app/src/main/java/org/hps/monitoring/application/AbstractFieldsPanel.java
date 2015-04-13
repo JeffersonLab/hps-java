@@ -344,7 +344,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
     }
 
     /**
-     * Get the {@link org.hps.monitoring.application.model.ConfigurationModel} for this component
+     * Get the {@link org.hps.monitoring.application.model.ConfigurationModel} for this component.
      *
      * @return the {@link org.hps.monitoring.application.model.ConfigurationModel} for this component
      */
