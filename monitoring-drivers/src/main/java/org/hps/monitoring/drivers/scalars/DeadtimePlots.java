@@ -29,9 +29,6 @@ public class DeadtimePlots extends Driver {
     static final double DOMAIN_SIZE =  60 * 1000; // 1 minute
     String scalarsName = "Scalars";
 
-    MonitoringPlotFactory plotFactory
-            = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("Deadtime Monitoring");
-
     int events;
 
     double fcupTdc;
@@ -50,6 +47,8 @@ public class DeadtimePlots extends Driver {
 //                new DeadtimeProvider(),
 //                50000L);
 
+        MonitoringPlotFactory plotFactory
+            = (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("Deadtime Monitoring");
         deadtimes = plotFactory.createTimeSeriesChart(
                 "DAQ Deadtime",
                 "Livetime",
