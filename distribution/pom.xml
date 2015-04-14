@@ -6,6 +6,8 @@
     <description>module for creating a standalone runnable bin jar for HPS Java</description>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
     </properties>
     <parent>
         <groupId>org.hps</groupId>
@@ -18,7 +20,13 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/distribution/</developerConnection>
     </scm>
-    <build>              
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>        
+        </resources>              
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -27,6 +27,15 @@ public class JobManager extends JobControlManager {
      * Class constructor.
      */
     public JobManager() {
+
+        try {
+            // Since this is packaged with the distribution, the class is not directly accessible.
+            final Object hpsJavaProperties = Class.forName("org.hps.HPSJavaProperties").newInstance();
+            logger.info(hpsJavaProperties.toString());
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            // Just don't print info if not accessible (running in test case?).
+        }
+
         // Always want to reset conditions system before starting the job.
         DatabaseConditionsManager.resetInstance();
     }
