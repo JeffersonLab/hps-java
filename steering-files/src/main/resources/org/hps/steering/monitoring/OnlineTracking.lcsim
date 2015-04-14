@@ -16,7 +16,6 @@
         <driver name="SVTHitRecoPlots" />
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver" />
-        <driver name="TrackingReconstructionPlots" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
@@ -63,7 +62,6 @@
             <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
             <eventRefreshRate>100</eventRefreshRate>
         </driver>
-        <driver name="SVTEventDisplay" type="org.hps.monitoring.drivers.svt.SVTEventDisplay" />
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
@@ -75,9 +73,6 @@
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
-        </driver>
-        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-            <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits SVTRawTrackerHits SVTFittedRawTrackerHits StripClusterer_SiTrackerHitStrip1D</collectionNames>
