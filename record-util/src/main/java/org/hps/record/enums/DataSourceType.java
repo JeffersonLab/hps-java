@@ -1,61 +1,36 @@
 package org.hps.record.enums;
 
-import java.io.File;
-
 /**
  * The type of data source that will supply events to the app.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public enum DataSourceType {
 
-    ET_SERVER("ET Server", null), 
-    EVIO_FILE("EVIO File", "evio"), 
+    /**
+     * An ET server data source (hence no file extension).
+     */
+    ET_SERVER("ET Server", null),
+    /**
+     * An EVIO data source with the "evio" file extension.
+     */
+    EVIO_FILE("EVIO File", "evio"),
+    /**
+     * An LCIO data source with the "slcio" file extension.
+     */
     LCIO_FILE("LCIO File", "slcio");
 
-    String description;
-    String extension;
-
-    /**
-     * Constructor which takes a description.
-     * @param description The description of the data source type.
-     */
-    private DataSourceType(String description, String extension) {
-        this.description = description;
-    }
-
-    /**
-     * Get the description of the data source type.
-     * @return The description of the data source type.
-     */
-    public String description() {
-        return description;
-    }
-    
-    /**
-     * Get the extension associated with this data source type.
-     * @return The file extension of the data source type.
-     */
-    public String getExtension() {
-        return extension;
-    }
-    
-    /**
-     * True if the source is file-based 
-     * (e.g. not an ET server).
-     * @return
-     */
-    public boolean isFile() {
-        return this.ordinal() > ET_SERVER.ordinal();
-    }
-    
     /**
      * Figure out a reasonable data source type for the path string.
-     * This defaults to an ET source ((perhaps unreasonably!) if the 
-     * file extension is unrecognized.
+     * <p>
+     * This defaults to an ET source ((perhaps unreasonably!) if the file extension is unrecognized.
+     *
      * @param path The data source path.
      * @return The data source type.
      */
-    public static DataSourceType getDataSourceType(String path) {
-        if (path.endsWith("." + DataSourceType.LCIO_FILE.getExtension())) { 
+    // FIXME: Probably this should throw an error if the extension is unrecognized.
+    public static DataSourceType getDataSourceType(final String path) {
+        if (path.endsWith("." + DataSourceType.LCIO_FILE.getExtension())) {
             return DataSourceType.LCIO_FILE;
         } else if (path.contains("." + DataSourceType.EVIO_FILE.getExtension())) {
             // For EVIO files, only check that the extension appears someplace in the name
@@ -65,5 +40,51 @@ public enum DataSourceType {
             return DataSourceType.ET_SERVER;
         }
     }
-    
+
+    /**
+     * The description of the data source.
+     */
+    private String description;
+
+    /**
+     * The extension associated with the type.
+     */
+    private String extension;
+
+    /**
+     * Class constructor, which takes a description and file extension.
+     *
+     * @param description the description of the data source type
+     * @param extension the associated file extension
+     */
+    private DataSourceType(final String description, final String extension) {
+        this.description = description;
+    }
+
+    /**
+     * Get the description of the data source type.
+     *
+     * @return the description of the data source type
+     */
+    public String description() {
+        return this.description;
+    }
+
+    /**
+     * Get the extension associated with this data source type.
+     *
+     * @return the file extension of the data source type
+     */
+    public String getExtension() {
+        return this.extension;
+    }
+
+    /**
+     * Return <code>true</code> if the source is file-based (e.g. not an ET server).
+     *
+     * @return <code>true</code> if the source is file-based
+     */
+    public boolean isFile() {
+        return this.ordinal() > ET_SERVER.ordinal();
+    }
 }

@@ -8,97 +8,107 @@ import org.hps.record.RecordProcessingException;
 import org.hps.record.RecordProcessor;
 
 /**
- * An extension of {@link CompositeLoopAdapter} that has a list of {@link org.hps.record.RecordProcessor}
- * objects that are activated in the appropriate hook methods.
+ * An extension of {@link CompositeLoopAdapter} which has a list of {@link org.hps.record.RecordProcessor} objects that
+ * are activated in the appropriate hook methods for every event.
+ *
  * @param <RecordType> The concrete type of the record being processed.
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class RecordProcessorAdapter<RecordType> extends CompositeLoopAdapter {
 
-    List<RecordProcessor<RecordType>> processors = new ArrayList<RecordProcessor<RecordType>>();
-    
+    /**
+     * The list of composite record processors.
+     */
+    private final List<RecordProcessor<RecordType>> processors = new ArrayList<RecordProcessor<RecordType>>();
+
     /**
      * Add a <code>RecordProcessor</code>.
-     * @param processor The RecordProcessor to add.
+     *
+     * @param processor the <code>RecordProcessor</code> to add
      */
-    public void addProcessor(RecordProcessor<RecordType> processor) {
-        processors.add(processor);
+    public void addProcessor(final RecordProcessor<RecordType> processor) {
+        this.processors.add(processor);
     }
-    
+
     /**
-     * Remove a <code>RecordProcessor</code>.
-     * @param processor The RecordProcessor to remove.
+     * Activate the <code>endRun</code> methods of the registered processors.
+     *
+     * @param record the current record.
      */
-    public void removeProcessor(RecordProcessor<RecordType> processor) {
-        processors.remove(processor);
-    }
-    
-    /**
-     * Activate the <code>startRun</code> methods of the 
-     * registered processors.
-     * @param record The current record.
-     */
-    public void startRun(RecordType record) {
-        for (RecordProcessor<RecordType> processor : processors) {
-            processor.startRun(record);
-        }
-    }
-    
-    /**
-     * Activate the <code>endRun</code> methods of the 
-     * registered processors.
-     * @param record The current record.
-     */
-    public void endRun(RecordType record) {
-        for (RecordProcessor<RecordType> processor : processors) {
+    public void endRun(final RecordType record) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
             processor.endRun(record);
         }
     }
-    
+
     /**
-     * Activate the <code>process</code> methods of the 
-     * registered processors.
-     * @param record The current record.
+     * Activate the <code>endJob</code> methods of the registered processors.
+     *
+     * @param the <code>LoopEvent</code> which activated <code>finish</code>
      */
-    public void process(RecordType record) {
-        for (RecordProcessor<RecordType> processor : processors) {
-            try {
-                processor.process(record);
-            } catch (Exception e) {
-                throw new RecordProcessingException("Error processing record.", e);
-            }
-        }
-    }
-    
-    /**
-     * Activate the <code>endJob</code> methods of the
-     * registered processors.
-     * @param The LoopEvent which activated finish.
-     */
-    public void finish(LoopEvent loopEvent) {
-        for (RecordProcessor<RecordType> processor : processors) {
+    @Override
+    public void finish(final LoopEvent loopEvent) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
             processor.endJob();
         }
     }
 
     /**
-     * Activate the <code>startJob</code> methods of the
-     * registered processors.
-     * @param The LoopEvent which activated the start.
+     * Activate the <code>process</code> methods of the registered processors.
+     *
+     * @param record the current record
      */
-    public void start(LoopEvent loopEvent) {
-        for (RecordProcessor<RecordType> processor : processors) {
+    public void process(final RecordType record) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
+            try {
+                processor.process(record);
+            } catch (final Exception e) {
+                throw new RecordProcessingException("Error processing record.", e);
+            }
+        }
+    }
+
+    /**
+     * Remove a <code>RecordProcessor</code> from the adapter.
+     *
+     * @param processor the <code>RecordProcessor</code> to remove
+     */
+    public void removeProcessor(final RecordProcessor<RecordType> processor) {
+        this.processors.remove(processor);
+    }
+
+    /**
+     * Activate the <code>startJob</code> methods of the registered processors.
+     *
+     * @param the <code>LoopEvent</code> which activated the start
+     */
+    @Override
+    public void start(final LoopEvent loopEvent) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
             processor.startJob();
         }
     }
-    
+
     /**
-     * Activate the <code>suspend</code> methods of the 
-     * registered processors.
-     * @param The LoopEvent which activated the suspend.
+     * Activate the <code>startRun</code> methods of the registered processors.
+     *
+     * @param record the current record
      */
-    public void suspend(LoopEvent loopEvent) {
-        for (RecordProcessor<RecordType> processor : processors) {
+    public void startRun(final RecordType record) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
+            processor.startRun(record);
+        }
+    }
+
+    /**
+     * Activate the <code>suspend</code> methods of the registered processors.
+     *
+     * @param the <code>LoopEvent</code> which activated <code>suspend</code>.
+     */
+    @Override
+    public void suspend(final LoopEvent loopEvent) {
+        for (final RecordProcessor<RecordType> processor : this.processors) {
             processor.suspend();
         }
-    }           
+    }
 }

@@ -1,126 +1,33 @@
 package org.hps.record.evio;
 
-import static org.hps.record.evio.EvioEventConstants.*;
+import static org.hps.record.evio.EvioEventConstants.END_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.EPICS_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.GO_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.PAUSE_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.PHYSICS_START_TAG;
+import static org.hps.record.evio.EvioEventConstants.PRESTART_EVENT_TAG;
+import static org.hps.record.evio.EvioEventConstants.SYNC_EVENT_TAG;
 
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- * This is a set of basic static utility methods on <code>EvioEvent</code>
- * objects.
+ * This is a set of basic static utility methods for <code>EvioEvent</code> objects.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioEventUtilities {
-
-    private EvioEventUtilities() {
-    }
-    
-    /**
-     * Get the event tag from the header bank.
-     * @param event The input EvioEvent.
-     * @return The event tag from the header bank.
-     */
-    public static int getEventTag(EvioEvent event) {
-        return event.getHeader().getTag();
-    }
-
-    /**
-     * Check if the EVIO event is a PRE START event indicating the beginning of
-     * a run.
-     *
-     * @param event The EvioEvent.
-     * @return True if the event is a pre start event.
-     */
-    public static boolean isPreStartEvent(EvioEvent event) {
-        return event.getHeader().getTag() == PRESTART_EVENT_TAG;
-    }
-
-    /**
-     * Check if the EVIO event is a GO event.
-     *
-     * @param event The EvioEvent.
-     * @return True if the event is a go event.
-     */
-    public static boolean isGoEvent(EvioEvent event) {
-        return event.getHeader().getTag() == GO_EVENT_TAG;
-    }
-
-    /**
-     * Check if the EVIO event is a PAUSE event.
-     *
-     * @param event The EvioEvent.
-     * @return True if the event is a pause event.
-     */
-    public static boolean isPauseEvent(EvioEvent event) {
-        return event.getHeader().getTag() == PAUSE_EVENT_TAG;
-    }
-
-    /**
-     * Check if this event is an END event.
-     *
-     * @param event The EvioEvent.
-     * @return True if this event is an end event.
-     */
-    public static boolean isEndEvent(EvioEvent event) {
-        return event.getHeader().getTag() == END_EVENT_TAG;
-    }
-
-    /**
-     * Check if this event has physics data.
-     *
-     * @param event The EvioEvent.
-     * @return True if this event is a physics event.
-     */
-    public static boolean isPhysicsEvent(EvioEvent event) {
-        return (event.getHeader().getTag() >= PHYSICS_START_TAG ||
-                event.getHeader().getTag() < SYNC_EVENT_TAG);
-        // return event.getHeader().getTag() == PHYSICS_EVENT_TAG;
-    }
-
-    /**
-     * Check if this event is a SYNC event.
-     *
-     * @param event The EvioEvent.
-     * @return True if this event is a SYNC event.
-     */
-    public static boolean isSyncEvent(EvioEvent event) {
-        return event.getHeader().getTag() == SYNC_EVENT_TAG;
-    }
-    
-    /**
-     * Check if this event is an EPICS event containing scalar data.
-     * 
-     * @param event The EvioEvent.
-     * @return True if this event is an EPICS event.
-     */
-    public static boolean isEpicsEvent(EvioEvent event) {
-        return event.getHeader().getTag() == EPICS_EVENT_TAG;
-    }
-    
-    /**
-     * True if <code>event</code> is an EVIO control event.
-     * @return True if event is a control event.
-     */
-    public static boolean isControlEvent(EvioEvent event) {
-        return isPreStartEvent(event) || 
-                isGoEvent(event) || 
-                isPauseEvent(event) || 
-                isEndEvent(event) || 
-                isSyncEvent(event) ||
-                isEpicsEvent(event);
-    }
 
     /**
      * Extract the CODA run data stored in a control event.
      *
-     * @param event The EvioEvent.
-     * @return The int data for the control event. Null if the event is not a
-     * control event, or the int bank for the control event is not found.
+     * @param event the <code>EvioEvent</code> to handle
+     * @return the <code>int</code> data array for the control event or <code>null</code> if the event is not a control
+     *         event or data bank is not found
      */
-    public static int[] getControlEventData(EvioEvent event) {
-        int eventTag = event.getHeader().getTag();
-        switch (eventTag) { //if the event's not a control event, stop
+    public static int[] getControlEventData(final EvioEvent event) {
+        final int eventTag = event.getHeader().getTag();
+        switch (eventTag) { // if the event's not a control event, stop
             case PRESTART_EVENT_TAG:
             case PAUSE_EVENT_TAG:
             case END_EVENT_TAG:
@@ -131,30 +38,42 @@ public final class EvioEventUtilities {
                 return null;
         }
 
-        int[] data = event.getIntData();
-        if (data != null) { //found the data in the top-level bank
+        final int[] data = event.getIntData();
+        if (data != null) { // found the data in the top-level bank
             return data;
-        } else { //data is not in event bank; look for the data bank whose tag matches the event type
-            for (BaseStructure bank : event.getChildrenList()) {
+        } else { // data is not in event bank; look for the data bank whose tag matches the event type
+            for (final BaseStructure bank : event.getChildrenList()) {
                 if (bank.getHeader().getTag() == eventTag) {
-                    return bank.getIntData(); //return whatever int data this bank has
+                    return bank.getIntData(); // return whatever int data this bank has
                 }
             }
-            return null; //we didn't find the bank; give up
+            return null; // we didn't find the bank; give up
         }
     }
-    
+
+    /**
+     * Get the event tag from the header bank.
+     *
+     * @param event the input <code>EvioEvent</code>
+     * @return the event tag from the header bank
+     */
+    public static int getEventTag(final EvioEvent event) {
+        return event.getHeader().getTag();
+    }
+
     /**
      * Get the head bank with event header that includes run number.
+     * <p>
      * This is a nested bank.
-     * @param evioEvent The EVIO event.
-     * @return The head bank or null if does not exist in this event.
+     *
+     * @param evioEvent the <code>EvioEvent</code> with the head bank
+     * @return the head bank or <code>null</code> if it does not exist
      */
-    public static BaseStructure getHeadBank(EvioEvent evioEvent) {
+    public static BaseStructure getHeadBank(final EvioEvent evioEvent) {
         if (evioEvent.getChildCount() > 0) {
-            for (BaseStructure topBank : evioEvent.getChildrenList()) {
+            for (final BaseStructure topBank : evioEvent.getChildrenList()) {
                 if (topBank.getChildrenList() != null) {
-                    for (BaseStructure nestedBank : topBank.getChildrenList()) {
+                    for (final BaseStructure nestedBank : topBank.getChildrenList()) {
                         if (nestedBank.getHeader().getTag() == EvioEventConstants.HEAD_BANK_TAG) {
                             return nestedBank;
                         }
@@ -162,20 +81,22 @@ public final class EvioEventUtilities {
                 }
             }
         }
-        return null;        
+        return null;
     }
-    
+
     /**
      * Get the run number from an EVIO event.
-     * @return The run number.
+     *
+     * @return the run number
+     * @throws IllegalArgumentException if event does not have a head bank
      */
-    public static int getRunNumber(EvioEvent event) {
+    public static int getRunNumber(final EvioEvent event) {
         if (isControlEvent(event)) {
             return getControlEventData(event)[1];
         } else if (isPhysicsEvent(event)) {
-            BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
-            if (headBank != null) {                                        
-                return headBank.getIntData()[1];   
+            final BaseStructure headBank = EvioEventUtilities.getHeadBank(event);
+            if (headBank != null) {
+                return headBank.getIntData()[1];
             } else {
                 throw new IllegalArgumentException("Head bank is missing from physics event.");
             }
@@ -183,5 +104,94 @@ public final class EvioEventUtilities {
             // Not sure if this would ever happen.
             throw new IllegalArgumentException("Wrong event type: " + event.getHeader().getTag());
         }
+    }
+
+    /**
+     * Return <code>true</code> if <code>event</code> is a CODA control event such as a PRESTART or GO event.
+     *
+     * @return <code>true</code> if event is a control event
+     */
+    public static boolean isControlEvent(final EvioEvent event) {
+        return isPreStartEvent(event) || isGoEvent(event) || isPauseEvent(event) || isEndEvent(event)
+                || isSyncEvent(event) || isEpicsEvent(event);
+    }
+
+    /**
+     * Check if this event is an END event.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if this event is an END event.
+     */
+    public static boolean isEndEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == END_EVENT_TAG;
+    }
+
+    /**
+     * Check if this event is an EPICS event.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if this event is an EPICS event
+     */
+    public static boolean isEpicsEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == EPICS_EVENT_TAG;
+    }
+
+    /**
+     * Check if the event is a GO event.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if the event is a GO event.
+     */
+    public static boolean isGoEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == GO_EVENT_TAG;
+    }
+
+    /**
+     * Check if the EVIO event is a PAUSE event.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if the event is a PAUSE event.
+     */
+    public static boolean isPauseEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == PAUSE_EVENT_TAG;
+    }
+
+    /**
+     * Check if this event has physics data.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if this event is a physics event
+     */
+    public static boolean isPhysicsEvent(final EvioEvent event) {
+        // This checks if the tag is outside the CODA control event range.
+        return event.getHeader().getTag() >= PHYSICS_START_TAG || event.getHeader().getTag() < SYNC_EVENT_TAG;
+        // return event.getHeader().getTag() == PHYSICS_EVENT_TAG;
+    }
+
+    /**
+     * Check if the EVIO event is a PRESTART event indicating the beginning of a run.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if the event is a PRESTART event
+     */
+    public static boolean isPreStartEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == PRESTART_EVENT_TAG;
+    }
+
+    /**
+     * Check if this event is a SYNC event.
+     *
+     * @param event the <code>EvioEvent</code> to check
+     * @return <code>true</code> if this event is a SYNC event
+     */
+    public static boolean isSyncEvent(final EvioEvent event) {
+        return event.getHeader().getTag() == SYNC_EVENT_TAG;
+    }
+
+    /**
+     * Class should not be instantiated.
+     */
+    private EvioEventUtilities() {
+        throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

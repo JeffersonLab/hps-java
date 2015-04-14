@@ -6,52 +6,59 @@ import org.lcsim.job.JobControlManager;
 import org.lcsim.util.Driver;
 
 /**
- * Extension of standard LCSim job manager which does some HPS-specific management
- * of the conditions system.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * Extension of standard LCSim job manager which does some HPS-specific management of the conditions system.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class JobManager extends JobControlManager {
-    
+
+    /**
+     * Run the job manager from the command line.
+     *
+     * @param args the command line arguments
+     */
+    public static void main(final String args[]) {
+        // Run the job.
+        final JobManager job = new JobManager();
+        job.run(args);
+    }
+
+    /**
+     * Class constructor.
+     */
     public JobManager() {
         // Always want to reset conditions system before starting the job.
         DatabaseConditionsManager.resetInstance();
     }
-    
-    public static void main(String args[]) {
-        // Run the job.
-        JobManager job = new JobManager();
-        job.run(args);
-    }
-    
+
     /**
-     * Override the parent classes method that runs the job in order to do
-     * conditions system initialization, if required.
-     * @return True if job was successful.
+     * Override the parent classes method that runs the job in order to perform conditions system initialization.
+     *
+     * @return <code>true</code> if job was successful
      */
     @Override
-    public boolean run() {
-        
+    public final boolean run() {
+
         // Setup the conditions if there is a ConditionsDriver present.
         setupConditions();
-        
+
         // Run the job.
-        boolean result = super.run();
-        
-        // Close the conditions database connection if it is open.        
+        final boolean result = super.run();
+
+        // Close the conditions database connection if it is open.
         DatabaseConditionsManager.getInstance().closeConnection();
-               
+
         return result;
     }
 
     /**
-     * This method will find the {@link org.hps.conditions.ConditionsDriver} in the 
-     * list of Drivers registered with the manager and execute its initialization
-     * method, which can override the default behavior of the conditions system.
+     * This method will find the {@link org.hps.conditions.ConditionsDriver} in the list of Drivers registered with the
+     * manager and then execute its initialization method, which may override the default behavior of the conditions
+     * system.
      */
     private void setupConditions() {
         ConditionsDriver conditionsDriver = null;
-        for (Driver driver : this.getDriverAdapter().getDriver().drivers()) {
+        for (final Driver driver : this.getDriverAdapter().getDriver().drivers()) {
             if (driver instanceof ConditionsDriver) {
                 conditionsDriver = (ConditionsDriver) driver;
                 break;

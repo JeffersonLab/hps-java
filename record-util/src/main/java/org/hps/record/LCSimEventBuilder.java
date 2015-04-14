@@ -5,24 +5,26 @@ import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.event.EventHeader;
 
 /**
- * This is an interface that should be implemented by classes that 
- * build LCSim events from EVIO raw data.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is an interface that should be implemented by classes which build LCSim events from EVIO raw data.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public interface LCSimEventBuilder extends ConditionsListener {
 
     /**
-     * Read information from an EVIO control event such as go or pre start
-     * to set the event builder's state. This does not actually build an 
-     * LCSim event.
-     * @param evioEvent The input EvioEvent.
-     */
-    void readEvioEvent(EvioEvent evioEvent);
-
-    /**
-     * Build the LCSim event from EVIO data.
-     * @param evioEvent The input EvioEvent.
-     * @return The LCSim event.
+     * Build the LCSim event from an EVIO event.
+     *
+     * @param evioEvent the input <code>EvioEvent</code>
+     * @return the LCSim event
      */
     EventHeader makeLCSimEvent(EvioEvent evioEvent);
+
+    /**
+     * Read information from an EVIO control event such as a PRESTART event to set the event builder's state.
+     * <p>
+     * This does not actually build an LCSim event.
+     *
+     * @param evioEvent the input <code>EvioEvent</code>
+     */
+    void readEvioEvent(EvioEvent evioEvent);
 }

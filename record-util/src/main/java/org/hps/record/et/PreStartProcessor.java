@@ -9,23 +9,38 @@ import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * An ET processor that will activate the conditions system from PRESTART events.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
+// FIXME: This class is currently unused in HPS Java.
 public class PreStartProcessor extends EtEventProcessor {
 
-    String detectorName;
-    EvioDetectorConditionsProcessor conditionsProcessor;
-    
-    public PreStartProcessor(String detectorName) {
-        this.detectorName = detectorName;
+    /**
+     * The EVIO processor that will activate the conditions system.
+     */
+    private final EvioDetectorConditionsProcessor conditionsProcessor;
+
+    /**
+     * Class constructor.
+     *
+     * @param detectorName the name of the detector model
+     */
+    public PreStartProcessor(final String detectorName) {
         this.conditionsProcessor = new EvioDetectorConditionsProcessor(detectorName);
     }
-    
-    public void process(EtEvent event) {
+
+    /**
+     * Process an ET event and activate the conditions system if applicable.
+     *
+     * @param event the <code>EtEvent</code> to process
+     */
+    @Override
+    public void process(final EtEvent event) {
         EvioEvent evioEvent = null;
         try {
             evioEvent = new EvioReader(event.getDataBuffer()).parseNextEvent();
-            conditionsProcessor.startRun(evioEvent);
+            this.conditionsProcessor.startRun(evioEvent);
         } catch (IOException | EvioException e) {
             throw new RuntimeException(e);
         }

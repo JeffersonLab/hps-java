@@ -15,85 +15,106 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.DriverAdapter;
 
 /**
- * An adapter to supply and process LCSim EventHeader objects using 
- * an (optional) LCSimEventBuilder and the existing DriverAdapter class.
+ * An adapter to supply and process LCSim EventHeader objects using an (optional) LCSimEventBuilder and the existing
+ * DriverAdapter class.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class LcioEventAdapter extends CompositeLoopAdapter {
 
-    DriverAdapter drivers;
-    Driver top = new Driver();
-    LCSimEventBuilder builder;
-    AbstractRecordSource source;
-
     /**
-     * Constructor taking a record source which should supply
-     * LCSim LCIO events.
-     * @param source
+     * The builder for creating LCIO from EVIO.
      */
-    public LcioEventAdapter(AbstractRecordSource source) {
-        this.source = source;
-        drivers = new DriverAdapter(top);
-    }
+    private LCSimEventBuilder builder;
 
     /**
-     * No argument constructor in which case the {@link CompositeRecord}
-     * should supply <code>EvioEvent</code> objects for the builder.
+     * A list of Drivers to execute on the LCIO events.
+     */
+    private final DriverAdapter drivers;
+
+    /**
+     * The record source.
+     */
+    private AbstractRecordSource source;
+
+    /**
+     * A top level Driver for executing a number of other Drivers as children.
+     */
+    private final Driver top = new Driver();
+
+    /**
+     * Class Constructor with no arguments.
+     * <p>
+     * This is used when the {@link CompositeRecord} should supply <code>EvioEvent</code> objects for the builder.
      */
     public LcioEventAdapter() {
-        drivers = new DriverAdapter(top);
+        this.drivers = new DriverAdapter(this.top);
     }
 
     /**
-     * Add an LCSim <code>Driver</code> 
-     * @param driver The Driver to add.
+     * Class constructor.
+     * <p>
+     * The provided record source should supply LCIO/LCSim events directly.
+     *
+     * @param source the record source of LCIO events
      */
-    public void addDriver(Driver driver) {
-        top.add(driver);
+    public LcioEventAdapter(final AbstractRecordSource source) {
+        this.source = source;
+        this.drivers = new DriverAdapter(this.top);
     }
 
     /**
-     * Set the <code>LCSimEventBuilder</code> that will convert
-     * from EVIO to LCIO events.
-     * @param builder
+     * Add an LCSim <code>Driver</code> to execute.
+     *
+     * @param driver the Driver to add
      */
-    public void setLCSimEventBuilder(LCSimEventBuilder builder) {
-        this.builder = builder;
+    public void addDriver(final Driver driver) {
+        this.top.add(driver);
     }
 
     /**
-     * Process a {@link CompositeRecord} which will add an LCSim event
-     * and activate registered <code>Driver</code> objects.
+     * Activates the <code>endOfData</code> method on the registered <code>Driver</code> objects.
      */
-    public void recordSupplied(RecordEvent record) {
-        CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
+    @Override
+    public void finish(final LoopEvent loopEvent) {
+        this.drivers.finish(loopEvent);
+    }
+
+    /**
+     * Process a {@link CompositeRecord} which will create an LCSim event, add it to the composite record being
+     * processed, and activate registered the <code>Driver</code> chain.
+     */
+    @Override
+    public void recordSupplied(final RecordEvent record) {
+        final CompositeRecord compositeRecord = (CompositeRecord) record.getRecord();
         EventHeader lcioEvent = null;
         try {
             // Is there an EVIO event to use for the conversion to LCIO?
             if (compositeRecord.getEvioEvent() != null) {
                 // Create the EVIO event.
-                EvioEvent evioEvent = compositeRecord.getEvioEvent();
-                
+                final EvioEvent evioEvent = compositeRecord.getEvioEvent();
+
                 // Pre-read the event in the builder to get non-physics event information.
-                builder.readEvioEvent(evioEvent);
-                
+                this.builder.readEvioEvent(evioEvent);
+
                 // Is this a physics EvioEvent?
                 if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
                     // Use the builder to create the LCIO event.
-                    lcioEvent = builder.makeLCSimEvent(compositeRecord.getEvioEvent());
+                    lcioEvent = this.builder.makeLCSimEvent(compositeRecord.getEvioEvent());
                 } else {
                     // Non-physics events are ignored.
-                    return;                    
+                    return;
                 }
             } else {
                 // Try to use the event source to get the next LCIO event.
-                source.next();
-                lcioEvent = (EventHeader) source.getCurrentRecord();
+                this.source.next();
+                lcioEvent = (EventHeader) this.source.getCurrentRecord();
             }
-            
+
             // Supply the EventHeader to the DriverAdapter.
-            RecordEvent recordEvent = new RecordEvent(null, lcioEvent);
-            drivers.recordSupplied(recordEvent);
-            
+            final RecordEvent recordEvent = new RecordEvent(null, lcioEvent);
+            this.drivers.recordSupplied(recordEvent);
+
             // Set the reference to the LCIO event on the CompositeRecord.
             compositeRecord.setLcioEvent(lcioEvent);
         } catch (IOException | NoSuchRecordException e) {
@@ -102,26 +123,31 @@ public class LcioEventAdapter extends CompositeLoopAdapter {
     }
 
     /**
-     * Activates the <code>endOfData</code> method on the registered
-     * <code>Driver</code> objects.
+     * Set the <code>LCSimEventBuilder</code> that will convert from EVIO to LCIO events.
+     *
+     * @param builder the LCSim event builder for creating LCIO events from EVIO
      */
-    public void finish(LoopEvent loopEvent) {
-        drivers.finish(loopEvent);
+    public void setLCSimEventBuilder(final LCSimEventBuilder builder) {
+        this.builder = builder;
     }
 
     /**
-     * Activates the <code>startOfData</code> method on registered
-     * <code>Driver</code> objects.
+     * Activates the <code>startOfData</code> method on registered <code>Driver</code> objects.
+     *
+     * @param loopEvent the object with loop state information
      */
-    public void start(LoopEvent loopEvent) {
-        drivers.start(loopEvent);
+    @Override
+    public void start(final LoopEvent loopEvent) {
+        this.drivers.start(loopEvent);
     }
-    
+
     /**
-     * Activates the <code>suspend</code> method on registered
-     * <code>Driver</code> objects.
+     * Activates the <code>suspend</code> method on registered <code>Driver</code> objects.
+     *
+     * @param loopEvent the object with loop state information
      */
-    public void suspend(LoopEvent loopEvent) {
-        drivers.suspend(loopEvent);
+    @Override
+    public void suspend(final LoopEvent loopEvent) {
+        this.drivers.suspend(loopEvent);
     }
 }

@@ -3,21 +3,71 @@ package org.hps.record.epics;
 import org.lcsim.event.GenericObject;
 
 /**
- * This is an implementation of GenericObject for reading and writing EPICS data.
- * There is no functionality here.  Users that need this data in their <code>Driver</code>
- * classes should instead use {@link EpicsScalarData#read(org.lcsim.event.EventHeader)}
- * to create the class with the actual API.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * This is an implementation of GenericObject for reading and writing EPICS data. There is no functionality here
+ * intended for ends users. Instead, the EPICS data should be accessed using
+ * {@link EpicsScalarData#read(org.lcsim.event.EventHeader)} to create the data object from input event data.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class EpicsGenericObject implements GenericObject {
 
-    String[] keys;
-    double[] values;
+    /**
+     * The names of the EPICS variables.
+     */
+    private String[] keys;
+
+    /**
+     * The values of the EPICS variables.
+     */
+    private double[] values;
+
+    /**
+     * Get a double value of an EPICS variable.
+     *
+     * @param index the index of the variable
+     */
+    @Override
+    public double getDoubleVal(final int index) {
+        return this.values[index];
+    }
 
     @Override
-    public int getNInt() {
+    public float getFloatVal(final int index) {
         return 0;
+    }
+
+    @Override
+    public int getIntVal(final int index) {
+        return 0;
+    }
+
+    /**
+     * Get a key by index.
+     *
+     * @param index the index
+     * @return the key which is the name of an EPICS variable
+     */
+    public String getKey(final int index) {
+        return this.keys[index];
+    }
+
+    /**
+     * Get the keys which are the EPICS variable names.
+     *
+     * @return the keys
+     */
+    String[] getKeys() {
+        return this.keys;
+    }
+
+    /**
+     * Get the number of doubles which matches the number of EPICS variables.
+     *
+     * @return the number of double values
+     */
+    @Override
+    public int getNDouble() {
+        return this.values.length;
     }
 
     @Override
@@ -26,31 +76,53 @@ final class EpicsGenericObject implements GenericObject {
     }
 
     @Override
-    public int getNDouble() {
-        return values.length;
-    }
-
-    @Override
-    public int getIntVal(int index) {
+    public int getNInt() {
         return 0;
     }
 
-    @Override
-    public float getFloatVal(int index) {
-        return 0;
-    }
-
-    @Override
-    public double getDoubleVal(int index) {
-        return values[index];
-    }
-
+    /**
+     * Returns <code>false</code> to indicate this object does not have a fixed size.
+     */
     @Override
     public boolean isFixedSize() {
         return false;
     }
 
-    public String getKey(int index) {
-        return keys[index];
+    /**
+     * Set a key string by index.
+     *
+     * @param index the index
+     * @param key the key string which is an EPICS variable
+     */
+    void setKey(final int index, final String key) {
+        this.keys[index] = key;
+    }
+
+    /**
+     * Set the keys.
+     *
+     * @param keys the keys array
+     */
+    void setKeys(final String[] keys) {
+        this.keys = keys;
+    }
+
+    /**
+     * Set a value by index.
+     *
+     * @param index the index
+     * @param value the value
+     */
+    void setValue(final int index, final double value) {
+        this.values[index] = value;
+    }
+
+    /**
+     * Set the values array.
+     *
+     * @param values the values array
+     */
+    void setValues(final double[] values) {
+        this.values = values;
     }
 }

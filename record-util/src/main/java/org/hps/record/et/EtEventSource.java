@@ -10,103 +10,128 @@ import org.freehep.record.source.NoSuchRecordException;
 import org.jlab.coda.et.EtEvent;
 
 /**
- * Implement a loop record source supplying <tt>EtEvent</tt> objects 
- * from an ET server connection.
+ * Implementation of a record source supplying <tt>EtEvent</tt> objects from an ET server connection to a record loop.
+ *
+ * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EtEventSource extends AbstractRecordSource {
-    
-    EtConnection connection;
-    EtEvent currentRecord;
-    Queue<EtEvent> eventQueue = new LinkedBlockingQueue<EtEvent>();
-        
+
+    /**
+     * Indicates ET system error occurred.
+     */
+    @SuppressWarnings("serial")
+    public static class EtSourceException extends IOException {
+
+        /**
+         * Class constructor.
+         *
+         * @param message the error message
+         * @param cause the cause of the error
+         */
+        public EtSourceException(final String message, final Exception cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
+     * The ET connection information.
+     */
+    private final EtConnection connection;
+
+    /**
+     * The current ET record.
+     */
+    private EtEvent currentRecord;
+
+    /**
+     * The ET event queue.
+     */
+    private final Queue<EtEvent> eventQueue = new LinkedBlockingQueue<EtEvent>();
+
     /**
      * Constructor that requires the connection parameters.
-     * @param connection The EtConnection that should have a valid set of ET 
-     *                   connection parameters.
+     *
+     * @param connection the <code>EtConnection</code> which should have a valid set of ET connection parameters
      */
-    public EtEventSource(EtConnection connection) {
+    public EtEventSource(final EtConnection connection) {
         this.connection = connection;
     }
-          
+
     /**
      * Get the current record.
-     * @return The current record.
+     *
+     * @return the current record
      */
     @Override
     public Object getCurrentRecord() throws IOException {
-        return currentRecord;
+        return this.currentRecord;
     }
-    
+
     /**
-     * True because this source supports the <code>next</code> method.
-     * @return True because this source supports next.
-     */
-    @Override
-    public boolean supportsNext() {
-        return true;
-    }
-  
-    /**
-     * True if the current record is non-null.
-     * @return True if current record is non-null.
+     * Return <code>true</code> if the current record is not <code>null</code>
+     *
+     * @return <code>true</code> if the current record is not <code>null</code>
      */
     @Override
     public boolean hasCurrent() {
-        return currentRecord != null;
+        return this.currentRecord != null;
     }
-    
+
     /**
-     * Load the next <code>EtEvent</code> which will either read
-     * a cached record from the queue or fetch more records from
-     * the ET server if the queue is empty.
-     * @throws NoSuchRecordException if the queue is empty and getting
-     * more records from the ET server fails.
+     * Load the next <code>EtEvent</code>.
+     * <p>
+     * A cached record will be read from the queue or more records will be fetched from the ET server if the queue is
+     * empty.
+     *
+     * @throws NoSuchRecordException if the queue is empty and getting more records from the ET server fails
      */
     @Override
     public void next() throws IOException, NoSuchRecordException {
-        
+
         // Fill the queue if there are no events cached.
-        if (eventQueue.size() == 0) {
+        if (this.eventQueue.size() == 0) {
             readEtEvents();
         }
-        
+
         // Poll the queue.
-        currentRecord = eventQueue.poll();
-          
-        if (currentRecord == null) {
+        this.currentRecord = this.eventQueue.poll();
+
+        if (this.currentRecord == null) {
             throw new NoSuchRecordException("ET record queue is empty.");
         }
     }
-    
+
     /**
-     * Get the number of records which is the size of the current queue.
-     * @return The size of the queue.
+     * Read the next <code>EtEvent</code> array from the ET server.
+     *
+     * @throws IOException if reading the events fails
+     */
+    private void readEtEvents() throws IOException {
+        try {
+            final EtEvent[] mevs = this.connection.readEtEvents();
+            this.eventQueue.addAll(Arrays.asList(mevs));
+        } catch (final Exception e) {
+            throw new EtSourceException("Error while reading ET events.", e);
+        }
+    }
+
+    /**
+     * Get the number of records, which is the size of the current queue.
+     *
+     * @return the size of the queue
      */
     @Override
     public long size() {
         return this.eventQueue.size();
     }
-    
+
     /**
-     * Read the next <code>EtEvent</code> array from the ET server.
-     * @throws IOException if reading events fails.
+     * Return <code>true</code> because this source supports the <code>next</code> method
+     *
+     * @return <code>true</code> because this source supports the <code>next</code> method
      */
-    private void readEtEvents() throws IOException {
-        try {
-            EtEvent[] mevs = connection.readEtEvents();
-            eventQueue.addAll(Arrays.asList(mevs));        
-        } catch (Exception e) {
-            throw new EtSourceException("Error while reading ET events.", e);
-        }
-    }
-    
-    /**
-     * An error that is used to indicate an error in the ET system
-     * for the error handling of the loop.
-     */
-    public static class EtSourceException extends IOException {
-        public EtSourceException(String message, Exception cause) {
-            super(message, cause);
-        }
+    @Override
+    public boolean supportsNext() {
+        return true;
     }
 }
