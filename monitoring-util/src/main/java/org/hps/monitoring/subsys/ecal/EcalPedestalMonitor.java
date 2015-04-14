@@ -38,12 +38,12 @@ public class EcalPedestalMonitor extends Driver {
     int nDetectorChanges=0;
     private EcalConditions ecalConditions = null;
     List<JFreeChart> charts = new ArrayList<JFreeChart>();
-    MonitoringPlotFactory plotFactory = 
-            (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECal Pedestal Monitoring");
     
     public void detectorChanged(Detector detector) {
         if (nDetectorChanges++ > 0) return;
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        MonitoringPlotFactory plotFactory = 
+            (MonitoringPlotFactory) AIDA.defaultInstance().analysisFactory().createPlotterFactory("ECal Pedestal Monitoring");
         for (int crate : crates) {
             charts.add(plotFactory.createTimeSeriesChart(
                     "Crate " + crate,
