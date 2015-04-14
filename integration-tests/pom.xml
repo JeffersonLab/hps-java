@@ -39,7 +39,6 @@
                         <exclude>org/hps/ReadoutToLcioTest.java</exclude>
                         <exclude>org/hps/SimpleSvtReadoutTest.java</exclude>
                         <exclude>org/hps/TestRunReadoutToEvioTest.java</exclude>
-                        <exclude>org/hps/SteeringFilesTest.java</exclude>
                         <exclude>org/hps/ReadoutNoPileupTest.java</exclude>
                     </excludes>
 <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
