@@ -1,49 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
 <!-- 
-  Steering file for testing Alignment Monitoring classes
+  Steering file for tracking and v0 reconstruction monitoring 
   @author Matt Graham <mgraham@slac.stanford.edu>
 -->
-<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <driver name="EventMarkerDriver" />
-<!--      <driver name="TrackerDigiDriver"/> -->
+       <driver name="EventMarkerDriver" />
 <!--  the 3 drivers below are for reading out 6-sample ADC data -->
       <driver name="RawTrackerHitSensorSetup" /> 
-        <driver name="RawTrackerHitFitterDriver" /> 
-       <driver name="TrackerHitDriver" />  
-        <driver name="HelicalTrackHitDriver" />
-         <driver name="TrackerL1to3ReconDriver"/> 
-        <driver name="TrackerL4to6ReconDriver"/> 
-         <driver name="FullTrackerReconDriver"/> 
-           <driver name="TrackDataDriver"/>   
+      <driver name="RawTrackerHitFitterDriver" /> 
+      <driver name="TrackerHitDriver" />  
+      <driver name="HelicalTrackHitDriver" />
+<!--  SVT opening angle alignment -->
+       <driver name="TrackerL1to3ReconDriver"/> 
+       <driver name="TrackerL4to6ReconDriver"/> 
+       <driver name="SVTAlignment"/> 
+<!--  regular tracking and recon -->
+       <driver name="FullTrackerReconDriver"/> 
+       <driver name="TrackDataDriver"/>   
        <driver name="EcalRawConverter" /> 
-        <driver name="EcalClusterer" />
+       <driver name="EcalClusterer" />
        <driver name="ReconParticle" /> 
 <!-- Online Monitoring Drivers -->
-        <driver name="TrackingMonitoring" />
-        <driver name="TrackingResiduals"/>  
-        <driver name="TrackTime"/>  
-        <driver name="V0Monitoring"/>   
-        <driver name="SVTAlignment"/> 
-<!-- DQM Monitoring Drivers -->
-<!--        <driver name="TrackingDQM" />
-        <driver name="TrackingResidualsDQM"/>   -->
-<!--        <driver name="FinalStateDQM"/>  
-        <driver name="V0DQM"/>  -->
-        <driver name="AidaSaveDriver"/> 
-        <driver name="CleanupDriver" />
+       <driver name="TrackingMonitoring" />
+       <driver name="TrackingResiduals"/>  
+       <driver name="TrackTime"/>  
+       <driver name="V0Monitoring"/>   
+       <driver name="CleanupDriver" />
     </execute>
     <drivers>
-        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver" />
          <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver>
-  <driver name="TrackerDigiDriver" type="org.hps.recon.tracking.SimpleTrackerDigiDriver">
-            <!-- <dropBadChannels>true</dropBadChannels> -->
-            <rawTrackerHitOutputCollectionName>SVTRawTrackerHits</rawTrackerHitOutputCollectionName>
-            <debug>false</debug>
-        </driver>
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-        <driver name="BadChannelFilter" type="org.hps.recon.tracking.SVTBadChannelFilterDriver" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
@@ -71,16 +60,13 @@
         <trackCollectionName>L4to6Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
-
         <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
         </driver>
-
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
         </driver>
-
          <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
               <ecalCollectionName>EcalCalHits</ecalCollectionName>
             <use2014Gain>false</use2014Gain>
@@ -110,21 +96,6 @@
         <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
         </driver>
 
-        <driver name="TrackingDQM" type="org.hps.analysis.dataquality.TrackingMonitoring">         
-            <overwriteDB>false</overwriteDB>
-        </driver>
-      <driver name="TrackingResidualsDQM" type="org.hps.analysis.dataquality.TrackingResiduals">         
-            <overwriteDB>false</overwriteDB>
-        </driver>
- <driver name="FinalStateDQM" type="org.hps.analysis.dataquality.FinalStateMonitoring">         
-            <overwriteDB>false</overwriteDB>
-        </driver>
-        <driver name="V0DQM" type="org.hps.analysis.dataquality.V0Monitoring">         
-            <overwriteDB>false</overwriteDB>
-        </driver>
-     <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-                 <outputFileName>./Test-DQM-Tracking-Recon.root</outputFileName>
-        </driver>  
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
     </drivers>
 </lcsim>

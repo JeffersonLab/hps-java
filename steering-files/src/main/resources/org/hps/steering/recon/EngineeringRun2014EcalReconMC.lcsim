@@ -1,6 +1,17 @@
 <!-- 
-    Offline reconstruction for 2014 engineering run (ECal only) MC. 
+    Offline reconstruction for 2014 engineering run (ECal only) data.
+
+    Changes made by JM:
+            
+    -Replaced clustering Drivers with new recon.ecal.cluster classes.    
+    -Commented out the legacy clusterer. 
+    -Configured ReconClusterDriver to not write the rejected hit collection.
+    -Changed output cluster collection names.
+     
+     NAB: (Feb 11, 2015) Added EcalRunningPedestalDriver
+     
     @author Matt Graham <mgraham@slac.stanford.edu> 
+    @author Jeremy McCormick<jeremym@slac.stanford.edu>
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
     xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
@@ -15,8 +26,13 @@
     </execute>
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+            <eventInterval>100</eventInterval>
         </driver>
+     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+       <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
+       <runNumber>3422</runNumber>
+        <freeze>true</freeze>
+    </driver>
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <minLookbackEvents>10</minLookbackEvents>
             <maxLookbackEvents>50</maxLookbackEvents>

@@ -24,6 +24,8 @@
             <eventInterval>1000</eventInterval>
         </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+    <detectorName>
+ <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
      <runNumber>3422</runNumber>
      <freeze>true</freeze>
     </driver>

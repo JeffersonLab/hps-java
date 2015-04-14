@@ -29,6 +29,7 @@
         </driver>        
     <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
      <runNumber>3422</runNumber>
+     <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
      <freeze>true</freeze>
     </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">

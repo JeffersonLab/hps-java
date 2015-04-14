@@ -10,15 +10,25 @@
     </control>    
     <execute>
         <driver name="EventMarkerDriver"/>
+        <driver name="ConditionsDriver"/>
         <driver name="EcalEdepToTriggerConverterDriver"/>
         <driver name="EcalReadoutConverterDriver"/>
         <driver name="EcalTriggerClusterer"/>
         <driver name="SimpleSVTReadout"/> 
         <driver name="EcalTrigger"/>
-        <driver name="ClockDriver"/>        
+        <driver name="ClockDriver"/>
+        <driver name="AidaSaveDriver"/>        
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
+
+
+
+   <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+     <runNumber>3422</runNumber>
+      <detectorName>HPS-EngRun2015-Nominal-v0</detectorName>
+     <freeze>true</freeze> 
+    </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
@@ -28,9 +38,10 @@
             <truncateScale>1</truncateScale>
             <constantGain>0.15</constantGain>
         </driver>
-        <driver name="EcalReadoutConverterDriver" type="org.hps.recon.ecal.EcalRawConverterDriver">
+        <driver name="EcalReadoutConverterDriver" type="org.hps.recon.ecal.EcalRawConverterDriver">                              
+            <use2014Gain>false</use2014Gain> 
             <runBackwards>true</runBackwards>
-            <rawCollectionName>EcalReadoutHits</rawCollectionName>
+            <rawCollectionName>EcalReadoutHits</rawCollectionName>           
             <ecalCollectionName>EcalReadoutAnalogHits</ecalCollectionName>
         </driver>
         <driver name="EcalTriggerClusterer" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
@@ -47,6 +58,11 @@
         </driver>	
         <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
             <noPileup>true</noPileup>
+        </driver>
+
+   <driver name="AidaSaveDriver"
+                type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}_triggerPlots.root</outputFileName>
         </driver>
         <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

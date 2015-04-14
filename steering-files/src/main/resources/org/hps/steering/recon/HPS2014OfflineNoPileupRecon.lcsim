@@ -7,12 +7,13 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <driver name="EventMarkerDriver"/>       
+        <driver name="ConditionsDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
         <driver name="TrackerReconDriver"/>
-        <driver name="EcalRawConverter" />
+        <driver name="EcalRawConverter" /> 
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" /> 
         <driver name="TrackDataDriver" />               
@@ -21,6 +22,13 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
+
+    
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>HPS-EngRun2015-Nominal-v0</detectorName>
+            <runNumber>3422</runNumber>
+            <freeze>true</freeze>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        
@@ -47,14 +55,15 @@
             <isMC>false</isMC>
             <gblFileName></gblFileName>
         </driver>
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+
+       <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
             <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <use2014Gain>true</use2014Gain>
-            <useTimestamps>true</useTimestamps>
+            <use2014Gain>false</use2014Gain>
+            <useTimestamps>false</useTimestamps>
             <useTruthTime>false</useTruthTime>
-        </driver>
+        </driver> 
         <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
-            <useTimeCut>true</useTimeCut>
+            <useTimeCut>false</useTimeCut>
         </driver>
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">          
         </driver>
