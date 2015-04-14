@@ -40,7 +40,6 @@
             <eventRefreshRate>2</eventRefreshRate>
         </driver>
         <driver name="LedAnalysisDriver" type="org.hps.monitoring.ecal.plots.EcalLedSequenceMonitor">
-           <isEmbedded>true</isEmbedded>
            <isMonitoringApp>false</isMonitoringApp>
            <skipMin>0.25</skipMin>
            <skipInitial>0.05</skipInitial>    

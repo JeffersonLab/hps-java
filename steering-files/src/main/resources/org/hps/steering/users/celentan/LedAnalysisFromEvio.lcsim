@@ -9,7 +9,6 @@
     	<driver name="EventMarkerDriver"/>
         <driver name="EcalRunningPedestal"/>
   	    <driver name="EcalRawConverter" />    
-        <driver name="LedAnalysisDriver"/>
         <driver name="AidaSaveDriver"/>
     </execute>           
     <drivers>    
@@ -28,10 +27,6 @@
             <useRunningPedestal>true</useRunningPedestal>
             <useTimeWalkCorrection>true</useTimeWalkCorrection>
         </driver>       
-        <driver name="LedAnalysisDriver" type="org.hps.users.celentan.LedAnalysis">    
-           <useRawEnergy>true</useRawEnergy>
-           <energyCut>5</energyCut>
-        </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.aida</outputFileName>
         </driver>

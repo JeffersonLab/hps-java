@@ -20,7 +20,6 @@
         <driver name="TrackerReconDriver" />
         <driver name="SVTEventInfo" />
         <driver name="SVTHitReconstructionPlots" />
-        <driver name="TrackingReconstructionPlots" />
         <driver name="LCIOWriter" />
     </execute>
     <drivers>
@@ -47,9 +46,6 @@
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-All.xml</strategyResource>
-        </driver>
-        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-            <outputPlots>TrackingReconstructionPlots.aida</outputPlots>
         </driver>
         <driver name="SVTHitReconstructionPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <outputPlots>SVTHitReconstructionPlots.aida</outputPlots>

@@ -18,7 +18,6 @@
         <driver name="TrackDataDriver" />
         <driver name="SVTEventInfo" />
         <driver name="SVTHitReconstructionPlots" />
-        <driver name="TrackingReconstructionPlots" />
         <driver name="GBLDriver" />
         <driver name="LCIOWriter" />
         <driver name="CleanupDriver" />
@@ -57,9 +56,6 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
-        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-            <outputPlots>TrackingReconstructionPlots.aida</outputPlots>
-        </driver>
         <driver name="SVTHitReconstructionPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <outputPlots>SVTHitReconstructionPlots.aida</outputPlots>
         </driver>

@@ -11,7 +11,6 @@
         <!-- <driver name="SVTHitRecoPlots"/> -->
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver" />
-        <driver name="TrackingReconstructionPlots" />
         <driver name="LCIOWriter" />
         <driver name="CleanupDriver" />
     </execute>
@@ -53,10 +52,6 @@
             type="org.hps.recon.tracking.AxialTrackReconDriver">
             <debug>true</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
-        </driver>
-        <driver name="TrackingReconstructionPlots"
-            type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-            <outputPlots>trackingPlots.aida</outputPlots>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>/Users/mgraham/HPS/HPSData/hps_000820_trackRecon.slcio</outputFilePath>

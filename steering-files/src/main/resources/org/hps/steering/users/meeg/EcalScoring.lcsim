@@ -8,7 +8,7 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         
-        <driver name="ECalScoringMatch"/>   
+        <driver name="EcalScoringMatch"/>   
 
         <driver name="AidaSaveDriver"/>
     </execute> 

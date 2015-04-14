@@ -12,10 +12,8 @@
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver" />
 <!--        <driver name="SVTSimpleEventDisplay"/>-->
-<!--        <driver name="TrackTimePlots"/>-->
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-        <driver name="TrackingReconstructionPlots" />
         <driver name="CleanupDriver" />
         <driver name="AidaSaveDriver" />
     </execute>
@@ -51,9 +49,6 @@
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
         </driver>
-        <driver name="TrackingReconstructionPlots" type="org.hps.monitoring.drivers.svt.TrackingReconstructionPlots">
-<!--            <outputPlots>HPSTestRunTrackingPlots.aida</outputPlots>-->
-        </driver>
         <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
             <inputCollection>SVTRawTrackerHits</inputCollection>
             <singleEvent>false</singleEvent>
@@ -69,7 +64,6 @@
         <driver name="SVTHitRecoPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
         </driver>
-        <driver name="TrackTimePlots" type="org.hps.monitoring.drivers.svt.TrackTimePlots" />
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
             <collectionNames>TrackerHits</collectionNames>
         </driver>

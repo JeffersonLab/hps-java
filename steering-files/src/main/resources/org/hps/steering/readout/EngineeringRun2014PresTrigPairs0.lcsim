@@ -23,12 +23,11 @@
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>        
-    <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
-    <detectorName>
- <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
-     <runNumber>3422</runNumber>
-     <freeze>true</freeze>
-    </driver>
+        <driver name="ConditionsDriver" type="org.hps.conditions.ConditionsDriver">
+            <detectorName>HPS-ECalCommissioning-v3-fieldmap</detectorName>
+            <runNumber>3422</runNumber>
+            <freeze>true</freeze>
+        </driver>
         <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
             <outputFile>${outputFile}.slcio</outputFile>
             <rejectBackground>false</rejectBackground>
