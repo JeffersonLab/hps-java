@@ -40,6 +40,10 @@
                             <name>org.lcsim:*</name>
                             <value>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</value>
                         </property>
+                        <property>
+                            <name>org.jlab.coda:*</name>
+                            <value>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</value>
+                        </property>
                     </urls>
                     <redirectUrls>
                         <property>
