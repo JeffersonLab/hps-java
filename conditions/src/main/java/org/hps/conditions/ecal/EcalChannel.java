@@ -25,38 +25,50 @@ import org.lcsim.geometry.Subdetector;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-@Table(names = { "ecal_channels", "test_run_ecal_channels" })
+@Table(names = {"ecal_channels", "test_run_ecal_channels"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_CREATED, converter = EcalChannel.EcalChannelConverter.class)
 public final class EcalChannel extends BaseConditionsObject {
 
     /**
-     * Customized converter for this object.
+     * The <code>ChannelId</code> is a unique number identifying the channel within its conditions collection. The
+     * channels in the database are given sequential channel IDs from 1 to N in semi-arbitrary order. The channel ID is
+     * generally the number used to connect other conditions objects such as {@link EcalGain} or {@link EcalCalibration}
+     * to the appropriate crystal in the calorimeter.
      */
-    public static final class EcalChannelConverter extends AbstractConditionsObjectConverter<EcalChannelCollection> {
+    public static final class ChannelId extends AbstractIdentifier {
 
         /**
-         * Create an {@link EcalChannel} collection.
-         * 
-         * @param conditionsManager the conditions manager
-         * @param name the name of the conditions data table
-         * @return the collection of ECAL channel objects
+         * The channel ID value.
          */
-        @Override
-        public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
-            final EcalChannelCollection collection = super.getData(conditionsManager, name);
-            final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
-            collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
-            return collection;
+        private int id = -1;
+
+        /**
+         * Create a channel ID.
+         *
+         * @param values the values (size 0 with single int value)
+         */
+        public ChannelId(final int[] values) {
+            this.id = values[0];
         }
 
         /**
-         * Get the type this converter handles.
-         * 
-         * @return the type this converter handles
+         * Encode as long value (just returns the int value).
+         *
+         * @return the ID's value encoded as a <code>long</code>
          */
         @Override
-        public Class<EcalChannelCollection> getType() {
-            return EcalChannelCollection.class;
+        public long encode() {
+            return this.id;
+        }
+
+        /**
+         * Return <code>true</code> if ID is valid
+         *
+         * @return <code>true</code> if ID is valid
+         */
+        @Override
+        public boolean isValid() {
+            return this.id != -1;
         }
     }
 
@@ -65,6 +77,11 @@ public final class EcalChannel extends BaseConditionsObject {
      * configuration.
      */
     public static final class DaqId extends AbstractIdentifier {
+
+        /**
+         * The DAQ channel number.
+         */
+        private int channel = -1;
 
         /**
          * The DAQ crate number.
@@ -77,40 +94,216 @@ public final class EcalChannel extends BaseConditionsObject {
         private int slot = -1;
 
         /**
-         * The DAQ channel number.
-         */
-        private int channel = -1;
-
-        /**
          * Create a DAQ ID from an array of values.
-         * 
+         *
          * @param values The list of values (crate, slot, channel).
          */
         public DaqId(final int values[]) {
-            crate = values[0];
-            slot = values[1];
-            channel = values[2];
+            this.crate = values[0];
+            this.slot = values[1];
+            this.channel = values[2];
         }
 
         /**
          * Encode this ID into a long value.
-         * 
+         *
          * @return The encoded long value.
          */
         @Override
         public long encode() {
             // from ECAL readout sim code
-            return (((long) crate) << 32) | ((long) slot << 16) | (long) channel;
+            return (long) this.crate << 32 | (long) this.slot << 16 | this.channel;
         }
 
         /**
          * Check if the values look valid.
-         * 
+         *
          * @return True if ID's values are valid.
          */
         @Override
         public boolean isValid() {
-            return crate != -1 && slot != -1 && channel != -1;
+            return this.crate != -1 && this.slot != -1 && this.channel != -1;
+        }
+    }
+
+    /**
+     * A collection of {@link EcalChannel} objects.
+     */
+    public static class EcalChannelCollection extends BaseConditionsObjectCollection<EcalChannel> {
+
+        /**
+         * Comparison of ECAL channel objects.
+         */
+        class ChannelIdComparator implements Comparator<EcalChannel> {
+            /**
+             * Compare two ECAL channel objects using their channel ID.
+             *
+             * @param c1 the first object
+             * @param c2 the second object
+             * @return -1, 0, or 1 if first channel is less than, equal to or greater than second
+             */
+            @Override
+            public int compare(final EcalChannel c1, final EcalChannel c2) {
+                if (c1.getChannelId() < c2.getChannelId()) {
+                    return -1;
+                } else if (c1.getChannelId() > c2.getChannelId()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+
+        /**
+         * Map of {@link #ChannelId} to channel object.
+         */
+        private final Map<Long, EcalChannel> channelMap = new HashMap<Long, EcalChannel>();
+
+        /**
+         * Map of {@link #DaqId} to channel object.
+         */
+        private final Map<Long, EcalChannel> daqMap = new HashMap<Long, EcalChannel>();
+
+        /**
+         * Map of {@link #GeometryId} to channel object.
+         */
+        private final Map<Long, EcalChannel> geometryMap = new HashMap<Long, EcalChannel>();
+
+        /**
+         * Add an <code>EcalChannel</code> to the collection and cache its ID information. The GeometryId must be
+         * created later as it requires access to the Detector API.
+         *
+         * @param channel the ECAL channel object
+         * @return <code>true</code> if object was added successfully
+         */
+        @Override
+        public boolean add(final EcalChannel channel) {
+            super.add(channel);
+            final DaqId daqId = channel.createDaqId();
+            if (daqId.isValid()) {
+                this.daqMap.put(daqId.encode(), channel);
+            }
+            final ChannelId channelId = channel.createChannelId();
+            if (channelId.isValid()) {
+                this.channelMap.put(channelId.encode(), channel);
+            }
+            return true;
+        }
+
+        /**
+         * Build the map of {@link #GeometryId} objects.
+         *
+         * @param helper the ID helper of the subdetector
+         * @param system the system ID of the subdetector
+         */
+        void buildGeometryMap(final IIdentifierHelper helper, final int system) {
+            for (final EcalChannel channel : this) {
+                final GeometryId geometryId = channel.createGeometryId(helper, system);
+                this.geometryMap.put(geometryId.encode(), channel);
+            }
+        }
+
+        /**
+         * Find a channel by its channel ID.
+         *
+         * @param channelId the channel ID object
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public EcalChannel findChannel(final ChannelId channelId) {
+            return this.channelMap.get(channelId.encode());
+        }
+
+        /**
+         * Find a channel by using DAQ information.
+         *
+         * @param daqId the DAQ ID object
+         * @return the matching channel or <code>null</code> if does not exist.
+         */
+        public EcalChannel findChannel(final DaqId daqId) {
+            return this.daqMap.get(daqId.encode());
+        }
+
+        /**
+         * Find a channel by using its physical ID information.
+         *
+         * @param geometryId the geometric ID object
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public EcalChannel findChannel(final GeometryId geometryId) {
+            return this.geometryMap.get(geometryId.encode());
+        }
+
+        /**
+         * Find a channel by its encoded channel ID.
+         *
+         * @param id the encoded channel ID
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public EcalChannel findChannel(final long id) {
+            return this.channelMap.get(id);
+        }
+
+        /**
+         * Find a channel by its encoded DAQ ID.
+         *
+         * @param id the encoded DAQ ID
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public EcalChannel findDaq(final long id) {
+            return this.daqMap.get(id);
+        }
+
+        /**
+         * Find a channel by its encoded geometric ID.
+         *
+         * @param id the encoded geometric ID
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public EcalChannel findGeometric(final long id) {
+            return this.geometryMap.get(id);
+        }
+
+        /**
+         * Sort collection and return but do not sort in place.
+         *
+         * @return the sorted copy of the collection
+         */
+        @Override
+        public BaseConditionsObjectCollection<EcalChannel> sorted() {
+            return sorted(new ChannelIdComparator());
+        }
+    }
+
+    /**
+     * Customized converter for this object.
+     */
+    public static final class EcalChannelConverter extends AbstractConditionsObjectConverter<EcalChannelCollection> {
+
+        /**
+         * Create an {@link EcalChannel} collection.
+         *
+         * @param conditionsManager the conditions manager
+         * @param name the name of the conditions data table
+         * @return the collection of ECAL channel objects
+         */
+        @Override
+        public EcalChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
+            final EcalChannelCollection collection = super.getData(conditionsManager, name);
+            final Subdetector ecal = DatabaseConditionsManager.getInstance().getEcalSubdetector();
+            if (ecal != null) {
+                collection.buildGeometryMap(ecal.getDetectorElement().getIdentifierHelper(), ecal.getSystemID());
+            }
+            return collection;
+        }
+
+        /**
+         * Get the type this converter handles.
+         *
+         * @return the type this converter handles
+         */
+        @Override
+        public Class<EcalChannelCollection> getType() {
+            return EcalChannelCollection.class;
         }
     }
 
@@ -119,6 +312,11 @@ public final class EcalChannel extends BaseConditionsObject {
      * representation.
      */
     public static final class GeometryId extends AbstractIdentifier {
+
+        /**
+         * The helper for using identifiers.
+         */
+        private final IIdentifierHelper helper;
 
         /**
          * The subdetector system ID.
@@ -136,333 +334,80 @@ public final class EcalChannel extends BaseConditionsObject {
         private int y = Integer.MAX_VALUE;
 
         /**
-         * The helper for using identifiers.
-         */
-        private IIdentifierHelper helper;
-
-        /**
          * Create a geometry ID.
-         * 
+         *
          * @param helper the ID helper
          * @param values the list of values (order is system, x, y)
          */
         public GeometryId(final IIdentifierHelper helper, final int[] values) {
             this.helper = helper;
-            system = values[0];
-            x = values[1];
-            y = values[2];
+            this.system = values[0];
+            this.x = values[1];
+            this.y = values[2];
         }
 
         /**
          * Encode this ID as a long using the ID helper.
-         * 
+         *
          * @return The encoded long value.
          */
         @Override
         public long encode() {
-            final IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary()
+            final IExpandedIdentifier expId = new ExpandedIdentifier(this.helper.getIdentifierDictionary()
                     .getNumberOfFields());
-            expId.setValue(helper.getFieldIndex("system"), system);
-            expId.setValue(helper.getFieldIndex("ix"), x);
-            expId.setValue(helper.getFieldIndex("iy"), y);
-            return helper.pack(expId).getValue();
+            expId.setValue(this.helper.getFieldIndex("system"), this.system);
+            expId.setValue(this.helper.getFieldIndex("ix"), this.x);
+            expId.setValue(this.helper.getFieldIndex("iy"), this.y);
+            return this.helper.pack(expId).getValue();
         }
 
         /**
          * Return <code>true</code> if ID is valid
-         * 
+         *
          * @return <code>true</code> if ID is valid
          */
         @Override
         public boolean isValid() {
-            return system != -1 && x != Integer.MAX_VALUE && y != Integer.MAX_VALUE;
+            return this.system != -1 && this.x != Integer.MAX_VALUE && this.y != Integer.MAX_VALUE;
         }
     }
 
     /**
-     * The <code>ChannelId</code> is a unique number identifying the channel within its conditions collection. The
-     * channels in the database are given sequential channel IDs from 1 to N in semi-arbitrary order. The channel ID is
-     * generally the number used to connect other conditions objects such as {@link EcalGain} or {@link EcalCalibration}
-     * to the appropriate crystal in the calorimeter.
+     * Create a channel ID for this ECAL channel.
+     *
+     * @return The channel ID.
      */
-    public static final class ChannelId extends AbstractIdentifier {
-
-        /**
-         * The channel ID value.
-         */
-        private int id = -1;
-
-        /**
-         * Create a channel ID.
-         * 
-         * @param values the values (size 0 with single int value)
-         */
-        public ChannelId(int[] values) {
-            id = values[0];
-        }
-
-        /**
-         * Encode as long value (just returns the int value).
-         * 
-         * @return the ID's value encoded as a <code>long</code>
-         */
-        @Override
-        public long encode() {
-            return id;
-        }
-
-        /**
-         * Return <code>true</code> if ID is valid
-         * 
-         * @return <code>true</code> if ID is valid
-         */
-        @Override
-        public boolean isValid() {
-            return id != -1;
-        }
+    ChannelId createChannelId() {
+        return new ChannelId(new int[] {this.getChannelId()});
     }
 
     /**
      * Create a {@link #DaqId} for this ECAL channel.
-     * 
+     *
      * @return the {@link #DaqId} for this ECAL channel
      */
     DaqId createDaqId() {
-        return new DaqId(new int[] { getCrate(), getSlot(), getChannel() });
+        return new DaqId(new int[] {getCrate(), getSlot(), getChannel()});
     }
 
     /**
      * Create a {@link #GeometryId} for this ECAL channel.
-     * 
+     *
      * @param helper the ID helper
      * @param system the subdetector system ID
      * @return the geometry ID
      */
     GeometryId createGeometryId(final IIdentifierHelper helper, final int system) {
-        return new GeometryId(helper, new int[] { system, getX(), getY() });
-    }
-
-    /**
-     * Create a channel ID for this ECAL channel.
-     * 
-     * @return The channel ID.
-     */
-    ChannelId createChannelId() {
-        return new ChannelId(new int[] { this.getChannelId() });
-    }
-
-    /**
-     * A collection of {@link EcalChannel} objects.
-     */
-    public static class EcalChannelCollection extends BaseConditionsObjectCollection<EcalChannel> {
-
-        /**
-         * Map of {@link #DaqId} to channel object.
-         */
-        private Map<Long, EcalChannel> daqMap = new HashMap<Long, EcalChannel>();
-
-        /**
-         * Map of {@link #GeometryId} to channel object.
-         */
-        private Map<Long, EcalChannel> geometryMap = new HashMap<Long, EcalChannel>();
-
-        /**
-         * Map of {@link #ChannelId} to channel object.
-         */
-        private Map<Long, EcalChannel> channelMap = new HashMap<Long, EcalChannel>();
-
-        /**
-         * Add an <code>EcalChannel</code> to the collection and cache its ID information. The GeometryId must be
-         * created later as it requires access to the Detector API.
-         * 
-         * @param channel the ECAL channel object
-         * @return <code>true</code> if object was added successfully
-         */
-        @Override
-        public boolean add(final EcalChannel channel) {
-            super.add(channel);
-            final DaqId daqId = channel.createDaqId();
-            if (daqId.isValid()) {
-                daqMap.put(daqId.encode(), channel);
-            }
-            final ChannelId channelId = channel.createChannelId();
-            if (channelId.isValid()) {
-                channelMap.put(channelId.encode(), channel);
-            }
-            return true;
-        }
-
-        /**
-         * Build the map of {@link #GeometryId} objects.
-         * 
-         * @param helper the ID helper of the subdetector
-         * @param system the system ID of the subdetector
-         */
-        void buildGeometryMap(final IIdentifierHelper helper, final int system) {
-            for (EcalChannel channel : this) {
-                GeometryId geometryId = channel.createGeometryId(helper, system);
-                geometryMap.put(geometryId.encode(), channel);
-            }
-        }
-
-        /**
-         * Find a channel by using DAQ information.
-         * 
-         * @param daqId the DAQ ID object
-         * @return the matching channel or <code>null</code> if does not exist.
-         */
-        public EcalChannel findChannel(final DaqId daqId) {
-            return daqMap.get(daqId.encode());
-        }
-
-        /**
-         * Find a channel by using its physical ID information.
-         * 
-         * @param geometryId the geometric ID object
-         * @return the matching channel or <code>null</code> if does not exist
-         */
-        public EcalChannel findChannel(final GeometryId geometryId) {
-            return geometryMap.get(geometryId.encode());
-        }
-
-        /**
-         * Find a channel by its channel ID.
-         * 
-         * @param channelId the channel ID object
-         * @return the matching channel or <code>null</code> if does not exist
-         */
-        public EcalChannel findChannel(final ChannelId channelId) {
-            return channelMap.get(channelId.encode());
-        }
-
-        /**
-         * Find a channel by its encoded geometric ID.
-         * 
-         * @param id the encoded geometric ID
-         * @return the matching channel or <code>null</code> if does not exist
-         */
-        public EcalChannel findGeometric(final long id) {
-            return geometryMap.get(id);
-        }
-
-        /**
-         * Find a channel by its encoded channel ID.
-         * 
-         * @param id the encoded channel ID
-         * @return the matching channel or <code>null</code> if does not exist
-         */
-        public EcalChannel findChannel(final long id) {
-            return channelMap.get(id);
-        }
-
-        /**
-         * Find a channel by its encoded DAQ ID.
-         * 
-         * @param id the encoded DAQ ID
-         * @return the matching channel or <code>null</code> if does not exist
-         */
-        public EcalChannel findDaq(final long id) {
-            return daqMap.get(id);
-        }
-
-        /**
-         * Sort collection and return but do not sort in place.
-         * 
-         * @return the sorted copy of the collection
-         */
-        public BaseConditionsObjectCollection<EcalChannel> sorted() {
-            return sorted(new ChannelIdComparator());
-        }
-
-        /**
-         * Comparison of ECAL channel objects.
-         */
-        class ChannelIdComparator implements Comparator<EcalChannel> {
-            /**
-             * Compare two ECAL channel objects using their channel ID.
-             * 
-             * @param c1 the first object
-             * @param c2 the second object
-             * @return -1, 0, or 1 if first channel is less than, equal to or greater than second
-             */
-            public int compare(EcalChannel c1, EcalChannel c2) {
-                if (c1.getChannelId() < c2.getChannelId()) {
-                    return -1;
-                } else if (c1.getChannelId() > c2.getChannelId()) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-        }
-    }
-
-    /**
-     * Get the crate number of the channel.
-     * 
-     * @return the crate number
-     */
-    @Field(names = { "crate" })
-    public int getCrate() {
-        return getFieldValue("crate");
-    }
-
-    /**
-     * Get the slot number of the channel.
-     * 
-     * @return the slot number
-     */
-    @Field(names = { "slot" })
-    public int getSlot() {
-        return getFieldValue("slot");
-    }
-
-    /**
-     * Get the channel number of the channel.
-     * 
-     * @return the channel number
-     */
-    @Field(names = { "channel" })
-    public int getChannel() {
-        return getFieldValue("channel");
-    }
-
-    /**
-     * Get the x value of the channel.
-     * 
-     * @return the x value
-     */
-    @Field(names = { "x" })
-    public int getX() {
-        return getFieldValue("x");
-    }
-
-    /**
-     * Get the y value of the channel.
-     * 
-     * @return the y value
-     */
-    @Field(names = { "y" })
-    public int getY() {
-        return getFieldValue("y");
-    }
-
-    /**
-     * Get the ID of the channel.
-     * 
-     * @return the ID of the channel
-     */
-    @Field(names = { "channel_id" })
-    public int getChannelId() {
-        return getFieldValue("channel_id");
+        return new GeometryId(helper, new int[] {system, getX(), getY()});
     }
 
     /**
      * Implementation of equals.
-     * 
+     *
      * @param o the object to compare equality to
      * @return <code>true</code> if objects are equal
      */
+    @Override
     public boolean equals(final Object o) {
         if (o == null) {
             return false;
@@ -476,5 +421,65 @@ public final class EcalChannel extends BaseConditionsObject {
         final EcalChannel c = (EcalChannel) o;
         return c.getChannelId() == getChannelId() && c.getCrate() == getCrate() && c.getSlot() == getSlot()
                 && c.getChannel() == getChannel() && c.getX() == getX() && c.getY() == getY();
+    }
+
+    /**
+     * Get the channel number of the channel.
+     *
+     * @return the channel number
+     */
+    @Field(names = {"channel"})
+    public int getChannel() {
+        return getFieldValue("channel");
+    }
+
+    /**
+     * Get the ID of the channel.
+     *
+     * @return the ID of the channel
+     */
+    @Field(names = {"channel_id"})
+    public int getChannelId() {
+        return getFieldValue("channel_id");
+    }
+
+    /**
+     * Get the crate number of the channel.
+     *
+     * @return the crate number
+     */
+    @Field(names = {"crate"})
+    public int getCrate() {
+        return getFieldValue("crate");
+    }
+
+    /**
+     * Get the slot number of the channel.
+     *
+     * @return the slot number
+     */
+    @Field(names = {"slot"})
+    public int getSlot() {
+        return getFieldValue("slot");
+    }
+
+    /**
+     * Get the x value of the channel.
+     *
+     * @return the x value
+     */
+    @Field(names = {"x"})
+    public int getX() {
+        return getFieldValue("x");
+    }
+
+    /**
+     * Get the y value of the channel.
+     *
+     * @return the y value
+     */
+    @Field(names = {"y"})
+    public int getY() {
+        return getFieldValue("y");
     }
 }
