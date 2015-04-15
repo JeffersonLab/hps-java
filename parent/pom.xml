@@ -480,7 +480,7 @@
             </roles>
             <timezone>-5</timezone>
         </developer>
-    <developer>
+        <developer>
             <name>Andrea Celentano</name>
             <email>andrea.celentano@ge.infn.it</email>
             <organization>INFN Genova</organization>
@@ -489,6 +489,16 @@
                 <role>developer</role>
             </roles>
             <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <name>Nathan Baltzell</name>
+            <email>baltzell@jlab.org</email>
+            <organization>Thomas Jefferson National Accelerator Facility</organization>
+            <organizationUrl>http://www.jlab.org/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-5</timezone>
         </developer>
     </developers>
     <contributors>
