@@ -44,7 +44,7 @@ public class TagCommand extends AbstractCommand {
         OPTIONS.getOption("r").setRequired(true);
         OPTIONS.addOption(new Option("t", true, "The new conditions tag"));
         OPTIONS.getOption("t").setRequired(true);
-        OPTIONS.addOption(new Option("X", true, "Actually make the new tag in the database (dry run is default)"));
+        OPTIONS.addOption(new Option("f", false, "Don't prompt before making tag (careful!)"));
     }
 
     /**
@@ -77,9 +77,9 @@ public class TagCommand extends AbstractCommand {
             throw new RuntimeException("Missing required -t argument with the tag name.");
         }
 
-        boolean makeTag = false;
-        if (commandLine.hasOption("X")) {
-            makeTag = true;
+        boolean dontPrompt = false;
+        if (commandLine.hasOption("f")) {
+            dontPrompt = true;
         }
 
         final ConditionsRecordCollection tagRecords = new ConditionsRecordCollection();
@@ -88,9 +88,6 @@ public class TagCommand extends AbstractCommand {
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.setXmlConfig("/org/hps/conditions/config/conditions_database_no_svt.xml");
         manager.setLogLevel(Level.ALL);
-
-        // DEBUG: Hard-coded to development connection for now.
-        manager.setConnectionResource("/org/hps/conditions/config/jlab_dev_connection.prop");
 
         // Scan through all the runs between the start and end run, inclusive.
         for (final Integer run : runNumbers) {
@@ -143,19 +140,23 @@ public class TagCommand extends AbstractCommand {
             System.out.println(record.toString());
         }
 
-        // TODO: Could have command line "Y/N" confirmation here to apply the tag.
+        // Prompt user to verify with console input.
+        boolean makeTag = true;
+        if (!dontPrompt) {
+            System.out.println("Create conditions tag " + newTag + " in database?  (Y/N)");
+            final String line = System.console().readLine();
+            if (!line.equals("Y")) {
+                makeTag = false;
+            }
+        }
 
-        // A tag will only be made if the -X was present in the command line arguments.
+        // Create the tag in the database if user verified or force option was present.
         if (makeTag) {
             try {
                 tagRecords.insert();
             } catch (ConditionsObjectException | SQLException e) {
                 throw new RuntimeException(e);
             }
-        } else {
-            System.out.println("tag was NOT applied (use -X to do this)");
         }
-
-        System.out.println("DONE!");
     }
 }
