@@ -222,8 +222,11 @@
                 <configuration>
                     <source>1.7</source>
                     <show>private</show>
+                    <nohelp>true</nohelp>
+                    <author>true</author>
+                    <detectLinks>true</detectLinks>
+                    <detectJavaApiLink>true</detectJavaApiLink>
                     <links>
-                        <link>http://docs.oracle.com/javase/7/docs/api/</link>
                         <link>http://java.freehep.org/freehep-physics/apidocs/</link>
                         <link>http://java.freehep.org/heprep/apidocs/</link>
                         <link>http://www.jdom.org/docs/apidocs/</link>
@@ -231,7 +234,7 @@
                         <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
                         <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
                     </links>
-                </configuration>
+                </configuration>                               
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
