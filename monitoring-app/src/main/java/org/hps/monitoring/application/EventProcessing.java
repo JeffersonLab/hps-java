@@ -246,13 +246,13 @@ final class EventProcessing {
      */
     synchronized void connect() throws IOException {
         // Setup the network connection if using an ET server.
-        if (usingEtServer()) {
+        if (this.usingEtServer()) {
             // Create a connection to the ET server.
             try {
                 this.logger.fine("connecting to ET system ...");
 
                 // Create the main ET system connection.
-                createEtConnection();
+                this.createEtConnection();
 
                 // FIXME: Separate event processing ET stations not currently used due to synchronization and ET issues.
 
@@ -324,8 +324,8 @@ final class EventProcessing {
     synchronized void disconnect() {
 
         // Cleanup the ET connection.
-        if (usingEtServer()) {
-            closeEtConnection();
+        if (this.usingEtServer()) {
+            this.closeEtConnection();
         }
 
         // Change application state to disconnected.
@@ -438,10 +438,10 @@ final class EventProcessing {
     void setup(final ConfigurationModel configurationModel) {
 
         // Setup LCSim from the configuration.
-        setupLcsim(configurationModel);
+        this.setupLcsim(configurationModel);
 
         // Now setup the CompositeLoop.
-        setupLoop(configurationModel);
+        this.setupLoop(configurationModel);
     }
 
     /**
@@ -484,14 +484,14 @@ final class EventProcessing {
 
             // Setup the event builder to translate from EVIO to LCIO.
             // This must happen before Driver setup so the builder's listeners are activated first!
-            createEventBuilder(configurationModel);
+            this.createEventBuilder(configurationModel);
 
             // Configure the job manager for the XML steering.
             this.sessionState.jobManager.setPerformDryRun(true);
             if (steeringType == SteeringType.RESOURCE) {
-                setupSteeringResource(steering);
+                this.setupSteeringResource(steering);
             } else if (steeringType.equals(SteeringType.FILE)) {
-                setupSteeringFile(steering);
+                this.setupSteeringFile(steering);
             }
 
             // Set conditions tag if applicable.
@@ -650,23 +650,37 @@ final class EventProcessing {
     synchronized void stop() {
 
         // Kill session watchdog thread.
-        killWatchdogThread();
+        this.killWatchdogThread();
 
         // Wake up all ET stations to unblock the system and make sure stations are detached properly.
-        if (usingEtServer()) {
-            wakeUpEtStations();
+        if (this.usingEtServer()) {
+            this.wakeUpEtStations();
         }
 
         // Stop the event processing now that ET system should be unblocked.
-        this.logger.fine("sending STOP command to loop ...");
+        this.logger.finer("sending STOP command to loop ...");
         this.sessionState.loop.execute(Command.STOP);
-        this.logger.fine("loop got command STOP");
+        this.logger.finer("loop got STOP command");
 
-        // Cleanup the event processing thread since it was told to stop now.
+        this.logger.finer("processing thread is alive: " + this.sessionState.processingThread.isAlive());
+
         try {
-            this.logger.fine("waiting for event processing thread to end ...");
+            // Give the event processing thread a chance to end cleanly.
+            this.logger.finer("waiting for event processing thread to end ...");
+            this.sessionState.processingThread.join(5000);
+            this.logger.finer("processing thread is alive: " + this.sessionState.processingThread.isAlive());
+            // this.logger.finer("event processing thread ended cleanly");
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            this.logger.finer("processing thread is alive: " + this.sessionState.processingThread.isAlive());
+            // In this case the thread needs to be interrupted and then joined.
+            this.logger.finer("interrupting event processing thread");
+            this.sessionState.processingThread.interrupt();
             this.sessionState.processingThread.join();
-            this.logger.fine("event processing thread ended");
+            this.logger.finer("event processing thread ended after interrupt");
         } catch (final InterruptedException e) {
             e.printStackTrace();
         }
@@ -681,10 +695,10 @@ final class EventProcessing {
         this.sessionState.loop = null;
 
         // Disconnect from the ET system.
-        disconnect();
+        this.disconnect();
 
         // Invalidate the event processing object so it is unusable now.
-        invalidate();
+        this.invalidate();
     }
 
     /**
