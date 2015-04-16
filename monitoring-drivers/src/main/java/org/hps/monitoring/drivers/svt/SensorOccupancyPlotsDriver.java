@@ -1,15 +1,19 @@
 package org.hps.monitoring.drivers.svt;
 
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
 
 import hep.aida.jfree.plotter.Plotter;
 import hep.aida.jfree.plotter.PlotterRegion;
@@ -21,20 +25,20 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- * This Driver makes plots of sensor occupancies across a run. It is intended to be used with the
- * monitoring system.
+ * This Driver makes plots of sensor occupancies across a run. It is intended to
+ * be used with the monitoring system.
  * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SensorOccupancyPlotsDriver extends Driver {
 
     // TODO: Add documentation
-    static {
+   static {
         hep.aida.jfree.AnalysisFactory.register();
     } 
    
-    static IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(null);
+    ITree tree; 
+    IHistogramFactory histogramFactory;
     IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
 
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
@@ -44,6 +48,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     private static final String SUBDETECTOR_NAME = "Tracker";
     private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+    
+    String rootFile = null;
 
     private int eventCount = 0;
     private int eventRefreshRate = 1;
@@ -58,13 +64,48 @@ public class SensorOccupancyPlotsDriver extends Driver {
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
+  
+    public void setRootFileName(String rootFile) { 
+        this.rootFile = rootFile; 
+    }
+    
+    private int computePlotterRegion(HpsSiSensor sensor) {
+
+        if (sensor.getLayerNumber() < 7) {
+            if (sensor.isTopLayer()) {
+                return 6 * (sensor.getLayerNumber() - 1);
+            } else {
+                return 6 * (sensor.getLayerNumber() - 1) + 1;
+            }
+        } else {
+
+            if (sensor.isTopLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    return 6 * (sensor.getLayerNumber() - 7) + 2;
+                } else {
+                    return 6 * (sensor.getLayerNumber() - 7) + 3;
+                }
+            } else if (sensor.isBottomLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    return 6 * (sensor.getLayerNumber() - 7) + 4;
+                } else {
+                    return 6 * (sensor.getLayerNumber() - 7) + 5;
+                }
+            }
+        }
+
+        return -1;
+    }
     
     protected void detectorChanged(Detector detector) {
+
+        tree = IAnalysisFactory.create().createTreeFactory().create();
+        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
         if (sensors.size() == 0) {
-            throw new RuntimeException("No sensors were found in this detector.");
+            throw new RuntimeException("There are no sensors associated with this detector");
         }
 
         plotters.put("Occupancy", plotterFactory.create("Occupancy"));
@@ -109,41 +150,26 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
                     occupancyPlots.get(sensor).fill(channel, stripOccupancy);
-                    occupancyMap.get(sensor)[channel] = 0;
-                }
-            }
-            eventCount = 0;
-        }
-    }
-
-    private int computePlotterRegion(HpsSiSensor sensor) {
-
-        if (sensor.getLayerNumber() < 7) {
-            if (sensor.isTopLayer()) {
-                return 6 * (sensor.getLayerNumber() - 1);
-            } else {
-                return 6 * (sensor.getLayerNumber() - 1) + 1;
-            }
-        } else {
-
-            if (sensor.isTopLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    return 6 * (sensor.getLayerNumber() - 7) + 2;
-                } else {
-                    return 6 * (sensor.getLayerNumber() - 7) + 3;
-                }
-            } else if (sensor.isBottomLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    return 6 * (sensor.getLayerNumber() - 7) + 4;
-                } else {
-                    return 6 * (sensor.getLayerNumber() - 7) + 5;
                 }
             }
         }
-
-        return -1;
     }
     
+    public void endOfData() { 
+       
+        if (rootFile == null) return;
+        
+        RootFileStore store = new RootFileStore(rootFile);
+        try {
+            store.open();
+            store.add(tree);
+            store.close(); 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
     IPlotterStyle createOccupancyPlotStyle(HpsSiSensor sensor) {
         // Create a default style
         IPlotterStyle style = this.plotterFactory.createPlotterStyle();
@@ -180,7 +206,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         style.legendBoxStyle().setVisible(false);
        
         // Turn off the title
-        style.titleStyle().setVisible(false);
+        //style.titleStyle().setVisible(false);
       
         style.regionBoxStyle().backgroundStyle().setOpacity(.10);
         if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("229, 114, 31, 1");
