@@ -74,7 +74,7 @@ public class EcalHitPlots extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        System.out.println("Detector changed called: "+ detector.getClass().getName());
+        //System.out.println("Detector changed called: "+ detector.getClass().getName());
         aida.tree().cd("/");
         plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
