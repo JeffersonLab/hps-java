@@ -36,22 +36,35 @@ public final class EventProcessingThread extends Thread {
         // Keep looping until the event processing is done.
         while (true) {
 
+            // System.out.println("EventProcessingThread - top of loop");
+            // System.out.println("EventProcessingThread - loop state: " + this.loop.getState());
+
             // If the loop was started and now is in the IDLE state, it means
             // that STOP was executed, so break from the processing while loop.
             if (started && this.loop.getState().equals(RecordLoop.State.IDLE)) {
+                // System.out.println("EventProcessingThread - breaking because IDLE");
                 // Stop record processing.
+                break;
+            }
+
+            if (this.isInterrupted()) {
+                // System.out.println("EventProcessingThread - breaking because interrupted");
                 break;
             }
 
             // Is the processing not paused?
             if (!this.loop.isPaused()) {
 
+                // System.out.println("EventProcessingThread - not paused");
+
                 // Set a flag to indicate that looping has started.
                 started = true;
 
                 // Loop until done, error occurs, or pause is requested.
                 // FIXME: The maximum number of records should be used here instead.
+                // System.out.println("EventProcessingThread - looping");
                 this.loop.loop(-1);
+                // System.out.println("EventProcessingThread - done looping");
             }
         }
     }
