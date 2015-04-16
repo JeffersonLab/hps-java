@@ -29,7 +29,7 @@ import org.hps.monitoring.application.model.HasConfigurationModel;
  */
 @SuppressWarnings("serial")
 abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListener, HasConfigurationModel,
-        ActionListener, AddActionListener {
+ActionListener, AddActionListener {
 
     /**
      * Default button height in pixels.
@@ -176,8 +176,8 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
      * @param values the set of values for the combo box
      * @return the JComboBox component
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected final JComboBox addComboBox(final String name, final String[] values) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected final JComboBox addComboBox(final String name, final Object[] values) {
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -209,7 +209,7 @@ abstract class AbstractFieldsPanel extends JPanel implements PropertyChangeListe
      * @param values the values for the combo box
      * @return the <code>JComboBox</code> component
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected final JComboBox addComboBoxMultiline(final String name, final String[] values) {
 
         GridBagConstraints c = new GridBagConstraints();

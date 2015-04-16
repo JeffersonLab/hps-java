@@ -102,7 +102,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
                     } else if (property.equals(ConfigurationModel.LOG_TO_FILE_PROPERTY)) {
                         JobSettingsPanel.this.logToFileCheckbox.setSelected((Boolean) value);
                     } else if (property.equals(ConfigurationModel.STEERING_TYPE_PROPERTY)) {
-                        JobSettingsPanel.this.steeringTypeComboBox.setSelectedIndex(((SteeringType) value).ordinal());
+                        JobSettingsPanel.this.steeringTypeComboBox.setSelectedItem(value);
                     } else if (property.equals(ConfigurationModel.STEERING_FILE_PROPERTY)) {
                         if (value != null) {
                             JobSettingsPanel.this.steeringFileField.setText((String) evt.getNewValue());
@@ -228,7 +228,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
     /**
      * Combo box for selecting between current file or resource for XML steering.
      */
-    private final JComboBox<?> steeringTypeComboBox;
+    private final JComboBox<SteeringType> steeringTypeComboBox;
 
     /**
      * Field for setting a user run number for conditions system activation.
@@ -265,8 +265,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         steeringFileButton.setActionCommand(Commands.CHOOSE_STEERING_FILE);
         steeringFileButton.addActionListener(this);
 
-        this.steeringTypeComboBox = this.addComboBox("Steering Type", new String[] {SteeringType.RESOURCE.name(),
-                SteeringType.FILE.name()});
+        this.steeringTypeComboBox = this.addComboBox("Steering Type", SteeringType.values());
         this.steeringTypeComboBox.setActionCommand(Commands.STEERING_TYPE_CHANGED);
         this.steeringTypeComboBox.addActionListener(this);
 
@@ -357,8 +356,8 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (Commands.DISCONNECT_ON_END_RUN_CHANGED.equals(command)) {
                 this.getConfigurationModel().setDisconnectOnEndRun(this.disconnectOnEndRunCheckBox.isSelected());
             } else if (Commands.STEERING_TYPE_CHANGED.equals(command)) {
-                this.getConfigurationModel().setSteeringType(
-                        SteeringType.valueOf((String) this.steeringTypeComboBox.getSelectedItem()));
+                this.getConfigurationModel()
+                .setSteeringType((SteeringType) this.steeringTypeComboBox.getSelectedItem());
             } else if (Commands.STEERING_RESOURCE_CHANGED.equals(command)) {
                 this.getConfigurationModel().setSteeringResource(
                         (String) this.steeringResourcesComboBox.getSelectedItem());
