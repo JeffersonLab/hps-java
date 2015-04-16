@@ -1,12 +1,14 @@
 package org.hps.users.phansson;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.ICloud1D;
 import hep.aida.IDataPointSet;
 import hep.aida.IDataPointSetFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+import hep.aida.ref.histogram.Histogram1D;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,11 +18,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.analysis.ecal.HPSMCParticlePlotsDriver;
+import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.ParticleTypeClassifier;
 import org.lcsim.geometry.Detector;
+import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -36,9 +40,12 @@ public class TruthMomentumResolutionDriver extends Driver {
     int totalTracks = 0;
     private boolean _debug = false;
     private AIDA aida = AIDA.defaultInstance();
+    double bfield;
+    double bfac;
     //private AIDAFrame pFrame;
     IAnalysisFactory af = aida.analysisFactory();
     IPlotter pPlotter;
+    IPlotter pPlotterProp;
     IPlotter pPlotter2;
     IPlotter pPlotter22;
     IPlotter pPlotter3;    
@@ -55,17 +62,19 @@ public class TruthMomentumResolutionDriver extends Driver {
     IHistogram1D hTruthMatchedNegTrackPdiff;
     IHistogram1D[] hTruthMatchedNegTrackPdiffvsP = new IHistogram1D[5];
     IDataPointSet hTruthMatchedNegTrackPres;
-    ICloud1D hTruthMatchedPosTrackPdiffPrev[] = new ICloud1D[5];
-    ICloud1D hTruthMatchedNegTrackPdiffPrev[] = new ICloud1D[5];
-    ICloud1D hNTracks;
+    IHistogram1D hTruthMatchedPosTrackPdiffPrev[] = new Histogram1D[5];
+    IHistogram1D hTruthMatchedNegTrackPdiffPrev[] = new Histogram1D[5];
+    IHistogram1D hNTracks;
     IHistogram1D trkCountVsEventPlot;
 
-    ICloud1D hNPosTracks;
-    ICloud1D hNNegTracks;
-    ICloud1D hNPositronsForTrack;
-    ICloud1D hNElectronsForTrack;
-    ICloud1D hNPositronsForTrackInv;
-    ICloud1D hNElectronsForTrackInv;
+    IHistogram1D hNPosTracks;
+    IHistogram1D hNNegTracks;
+    IHistogram1D hNPositronsForTrack;
+    IHistogram1D hNElectronsForTrack;
+    IHistogram1D hNPositronsForTrackInv;
+    IHistogram1D hNElectronsForTrackInv;
+    
+    IHistogram1D hTrackChi2;
     
     HashMap<Integer,MCParticle> mc_ele_prev = new HashMap<Integer, MCParticle>();
     HashMap<Integer,MCParticle> mc_pos_prev = new HashMap<Integer, MCParticle>();
@@ -93,8 +102,12 @@ public class TruthMomentumResolutionDriver extends Driver {
     
     public void detectorChanged(Detector detector) {
         
-     
-      
+        bfield = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 1.)).y();
+        System.out.println("b-field = " + bfield);
+        
+        
+        bfac = Constants.fieldConversion;
+        
         //pFrame = new AIDAFrame();
         //pFrame.setTitle("Truth p Plots");
         makePlots();
@@ -107,9 +120,15 @@ public class TruthMomentumResolutionDriver extends Driver {
        
     }
     
-    public double getMomentum(Track track) {
-        double[] p_vec = track.getTrackStates().get(0).getMomentum();
-        return Math.sqrt(p_vec[0]*p_vec[0] + p_vec[1]*p_vec[1] +p_vec[2]*p_vec[2]);
+    public double getPt(Track trk, double b) {
+        double R = 1.0/trk.getTrackStates().get(0).getOmega();
+        System.out.println("Omega " + trk.getTrackStates().get(0).getOmega() + " R " + R + " b " + b + " bfac " + Constants.fieldConversion);
+        return Constants.fieldConversion * b * Math.abs(R);
+    }
+    
+    public double getP(Track trk, double b) {
+        double theta = Math.atan(1.0/trk.getTrackStates().get(0).getTanLambda());
+        return getPt(trk,b) / Math.sin(theta);
     }
     
     
@@ -156,8 +175,11 @@ public class TruthMomentumResolutionDriver extends Driver {
         int[] ntrks = {0,0,0};
 
         for (Track trk : tracklist) {
-            double p = this.getMomentum(trk);
+            //Hep3Vector p_vec = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+            double p = getP(trk,bfield);
+            System.out.printf("p %f pT %f\n", p, getPt(trk,bfield));
             this.hTrackP.fill(p);
+            this.hTrackChi2.fill(trk.getChi2());
             if(this.isElectronTrack(trk)) {
                 this.hNegTrackP.fill(p);
                 if(electron!=null) {
@@ -283,7 +305,15 @@ public class TruthMomentumResolutionDriver extends Driver {
     private void makePlots() {
     
     
+        pPlotterProp = af.createPlotterFactory().create("Track recon plots");
+        pPlotterProp.show();
+        pPlotterProp.setTitle("Track recon plots");
+        pPlotterProp.createRegions(1, 2);       
+        hTrackChi2 = aida.histogram1D("Track chi2", 30, 0,10);
+        pPlotterProp.region(0).plot(hTrackChi2);
+        
         pPlotter = af.createPlotterFactory().create("Truth p Plots");
+        pPlotter.show();
         pPlotter.setTitle("Truth p Plots");
         //pFrame.addPlotter(pPlotter);
         IPlotterStyle style0 = pPlotter.style();
@@ -307,17 +337,19 @@ public class TruthMomentumResolutionDriver extends Driver {
         IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(aida.tree());
         hTruthMatchedPosTrackPres = dpsf.create("hTruthMatchedPosTrackPres", "RMS(Track p - p(e+)) q>0 vs P",2);
         hTruthMatchedNegTrackPres = dpsf.create("hTruthMatchedNegTrackPres", "RMS(Track p - p(e-)) q<0 vs P",2);
-        hNTracks = aida.cloud1D("Ntrks");
+        hNTracks = aida.histogram1D("Ntrks",6, -0.5, 5.5);
+                
+                
         trkCountVsEventPlot = aida.histogram1D("Number of Tracks vs Event Nr", 501, -0.5, 500.5);
-	trkCountVsEventPlot.annotation().addItem("xAxisLabel", "Event Number");
-        hNPosTracks = aida.cloud1D("Ntrks q>0");
-        hNNegTracks = aida.cloud1D("Ntrks q<0");    
+        trkCountVsEventPlot.annotation().addItem("xAxisLabel", "Event Number");
+        hNPosTracks = aida.histogram1D("Ntrks q>0",6, -0.5, 5.5);
+        hNNegTracks = aida.histogram1D("Ntrks q<0",6, -0.5, 5.5);    
         hElectronP = aida.histogram1D("Electron Momentum", 50, 0,4);
         hPositronP = aida.histogram1D("Positron Momentum", 50, 0,4);      
-        hNPositronsForTrack = aida.cloud1D("N positrons given track with q>0");
-        hNElectronsForTrack = aida.cloud1D("N electrons given track with q<0");
-        hNPositronsForTrackInv = aida.cloud1D("N positrons given track with q<0");
-        hNElectronsForTrackInv = aida.cloud1D("N electrons given track with q>0");
+        hNPositronsForTrack = aida.histogram1D("N positrons given track with q>0",6, -0.5, 5.5);
+        hNElectronsForTrack = aida.histogram1D("N electrons given track with q<0",6, -0.5, 5.5);
+        hNPositronsForTrackInv = aida.histogram1D("N positrons given track with q<0",6, -0.5, 5.5);
+        hNElectronsForTrackInv = aida.histogram1D("N electrons given track with q>0",6, -0.5, 5.5);
 
         
         pPlotter.region(0).plot(hTrackP);
@@ -371,8 +403,8 @@ public class TruthMomentumResolutionDriver extends Driver {
         pPlotter3.createRegions(2, 5);
         
         for(int i=0;i<5;++i) {
-            hTruthMatchedPosTrackPdiffPrev[i] = aida.cloud1D("Track p - p(e+) q>0 BC=-" + i);
-            hTruthMatchedNegTrackPdiffPrev[i] = aida.cloud1D("Track p - p(e-) q<0 BC=-" + i);
+            hTruthMatchedPosTrackPdiffPrev[i] = aida.histogram1D("Track p - p(e+) q>0 BC=-" + i, 100, -0.2,0.2);
+            hTruthMatchedNegTrackPdiffPrev[i] = aida.histogram1D("Track p - p(e-) q<0 BC=-" + i, 100, -0.2,0.2);
             pPlotter3.region(i).plot(hTruthMatchedPosTrackPdiffPrev[i]);
             pPlotter3.region(5+i).plot(hTruthMatchedNegTrackPdiffPrev[i]);
         }
