@@ -189,7 +189,7 @@ final class ConnectionSettingsPanel extends AbstractFieldsPanel {
     @Override
     public void actionPerformed(final ActionEvent e) {
         if (Commands.WAIT_MODE_CHANGED.equals(e.getActionCommand())) {
-            this.getConfigurationModel().setWaitMode(Mode.valueOf((String) this.waitModeComboBox.getSelectedItem()));
+            this.getConfigurationModel().setWaitMode(this.waitModeComboBox.getSelectedItem().toString());
         } else if (Commands.BLOCKING_CHANGED.equals(e.getActionCommand())) {
             this.getConfigurationModel().setBlocking(this.blockingCheckBox.isSelected());
         } else if (Commands.VERBOSE_CHANGED.equals(e.getActionCommand())) {

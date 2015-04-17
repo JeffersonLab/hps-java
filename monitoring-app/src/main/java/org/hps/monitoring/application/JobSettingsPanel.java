@@ -356,11 +356,10 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
             } else if (Commands.DISCONNECT_ON_END_RUN_CHANGED.equals(command)) {
                 this.getConfigurationModel().setDisconnectOnEndRun(this.disconnectOnEndRunCheckBox.isSelected());
             } else if (Commands.STEERING_TYPE_CHANGED.equals(command)) {
-                this.getConfigurationModel()
-                .setSteeringType((SteeringType) this.steeringTypeComboBox.getSelectedItem());
+                this.getConfigurationModel().setSteeringType(this.steeringTypeComboBox.getSelectedItem().toString());
             } else if (Commands.STEERING_RESOURCE_CHANGED.equals(command)) {
                 this.getConfigurationModel().setSteeringResource(
-                        (String) this.steeringResourcesComboBox.getSelectedItem());
+                        this.steeringResourcesComboBox.getSelectedItem().toString());
             } else if (Commands.LOG_LEVEL_CHANGED.equals(command)) {
                 this.getConfigurationModel().setLogLevel(Level.parse((String) this.logLevelComboBox.getSelectedItem()));
             } else if (Commands.EVENT_BUILDER_CHANGED.equals(command)) {
@@ -386,7 +385,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
                 this.getConfigurationModel().setConditionsTag((String) this.conditionsTagComboBox.getSelectedItem());
             } else if (Commands.PROCESSING_STAGE_CHANGED.equals(command)) {
                 this.getConfigurationModel().setProcessingStage(
-                        (ProcessingStage) this.processingStageComboBox.getSelectedItem());
+                        this.processingStageComboBox.getSelectedItem().toString());
             }
         } finally {
             this.getConfigurationModel().addPropertyChangeListener(this);
@@ -448,7 +447,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
             try {
                 this.checkSteeringFile(file);
                 this.getConfigurationModel().setSteeringFile(file.getCanonicalPath());
-                this.getConfigurationModel().setSteeringType(SteeringType.FILE);
+                this.getConfigurationModel().setSteeringType(SteeringType.FILE.toString());
             } catch (IOException | JDOMException e) {
                 throw new RuntimeException("Error parsing the selected steering file.", e);
             }

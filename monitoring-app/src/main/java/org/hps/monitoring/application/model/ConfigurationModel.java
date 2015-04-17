@@ -490,6 +490,11 @@ public final class ConfigurationModel extends AbstractModel {
         return CONFIG_PROPERTIES;
     }
 
+    /**
+     * Get the ET queue size.
+     *
+     * @return the ET queue size
+     */
     public Integer getQueueSize() {
         return this.configuration.getInteger(QUEUE_SIZE_PROPERTY);
     }
@@ -920,9 +925,9 @@ public final class ConfigurationModel extends AbstractModel {
      *
      * @param processingStage the processing stage to execute
      */
-    public void setProcessingStage(final ProcessingStage processingStage) {
+    public void setProcessingStage(final String processingStage) {
         final ProcessingStage oldValue = this.getProcessingStage();
-        this.configuration.set(PROCESSING_STAGE_PROPERTY, processingStage);
+        this.configuration.set(PROCESSING_STAGE_PROPERTY, ProcessingStage.valueOf(processingStage));
         this.firePropertyChange(PROCESSING_STAGE_PROPERTY, oldValue, this.getProcessingStage());
     }
 
@@ -1017,9 +1022,9 @@ public final class ConfigurationModel extends AbstractModel {
      * @param steeringType the steering type
      * @see SteeringType
      */
-    public void setSteeringType(final SteeringType steeringType) {
+    public void setSteeringType(final String steeringType) {
         final SteeringType oldValue = this.getSteeringType();
-        this.configuration.set(STEERING_TYPE_PROPERTY, steeringType.name());
+        this.configuration.set(STEERING_TYPE_PROPERTY, SteeringType.valueOf(steeringType));
         this.firePropertyChange(STEERING_TYPE_PROPERTY, oldValue, this.getSteeringType());
     }
 
@@ -1056,9 +1061,9 @@ public final class ConfigurationModel extends AbstractModel {
      *
      * @param waitMode the ET wait mode
      */
-    public void setWaitMode(final Mode waitMode) {
+    public void setWaitMode(final String waitMode) {
         final Mode oldValue = this.getWaitMode();
-        this.configuration.set(WAIT_MODE_PROPERTY, waitMode.name());
+        this.configuration.set(WAIT_MODE_PROPERTY, Mode.valueOf(waitMode));
         this.firePropertyChange(WAIT_MODE_PROPERTY, oldValue, this.getWaitMode());
     }
 
