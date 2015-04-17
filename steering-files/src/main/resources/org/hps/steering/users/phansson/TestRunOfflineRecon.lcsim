@@ -16,7 +16,6 @@
         <driver name="EcalClusterer" />
         <driver name="ReconParticle" />
         <driver name="TrackDataDriver" />
-        <driver name="SVTEventInfo" />
         <driver name="SVTHitReconstructionPlots" />
         <driver name="GBLDriver" />
         <driver name="LCIOWriter" />
@@ -58,8 +57,6 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
         <driver name="SVTHitReconstructionPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <outputPlots>SVTHitReconstructionPlots.aida</outputPlots>
-        </driver>
-        <driver name="SVTEventInfo" type="org.hps.monitoring.drivers.svt.SVTEventInfo">
         </driver>
         <driver name="GBLDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <debug>0</debug>

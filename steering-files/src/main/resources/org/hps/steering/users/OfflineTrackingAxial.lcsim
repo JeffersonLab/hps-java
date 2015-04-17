@@ -4,11 +4,8 @@
         <driver name="EventMarkerDriver" />
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
-        <!-- <driver name="SVTEventPlots"/> -->
-        <!-- <driver name="SVTPulsePlots"/> -->
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver" />
-        <!-- <driver name="SVTHitRecoPlots"/> -->
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver" />
         <driver name="LCIOWriter" />
@@ -27,17 +24,9 @@
             <fitAlgorithm>Analytic</fitAlgorithm>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver" />
-        <driver name="SVTEventPlots"
-            type="org.hps.monitoring.drivers.svt.SVTEventInfo">
-            <outputPlots>svtEventInfoPlots.aida</outputPlots>
-        </driver>
         <driver name="SVTHitRecoPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
             <outputPlots>svtHitRecoPlots.aida</outputPlots>
-        </driver>
-        <driver name="SVTPulsePlots" type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
-            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
-            <outputPlots>svtPulsePlots.aida</outputPlots>
         </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1</eventInterval>

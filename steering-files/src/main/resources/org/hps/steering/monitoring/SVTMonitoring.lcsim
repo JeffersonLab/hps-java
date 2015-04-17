@@ -3,15 +3,11 @@
     <execute>
         <driver name="EventMarkerDriver" />
         <driver name="RawTrackerHitSensorSetup" />
-        <driver name="SVTPulsePlots" />
         <driver name="RawTrackerHitFitterDriver" />
-        <driver name="SVTPulseFitPlots" />
-<!--        <driver name="SVTMonitoringPlots"/>-->
         <driver name="TrackerHitDriver" />
         <driver name="SVTHitRecoPlots" />
         <driver name="HelicalTrackHitDriver" />
         <driver name="TrackerReconDriver" />
-<!--        <driver name="SVTSimpleEventDisplay"/>-->
         <driver name="EcalRawConverter" />
         <driver name="EcalClusterer" />
         <driver name="CleanupDriver" />
@@ -48,18 +44,6 @@
         <driver name="TrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Test-4pt1.xml</strategyResource>
-        </driver>
-        <driver name="SVTSimpleEventDisplay" type="org.hps.monitoring.drivers.svt.SVTSimpleEventDisplay">
-            <inputCollection>SVTRawTrackerHits</inputCollection>
-            <singleEvent>false</singleEvent>
-        </driver>
-        <driver name="SVTMonitoringPlots" type="org.hps.monitoring.drivers.svt.SVTMonitoringPlots">
-        </driver>
-        <driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots">
-            <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
-        </driver>
-        <driver name="SVTPulsePlots" type="org.hps.monitoring.drivers.svt.SVTHitPulsePlots">
-            <rawTrackerHitCollectionName>SVTRawTrackerHits</rawTrackerHitCollectionName>
         </driver>
         <driver name="SVTHitRecoPlots" type="org.hps.monitoring.drivers.svt.SVTHitReconstructionPlots">
             <fittedTrackerHitCollectionName>SVTFittedRawTrackerHits</fittedTrackerHitCollectionName>
