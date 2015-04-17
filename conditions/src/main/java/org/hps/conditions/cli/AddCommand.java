@@ -1,7 +1,8 @@
 package org.hps.conditions.cli;
 
-import java.io.PrintStream;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -10,6 +11,7 @@ import org.hps.conditions.api.ConditionsObjectException;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.FieldValueMap;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This is a command for the conditions CLI that will add a conditions record, making a conditions set with a particular
@@ -20,9 +22,9 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 public class AddCommand extends AbstractCommand {
 
     /**
-     * For printing out messages.
+     * Setup logger.
      */
-    private final PrintStream ps = System.out;
+    private static final Logger LOGGER = LogUtil.create(AddCommand.class);
 
     /**
      * Define command line options.
@@ -50,10 +52,46 @@ public class AddCommand extends AbstractCommand {
     }
 
     /**
+     * Create a conditions record.
+     *
+     * @param runStart the run start
+     * @param runEnd the run end
+     * @param tableName the table name
+     * @param name the key name
+     * @param collectionId the collection ID
+     * @param createdBy the user name
+     * @param tag the conditions tag
+     * @param notes the text notes about the collection
+     * @return the new conditions record
+     */
+    // FIXME: Too many method parameters (max 7 is recommended).
+    private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
+            final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
+        final ConditionsRecord conditionsRecord = new ConditionsRecord();
+        final FieldValueMap fieldValues = new FieldValueMap();
+        fieldValues.put("run_start", runStart);
+        fieldValues.put("run_end", runEnd);
+        fieldValues.put("table_name", tableName);
+        fieldValues.put("name", name);
+        fieldValues.put("collection_id", collectionId);
+        fieldValues.put("created_by", createdBy);
+        if (tag != null) {
+            fieldValues.put("tag", tag);
+        }
+        if (notes != null) {
+            fieldValues.put("notes", notes);
+        }
+        conditionsRecord.setFieldValues(fieldValues);
+        fieldValues.put("created", new Date());
+        return conditionsRecord;
+    }
+
+    /**
      * Execute the command with the given arguments.
      *
      * @param arguments the command line arguments
      */
+    @Override
     final void execute(final String[] arguments) {
 
         final CommandLine commandLine = parse(arguments);
@@ -124,45 +162,10 @@ public class AddCommand extends AbstractCommand {
             }
             conditionsRecord.insert();
             manager.closeConnection(createdConnection);
-        } catch (ConditionsObjectException e) {
+        } catch (final ConditionsObjectException e) {
+            LOGGER.log(Level.SEVERE, "Error adding conditions record", e);
             throw new RuntimeException("An error occurred while adding a conditions record.", e);
         }
-        ps.println("successfully added conditions record ...");
-        ps.println(conditionsRecord);
-    }
-
-    /**
-     * Create a conditions record.
-     *
-     * @param runStart the run start
-     * @param runEnd the run end
-     * @param tableName the table name
-     * @param name the key name
-     * @param collectionId the collection ID
-     * @param createdBy the user name
-     * @param tag the conditions tag
-     * @param notes the text notes about the collection
-     * @return the new conditions record
-     */
-    // FIXME: Too many method parameters (max 7 is recommended).
-    private ConditionsRecord createConditionsRecord(final int runStart, final int runEnd, final String tableName,
-            final String name, final int collectionId, final String createdBy, final String tag, final String notes) {
-        final ConditionsRecord conditionsRecord = new ConditionsRecord();
-        final FieldValueMap fieldValues = new FieldValueMap();
-        fieldValues.put("run_start", runStart);
-        fieldValues.put("run_end", runEnd);
-        fieldValues.put("table_name", tableName);
-        fieldValues.put("name", name);
-        fieldValues.put("collection_id", collectionId);
-        fieldValues.put("created_by", createdBy);
-        if (tag != null) {
-            fieldValues.put("tag", tag);
-        }
-        if (notes != null) {
-            fieldValues.put("notes", notes);
-        }
-        conditionsRecord.setFieldValues(fieldValues);
-        fieldValues.put("created", new Date());
-        return conditionsRecord;
+        LOGGER.info("successfully added conditions record ..." + '\n' + conditionsRecord);
     }
 }

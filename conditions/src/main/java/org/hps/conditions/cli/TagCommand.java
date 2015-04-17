@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -16,6 +17,7 @@ import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * Create a conditions system tag.
@@ -28,6 +30,11 @@ public class TagCommand extends AbstractCommand {
      * The default detector name (dummy detector).
      */
     private static final String DETECTOR_NAME = "HPS-dummy-detector";
+
+    /**
+     * Setup logger.
+     */
+    private static final Logger LOGGER = LogUtil.create(TagCommand.class);
 
     /**
      * Defines command options.
@@ -135,15 +142,15 @@ public class TagCommand extends AbstractCommand {
         }
 
         // Print out all the records that were found.
-        System.out.println("found ConditionsRecords for tag " + newTag + " ...");
+        LOGGER.info("found ConditionsRecords for tag " + newTag + " ...");
         for (final ConditionsRecord record : tagRecords) {
-            System.out.println(record.toString());
+            LOGGER.info(record.toString());
         }
 
         // Prompt user to verify with console input.
         boolean makeTag = true;
         if (!dontPrompt) {
-            System.out.println("Create conditions tag " + newTag + " in database?  (Y/N)");
+            LOGGER.info("Create conditions tag " + newTag + " in database?  (Y/N)");
             final String line = System.console().readLine();
             if (!line.equals("Y")) {
                 makeTag = false;

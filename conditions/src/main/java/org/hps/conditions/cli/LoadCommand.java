@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.QueryBuilder;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This is a sub-command to add conditions data using an input text file. The file should be ASCII text that is tab or
@@ -21,6 +23,7 @@ import org.hps.conditions.database.QueryBuilder;
  * exist already in the table. Otherwise, the command will fail. By default, the next collection ID will be found by the
  * conditions manager.
  * <p>
+ *
  * <pre>
  * java -cp hps-distribution-bin.jar org.hps.conditions.cli.CommandLineTool \
  *     -p conditions_dev_local.properties load -t scratch_svt_gains -f ./scratch_svt_gains.txt -c 1
@@ -29,6 +32,11 @@ import org.hps.conditions.database.QueryBuilder;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 class LoadCommand extends AbstractCommand {
+
+    /**
+     * Setup logger.
+     */
+    private static final Logger LOGGER = LogUtil.create(LoadCommand.class);
 
     /**
      * Define command options.
@@ -62,7 +70,7 @@ class LoadCommand extends AbstractCommand {
         if (fileName == null) {
             throw new IllegalArgumentException("Missing file argument.");
         }
-        if (!(new File(fileName)).exists()) {
+        if (!new File(fileName).exists()) {
             throw new IllegalArgumentException("Input file does not exist: " + fileName);
         }
 
@@ -95,24 +103,24 @@ class LoadCommand extends AbstractCommand {
 
         final String insertSql = QueryBuilder.buildInsert(tableName, collectionID, columnNames, rows);
         if (getVerbose()) {
-            System.out.println(insertSql);
+            LOGGER.info(insertSql);
         }
         // FIXME: This call should go through an object API like ConditionsObjectCollection.insert rather than the
         // manager directly.
         final List<Integer> ids = conditionsManager.updateQuery(insertSql);
-        System.out.println("Inserted " + ids.size() + " new rows into table " + tableName + " with collection_id "
+        LOGGER.info("Inserted " + ids.size() + " new rows into table " + tableName + " with collection_id "
                 + collectionID);
         conditionsManager.closeConnection(openedConnection);
     }
 
     /**
      * Parse an input text file and add column names and row data to the input lists.
+     *
      * @param fileName the name of the text file
      * @param columnNames the list of columns (modified by this method)
      * @param rows the list of rows (modified by this method)
      */
-    private final void parseFile(final String fileName, final List<String> columnNames, 
-            final List<List<String>> rows) {
+    private final void parseFile(final String fileName, final List<String> columnNames, final List<List<String>> rows) {
         final File inputFile = new File(fileName);
         BufferedReader reader = null;
         try {
@@ -134,13 +142,13 @@ class LoadCommand extends AbstractCommand {
                 }
                 rows.add(row);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }

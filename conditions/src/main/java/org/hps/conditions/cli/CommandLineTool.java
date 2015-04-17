@@ -14,7 +14,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.util.log.DefaultLogFormatter;
 import org.lcsim.util.log.LogUtil;
 
 /**
@@ -26,18 +25,16 @@ import org.lcsim.util.log.LogUtil;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-// FIXME: Print outs should use conditions manager's log settings and not boolean verbose flag.
 public class CommandLineTool {
 
     /**
      * Setup logging.
      */
-    private static final Logger LOGGER = LogUtil.create(CommandLineTool.class.getSimpleName(),
-            new DefaultLogFormatter(), Level.WARNING);
+    private static final Logger LOGGER = LogUtil.create(CommandLineTool.class);
 
     /**
      * Create a basic instance of this class.
-     * 
+     *
      * @return the instance of this class
      */
     private static CommandLineTool create() {
@@ -112,7 +109,7 @@ public class CommandLineTool {
 
     /**
      * Register a sub-command handler.
-     * 
+     *
      * @param command the sub-command handler
      */
     private void registerCommand(final AbstractCommand command) {

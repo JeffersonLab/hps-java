@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -17,6 +18,7 @@ import org.hps.conditions.api.ConditionsObjectCollection;
 import org.hps.conditions.api.ConditionsRecord.ConditionsRecordCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.database.TableMetaData;
+import org.lcsim.util.log.LogUtil;
 
 /**
  * This sub-command of the conditions CLI prints conditions conditions table data by run number to the console or
@@ -27,19 +29,24 @@ import org.hps.conditions.database.TableMetaData;
 class PrintCommand extends AbstractCommand {
 
     /**
-     * Print stream for output.
+     * Setup logger.
      */
-    private PrintStream ps = System.out;
+    private static final Logger LOGGER = LogUtil.create(PrintCommand.class);
 
     /**
-     * Flag to print row IDs.
+     * Defines command options.
      */
-    private boolean printIDs = false;
+    static Options options = new Options();
 
-    /**
-     * Flag to print out column headers.
-     */
-    private boolean printHeaders = true;
+    static {
+        options.addOption(new Option("h", false, "Show help for print command"));
+        options.addOption(new Option("t", true, "Set the table name"));
+        options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
+        options.addOption(new Option("f", true, "Write print output to a file (must be used with -t option)"));
+        options.addOption(new Option("H", false, "Suppress printing of conditions record and table info"));
+        options.addOption(new Option("d", false, "Use tabs for field delimiter instead of spaces"));
+        options.addOption(new Option("T", true, "Specify a conditions tag to use for filtering records"));
+    }
 
     /**
      * The field delimiter for print output.
@@ -50,20 +57,21 @@ class PrintCommand extends AbstractCommand {
      * Output file if printing to a file.
      */
     private File outputFile;
-    
+
     /**
-     * Defines command options.
+     * Flag to print out column headers.
      */
-    static Options options = new Options();
-    static {
-        options.addOption(new Option("h", false, "Show help for print command"));
-        options.addOption(new Option("t", true, "Set the table name"));
-        options.addOption(new Option("i", false, "Print the ID for the records (off by default)"));
-        options.addOption(new Option("f", true, "Write print output to a file (must be used with -t option)"));
-        options.addOption(new Option("H", false, "Suppress printing of conditions record and table info"));
-        options.addOption(new Option("d", false, "Use tabs for field delimiter instead of spaces"));
-        options.addOption(new Option("T", true, "Specify a conditions tag to use for filtering records"));
-    }
+    private boolean printHeaders = true;
+
+    /**
+     * Flag to print row IDs.
+     */
+    private boolean printIDs = false;
+
+    /**
+     * This is the <code>PrintStream</code> for printing the collections to the console or a file.
+     */
+    private PrintStream ps = System.out;
 
     /**
      * Class constructor.
@@ -77,6 +85,7 @@ class PrintCommand extends AbstractCommand {
      *
      * @param arguments the command line arguments
      */
+    @Override
     final void execute(final String[] arguments) {
 
         final CommandLine commandLine = parse(arguments);
@@ -107,27 +116,27 @@ class PrintCommand extends AbstractCommand {
             if (new File(path).exists()) {
                 throw new IllegalArgumentException("File already exists: " + path);
             }
-            outputFile = new File(path);
+            this.outputFile = new File(path);
             try {
-                ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputFile, false)));
-            } catch (FileNotFoundException e) {
+                this.ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(this.outputFile, false)));
+            } catch (final FileNotFoundException e) {
                 throw new IllegalArgumentException(e);
             }
         }
 
         // Print IDs in the output.
         if (commandLine.hasOption("i")) {
-            printIDs = true;
+            this.printIDs = true;
         }
 
         // Print header info. Option turns this off.
         if (commandLine.hasOption("h")) {
-            printHeaders = false;
+            this.printHeaders = false;
         }
 
         // Use tabs instead of spaces for field delimiter.
         if (commandLine.hasOption("d")) {
-            fieldDelimiter = '\t';
+            this.fieldDelimiter = '\t';
         }
 
         // List of conditions records to print.
@@ -135,11 +144,11 @@ class PrintCommand extends AbstractCommand {
 
         // Did the user specify a table to use?
         if (userConditionsKey == null) {
-            System.out.println("printing all conditions");
+            LOGGER.info("printing all conditions");
             // Use all table names if there was not one specified.
             conditionsRecords.addAll(conditionsManager.getConditionsRecords());
         } else {
-            System.out.println("printing conditions with name: " + userConditionsKey);
+            LOGGER.info("printing conditions with name: " + userConditionsKey);
             // Get records only for the user specified table name.
             conditionsRecords.addAll(conditionsManager.findConditionsRecords(userConditionsKey));
         }
@@ -152,12 +161,77 @@ class PrintCommand extends AbstractCommand {
 
         // Print the records and the data.
         printConditionsRecords(conditionsKeys);
-        ps.flush();
-        ps.close();
+        this.ps.flush();
+        this.ps.close();
 
-        if (outputFile != null) {
-            System.out.println("wrote collection data to file " + outputFile.getPath());
+        if (this.outputFile != null) {
+            LOGGER.info("wrote collection data to file " + this.outputFile.getPath());
         }
+    }
+
+    /**
+     * Print a single collection.
+     *
+     * @param collection the collection to print
+     */
+    private void printCollection(final ConditionsObjectCollection<?> collection) {
+        final StringBuffer buffer = new StringBuffer();
+        for (final Object object : collection) {
+            for (final String columnName : collection.getTableMetaData().getFieldNames()) {
+                buffer.append(((ConditionsObject) object).getFieldValue(columnName));
+                buffer.append(this.fieldDelimiter);
+            }
+            buffer.setLength(buffer.length() - 1);
+            buffer.append('\n');
+        }
+        buffer.setLength(buffer.length() - 1);
+        this.ps.print(buffer.toString());
+        this.ps.flush();
+    }
+
+    /**
+     * Print the header for a collection. This is printed to the log rather than the <code>PrintStream</code>.
+     *
+     * @param collection the collection
+     */
+    private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
+        LOGGER.info('\n' + "--------------------------------------" + '\n' + collection.getConditionsRecord()
+                + "--------------------------------------");
+    }
+
+    /**
+     * Print the list of collections.
+     *
+     * @param collectionList the list of collections
+     */
+    private void printCollections(final List<ConditionsObjectCollection<?>> collectionList) {
+        // Loop over all the collections and print them.
+        for (final ConditionsObjectCollection<?> collection : collectionList) {
+            if (this.printHeaders) {
+                printCollectionHeader(collection);
+            }
+            printColumnNames(collection.getTableMetaData());
+            printCollection(collection);
+            this.ps.println();
+        }
+        this.ps.flush();
+    }
+
+    /**
+     * Print the column names for a table.
+     *
+     * @param tableMetaData the table meta data
+     */
+    private void printColumnNames(final TableMetaData tableMetaData) {
+        if (this.printIDs) {
+            this.ps.print("id");
+            this.ps.print(this.fieldDelimiter);
+        }
+        for (final String columnName : tableMetaData.getFieldNames()) {
+            this.ps.print(columnName);
+            this.ps.print(this.fieldDelimiter);
+        }
+        this.ps.println();
     }
 
     /**
@@ -169,13 +243,14 @@ class PrintCommand extends AbstractCommand {
 
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
-        System.out.print("printing conditions sets: ");
-        for (String conditionsKey : conditionsKeys) {
-            System.out.print(conditionsKey + " ");
+        final StringBuffer sb = new StringBuffer();
+        for (final String conditionsKey : conditionsKeys) {
+            sb.append(conditionsKey + " ");
         }
-        System.out.println();
+        LOGGER.info("printing conditions sets: " + sb.toString());
+
         // Loop over the conditions keys from the conditions records.
-        for (String conditionsKey : conditionsKeys) {
+        for (final String conditionsKey : conditionsKeys) {
 
             // The list of collections to print.
             final List<ConditionsObjectCollection<?>> collectionList = new ArrayList<ConditionsObjectCollection<?>>();
@@ -198,69 +273,5 @@ class PrintCommand extends AbstractCommand {
             // Print out all the collection data to console or file.
             printCollections(collectionList);
         }
-    }
-
-    /**
-     * Print the list of collections.
-     * @param collectionList the list of collections
-     */
-    private void printCollections(final List<ConditionsObjectCollection<?>> collectionList) {
-        // Loop over all the collections and print them.
-        for (ConditionsObjectCollection<?> collection : collectionList) {
-            if (printHeaders) {
-                printCollectionHeader(collection);
-            }
-            printColumnNames(collection.getTableMetaData());
-            printCollection(collection);
-            System.out.println();
-        }
-        ps.flush();
-    }
-
-    /**
-     * Print a single collection.
-     * @param collection the collection to print
-     */
-    private void printCollection(final ConditionsObjectCollection<?> collection) {
-        final StringBuffer buffer = new StringBuffer();
-        for (Object object : collection) {
-            for (String columnName : collection.getTableMetaData().getFieldNames()) {
-                buffer.append(((ConditionsObject) object).getFieldValue(columnName));
-                buffer.append(fieldDelimiter);
-            }
-            buffer.setLength(buffer.length() - 1);
-            buffer.append('\n');
-        }
-        buffer.setLength(buffer.length() - 1);
-        ps.print(buffer.toString());
-        ps.flush();
-    }
-
-    /**
-     * Print the header for a collection.
-     * @param collection the collection
-     */
-    private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
-        System.out.println("--------------------------------------");
-        System.out.print(collection.getConditionsRecord());
-        System.out.println("--------------------------------------");
-        System.out.println();
-        System.out.flush();
-    }
-
-    /**
-     * Print the column names for a table.
-     * @param tableMetaData the table meta data
-     */
-    private void printColumnNames(final TableMetaData tableMetaData) {
-        if (printIDs) {
-            ps.print("id");
-            ps.print(fieldDelimiter);
-        }
-        for (String columnName : tableMetaData.getFieldNames()) {
-            ps.print(columnName);
-            ps.print(fieldDelimiter);
-        }
-        ps.println();
     }
 }
