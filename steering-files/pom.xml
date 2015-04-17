@@ -15,4 +15,23 @@
         <connection>scm:svn:svn://svn.freehep.org/hps/java/trunk/steering-files/</connection>
         <developerConnection>scm:svn:svn://svn.freehep.org/hps/java/trunk/steering-files/</developerConnection>
     </scm>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.lcsim</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/scripts</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.py</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
 </project>

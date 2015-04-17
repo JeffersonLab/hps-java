@@ -7,7 +7,7 @@ import re, fnmatch, os, sys, subprocess
 from sets import Set
 
 # the jar that will be run which can optionally be set as the command line argument 
-jar = "~/.m2/repository/org/hps/hps-distribution/3.1-SNAPSHOT/hps-distribution-3.1-SNAPSHOT-bin.jar"
+jar = "~/.m2/repository/org/hps/hps-distribution/${project.version}/hps-distribution-${project.version}-bin.jar"
 if len(sys.argv) > 1:
   jar = sys.argv[1]
 
