@@ -4,18 +4,13 @@
   Steering file for tracking and v0 reconstruction monitoring 
   @author Matt Graham <mgraham@slac.stanford.edu>
 -->
-    <execute>     
+    <execute>      
 <!--  the 3 drivers below are for reading out 6-sample ADC data -->
       <driver name="RawTrackerHitSensorSetup" /> 
       <driver name="RawTrackerHitFitterDriver" /> 
       <driver name="TrackerHitDriver" />  
       <driver name="HelicalTrackHitDriver" />
-<!--  SVT opening angle alignment -->
-       <driver name="TrackerL1to3ReconDriver"/> 
-       <driver name="TrackerL4to6ReconDriver"/> 
-       <driver name="SVTAlignment"/> 
-<!--  regular tracking and recon -->
-       <driver name="FullTrackerReconDriver"/> 
+       <driver name="TrackerL4to6ReconDriver"/>      
        <driver name="TrackDataDriver"/>   
        <driver name="EcalRawConverter" /> 
        <driver name="EcalClusterer" />
@@ -27,10 +22,7 @@
        <driver name="V0Monitoring"/>   
        <driver name="CleanupDriver" />
     </execute>
-    <drivers>
-         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10</eventInterval>
-        </driver>
+    <drivers>       
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Analytic</fitAlgorithm>
@@ -49,22 +41,15 @@
             <tolerance>1.0</tolerance>
             <saveAxialHits>false</saveAxialHits>
         </driver>
-        <driver name="TrackerL1to3ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
-            <debug>false</debug>
-        <trackCollectionName>L1to3Tracks</trackCollectionName>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L1-3.xml</strategyResource>
-        </driver>
+       
         <driver name="TrackerL4to6ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
         <trackCollectionName>L4to6Tracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
         </driver>
-        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
-            <debug>false</debug>
-            <trackCollectionName>MatchedTracks</trackCollectionName>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
-        </driver>
+    
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+            <trackCollectionName>L4to6Tracks</trackCollectionName>           
         </driver>
          <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
               <ecalCollectionName>EcalCalHits</ecalCollectionName>
@@ -74,21 +59,22 @@
            <debug>false</debug>
         </driver>
          <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">              
-               <useTimeCut>true</useTimeCut>
-               <logLevel>ALL</logLevel>
+               <useTimeCut>true</useTimeCut>               
         </driver>     
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
+             <trackCollectionName>L4to6Tracks</trackCollectionName>      
             <debug>false</debug>
         </driver>   
-        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">                
+        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">  
+            <trackCollectionName>L4to6Tracks</trackCollectionName>                
         </driver>
-        <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">              
+        <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">             
         </driver>
-         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">               
+         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">         
         </driver>      
-      <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">                 
-        </driver>   
-        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
+        
+        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                                
+              <trackCollectionName>L4to6Tracks</trackCollectionName>   
         </driver>
 
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
