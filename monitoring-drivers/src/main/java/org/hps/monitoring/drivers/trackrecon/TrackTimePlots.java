@@ -35,7 +35,7 @@ public class TrackTimePlots extends Driver {
     //private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String hitCollection = "StripClusterer_SiTrackerHitStrip1D";
-    private String trackCollection = "MatchedTracks";
+    private String trackCollectionName = "MatchedTracks";
     IPlotter plotter, plotter2, plotter3, plotter4, plotter5, plotter6, plotter7;
     private IHistogram1D[][] t0 = new IHistogram1D[4][12];
     private IHistogram1D[][] trackHitT0 = new IHistogram1D[4][12];
@@ -49,6 +49,10 @@ public class TrackTimePlots extends Driver {
 
     private static final String subdetectorName = "Tracker";
     int nlayers=12;
+    
+    public void setTrackCollectionName(String name){
+        this.trackCollectionName=name;
+    }
     @Override
     protected void detectorChanged(Detector detector) {
 
@@ -144,9 +148,7 @@ public class TrackTimePlots extends Driver {
         this.hitCollection = hitCollection;
     }
 
-    public void setTrackCollection(String trackCollection) {
-        this.trackCollection = trackCollection;
-    }
+  
 
     @Override
     public void process(EventHeader event) {
@@ -201,7 +203,7 @@ public class TrackTimePlots extends Driver {
         }
 //
 
-        List<Track> tracks = event.get(Track.class, trackCollection);
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track track : tracks) {
             int trackModule = -1;
             if (track.getTrackerHits().get(0).getPosition()[2] > 0)

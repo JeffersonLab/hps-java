@@ -20,7 +20,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.Track;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
@@ -35,16 +34,19 @@ import org.lcsim.util.aida.AIDA;
 public class TrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    private String helicalTrackHitCollectionName = "HelicalTrackHits";
-    private String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     private String trackCollectionName = "MatchedTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
     private String outputPlots = null;
+    private boolean debug = false;
+
+    double feeMomentumCut = 1.6;
+
     IPlotter plotter;
     IPlotter plotter22;
     IPlotter plotterECal;
+    IPlotter plotterFEE;
 
     IHistogram1D nTracks;
     IHistogram1D nhits;
@@ -62,6 +64,10 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D hdelXECal;
     IHistogram1D hdelYECal;
     IHistogram2D heVsP;
+    IHistogram1D hfeeMom;
+    IHistogram1D hfeeTheta;
+    IHistogram1D hfeePOverE;
+    IHistogram2D hfeeClustPos;
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -107,13 +113,12 @@ public class TrackingReconPlots extends Driver {
         plot(plotter22, trkz0, null, 5);
 
         plotter22.show();
-        
+
         //   ******************************************************************
         heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 2.0);
         hdelXECal = aida.histogram1D("delta X @ ECal (mm) ", 50, -15.0, 15.0);
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
-        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 2.5 ,50, 0, 2.5);
-      
+        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 2.5, 50, 0, 2.5);
 
         plotterECal = pfac.create("Cluster Matching");
         plotterECal.createRegions(2, 2);
@@ -121,8 +126,24 @@ public class TrackingReconPlots extends Driver {
         plot(plotterECal, hdelXECal, null, 1);
         plot(plotterECal, hdelYECal, null, 2);
         plot(plotterECal, heVsP, null, 3);
-      
+
         plotterECal.show();
+
+        //   ******************************************************************
+        //fix the ranges here...
+        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 2.2);
+        hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
+        hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
+        hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
+
+        plotterFEE = pfac.create("Full Energy Electrons");
+        plotterFEE.createRegions(2, 2);
+        plot(plotterFEE, hfeeMom, null, 0);
+        plot(plotterFEE, hfeeTheta, null, 1);
+        plot(plotterFEE, hfeePOverE, null, 2);
+        plot(plotterFEE, hfeeClustPos, null, 3);
+
+        plotterFEE.show();
 
     }
 
@@ -133,17 +154,8 @@ public class TrackingReconPlots extends Driver {
         this.outputPlots = output;
     }
 
-    public void setRawTrackerHitCollectionName(String rawTrackerHitCollectionName) {
-    }
-
-    public void setFittedTrackerHitCollectionName(String fittedTrackerHitCollectionName) {
-    }
-
-    public void setTrackerHitCollectionName(String trackerHitCollectionName) {
-    }
-
-    public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
-        this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
+    public void setDebug(boolean dbg) {
+        this.debug = dbg;
     }
 
     public void setTrackCollectionName(String trackCollectionName) {
@@ -153,8 +165,6 @@ public class TrackingReconPlots extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName))
-            return;
 
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             nTracks.fill(0);
@@ -165,7 +175,11 @@ public class TrackingReconPlots extends Driver {
         nTracks.fill(tracks.size());
 
         for (Track trk : tracks) {
-            Hep3Vector momentum =new BasicHep3Vector( trk.getTrackStates().get(0).getMomentum());
+            Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+            double pmag = momentum.magnitude();
+            double pt = Math.sqrt(momentum.z() * momentum.z() + momentum.y() * momentum.y());
+            double theta = Math.acos(pt / pmag);
+
             trkPx.fill(momentum.y());
             trkPy.fill(momentum.z());
             trkPz.fill(momentum.x());
@@ -179,30 +193,41 @@ public class TrackingReconPlots extends Driver {
             trklam.fill(trk.getTrackStates().get(0).getParameter(ParameterName.tanLambda.ordinal()));
             trkz0.fill(trk.getTrackStates().get(0).getParameter(ParameterName.z0.ordinal()));
 
+            if (pmag > feeMomentumCut && trk.getCharge() > 0) { //remember, hps-java track charge is opposite the real charge
+                hfeeMom.fill(momentum.magnitude());
+                hfeeTheta.fill(theta);
+            }
+
             SeedTrack stEle = (SeedTrack) trk;
             SeedCandidate seedEle = stEle.getSeedCandidate();
             HelicalTrackFit ht = seedEle.getHelix();
             HPSTrack hpstrk = new HPSTrack(ht);
             double svt_l12 = 900.00;//mm ~approximately...this doesn't matter much
             double ecal_face = 1393.00;//mm ~approximately ... this matters!  Should use typical shower depth...or, once have cluster match, use that value of Z
-            Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0,event.getDetector().getFieldMap())[0];
+            Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
-            if (clusters != null) {  
-                System.out.println("Found "+clusters.size()+ " clusters");
+            if (clusters != null) {
+                if (debug)
+                    System.out.println("Found " + clusters.size() + " clusters");
                 Cluster clust = findClosestCluster(posAtEcal, clusters);
                 if (clust != null) {
-                    System.out.println("\t\t\t Found the best clusters");
-                    Hep3Vector clusterPos=new BasicHep3Vector(clust.getPosition());
+                    if (debug)
+                        System.out.println("\t\t\t Found the best clusters");
+                    Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
                     //improve the extrapolation...use the reconstructed cluster z-position
-                    posAtEcal = hpstrk.getPositionAtZMap(svt_l12, zCluster, 5.0,event.getDetector().getFieldMap())[0];
-                    double eOverP=clust.getEnergy()/momentum.magnitude();
-                    double dx= posAtEcal.x() - clusterPos.x();
-                      double dy= posAtEcal.y() - clusterPos.y();
+                    posAtEcal = hpstrk.getPositionAtZMap(svt_l12, zCluster, 5.0, event.getDetector().getFieldMap())[0];
+                    double eOverP = clust.getEnergy() / pmag;
+                    double dx = posAtEcal.x() - clusterPos.x();
+                    double dy = posAtEcal.y() - clusterPos.y();
                     heOverP.fill(eOverP);
                     hdelXECal.fill(dx);
-                    hdelYECal.fill(dy);                  
-                    heVsP.fill(momentum.magnitude(), clust.getEnergy());
+                    hdelYECal.fill(dy);
+                    heVsP.fill(pmag, clust.getEnergy());
+                    if (pmag > feeMomentumCut && trk.getCharge() > 0) { //remember, hps-java track charge is opposite the real charge
+                        hfeePOverE.fill(pmag / clust.getEnergy());
+                        hfeeClustPos.fill(posAtEcal.x(), posAtEcal.y());
+                    }
                 }
             }
         }
