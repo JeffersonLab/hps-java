@@ -144,10 +144,10 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Sets the LCIO collection name for particle track data.
      *
-     * @param tracksCollectionName - The LCIO collection name.
+     * @param trackCollectionName - The LCIO collection name.
      */
-    public void setTracksCollectionName(String tracksCollectionName) {
-        this.tracksCollectionName = tracksCollectionName;
+    public void setTrackCollectionName(String trackCollectionName) {
+        this.trackCollectionName = trackCollectionName;
     }
 
     /**
@@ -374,8 +374,8 @@ public abstract class ReconParticleDriver extends Driver {
         // Get the set of tracks from the event. If no such collection
         // exists, initialize an empty list instead.
         List<Track> tracks;
-        if (event.hasCollection(Track.class, tracksCollectionName)) {
-            tracks = event.get(Track.class, tracksCollectionName);
+        if (event.hasCollection(Track.class, trackCollectionName)) {
+            tracks = event.get(Track.class, trackCollectionName);
         } else {
             tracks = new ArrayList<Track>(0);
         }
@@ -464,8 +464,8 @@ public abstract class ReconParticleDriver extends Driver {
         if (ecalClustersCollectionName == null) {
             ecalClustersCollectionName = "EcalClusters";
         }
-        if (tracksCollectionName == null) {
-            tracksCollectionName = "MatchedTracks";
+        if (trackCollectionName == null) {
+            trackCollectionName = "MatchedTracks";
         }
         if (finalStateParticlesColName == null) {
             finalStateParticlesColName = "FinalStateParticles";
@@ -645,7 +645,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for tracks.
      */
-    private String tracksCollectionName = "MatchedTracks";
+    private String trackCollectionName = "MatchedTracks";
     /**
      * LCIO collection name for reconstructed particles.
      */
