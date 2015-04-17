@@ -41,6 +41,10 @@ public class TrackDataDriver extends Driver {
 
     public TrackDataDriver() {
     }
+    
+    public void setTrackCollectionName(String name){
+        this.trackCollectionName=name;
+    }
 
     protected void detectorChanged(Detector detector) {
 

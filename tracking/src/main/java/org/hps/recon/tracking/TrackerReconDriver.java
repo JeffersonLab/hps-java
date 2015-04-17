@@ -1,6 +1,7 @@
 package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 
 import java.util.List;
 
@@ -103,6 +104,7 @@ public final class TrackerReconDriver extends Driver {
 
     /**
      * Set time cut.
+     *
      * @param rmsTimeCut
      */
     public void setRmsTimeCut(double rmsTimeCut) {
@@ -119,10 +121,12 @@ public final class TrackerReconDriver extends Driver {
 
         // Get B-field Y with no sign. Seed Tracker doesn't like signed B-field components.
         // FIXME Is this always right?
-        this.bfield = Math.abs((detector.getFieldMap().getField(new BasicHep3Vector(0, 0, 0)).y()));
-        if (debug) {
-            System.out.printf("%s: Set B-field to %.3f\n", this.getClass().getSimpleName(), this.bfield);
-        }
+//        this.bfield = Math.abs((detector.getFieldMap().getField(new BasicHep3Vector(0, 0, 0)).y()));
+        double zvalInTracker=500.0;//50cm...about the middle
+        Hep3Vector fieldInTracker=detector.getFieldMap().getField(new BasicHep3Vector(0, 0, zvalInTracker));
+        System.out.println("fieldInTracker at "+zvalInTracker+": Bx = "+fieldInTracker.x()+"; By = "+fieldInTracker.y()+"; Bz = "+fieldInTracker.z());      
+        this.bfield = Math.abs(fieldInTracker.y());
+        System.out.printf("%s: Set B-field to %.6f\n", this.getClass().getSimpleName(), this.bfield);
 
         initialize();
 
@@ -137,9 +141,8 @@ public final class TrackerReconDriver extends Driver {
         //
         // 1) Driver to run Seed Tracker.
         //
-        if (!strategyResource.startsWith("/")) {
+        if (!strategyResource.startsWith("/"))
             strategyResource = "/org/hps/recon/tracking/strategies/" + strategyResource;
-        }
         List<SeedStrategy> sFinallist = StrategyXMLUtils.getStrategyListFromInputStream(this.getClass().getResourceAsStream(strategyResource));
         SeedTracker stFinal = new SeedTracker(sFinallist, this._useHPSMaterialManager, this.includeMS);
         stFinal.setApplySectorBinning(_applySectorBinning);
@@ -150,16 +153,14 @@ public final class TrackerReconDriver extends Driver {
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);
-        if (debug) {
+        if (debug)
             stFinal.setDiagnostics(new SeedTrackerDiagnostics());
-        }
         // stFinal.setSectorParams(false); //this doesn't actually seem to do anything
         stFinal.setSectorParams(1, 10000);
         add(stFinal);
 
-        if (rmsTimeCut > 0) {
+        if (rmsTimeCut > 0)
             stFinal.setTrackCheck(new HitTimeTrackCheck(rmsTimeCut));
-        }
     }
 
     /**
@@ -173,11 +174,10 @@ public final class TrackerReconDriver extends Driver {
 
         // Debug printouts.
         if (debug) {
-            if (event.hasCollection(HelicalTrackHit.class, stInputCollectionName)) {
+            if (event.hasCollection(HelicalTrackHit.class, stInputCollectionName))
                 System.out.println(this.getClass().getSimpleName() + ": The HelicalTrackHit collection " + stInputCollectionName + " has " + event.get(HelicalTrackHit.class, stInputCollectionName).size() + " hits.");
-            } else {
+            else
                 System.out.println(this.getClass().getSimpleName() + ": No HelicalTrackHit collection for this event");
-            }
             // Check for Tracks.
             List<Track> tracks = event.get(Track.class, trackCollectionName);
             System.out.println(this.getClass().getSimpleName() + ": The Track collection " + trackCollectionName + " has " + tracks.size() + " tracks.");
@@ -207,9 +207,8 @@ public final class TrackerReconDriver extends Driver {
      * @param tracks The list of <code>Track</code> objects.
      */
     private void setTrackType(List<Track> tracks) {
-        for (Track track : tracks) {
+        for (Track track : tracks)
             ((BaseTrack) track).setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
-        }
     }
 
     @Override
