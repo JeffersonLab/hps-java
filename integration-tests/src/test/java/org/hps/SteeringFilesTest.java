@@ -48,6 +48,9 @@ public class SteeringFilesTest extends TestCase {
         SKIP_STEERING_FILES.add("/org/hps/steering/readout/EngineeringRun2014PresTrigSingles0.lcsim");
         SKIP_STEERING_FILES.add("/org/hps/steering/readout/EngineeringRun2014PresTrigSingles1.lcsim");
         SKIP_STEERING_FILES.add("/org/hps/steering/users/holly/EcalSimReadout.lcsim");
+        // Requires X11 for event display.
+        SKIP_STEERING_FILES.add("/org/hps/steering/monitoring/EcalMonitoringFinal.lcsim"); 
+        SKIP_STEERING_FILES.add("/org/hps/steering/monitoring/EcalLedSequenceMonitor.lcsim"); 
     }
 
     /**
