@@ -26,7 +26,7 @@ public class DeadtimePlots extends Driver {
 
 //    static final int REFRESH_RATE = 10 * 1000; // units = ms
 //    static final double DOMAIN_SIZE = 4 * 60 * 60 * 1000; // x-axis range (ms)
-    static final double DOMAIN_SIZE =  60 * 1000; // 1 minute
+      double DOMAIN_SIZE =  10 * 60 * 1000; // 10 minutes
     String scalarsName = "Scalars";
 
     int events;
@@ -35,6 +35,10 @@ public class DeadtimePlots extends Driver {
     double fcupTrg;
     StripChartUpdater updater;
     JFreeChart deadtimes;
+    
+    public void setTimeAxisRange(double width){
+        this.DOMAIN_SIZE=width;
+    }
 
     public void startOfData() {
 //        plotFactory.createStripChart(
