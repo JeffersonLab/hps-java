@@ -78,7 +78,8 @@ public class DeadtimePlots extends Driver {
     }
 
     public void endOfData() {
-        updater.stop();
+        if(updater!=null)
+            updater.stop(); 
     }
 
     class DeadtimeProvider implements ValueProvider {
