@@ -13,30 +13,33 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
-import hep.aida.jfree.plotter.Plotter;
 import hep.aida.ref.rootwriter.RootFileStore;
 
 import org.lcsim.util.Driver; 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
+import org.hps.recon.ecal.triggerbank.SSPCluster;
+import org.hps.recon.ecal.triggerbank.SSPData;
+import org.hps.recon.ecal.triggerbank.AbstractIntData;
+import org.hps.recon.ecal.triggerbank.SSPSinglesTrigger;
+import org.hps.recon.ecal.triggerbank.TIData;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 
 /**
  *  Monitoring driver that will be used when 'timing in' the SVT.
  * 
- *  @author Sho Uemura <meeg@slac.stanford.edu>
  *  @author Omar Moreno <omoreno1@ucsc.edu>
+ *  @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SvtTimingInPlots extends Driver {
 
     // TODO: Add documentation
-    // TODO: Set plot styles
 
     static {
         hep.aida.jfree.AnalysisFactory.register();
@@ -57,12 +60,27 @@ public class SvtTimingInPlots extends Driver {
     protected Map<SiSensor, IHistogram2D> t0vChi2Plots = new HashMap<SiSensor, IHistogram2D>(); 
     protected Map<SiSensor, IHistogram2D> chi2vAmpPlots = new HashMap<SiSensor, IHistogram2D>();
     
-    String rootFile = "default.root";
-   
+    String rootFile = null;
+    
+    // Collection names
+    String fittedHitsCollectioName = "SVTFittedRawTrackerHits";
+    String triggerBankCollectionName = "TriggerBank"; 
+    
     boolean batchMode = false; 
+    boolean isSingleClusterTrigger = false;
+    boolean isEcalTopCluster = false;
+    boolean enableTriggerFilter = false;
     
     public void setBatchMode(boolean batchMode) { 
         this.batchMode = batchMode; 
+    }
+    
+    public void setUseTriggerFilter(boolean enableTriggerFilter) { 
+       this.enableTriggerFilter = enableTriggerFilter; 
+    }
+   
+    public void setRootFileName(String rootFile) { 
+        this.rootFile = rootFile; 
     }
     
     private int computePlotterRegion(HpsSiSensor sensor) {
@@ -168,9 +186,9 @@ public class SvtTimingInPlots extends Driver {
                 plotters.get("L1-L3 t0").region(this.computePlotterRegion(sensor))
                                         .plot(t0Plots.get(sensor), this.createStyle("t0 [ns]", ""));
                 plotters.get("L1-L3 Amplitude").region(this.computePlotterRegion(sensor))
-                                               .plot(amplitudePlots.get(sensor), this.createStyle("Amplitude [ADC Counts] ", ""));
+                                               .plot(amplitudePlots.get(sensor), this.createStyle(sensor, "Amplitude [ADC Counts] ", ""));
                 plotters.get("L1-L3 Chi^2 Probability").region(this.computePlotterRegion(sensor))
-                                               .plot(chi2Plots.get(sensor), this.createStyle("#chi^{2} Probability", ""));
+                                               .plot(chi2Plots.get(sensor), this.createStyle(sensor, "#chi^{2} Probability", ""));
                 plotters.get("L1-L3 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
                                                      .plot(t0vAmpPlots.get(sensor), this.createStyle("t0 [ns]", "Amplitude [ADC Counts]"));
                 plotters.get("L1-L3 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
@@ -178,16 +196,16 @@ public class SvtTimingInPlots extends Driver {
                 plotters.get("L1-L3 Chi^2 Prob. vs Amplitude").region(this.computePlotterRegion(sensor))
                                                      .plot(chi2vAmpPlots.get(sensor), this.createStyle("#chi^{2} Probability","Amplitude [ADC Counts]"));
                plotters.get("L1-L3 Max Sample Number").region(this.computePlotterRegion(sensor))
-                                                      .plot(maxSampleNumberPerSensorPlots.get(sensor), this.createStyle("Max Sample Number", ""));
+                                                      .plot(maxSampleNumberPerSensorPlots.get(sensor), this.createStyle(sensor, "Max Sample Number", ""));
                plotters.get("L1-L3 Max Sample Number - Opposite").region(this.computePlotterRegion(sensor))
-                                                      .plot(maxSampleNumberPerSensorOppPlots.get(sensor),this.createStyle("Max Sample Number", ""));
+                                                      .plot(maxSampleNumberPerSensorOppPlots.get(sensor),this.createStyle(sensor, "Max Sample Number", ""));
             } else {
                 plotters.get("L4-L6 t0").region(this.computePlotterRegion(sensor))
-                                        .plot(t0Plots.get(sensor), this.createStyle("t0 [ns]", ""));
+                                        .plot(t0Plots.get(sensor), this.createStyle(sensor, "t0 [ns]", ""));
                 plotters.get("L4-L6 Amplitude").region(this.computePlotterRegion(sensor))
-                                               .plot(amplitudePlots.get(sensor), this.createStyle("Amplitude [ADC Counts] ", ""));
+                                               .plot(amplitudePlots.get(sensor), this.createStyle(sensor, "Amplitude [ADC Counts] ", ""));
                 plotters.get("L4-L6 Chi^2 Probability").region(this.computePlotterRegion(sensor))
-                                                       .plot(chi2Plots.get(sensor),  this.createStyle("#chi^{2} Probability", ""));
+                                                       .plot(chi2Plots.get(sensor),  this.createStyle(sensor, "#chi^{2} Probability", ""));
                 plotters.get("L4-L6 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
                                                      .plot(t0vAmpPlots.get(sensor), this.createStyle("t0 [ns]", "Amplitude [ADC Counts]"));
                 plotters.get("L4-L6 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
@@ -195,17 +213,16 @@ public class SvtTimingInPlots extends Driver {
                 plotters.get("L4-L6 Chi^2 Prob. vs Amplitude").region(this.computePlotterRegion(sensor))
                                                               .plot(chi2vAmpPlots.get(sensor), this.createStyle("#chi^{2} Probability","Amplitude [ADC Counts]"));
                 plotters.get("L4-L6 Max Sample Number").region(this.computePlotterRegion(sensor))
-                                                       .plot(maxSampleNumberPerSensorPlots.get(sensor), this.createStyle("Max Sample Number", ""));
+                                                       .plot(maxSampleNumberPerSensorPlots.get(sensor), this.createStyle(sensor, "Max Sample Number", ""));
                 plotters.get("L4-L6 Max Sample Number - Opposite").region(this.computePlotterRegion(sensor))
-                                                       .plot(maxSampleNumberPerSensorOppPlots.get(sensor), this.createStyle("Max Sample Number", ""));
+                                                       .plot(maxSampleNumberPerSensorOppPlots.get(sensor), this.createStyle(sensor, "Max Sample Number", ""));
             }
         }
        
        maxSampleNumberPerVolumePlots.put("Top", histogramFactory.createHistogram1D("SVT Top - Max Sample Number", 6, 0, 6));
        maxSampleNumberPerVolumePlots.put("Bottom", histogramFactory.createHistogram1D("SVT Bottom - Max Sample Number", 6, 0, 6));
-       plotters.get("Max Sample Per Volume").region(0).plot(maxSampleNumberPerVolumePlots.get("Top"));
-       plotters.get("Max Sample Per Volume").region(1).plot(maxSampleNumberPerVolumePlots.get("Bottom"));
-       
+       plotters.get("Max Sample Per Volume").region(0).plot(maxSampleNumberPerVolumePlots.get("Top"), this.createStyle("Max Sample Number - Top SVT Hits", ""));
+       plotters.get("Max Sample Per Volume").region(1).plot(maxSampleNumberPerVolumePlots.get("Bottom"), this.createStyle("Max Sample Number - SVT Bottom Hits", ""));
 
        if (batchMode) return;
         
@@ -215,22 +232,86 @@ public class SvtTimingInPlots extends Driver {
     }
     
     public void process(EventHeader event) { 
-        
+       
+        // If the event doesn't have a collection of fitted SVT raw hits, skip
+        // it.
         if (!event.hasCollection(LCRelation.class, "SVTFittedRawTrackerHits"))
             return;
+      
+        // If the event has a collection of trigger banks, get them and extract
+        // the trigger information for the event.
+        isSingleClusterTrigger = false;
+        isEcalTopCluster = false;
+        List<SSPCluster> clusters = null;
+        SSPData sspData = null;
+		/*if(event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
+		
+		    // Get the list of trigger banks from the event
+			List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
+
+			System.out.println("Total trigger banks: " + triggerBanks.size());
+			
+			// Loop through the collection of banks and get the SSP and TI banks.
+			for (GenericObject triggerBank : triggerBanks) { 
+			    
+			    // If the bank contains TI data, process it
+			    if (AbstractIntData.getTag(triggerBank) == TIData.BANK_TAG) { 
+			        
+			        TIData tiData = new TIData(triggerBank);
+			      
+			        // Check if the trigger is singles
+			        if (tiData.isSingle0Trigger() || tiData.isSingle1Trigger()) { 
+			            isSingleClusterTrigger = true;
+			        } 
+			        
+			    } else if (AbstractIntData.getTag(triggerBank) == SSPData.BANK_TAG) { 
+			       
+			        sspData = new SSPData(triggerBank);
+			        
+			        clusters = sspData.getClusters();
+			        
+			        for (SSPCluster cluster : clusters) { 
+			            if (cluster.getYIndex() > 0) { 
+			                isEcalTopCluster = true;
+			            }
+			        }
+			    }
+			}
+
+			if (isSingleClusterTrigger) {
+			    System.out.println("Total number of singles triggers: " + sspData.getSinglesTriggers().size());
+			    for (SSPSinglesTrigger trigger : sspData.getSinglesTriggers()) { 
+			        System.out.println("Trigger: " + trigger.toString());
+			    }
+			    System.out.println("Total number of SSP clusters: " + clusters.size());
+			    for (SSPCluster cluster : clusters) { 
+			        System.out.println("X: " + cluster.getXIndex() + " Y: " + cluster.getYIndex() + " time: " + cluster.getTime());
+			    }
+			}
+		}*/	
         
+        // Obtain all relations between an SVT raw hit and its corresponding
+        // fit parameters.  The fit parameters are obtained from the fit to
+        // the six samples read out.
         List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
         
         for (LCRelation fittedHit : fittedHits) { 
-            
+        
+            // Obtain the SVT raw hit associated with this relation
             RawTrackerHit rawHit = (RawTrackerHit) fittedHit.getFrom();
             
+            // Obtain the HpsSiSensor associated with the raw hit
             HpsSiSensor sensor 
                 = (HpsSiSensor) rawHit.getDetectorElement();
     
-            
-            short[] adcValues = rawHit.getADCValues();
            
+            // Obtain the raw ADC samples for each of the six samples readout
+            short[] adcValues = rawHit.getADCValues();
+            
+            // Find the sample that has the largest amplitude.  This should
+            // correspond to the peak of the shaper signal if the SVT is timed
+            // in correctly.  Otherwise, the maximum sample value will default 
+            // to 0.
             int maxAmplitude = 0;
             int maxSampleNumber = -1;
             for (int sampleN = 0; sampleN < 6; sampleN++) { 
@@ -239,16 +320,31 @@ public class SvtTimingInPlots extends Driver {
                     maxSampleNumber = sampleN; 
                 }
             }
-
-            // WARNING: This is only meant to be used when running with clusters
-            //          which are purely top clusters
-            if (sensor.isTopLayer()) { 
-                maxSampleNumberPerSensorPlots.get(sensor).fill(maxSampleNumber);
-                maxSampleNumberPerVolumePlots.get("Top").fill(maxSampleNumber);
+           
+            if (enableTriggerFilter) {
+                if (isSingleClusterTrigger) { 
+                    if (isEcalTopCluster && sensor.isTopLayer()) { 
+                        maxSampleNumberPerSensorPlots.get(sensor).fill(maxSampleNumber);
+                        maxSampleNumberPerVolumePlots.get("Top").fill(maxSampleNumber);
+                    } else if (isEcalTopCluster && sensor.isBottomLayer()) { 
+                        maxSampleNumberPerSensorOppPlots.get(sensor).fill(maxSampleNumber); 
+                    } else if (!isEcalTopCluster && sensor.isTopLayer()) {
+                        maxSampleNumberPerSensorOppPlots.get(sensor).fill(maxSampleNumber); 
+                    } else if (!isEcalTopCluster && sensor.isBottomLayer()) { 
+                        maxSampleNumberPerSensorPlots.get(sensor).fill(maxSampleNumber);
+                        maxSampleNumberPerVolumePlots.get("Bottom").fill(maxSampleNumber);
+                    } 
+                }
             } else { 
-                maxSampleNumberPerSensorOppPlots.get(sensor).fill(maxSampleNumber);
-                maxSampleNumberPerVolumePlots.get("Bottom").fill(maxSampleNumber);
+                if (sensor.isTopLayer()) { 
+                    maxSampleNumberPerSensorPlots.get(sensor).fill(maxSampleNumber);
+                    maxSampleNumberPerVolumePlots.get("Top").fill(maxSampleNumber);
+                } else { 
+                    maxSampleNumberPerSensorPlots.get(sensor).fill(maxSampleNumber);
+                    maxSampleNumberPerVolumePlots.get("Bottom").fill(maxSampleNumber);
+                }
             }
+            
             
             double t0 = FittedRawTrackerHit.getT0(fittedHit);
             t0Plots.get(sensor).fill(t0);
@@ -268,9 +364,10 @@ public class SvtTimingInPlots extends Driver {
     
     @Override
     public void endOfData() { 
+        
+        if (rootFile == null) return;
         RootFileStore store = new RootFileStore(rootFile);
         try {
-            //tree.commit();
             store.open();
             store.add(tree);
             store.close(); 
@@ -299,10 +396,10 @@ public class SvtTimingInPlots extends Driver {
         
         // Set the style of the data
         style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(true);
+        style.dataStyle().outlineStyle().setVisible(false);
         style.dataStyle().outlineStyle().setThickness(3);
         style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setOpacity(.10);
+        style.dataStyle().fillStyle().setOpacity(.30);
         style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
         style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
         style.dataStyle().errorBarStyle().setVisible(false);
@@ -310,11 +407,20 @@ public class SvtTimingInPlots extends Driver {
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
        
-        // Turn off the title
-        style.titleStyle().setVisible(false);
-        
         return style;
     }
     
-    
+    IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) { 
+        IPlotterStyle style = this.createStyle(xAxisTitle, yAxisTitle);
+        
+        if (sensor.isTopLayer()) { 
+            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
+            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
+        } else { 
+            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
+            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
+        }
+        
+        return style;
+    }
 }
