@@ -53,7 +53,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     private int eventCount = 0;
     private int eventRefreshRate = 1;
-
+    private int runNumber = -1; 
+    
     public SensorOccupancyPlotsDriver() {
     }
 
@@ -65,10 +66,6 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.eventRefreshRate = eventRefreshRate;
     }
   
-    public void setRootFileName(String rootFile) { 
-        this.rootFile = rootFile; 
-    }
-    
     private int computePlotterRegion(HpsSiSensor sensor) {
 
         if (sensor.getLayerNumber() < 7) {
@@ -129,6 +126,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     public void process(EventHeader event) {
 
+        if (runNumber == -1) runNumber = event.getRunNumber();
+        
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
             return;
 
@@ -156,9 +155,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
     }
     
     public void endOfData() { 
-       
-        if (rootFile == null) return;
-        
+      
+        rootFile = "run" + runNumber + "_occupancy.root";
         RootFileStore store = new RootFileStore(rootFile);
         try {
             store.open();
@@ -205,9 +203,6 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // Turn off the legend
         style.legendBoxStyle().setVisible(false);
        
-        // Turn off the title
-        //style.titleStyle().setVisible(false);
-      
         style.regionBoxStyle().backgroundStyle().setOpacity(.10);
         if (sensor.isAxial()) style.regionBoxStyle().backgroundStyle().setColor("229, 114, 31, 1");
         
