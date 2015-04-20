@@ -40,10 +40,11 @@ public class SvtHitCorrelations extends Driver {
 		
 		// Create top volume axial plots
 		if(taa){
-			for(int layer1 = 1; layer1 <= 5; layer1++ ){
-				for(int layer2 = 1; layer2 <= 5; layer2++){
+			for(int layer1 = 1; layer1 <= 6; layer1++ ){
+				for(int layer2 = 1; layer2 <= 6; layer2++){
 					plotName = "Top Channel Correlation: Axial Layer " + layer1 + " vs Axial Layer " + layer2;
 					plotters.add(aida.analysisFactory().createPlotterFactory().create(plotName));
+					plotters.get(nPlotters).createRegion(1);
 					plotters.get(nPlotters).region(0).plot(aida.histogram2D(plotName, 320, 0, 639, 320, 0, 639));
 					plotters.get(nPlotters).region(0).style().setParameter("hist2DStyle", "colorMap");
 					plotters.get(nPlotters).region(0).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
@@ -54,8 +55,8 @@ public class SvtHitCorrelations extends Driver {
 		}
 		
 		if(tas){
-			for(int layer1 = 1; layer1 <= 5; layer1++ ){
-				for(int layer2 = 1; layer2 <= 5; layer2++){
+			for(int layer1 = 1; layer1 <= 6; layer1++ ){
+				for(int layer2 = 1; layer2 <= 6; layer2++){
 					plotName = "Top Channel Correlation: Axial Layer " + layer1 + " vs Stereo Layer " + layer2;
 					plotters.add(aida.analysisFactory().createPlotterFactory().create(plotName));
 					plotters.get(nPlotters).region(0).plot(aida.histogram2D(plotName, 320, 0, 639, 320, 0, 639));
@@ -69,8 +70,8 @@ public class SvtHitCorrelations extends Driver {
 	
 		// Create bottom volume axial plots
 		if(baa){
-			for(int layer1 = 1; layer1 <= 5; layer1++ ){
-				for(int layer2 = 1; layer2 <= 5; layer2++){
+			for(int layer1 = 1; layer1 <= 6; layer1++ ){
+				for(int layer2 = 1; layer2 <= 6; layer2++){
 					plotName = "Bottom Channel Correlation: Axial Layer " + layer1 + " vs Axial Layer " + layer2;
 					plotters.add(aida.analysisFactory().createPlotterFactory().create(plotName));
 					plotters.get(nPlotters).region(0).plot(aida.histogram2D(plotName, 320, 0, 639, 320, 0, 639));
@@ -83,8 +84,8 @@ public class SvtHitCorrelations extends Driver {
 		}
 		
 		if(bas){
-			for(int layer1 = 1; layer1 <= 5; layer1++ ){
-				for(int layer2 = 1; layer2 <= 5; layer2++){
+			for(int layer1 = 1; layer1 <= 6; layer1++ ){
+				for(int layer2 = 1; layer2 <= 6; layer2++){
 					plotName = "Bottom Channel Correlation: Axial Layer " + layer1 + " vs Stereo Layer " + layer2;
 					plotters.add(aida.analysisFactory().createPlotterFactory().create(plotName));
 					plotters.get(nPlotters).region(0).plot(aida.histogram2D(plotName, 320, 0, 639, 320, 0, 639));
@@ -148,7 +149,7 @@ public class SvtHitCorrelations extends Driver {
 				int layer2 = (int) Math.ceil(((double) sensor2.getLayerNumber())/2);
 				int channel2 = rawHit2.getIdentifierFieldValue("strip");
 			
-				if(sensor1.isTopLayer() && sensor2.isTopLayer()){
+				if(sensor1.isTopLayer() && sensor2.isBottomLayer()){
 					if(sensor1.isAxial() && sensor2.isAxial() && taa){
 						String plotName = "Top Channel Correlation: Axial Layer " + layer1 + " vs Axial Layer " + layer2;
 						aida.histogram2D(plotName).fill(channel1, channel2);
