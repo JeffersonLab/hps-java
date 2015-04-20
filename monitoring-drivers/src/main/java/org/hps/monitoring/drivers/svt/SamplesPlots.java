@@ -9,6 +9,7 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.IPlotterStyle;
 
 import org.lcsim.util.Driver; 
 import org.lcsim.geometry.Detector;
@@ -26,7 +27,6 @@ import org.lcsim.event.RawTrackerHit;
 public class SamplesPlots extends Driver {
 
     // TODO: Add documentation
-    // TODO: Set plot styles
 	
     static {
         hep.aida.jfree.AnalysisFactory.register();
@@ -92,10 +92,10 @@ public class SamplesPlots extends Driver {
             
             if (sensor.getLayerNumber() < 7) {
                 plotters.get("L1-L3 Raw hit samples").region(this.computePlotterRegion(sensor))
-                                                     .plot(samplesPlots.get(sensor));
+                                                     .plot(samplesPlots.get(sensor), this.createStyle("Sample Number", "Amplitude [ADC Counts]"));
             } else { 
                 plotters.get("L4-L6 Raw hit samples").region(this.computePlotterRegion(sensor))
-                                                     .plot(samplesPlots.get(sensor));
+                                                     .plot(samplesPlots.get(sensor), this.createStyle("Sample Number", "Amplitude [ADC Counts]"));
             }
         }
         
@@ -122,4 +122,39 @@ public class SamplesPlots extends Driver {
     	    }
     	}
     }
+    
+    IPlotterStyle createStyle(String xAxisTitle, String yAxisTitle) { 
+       
+        // Create a default style
+        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
+        
+        // Set the style of the X axis
+        style.xAxisStyle().setLabel(xAxisTitle);
+        style.xAxisStyle().labelStyle().setFontSize(14);
+        style.xAxisStyle().setVisible(true);
+        
+        // Set the style of the Y axis
+        style.yAxisStyle().setLabel(yAxisTitle);
+        style.yAxisStyle().labelStyle().setFontSize(14);
+        style.yAxisStyle().setVisible(true);
+        
+        // Set the z axis to log scale
+        style.zAxisStyle().setScaling("log");
+        
+        // Turn off the histogram grid 
+        style.gridStyle().setVisible(false);
+        
+        // Set the style of the data
+        style.dataStyle().lineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setThickness(3);
+        style.dataStyle().fillStyle().setVisible(false);
+        style.dataStyle().errorBarStyle().setVisible(false);
+        
+        // Turn off the legend
+        style.legendBoxStyle().setVisible(true);
+       
+        return style;
+    }
+    
 }
